@@ -51,7 +51,7 @@
                     <ColumnDefinition Width="200"/>
                 </Grid.ColumnDefinitions>
                 <HorizontalStackLayout Grid.Column="0" Spacing="5" >
-                    <Image Source="{Binding PickedSongCoverImage}" 
+                    <Image Source="{Binding PickedSongCoverImage}" Margin="5,0,0,5"
                         MaximumHeightRequest="100" Aspect="AspectFill"
                         toolkit:DockLayout.DockPosition="Left" >
                     </Image>
@@ -75,8 +75,8 @@
                         Command="{Binding PlayPreviousSongCommand}" BackgroundColor="Transparent"
                         VerticalOptions="Center" ToolTipProperties.Text="Play Next"
                         HorizontalOptions="Center" />
-                    <mdc:IconButton IconData="{Binding PlayPauseImage}" HeightRequest="65" WidthRequest="60"
-                        Command="{Binding PauseResumeSongCommand}" BackgroundColor="Transparent"
+                    <mdc:IconButton IconData="{Binding PlayPauseImage}" HeightRequest="65" WidthRequest="65"
+                        Command="{Binding PauseResumeSongCommand}" 
                         VerticalOptions="Center" ToolTipProperties.Text="Play Next"
                         HorizontalOptions="Center" />
                     <mdc:IconButton IconData="{Static icon:Material.SkipNext}" HeightRequest="65" WidthRequest="60"

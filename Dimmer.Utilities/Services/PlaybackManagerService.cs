@@ -98,6 +98,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
                 };
+                
                 allSongs.Add(song);
 
                 processedFiles++;
@@ -227,11 +228,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value[_currentSongIndex];//.Clone();
             
             ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
-            
+            //string artName = new(ObservableCurrentlyPlayingSong.Artist?.Name);
+            //var cover = Path.ChangeExtension(ObservableCurrentlyPlayingSong.FilePath, ".jpg");
             await audioService.InitializeAsync(new MediaPlay() 
             { 
                 Name = ObservableCurrentlyPlayingSong.Title, 
-                Author = ObservableCurrentlyPlayingSong.Artist?.Name, 
+                //Author = artName,
+                //Image = cover,
+                //Author = ObservableCurrentlyPlayingSong.Artist?.Name, 
                 URL = ObservableCurrentlyPlayingSong.FilePath
             });
 
