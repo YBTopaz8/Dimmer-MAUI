@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MauiAudio</name>
+    </assembly>
+    <members>
+        <member name="M:MauiAudio.INativeAudioService.SetCurrentTime(System.Double)">
+            <Summary>
+             Set the current playback position (in seconds).
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.IsPlaying">
+            <Summary>
+             Gets a value indicating whether the currently loaded audio file is playing.
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.CurrentPosition">
+            <Summary>
+             Gets the current position of audio playback in seconds.
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.Duration">
+            <Summary>
+             Gets the length of audio in seconds.
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.Volume">
+            <Summary>
+             Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.Muted">
+            <summary>
+            Gets or sets the playback volume muted. false means not mute; true means mute.
+            </summary>
+        </member>
+        <member name="P:MauiAudio.INativeAudioService.Balance">
+            <Summary>
+             Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
+            </Summary>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.CurrentActivity.CrossCurrentActivity.Current">
+            <summary>
+            Current settings to use
+            </summary>
+        </member>
+        <member name="T:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation">
+            <summary>
+            Implementation for Feature
+            </summary>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.Activity">
+            <summary>
+            Gets or sets the activity.
+            </summary>
+            <value>The activity.</value>
+        </member>
+        <member name="E:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.ActivityStateChanged">
+            <summary>
+            Activity state changed event handler
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.WaitForActivityAsync(System.Threading.CancellationToken)">
+            <summary>
+            Waits for an activity to be ready
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.AppContext">
+            <summary>
+            Gets the current application context
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.Init(Android.App.Application)">
+            <summary>
+            Initialize current activity with application
+            </summary>
+            <param name="application">The main application</param>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.CurrentActivityImplementation.Init(Android.App.Activity,Android.OS.Bundle)">
+            <summary>
+            Initialize current activity with activity!
+            </summary>
+            <param name="activity">The main activity</param>
+            <param name="bundle">Bundle for activity </param>
+        </member>
+        <member name="T:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity">
+            <summary>
+            Current Activity Interface
+            </summary>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.Activity">
+            <summary>
+            Gets or sets the activity.
+            </summary>
+            <value>The activity.</value>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.AppContext">
+            <summary>
+            Gets the current Application Context.
+            </summary>
+            <value>The app context.</value>
+        </member>
+        <member name="E:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.ActivityStateChanged">
+            <summary>
+            Fires when activity state events are fired
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.WaitForActivityAsync(System.Threading.CancellationToken)">
+            <summary>
+            Waits for an activity to be ready for use
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.Init(Android.App.Application)">
+            <summary>
+            Initialize Current Activity Plugin with Application
+            </summary>
+            <param name="application"></param>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.CurrentActivity.ICurrentActivity.Init(Android.App.Activity,Android.OS.Bundle)">
+            <summary>
+            Initialize the current activity with activity and bundle
+            </summary>
+            <param name="activity"></param>
+            <param name="bundle"></param>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.OnCreate">
+            <summary>
+            On create simply detect some of our managers
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.InitMediaSession">
+            <summary>
+            Will register for the remote control client commands in audio manager
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.InitializePlayer">
+            <summary>
+            Intializes the player.
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.Play">
+            <summary>
+            Intializes the player.
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.UpdateMediaMetadataCompat(Android.Media.MediaMetadataRetriever)">
+            <summary>
+            Updates the metadata on the lock screen
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.AquireWifiLock">
+            <summary>
+            Lock the wifi so we can still stream under lock screen
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.ReleaseWifiLock">
+            <summary>
+            This will release the wifi lock if it is no longer needed
+            </summary>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.MediaPlayerService.OnDestroy">
+            <summary>
+            Properly cleanup of your player by releasing resources
+            </summary>
+        </member>
+        <member name="P:MauiAudio.Platforms.Android.RemoteControlBroadcastReceiver.ComponentName">
+            <summary>
+            gets the class name for the component
+            </summary>
+            <value>The name of the component.</value>
+        </member>
+        <member name="M:MauiAudio.Platforms.Android.RemoteControlBroadcastReceiver.OnReceive(Android.Content.Context,Android.Content.Intent)">
+            <Docs>The Context in which the receiver is running.</Docs>
+            <summary>
+            When we receive the action media button intent
+            parse the key event and tell our service what to do.
+            </summary>
+            <param name="context">Context.</param>
+            <param name="intent">Intent.</param>
+        </member>
+    </members>
+</doc>

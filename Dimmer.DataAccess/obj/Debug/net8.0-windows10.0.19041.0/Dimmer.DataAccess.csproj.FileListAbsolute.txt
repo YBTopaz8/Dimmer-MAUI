@@ -1,0 +1,15 @@
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.csproj.AssemblyReference.cache
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.AssemblyInfoInputs.cache
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.AssemblyInfo.cs
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.csproj.CoreCompileInputs.cache
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\bin\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.deps.json
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\bin\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.dll
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\bin\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.pdb
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\bin\Debug\net8.0-windows10.0.19041.0\Dimmer.Models.dll
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\bin\Debug\net8.0-windows10.0.19041.0\Dimmer.Models.pdb
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.D.393C2EFF.Up2Date
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.dll
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\refint\Dimmer.DataAccess.dll
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\Dimmer.DataAccess.pdb
+C:\Users\Yvan Brunel\source\repos\Dimmer-MAUI\Dimmer.DataAccess\obj\Debug\net8.0-windows10.0.19041.0\ref\Dimmer.DataAccess.dll
