@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<materialAttach:BottomSheetView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.NowPlayingBottomPage"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:material="clr-namespace:UraniumUI.Material.Controls;assembly=UraniumUI.Material"  
+             xmlns:materialAttach="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material" 
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"                                
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+             x:DataType="vm:HomePageVM" IsPresented="False"
+             x:Name="NowPlayingBtmPage"
+             BackgroundColor="Transparent">
+    <materialAttach:BottomSheetView.Resources>        
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+            </Style>
+
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+        </ResourceDictionary>
+    </materialAttach:BottomSheetView.Resources>
+    
+    <toolkit:DockLayout Margin="0,0" VerticalSpacing="20" BackgroundColor="Black">
+
+        <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Bottom">
+            <Label Text="down"/>
+
+            <HorizontalStackLayout>
+                <Label Text="sleep"/>
+                <Label Text="ShowLyrics"/>
+                <Label Text="Heart"/>
+                <Label Text="Options"/>
+            </HorizontalStackLayout>
+            
+        </FlexLayout>
+        
+        <Grid Margin="5,0" toolkit:DockLayout.DockPosition="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <!-- For left icon -->
+                <ColumnDefinition Width="*"/>
+                <!-- For the slider -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- For right icon -->
+            </Grid.ColumnDefinitions>
+
+            <ImageButton Grid.Column="0" Source="low_volume_d" Command="{Binding DecreaseVolumeCommand}" HorizontalOptions="Start" HeightRequest="30"/>
+            <Slider Grid.Column="1" Value="{Binding VolumeSliderValue}" MinimumTrackColor="DarkSlateBlue" Maximum="1" Minimum="0"
+    DragCompletedCommand="{Binding ChangeVolumeCommand}" HorizontalOptions="FillAndExpand"/>
+            <ImageButton Grid.Column="2" Source="high_volume_d" Command="{Binding IncreaseVolumeCommand}" HorizontalOptions="End" HeightRequest="30"/>
+        </Grid>
+
+
+        <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileFormat}"
+                toolkit:DockLayout.DockPosition="Bottom"/>
+        <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
+            toolkit:DockLayout.DockPosition="Bottom"/>
+
+
+        <Grid HorizontalOptions="FillAndExpand" VerticalOptions="Start" 
+              ColumnSpacing="10" BackgroundColor="Transparent"
+              Margin="5,0" toolkit:DockLayout.DockPosition="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ImageButton Grid.Column="0" Source="skip_backwards_d" Command="{Binding PlayPreviousSongCommand}" HeightRequest="30"/>
+            <ImageButton Grid.Column="1" Source="{Binding PlayPauseImage}" Command="{Binding PauseResumeSongCommand}" HeightRequest="30"/>
+            <ImageButton Grid.Column="2" Source="skip_forward_d" Command="{Binding PlayNextSongCommand}" HeightRequest="30"/>
+
+        </Grid>
+
+        <Label Text="{Binding TemporarilyPickedSong.Artist.Name}" toolkit:DockLayout.DockPosition="Bottom"
+        HorizontalTextAlignment="Center"/>
+
+        <Label Text="{Binding TemporarilyPickedSong.Title}" toolkit:DockLayout.DockPosition="Bottom"
+        HorizontalTextAlignment="Center" FontAttributes="Bold" FontSize="18"/>
+
+
+        <Grid BackgroundColor="Transparent" Margin="5,0" toolkit:DockLayout.DockPosition="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left-aligned Label -->
+            <Label Grid.Column="0"
+                    Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}"
+                    VerticalOptions="Center" FontSize="15"/>
+
+            <!-- Slider in the center -->
+            <Slider Grid.Column="1" VerticalOptions="Center"
+                Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+                DragCompletedCommand="{Binding SeekSongPositionCommand}"/>
+
+            <!-- Right-aligned Label -->
+            <Label Grid.Column="2" Text="{Binding PickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+            VerticalOptions="Center" Opacity="0.6" FontSize="15"/>
+        </Grid>
+        
+        
+        <!--<BoxView HeightRequest="10" BackgroundColor="Red"
+                 toolkit:DockLayout.DockPosition="Bottom"/>-->
+        <Border StrokeShape="RoundRectangle 18" Margin="1,5,1,10" BackgroundColor="Transparent"
+            StrokeThickness="0" toolkit:DockLayout.DockPosition="Bottom">
+            <Grid>
+                <Image Source="{Binding PickedSongCoverImage}" Aspect="Fill" 
+                       HeightRequest="500" Opacity="0.5"/>
+                <!-- Synced lyics Col View -->
+                <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionMode="Single" BackgroundColor="Transparent"
+                    SelectedItem="{Binding CurrentLyricPhrase}" SelectionChanged="syncCol_SelectionChanged"
+                    HeightRequest="130" Margin="10" toolkit:DockLayout.DockPosition="Top"                      
+                    x:Name="SyncedLyricsColView" HorizontalOptions="Center">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LyricPhraseModel">
+                            <Label Text="{Binding Text}" HorizontalOptions="Center" HorizontalTextAlignment="Center"
+                                FontSize="17" LineBreakMode="WordWrap"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+        
+
+    </toolkit:DockLayout>
+</materialAttach:BottomSheetView>

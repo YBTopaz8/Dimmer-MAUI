@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.AppShellMobile"
+             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarUnselectedColor="Red"
+             Shell.TabBarForegroundColor="Pink"
+             Shell.BackgroundColor="Black"
+             Shell.TabBarBackgroundColor="Violet"
+             Shell.TabBarTitleColor="Blue"
+             Shell.ForegroundColor="DarkSlateBlue"
+             FlyoutBackgroundColor="Black"
+             Shell.FlyoutBehavior="Flyout"
+       
+       >
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Label Text="{Binding Title}" HorizontalTextAlignment="Center"
+                   FontSize="22"
+                   TextColor="DarkSlateBlue"/>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+        <ShellContent Title="Home "
+                      ContentTemplate="{DataTemplate viewsM:HomePageM}"
+                      Route="MainPageM"/>
+        <ShellContent Title="Home" IsVisible="False"
+                      ContentTemplate="{DataTemplate viewsM:HomePageM}"
+                      Route="MainPageM"/>
+
+
+</Shell>

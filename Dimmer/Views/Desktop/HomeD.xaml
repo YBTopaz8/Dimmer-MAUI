@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.HomeD"             
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+             xmlns:dg="clr-namespace:Maui.DataGrid;assembly=Maui.DataGrid"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
+             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"   
+             xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
+             xmlns:icon="clr-namespace:IconPacks.IconKind;assembly=IconPacks.Material"
+             xmlns:iconCom="clr-namespace:IconPacks.IconKind;assembly=IconPacks.MaterialCommunity"
+             x:DataType="vm:HomePageVM"
+             
+             x:Name="page">
+    <!--Title="Home"-->
+    
+    <uranium:UraniumContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+
+            <MenuFlyout x:Key="SelectedSongContextMenu">
+                <MenuFlyoutItem Text="View File Explorer" 
+                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference page}}" CommandParameter="{Binding .}"/>
+                <MenuFlyoutItem Text="Delete File" 
+                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference page}}" CommandParameter="{Binding .}"/>
+            </MenuFlyout>
+        </ResourceDictionary>
+    </uranium:UraniumContentPage.Resources>
+
+    <uranium:UraniumContentPage.ToolbarItems>
+        <ToolbarItem Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
+    </uranium:UraniumContentPage.ToolbarItems>
+    <toolkit:DockLayout>
+        
+
+        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" HeightRequest="135">
+            <Slider Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+                    DragCompletedCommand="{Binding SeekSongPositionCommand}">
+            </Slider>
+            
+            <Grid ColumnSpacing="25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+                <HorizontalStackLayout Grid.Column="0" Spacing="5" >
+                    <Image Source="{Binding PickedSongCoverImage}" 
+                        MaximumHeightRequest="100" Aspect="AspectFill"
+                        toolkit:DockLayout.DockPosition="Left" >
+                    </Image>
+                    
+                    <VerticalStackLayout VerticalOptions="Center" >
+                        <Label Text="{Binding TemporarilyPickedSong.Artist.Name}" Opacity="0.6"/>
+                        <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation"/>
+                        <Label Text="{Binding TemporarilyPickedSong.PlayCount}" />
+                        <Label Text="{Binding TemporarilyPickedSong.IsPlaying}" />
+                        
+                    </VerticalStackLayout>
+
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
+                                       HorizontalOptions="Center">
+
+                    <mdc:IconButton IconData="{Static icon:Material.Replay}" BackgroundColor="Transparent"
+                                    HeightRequest="45" WidthRequest="45" ToolTipProperties.Text="Repeat"/>
+                    <mdc:IconButton IconData="{Static icon:Material.SkipPrevious}" HeightRequest="65" WidthRequest="60"
+                        Command="{Binding PlayPreviousSongCommand}" BackgroundColor="Transparent"
+                        VerticalOptions="Center" ToolTipProperties.Text="Play Next"
+                        HorizontalOptions="Center" />
+                    <mdc:IconButton IconData="{Binding PlayPauseImage}" HeightRequest="65" WidthRequest="60"
+                        Command="{Binding PauseResumeSongCommand}" BackgroundColor="Transparent"
+                        VerticalOptions="Center" ToolTipProperties.Text="Play Next"
+                        HorizontalOptions="Center" />
+                    <mdc:IconButton IconData="{Static icon:Material.SkipNext}" HeightRequest="65" WidthRequest="60"
+                        Command="{Binding PlayNextSongCommand}" BackgroundColor="Transparent"
+                        VerticalOptions="Center" ToolTipProperties.Text="Play Next"
+                        HorizontalOptions="Center" />
+                    <mdc:IconButton IconData="{Static iconCom:MaterialCommunity.Shuffle}" BackgroundColor="Transparent"
+                                    HeightRequest="45" WidthRequest="45"
+                                    ToolTipProperties.Text="Shuffle"/>
+
+                </HorizontalStackLayout>
+                <VerticalStackLayout Grid.Column="2">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
+                        <Label Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}"/>
+                        <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
+                               Opacity="0.6"/>
+                        
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout>
+                        <mdc:IconButton IconData="{Static icon:Material.VolumeDown}" BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}"/>
+                        <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
+                            DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"/>
+                        <mdc:IconButton IconData="{Static icon:Material.VolumeUp}" BackgroundColor="Transparent"
+                                        Command="{Binding IncreaseVolumeCommand}"/>
+                    </HorizontalStackLayout>
+                    
+                    <Label Text="4.5GB" HorizontalOptions="Center"/>
+                    <Label Text="1.2 Days" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+        </VerticalStackLayout>
+        
+        
+        <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
+                   Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
+                   x:Name="SearchSongSB"/>
+        <Label Text="{Binding PickedSong.FilePath}" x:Name="SongFileName" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
+               VerticalOptions="Center" HorizontalOptions="Center" />
+        <Label Text="{Binding PickedSong.PlayCount, StringFormat= '{0} Times'}" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
+               VerticalOptions="Center" HorizontalOptions="Center" />
+        <Label Text="{Binding TemporarilyPickedSong.IsPlaying, StringFormat= '{0} Playing'}" toolkit:DockLayout.DockPosition="Top"
+               IsVisible="False"
+               VerticalOptions="Center" HorizontalOptions="Center" />
+
+        <HorizontalStackLayout Spacing="5" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
+            <Label Text="{Binding TotalNumberOfSongs}" FontSize="18"
+                   FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+            <Label Text="Songs" FontSize="18"/>
+        </HorizontalStackLayout>
+
+        <!-- Synced lyics Col View -->
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionMode="Single" BackgroundColor="Transparent"
+            SelectedItem="{Binding CurrentLyricPhrase}" SelectionChanged="syncCol_SelectionChanged"
+            HeightRequest="80" Margin="10" toolkit:DockLayout.DockPosition="Top"                      
+            x:Name="SyncedLyricsColView" IsVisible="False">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <Label Text="{Binding Text}" 
+                    HorizontalOptions="Start"/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        
+        <!-- Header Grid -->
+        <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Text="Song Title" Grid.Column="0" HorizontalOptions="Center"/>
+            <Label Text="Artist" Grid.Column="1" HorizontalOptions="Center"/>
+            <mdc:IconButton IconData="{Static icon:Material.Lyrics}" Grid.Column="2" BackgroundColor="Transparent" 
+                            HeightRequest="30" ToolTipProperties.Text="Has Lyrics?"/>
+            <Label Text="Love" Grid.Column="3" HorizontalOptions="Center"/>
+            <Label Text="Duration" Grid.Column="4" HorizontalOptions="Center"/>
+            <Label Text="Bitrate" Grid.Column="5" HorizontalOptions="Center" />
+            <Label Text="File Format" Grid.Column="6" HorizontalOptions="Center"/>
+            <Label Text="Is Playing" Grid.Column="7" HorizontalOptions="Center"/>
+        </Grid>
+        <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong}" 
+                        toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
+                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged"
+                        >
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <Grid ColumnSpacing="25" Padding="8" FlyoutBase.ContextFlyout="{StaticResource SelectedSongContextMenu}">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference page}}"
+                                                  NumberOfTapsRequired="2"
+                                                  CommandParameter="{Binding .}"/>
+                        </Grid.GestureRecognizers>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                
+                                <VisualState x:Name="PointerOver">
+                                    
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="#1E1E1E"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <BoxView HeightRequest="1" BackgroundColor="#212121" Grid.ColumnSpan="8" Grid.Row="1"
+                                 />
+
+                        <Label Text="{Binding Title}" Grid.Column="0" HorizontalOptions="Start"/>
+                        <Label Text="{Binding Artist.Name}" Grid.Column="1" HorizontalOptions="Center"
+                               LineBreakMode="WordWrap"/>
+                        <Label Text="{Binding HasLyrics}" Grid.Column="2" HorizontalOptions="Center" />
+
+                        <mdc:IconButton IconData="{Binding IsFavorite, Converter={StaticResource BoolToImage}}" 
+                                        Grid.Column="3" HorizontalOptions="Center"
+                                        BackgroundColor="Transparent" Command="{Binding Source={x:Reference page},
+                                        Path=BindingContext.AddSongToFavoritesCommand}" VerticalOptions="Start"
+                                        CommandParameter="{Binding .}"/>
+                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                               Grid.Column="4" HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" HorizontalOptions="Center" />
+                        <Label Text="{Binding FileFormat}" Grid.Column="6" HorizontalOptions="Center"/>
+                        <Label Text="{Binding IsPlaying}" Grid.Column="7" HorizontalOptions="Center" />
+
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        
+    </toolkit:DockLayout>
+    <!--<cm:ContextMenuContainer BackgroundColor="Red">
+    <cm:ContextMenuContainer.MenuItems >
+        <cm:ContextMenuItem Text="Action 1" />
+        <cm:ContextMenuItem Text="Action 2"/>
+    </cm:ContextMenuContainer.MenuItems>
+
+    <cm:ContextMenuContainer.Content >
+        <Label Text="Yo!" />
+    </cm:ContextMenuContainer.Content>
+</cm:ContextMenuContainer>-->
+
+    <!--
+        <mdc:ExtendedFAB IconData="{Static icon:Material.Add}" Text="add">
+            <mdc:ExtendedFAB.ContextMenu>
+                <mdc:ContextMenu>
+                    <mdc:MenuItem Text="Action 1" />
+                    <mdc:MenuItem Text="Action 2"/>
+                </mdc:ContextMenu>
+            </mdc:ExtendedFAB.ContextMenu>
+        </mdc:ExtendedFAB>
+        <mdc:FAB IconData="{Static icon:Material.Add}"/>
+        <mdc:Chip IconData="{Static icon:Material.Filter}" Text="filter"/>
+        <mdc:ComboBox Style="{DynamicResource FilledComboBoxStyle}" FontColor="Red" LabelFontColor="Blue">
+            <mdc:MenuItem Text="item 1" />
+            <mdc:MenuItem Text="item 2" />
+        </mdc:ComboBox>
+        <mdc:ComboBox Style="{DynamicResource OutlinedComboBoxStyle}">
+            <mdc:MenuItem Text="item 1" />
+            <mdc:MenuItem Text="item 2" />
+        </mdc:ComboBox>
+
+        <mdc:TextField/>
+-->
+</uranium:UraniumContentPage>
