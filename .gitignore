@@ -187,3 +187,8 @@
 /Dimmer.Utilities/bin/Debug/net8.0-maccatalyst/Dimmer.Models.pdb
 /Dimmer.Utilities/bin/Debug/net8.0-windows10.0.19041.0/Dimmer.Models.dll
 /Dimmer.Utilities/bin/Debug/net8.0-windows10.0.19041.0/Dimmer.Models.pdb
+/MauiAudio/obj/Debug/net8.0/MauiAudio.csproj.CoreCompileInputs.cache
+/MauiAudio/obj/Debug/net8.0-windows10.0.19041.0/MauiAudio.csproj.CoreCompileInputs.cache
+/MauiAudio/obj/Debug/net8.0-android/MauiAudio.csproj.CoreCompileInputs.cache
+/MauiAudio/obj/Debug/net8.0-ios/MauiAudio.csproj.CoreCompileInputs.cache
+/MauiAudio/obj/Debug/net8.0-maccatalyst/MauiAudio.csproj.CoreCompileInputs.cache
