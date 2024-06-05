@@ -45,8 +45,9 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 #endif
         audioService.PlayNext -= AudioService_PlayNext;
         audioService.PlayNext += AudioService_PlayNext;
+        audioService.IsPlayingChanged += AudioService_PlayingChanged;
+        audioService.IsPlayingChanged -= AudioService_PlayingChanged;
         
-
         _positionTimer = new (1000);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
@@ -56,8 +57,11 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         GetReadableDuration();
     }
 
-    
-    
+    private void AudioService_PlayingChanged(object? sender, bool e)
+    {
+        Debug.WriteLine("Pause Play changed");
+    }
+
     private (List<SongsModelView> songs, Dictionary<string, ArtistModel>) LoadSongs(string folderPath, IProgress<int> loadingSongsProgress)
     {
         try
@@ -239,7 +243,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             { 
                 Name = ObservableCurrentlyPlayingSong.Title, 
                 Author = ObservableCurrentlyPlayingSong.ArtistName,
-                URL = ObservableCurrentlyPlayingSong.FilePath
+                URL= ObservableCurrentlyPlayingSong.FilePath,
+                ImageBytes = ObservableCurrentlyPlayingSong.CoverImage,
             });
 
             _currentPositionSubject.OnNext(new());
@@ -276,6 +281,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             currentPosition = audioService.CurrentPosition;
             await audioService.PauseAsync();
+            //audioService.IsPlaying = false;
             ObservableCurrentlyPlayingSong.IsPlaying = false;
 
 
@@ -448,10 +454,10 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         .ToList();
 
         _nowPlayingSubject.OnNext(SearchedSongsList);
-        GetReadableFileSize();
-        GetReadableDuration();
+        GetReadableFileSize(SearchedSongsList);
+        GetReadableDuration(SearchedSongsList);
     }
-
+    
     private string NormalizeAndCache(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -487,9 +493,17 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         GetReadableDuration();
     }
 
-    void GetReadableFileSize()
+    void GetReadableFileSize(List<SongsModelView>? songsList = null)
     {
-        long totalBytes = _nowPlayingSubject.Value.Sum(s=> s.FileSize);
+        long totalBytes;
+        if (songsList is null)
+        {
+            totalBytes = _nowPlayingSubject.Value.Sum(s => s.FileSize);
+        }
+        else
+        {
+            totalBytes = songsList.Sum(s => s.FileSize);
+        }
 
         const long MB = 1024 * 1024;
         const long GB = 1024 * MB;
@@ -504,10 +518,20 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             double totalGB = totalBytes / (double)GB;
             TotalSongsSizes = $"{totalGB:F2} GB";
         }
+        Debug.WriteLine($"Total Sizes: {TotalSongsSizes}");
     }
-    void GetReadableDuration()
+    void GetReadableDuration(List<SongsModelView>? songsList = null)
     {
-        double totalSeconds = _nowPlayingSubject.Value.Sum(s => s.DurationInSeconds);
+        double totalSeconds;
+        if (songsList is null)
+        {
+            totalSeconds = _nowPlayingSubject.Value.Sum(s => s.DurationInSeconds);
+        }
+        else
+        {
+            totalSeconds = songsList.Sum(s => s.DurationInSeconds);
+        }
+        
         const double minutes = 60;
         const double hours = 60 * minutes;
         const double days = 24 * hours;
@@ -527,6 +551,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             double totalDays = totalSeconds / days;
             TotalSongsDuration = $"{totalDays:F2} days";
         }
+
+        Debug.WriteLine($"Total Duration: {TotalSongsDuration}");
     }
 
 }

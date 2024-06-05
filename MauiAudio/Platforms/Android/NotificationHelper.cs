@@ -52,8 +52,7 @@ public static class NotificationHelper
         var description = "The count from MainActivity.";
         var channel = new NotificationChannel(CHANNEL_ID, name, NotificationImportance.Min)
         {
-            Description = description,
-            
+            Description = description,            
         };
 
         channel.SetSound(null, null);

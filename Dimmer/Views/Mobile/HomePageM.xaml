@@ -209,7 +209,7 @@
                                     DragCompletedCommand="{Binding SeekSongPositionCommand}"/>
 
                             <!-- Right-aligned Label -->
-                            <Label Grid.Column="2" Text="{Binding PickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                            <Label Grid.Column="2" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                                     VerticalOptions="Center" Opacity="0.6" FontSize="16"/>
                         </Grid>
 

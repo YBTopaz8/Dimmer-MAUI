@@ -2,16 +2,45 @@
 using Windows.Media.Playback;
 using Windows.Media;
 using Windows.Storage.Streams;
+using System.ComponentModel;
 namespace MauiAudio;
 
-public class NativeAudioService : INativeAudioService
+public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 {
     static NativeAudioService current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
     MediaPlayer mediaPlayer;
 
-    public bool IsPlaying => mediaPlayer != null
-        && mediaPlayer.CurrentState == MediaPlayerState.Playing;
+    private bool isPlaying;
+    public bool IsPlaying
+    {
+        get => isPlaying;
+        set
+        {
+            if (isPlaying != value)
+            {
+                isPlaying = value;
+                IsPlayingChanged?.Invoke(this, value);
+                OnPropertyChanged(nameof(IsPlaying));
+            }
+        }
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    //public bool IsPlaying
+    //{
+    //    get
+    //    {
+    //        return mediaPlayer != null
+    //    && mediaPlayer.CurrentState == MediaPlayerState.Playing;
+    //    }
+    //}
+
     public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
     public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
 
@@ -33,6 +62,7 @@ public class NativeAudioService : INativeAudioService
     public event EventHandler PlayEnded;
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
+    public event PropertyChangedEventHandler PropertyChanged;
 
     public async Task InitializeAsync(string audioURI)
     {
@@ -42,6 +72,7 @@ public class NativeAudioService : INativeAudioService
     public Task PauseAsync()
     {
         mediaPlayer?.Pause();
+        IsPlaying = false;
         return Task.CompletedTask;
     }
 
@@ -51,6 +82,7 @@ public class NativeAudioService : INativeAudioService
         {
             mediaPlayer.Position = TimeSpan.FromSeconds(position);
             mediaPlayer.Play();
+            IsPlaying = true;
         }
 
         return Task.CompletedTask;
@@ -75,10 +107,18 @@ public class NativeAudioService : INativeAudioService
         var props = mediaItem.GetDisplayProperties();
         
         props.Type = MediaPlaybackType.Music;
-        if (media.Name != null) props.MusicProperties.Title = media.Name;
-        if (media.Author != null) props.MusicProperties.Artist = media.Author;
-        if (media.Image != null)
-            props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(media.Image));
+
+        if (media.Name != null)
+            props.MusicProperties.Title = media.Name;
+        if (media.Author != null) 
+            props.MusicProperties.Artist = media.Author;
+        if (media.ImageBytes != null)
+        {            
+            props.Thumbnail = ConvertToRandomAccessStreamReference(media.ImageBytes);
+            
+            //props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(media.Image));
+        }
+        
         mediaItem.ApplyDisplayProperties(props);
         return mediaItem;
     }
@@ -117,6 +157,16 @@ public class NativeAudioService : INativeAudioService
     }
     private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
     {
-        IsPlayingChanged?.Invoke(sender, IsPlaying);
+        IsPlayingChanged?.Invoke(sender, IsPlaying);        
+    }
+
+    RandomAccessStreamReference ConvertToRandomAccessStreamReference(byte[] imageData)
+    {
+        using var stream = new MemoryStream(imageData);
+        var randomAccessStream = new InMemoryRandomAccessStream();
+        var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0));
+        writer.WriteBytes(imageData);
+        writer.StoreAsync().GetResults();
+        return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
     }
 }

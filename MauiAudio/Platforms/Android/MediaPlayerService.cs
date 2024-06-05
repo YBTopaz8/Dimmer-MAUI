@@ -264,7 +264,7 @@ public class MediaPlayerService : Service,
     {
         get
         {
-            cover ??= BitmapFactory.DecodeResource(Resources, Resource.Drawable.music); //TODO player_play
+            cover ??= BitmapFactory.DecodeResource(Resources, Resource.Drawable.abc_btn_check_material); //TODO player_play
             return cover;
         }
         set
@@ -354,9 +354,13 @@ public class MediaPlayerService : Service,
                 AquireWifiLock();
 
                 //Check if there's some metadata
-                if (!string.IsNullOrEmpty(mediaPlay.Image))
+                //if (!string.IsNullOrEmpty(mediaPlay.Image))
+                //{
+                //    Cover = await GetImageBitmapFromUrl(mediaPlay.Image);
+                //}
+                if (mediaPlay.ImageBytes is not null)
                 {
-                    Cover = await GetImageBitmapFromUrl(mediaPlay.Image);
+                    Cover = await GetImageBitmapFromBytesAsync(mediaPlay.ImageBytes);
                 }
                 else if (metaRetriever != null && !string.IsNullOrWhiteSpace(metaRetriever.ExtractMetadata(MetadataKey.Album)))
                 {
@@ -390,6 +394,16 @@ public class MediaPlayerService : Service,
             {
                 imageBitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
             }
+        }
+
+        return imageBitmap;
+    }
+    private async Task<Bitmap> GetImageBitmapFromBytesAsync(byte[] imageBytes)
+    {
+        Bitmap imageBitmap = null;
+        if (imageBytes != null && imageBytes.Length > 0)
+        {
+            imageBitmap = await BitmapFactory.DecodeByteArrayAsync(imageBytes, 0, imageBytes.Length);
         }
 
         return imageBitmap;
@@ -567,10 +581,9 @@ public class MediaPlayerService : Service,
         }
         else
         {
-            builder
-                .PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
-                .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
-                .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle));
+            builder.PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
+                   .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
+                   .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover as Bitmap);
 

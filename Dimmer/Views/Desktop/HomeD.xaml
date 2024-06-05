@@ -110,14 +110,12 @@
             </Grid>
         </VerticalStackLayout>
 
-
-
         <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
                    x:Name="SearchSongSB"/>
-        <Label Text="{Binding PickedSong.FilePath}" x:Name="SongFileName" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
+        <Label Text="{Binding TemporarilyPickedSong.FilePath}" x:Name="SongFileName" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
                VerticalOptions="Center" HorizontalOptions="Center" />
-        <Label Text="{Binding PickedSong.PlayCount, StringFormat= '{0} Times'}" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
+        <Label Text="{Binding TemporarilyPickedSong.PlayCount, StringFormat= '{0} Times'}" toolkit:DockLayout.DockPosition="Top" IsVisible="False"
                VerticalOptions="Center" HorizontalOptions="Center" />
         <Label Text="{Binding TemporarilyPickedSong.IsPlaying, StringFormat= '{0} Playing'}" toolkit:DockLayout.DockPosition="Top"
                IsVisible="False"
@@ -126,8 +124,10 @@
         <HorizontalStackLayout Spacing="5" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
             <Label Text="{Binding TotalNumberOfSongs}" FontSize="18"
                    FontAttributes="Bold" TextColor="DarkSlateBlue"/>
-            <Label Text="Songs" FontSize="18"/>
+            <Label Text="Songsss" FontSize="18"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+
+            <Button Text="Scroll To" Clicked="Button_Clicked"/>
         </HorizontalStackLayout>
 
         <!-- Synced lyics Col View -->

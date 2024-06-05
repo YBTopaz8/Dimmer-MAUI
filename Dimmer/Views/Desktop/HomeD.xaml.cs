@@ -53,4 +53,9 @@ public partial class HomeD : UraniumContentPage
             }
         }
     }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        SongsColView.ScrollTo(HomePageVM.PickedSong);
+    }
 }

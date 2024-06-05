@@ -67,6 +67,7 @@ public partial class HomePageVM : ObservableObject
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
         TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
+
     }
 
     [ObservableProperty]
@@ -262,8 +263,14 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs?.Clear();
             DisplayedSongs = songs.ToObservableCollection();
             TotalNumberOfSongs = songs.Count;
+            ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
+    }
+    void ReloadSizeAndDuration()
+    {
+        TotalSongsDuration = PlayBackManagerService.TotalSongsDuration;
+        TotalSongsSize = PlayBackManagerService.TotalSongsSizes;
     }
 
     [ObservableProperty]
