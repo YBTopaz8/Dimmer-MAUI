@@ -110,7 +110,6 @@ public partial class HomePageM : UraniumContentPage
     private void BringNowPlayBtmSheetDownBtn_Clicked(object sender, TouchEventArgs e)
     {
         nowPlayingBtmSheet.IsPresented = false;
-        Debug.WriteLine(HomePageVM.TemporarilyPickedSong.IsFavorite);
 
     }
 

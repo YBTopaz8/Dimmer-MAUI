@@ -130,8 +130,8 @@
                 <FlexLayout JustifyContent="SpaceBetween" x:Name="btmcontrols" BackgroundColor="Red">
                     
                     <HorizontalStackLayout Spacing="5">
-                        <Image Source="{Binding TemporarilyPickedSong.CoverImage}"
-                            HeightRequest="40" Aspect="AspectFill"/>
+                        <Image Source="{Binding PickedSongCoverImage}"
+                            HeightRequest="45" Aspect="AspectFill"/>
                         <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center"/>
                         <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
