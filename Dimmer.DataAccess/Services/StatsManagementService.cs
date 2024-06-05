@@ -48,7 +48,7 @@ public class StatsManagementService : IStatsManagementService
         try
         {
             OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Title == songTitle && s.Artist!.Name == artistName);
+            var song = db.All<SongsModel>().FirstOrDefault(s => s.Title == songTitle && s.ArtistName == artistName);
 
             if (song is null)
             {

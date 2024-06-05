@@ -20,10 +20,12 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     public void GetSongs()
     {
+        
         try
         {
             AllSongs = Enumerable.Empty<SongsModelView>().ToList();
             OpenDB();
+                        
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
             
@@ -36,7 +38,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
         
     }
-
 
     public Task<SongsModel> FindSongsByTitleAsync(string searchText)
     {
@@ -63,13 +64,9 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-            var s = AllSongs.Count;
-
-            var songs = new List<SongsModel>(songss.Select(s => new SongsModel(s)
-            {
-                Title = s.Title,
-                FilePath = s.FilePath,
-            }));
+            
+            var songs = new List<SongsModel>();
+            songs.AddRange(songss.Select(s => new SongsModel(s)));
             await db.WriteAsync(() =>
             {
 
@@ -78,15 +75,55 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                     db.Add(song);                    
                     Debug.WriteLine("Added Song " + song.Title);
                 }
-            }
-            );
+            });
             
            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
-            throw new Exception("Error when adding in Batch " + ex.Message);
+            throw new Exception("Error when adding Songs in Batch " + ex.Message);
+        }
+    }
+
+    public bool UpdateSongDetails(SongsModelView songsModelView)
+    {
+        try
+        {
+            var song = new SongsModel(songsModelView);
+            db.Write(() =>
+            {
+                db.Add(song, true);
+               
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+            throw new Exception("Error when updating song " + ex.Message);
+        }
+    }
+
+    public async Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artistss)
+    {
+        try
+        {
+            var artists = new List<ArtistModel>();
+            artists.AddRange(artistss.Select(art => new ArtistModel(art)));
+            
+            await db.WriteAsync(() =>
+            {
+                db.Add(artists);
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+            throw new Exception("Error when adding Artists in Batch " + ex.Message);
         }
     }
 
@@ -94,4 +131,5 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         db?.Dispose();
     }
+
 }

@@ -13,6 +13,8 @@ public interface IPlayBackService
     void AddSongToQueue(SongsModelView song); //to add song to queue
 
     SongsModelView CurrentlyPlayingSong { get; }
+    string TotalSongsSizes { get; }
+    string TotalSongsDuration { get; }
     
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
     void SetSongPosition(double positionFraction); // to set position from slider
@@ -23,5 +25,5 @@ public interface IPlayBackService
     void DecreaseVolume();
     void IncreaseVolume();
 
-    void AddSongToFavoritesPlayList(SongsModelView song);
+    void UpdateSongToFavoritesPlayList(SongsModelView song);
 }

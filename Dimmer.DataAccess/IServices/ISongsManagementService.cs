@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace Dimmer.DataAccess.IServices;
 public interface ISongsManagementService
@@ -10,11 +6,13 @@ public interface ISongsManagementService
     IList<SongsModelView> AllSongs { get; set; }
     Task<bool> AddSongAsync(SongsModel song);
     Task<bool> AddSongBatchAsync(IEnumerable<SongsModelView> song);
+    Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artists);
     //public Task UpdateSongAsync(SongsModel song);
     //public Task DeleteSongAsync(SongsModel song);
     void GetSongs();
     Task<SongsModel> FindSongsByTitleAsync(string searchText);
 
+    bool UpdateSongDetails(SongsModelView songsModelView);
     void Dispose();
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);

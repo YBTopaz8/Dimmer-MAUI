@@ -4,10 +4,11 @@ public class PlayListManagementService : IPlaylistManagementService
 {
     Realm db;
     public IDataBaseService DataBaseService { get; }
-    public IList<PlaylistModelDup> PlayLists { get; set; }
+    public IList<PlaylistModelView> PlayLists { get; set; }
     public PlayListManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
+        GetPlayLists();
     }
 
     Realm OpenDB()
@@ -23,8 +24,8 @@ public class PlayListManagementService : IPlaylistManagementService
         {
             OpenDB();
             var realmPlayLists = db.All<PlaylistModel>().OrderBy(x => x.DateCreated);
-            PlayLists = DetachPlayListsFromDB(realmPlayLists);
-            PlayLists ??= Enumerable.Empty<PlaylistModelDup>().ToList();
+            //PlayLists = DetachPlayListsFromDB(realmPlayLists);
+            PlayLists ??= Enumerable.Empty<PlaylistModelView>().ToList();
         }
         catch (Exception ex)
         {
@@ -32,13 +33,9 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    private IList<PlaylistModelDup> DetachPlayListsFromDB(IEnumerable<PlaylistModel> realmPlayLists)
-    {
-        return realmPlayLists.Select(playlist => playlist.Detach()).ToList();
-    }
 
 
-    public bool AddSongToPlayListWithPlayListID(SongsModel song, ObjectId playlistID)
+    public bool AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
     {
         try
         {
@@ -46,7 +43,7 @@ public class PlayListManagementService : IPlaylistManagementService
             var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
             if (specificPlaylist is not null)
             {
-                specificPlaylist.SongsID.Add(song.Id);
+                specificPlaylist.SongsIDs.Add(song.Id);
                 db.Write(() =>
                 {
                     db.Add(specificPlaylist);
@@ -65,11 +62,11 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool AddSongToPlayListWithPlayListName(SongsModel song, string playlistName)
+    public bool AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
     {
         try
         {
-            OpenDB();
+            var songmodel = new SongsModel(song);
             PlaylistModel specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Name == playlistName);
 
             db.Write(() =>
@@ -88,11 +85,11 @@ public class PlayListManagementService : IPlaylistManagementService
                     db.Add(specificPlaylist);
                 }
 
-                if (!specificPlaylist.SongsID.Contains(song.Id))
+                if (!specificPlaylist.SongsIDs.Contains(songmodel.Id))
                 {
-                    specificPlaylist.SongsID.Add(song.Id);
-                    specificPlaylist.TotalDuration += song.DurationInSeconds;
-                    specificPlaylist.TotalSize += song.FileSize;
+                    specificPlaylist.SongsIDs.Add(songmodel.Id);
+                    specificPlaylist.TotalDuration += songmodel.DurationInSeconds;
+                    specificPlaylist.TotalSize += songmodel.FileSize;
                 }
 
             });
@@ -106,4 +103,35 @@ public class PlayListManagementService : IPlaylistManagementService
             return false;
         }
     }
+    public bool RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName)
+    {
+        try
+        {
+            var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Name == playlistName);
+            if (specificPlaylist is null)
+            {
+                //Shell.Current.DisplayAlert("Error", "Playlist not found", "OK");
+                return false;
+            }
+            db.Write(() =>
+            {
+                specificPlaylist.SongsIDs.Remove(song.Id);
+                specificPlaylist.TotalDuration -= song.DurationInSeconds;
+                specificPlaylist.TotalSize -= song.FileSize;
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+            throw new Exception("Error when removing from playlist" + ex.Message);
+        }
+    }
+
+    public bool RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
+    {
+        throw new NotImplementedException();
+    }
+
 }

@@ -10,6 +10,12 @@
         <member name="P:Dimmer.Utilities.IServices.PlaybackManagerService.ObservableCurrentlyPlayingSong">
             <inheritdoc cref="F:Dimmer.Utilities.IServices.PlaybackManagerService.observableCurrentlyPlayingSong"/>
         </member>
+        <member name="P:Dimmer.Utilities.IServices.PlaybackManagerService.TotalSongsSizes">
+            <inheritdoc cref="F:Dimmer.Utilities.IServices.PlaybackManagerService.totalSongsSizes"/>
+        </member>
+        <member name="P:Dimmer.Utilities.IServices.PlaybackManagerService.TotalSongsDuration">
+            <inheritdoc cref="F:Dimmer.Utilities.IServices.PlaybackManagerService.totalSongsDuration"/>
+        </member>
         <member name="T:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs">
             <summary>
             A helper type providing cached, reusable <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instances
@@ -19,6 +25,12 @@
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.ObservableCurrentlyPlayingSong">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "ObservableCurrentlyPlayingSong" generated properties.</summary>
         </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalSongsSizes">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalSongsSizes" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangingArgs.TotalSongsDuration">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangingEventArgs"/> instance for all "TotalSongsDuration" generated properties.</summary>
+        </member>
         <member name="T:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs">
             <summary>
             A helper type providing cached, reusable <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instances
@@ -27,6 +39,12 @@
         </member>
         <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.ObservableCurrentlyPlayingSong">
             <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "ObservableCurrentlyPlayingSong" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalSongsSizes">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalSongsSizes" generated properties.</summary>
+        </member>
+        <member name="F:CommunityToolkit.Mvvm.ComponentModel.__Internals.__KnownINotifyPropertyChangedArgs.TotalSongsDuration">
+            <summary>The cached <see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> instance for all "TotalSongsDuration" generated properties.</summary>
         </member>
     </members>
 </doc>

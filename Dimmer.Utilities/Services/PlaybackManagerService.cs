@@ -18,18 +18,21 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
     [ObservableProperty]
     private SongsModelView observableCurrentlyPlayingSong;
+    [ObservableProperty]
+    string totalSongsSizes;
+    [ObservableProperty]
+    string totalSongsDuration;
     public SongsModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
 
-    public ISongsManagementService SongsMgtService { get; }
-    public IStatsManagementService StatsMgtService { get; }
-    public IPlaylistManagementService PlaylistMgtService { get; }
+    ISongsManagementService SongsMgtService { get; }
+    IStatsManagementService StatsMgtService { get; }
+    IPlaylistManagementService PlaylistMgtService { get; }
 
     int _currentSongIndex = 0;
 
     public PlaybackManagerService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistMgtService)
     {
-
         this.SongsMgtService = SongsMgtService;
         StatsMgtService = statsMgtService;
         PlaylistMgtService = playlistMgtService;
@@ -47,12 +50,15 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         _positionTimer = new (1000);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
-        var allSongs = SongsMgtService.AllSongs;
-        _nowPlayingSubject.OnNext(allSongs);
+        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
+
+        GetReadableFileSize();
+        GetReadableDuration();
     }
 
     
-    private List<SongsModelView> LoadSongs(string folderPath, IProgress<int> loadingSongsProgress)
+    
+    private (List<SongsModelView> songs, Dictionary<string, ArtistModel>) LoadSongs(string folderPath, IProgress<int> loadingSongsProgress)
     {
         try
         {
@@ -65,10 +71,11 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             
             if (allFiles.Count == 0)
             {
-                return Enumerable.Empty<SongsModelView>().ToList();
+                return (Enumerable.Empty<SongsModelView>().ToList(), new Dictionary<string, ArtistModel>());
             }
 
             var allSongs = new List<SongsModelView>();
+            var artistDict = new Dictionary<string, ArtistModel>();
             int totalFiles = allFiles.Count;
             int processedFiles = 0;
 
@@ -84,22 +91,38 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
                 Track track = new(file);
 
+                // Check if the artist already exists in the dictionary
+                if (!artistDict.TryGetValue(track.Artist, out var artist))
+                {
+                    artist = new ArtistModel ()
+                    {
+                        Name = track.Artist,
+                        ImagePath = null,                        
+                    };
+                    artistDict[track.Artist] = artist;
+                }
+
+
                 var song = new SongsModelView
                 {
                     Title = track.Title,
-                    Artist = new ArtistModel { Name = track.Artist },
-                    Album = new AlbumModel { Name = track.Album },
+                    ArtistID = artist.Id,
+                    ArtistName = artist.Name,
+                    AlbumName = track.Album, 
                     ReleaseYear = track.Year,
                     SampleRate = track.SampleRate,
                     FilePath = track.Path,
                     DurationInSeconds = track.Duration,
                     BitRate = track.Bitrate,
                     FileSize = fileInfo.Length,
+                    TrackNumber = track.TrackNumber,
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
                 };
                 
                 allSongs.Add(song);
+
+                artist.SongsIDs.Add(song.Id);
 
                 processedFiles++;
                 if (processedFiles % updateThreshold == 0 || processedFiles == totalFiles)
@@ -109,13 +132,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             }
             _nowPlayingSubject.OnNext(allSongs);
 
-            return allSongs;
+            return (allSongs, artistDict);
         }
         catch (Exception ex)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             Shell.Current.DisplayAlert("Error while scanning files", ex.Message, "OK"));
-            return Enumerable.Empty<SongsModelView>().ToList();
+            return (Enumerable.Empty<SongsModelView>().ToList(), new Dictionary<string, ArtistModel>());
+
         }
     }
     public async Task<bool> LoadSongsFromFolder(string folderPath, IProgress<int> loadingSongsProgress)
@@ -131,16 +155,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         });
 
         
-        var songss = await Task.Run(() => LoadSongs(folderPath, progress));
+        var (songs, artists) = await Task.Run(() => LoadSongs(folderPath, progress));
 
-        if (songss.Count != 0)
+        if (songs.Count != 0)
         {
-
-            await SongsMgtService.AddSongBatchAsync(songss);
+            //save songs to db to songs table
+            await SongsMgtService.AddSongBatchAsync(songs);
         }
-
         return true;
-
     }
 
 
@@ -180,24 +202,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
     }
 
-
-    void LoadSongs()
-    {
-        IList<SongsModelView> currentList = _nowPlayingSubject.Value.ToList();
-
-        string songPath1 = "F:\\Nico\\Bastille - No Angels.flac";
-        SongsModelView song = new SongsModelView();// { Title = "No Angels", Artist = new ArtistModel { Name = "Bastille" }, FilePath = songPath1 };
-        string songPath2 = "F:\\Nico\\Sev - River.flac";
-        SongsModelView song2 = new();// { Title = "River", Artist = new ArtistModel { Name = "Sev" }, FilePath = songPath2};
-
-        currentList.Add(song);
-        currentList.Add(song2);
-
-        _nowPlayingSubject.OnNext(currentList);
-
-    }
-    
-
+      
     double currentPosition = 0;
     public async Task<bool> PlaySongAsync(SongsModelView? song = null)
     {
@@ -218,14 +223,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 }
                 else
                 {
-                    //var clonedSong = song.Clone();
                     currentList.Add(song);
                     _nowPlayingSubject.OnNext(new List<SongsModelView>(currentList));
                     _currentSongIndex = currentList.Count - 1;
                 }
+                song.IsPlaying = true;
             }
 
-            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value[_currentSongIndex];//.Clone();
+            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value[_currentSongIndex];
             
             ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
             //string artName = new(ObservableCurrentlyPlayingSong.Artist?.Name);
@@ -233,9 +238,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             await audioService.InitializeAsync(new MediaPlay() 
             { 
                 Name = ObservableCurrentlyPlayingSong.Title, 
-                //Author = artName,
-                //Image = cover,
-                //Author = ObservableCurrentlyPlayingSong.Artist?.Name, 
+                Author = ObservableCurrentlyPlayingSong.ArtistName,
                 URL = ObservableCurrentlyPlayingSong.FilePath
             });
 
@@ -246,7 +249,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             ObservableCurrentlyPlayingSong.PlayCount++;
 
 
-            StatsMgtService.IncrementPlayCount(song.Title, song.DurationInSeconds);
+            StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Title, ObservableCurrentlyPlayingSong.DurationInSeconds);
             Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
@@ -262,26 +265,13 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
     }
 
-    byte[]? GetCoverImage(string filePath)
-    {
-        var LoadTrack = new Track(filePath);
-        if (LoadTrack.EmbeddedPictures.Count != 0)
-        {
-            return LoadTrack.EmbeddedPictures[0].PictureData;
-        }
-        else
-        {
-            string directoryPath = Path.GetDirectoryName(filePath);
-            var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
-            if (jpgFiles.Length > 0)
-            {
-                return File.ReadAllBytes(jpgFiles[0]);
-            }            
-        }
-        return null;
-    }
     public async Task<bool> PauseResumeSongAsync()
     {
+        if (ObservableCurrentlyPlayingSong is null)
+        {
+            await PlaySongAsync();
+            return true;
+        }
         if (audioService.IsPlaying)
         {
             currentPosition = audioService.CurrentPosition;
@@ -335,8 +325,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             return false;
 
         _currentSongIndex = (_currentSongIndex + 1) % currentList.Count;
-        await PlaySongAsync(currentList[_currentSongIndex]);
-        return true;
+        return await PlaySongAsync(currentList[_currentSongIndex]);
+        
     }
 
     public async Task<bool> PlayPreviousSongAsync()
@@ -350,14 +340,42 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         return true;
     }
 
-    public void AddSongToFavoritesPlayList(SongsModelView song)
+    byte[]? GetCoverImage(string filePath)
+    {
+        var LoadTrack = new Track(filePath);
+        if (LoadTrack.EmbeddedPictures.Count != 0)
+        {
+            return LoadTrack.EmbeddedPictures[0].PictureData;
+        }
+        else
+        {
+            string directoryPath = Path.GetDirectoryName(filePath);
+            var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
+            if (jpgFiles.Length > 0)
+            {
+                return File.ReadAllBytes(jpgFiles[0]);
+            }            
+        }
+        return null;
+    }
+    public void UpdateSongToFavoritesPlayList(SongsModelView song)
     {
         
         if (song is not null)
         {
-           song.IsFavorite = !song.IsFavorite;
+            if (!song.IsFavorite)
+            {
+                song.IsFavorite = true;
+                PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites");
+                SongsMgtService.UpdateSongDetails(song);
+            }
+            else
+            {
+                song.IsFavorite = false;
+                PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+                SongsMgtService.UpdateSongDetails(song);
+            }
         }
-        //PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites");
     }
     public void AddSongToQueue(SongsModelView song)
     {
@@ -426,11 +444,12 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         SearchedSongsList?.Clear();
         SearchedSongsList = SongsMgtService.AllSongs
         .Where(s => NormalizeAndCache(s.Title).ToLower().Contains(normalizedSearchTerm) ||
-                    (s.Artist.Name != null && NormalizeAndCache(s.Artist.Name).Contains(normalizedSearchTerm, StringComparison.CurrentCultureIgnoreCase)))
+                    (s.ArtistName != null && NormalizeAndCache(s.ArtistName).Contains(normalizedSearchTerm, StringComparison.CurrentCultureIgnoreCase)))
         .ToList();
 
         _nowPlayingSubject.OnNext(SearchedSongsList);
-
+        GetReadableFileSize();
+        GetReadableDuration();
     }
 
     private string NormalizeAndCache(string text)
@@ -460,10 +479,54 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         return result;
     }
 
-    private void ResetSearch()
+    void ResetSearch()
     {
         SearchedSongsList?.Clear();
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
+        GetReadableFileSize();
+        GetReadableDuration();
+    }
+
+    void GetReadableFileSize()
+    {
+        long totalBytes = _nowPlayingSubject.Value.Sum(s=> s.FileSize);
+
+        const long MB = 1024 * 1024;
+        const long GB = 1024 * MB;
+
+        if (totalBytes < GB)
+        {
+            double totalMB = totalBytes / (double)MB;
+            TotalSongsSizes = $"{totalMB:F2} MB";
+        }
+        else
+        {
+            double totalGB = totalBytes / (double)GB;
+            TotalSongsSizes = $"{totalGB:F2} GB";
+        }
+    }
+    void GetReadableDuration()
+    {
+        double totalSeconds = _nowPlayingSubject.Value.Sum(s => s.DurationInSeconds);
+        const double minutes = 60;
+        const double hours = 60 * minutes;
+        const double days = 24 * hours;
+
+        if (totalSeconds < hours)
+        {
+            double totalMinutes = totalSeconds / minutes;
+            TotalSongsDuration = $"{totalMinutes:F2} minutes";
+        }
+        else if (totalSeconds < days)
+        {
+            double totalHours = totalSeconds / hours;
+            TotalSongsDuration = $"{totalHours:F2} hours";
+        }
+        else
+        {
+            double totalDays = totalSeconds / days;
+            TotalSongsDuration = $"{totalDays:F2} days";
+        }
     }
 
 }

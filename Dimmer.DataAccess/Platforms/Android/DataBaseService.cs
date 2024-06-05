@@ -4,8 +4,16 @@ using Realms;
 namespace Dimmer.DataAccess;
 public class DataBaseService : IDataBaseService
 {
-    public void DeleteDB() => throw new NotImplementedException();
-
+    public void DeleteDB()
+    {        
+        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\DimmerDB";
+        string filePath = Path.Combine(dbPath, "DimmerDB.realm");
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+            Debug.WriteLine("Deleted DB");
+        }
+    }
 
     public Realm GetRealm()
     {
