@@ -75,7 +75,7 @@
 
         </Grid>
 
-        <Label Text="{Binding TemporarilyPickedSong.Artist.Name}" toolkit:DockLayout.DockPosition="Bottom"
+        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" toolkit:DockLayout.DockPosition="Bottom"
         HorizontalTextAlignment="Center"/>
 
         <Label Text="{Binding TemporarilyPickedSong.Title}" toolkit:DockLayout.DockPosition="Bottom"

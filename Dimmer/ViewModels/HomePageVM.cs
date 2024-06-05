@@ -22,40 +22,35 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int totalNumberOfSongs;
     [ObservableProperty]
-    int totalSongsSize;
+    string totalSongsSize;
     [ObservableProperty]
-    double totalSongsDuration;
-    
+    string totalSongsDuration;
 
     [ObservableProperty]
     IList<LyricPhraseModel> synchronizedLyrics;
     [ObservableProperty]
     LyricPhraseModel currentLyricPhrase;
-    [ObservableProperty]
-    string unsyncedLyrics;
-
+    
     [ObservableProperty]
     int loadingSongsProgress;
 
     [ObservableProperty]
     double volumeSliderValue = 1;
-    [ObservableProperty]
-    List<string> testt ;
+
     IFolderPicker folderPicker { get; }
     IFilePicker filePicker { get; }
     IPlayBackService PlayBackManagerService { get; }
     ILyricsService LyricsManagerService { get; }
 
     public HomePageVM(IPlayBackService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
-                      ILyricsService lyricsService, ISongsManagementService service)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService)
     {
-        //TemporarilyPickedSong = new() { Title = "Random Song", FilePath = "C:/asd/song.flac", FileFormat = "FLAC", DurationInSeconds = 0,FileSize=0 };
         this.folderPicker = folderPickerService;
         filePicker = filePickerService;
         
         PlayBackManagerService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
-        
+
         //Subscriptions to SongsManagerService
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
@@ -68,8 +63,10 @@ public partial class HomePageVM : ObservableObject
 
         VolumeSliderValue = AppSettingsService.VolumeSettings.GetVolumeLevel();
         PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
-        TemporarilyPickedSong = new() { Title = "title", FilePath = "C:/ss/fas.flac", DurationInSeconds = 0 };
-        DisplayedSongs = service.AllSongs.ToObservableCollection();
+        
+        DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
+        TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
+        TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
     }
 
     [ObservableProperty]
@@ -78,7 +75,11 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task SelectSongFromFolder()
     {
-        
+        bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
+        if (!res)
+        {
+            return;
+        }
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
         //if (!await CheckPermissions.CheckAndRequestStoragePermissionAsync())
@@ -112,6 +113,7 @@ public partial class HomePageVM : ObservableObject
 #elif IOS || MACCATALYST
         string folder = null;
 #endif
+        IsLoadingSongs = true;
         var progressIndicator = new Progress<int>(percent =>
         {            
             LoadingSongsProgress = percent;
@@ -238,13 +240,11 @@ public partial class HomePageVM : ObservableObject
 
 
     [RelayCommand]
-    void AddSongToFavorites(SongsModelView song = null)
+    void AddSongToFavorites(SongsModelView song)// = null)
     {
-        //song ??= TemporarilyPickedSong;
-        PlayBackManagerService.AddSongToFavoritesPlayList(song);
-        //song.IsFavorite = !song.IsFavorite;
-        //TemporarilyPickedSong.IsFavorite = !TemporarilyPickedSong.IsFavorite;
+        PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
     }
+
     //Subscriptions to SongsManagerService
     private void SubscribeToCurrentSongPosition()
     {
@@ -263,6 +263,7 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs = songs.ToObservableCollection();
             TotalNumberOfSongs = songs.Count;
         });
+        IsLoadingSongs = false;
     }
 
     [ObservableProperty]
@@ -305,6 +306,8 @@ public partial class HomePageVM : ObservableObject
         });
     }
 
+    [ObservableProperty]
+    string unsyncedLyrics;
     private void SubscribeToUnSyncedLyricsChanges()
     {
         LyricsManagerService.UnSynchedLyricsStream.Subscribe(unsyncedLyrics =>

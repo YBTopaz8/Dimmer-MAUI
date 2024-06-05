@@ -33,18 +33,19 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
     <AbsoluteLayout >
         
-    
-    <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
+
+        <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
 
         <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top"/>
-       
+            <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" VerticalScrollBarVisibility="Always"
+            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" VerticalScrollBarVisibility="Always"
                         SelectedItem="{Binding PickedSong}" toolkit:DockLayout.DockPosition="Top"
                         Margin="0,0,0,40">
             <CollectionView.ItemTemplate>
@@ -71,7 +72,7 @@
                             
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" FontSize="19"/>
-                                <Label Text="{Binding Artist.Name}" FontSize="14" Opacity="0.5"/>
+                                <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                 <Label Text="{Binding PlayCount}" FontSize="14" Opacity="0.5"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
@@ -107,7 +108,8 @@
                  AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize"
                  AbsoluteLayout.LayoutFlags="PositionProportional"
                  Margin="0,0,5,45" x:Name="SearchFAB"
-                 Clicked="SearchFAB_Clicked"/>
+                 Clicked="SearchFAB_Clicked" 
+                 LongPressed="SearchFAB_LongPressed"/>
     </AbsoluteLayout>
     <uranium:UraniumContentPage.Attachments>
 
@@ -128,10 +130,10 @@
                 <FlexLayout JustifyContent="SpaceBetween" x:Name="btmcontrols" BackgroundColor="Red">
                     
                     <HorizontalStackLayout Spacing="5">
-                        <Image Source="{Static icon:Material.MusicNote}"
+                        <Image Source="{Binding TemporarilyPickedSong.CoverImage}"
                             HeightRequest="40" Aspect="AspectFill"/>
                         <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center"/>
-                        <Label Text="{Binding TemporarilyPickedSong.Artist.Name}" VerticalOptions="Center"/>
+                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout Spacing="5">
@@ -217,8 +219,8 @@
                     <Label HorizontalTextAlignment="Center" FontSize="16"> 
                         <Label.Text>
                             <MultiBinding StringFormat="{} {0} - {1}">
-                                <Binding Path="TemporarilyPickedSong.Artist.Name"/>
-                                <Binding Path="TemporarilyPickedSong.Album.Name"/>
+                                <Binding Path="TemporarilyPickedSong.ArtistName"/>
+                                <Binding Path="TemporarilyPickedSong.AlbumName"/>
                             </MultiBinding>
                         </Label.Text>
                     </Label>
@@ -284,8 +286,12 @@
                             <HorizontalStackLayout>
                                 <Label Text="sleep" IsVisible="False"/>
                             <Label Text="ShowLyrics" IsVisible="False"/>
-                                <ImageButton Source="heart_empty_d" HeightRequest="24" VerticalOptions="Center"/>
-                                <ImageButton Source="down_d" Clicked="BringNowPlayBtmSheetDownBtn_Clicked" HeightRequest="40"/>
+                            <mdc:IconButton IconData="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}" 
+                                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
+                                            CommandParameter="{Binding TemporarilyPickedSong}" BackgroundColor="Transparent"/>
+                            <mdc:IconButton IconData="{Static icon:Material.ArrowDownward}" BackgroundColor="Transparent"
+                                            Clicked="BringNowPlayBtmSheetDownBtn_Clicked"/>
+                            
                             </HorizontalStackLayout>
 
                         </FlexLayout>

@@ -107,10 +107,11 @@ public partial class HomePageM : UraniumContentPage
         base.OnDisappearing();
     }
 
-    private void BringNowPlayBtmSheetDownBtn_Clicked(object sender, EventArgs e)
+    private void BringNowPlayBtmSheetDownBtn_Clicked(object sender, TouchEventArgs e)
     {
         nowPlayingBtmSheet.IsPresented = false;
-        
+        Debug.WriteLine(HomePageVM.TemporarilyPickedSong.IsFavorite);
+
     }
 
     DateTime lastKeyStroke;
@@ -136,5 +137,16 @@ public partial class HomePageM : UraniumContentPage
     private void SearchFAB_Clicked(object sender, TouchEventArgs e)
     {
         SearchBackDrop.IsPresented = !SearchBackDrop.IsPresented;
+    }
+
+    private void SearchFAB_LongPressed(object sender, TouchEventArgs e)
+    {
+        Debug.WriteLine("Long Pressed");
+        //when longpressed, scroll to the currently playing song
+    }
+
+    private void IconButton_Clicked(object sender, TouchEventArgs e)
+    {
+        nowPlayingBtmSheet.IsPresented = false;
     }
 }

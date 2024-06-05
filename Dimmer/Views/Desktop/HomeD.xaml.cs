@@ -9,11 +9,10 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         VolumeSlider.Value = 1;
+
     }
 
     public HomePageVM HomePageVM { get; }
-
-
 
     private void syncCol_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

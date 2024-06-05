@@ -2,22 +2,24 @@
 
 public partial class App : Application
 {
-    public App(ISongsManagementService songsManagementService)
+    public App(ISongsManagementService songsManagementService, IPlaylistManagementService playlistManagementService)
     {
         InitializeComponent();
 #if WINDOWS
         MainPage = new AppShell();
         SongsManagementService = songsManagementService;
+        PlaylistManagementService = playlistManagementService;
 
 #elif ANDROID
 
         MainPage = new AppShellMobile();
 #endif
 
-        
+
     }
 
     public ISongsManagementService SongsManagementService { get; }
+    public IPlaylistManagementService PlaylistManagementService { get; }
 
     protected override Window CreateWindow(IActivationState activationState)
     {
