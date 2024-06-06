@@ -9,5 +9,6 @@ public partial class AppShellMobile : Shell
 		InitializeComponent();
 
 		Routing.RegisterRoute(nameof(HomePageM), typeof(HomePageM));
+		Routing.RegisterRoute(nameof(NowPlayingPageM), typeof(NowPlayingPageM));
     }
 }

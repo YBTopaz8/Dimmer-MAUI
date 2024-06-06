@@ -29,7 +29,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     IList<LyricPhraseModel> synchronizedLyrics;
     [ObservableProperty]
-    LyricPhraseModel currentLyricPhrase;
+    string currentLyricPhrase;
     
     [ObservableProperty]
     int loadingSongsProgress;
@@ -309,7 +309,7 @@ public partial class HomePageVM : ObservableObject
     {
         LyricsManagerService.CurrentLyricStream.Subscribe(highlightedLyric =>
         {
-            CurrentLyricPhrase = highlightedLyric;
+            CurrentLyricPhrase = highlightedLyric is null ? string.Empty : highlightedLyric!.Text;
         });
     }
 

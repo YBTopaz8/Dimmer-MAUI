@@ -24,9 +24,7 @@
         <ShellContent Title="Home "
                       ContentTemplate="{DataTemplate viewsM:HomePageM}"
                       Route="MainPageM"/>
-        <ShellContent Title="Home" IsVisible="False"
-                      ContentTemplate="{DataTemplate viewsM:HomePageM}"
-                      Route="MainPageM"/>
+        
 
 
 </Shell>

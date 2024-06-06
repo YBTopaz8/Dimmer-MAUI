@@ -22,7 +22,8 @@ public class MainActivity: MauiAppCompatActivity, IAudioActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#483D8B"));
+        Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#483D8B"));
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
 
         NotificationHelper.CreateNotificationChannel(ApplicationContext);

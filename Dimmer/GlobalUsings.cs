@@ -1,7 +1,6 @@
 ﻿global using CommunityToolkit.Maui;
 global using CommunityToolkit.Maui.Storage;
 global using Microsoft.Extensions.Logging;
-global using Plugin.Maui.Audio;
 global using Dimmer.Utilities.IServices;
 global using Dimmer.Utilities.Services;
 global using Dimmer.Models;

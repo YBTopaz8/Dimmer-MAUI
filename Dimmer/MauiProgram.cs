@@ -1,7 +1,7 @@
 ﻿using Material.Components.Maui.Extensions;
 using Plugin.ContextMenuContainer;
 using Xceed.Maui.Toolkit;
-using Maui.DataGrid;
+using The49.Maui.BottomSheet;
 namespace Dimmer_MAUI;
 public static class MauiProgram
 {
@@ -13,8 +13,10 @@ public static class MauiProgram
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
-            .UseCardsView()
+            //.UseCardsView()
+            .UseBottomSheet()
             .UseMauiAudio()
+            
             .UseXceedMauiToolkit(FluentDesignAccentColor.DarkPurple)
             .ConfigureContextMenuContainer()
             .UseMaterialComponents()
@@ -28,7 +30,6 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-        builder.Services.AddSingleton(AudioManager.Current);
 
 
         builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
@@ -56,6 +57,7 @@ public static class MauiProgram
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
+        builder.Services.AddSingleton<NowPlayingPageM>();
         return builder.Build();
     }
 }

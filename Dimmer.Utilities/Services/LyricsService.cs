@@ -80,7 +80,7 @@ public class LyricsService : ILyricsService
             {
                 Array.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
             }
-            return sortedLyrics;//lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
+            return sortedLyrics;
         }
 
         string lrcFilePath = Path.ChangeExtension(songPath, ".lrc");
@@ -119,12 +119,12 @@ public class LyricsService : ILyricsService
     public void StartLyricIndexUpdateTimer()
     {
          _lyricUpdateSubscription = PlayBackService.CurrentPosition
-            .Sample(TimeSpan.FromMilliseconds(50))
+            .Sample(TimeSpan.FromMilliseconds(100))
             .Subscribe(
                 async position =>
                 {
                     double currentTimeinsSecs = position.CurrentTimeInSeconds;
-                    await UpdateCurrentLyricIndex(currentTimeinsSecs);
+                    UpdateCurrentLyricIndex(currentTimeinsSecs);
                 },
                 error =>
                 {
@@ -134,7 +134,7 @@ public class LyricsService : ILyricsService
     }
 
 
-    public async Task UpdateCurrentLyricIndex(double currentPositionInSeconds)
+    public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
         var lyrics = _synchronizedLyricsSubject.Value;  // Assuming this is already a list.
         if (lyrics is null || lyrics.Count == 0)
@@ -143,9 +143,11 @@ public class LyricsService : ILyricsService
         }
         
         double currentPositionInMs = currentPositionInSeconds * 1000;
-        
-        await Task.Delay(1000);
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + 200); //consider creating a variable for the offset
+
+        var startTime = DateTime.UtcNow;        
+        var highlightedLyric = FindClosestLyric(currentPositionInMs + 500); //consider creating a variable for the offset
+        var endTime = DateTime.UtcNow;
+        var operationDuration = (endTime - startTime).TotalMilliseconds;
 
         if (highlightedLyric == null)
         {
@@ -155,14 +157,40 @@ public class LyricsService : ILyricsService
         if (!Equals(_currentLyricSubject.Value, highlightedLyric))
         {
             _currentLyricSubject.OnNext(highlightedLyric);
-            //Debug.WriteLine($"Current Lyric: {_currentLyricSubject.Value.Text}");
         }
     }
     public LyricPhraseModel FindClosestLyric(double currentPositionInMs)
     {
+
         try
         {
+            if (sortedLyrics == null || sortedLyrics.Length == 0)
+            {
+                return null;
+            }
 
+            // Iterate through the lyrics until we find the first one with a timestamp greater than the current position
+            for (int i = 0; i < sortedLyrics.Length; i++)
+            {
+                if (sortedLyrics[i].TimeStampMs > currentPositionInMs)
+                {
+                    // Return the previous lyric if it exists, otherwise return the first lyric
+                    return i > 0 ? sortedLyrics[i - 1] : sortedLyrics[0];
+                }
+            }
+
+            // If we didn't find any lyric with a timestamp greater than the current position, return the last lyric
+            return sortedLyrics[sortedLyrics.Length - 1];
+        }
+        catch (Exception ex )
+        {
+            Debug.WriteLine($"Error when finding closest lyric: {ex.Message}");
+            return null;
+        }
+
+        /*
+        try
+        {
             // Perform a binary search
             int left = 0;
             int right = sortedLyrics!.Length - 1;
@@ -186,7 +214,7 @@ public class LyricsService : ILyricsService
         {
             Debug.WriteLine($"Error when finding closest lyric {ex.Message}");
             return null;
-        }
+        }*/
     }
 
 

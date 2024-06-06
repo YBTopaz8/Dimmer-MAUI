@@ -8,7 +8,7 @@ public interface ILyricsService
     IObservable<string> UnSynchedLyricsStream { get; }
 
     void LoadLyrics(string songPath);
-    Task UpdateCurrentLyricIndex(double currentPositionInSeconds);
+    void UpdateCurrentLyricIndex(double currentPositionInSeconds);
 
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
