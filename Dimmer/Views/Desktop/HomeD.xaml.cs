@@ -14,23 +14,13 @@ public partial class HomeD : UraniumContentPage
 
     public HomePageVM HomePageVM { get; }
 
-    private void syncCol_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        try
-        {
-            SyncedLyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message + " When scrolling");
-        }
-        
-    }
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        SongsColView.ScrollTo(HomePageVM.PickedSong);
-        
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong);
+        }        
     }
 
 
@@ -39,7 +29,7 @@ public partial class HomeD : UraniumContentPage
     {
         lastKeyStroke = DateTime.Now;
         var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(250);
+        await Task.Delay(1000);
         if (thisKeyStroke == lastKeyStroke)
         {
             var searchText = e.NewTextValue;

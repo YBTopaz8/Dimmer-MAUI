@@ -37,6 +37,11 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
+
+    <uranium:UraniumContentPage.MenuBarItems>
+        <MenuBarItem Text="test"/>
+    </uranium:UraniumContentPage.MenuBarItems>
+
     <AbsoluteLayout >
         
 
@@ -47,7 +52,7 @@
                     <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped_1"/>
                 </FlexLayout.GestureRecognizers>
                 <HorizontalStackLayout Spacing="5">
-                    <Image Source="{Binding PickedSongCoverImage}"
+                    <Image Source="{Binding PickedSongCoverImage}" 
                     HeightRequest="45" Aspect="AspectFill"/>
                     <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
@@ -56,7 +61,7 @@
                 <HorizontalStackLayout Spacing="5">
                     <mdc:IconButton IconData="{Static icon:Material.SkipPrevious}" Command="{Binding PlayPreviousSongCommand}" 
                                 HeightRequest="45" BackgroundColor="Transparent"/>
-                    <mdc:IconButton IconData="{Binding PlayPauseImage}" Command="{Binding PauseResumeSongCommand}" 
+                    <mdc:IconButton IconData="{Binding PlayPauseImage}" Command="{Binding PauseResumeSongCommand}" BackgroundColor="DarkSlateBlue"
                                 HeightRequest="45" WidthRequest="45"/>
                     <mdc:IconButton IconData="{Static icon:Material.SkipNext}" Command="{Binding PlayNextSongCommand}" 
                                 HeightRequest="45" BackgroundColor="Transparent"/>

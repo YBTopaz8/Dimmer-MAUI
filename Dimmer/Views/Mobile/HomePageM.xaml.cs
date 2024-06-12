@@ -59,7 +59,7 @@ public partial class HomePageM : UraniumContentPage
     {
         lastKeyStroke = DateTime.Now;
         var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(250);
+        await Task.Delay(1000);
         if (thisKeyStroke == lastKeyStroke)
         {
             var searchText = e.NewTextValue;

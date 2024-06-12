@@ -130,18 +130,8 @@
             <Button Text="Scroll To" Clicked="Button_Clicked"/>
         </HorizontalStackLayout>
 
-        <!-- Synced lyics Col View -->
-        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionMode="Single" BackgroundColor="Transparent"
-            SelectedItem="{Binding CurrentLyricPhrase}" SelectionChanged="syncCol_SelectionChanged"
-            HeightRequest="80" Margin="10" toolkit:DockLayout.DockPosition="Top"                      
-            x:Name="SyncedLyricsColView" IsVisible="False">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:LyricPhraseModel">
-                    <Label Text="{Binding Text}" 
-                    HorizontalOptions="Start"/>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <Label Text="{Binding CurrentLyricPhrase}" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"/>
+
 
         
         <!-- Header Grid -->

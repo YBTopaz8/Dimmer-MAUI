@@ -28,13 +28,14 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
+    
     <Grid toolkit:DockLayout.DockPosition="Bottom">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border StrokeShape="RoundRectangle 18" Margin="1,5,1,10" VerticalOptions="Start" 
+        <Border StrokeShape="RoundRectangle 18" Margin="5,15,5,10" VerticalOptions="Start" 
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="320" x:Name="lyricsCover">
             <Grid>
                 <Grid.GestureRecognizers>
@@ -45,35 +46,11 @@
 
                 <Label Text="{Binding CurrentLyricPhrase}" VerticalTextAlignment="Center"
                        HorizontalTextAlignment="Center" FontSize="22" Margin="5,0"/>
-                <!--<CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionMode="Single" 
-                                BackgroundColor="Transparent" IsVisible="True" 
-                                SelectedItem="{Binding CurrentLyricPhrase}" SelectionChanged="syncCol_SelectionChanged" IsEnabled="False" 
-                                Margin="10" x:Name="SyncedLyricsColView" MaximumHeightRequest="200" HorizontalOptions="Center">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:LyricPhraseModel">
-                            <VerticalStackLayout>
-                                <Label Text="{Binding Text}" HorizontalOptions="Center" HorizontalTextAlignment="Center"
-                    FontSize="22" LineBreakMode="WordWrap" Margin="0,5"/>
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup Name="CommonStates">
-                                        <VisualState Name="Normal"></VisualState>
-                                        <VisualState Name="Selected">
-                                            <VisualState.Setters>
-                                                <Setter Property="BackgroundColor" Value="#4D483D8B"></Setter>
-                                            </VisualState.Setters>
-                                        </VisualState>
-
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                            </VerticalStackLayout>
-
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>-->
+                
             </Grid>
         </Border>
 
-        <VerticalStackLayout Margin="0,0" Spacing="15" VerticalOptions="End" 
+        <VerticalStackLayout Margin="0,0" Spacing="25" VerticalOptions="End" 
              MinimumHeightRequest="310" x:Name="dl" Grid.Row="1">
 
             <Grid BackgroundColor="Transparent" Margin="5,0">
@@ -98,9 +75,9 @@
             </Grid>
 
             <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
-                    FontAttributes="Bold" FontSize="25"/>
+                    FontAttributes="Bold" FontSize="30"/>
 
-            <Label HorizontalTextAlignment="Center" FontSize="16">
+            <Label HorizontalTextAlignment="Center" FontSize="20">
                 <Label.Text>
                     <MultiBinding StringFormat="{} {0} - {1}">
                         <Binding Path="TemporarilyPickedSong.ArtistName"/>
@@ -111,8 +88,8 @@
 
 
             <Grid HorizontalOptions="FillAndExpand" VerticalOptions="Start" 
-                    ColumnSpacing="10" BackgroundColor="Transparent" 
-                    Margin="5,0">
+                  ColumnSpacing="20"
+                  BackgroundColor="Transparent" Margin="5,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -122,22 +99,23 @@
                 </Grid.ColumnDefinitions>
 
                 <mdc:IconButton  Grid.Column="0" IconData="{Static icon:Material.Replay}" 
-                             BackgroundColor="Transparent" HeightRequest="40"/>
+                             BackgroundColor="Transparent" HeightRequest="55"/>
                 <mdc:IconButton  Grid.Column="1" IconData="{Static icon:Material.SkipPrevious}" BackgroundColor="Transparent"
-                             Command="{Binding PlayPreviousSongCommand}" HeightRequest="45"/>
-                <mdc:IconButton  Grid.Column="2"  IconData="{Binding PlayPauseImage}" WidthRequest="45"
-                             Command="{Binding PauseResumeSongCommand}" HeightRequest="45"/>
+                             Command="{Binding PlayPreviousSongCommand}" HeightRequest="55"/>
+                <mdc:IconButton  Grid.Column="2"  IconData="{Binding PlayPauseImage}" WidthRequest="85" BackgroundColor="DarkSlateBlue"
+                             Command="{Binding PauseResumeSongCommand}" HeightRequest="85"/>
                 <mdc:IconButton  Grid.Column="3" IconData="{Static icon:Material.SkipNext}" BackgroundColor="Transparent"
-                             Command="{Binding PlayNextSongCommand}" HeightRequest="45"/>
+                             Command="{Binding PlayNextSongCommand}" HeightRequest="55"/>
                 <mdc:IconButton  Grid.Column="4" IconData="{Static icon:Material.Shuffle}" BackgroundColor="Transparent"
-                             HeightRequest="35"/>
+                             HeightRequest="55"/>
 
 
             </Grid>
 
             <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.ReleaseYear}" IsVisible="False"/>
-            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileFormat}"/>
-            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}" />
+            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileFormat}" FontSize="20"/>
+            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
+                   FontSize="16"/>
 
             <Grid Margin="5,0">
                 <Grid.ColumnDefinitions>
@@ -151,7 +129,7 @@
 
                 <mdc:IconButton IconData="{Static icon:Material.VolumeDown}" BackgroundColor="Transparent"
                     Grid.Column="0" Command="{Binding DecreaseVolumeCommand}" 
-                            HorizontalOptions="Start" HeightRequest="45" WidthRequest="35"/>
+                            HorizontalOptions="Start" HeightRequest="55" WidthRequest="35"/>
 
                 <Slider Grid.Column="1" Value="{Binding VolumeSliderValue}" MinimumTrackColor="DarkSlateBlue" 
                         Maximum="1" Minimum="0" 
@@ -159,12 +137,12 @@
 
                 <mdc:IconButton IconData="{Static icon:Material.VolumeUp}" BackgroundColor="Transparent"
                     Grid.Column="2" Command="{Binding IncreaseVolumeCommand}" 
-                    HorizontalOptions="End" HeightRequest="45" WidthRequest="35"/>
+                    HorizontalOptions="End" HeightRequest="55" WidthRequest="35"/>
 
             </Grid>
 
-            <FlexLayout JustifyContent="SpaceBetween" 
-                        toolkit:DockLayout.DockPosition="Top">
+            <FlexLayout JustifyContent="SpaceBetween" HeightRequest="40"
+                        toolkit:DockLayout.DockPosition="Top" Margin="5,0,10,20">
                 <Label Text="" />
 
                 <HorizontalStackLayout>
@@ -172,7 +150,8 @@
                     <Label Text="ShowLyrics" IsVisible="False"/>
                     <mdc:IconButton IconData="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}" 
                                 Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
-                                CommandParameter="{Binding TemporarilyPickedSong}" BackgroundColor="Transparent"/>
+                                CommandParameter="{Binding TemporarilyPickedSong}" BackgroundColor="Transparent"
+                                HeightRequest="70"/>
                     
 
                 </HorizontalStackLayout>

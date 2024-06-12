@@ -27,7 +27,7 @@ public partial class HomePageVM : ObservableObject
     string totalSongsDuration;
 
     [ObservableProperty]
-    IList<LyricPhraseModel> synchronizedLyrics;
+    IList<LyricPhraseModel>? synchronizedLyrics;
     [ObservableProperty]
     string currentLyricPhrase;
     
@@ -292,6 +292,10 @@ public partial class HomePageVM : ObservableObject
                     {                        
                         PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
                     }
+                    else
+                    {
+                        PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
+                    }
                     break;
                 case MediaPlayerState.Paused:
                     // PickedSong = "Paused";
@@ -327,7 +331,7 @@ public partial class HomePageVM : ObservableObject
     {
         LyricsManagerService.SynchronizedLyricsStream.Subscribe(synchronizedLyrics =>
         {
-            SynchronizedLyrics = synchronizedLyrics;
+            SynchronizedLyrics = synchronizedLyrics is null ? null : synchronizedLyrics;
         });
         Debug.WriteLine("here");
     }
