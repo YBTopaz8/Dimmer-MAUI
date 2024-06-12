@@ -29,13 +29,13 @@
     </uranium:UraniumContentPage.Resources>
 
     
-    <Grid toolkit:DockLayout.DockPosition="Bottom">
+    <Grid toolkit:DockLayout.DockPosition="Bottom" Margin="10,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border StrokeShape="RoundRectangle 18" Margin="5,15,5,10" VerticalOptions="Start" 
+        <Border StrokeShape="RoundRectangle 18" Margin="0,20" VerticalOptions="Start" 
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="320" x:Name="lyricsCover">
             <Grid>
                 <Grid.GestureRecognizers>
@@ -45,15 +45,15 @@
                 <!-- Synced lyics Col View -->
 
                 <Label Text="{Binding CurrentLyricPhrase}" VerticalTextAlignment="Center"
-                       HorizontalTextAlignment="Center" FontSize="22" Margin="5,0"/>
+                       HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>
                 
             </Grid>
         </Border>
 
-        <VerticalStackLayout Margin="0,0" Spacing="25" VerticalOptions="End" 
+        <VerticalStackLayout Spacing="25" VerticalOptions="End" 
              MinimumHeightRequest="310" x:Name="dl" Grid.Row="1">
 
-            <Grid BackgroundColor="Transparent" Margin="5,0">
+            <Grid BackgroundColor="Transparent" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -102,7 +102,7 @@
                              BackgroundColor="Transparent" HeightRequest="55"/>
                 <mdc:IconButton  Grid.Column="1" IconData="{Static icon:Material.SkipPrevious}" BackgroundColor="Transparent"
                              Command="{Binding PlayPreviousSongCommand}" HeightRequest="55"/>
-                <mdc:IconButton  Grid.Column="2"  IconData="{Binding PlayPauseImage}" WidthRequest="85" BackgroundColor="DarkSlateBlue"
+                <mdc:IconButton  Grid.Column="2"  IconData="{Binding PlayPauseImage}" WidthRequest="90" BackgroundColor="DarkSlateBlue"
                              Command="{Binding PauseResumeSongCommand}" HeightRequest="85"/>
                 <mdc:IconButton  Grid.Column="3" IconData="{Static icon:Material.SkipNext}" BackgroundColor="Transparent"
                              Command="{Binding PlayNextSongCommand}" HeightRequest="55"/>

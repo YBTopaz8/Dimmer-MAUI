@@ -71,13 +71,14 @@
             
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
+            
             <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" VerticalScrollBarVisibility="Always"
                         SelectedItem="{Binding PickedSong}" toolkit:DockLayout.DockPosition="Top" x:Name="SongsColView"
                         Margin="0,0,0,40">
             <CollectionView.ItemTemplate>
 
-                <DataTemplate x:DataType="models:SongsModelView">
-                    <FlexLayout JustifyContent="SpaceBetween" >
+                    <DataTemplate x:DataType="models:SongsModelView">
+                        <FlexLayout JustifyContent="SpaceBetween" >
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal"></VisualState>
@@ -126,14 +127,13 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-
     </toolkit:DockLayout>
 
 
         <mdc:FAB IconData="{Static icon:Material.Search}" BackgroundColor="DarkSlateBlue" IconColor="White"
                  AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize"
                  AbsoluteLayout.LayoutFlags="PositionProportional"
-                 Margin="0,0,5,60" x:Name="SearchFAB"
+                 Margin="0,0,5,90" x:Name="SearchFAB"
                  Clicked="SearchFAB_Clicked" 
                  LongPressed="SearchFAB_LongPressed"/>
     </AbsoluteLayout>

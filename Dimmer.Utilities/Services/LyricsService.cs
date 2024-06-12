@@ -138,7 +138,7 @@ public class LyricsService : ILyricsService
         sampleTime = 100;
 #endif
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
-            .Sample(TimeSpan.FromMilliseconds(10))
+            .Sample(TimeSpan.FromMilliseconds(1000))
             .Subscribe(position =>
             {
                double currentTimeinsSecs = position.CurrentTimeInSeconds;
@@ -149,9 +149,6 @@ public class LyricsService : ILyricsService
 
     public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
-        var startProcessing = DateTime.UtcNow;
-        Debug.WriteLine($"Starting lyric index update at {startProcessing}");
-
         var lyrics = _synchronizedLyricsSubject.Value;
         if (lyrics is null || lyrics.Count == 0)
         {
@@ -159,59 +156,19 @@ public class LyricsService : ILyricsService
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
-
-        var startTime = DateTime.UtcNow;
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + 10); // Using 10 ms advance
-        var endTime = DateTime.UtcNow;
-        var operationDuration = (endTime - startTime).TotalMilliseconds;
-
-        Debug.WriteLine($"FindClosestLyric duration: {operationDuration} ms");
+        int offsetValue = 1350;
+        var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);        
 
         if (highlightedLyric == null)
         {
             return;
         }
-
         if (!Equals(_currentLyricSubject.Value, highlightedLyric))
         {
-            var uiUpdateStart = DateTime.UtcNow;
-
-            // Use Dispatcher to ensure UI updates on the main thread
-            MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _currentLyricSubject.OnNext(highlightedLyric);
-                    var uiUpdateEnd = DateTime.UtcNow;
-                    Debug.WriteLine($"UI update duration: {(uiUpdateEnd - uiUpdateStart).TotalMilliseconds} ms");
-                });
-        }
-
-        var endProcessing = DateTime.UtcNow;
-        Debug.WriteLine($"Completed lyric index update at {endProcessing}, total duration: {(endProcessing - startProcessing).TotalMilliseconds} ms");
-    }
-
-    /*
-    public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
-    {
-        var lyrics = _synchronizedLyricsSubject.Value;
-        if (lyrics is null || lyrics.Count == 0)
-        {
-            return;
-        }
-
-        double currentPositionInMs = currentPositionInSeconds * 1000;
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + 5); // Using 10 ms advance
-
-        if (highlightedLyric == null)
-        {
-            return;
-        }
-
-        if (!Equals(_currentLyricSubject.Value, highlightedLyric))
-        {
-
             _currentLyricSubject.OnNext(highlightedLyric);
         }
-    } */
+    }
+
     public LyricPhraseModel FindClosestLyric(double currentPositionInMs)
     {
 
