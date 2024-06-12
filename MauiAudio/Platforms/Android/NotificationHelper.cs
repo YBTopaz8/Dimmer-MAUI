@@ -70,11 +70,13 @@ public static class NotificationHelper
         double duration,
         double currentPosition)
     {
-        var pendingIntent = PendingIntent.GetActivity(
-            context,
-            0,
-            new Intent(context, typeof(Activity)),
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
+        var intent = new Intent("com.yvanbrunel.dimmermaui.ACTION_NOTIFICATION_CLICK");
+        var pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+        //var pendingIntent = PendingIntent.GetActivity(
+        //    context,
+        //    0,
+        //    new Intent(context, typeof(Activity)),
+        //    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
         MediaMetadata currentTrack = mediaMetadata;
 
         MediaStyle style = new MediaStyle();
@@ -90,15 +92,15 @@ public static class NotificationHelper
             .SetContentIntent(pendingIntent)
             .SetShowWhen(false)
             .SetOngoing(isPlaying)
-            .SetVisibility(NotificationVisibility.Public);
+            .SetPriority(NotificationCompat.PriorityHigh)
+            .SetVisibility(NotificationVisibility.Public)
+            .SetProgress((int)duration, (int)currentPosition, false);
         builder.SetSound(null);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
         AddPlayPauseActionCompat(builder, context, isPlaying);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
         builder.AddAction(NotificationHelper.GenerateActionCompat(context, Drawable.IcDelete, "STOP", MediaPlayerService.ActionStop));
         style.SetShowActionsInCompactView(0, 1, 2, 3);
-
-        builder.SetProgress((int)duration, (int)currentPosition, false);
 
         NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
     }

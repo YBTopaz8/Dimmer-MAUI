@@ -24,44 +24,53 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
     /// <param name="intent">Intent.</param>
     public override void OnReceive(Context context, Intent intent)
     {
-        if (intent.Action != Intent.ActionMediaButton)
-            return;
-
-        //The event will fire twice, up and down.
-        // we only want to handle the down event though.
-        var key = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);
-        if (key.Action != KeyEventActions.Down)
-            return;
-
-        string action;
-
-        switch (key.KeyCode)
+        if (intent.Action == Intent.ActionMediaButton)
         {
-            case Keycode.Headsethook:
-            case Keycode.MediaPlayPause:
-                action = MediaPlayerService.ActionTogglePlayback;
-                break;
-            case Keycode.MediaPlay:
-                action = MediaPlayerService.ActionPlay;
-                break;
-            case Keycode.MediaPause:
-                action = MediaPlayerService.ActionPause;
-                break;
-            case Keycode.MediaStop:
-                action = MediaPlayerService.ActionStop;
-                break;
-            case Keycode.MediaNext:
-                action = MediaPlayerService.ActionNext;
-                break;
-            case Keycode.MediaPrevious:
-                action = MediaPlayerService.ActionPrevious;
-                break;
-            default:
-                return;
-        }
 
-        var remoteIntent = new Intent(action);
-        context.StartService(remoteIntent);
+
+            //The event will fire twice, up and down.
+            // we only want to handle the down event though.
+            var key = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);
+            if (key.Action != KeyEventActions.Down)
+                return;
+
+            string action;
+
+            switch (key.KeyCode)
+            {
+                case Keycode.Headsethook:
+                case Keycode.MediaPlayPause:
+                    action = MediaPlayerService.ActionTogglePlayback;
+                    break;
+                case Keycode.MediaPlay:
+                    action = MediaPlayerService.ActionPlay;
+                    break;
+                case Keycode.MediaPause:
+                    action = MediaPlayerService.ActionPause;
+                    break;
+                case Keycode.MediaStop:
+                    action = MediaPlayerService.ActionStop;
+                    break;
+                case Keycode.MediaNext:
+                    action = MediaPlayerService.ActionNext;
+                    break;
+                case Keycode.MediaPrevious:
+                    action = MediaPlayerService.ActionPrevious;
+                    break;
+                default:
+                    return;
+            }
+
+            var remoteIntent = new Intent(action);
+            context.StartService(remoteIntent);
+        }
+        else if (intent.Action == "com.yvanbrunel.dimmermaui.ACTION_NOTIFICATION_CLICK")
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.GoToAsync("HomePageM");
+            });
+        }
     }
 }
 

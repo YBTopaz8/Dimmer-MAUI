@@ -19,7 +19,7 @@ public class LyricsService : ILyricsService
     public IObservable<string> UnSynchedLyricsStream => _unsyncedLyricsSubject.AsObservable();
 
     public IPlayBackService PlayBackService { get; }
-
+    bool hasLyrics;
     public LyricsService(IPlayBackService songsManagerService)
     {
         PlayBackService = songsManagerService;
@@ -38,16 +38,22 @@ public class LyricsService : ILyricsService
             else if (state == MediaPlayerState.Playing)
             {
                 LoadLyrics(PlayBackService.CurrentlyPlayingSong.FilePath);
-                StartLyricIndexUpdateTimer();
+                if (hasLyrics)
+                {
+                    StartLyricIndexUpdateTimer();
+                }
+                else
+                {
+                    _currentLyricSubject.OnNext(null);
+                }
             }
         });
     }
 
     public void LoadLyrics(string songPath)
     {
-
         sortedLyrics = [];
-        IList<LyricPhraseModel> loadedLyrics = LoadSynchronizedLyrics(songPath);
+        IList<LyricPhraseModel>? loadedLyrics = LoadSynchronizedLyrics(songPath);
         //string unsyncedLyrics = LoadUnsyncedLyrics(songPath);
 
         _synchronizedLyricsSubject.OnNext(loadedLyrics);
@@ -68,12 +74,13 @@ public class LyricsService : ILyricsService
     }
 
     LyricPhraseModel[]? sortedLyrics;
-    private IList<LyricPhraseModel> LoadSynchronizedLyrics(string songPath)
+    private LyricPhraseModel[]? LoadSynchronizedLyrics(string songPath)
     {
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
         if (lyrics is not null && lyrics!.Count != 0)
         {
+            hasLyrics = true;
             var lyricss = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
             sortedLyrics = lyricss.ToArray();
             if (sortedLyrics.Length > 1)
@@ -86,8 +93,14 @@ public class LyricsService : ILyricsService
         string lrcFilePath = Path.ChangeExtension(songPath, ".lrc");
         List<LyricPhraseModel> lyricPhrases = new List<LyricPhraseModel>();
 
-        if (File.Exists(lrcFilePath))
+        if (!File.Exists(lrcFilePath))
         {
+            hasLyrics = false;
+            return null;
+        }
+        else
+        {
+            hasLyrics = true;
             string[] lines = File.ReadAllLines(lrcFilePath);
             foreach (string line in lines)
             {
@@ -118,36 +131,41 @@ public class LyricsService : ILyricsService
 
     public void StartLyricIndexUpdateTimer()
     {
-         _lyricUpdateSubscription = PlayBackService.CurrentPosition
-            .Sample(TimeSpan.FromMilliseconds(100))
-            .Subscribe(
-                async position =>
-                {
-                    double currentTimeinsSecs = position.CurrentTimeInSeconds;
-                    UpdateCurrentLyricIndex(currentTimeinsSecs);
-                },
-                error =>
-                {
-                    Debug.WriteLine($"Error in subscription: {error.Message}");
-                }
-                );
+        var sampleTime = 10;
+#if WINDOWS
+        sampleTime = 10;
+#elif ANDROID
+        sampleTime = 100;
+#endif
+        _lyricUpdateSubscription = PlayBackService.CurrentPosition
+            .Sample(TimeSpan.FromMilliseconds(10))
+            .Subscribe(position =>
+            {
+               double currentTimeinsSecs = position.CurrentTimeInSeconds;
+               UpdateCurrentLyricIndex(currentTimeinsSecs);
+            },error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
 
 
     public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
-        var lyrics = _synchronizedLyricsSubject.Value;  // Assuming this is already a list.
+        var startProcessing = DateTime.UtcNow;
+        Debug.WriteLine($"Starting lyric index update at {startProcessing}");
+
+        var lyrics = _synchronizedLyricsSubject.Value;
         if (lyrics is null || lyrics.Count == 0)
         {
             return;
         }
-        
+
         double currentPositionInMs = currentPositionInSeconds * 1000;
 
-        var startTime = DateTime.UtcNow;        
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + 500); //consider creating a variable for the offset
+        var startTime = DateTime.UtcNow;
+        var highlightedLyric = FindClosestLyric(currentPositionInMs + 10); // Using 10 ms advance
         var endTime = DateTime.UtcNow;
         var operationDuration = (endTime - startTime).TotalMilliseconds;
+
+        Debug.WriteLine($"FindClosestLyric duration: {operationDuration} ms");
 
         if (highlightedLyric == null)
         {
@@ -156,9 +174,44 @@ public class LyricsService : ILyricsService
 
         if (!Equals(_currentLyricSubject.Value, highlightedLyric))
         {
+            var uiUpdateStart = DateTime.UtcNow;
+
+            // Use Dispatcher to ensure UI updates on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _currentLyricSubject.OnNext(highlightedLyric);
+                    var uiUpdateEnd = DateTime.UtcNow;
+                    Debug.WriteLine($"UI update duration: {(uiUpdateEnd - uiUpdateStart).TotalMilliseconds} ms");
+                });
+        }
+
+        var endProcessing = DateTime.UtcNow;
+        Debug.WriteLine($"Completed lyric index update at {endProcessing}, total duration: {(endProcessing - startProcessing).TotalMilliseconds} ms");
+    }
+
+    /*
+    public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
+    {
+        var lyrics = _synchronizedLyricsSubject.Value;
+        if (lyrics is null || lyrics.Count == 0)
+        {
+            return;
+        }
+
+        double currentPositionInMs = currentPositionInSeconds * 1000;
+        var highlightedLyric = FindClosestLyric(currentPositionInMs + 5); // Using 10 ms advance
+
+        if (highlightedLyric == null)
+        {
+            return;
+        }
+
+        if (!Equals(_currentLyricSubject.Value, highlightedLyric))
+        {
+
             _currentLyricSubject.OnNext(highlightedLyric);
         }
-    }
+    } */
     public LyricPhraseModel FindClosestLyric(double currentPositionInMs)
     {
 
@@ -188,33 +241,6 @@ public class LyricsService : ILyricsService
             return null;
         }
 
-        /*
-        try
-        {
-            // Perform a binary search
-            int left = 0;
-            int right = sortedLyrics!.Length - 1;
-            while (left < right)
-            {
-                int mid = left + (right - left) / 2;
-                if (sortedLyrics[mid].TimeStampMs < currentPositionInMs)
-                {
-                    left = mid + 1;
-                }
-                else
-                {
-                    right = mid;
-                }
-            }
-
-            // Return the closest match not greater than the current position
-            return sortedLyrics[left];
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error when finding closest lyric {ex.Message}");
-            return null;
-        }*/
     }
 
 
