@@ -23,7 +23,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         
         try
         {
-            AllSongs = Enumerable.Empty<SongsModelView>().ToList();
+            AllSongs?.Clear();
             OpenDB();
                         
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();

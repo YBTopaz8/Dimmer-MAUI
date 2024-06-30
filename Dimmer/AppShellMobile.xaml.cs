@@ -1,5 +1,3 @@
-using Dimmer_MAUI.Views.Mobile;
-
 namespace Dimmer_MAUI;
 
 public partial class AppShellMobile : Shell

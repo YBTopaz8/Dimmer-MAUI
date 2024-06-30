@@ -3,11 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.PlaylistsPageM"
              Title="Playlists"
-             BackgroundColor="Black">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             BackgroundColor="Black"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities" 
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             x:DataType="vm:PlaylistsPageVM"
+             x:Name="myPage"  
+             >
+    <toolkit:DockLayout Margin="5,0">
+
+         <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:PlaylistModelView">
+                    <VerticalStackLayout>
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}"
+                                                  CommandParameter="{Binding Id}"/>
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Text="{Binding Name}"/>
+                        <Label Text="{Binding TotalDuration}"/>
+                        <Label Text="{Binding TotalSize}"/>
+
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </toolkit:DockLayout>
 </ContentPage>

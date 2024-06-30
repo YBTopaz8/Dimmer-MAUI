@@ -4,7 +4,8 @@ public class PlayListManagementService : IPlaylistManagementService
 {
     Realm db;
     public IDataBaseService DataBaseService { get; }
-    public IList<PlaylistModelView> PlayLists { get; set; }
+    public IList<PlaylistModelView> AllPlaylists { get; set; }
+
     public PlayListManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
@@ -22,10 +23,12 @@ public class PlayListManagementService : IPlaylistManagementService
 
        try
         {
+            AllPlaylists?.Clear();
             OpenDB();
-            var realmPlayLists = db.All<PlaylistModel>().OrderBy(x => x.DateCreated);
+            var realmPlayLists = db.All<PlaylistModel>().OrderBy(x => x.DateCreated).ToList();
+            AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             //PlayLists = DetachPlayListsFromDB(realmPlayLists);
-            PlayLists ??= Enumerable.Empty<PlaylistModelView>().ToList();
+            AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
         }
         catch (Exception ex)
         {

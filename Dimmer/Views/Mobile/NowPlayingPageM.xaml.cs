@@ -1,5 +1,3 @@
-using Dimmer_MAUI.ViewModels;
-
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class NowPlayingPageM : UraniumContentPage
