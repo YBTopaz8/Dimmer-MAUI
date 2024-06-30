@@ -7,6 +7,13 @@
         public string URL { get; set; }
         public Stream Stream { get; set; }
         public string Image { get; set; }
+        /// <summary>
+        /// Get/Set Album Cover in Byte[] to put on Notification 
+        /// </summary>
         public byte[] ImageBytes { get; set; }
+        /// <summary>
+        /// Get/Set the VALUE of the Duration, solely used for the Notification bar to show Progress.
+        /// </summary>
+        public long DurationInMs { get; set; } = 0;
     }
 }

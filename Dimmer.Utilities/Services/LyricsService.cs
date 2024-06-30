@@ -131,14 +131,10 @@ public class LyricsService : ILyricsService
 
     public void StartLyricIndexUpdateTimer()
     {
-        var sampleTime = 10;
-#if WINDOWS
-        sampleTime = 10;
-#elif ANDROID
-        sampleTime = 100;
-#endif
+        var sampleTime = 1000;
+
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
-            .Sample(TimeSpan.FromMilliseconds(1000))
+            .Sample(TimeSpan.FromMilliseconds(sampleTime))
             .Subscribe(position =>
             {
                double currentTimeinsSecs = position.CurrentTimeInSeconds;

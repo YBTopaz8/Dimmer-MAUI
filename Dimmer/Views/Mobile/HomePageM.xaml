@@ -4,14 +4,13 @@
              x:Class="Dimmer_MAUI.Views.Mobile.HomePageM"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"                            
-            xmlns:icon="clr-namespace:IconPacks.IconKind;assembly=IconPacks.Material"
+            
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
-            xmlns:cv="clr-namespace:PanCardView;assembly=PanCardView"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
-            xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
             x:DataType="vm:HomePageVM"
             x:Name="myPage"          
             BackgroundColor="Black"
@@ -42,14 +41,14 @@
         <MenuBarItem Text="test"/>
     </uranium:UraniumContentPage.MenuBarItems>
 
-    <AbsoluteLayout >
-        
+    <AbsoluteLayout>       
 
         <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
-            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Bottom" x:Name="BtmMediaControls"
+            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Bottom" 
+                        x:Name="BtmMediaControls" 
                         HeightRequest="55" BackgroundColor="#171919" Margin="-5,0">
                 <FlexLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped_1"/>
+                    <TapGestureRecognizer Tapped="PlaybackBottomBar_Tapped"/>
                 </FlexLayout.GestureRecognizers>
                 <HorizontalStackLayout Spacing="5">
                     <Image Source="{Binding PickedSongCoverImage}" 
@@ -59,18 +58,25 @@
                 </HorizontalStackLayout>
 
                 <HorizontalStackLayout Spacing="5">
-                    <mdc:IconButton IconData="{Static icon:Material.SkipPrevious}" Command="{Binding PlayPreviousSongCommand}" 
-                                HeightRequest="45" BackgroundColor="Transparent"/>
-                    <mdc:IconButton IconData="{Binding PlayPauseImage}" Command="{Binding PauseResumeSongCommand}" BackgroundColor="DarkSlateBlue"
-                                HeightRequest="45" WidthRequest="45"/>
-                    <mdc:IconButton IconData="{Static icon:Material.SkipNext}" Command="{Binding PlayNextSongCommand}" 
-                                HeightRequest="45" BackgroundColor="Transparent"/>
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton Command="{Binding PauseResumeSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding PlayPauseImage}" />
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
                 </HorizontalStackLayout>
             </FlexLayout>
-            <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
             
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-
             
             <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" VerticalScrollBarVisibility="Always"
                         SelectedItem="{Binding PickedSong}" toolkit:DockLayout.DockPosition="Top" x:Name="SongsColView"
@@ -115,9 +121,13 @@
                                         <cm:ContextMenuItem Text="Delete"/>
                                     </cm:ContextMenuContainer.MenuItems>
 
-                                    <cm:ContextMenuContainer.Content >
-                                        <mdc:IconButton IconData="{Static icon:Material.MoreVert}" VerticalOptions="Start" HeightRequest="42" 
-                                                        WidthRequest="20" BackgroundColor="Transparent"/>
+                                    <cm:ContextMenuContainer.Content>
+                                        <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
+                                            <ImageButton.Source>
+                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                            </ImageButton.Source>
+                                        </ImageButton>
+                                        
                                     </cm:ContextMenuContainer.Content>
                                 </cm:ContextMenuContainer>
                             </HorizontalStackLayout>
@@ -128,14 +138,18 @@
         </CollectionView>
 
     </toolkit:DockLayout>
-
-
-        <mdc:FAB IconData="{Static icon:Material.Search}" BackgroundColor="DarkSlateBlue" IconColor="White"
+        <ImageButton AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" BackgroundColor="DarkSlateBlue"
+                     CornerRadius="20" Padding="12" Clicked="SearchFAB_Clicked"
+                     AbsoluteLayout.LayoutFlags="PositionProportional" Margin="0,0,5,70">
+            <ImageButton.Source>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+            </ImageButton.Source>
+        </ImageButton>
+        <!--<Button Text="Search" BackgroundColor="DarkSlateBlue" 
                  AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize"
                  AbsoluteLayout.LayoutFlags="PositionProportional"
                  Margin="0,0,5,90" x:Name="SearchFAB"
-                 Clicked="SearchFAB_Clicked" 
-                 LongPressed="SearchFAB_LongPressed"/>
+                 Clicked="SearchFAB_Clicked_1"/>-->
     </AbsoluteLayout>
     <uranium:UraniumContentPage.Attachments>
 
@@ -147,6 +161,8 @@
                            TextColor="White" TextChanged="SearchSongSB_TextChanged"/>
 
                 </Border>
+
+                <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
             </VerticalStackLayout>
 
         </material:BackdropView>

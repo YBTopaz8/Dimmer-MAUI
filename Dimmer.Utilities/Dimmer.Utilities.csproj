@@ -19,11 +19,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="IconPacks.Material" Version="1.0.8919.2-build" />
-		<PackageReference Include="IconPacks.MaterialCommunity" Version="1.0.8919.2-build" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.40" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.61" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.61" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
+		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.8.1" />
 		<PackageReference Include="z440.atl.core" Version="5.25.0" />
 	</ItemGroup>
 

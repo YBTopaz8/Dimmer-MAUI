@@ -10,7 +10,6 @@ global using Dimmer_MAUI.Views;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
 global using MauiAudio;
-global using PanCardView;
 
 global using UraniumUI;
 global using UraniumUI.Pages;
@@ -25,6 +24,7 @@ global using System.Diagnostics;
 global using Dimmer.DataAccess;
 global using Dimmer.DataAccess.Services;
 global using Dimmer.DataAccess.IServices;
+global using UraniumUI.Icons.MaterialIcons;
 
 namespace Dimmer_MAUI;
 internal class GlobalUsings

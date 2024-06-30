@@ -4,13 +4,11 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              x:Class="Dimmer_MAUI.Views.Mobile.NowPlayingPageM"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"                            
-            xmlns:icon="clr-namespace:IconPacks.IconKind;assembly=IconPacks.Material"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
-            xmlns:cv="clr-namespace:PanCardView;assembly=PanCardView"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
-            xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
             x:DataType="vm:HomePageVM"
             Shell.NavBarIsVisible="False"
             x:Name="myPage"
@@ -98,17 +96,32 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <mdc:IconButton  Grid.Column="0" IconData="{Static icon:Material.Replay}" 
-                             BackgroundColor="Transparent" HeightRequest="55"/>
-                <mdc:IconButton  Grid.Column="1" IconData="{Static icon:Material.SkipPrevious}" BackgroundColor="Transparent"
-                             Command="{Binding PlayPreviousSongCommand}" HeightRequest="55"/>
-                <mdc:IconButton  Grid.Column="2"  IconData="{Binding PlayPauseImage}" WidthRequest="90" BackgroundColor="DarkSlateBlue"
-                             Command="{Binding PauseResumeSongCommand}" HeightRequest="85"/>
-                <mdc:IconButton  Grid.Column="3" IconData="{Static icon:Material.SkipNext}" BackgroundColor="Transparent"
-                             Command="{Binding PlayNextSongCommand}" HeightRequest="55"/>
-                <mdc:IconButton  Grid.Column="4" IconData="{Static icon:Material.Shuffle}" BackgroundColor="Transparent"
-                             HeightRequest="55"/>
-
+                <ImageButton Grid.Column="0" HeightRequest="40" BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Repeat}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="2" Command="{Binding PauseResumeSongCommand}" HeightRequest="55"
+                             BackgroundColor="DarkSlateBlue" CornerRadius="30">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding PlayPauseImage}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="4" HeightRequest="40" BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Shuffle}"/>
+                    </ImageButton.Source>
+                </ImageButton>
 
             </Grid>
 
@@ -127,17 +140,25 @@
                     <!-- For right icon -->
                 </Grid.ColumnDefinitions>
 
-                <mdc:IconButton IconData="{Static icon:Material.VolumeDown}" BackgroundColor="Transparent"
-                    Grid.Column="0" Command="{Binding DecreaseVolumeCommand}" 
-                            HorizontalOptions="Start" HeightRequest="55" WidthRequest="35"/>
+                <ImageButton Grid.Column="0" HeightRequest="40" 
+                             Command="{Binding DecreaseVolumeCommand}" HorizontalOptions="Start" 
+                             BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
+                    </ImageButton.Source>
+                </ImageButton>
 
                 <Slider Grid.Column="1" Value="{Binding VolumeSliderValue}" MinimumTrackColor="DarkSlateBlue" 
                         Maximum="1" Minimum="0" 
                         DragCompletedCommand="{Binding ChangeVolumeCommand}" HorizontalOptions="FillAndExpand"/>
 
-                <mdc:IconButton IconData="{Static icon:Material.VolumeUp}" BackgroundColor="Transparent"
-                    Grid.Column="2" Command="{Binding IncreaseVolumeCommand}" 
-                    HorizontalOptions="End" HeightRequest="55" WidthRequest="35"/>
+                <ImageButton Grid.Column="3" HeightRequest="40" 
+                             Command="{Binding IncreaseVolumeCommand}" HorizontalOptions="Start" 
+                             BackgroundColor="Transparent">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
+                    </ImageButton.Source>
+                </ImageButton>
 
             </Grid>
 
@@ -148,10 +169,15 @@
                 <HorizontalStackLayout>
                     <Label Text="sleep" IsVisible="False"/>
                     <Label Text="ShowLyrics" IsVisible="False"/>
-                    <mdc:IconButton IconData="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}" 
-                                Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
-                                CommandParameter="{Binding TemporarilyPickedSong}" BackgroundColor="Transparent"
-                                HeightRequest="70"/>
+
+                    <ImageButton HeightRequest="40" BackgroundColor="Transparent"
+                                 Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
+                        CommandParameter="{Binding TemporarilyPickedSong}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    
                     
 
                 </HorizontalStackLayout>

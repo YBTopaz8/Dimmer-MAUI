@@ -1,6 +1,6 @@
 ﻿namespace Dimmer_MAUI.ViewModels;
 using Microsoft.VisualBasic.FileIO;
-using IconPacks.IconKind;
+
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
@@ -62,8 +62,7 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         VolumeSliderValue = AppSettingsService.VolumeSettings.GetVolumeLevel();
-        PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
-        
+        PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
         TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
@@ -83,25 +82,15 @@ public partial class HomePageVM : ObservableObject
         }
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
-        //if (!await CheckPermissions.CheckAndRequestStoragePermissionAsync())
-        //{
-        //    await Shell.Current.DisplayAlert("No Permission", "No Permission to read files", "OK");
-        //    return;
-        //}
-        //var filePickingResult = await filePicker.PickAsync();
-        //var folderPickingResult = await FolderPicker.PickAsync(token);
-        //if (folderPickingResult.Folder is null)
-        //{
-        //    return;
-        //}
-        //var folder = folderPickingResult.Folder?.Path;
+        
 #if ANDROID
-        //var folderPickingResult = await FolderPicker.PickAsync(token);
-        //if (folderPickingResult.Folder is null)
-        //{
-        //    return;
-        //}
-        //var folder = folderPickingResult.Folder?.Path;
+        if (!await CheckPermissions.CheckAndRequestStoragePermissionAsync())
+        {
+            
+            await Shell.Current.DisplayAlert("No Permission", "No Permission to read files", "OK");
+            return;
+
+        }
         var folder = "/storage/emulated/0/Music";
 #elif WINDOWS
 
@@ -130,27 +119,15 @@ public partial class HomePageVM : ObservableObject
             Debug.WriteLine("No Songs Found");
         }
         IsLoadingSongs = false;
-        //if (await CheckPermissions.CheckAndRequestStoragePermissionAsync())
-        //{
-        //    CancellationTokenSource source = new();
-        //    CancellationToken token = source.Token;
-        //    var result = await filePicker.PickAsync();
-
-        //    if (result != null)
-        //    {
-        //        PickedSong = result.FullPath;
-        //        SongsManagerService.PlayNextSong(PickedSong);
-        //    }
-        //}
     }
 
     [ObservableProperty]
-    string playPauseImage = Material.PlayArrow;
+    string playPauseImage = MaterialTwoTone.Play_arrow;
     [RelayCommand]
     void PlaySong(SongsModelView? SelectedSong = null)
     {
-         PlayPauseImage = Material.Pause;
-        //PlayPauseImage = "pause_d.png";
+         PlayPauseImage = MaterialTwoTone.Pause;
+        
         if (SelectedSong is not null)
         {
             PlayBackManagerService.PlaySongAsync(SelectedSong);
@@ -164,21 +141,19 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PauseResumeSong()
     {
-
         SwitchPlayPauseImage();
         await PlayBackManagerService.PauseResumeSongAsync();
     }
 
     private void SwitchPlayPauseImage()
     {
-        if (PlayPauseImage == Material.PlayArrow)
+        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
         {
-            PlayPauseImage = Material.Pause;
+            PlayPauseImage = MaterialTwoTone.Pause;
         }
         else
         {
-            PlayPauseImage = Material.PlayArrow;
-            
+            PlayPauseImage = MaterialTwoTone.Play_arrow;
         }
     }
 
@@ -191,9 +166,9 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
-        if (PlayPauseImage == Material.PlayArrow)
+        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
         {
-            PlayPauseImage = Material.Pause;
+            PlayPauseImage = MaterialTwoTone.Pause;
         }
         await PlayBackManagerService.PlayNextSongAsync();
     }
@@ -201,9 +176,9 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayPreviousSong()
     {
-        if (PlayPauseImage == Material.PlayArrow)
+        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
         {
-            PlayPauseImage = Material.Pause;
+            PlayPauseImage = MaterialTwoTone.Pause;
         }
         await PlayBackManagerService.PlayPreviousSongAsync();        
     }

@@ -5,19 +5,15 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
-             
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"             
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
              xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"   
-             xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
              xmlns:icon="clr-namespace:IconPacks.IconKind;assembly=IconPacks.Material"
              xmlns:iconCom="clr-namespace:IconPacks.IconKind;assembly=IconPacks.MaterialCommunity"
-             x:DataType="vm:HomePageVM"
-             
+             x:DataType="vm:HomePageVM"             
              x:Name="page">
-    <!--Title="Home"-->
     
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
@@ -68,23 +64,23 @@
                 
                 <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
                                        HorizontalOptions="Center">
-                    
-                    <mdc:IconButton IconData="{Static icon:Material.Replay}" BackgroundColor="Transparent" 
+
+                    <Button Text="Repeat" BackgroundColor="Transparent" 
                                     HeightRequest="50" WidthRequest="60" ToolTipProperties.Text="Repeat"/>
-                    
-                    <mdc:IconButton IconData="{Static icon:Material.SkipPrevious}" HeightRequest="65" WidthRequest="60"
+
+                    <Button Text="Previous" HeightRequest="65" WidthRequest="60"
                         Command="{Binding PlayPreviousSongCommand}" BackgroundColor="Transparent"
                         VerticalOptions="Center" ToolTipProperties.Text="Play Previous"
                         HorizontalOptions="Center" />
-                    <mdc:IconButton IconData="{Binding PlayPauseImage}" HeightRequest="65" WidthRequest="65"
+                    <Button Text="Pause/Play" HeightRequest="65" WidthRequest="65"
                         Command="{Binding PauseResumeSongCommand}" 
                         VerticalOptions="Center" ToolTipProperties.Text="Play Next"
                         HorizontalOptions="Center" />
-                    <mdc:IconButton IconData="{Static icon:Material.SkipNext}" HeightRequest="65" WidthRequest="60"
+                    <Button Text="Next" HeightRequest="65" WidthRequest="60"
                         Command="{Binding PlayNextSongCommand}" BackgroundColor="Transparent"
                         VerticalOptions="Center" ToolTipProperties.Text="Play Next"
                         HorizontalOptions="Center" />
-                    <mdc:IconButton IconData="{Static iconCom:MaterialCommunity.Shuffle}" BackgroundColor="Transparent"
+                    <Button Text="Shuffle" BackgroundColor="Transparent"
                                     HeightRequest="50" WidthRequest="45"
                                     ToolTipProperties.Text="Shuffle"/>
 
@@ -97,10 +93,10 @@
                         
                     </HorizontalStackLayout>
                     <HorizontalStackLayout>
-                        <mdc:IconButton IconData="{Static icon:Material.VolumeDown}" BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}"/>
+                        <Button Text="Vol D" BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}"/>
                         <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
                             DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"/>
-                        <mdc:IconButton IconData="{Static icon:Material.VolumeUp}" BackgroundColor="Transparent"
+                        <Button Text="Vol Up" BackgroundColor="Transparent"
                                         Command="{Binding IncreaseVolumeCommand}"/>
                     </HorizontalStackLayout>
 
@@ -157,8 +153,8 @@
             </Grid.Resources>
             <Label Text="Song Title" Grid.Column="0" HorizontalOptions="Center"/>
             <Label Text="Artist" Grid.Column="1" HorizontalOptions="Center"/>
-            <mdc:IconButton IconData="{Static icon:Material.Lyrics}" Grid.Column="2" BackgroundColor="Transparent" 
-                            HeightRequest="30" ToolTipProperties.Text="Has Lyrics?" IconColor="#383838" StateLayerColor="Transparent"/>
+            <Button Text="Has Lyrics?" Grid.Column="2" BackgroundColor="Transparent" 
+                            HeightRequest="30" ToolTipProperties.Text="Has Lyrics?"/>
             <Label Text="Love" Grid.Column="3" HorizontalOptions="Center"/>
             <Label Text="Duration" Grid.Column="4" HorizontalOptions="Center"/>
             <Label Text="Bitrate" Grid.Column="5" HorizontalOptions="Center" />
@@ -212,14 +208,14 @@
 
                         <HorizontalStackLayout Grid.Column="0">
                             <Label Text="{Binding Title}" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
-                            <mdc:IconButton IconData="{Static iconCom:MaterialCommunity.Equalizer}" BackgroundColor="Transparent" 
-                                            IconColor="DarkSlateBlue" IsVisible="False" HorizontalOptions="End" StateLayerColor="Transparent">
-                                <mdc:IconButton.Triggers>
-                                    <DataTrigger TargetType="mdc:IconButton" Binding="{Binding IsPlaying}" Value="True">
+                            <Button BackgroundColor="Transparent" 
+                                             IsVisible="False" HorizontalOptions="End" >
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsPlaying}" Value="True">
                                         <Setter Property="IsVisible" Value="True"/>
                                     </DataTrigger>
-                                </mdc:IconButton.Triggers>
-                            </mdc:IconButton>
+                                </Button.Triggers>
+                            </Button>
                         </HorizontalStackLayout>
                 
 
@@ -227,11 +223,14 @@
                                LineBreakMode="WordWrap"/>
                         <Label Text="{Binding HasLyrics}" Grid.Column="2" HorizontalOptions="Center" />
 
-                        <mdc:IconButton IconData="{Binding IsFavorite, Converter={StaticResource BoolToImage}}" 
+                        <Button Text="Is Favorite" Command="{Binding Source={x:Reference page},
+                                        Path=BindingContext.AddSongToFavoritesCommand}" VerticalOptions="Start"
+                                        CommandParameter="{Binding .}"/>
+                        <!--<Button IconData="{Binding IsFavorite, Converter={StaticResource BoolToImage}}" 
                                         Grid.Column="3" HorizontalOptions="Center"
                                         BackgroundColor="Transparent" Command="{Binding Source={x:Reference page},
                                         Path=BindingContext.AddSongToFavoritesCommand}" VerticalOptions="Start"
-                                        CommandParameter="{Binding .}"/>
+                                        CommandParameter="{Binding .}"/>-->
                         <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                Grid.Column="4" HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>

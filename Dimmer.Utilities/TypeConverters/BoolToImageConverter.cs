@@ -1,15 +1,16 @@
-﻿namespace Dimmer.Utilities.TypeConverters;
+﻿using UraniumUI.Icons.MaterialIcons;
+namespace Dimmer.Utilities.TypeConverters;
 public class BoolToImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is bool MyBoolValue && MyBoolValue is true)
         {
-            return MaterialCommunity.Heart;
+            return MaterialTwoTone.Favorite;
         }
         else
         {
-            return MaterialCommunity.HeartOutline;
+            return MaterialTwoTone.Favorite_border;
         }
     }
 

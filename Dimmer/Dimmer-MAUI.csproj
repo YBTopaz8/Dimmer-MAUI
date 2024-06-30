@@ -42,35 +42,43 @@
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-maccatalyst|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-maccatalyst|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
 	  <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+	  <ApplicationTitle>Dimmer</ApplicationTitle>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -102,20 +110,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CardsView.Maui" Version="0.0.6" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-		<PackageReference Include="IconPacks.Material" Version="1.0.8919.2-build" />
-		<PackageReference Include="IconPacks.MaterialCommunity" Version="1.0.8919.2-build" />
-		<PackageReference Include="Material.Components.Maui" Version="0.2.2-preview" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.40" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.61" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.61" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
-		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
 		<PackageReference Include="UraniumUI" Version="2.8.1" />
-		<PackageReference Include="UraniumUI.Blurs" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.8.1" />
 		<PackageReference Include="Xceed.Product.Maui.Toolkit.Full" Version="1.7.24157.1331" />
@@ -133,12 +135,6 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingBottomPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingBtmPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\NowPlayingPageM.xaml">

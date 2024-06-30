@@ -37,7 +37,7 @@ public partial class HomePageM : UraniumContentPage
 
     public HomePageVM HomePageVM { get; }
     
-    private async void SaveViewButton_Clicked(object sender, EventArgs e)
+    private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
         
         //var image = await btmcontrols.CaptureAsync();
@@ -45,12 +45,6 @@ public partial class HomePageM : UraniumContentPage
         //using Stream fileStream = File.OpenWrite(savePath);
         //await image.CopyToAsync(fileStream, ScreenshotFormat.Png);
 
-    }
-
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    {
-        //NPBtmPage.HeightRequest = this.Height;
-        //NPBtmPage.IsPresented = true;
     }
    
     
@@ -74,7 +68,7 @@ public partial class HomePageM : UraniumContentPage
         }        
     }
 
-    private async void SearchFAB_Clicked(object sender, TouchEventArgs e)
+    private void SearchFAB_Clicked(object sender, EventArgs e)
     {
         SearchBackDrop.IsPresented = !SearchBackDrop.IsPresented;
         
@@ -86,8 +80,10 @@ public partial class HomePageM : UraniumContentPage
         //when longpressed, scroll to the currently playing song
     }
 
-    private async void TapGestureRecognizer_Tapped_1(object sender, TappedEventArgs e)
+    private async void PlaybackBottomBar_Tapped(object sender, TappedEventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);
     }
+
+    
 }

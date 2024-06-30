@@ -1,7 +1,5 @@
-﻿using Material.Components.Maui.Extensions;
-using Plugin.ContextMenuContainer;
-using Xceed.Maui.Toolkit;
-using The49.Maui.BottomSheet;
+﻿using Plugin.ContextMenuContainer;
+
 namespace Dimmer_MAUI;
 public static class MauiProgram
 {
@@ -13,17 +11,13 @@ public static class MauiProgram
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
-            //.UseCardsView()
-            .UseBottomSheet()
             .UseMauiAudio()
-            
-            .UseXceedMauiToolkit(FluentDesignAccentColor.DarkPurple)
             .ConfigureContextMenuContainer()
-            .UseMaterialComponents()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddMaterialIconFonts();
             });
         
 #if DEBUG
@@ -47,7 +41,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlayBackService, PlaybackManagerService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
 
-        builder.Services.AddSingleton<NowPlayingBottomPage>();
         /* Registering the ViewModels */
         builder.Services.AddSingleton<HomePageVM>();
         

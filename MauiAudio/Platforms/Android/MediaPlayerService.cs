@@ -12,7 +12,7 @@ namespace MauiAudio.Platforms.Android;
 
 
 [Service(Exported = true)]
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious })]
+[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener,
    MediaPlayer.IOnBufferingUpdateListener,
@@ -27,6 +27,7 @@ public class MediaPlayerService : Service,
     public const string ActionTogglePlayback = "com.xamarin.action.TOGGLEPLAYBACK";
     public const string ActionNext = "com.xamarin.action.NEXT";
     public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
+    public const string ActionSeekTo = "com.xamarin.action.ActionSeekTo";
 
     public MediaPlayer mediaPlayer;
     private AudioManager audioManager;
@@ -513,11 +514,14 @@ public class MediaPlayerService : Service,
         }
     }
 
-    private void UpdatePlaybackState(PlaybackStateCode state)
+    private void UpdatePlaybackState(PlaybackStateCode state, int SeekedPosition = 0)
     {
         if (mediaSession == null || mediaPlayer == null)
             return;
-
+        if (SeekedPosition == 0)
+        {
+            SeekedPosition = Position;
+        }
         try
         {
             PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
@@ -527,9 +531,10 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionPlayPause |
                     PlaybackState.ActionSkipToNext |
                     PlaybackState.ActionSkipToPrevious |
-                    PlaybackState.ActionStop
+                    PlaybackState.ActionStop |
+                    PlaybackState.ActionSeekTo
                 )
-                .SetState(state, Position, 1.0f, SystemClock.ElapsedRealtime());
+                .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
 
             mediaSession.SetPlaybackState(stateBuilder.Build());
 
@@ -563,7 +568,7 @@ public class MediaPlayerService : Service,
     }
 
     /// <summary>
-    /// Updates the metadata on the lock screen
+    /// Updates the metadata on the lock screen and on notification bar
     /// </summary>
     private void UpdateMediaMetadataCompat(MediaMetadataRetriever metaRetriever = null)
     {
@@ -577,13 +582,16 @@ public class MediaPlayerService : Service,
             builder
             .PutString(MediaMetadata.MetadataKeyAlbum,metaRetriever.ExtractMetadata(MetadataKey.Album))
             .PutString(MediaMetadata.MetadataKeyArtist, mediaPlay.Author ?? metaRetriever.ExtractMetadata(MetadataKey.Artist))
-            .PutString(MediaMetadata.MetadataKeyTitle, mediaPlay.Name ?? metaRetriever.ExtractMetadata(MetadataKey.Title));
+            .PutString(MediaMetadata.MetadataKeyTitle, mediaPlay.Name ?? metaRetriever.ExtractMetadata(MetadataKey.Title))
+            .PutLong(MediaMetadata.MetadataKeyDuration, mediaPlay.DurationInMs);
+            // using this metaRetriever.ExtractMetadata(MetadataKey.Duration))  doesn't work
         }
         else
         {
             builder.PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
                    .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
-                   .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle));
+                   .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle))
+                   .PutLong(MediaMetadata.MetadataKeyDuration, mediaSession.Controller.Metadata.GetLong(MediaMetadata.MetadataKeyDuration));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover as Bitmap);
 
@@ -622,6 +630,10 @@ public class MediaPlayerService : Service,
         else if (action.Equals(ActionStop))
         {
             mediaController.GetTransportControls().Stop();
+        }
+        else if (action.Equals(ActionSeekTo))
+        {
+            mediaController.GetTransportControls().SeekTo(Position);
         }
     }
 
@@ -736,16 +748,19 @@ public class MediaPlayerService : Service,
             mediaPlayerService = service;
         }
 
+        bool isPlaying = true;
         public override async void OnPause()
         {
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(false);
             base.OnPause();
+            isPlaying = false;
         }
 
         public override async void OnPlay()
         {
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(true);
             base.OnPlay();
+            isPlaying = true;
         }
 
         public override async void OnSkipToNext()
@@ -764,6 +779,15 @@ public class MediaPlayerService : Service,
         {
             await mediaPlayerService.GetMediaPlayerService().Stop();
             base.OnStop();
+        }
+
+        public override async void OnSeekTo(long position)
+        {
+
+            await mediaPlayerService.GetMediaPlayerService().Seek((int)position);
+            mediaPlayerService.GetMediaPlayerService().UpdatePlaybackState(isPlaying == true ? PlaybackStateCode.Playing : PlaybackStateCode.Paused
+                , (int)position);
+            base.OnSeekTo(position);
         }
     }
 }

@@ -47,14 +47,26 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.IsPlayingChanged -= AudioService_PlayingChanged;
-        
-        _positionTimer = new (1000);
+
+        _positionTimer = new(1000);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
-
+        LoadLastPlayedSong(SongsMgtService);
         GetReadableFileSize();
         GetReadableDuration();
+    }
+
+    private void LoadLastPlayedSong(ISongsManagementService SongsMgtService)
+    {
+        var lastPlayedSongID = AppSettingsService.LastPlayedSongSetting.GetLastPlayedSong();
+        if (lastPlayedSongID is not null)
+        {
+            var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
+            ObservableCurrentlyPlayingSong = lastPlayedSong!;
+            ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
+        }
+        
     }
 
     private void AudioService_PlayingChanged(object? sender, bool e)
@@ -169,7 +181,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         return true;
     }
 
-
     private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         double currentPositionInSeconds = audioService.CurrentPosition;
@@ -237,14 +248,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value[_currentSongIndex];
             
             ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
-            //string artName = new(ObservableCurrentlyPlayingSong.Artist?.Name);
-            //var cover = Path.ChangeExtension(ObservableCurrentlyPlayingSong.FilePath, ".jpg");
+            
             await audioService.InitializeAsync(new MediaPlay() 
             { 
                 Name = ObservableCurrentlyPlayingSong.Title, 
                 Author = ObservableCurrentlyPlayingSong.ArtistName,
                 URL= ObservableCurrentlyPlayingSong.FilePath,
                 ImageBytes = ObservableCurrentlyPlayingSong.CoverImage,
+                DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
 
             _currentPositionSubject.OnNext(new());
@@ -258,6 +269,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
+
+            AppSettingsService.LastPlayedSongSetting.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
             return true;
         }
         catch (Exception ex)
@@ -277,6 +290,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             await PlaySongAsync();
             return true;
         }
+        if (audioService.CurrentPosition == 0)
+        {
+            await PlaySongAsync(ObservableCurrentlyPlayingSong);
+            ObservableCurrentlyPlayingSong.IsPlaying = true;
+            _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
+            _positionTimer.Start();
+            return true;
+        }
         if (audioService.IsPlaying)
         {
             currentPosition = audioService.CurrentPosition;
@@ -294,9 +315,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             await audioService.PlayAsync(currentPosition);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
-
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
-
             _positionTimer.Start();
         }
 

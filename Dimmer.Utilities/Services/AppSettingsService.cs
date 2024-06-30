@@ -32,4 +32,26 @@ public class AppSettingsService : IAppSettingsService
         }
 
     }
+
+    public static class LastPlayedSongSetting
+    {
+        const string defaultSongId = null;
+        public static string LastPlayedSongId
+        {
+            get => Preferences.Default.Get(nameof(LastPlayedSongId), defaultSongId);
+            set => Preferences.Default.Set(nameof(LastPlayedSongId), value);
+        }
+
+        public static void SetLastPlayedSong(ObjectId songID)
+        {
+            if (songID != ObjectId.Empty)
+            {
+                LastPlayedSongId = songID.ToString();
+            }
+        }
+        public static object? GetLastPlayedSong()
+        {
+            return LastPlayedSongId is null ? null : new ObjectId(LastPlayedSongId);
+        }
+    }
 }

@@ -26,7 +26,7 @@ public class CheckPermissions
 
             if (isRationaleAccepted)
             {
-                //AppInfo.ShowSettingsUI();
+                AppInfo.ShowSettingsUI();
 
                 // Request permission
                 status = await Permissions.RequestAsync<Permissions.StorageRead>();
