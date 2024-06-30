@@ -25,18 +25,6 @@ public partial class NowPlayingPageM : UraniumContentPage
         base.OnDisappearing();
         DeviceDisplay.Current.KeepScreenOn = false;
     }
-    private void syncCol_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        try
-        {
-            //SyncedLyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message + " When scrolling");
-        }
-
-    }
 
     private async void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
     {

@@ -96,7 +96,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <ImageButton Grid.Column="0" HeightRequest="40" BackgroundColor="Transparent">
+                <ImageButton Grid.Column="0" HeightRequest="35" BackgroundColor="Transparent">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Repeat}"/>
                     </ImageButton.Source>
@@ -117,7 +117,7 @@
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                     </ImageButton.Source>
                 </ImageButton>
-                <ImageButton Grid.Column="4" HeightRequest="40" BackgroundColor="Transparent">
+                <ImageButton Grid.Column="4" HeightRequest="35" BackgroundColor="Transparent">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Shuffle}"/>
                     </ImageButton.Source>
@@ -163,7 +163,7 @@
             </Grid>
 
             <FlexLayout JustifyContent="SpaceBetween" HeightRequest="40"
-                        toolkit:DockLayout.DockPosition="Top" Margin="5,0,10,20">
+                        toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,10">
                 <Label Text="" />
 
                 <HorizontalStackLayout>

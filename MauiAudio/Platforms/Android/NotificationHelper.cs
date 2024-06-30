@@ -66,9 +66,7 @@ public static class NotificationHelper
         MediaMetadata mediaMetadata,
         AndroidMedia.Session.MediaSession mediaSession,
         object largeIcon,
-        bool isPlaying,
-        double duration,
-        double currentPosition)
+        bool isPlaying)
     {
         var intent = new Intent("com.yvanbrunel.dimmermaui.ACTION_NOTIFICATION_CLICK");
         var pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
@@ -93,8 +91,7 @@ public static class NotificationHelper
             .SetShowWhen(false)
             .SetOngoing(isPlaying)
             .SetPriority(NotificationCompat.PriorityHigh)
-            .SetVisibility(NotificationVisibility.Public)
-            .SetProgress((int)duration, (int)currentPosition, false);
+            .SetVisibility(NotificationVisibility.Public);
         builder.SetSound(null);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
         AddPlayPauseActionCompat(builder, context, isPlaying);

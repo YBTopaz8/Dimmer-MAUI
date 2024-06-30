@@ -561,9 +561,7 @@ public class MediaPlayerService : Service,
             mediaController.Metadata,
             mediaSession,
             Cover,
-            MediaPlayerState == PlaybackStateCode.Playing,
-            Duration/1000,
-            Position / 1000
+            MediaPlayerState == PlaybackStateCode.Playing
             );
     }
 

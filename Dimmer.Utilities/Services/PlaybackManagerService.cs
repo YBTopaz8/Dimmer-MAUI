@@ -290,7 +290,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             await PlaySongAsync();
             return true;
         }
-        if (audioService.CurrentPosition == 0)
+        if (audioService.CurrentPosition == 0 && !audioService.IsPlaying)
         {
             await PlaySongAsync(ObservableCurrentlyPlayingSong);
             ObservableCurrentlyPlayingSong.IsPlaying = true;

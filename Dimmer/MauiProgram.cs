@@ -51,6 +51,7 @@ public static class MauiProgram
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
         builder.Services.AddSingleton<NowPlayingPageM>();
+        builder.Services.AddSingleton<PlaylistsPageM>();
         return builder.Build();
     }
 }

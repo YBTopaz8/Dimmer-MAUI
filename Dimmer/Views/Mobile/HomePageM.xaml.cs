@@ -53,7 +53,7 @@ public partial class HomePageM : UraniumContentPage
     {
         lastKeyStroke = DateTime.Now;
         var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(1000);
+        await Task.Delay(750);
         if (thisKeyStroke == lastKeyStroke)
         {
             var searchText = e.NewTextValue;
@@ -70,15 +70,10 @@ public partial class HomePageM : UraniumContentPage
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
-        SearchBackDrop.IsPresented = !SearchBackDrop.IsPresented;
-        
+        //SearchBackDrop.IsPresented = !SearchBackDrop.IsPresented;
+        SongsColView.ScrollTo(HomePageVM.PickedSong, position:ScrollToPosition.Center, animate: true);
     }
 
-    private void SearchFAB_LongPressed(object sender, TouchEventArgs e)
-    {
-        SongsColView.ScrollTo(HomePageVM.PickedSong);
-        //when longpressed, scroll to the currently playing song
-    }
 
     private async void PlaybackBottomBar_Tapped(object sender, TappedEventArgs e)
     {
