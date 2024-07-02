@@ -414,6 +414,7 @@ public class MediaPlayerService : Service,
         await Task.Run(() =>
         {
             mediaPlayer?.SeekTo(position);
+            UpdatePlaybackState(MediaPlayerState, position);
         });
     }
 
@@ -426,7 +427,6 @@ public class MediaPlayerService : Service,
         //    mediaPlayer.Release();
         //    mediaPlayer = null;
         //}
-
         UpdatePlaybackState(PlaybackStateCode.SkippingToNext);
 
         //await Play();
@@ -681,6 +681,7 @@ public class MediaPlayerService : Service,
     {
         binder = new MediaPlayerServiceBinder(this);
         return binder;
+
     }
 
     public override bool OnUnbind(Intent intent)

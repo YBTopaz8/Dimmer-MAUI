@@ -54,6 +54,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePageM>();
         builder.Services.AddSingleton<NowPlayingPageM>();
         builder.Services.AddSingleton<PlaylistsPageM>();
+        builder.Services.AddSingleton<SinglePlaylistPageM>();
+
         return builder.Build();
     }
 }

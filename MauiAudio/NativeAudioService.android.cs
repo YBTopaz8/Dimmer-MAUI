@@ -2,6 +2,7 @@
 using Android.Media;
 using MauiAudio.Platforms.Android;
 using MauiAudio.Platforms.Android.CurrentActivity;
+using System.Diagnostics;
 using AndroidApp = Android.App;
 
 namespace MauiAudio;
@@ -14,10 +15,24 @@ public class NativeAudioService : INativeAudioService
     double volume = 1;
     double balance = 0;
     bool muted=false;
-    private MediaPlayer mediaPlayer => instance != null &&
-        instance.Binder.GetMediaPlayerService() != null ?
-        instance.Binder.GetMediaPlayerService().mediaPlayer : null;
-
+    //private MediaPlayer mediaPlayer => instance != null &&
+    //    instance.Binder.GetMediaPlayerService() != null ?
+    //    instance.Binder.GetMediaPlayerService().mediaPlayer : null;
+    private MediaPlayer mediaPlayer
+    {
+        get
+        {
+            if (instance != null && instance.Binder.GetMediaPlayerService() != null)
+            {
+                return instance.Binder.GetMediaPlayerService().mediaPlayer;
+            }
+            else
+            {
+                return new MediaPlayer();
+                //return null;
+            }
+        }
+    }
     public bool IsPlaying => mediaPlayer?.IsPlaying ?? false;
     public double Duration=>mediaPlayer?.Duration/1000 ?? 0;
     public double CurrentPosition => mediaPlayer?.CurrentPosition / 1000 ?? 0;
@@ -73,9 +88,16 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public Task SetCurrentTime(double position)
+    public async Task<bool> SetCurrentTime(double position) //will edit this so it can return something if media is not initialized;
     {
-        return instance.Binder.GetMediaPlayerService().Seek((int)position * 1000);
+        if (mediaPlayer is null)
+        {
+            Debug.WriteLine("no media");
+            return false;
+        }
+        await instance.Binder.GetMediaPlayerService().Seek((int)position * 1000);
+        return true;
+        
     }
 
     public Task DisposeAsync()
@@ -100,10 +122,10 @@ public class NativeAudioService : INativeAudioService
         instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
         instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
         instance.Binder.GetMediaPlayerService().TaskPlayPrevious += PlayPrevious;
-        this.instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool e) =>
+        this.instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool isPlaying) =>
         {
             Task.Run(async () => {
-                if (e)
+                if (isPlaying)
                 {
                     await this.PlayAsync(CurrentPosition);
                 }
@@ -112,11 +134,11 @@ public class NativeAudioService : INativeAudioService
                     await this.PauseAsync();
                 }
             });
-            IsPlayingChanged?.Invoke(this, e);
+            IsPlayingChanged?.Invoke(this, isPlaying);
         };
         //if(media.Image!=null) instance.Binder.GetMediaPlayerService().Cover= await GetImageBitmapFromUrl(media.Image);
         //else instance.Binder.GetMediaPlayerService().Cover = null;
-        instance.Binder.GetMediaPlayerService().mediaPlay =media;
+        instance.Binder.GetMediaPlayerService().mediaPlay = media;
     }
 
 }

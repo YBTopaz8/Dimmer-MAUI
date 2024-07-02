@@ -88,13 +88,14 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public Task SetCurrentTime(double value)
+    public Task<bool> SetCurrentTime(double value)
     {
-        if (mediaPlayer != null)
+        if (mediaPlayer == null)
         {
-            mediaPlayer.Position = TimeSpan.FromSeconds(value);
+            return Task.FromResult(false);
         }
-        return Task.CompletedTask;
+        mediaPlayer.Position = TimeSpan.FromSeconds(value);
+        return Task.FromResult(true);
     }
     public Task DisposeAsync()
     {

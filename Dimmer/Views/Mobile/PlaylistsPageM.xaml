@@ -17,16 +17,19 @@
          <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:PlaylistModelView">
-                    <VerticalStackLayout>
-                        <VerticalStackLayout.GestureRecognizers>
+                    <Border>
+                        <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}"
-                                                  CommandParameter="{Binding Id}"/>
-                        </VerticalStackLayout.GestureRecognizers>
-                        <Label Text="{Binding Name}"/>
-                        <Label Text="{Binding TotalDuration}"/>
-                        <Label Text="{Binding TotalSize}"/>
+                                    CommandParameter="{Binding Id}"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Name}"/>
+                            <Label Text="{Binding TotalDuration}"/>
+                            <Label Text="{Binding TotalSize}"/>
 
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

@@ -46,10 +46,14 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public Task SetCurrentTime(double value)
+    public Task<bool> SetCurrentTime(double value)
     {
+        if (avPlayer is null)
+        {
+            return Task.FromResult(false);
+        }
         avPlayer.PlayAtTime(value);
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     public Task DisposeAsync()

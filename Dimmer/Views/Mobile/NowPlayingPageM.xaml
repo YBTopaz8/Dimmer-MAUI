@@ -96,9 +96,14 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <ImageButton Grid.Column="0" HeightRequest="35" BackgroundColor="Transparent">
+                <ImageButton Grid.Column="0" HeightRequest="30" 
+                             Command="{Binding ToggleRepeatModeCommand}">
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Repeat}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"
+                                         />
                     </ImageButton.Source>
                 </ImageButton>
                 <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
@@ -117,9 +122,13 @@
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                     </ImageButton.Source>
                 </ImageButton>
-                <ImageButton Grid.Column="4" HeightRequest="35" BackgroundColor="Transparent">
+                <ImageButton Grid.Column="4" HeightRequest="30" Command="{Binding ToggleShuffleStateCommand}">
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Shuffle}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"
+                                         />
                     </ImageButton.Source>
                 </ImageButton>
 

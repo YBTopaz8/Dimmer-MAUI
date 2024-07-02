@@ -49,6 +49,11 @@ public class PlayListService : IPlayListService
                 .ToList();
             _allSongsFromPlaylist.OnNext(songsInPlaylist);
             currentlyLoadedPlaylist = playlistID;
+
+            foreach (var item in songsInPlaylist)
+            {
+                Debug.WriteLine(item.Title);
+            }
         }
 
     }

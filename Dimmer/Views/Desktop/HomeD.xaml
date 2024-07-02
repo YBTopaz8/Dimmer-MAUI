@@ -10,8 +10,6 @@
              xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
              xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"   
-             xmlns:icon="clr-namespace:IconPacks.IconKind;assembly=IconPacks.Material"
-             xmlns:iconCom="clr-namespace:IconPacks.IconKind;assembly=IconPacks.MaterialCommunity"
              x:DataType="vm:HomePageVM"             
              x:Name="page">
     

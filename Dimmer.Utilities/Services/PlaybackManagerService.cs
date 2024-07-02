@@ -29,7 +29,16 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     IPlaylistManagementService PlaylistMgtService { get; }
 
     int _currentSongIndex = 0;
+    
+    [ObservableProperty]
+    bool isShuffleOn;
+    [ObservableProperty]
+    int currentRepeatMode;
 
+    bool isSongPlaying;
+
+    List<ObjectId> playedSongsIDs = [];
+    Random _shuffleRandomizer = new Random();
     public PlaybackManagerService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistMgtService)
     {
@@ -43,35 +52,60 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
         this.audioService = NativeAudioService.Current;
 #endif
-        audioService.PlayNext -= AudioService_PlayNext;
+        
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
-        audioService.IsPlayingChanged -= AudioService_PlayingChanged;
-
+        audioService.PlayEnded += AudioService_PlayEnded;
         _positionTimer = new(1000);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
+
         LoadLastPlayedSong(SongsMgtService);
         GetReadableFileSize();
         GetReadableDuration();
+        CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
+        IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+    }
+
+    private void AudioService_PlayEnded(object? sender, EventArgs e)
+    {
+        Debug.WriteLine("Ended");
     }
 
     private void LoadLastPlayedSong(ISongsManagementService SongsMgtService)
     {
-        var lastPlayedSongID = AppSettingsService.LastPlayedSongSetting.GetLastPlayedSong();
+        var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
         if (lastPlayedSongID is not null)
         {
             var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
             ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
+            
         }
         
     }
-
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
+        if (isSongPlaying == e)
+        {
+            return;
+        }
+        isSongPlaying = e;
+        ObservableCurrentlyPlayingSong.IsPlaying = isSongPlaying;
+
+        if (isSongPlaying)
+        {
+            _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
+        }
+        else
+        {
+            _playerStateSubject.OnNext(MediaPlayerState.Paused);
+        }
+        Debug.WriteLine("Play state " + e);
         Debug.WriteLine("Pause Play changed");
+
+        
     }
 
     private (List<SongsModelView> songs, Dictionary<string, ArtistModel>) LoadSongs(string folderPath, IProgress<int> loadingSongsProgress)
@@ -209,6 +243,12 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             return;
         try
         {
+            if (CurrentRepeatMode == 2) //repeat the same song
+            {
+                await PlaySongAsync();
+                return;
+            }
+            
             await PlayNextSongAsync();
         }
         finally
@@ -270,7 +310,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
-            AppSettingsService.LastPlayedSongSetting.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
+            AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
             return true;
         }
         catch (Exception ex)
@@ -349,8 +389,28 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         if (currentList.Count == 0)
             return false;
 
-        _currentSongIndex = (_currentSongIndex + 1) % currentList.Count;
-        return await PlaySongAsync(currentList[_currentSongIndex]);
+        SongsModelView nextSong;
+        if(IsShuffleOn)
+        {
+            if(playedSongsIDs.Count == currentList.Count)
+            {
+                playedSongsIDs.Clear();
+            }
+            do
+            {
+                _currentSongIndex = _shuffleRandomizer.Next(currentList.Count);
+                nextSong = currentList[_currentSongIndex];
+            } while (playedSongsIDs.Contains(nextSong.Id));
+
+            playedSongsIDs.Add(nextSong.Id);
+        }
+        else
+        {
+            _currentSongIndex = (_currentSongIndex + 1) % currentList.Count;
+            nextSong = currentList[_currentSongIndex];
+        }
+
+        return await PlaySongAsync(nextSong);
         
     }
 
@@ -415,16 +475,27 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         _nowPlayingSubject.OnNext(list);
     }
 
-    public void SetSongPosition(double positionFraction)
+    public async Task SetSongPosition(double positionFraction)
     {
-        if (audioService != null && positionFraction >= 0 && positionFraction <= 1)
-        {
-            // Convert the fraction to actual seconds
-            double positionInSeconds = positionFraction * audioService.Duration;
+        
+        // Convert the fraction to actual seconds
+        double positionInSeconds = positionFraction * audioService.Duration;
 
-            // Set the current time in the audio service
-            audioService.SetCurrentTime(positionInSeconds);
+        // Set the current time in the audio service
+        if(!await audioService.SetCurrentTime(positionInSeconds))
+        {
+            await audioService.InitializeAsync(new MediaPlay()
+            {
+                Name = ObservableCurrentlyPlayingSong.Title,
+                Author = ObservableCurrentlyPlayingSong.ArtistName,
+                URL = ObservableCurrentlyPlayingSong.FilePath,
+                ImageBytes = ObservableCurrentlyPlayingSong.CoverImage,
+                DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
+            });
+
+            await SetSongPosition(positionInSeconds);
         }
+
     }
 
     public void ChangeVolume(double newPercentageValue)
@@ -436,7 +507,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 return;
             }
             audioService.Volume = newPercentageValue;
-            AppSettingsService.VolumeSettings.SetVolumeLevel(newPercentageValue);
+            AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newPercentageValue);
         }
         catch (Exception ex)
         {
@@ -574,6 +645,31 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         Debug.WriteLine($"Total Duration: {TotalSongsDuration}");
     }
 
+    public void ToggleShuffle(bool isShuffleOn)
+    {
+        IsShuffleOn = isShuffleOn;
+        AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
+    }
+    public int ToggleRepeatMode()
+    {
+        
+        switch (CurrentRepeatMode)
+        {
+            case 0:
+                CurrentRepeatMode = 1;
+                break;
+            case 1:
+                CurrentRepeatMode = 2;
+                break;
+            case 2:
+                CurrentRepeatMode = 0;
+                break;
+            default:
+                break;
+        }
+        AppSettingsService.RepeatModePreference.ToggleRepeatState();
+        return CurrentRepeatMode;
+    }
 }
 
 

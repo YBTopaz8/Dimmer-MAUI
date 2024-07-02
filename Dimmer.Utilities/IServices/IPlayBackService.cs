@@ -15,15 +15,19 @@ public interface IPlayBackService
     SongsModelView CurrentlyPlayingSong { get; }
     string TotalSongsSizes { get; }
     string TotalSongsDuration { get; }
-    
+    bool IsShuffleOn { get; set; }
+    int CurrentRepeatMode { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
-    void SetSongPosition(double positionFraction); // to set position from slider
+    Task SetSongPosition(double positionFraction); // to set position from slider
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     Task<bool> LoadSongsFromFolder(string folderPath, IProgress<int> loadingProgress); //to load songs from folder
     void ChangeVolume(double newVolumeValue);
     void SearchSong(string songTitleOrArtistName); //to search song with title
     void DecreaseVolume();
     void IncreaseVolume();
+
+    void ToggleShuffle(bool isShuffleOn);
+    int ToggleRepeatMode();
 
     void UpdateSongToFavoritesPlayList(SongsModelView song);
 }

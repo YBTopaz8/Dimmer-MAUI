@@ -37,6 +37,13 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     double volumeSliderValue = 1;
 
+    [ObservableProperty]
+    bool isShuffleOn;
+    [ObservableProperty]
+    int currentRepeatMode;
+
+    MediaPlayerState isSongCurrentlyPlaying;
+
     IFolderPicker folderPicker { get; }
     IFilePicker filePicker { get; }
     IPlayBackService PlayBackManagerService { get; }
@@ -61,11 +68,71 @@ public partial class HomePageVM : ObservableObject
         SubscribeToUnSyncedLyricsChanges();
         SubscribeToLyricIndexChanges();
 
-        VolumeSliderValue = AppSettingsService.VolumeSettings.GetVolumeLevel();
-        PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
+        VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
+        LoadPickedSongCoverImage();
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
         TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
+
+        ToggleShuffleState();
+        ToggleRepeatMode();
+    }
+
+    void LoadPickedSongCoverImage()
+    {
+        if (PickedSong is not null)
+        {
+            PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
+        }
+    }
+
+    [ObservableProperty]
+    string shuffleOnOffImage = MaterialTwoTone.Shuffle;
+
+    [RelayCommand]
+    void ToggleShuffleState(bool IsCalledByUI = false)
+    {
+        IsShuffleOn = PlayBackManagerService.IsShuffleOn;
+        if(IsCalledByUI)
+        {
+            IsShuffleOn = !IsShuffleOn;
+            PlayBackManagerService.ToggleShuffle(IsShuffleOn);
+        }
+        if (IsShuffleOn)
+        {
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle_on;
+        }
+        else
+        {
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle;
+        }
+    }
+
+    [ObservableProperty]
+    string repeatModeImage = MaterialTwoTone.Repeat;
+    [RelayCommand]
+    void ToggleRepeatMode(bool IsCalledByUI = false)
+    {
+        CurrentRepeatMode = PlayBackManagerService.CurrentRepeatMode;
+        if (IsCalledByUI)
+        {
+            CurrentRepeatMode = PlayBackManagerService.ToggleRepeatMode();
+        }
+
+        switch (CurrentRepeatMode)
+        {
+            case 1:
+                RepeatModeImage = MaterialTwoTone.Repeat_on;
+                break;
+            case 2:
+                RepeatModeImage = MaterialTwoTone.Repeat_one_on;
+                break;
+            case 0:
+                RepeatModeImage = MaterialTwoTone.Repeat;
+                break;
+            default:
+                break;
+        }
 
     }
 
@@ -147,7 +214,7 @@ public partial class HomePageVM : ObservableObject
 
     private void SwitchPlayPauseImage()
     {
-        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
+        if (isSongCurrentlyPlaying == MediaPlayerState.Playing)
         {
             PlayPauseImage = MaterialTwoTone.Pause;
         }
@@ -257,12 +324,12 @@ public partial class HomePageVM : ObservableObject
         {
             TemporarilyPickedSong = PlayBackManagerService.CurrentlyPlayingSong;
             PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
+            isSongCurrentlyPlaying = state;
             switch (state)
             {                
-                case MediaPlayerState.Playing:
-                    
-                    //PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
+                case MediaPlayerState.Playing:                    
                     IsPlaying = PlayBackManagerService.CurrentlyPlayingSong.IsPlaying;
+                    
                     if (PickedSong.CoverImage is not null)
                     {                        
                         PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
@@ -271,9 +338,10 @@ public partial class HomePageVM : ObservableObject
                     {
                         PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
                     }
+                    SwitchPlayPauseImage();
                     break;
                 case MediaPlayerState.Paused:
-                    // PickedSong = "Paused";
+                    SwitchPlayPauseImage();
                     break;
                 case MediaPlayerState.Stopped:
                     //PickedSong = "Stopped";
