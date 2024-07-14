@@ -1,7 +1,16 @@
-﻿
+﻿using ATL;
 
+#if ANDROID
+using Dimmer_MAUI.Platforms.Android.MAudioLib; 
+#endif
 
-namespace Dimmer.Utilities.IServices;
+using System.Globalization;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Text;
+using System.Timers;
+
+namespace Dimmer_MAUI.UtilitiesServices;
 public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 {
     
@@ -28,6 +37,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     IStatsManagementService StatsMgtService { get; }
     IPlaylistManagementService PlaylistMgtService { get; }
     public IPlayListService PlayListService { get; }
+
 
     int _currentSongIndex = 0;
     
@@ -684,15 +694,3 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     }
 }
 
-
-public enum MediaPlayerState
-{
-    Playing,
-    Paused,
-    Stopped
-}
-public class PlaybackInfo
-{
-    public double TimeElapsed { get; set; } = 0;
-    public double CurrentTimeInSeconds { get; set; } = 0;
-}

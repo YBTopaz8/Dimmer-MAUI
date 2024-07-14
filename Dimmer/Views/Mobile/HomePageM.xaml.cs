@@ -6,21 +6,14 @@ namespace Dimmer_MAUI.Views.Mobile;
 public partial class HomePageM : UraniumContentPage
 {
     
-    public HomePageM(HomePageVM homePageVM, INativeAudioService nativeAudioService)//, NowPlayingBottomPage NPBtmPage)
+    public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
-        nativeAudioService.NotificationTapped += NativeAudioService_NotificationTapped;
     }
 
-    private void NativeAudioService_NotificationTapped(object? sender, EventArgs e)
-    {
-#if ANDROID
-        MainActivity.OnNotifTapped();
-#endif
-    }
 
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {

@@ -3,7 +3,7 @@ public class SongsModel : RealmObject
 {
     [PrimaryKey]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-
+    
     public string Title { get; set; }
     public string ArtistName { get; set; }
     public string AlbumName { get; set; }
