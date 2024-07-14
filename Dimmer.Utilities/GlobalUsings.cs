@@ -2,7 +2,6 @@
 global using Dimmer.Models;
 global using System.Reactive.Subjects;
 global using ATL.AudioData;
-global using MauiAudio;
 global using System.Reactive.Linq;
 global using ATL;
 global using System.Globalization;

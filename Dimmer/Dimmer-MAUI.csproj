@@ -160,7 +160,6 @@
 	  <ProjectReference Include="..\Dimmer.DataAccess\Dimmer.DataAccess.csproj" />
 	  <ProjectReference Include="..\Dimmer.Models\Dimmer.Models.csproj" />
 	  <ProjectReference Include="..\Dimmer.Utilities\Dimmer.Utilities.csproj" />
-	  <ProjectReference Include="..\MauiAudio\MauiAudio.csproj" />
 	</ItemGroup>
 
 </Project>

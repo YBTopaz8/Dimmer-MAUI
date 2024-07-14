@@ -1,4 +1,13 @@
-﻿using Plugin.ContextMenuContainer;
+﻿using Dimmer_MAUI.MAudioLib;
+
+using Plugin.ContextMenuContainer;
+using Dimmer_MAUI.UtilitiesServices;
+
+#if ANDROID
+using Dimmer_MAUI.Platforms.Android.MAudioLib;
+#elif WINDOWS
+    using Dimmer_MAUI.Platforms.Windows;
+#endif
 
 namespace Dimmer_MAUI;
 public static class MauiProgram
@@ -11,7 +20,6 @@ public static class MauiProgram
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
-            .UseMauiAudio()
             .ConfigureContextMenuContainer()
             .ConfigureFonts(fonts =>
             {
@@ -24,9 +32,12 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-
+#if ANDROID || WINDOWS
+        builder.Services.AddSingleton<INativeAudioService, NativeAudioService>();
 
         builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+#endif
+
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(Microsoft.Maui.Storage.FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);

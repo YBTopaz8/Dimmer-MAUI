@@ -8,7 +8,6 @@ global using Dimmer.Utilities;
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
-global using MauiAudio;
 
 global using UraniumUI;
 global using UraniumUI.Pages;
@@ -25,6 +24,8 @@ global using Dimmer.DataAccess.IServices;
 global using UraniumUI.Icons.MaterialIcons;
 
 global using MongoDB.Bson;
+
+global using Dimmer_MAUI.MAudioLib;
 namespace Dimmer_MAUI;
 internal class GlobalUsings
 {

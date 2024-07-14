@@ -1,6 +1,8 @@
-﻿
-
+﻿using ATL;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
+using static ATL.LyricsInfo;
 
 namespace Dimmer.Utilities.Services;
 public class LyricsService : ILyricsService
@@ -137,9 +139,9 @@ public class LyricsService : ILyricsService
             .Sample(TimeSpan.FromMilliseconds(sampleTime))
             .Subscribe(position =>
             {
-               double currentTimeinsSecs = position.CurrentTimeInSeconds;
-               UpdateCurrentLyricIndex(currentTimeinsSecs);
-            },error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
+                double currentTimeinsSecs = position.CurrentTimeInSeconds;
+                UpdateCurrentLyricIndex(currentTimeinsSecs);
+            }, error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
 
 
@@ -153,7 +155,7 @@ public class LyricsService : ILyricsService
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
         int offsetValue = 1450;
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);        
+        var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
 
         if (highlightedLyric == null)
         {
@@ -188,7 +190,7 @@ public class LyricsService : ILyricsService
             // If we didn't find any lyric with a timestamp greater than the current position, return the last lyric
             return sortedLyrics[sortedLyrics.Length - 1];
         }
-        catch (Exception ex )
+        catch (Exception ex)
         {
             Debug.WriteLine($"Error when finding closest lyric: {ex.Message}");
             return null;
