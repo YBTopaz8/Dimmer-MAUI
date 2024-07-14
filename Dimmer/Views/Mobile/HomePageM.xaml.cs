@@ -6,12 +6,20 @@ namespace Dimmer_MAUI.Views.Mobile;
 public partial class HomePageM : UraniumContentPage
 {
     
-    public HomePageM(HomePageVM homePageVM)//, NowPlayingBottomPage NPBtmPage)
+    public HomePageM(HomePageVM homePageVM, INativeAudioService nativeAudioService)//, NowPlayingBottomPage NPBtmPage)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;        
+        SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
+        nativeAudioService.NotificationTapped += NativeAudioService_NotificationTapped;
+    }
+
+    private void NativeAudioService_NotificationTapped(object? sender, EventArgs e)
+    {
+#if ANDROID
+        MainActivity.OnNotifTapped();
+#endif
     }
 
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -74,11 +82,18 @@ public partial class HomePageM : UraniumContentPage
         SongsColView.ScrollTo(HomePageVM.PickedSong, position:ScrollToPosition.Center, animate: true);
     }
 
-
     private async void PlaybackBottomBar_Tapped(object sender, TappedEventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);
     }
 
-    
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+#if ANDROID
+        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
+#endif
+    }
 }

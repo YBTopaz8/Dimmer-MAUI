@@ -2,11 +2,84 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.SinglePlaylistPageM"
-             Title="SinglePlaylistPageM">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"        
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+            xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            x:DataType="vm:PlaylistsPageVM"
+            Title="{Binding SelectedPlaylistPageTitle}"
+             BackgroundColor="Black"
+             x:Name="myPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+            </Style>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <toolkit:DockLayout Margin="5,0">
+        <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectionMode="Single"
+                        x:Name="SongsColView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <FlexLayout JustifyContent="SpaceBetween" >
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal"></VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="#99483D8B"></Setter>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+
+                        </VisualStateManager.VisualStateGroups>
+
+                        <FlexLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}"
+                                  CommandParameter="{Binding .}"/>
+                        </FlexLayout.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="5">
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="19"/>
+                                <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
+                                <Label Text="{Binding PlayCount}" FontSize="14" Opacity="0.5"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <HorizontalStackLayout>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
+                            </VerticalStackLayout>
+                            <cm:ContextMenuContainer>
+                                <cm:ContextMenuContainer.MenuItems >
+                                    <cm:ContextMenuItem Text="Share"/>
+                                    <cm:ContextMenuItem Text="Delete"/>
+                                </cm:ContextMenuContainer.MenuItems>
+
+                                <cm:ContextMenuContainer.Content>
+                                    <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
+                                        <ImageButton.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+
+                                </cm:ContextMenuContainer.Content>
+                            </cm:ContextMenuContainer>
+                        </HorizontalStackLayout>
+
+                    </FlexLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </toolkit:DockLayout>
 </ContentPage>

@@ -150,14 +150,7 @@ public partial class HomePageVM : ObservableObject
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
         
-#if ANDROID
-        if (!await CheckPermissions.CheckAndRequestStoragePermissionAsync())
-        {
-            
-            await Shell.Current.DisplayAlert("No Permission", "No Permission to read files", "OK");
-            return;
-
-        }
+#if ANDROID        
         var folder = "/storage/emulated/0/Music";
 #elif WINDOWS
 

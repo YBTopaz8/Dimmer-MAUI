@@ -2,20 +2,27 @@
 
 public partial class App : Application
 {
-    public App(ISongsManagementService songsManagementService, IPlaylistManagementService playlistManagementService)
+    public App(INativeAudioService audioService)
     {
         InitializeComponent();
 #if WINDOWS
         MainPage = new AppShell();
-        SongsManagementService = songsManagementService;
-        PlaylistManagementService = playlistManagementService;
 
 #elif ANDROID
-
         MainPage = new AppShellMobile();
+        //audioService.NotificationTapped += AudioService_NotificationTapped;
 #endif
 
 
+    }
+
+    private async void AudioService_NotificationTapped(object? sender, EventArgs e)
+    {
+#if ANDROID
+        
+
+#endif
+        await Shell.Current.GoToAsync($"///{nameof(NowPlayingPageM)}");
     }
 
     public ISongsManagementService SongsManagementService { get; }
