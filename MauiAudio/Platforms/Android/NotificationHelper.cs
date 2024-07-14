@@ -19,17 +19,14 @@ public static class NotificationHelper
     {
         Intent intent = new Intent(context, typeof(MediaPlayerService));
         intent.SetAction(intentAction);
-
         PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
         if (intentAction.Equals(MediaPlayerService.ActionStop))
             flags = PendingIntentFlags.CancelCurrent;
-
         flags |= PendingIntentFlags.Mutable;
-
         PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags);
-
         return new Notification.Action.Builder(icon, title, pendingIntent).Build();
     }
+
 
     internal static void StopNotification(Context context)
     {
@@ -41,26 +38,28 @@ public static class NotificationHelper
     {
         if (Build.VERSION.SdkInt < BuildVersionCodes.O)
         {
-            //NotificationChannel channel =new NotificationChannel(CHANNEL_ID, "Location Notifications", NotificationImportance.Default);
+            //NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Location Notifications", NotificationImportance.Default);
             // Notification channels are new in API 26 (and not a part of the
             // support library). There is no need to create a notification
             // channel on older versions of Android.
             return;
         }
 
-        var name = "Local Notifications";
+        var name = "Dimmer";
         var description = "The count from MainActivity.";
         var channel = new NotificationChannel(CHANNEL_ID, name, NotificationImportance.Min)
         {
             Description = description,            
         };
-
+        
         channel.SetSound(null, null);
 
-        var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
+        var notificationManager =  (NotificationManager)context.GetSystemService(Context.NotificationService);
+        
         notificationManager.CreateNotificationChannel(channel);
     }
-
+    
+    
     internal static void StartNotification(
         Context context,
         MediaMetadata mediaMetadata,
@@ -68,37 +67,42 @@ public static class NotificationHelper
         object largeIcon,
         bool isPlaying)
     {
-        var intent = new Intent("com.yvanbrunel.dimmermaui.ACTION_NOTIFICATION_CLICK");
-        var pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+        Intent intent = new (context, typeof(MediaPlayerService));
+        intent.SetAction(MediaPlayerService.ActionNotifTapped);
+        intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
+
+        var pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
+            ? PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable
+            : PendingIntentFlags.UpdateCurrent;
+
+        var pendingIntent = PendingIntent.GetService(context, 2, intent, pendingIntentFlags);
         //var pendingIntent = PendingIntent.GetActivity(
         //    context,
         //    0,
         //    new Intent(context, typeof(Activity)),
         //    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
+        int pendingIntentId = 0;    
+        //PendingIntent pendingIntent = PendingIntent.GetActivity(Platform.AppContext, )
         MediaMetadata currentTrack = mediaMetadata;
 
         MediaStyle style = new MediaStyle();
         style.SetMediaSession(mediaSession.SessionToken);
-
         var builder = new Builder(context, CHANNEL_ID)
-            .SetStyle(style)
-            .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
-            .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
-            .SetSubText(currentTrack.GetString(MediaMetadata.MetadataKeyAlbum))
-            .SetSmallIcon(Resource.Drawable.abc_ab_share_pack_mtrl_alpha) //TODO player_play
-            .SetLargeIcon(largeIcon as Bitmap)
-            .SetContentIntent(pendingIntent)
-            .SetShowWhen(false)
-            .SetOngoing(isPlaying)
-            .SetPriority(NotificationCompat.PriorityHigh)
-            .SetVisibility(NotificationVisibility.Public);
-        builder.SetSound(null);
+           .SetStyle(style)
+           .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
+           .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
+           .SetSubText(currentTrack.GetString(MediaMetadata.MetadataKeyAlbum))
+           .SetSmallIcon(Resource.Drawable.music) //TODO player_play
+           .SetLargeIcon(largeIcon as Bitmap)
+           .SetContentIntent(pendingIntent)
+           .SetShowWhen(false)
+           .SetOngoing(isPlaying)
+           .SetVisibility(NotificationVisibility.Public);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
         AddPlayPauseActionCompat(builder, context, isPlaying);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
         builder.AddAction(NotificationHelper.GenerateActionCompat(context, Drawable.IcDelete, "STOP", MediaPlayerService.ActionStop));
         style.SetShowActionsInCompactView(0, 1, 2, 3);
-
         NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
     }
 

@@ -34,7 +34,7 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
             if (key.Action != KeyEventActions.Down)
                 return;
 
-            string action;
+            string action = "Yvan";
 
             switch (key.KeyCode)
             {
@@ -55,7 +55,7 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
                     action = MediaPlayerService.ActionNext;
                     break;
                 case Keycode.MediaPrevious:
-                    action = MediaPlayerService.ActionPrevious;
+                    //action = MediaPlayerService.ActionPrevious;
                     break;
                 default:
                     return;
@@ -64,12 +64,9 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
             var remoteIntent = new Intent(action);
             context.StartService(remoteIntent);
         }
-        else if (intent.Action == "com.yvanbrunel.dimmermaui.ACTION_NOTIFICATION_CLICK")
+        else 
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await Shell.Current.GoToAsync("HomePageM");
-            });
+            
         }
     }
 }

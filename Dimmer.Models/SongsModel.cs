@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-
-namespace Dimmer.Models;
+﻿namespace Dimmer.Models;
 public class SongsModel : RealmObject
 {
     [PrimaryKey]

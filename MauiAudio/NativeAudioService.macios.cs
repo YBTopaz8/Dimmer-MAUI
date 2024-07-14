@@ -26,10 +26,11 @@ public class NativeAudioService : INativeAudioService
     public event EventHandler PlayEnded;
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
+    public event EventHandler NotificationTapped;
 
-    public async Task InitializeAsync(string audioURI)
+    public void InitializeAsync(string audioURI)
     {
-        await InitializeAsync(new MediaPlay() { URL = audioURI });
+        InitializeAsync(new MediaPlay() { URL = audioURI });
     }
 
     public Task PauseAsync()

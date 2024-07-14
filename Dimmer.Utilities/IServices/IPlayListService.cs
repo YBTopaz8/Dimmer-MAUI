@@ -1,11 +1,19 @@
-﻿namespace Dimmer.Utilities.IServices;
+﻿using System.Collections.Specialized;
+
+namespace Dimmer.Utilities.IServices;
 public interface IPlayListService
 {
-    IObservable<IList<PlaylistModelView>> AllPlaylists { get; }
-    IObservable<IList<SongsModelView>> SongsFromPlaylist { get; }
-    void AddSongToPlayListWithPlayListID(SongsModel song, ObjectId playlistID);
-    void AddSongToPlayListWithPlayListName(SongsModel song, string playlistName);
+    string SelectedPlaylistName { get; }
+    IList<PlaylistModelView> AllPlaylists { get; }
+    IList<SongsModelView> SongsFromPlaylist { get; }
+    void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
+    void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName);
+
+    void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName);
+    void RemoveFromPlayListWithPlayListID(SongsModelView song, ObjectId playListID);
     void GetPlaylistDetails(ObjectId playlistID);
     void GetSongsFromPlaylistID(ObjectId playlistID);
     bool DeletePlaylistThroughID(ObjectId playlistID);
+
+    event NotifyCollectionChangedEventHandler AllPlaylistsChanged;
 }

@@ -63,10 +63,11 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
     public event PropertyChangedEventHandler PropertyChanged;
+    public event EventHandler NotificationTapped;
 
-    public async Task InitializeAsync(string audioURI)
+    public void InitializeAsync(string audioURI)
     {
-        await InitializeAsync(new MediaPlay() { URL = audioURI });
+        Task.Run(()=> InitializeAsync(new MediaPlay() { URL = audioURI }));
     }
 
     public Task PauseAsync()

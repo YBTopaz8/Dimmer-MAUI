@@ -1,4 +1,5 @@
 ﻿
+
 namespace Dimmer.Models;
 public class PlaylistModel : RealmObject
 {
@@ -26,7 +27,7 @@ public class PlaylistModel : RealmObject
 
 }
 
-public class PlaylistModelView : INotifyPropertyChanged
+public partial class PlaylistModelView : ObservableObject
 {
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     public string Name { get; set; }
@@ -35,11 +36,6 @@ public class PlaylistModelView : INotifyPropertyChanged
     public double TotalDuration { get; set; }
     public double TotalSize { get; set; }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     public PlaylistModelView()
     {
@@ -50,7 +46,8 @@ public class PlaylistModelView : INotifyPropertyChanged
     {
         Id = model.Id;
         Name = model.Name;
-        SongsIDs = model.SongsIDs;
+        SongsIDs = new List<ObjectId>(model.SongsIDs);
+        //SongsIDs = model.SongsIDs;
         DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;

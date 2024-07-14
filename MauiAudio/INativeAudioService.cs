@@ -3,7 +3,7 @@
 public interface INativeAudioService
 {
     public static INativeAudioService Current;
-    Task InitializeAsync(string audioURI);
+    void InitializeAsync(string audioURI);
     Task InitializeAsync(MediaPlay media);
     Task PlayAsync(double position = 0);
 
@@ -44,6 +44,6 @@ public interface INativeAudioService
     event EventHandler PlayEnded;
     event EventHandler PlayNext;
     event EventHandler PlayPrevious;
-
+    event EventHandler NotificationTapped;
     
 }

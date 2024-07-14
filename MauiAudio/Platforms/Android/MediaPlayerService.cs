@@ -12,7 +12,7 @@ namespace MauiAudio.Platforms.Android;
 
 
 [Service(Exported = true)]
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo })]
+[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionNotifTapped })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener,
    MediaPlayer.IOnBufferingUpdateListener,
@@ -28,6 +28,7 @@ public class MediaPlayerService : Service,
     public const string ActionNext = "com.xamarin.action.NEXT";
     public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
     public const string ActionSeekTo = "com.xamarin.action.ActionSeekTo";
+    public const string ActionNotifTapped = "com.xamarin.action.ActionNotifTapped";
 
     public MediaPlayer mediaPlayer;
     private AudioManager audioManager;
@@ -45,7 +46,9 @@ public class MediaPlayerService : Service,
     public event EventHandler TaskPlayEnded;
     public event EventHandler TaskPlayNext;
     public event EventHandler TaskPlayPrevious;
+    public event EventHandler TaskNotificationTapped;
 
+    public Activity MainAct;
     public MediaPlay mediaPlay;
     public bool isCurrentEpisode = true;
 
@@ -63,11 +66,11 @@ public class MediaPlayerService : Service,
                 : PlaybackStateCode.None;
         }
     }
-
+    
     public MediaPlayerService()
     {
         PlayingHandler = new Handler(Looper.MainLooper);
-
+        
         // Create a runnable, restarting itself if the status still is "playing"
         PlayingHandlerRunnable = new Java.Lang.Runnable(() =>
         {
@@ -75,7 +78,7 @@ public class MediaPlayerService : Service,
 
             if (MediaPlayerState == PlaybackStateCode.Playing)
             {
-                PlayingHandler.PostDelayed(PlayingHandlerRunnable, 250);
+                PlayingHandler.PostDelayed(PlayingHandlerRunnable, 150);
             }
         });
 
@@ -120,6 +123,7 @@ public class MediaPlayerService : Service,
         Buffering?.Invoke(this, e);
     }
 
+    
     /// <summary>
     /// On create simply detect some of our managers
     /// </summary>
@@ -142,19 +146,23 @@ public class MediaPlayerService : Service,
         {
             if (mediaSession == null)
             {
+                
                 Intent nIntent = new Intent(ApplicationContext, typeof(Activity));
-
                 remoteComponentName = new ComponentName(PackageName, new RemoteControlBroadcastReceiver().ComponentName);
-
                 mediaSession = new MediaSession(ApplicationContext, "MauiStreamingAudio"/*, remoteComponentName*/); //TODO
-                mediaSession.SetSessionActivity(PendingIntent.GetActivity(ApplicationContext, 0, nIntent, PendingIntentFlags.Mutable));
+                mediaSession.SetMediaButtonBroadcastReceiver(remoteComponentName);
+
+                var pendingIntent = PendingIntent.GetActivity(ApplicationContext, 0, nIntent, PendingIntentFlags.Mutable);
+                
+                mediaSession.SetSessionActivity(pendingIntent);
+                
                 mediaController = new MediaController(ApplicationContext, mediaSession.SessionToken);
             }
 
             mediaSession.Active = true;
             mediaSession.SetCallback(new MediaSessionCallback((MediaPlayerServiceBinder)binder));
-
-            mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
+            
+            mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls );
         }
         catch (Exception ex)
         {
@@ -287,7 +295,7 @@ public class MediaPlayerService : Service,
             mediaPlayer.Start();
             UpdatePlaybackState(PlaybackStateCode.Playing);
             StartNotification();
-
+            
             //Update the metadata now that we are playing
             UpdateMediaMetadataCompat();
             return;
@@ -409,7 +417,7 @@ public class MediaPlayerService : Service,
 
         return imageBitmap;
     }
-    public async Task Seek(int position)
+    public async Task Seek(int position, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
     {
         await Task.Run(() =>
         {
@@ -418,6 +426,10 @@ public class MediaPlayerService : Service,
         });
     }
 
+    public void NotificationTapped(Intent intent)
+    {
+        TaskNotificationTapped?.Invoke(this, EventArgs.Empty);
+    }
     public async Task PlayNext()
     {
         TaskPlayNext?.Invoke(this,EventArgs.Empty);
@@ -428,11 +440,11 @@ public class MediaPlayerService : Service,
         //    mediaPlayer = null;
         //}
         UpdatePlaybackState(PlaybackStateCode.SkippingToNext);
-
+        
         //await Play();
     }
 
-    public async Task PlayPrevious()
+    public void PlayPrevious()
     {
         // Start current track from beginning if it's the first track or the track has played more than 3sec and you hit "playPrevious".
         TaskPlayPrevious?.Invoke(this, EventArgs.Empty);
@@ -500,6 +512,12 @@ public class MediaPlayerService : Service,
             ReleaseWifiLock();
             UnregisterMediaSessionCompat();
         });
+    }
+
+
+    public AudioManager ExposeAudioManager()
+    {        
+        return audioManager;
     }
 
     public void UpdatePlaybackStateStopped()
@@ -592,16 +610,18 @@ public class MediaPlayerService : Service,
                    .PutLong(MediaMetadata.MetadataKeyDuration, mediaSession.Controller.Metadata.GetLong(MediaMetadata.MetadataKeyDuration));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover as Bitmap);
-
         mediaSession.SetMetadata(builder.Build());
     }
 
+    
     public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
     {
         HandleIntent(intent);
-        return base.OnStartCommand(intent, flags, startId);
+        base.OnStartCommand(intent, flags, startId);
+        
+        return StartCommandResult.Sticky;
     }
-
+    
     private void HandleIntent(Intent intent)
     {
         if (intent == null || intent.Action == null)
@@ -609,30 +629,31 @@ public class MediaPlayerService : Service,
 
         string action = intent.Action;
 
-        if (action.Equals(ActionPlay))
+        switch (intent.Action)
         {
-            mediaController.GetTransportControls().Play();
+            case ActionPlay:
+                mediaController.GetTransportControls().Play();
+                break;
+            case ActionPause:
+                mediaController.GetTransportControls().Pause();
+                break;
+            case ActionPrevious:
+                mediaController.GetTransportControls().SkipToPrevious();
+                break;
+            case ActionNext:
+                mediaController.GetTransportControls().SkipToNext();
+                break;
+            case ActionSeekTo:
+                mediaController.GetTransportControls().SeekTo(Position);
+                break;
+            case ActionNotifTapped:
+                this.NotificationTapped(intent);
+
+                break;
+            default:
+                break;
         }
-        else if (action.Equals(ActionPause))
-        {
-            mediaController.GetTransportControls().Pause();
-        }
-        else if (action.Equals(ActionPrevious))
-        {
-            mediaController.GetTransportControls().SkipToPrevious();
-        }
-        else if (action.Equals(ActionNext))
-        {
-            mediaController.GetTransportControls().SkipToNext();
-        }
-        else if (action.Equals(ActionStop))
-        {
-            mediaController.GetTransportControls().Stop();
-        }
-        else if (action.Equals(ActionSeekTo))
-        {
-            mediaController.GetTransportControls().SeekTo(Position);
-        }
+        
     }
 
     /// <summary>
@@ -681,7 +702,6 @@ public class MediaPlayerService : Service,
     {
         binder = new MediaPlayerServiceBinder(this);
         return binder;
-
     }
 
     public override bool OnUnbind(Intent intent)
@@ -710,6 +730,7 @@ public class MediaPlayerService : Service,
 
     public async void OnAudioFocusChange(AudioFocus focusChange)
     {
+        Console.WriteLine($"Audio focus: {focusChange}");
         switch (focusChange)
         {
             case AudioFocus.Gain:
@@ -745,7 +766,9 @@ public class MediaPlayerService : Service,
         public MediaSessionCallback(MediaPlayerServiceBinder service)
         {
             mediaPlayerService = service;
+
         }
+
 
         bool isPlaying = true;
         public override async void OnPause()
@@ -768,9 +791,9 @@ public class MediaPlayerService : Service,
             base.OnSkipToNext();
         }
 
-        public override async void OnSkipToPrevious()
+        public override void OnSkipToPrevious()
         {
-            await mediaPlayerService.GetMediaPlayerService().PlayPrevious();
+            mediaPlayerService.GetMediaPlayerService().PlayPrevious();
             base.OnSkipToPrevious();
         }
 
@@ -780,13 +803,15 @@ public class MediaPlayerService : Service,
             base.OnStop();
         }
 
-        public override async void OnSeekTo(long position)
+        public override async void OnSeekTo(long pos)
         {
+            await mediaPlayerService.GetMediaPlayerService().Seek((int)pos);
+            base.OnSeekTo(pos);
+        }
 
-            await mediaPlayerService.GetMediaPlayerService().Seek((int)position);
-            mediaPlayerService.GetMediaPlayerService().UpdatePlaybackState(isPlaying == true ? PlaybackStateCode.Playing : PlaybackStateCode.Paused
-                , (int)position);
-            base.OnSeekTo(position);
+        public override void OnCustomAction(string action, Bundle extras)
+        {
+            base.OnCustomAction(action, extras);
         }
     }
 }
@@ -804,4 +829,21 @@ public class MediaPlayerServiceBinder : Binder
     {
         return service;
     }
+}
+
+public class MyAct : MauiAppCompatActivity
+{
+    protected override void OnCreate(Bundle savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+    }
+    protected override void OnNewIntent(Intent intent)
+    {
+        base.OnNewIntent(intent);
+    }
+}
+
+public class IntentEventArgs : EventArgs
+{
+    public Intent intentArg { get; set; }
 }

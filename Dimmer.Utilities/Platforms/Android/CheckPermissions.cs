@@ -7,42 +7,18 @@ using static Android.Preferences.PreferenceManager;
 namespace Dimmer.Utilities;
 
 // All the code in this file is only included on Android.
-public class CheckPermissions
+public class CheckPermissions : Permissions.BasePlatformPermission
 {
-    public static async Task<bool> CheckAndRequestStoragePermissionAsync()
+    public override (string androidPermission, bool isRuntime)[] RequiredPermissions
     {
-        // Check if permission is already granted
-        var status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
-
-        if (status == PermissionStatus.Granted)
-            return true;
-
-        // Explain to the user why the permission is needed
-        if (status == PermissionStatus.Denied && DeviceInfo.Platform == DevicePlatform.Android)
+        get
         {
-            bool isRationaleAccepted = await Shell.Current.DisplayAlert("Permission Request",
-                "Please grant storage permissions to access files.",
-                "OK", "Cancel");
-
-            if (isRationaleAccepted)
+            var result = new List<(string androidPermission, bool isRuntime)>();
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
             {
-                AppInfo.ShowSettingsUI();
-
-                // Request permission
-                status = await Permissions.RequestAsync<Permissions.StorageRead>();
-
-                // Return true if the permission was granted
-                Debug.WriteLine(status);
-                return true;
-
+                result.Add((Manifest.Permission.PostNotifications, true));
             }
-                return false;
+            return result.ToArray();
         }
-
-        // Request permission
-        status = await Permissions.RequestAsync<Permissions.StorageRead>();
-
-        // Return true if the permission was granted
-        return status == PermissionStatus.Granted;
     }
 }

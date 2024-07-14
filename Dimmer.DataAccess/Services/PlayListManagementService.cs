@@ -27,7 +27,7 @@ public class PlayListManagementService : IPlaylistManagementService
             OpenDB();
             var realmPlayLists = db.All<PlaylistModel>().OrderBy(x => x.DateCreated).ToList();
             AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
-            //PlayLists = DetachPlayListsFromDB(realmPlayLists);
+            
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
         }
         catch (Exception ex)
@@ -96,7 +96,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 }
 
             });
-            
+            specificPlaylist.SongsIDs.Add(specificPlaylist.Id);
             return true;
             
         }
@@ -122,6 +122,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 specificPlaylist.TotalDuration -= song.DurationInSeconds;
                 specificPlaylist.TotalSize -= song.FileSize;
             });
+            
             return true;
         }
         catch (Exception ex)

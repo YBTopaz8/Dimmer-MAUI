@@ -5,7 +5,7 @@ namespace MauiAudio.Platforms.Android
 {
     public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
     {
-        readonly IAudioActivity instance;
+        public readonly IAudioActivity instance;
 
         public MediaPlayerServiceConnection(IAudioActivity mediaPlayer)
         {
@@ -28,6 +28,8 @@ namespace MauiAudio.Platforms.Android
 
         public void OnServiceDisconnected(ComponentName name)
         {
+            
         }
+
     }
 }

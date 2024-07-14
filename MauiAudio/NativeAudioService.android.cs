@@ -37,7 +37,15 @@ public class NativeAudioService : INativeAudioService
     public double Duration=>mediaPlayer?.Duration/1000 ?? 0;
     public double CurrentPosition => mediaPlayer?.CurrentPosition / 1000 ?? 0;
 
-    public double Volume { get => volume; set { volume = value; SetVolume(volume = value, Balance); } }
+    public double Volume 
+    { 
+        get => volume; 
+        set 
+        { 
+            volume = value; 
+            SetVolume(volume = value, Balance); 
+        } 
+    }
     public double Balance { get => balance; set { balance = value;SetVolume(Volume, balance = value); } }
     public bool Muted { get => muted; set => SetMuted(value); }
 
@@ -45,10 +53,10 @@ public class NativeAudioService : INativeAudioService
     public event EventHandler PlayEnded;
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
-
-    public Task InitializeAsync(string audioURI)
+    public event EventHandler NotificationTapped;
+    public void InitializeAsync(string audioURI)
     {
-        return InitializeAsync(new MediaPlay() { URL=audioURI });
+        InitializeAsync(new MediaPlay() { URL=audioURI });
     }
 
     public Task PauseAsync()
@@ -77,14 +85,23 @@ public class NativeAudioService : INativeAudioService
     }
     Task SetVolume(double volume, double balance)
     {
-        volume = Math.Clamp(volume, 0, 1);
-        balance = Math.Clamp(balance, -1, 1);
 
-        // Using the "constant power pan rule." See: http://www.rs-met.com/documents/tutorials/PanRules.pdf
-        var left = Math.Cos((Math.PI * (balance + 1)) / 4) * volume;
-        var right = Math.Sin((Math.PI * (balance + 1)) / 4) * volume;
+        mediaPlayer?.SetVolume((float)1, (float)1);
+        Android.Media.Stream streamType = Android.Media.Stream.Music;
+        var aManager = instance.Binder.GetMediaPlayerService().ExposeAudioManager();
+        
+        
+        Debug.WriteLine($"Normal volume {volume}");
+        aManager.SetStreamVolume(streamType, (int)volume, VolumeNotificationFlags.RemoveSoundAndVibrate);
+        
+        //volume = Math.Clamp(volume, 0, 1);
+        //balance = Math.Clamp(balance, -1, 1);
 
-        mediaPlayer?.SetVolume((float)left, (float)right);
+        //// Using the "constant power pan rule." See: http://www.rs-met.com/documents/tutorials/PanRules.pdf
+        //var left = Math.Cos((Math.PI * (balance + 1)) / 4) * volume;
+        //var right = Math.Sin((Math.PI * (balance + 1)) / 4) * volume;
+
+        //mediaPlayer?.SetVolume((float)left, (float)right);
         return Task.CompletedTask;
     }
 
@@ -122,6 +139,7 @@ public class NativeAudioService : INativeAudioService
         instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
         instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
         instance.Binder.GetMediaPlayerService().TaskPlayPrevious += PlayPrevious;
+        instance.Binder.GetMediaPlayerService().TaskNotificationTapped += NotificationTapped;
         this.instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool isPlaying) =>
         {
             Task.Run(async () => {

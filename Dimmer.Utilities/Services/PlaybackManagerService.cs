@@ -27,6 +27,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     ISongsManagementService SongsMgtService { get; }
     IStatsManagementService StatsMgtService { get; }
     IPlaylistManagementService PlaylistMgtService { get; }
+    public IPlayListService PlayListService { get; }
 
     int _currentSongIndex = 0;
     
@@ -40,11 +41,13 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     List<ObjectId> playedSongsIDs = [];
     Random _shuffleRandomizer = new Random();
     public PlaybackManagerService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
-        IStatsManagementService statsMgtService, IPlaylistManagementService playlistMgtService)
+        IStatsManagementService statsMgtService, IPlaylistManagementService playlistMgtService,
+        IPlayListService playListService)
     {
         this.SongsMgtService = SongsMgtService;
         StatsMgtService = statsMgtService;
         PlaylistMgtService = playlistMgtService;
+        PlayListService = playListService;
 
 #if WINDOWS
         this.audioService = AudioService;
@@ -52,7 +55,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
         this.audioService = NativeAudioService.Current;
 #endif
-        
+
+        audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.PlayEnded += AudioService_PlayEnded;
@@ -66,6 +70,11 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         GetReadableDuration();
         CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+    }
+
+    private void AudioService_PlayPrevious(object? sender, EventArgs e)
+    {
+        //throw new NotImplementedException();
     }
 
     private void AudioService_PlayEnded(object? sender, EventArgs e)
@@ -451,12 +460,14 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             if (!song.IsFavorite)
             {
                 song.IsFavorite = true;
-                PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites");
+                PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites")
+;               PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites");
                 SongsMgtService.UpdateSongDetails(song);
             }
             else
             {
                 song.IsFavorite = false;
+                PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
                 PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
                 SongsMgtService.UpdateSongDetails(song);
             }
@@ -507,6 +518,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 return;
             }
             audioService.Volume = newPercentageValue;
+            
             AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newPercentageValue);
         }
         catch (Exception ex)
@@ -517,12 +529,12 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
     public void DecreaseVolume()
     {
-        audioService.Volume -= 0.2;
+        audioService.Volume -= 1;
     }
 
     public void IncreaseVolume()
     {
-        audioService.Volume += 0.2;
+        audioService.Volume += 1;
     }
 
     Dictionary<string, string> normalizationCache = new();
