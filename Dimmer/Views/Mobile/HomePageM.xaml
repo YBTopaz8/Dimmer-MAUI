@@ -152,7 +152,8 @@
             <VerticalStackLayout Margin="0,0" HeightRequest="60">
                 <Border BackgroundColor="#252526" Stroke="Transparent" 
                         StrokeShape="RoundRectangle 10">
-                    <Entry Placeholder="Type to Search" x:Name="SearchSongSB"
+                    
+                    <material:TextField Title="Search Music" x:Name="SearchSongSB"
                            TextColor="White" TextChanged="SearchSongSB_TextChanged"/>
 
                 </Border>

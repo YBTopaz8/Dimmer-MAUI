@@ -59,7 +59,7 @@ public static class NotificationHelper
     }
 
 
-    internal static void StartNotification(
+    internal static Notification StartNotification(
         Context context,
         MediaMetadata mediaMetadata,
         AndroidMedia.Session.MediaSession mediaSession,
@@ -102,7 +102,8 @@ public static class NotificationHelper
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
         
         style.SetShowActionsInCompactView(0, 1, 2, 3);
-        NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
+        return builder.Build();
+        //NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
     }
 
     private static void AddPlayPauseActionCompat(

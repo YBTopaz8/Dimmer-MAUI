@@ -33,7 +33,7 @@ public class MainActivity: MauiAppCompatActivity, IAudioActivity
             mediaPlayerService.MainAct = this;
             InitializeMedia();
         }
-        
+
     }
 
     private void InitializeMedia()

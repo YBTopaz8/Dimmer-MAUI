@@ -8,10 +8,11 @@ using Android.Media.Session;
 using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
+using Android.Content.PM;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
-[Service(Enabled = true, Exported = true)]
+[Service(Enabled = true, Exported = true, ForegroundServiceType =ForegroundService.TypeMediaPlayback)]
 [IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionNotifTapped })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener,
@@ -576,13 +577,10 @@ public class MediaPlayerService : Service,
         if (mediaSession == null)
             return;
 
-        NotificationHelper.StartNotification(
-            ApplicationContext,
-            mediaController.Metadata,
-            mediaSession,
-            Cover,
-            MediaPlayerState == PlaybackStateCode.Playing
-            );
+        var notif = NotificationHelper.StartNotification(ApplicationContext,mediaController.Metadata,mediaSession,
+            Cover,MediaPlayerState == PlaybackStateCode.Playing);
+
+        StartForeground(1000, notif);
     }
 
     /// <summary>
@@ -620,7 +618,6 @@ public class MediaPlayerService : Service,
     {
         HandleIntent(intent);
         base.OnStartCommand(intent, flags, startId);
-
         return StartCommandResult.Sticky;
     }
 

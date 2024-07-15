@@ -181,7 +181,7 @@
 
                     <ImageButton HeightRequest="40" BackgroundColor="Transparent"
                                  Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
-                        CommandParameter="{Binding TemporarilyPickedSong}">
+                        CommandParameter="{Binding .}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                         </ImageButton.Source>

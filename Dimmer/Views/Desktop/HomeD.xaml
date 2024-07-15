@@ -164,6 +164,14 @@
                         toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged"
                         >
+            <CollectionView.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="Label">
+                        <Setter Property="VerticalOptions" Value="Center"/>
+                        <Setter Property="HorizontalOptions" Value="Center"/>
+                    </Style>
+                </ResourceDictionary>
+            </CollectionView.Resources>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Grid ColumnSpacing="25" Padding="8" FlyoutBase.ContextFlyout="{StaticResource SelectedSongContextMenu}">
@@ -191,10 +199,10 @@
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
                                 
-                                <VisualState x:Name="PointerOver">
-                                    
+                                <VisualState x:Name="PointerOver">                                    
                                     <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="#1E1E1E"/>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        <!-- Previous Color: #1E1E1E-->
                                     </VisualState.Setters>
                                 </VisualState>
 
@@ -205,11 +213,13 @@
                                  Grid.ColumnSpan="8" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0">
-                            <Label Text="{Binding Title}" HorizontalOptions="Start" VerticalTextAlignment="Center"/>
-                            <Button BackgroundColor="Transparent" 
-                                             IsVisible="False" HorizontalOptions="End" >
+                            <Button Text="ss"/>
+                            <Label Text="{Binding Title}" HorizontalOptions="Start"/>
+                            
+                            <Button BackgroundColor="Transparent" Text="P"
+                                             IsVisible="True" HorizontalOptions="End" >
                                 <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding IsPlaying}" Value="True">
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsFavorite}" Value="True">
                                         <Setter Property="IsVisible" Value="True"/>
                                     </DataTrigger>
                                 </Button.Triggers>
@@ -217,13 +227,18 @@
                         </HorizontalStackLayout>
                 
 
-                        <Label Text="{Binding ArtistName}" Grid.Column="1" HorizontalOptions="Center"
+                        <Label Text="{Binding ArtistName}" Grid.Column="1"
                                LineBreakMode="WordWrap"/>
-                        <Label Text="{Binding HasLyrics}" Grid.Column="2" HorizontalOptions="Center" />
+                        <Label Text="{Binding HasLyrics}" Grid.Column="2"/>
 
-                        <Button Text="Is Favorite" Command="{Binding Source={x:Reference page},
-                                        Path=BindingContext.AddSongToFavoritesCommand}" VerticalOptions="Start"
-                                        CommandParameter="{Binding .}"/>
+                        <ImageButton Command="{Binding Source={x:Reference page},Path=BindingContext.AddSongToFavoritesCommand}"
+                                     VerticalOptions="Start" CommandParameter="{Binding .}" BackgroundColor="Transparent"
+                                     Grid.Column="3">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{Binding Source={x:Reference page}, 
+                                    Path=BindingContext.TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                            </ImageButton.Source>
+                        </ImageButton>
                         <!--<Button IconData="{Binding IsFavorite, Converter={StaticResource BoolToImage}}" 
                                         Grid.Column="3" HorizontalOptions="Center"
                                         BackgroundColor="Transparent" Command="{Binding Source={x:Reference page},
@@ -232,9 +247,9 @@
                         <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                Grid.Column="4" HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" HorizontalOptions="Center" />
-                        <Label Text="{Binding FileFormat}" Grid.Column="6" HorizontalOptions="Center"/>
-                        <Label Text="{Binding IsPlaying}" Grid.Column="7" HorizontalOptions="Center" />
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" />
+                        <Label Text="{Binding FileFormat}" Grid.Column="6"/>
+                        <Label Text="{Binding IsPlaying}" Grid.Column="7"/>
 
                     </Grid>
                 </DataTemplate>

@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Core.Platform;
+using Plainer.Maui.Controls;
 using UraniumUI.Material.Attachments;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -20,17 +21,18 @@ public partial class HomePageM : UraniumContentPage
         if (e.PropertyName == "IsPresented")
         {
             var backDrop = sender as BackdropView;
+            var searchSongTextField = SearchSongSB.Content as EntryView;
             if (backDrop != null)
             {
                 if (backDrop.IsPresented)
                 {
                     SearchSongSB.Focus();
-                    await SearchSongSB.ShowKeyboardAsync();
+                    await searchSongTextField!.ShowKeyboardAsync();
                 }
                 else
                 {
                     SearchSongSB.Unfocus();
-                    await SearchSongSB.HideKeyboardAsync();
+                    await searchSongTextField!.HideKeyboardAsync();
                 }
             }
         }
