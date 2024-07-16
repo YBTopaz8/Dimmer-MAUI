@@ -84,7 +84,7 @@ public partial class HomePageM : UraniumContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        //HomePageVM.LoadSongCoverImage();
+        HomePageVM.LoadSongCoverImage();
         if (HomePageVM.IsPlaying)
         {
             playImgBtn.IsVisible = false;

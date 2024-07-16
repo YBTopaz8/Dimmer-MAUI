@@ -64,6 +64,10 @@ public partial class PlayListService : ObservableObject, IPlayListService
     public void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
+        if (specificPlaylist is null)
+        {
+            return;
+        }
         specificPlaylist?.SongsIDs.Add(song.Id);
         specificPlaylist.TotalSongsCount += 1;
     }
@@ -71,13 +75,22 @@ public partial class PlayListService : ObservableObject, IPlayListService
     public void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playlistName);
+        if (specificPlaylist is null)
+        {
+            return;
+        }
         specificPlaylist?.SongsIDs.Add(song.Id);
+        
         specificPlaylist.TotalSongsCount += 1;
     }
 
     public void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playListName);
+        if (specificPlaylist is null)
+        {
+            return;
+        }
         specificPlaylist?.SongsIDs.Remove(song.Id);
         specificPlaylist.TotalSongsCount -= 1;
     }
@@ -85,6 +98,10 @@ public partial class PlayListService : ObservableObject, IPlayListService
     public void RemoveFromPlayListWithPlayListID(SongsModelView song, ObjectId playListID)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playListID);
+        if (specificPlaylist is null)
+        {
+            return;
+        }
         specificPlaylist?.SongsIDs.Remove(song.Id);
         specificPlaylist.TotalSongsCount -= 1;
     }

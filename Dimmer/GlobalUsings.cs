@@ -29,6 +29,8 @@ global using Plugin.ContextMenuContainer;
 global using Dimmer_MAUI.UtilitiesServices;
 global using The49.Maui.BottomSheet;
 global using Dimmer_MAUI.MAudioLib;
+
+global using CommunityToolkit.Maui.Core.Platform;
 namespace Dimmer_MAUI;
 internal class GlobalUsings
 {

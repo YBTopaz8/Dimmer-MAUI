@@ -43,8 +43,10 @@ public partial class SongMenuBtmSheet : BottomSheet
         AddSongToPlayListPageBtmSheet.IsVisible = true;
     }
 
-    private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
+    private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        PlaylistsPageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        PlaylistsPageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
+        await NewPlaylistName.EntryView.HideKeyboardAsync();
+        await this.DismissAsync();
     }
 }

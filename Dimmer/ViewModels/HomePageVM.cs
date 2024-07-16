@@ -46,6 +46,7 @@ public partial class HomePageVM : ObservableObject
     IFilePicker filePicker { get; }
     IPlayBackService PlayBackManagerService { get; }
     ILyricsService LyricsManagerService { get; }
+    public ISongsManagementService SongsMgtService { get; }
     public IServiceProvider ServiceProvider { get; }
 
     [ObservableProperty]
@@ -60,6 +61,7 @@ public partial class HomePageVM : ObservableObject
         
         PlayBackManagerService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
+        SongsMgtService = songsMgtService;
         ServiceProvider = serviceProvider;
 
         //Subscriptions to SongsManagerService
@@ -168,7 +170,10 @@ public partial class HomePageVM : ObservableObject
         bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(folder!, progressIndicator);
         if (loadSongsResult)
         {
+            DisplayedSongs?.Clear();
+            DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
             Debug.WriteLine("Songs Loaded Successfully");
+            
         }
         else
         {
@@ -265,9 +270,13 @@ public partial class HomePageVM : ObservableObject
         SongMenuBtmSheet btmSheet =  new(ServiceProvider.GetService<PlaylistsPageVM>(), song);
         btmSheet.HomePageVM = this;
         btmSheet.ShowAsync();
-        //PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
+        
     }
-
+    [RelayCommand]
+    void AddSongToFavorites(SongsModelView song)
+    {
+        PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
+    }
     //Subscriptions to SongsManagerService
     private void SubscribeToCurrentSongPosition()
     {
@@ -291,6 +300,7 @@ public partial class HomePageVM : ObservableObject
     }
     void ReloadSizeAndDuration()
     {
+        Debug.WriteLine(DisplayedSongs.Count);
         TotalSongsDuration = PlayBackManagerService.TotalSongsDuration;
         TotalSongsSize = PlayBackManagerService.TotalSongsSizes;
     }

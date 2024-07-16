@@ -55,6 +55,9 @@
                              Margin="20,5">
             <Label Text="Choose A Playlist"/>
             <CollectionView ItemsSource="{Binding DisplayedPlaylists}">
+                <CollectionView.EmptyView>
+                    <Label Text="No Playlist Created Yet..."/>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:PlaylistModelView">
                         <Border Margin="0,10" StrokeThickness="0.8"
@@ -73,7 +76,7 @@
             <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
                 <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
                         TextColor="Red"/>
-                <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked"/>
+                <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
             </HorizontalStackLayout>
         </VerticalStackLayout>
         

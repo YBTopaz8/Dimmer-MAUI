@@ -83,7 +83,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                     Debug.WriteLine("Added Song " + song.Title);
                 }
             });
-            
+            GetSongs();
            return true;
         }
         catch (Exception ex)
