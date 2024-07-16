@@ -17,15 +17,17 @@ public class DataBaseService : IDataBaseService
 
     public Realm GetRealm()
     {
-        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\DimmerDB";
+        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmer";
 
         if(!Directory.Exists(dbPath))
         {
             Directory.CreateDirectory(dbPath);
         }
 
-        string filePath = Path.Combine(dbPath, "DimmerDB.realm");
+        string filePath = Path.Combine(dbPath, "Dimmer.realm");
+
         var config = new RealmConfiguration(filePath);
+
         return Realm.GetInstance(config);
     }
 }

@@ -73,7 +73,7 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
-        LoadPickedSongCoverImage();
+        LoadSongCoverImage();
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
         //PickedSong = PlaybackManagerService.CurrentlyPlayingSong;
         TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
@@ -83,13 +83,6 @@ public partial class HomePageVM : ObservableObject
         ToggleRepeatMode();
     }
 
-    void LoadPickedSongCoverImage()
-    {
-        if (PickedSong is not null)
-        {
-            PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
-        }
-    }
     [ObservableProperty]
     string shuffleOnOffImage = MaterialTwoTone.Shuffle;
 
@@ -330,6 +323,8 @@ public partial class HomePageVM : ObservableObject
 
     public void LoadSongCoverImage()
     {
+        if (PickedSong is null)
+            return;
         if (PickedSong.CoverImage is not null)
         {
             PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));

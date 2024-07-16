@@ -98,6 +98,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         if (lastPlayedSongID is not null)
         {
             var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
+            if (lastPlayedSong is null)
+                return;
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
             ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);            
         }

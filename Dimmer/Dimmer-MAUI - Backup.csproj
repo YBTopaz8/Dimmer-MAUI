@@ -125,6 +125,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
+		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
 		<PackageReference Include="UraniumUI" Version="2.9.0" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.0" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.0" />

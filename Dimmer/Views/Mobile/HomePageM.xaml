@@ -84,6 +84,9 @@
                             VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"
                             toolkit:DockLayout.DockPosition="Top" 
                             x:Name="SongsColView">
+                <CollectionView.EmptyView>
+                    <Label Text="No Songs Yet... 💔" HorizontalOptions="Center" FontSize="30"/>
+                </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
