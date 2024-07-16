@@ -25,7 +25,11 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout Margin="5,0">
-        <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectionMode="Single"
+
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top">
+            <Label Text="{Binding SelectedPlaylistPageTitle}" FontAttributes="Bold" FontSize="23"/>
+        </VerticalStackLayout>
+        <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectionMode="Single" toolkit:DockLayout.DockPosition="Top"
                         x:Name="SongsColView">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
@@ -81,5 +85,6 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
     </toolkit:DockLayout>
 </ContentPage>

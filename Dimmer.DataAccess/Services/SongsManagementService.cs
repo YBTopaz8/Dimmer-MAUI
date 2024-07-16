@@ -64,9 +64,16 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-            
             var songs = new List<SongsModel>();
-            songs.AddRange(songss.Select(s => new SongsModel(s)));
+            List<SongsModelView> songsToAddOnly = new List<SongsModelView>();
+            foreach (var song in songss)
+            {
+                if (!AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
+                {
+                    songs.Add(new SongsModel(song));
+                }
+            }
+            
             await db.WriteAsync(() =>
             {
 

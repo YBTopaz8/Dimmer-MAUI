@@ -11,8 +11,9 @@ public partial class PlaylistsPageM : ContentPage
 
     public PlaylistsPageVM PlaylistsPageVM { get; }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-
+        base.OnNavigatedTo(args);
+        PlaylistsPageVM.UpdatePlayLists();
     }
 }

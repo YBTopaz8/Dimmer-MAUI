@@ -9,14 +9,17 @@ public class AppSettingsService : IAppSettingsService
 {
     public static class VolumeSettingsPreference
     {
-        const double defaultVolume = 1;
-        const double maxVolume = 1.0;
+        const double defaultVolume = 15;
+        const double maxVolume = 15.0;
         const double minVolume = 0.0;
 
         public static double Volume
         {
             get => Preferences.Default.Get(nameof(Volume), defaultVolume);
-            set => Preferences.Default.Set(nameof(Volume), Math.Clamp(value, minVolume, maxVolume));
+            set
+            {
+                Preferences.Default.Set(nameof(Volume), Math.Clamp(value, minVolume, maxVolume));
+            }
         }
 
         public static void SetVolumeLevel(double newValue)

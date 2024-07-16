@@ -25,6 +25,9 @@ global using UraniumUI.Icons.MaterialIcons;
 
 global using MongoDB.Bson;
 
+global using Plugin.ContextMenuContainer;
+global using Dimmer_MAUI.UtilitiesServices;
+global using The49.Maui.BottomSheet;
 global using Dimmer_MAUI.MAudioLib;
 namespace Dimmer_MAUI;
 internal class GlobalUsings

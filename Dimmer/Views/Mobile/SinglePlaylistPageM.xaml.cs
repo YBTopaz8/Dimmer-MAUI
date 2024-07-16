@@ -10,4 +10,10 @@ public partial class SinglePlaylistPageM : ContentPage
     }
 
     public PlaylistsPageVM PlaylistsPageVM { get; }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        this.Title = PlaylistsPageVM.SelectedPlaylistPageTitle;
+    }
 }

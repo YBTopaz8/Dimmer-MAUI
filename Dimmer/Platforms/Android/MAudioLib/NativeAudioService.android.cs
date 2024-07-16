@@ -88,12 +88,16 @@ public class NativeAudioService : INativeAudioService
         mediaPlayer?.SetVolume((float)1, (float)1);
 
         Stream streamType = Stream.Music;
-        
+        if (instance == null)
+        {
+            var activity = CrossCurrentActivity.Current;
+            instance = activity.Activity as IAudioActivity;
+        }
         var aManager = instance.Binder.GetMediaPlayerService().ExposeAudioManager();
 
-
-        Debug.WriteLine($"Normal volume {volume}");
-        aManager.SetStreamVolume(streamType, (int)volume, VolumeNotificationFlags.RemoveSoundAndVibrate);
+        volume = Math.Max(0, Math.Min(15, volume));
+        int scaledVolume = (int)Math.Round(volume);
+        aManager.SetStreamVolume(streamType, scaledVolume, VolumeNotificationFlags.RemoveSoundAndVibrate);
 
         //volume = Math.Clamp(volume, 0, 1);
         //balance = Math.Clamp(balance, -1, 1);
@@ -140,7 +144,6 @@ public class NativeAudioService : INativeAudioService
         instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
         instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
         instance.Binder.GetMediaPlayerService().TaskPlayPrevious += PlayPrevious;
-        instance.Binder.GetMediaPlayerService().TaskNotificationTapped += NotificationTapped;
         this.instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool isPlaying) =>
         {
             Task.Run(async () => {

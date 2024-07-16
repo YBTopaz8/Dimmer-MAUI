@@ -12,21 +12,31 @@
              x:DataType="vm:PlaylistsPageVM"
              x:Name="myPage"  
              >
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+    </ContentPage.Resources>
     <toolkit:DockLayout Margin="5,0">
 
          <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView">
+            <CollectionView.EmptyView>
+                <Label Text="No Playlists Yet...😄" HorizontalOptions="Center"/>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:PlaylistModelView">
-                    <Border>
+                    <Border Stroke="Transparent">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}"
                                     CommandParameter="{Binding Id}"/>
                         </Border.GestureRecognizers>
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Name}"/>
-                            <Label Text="{Binding TotalDuration}"/>
-                            <Label Text="{Binding TotalSize}"/>
-
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16"/>
+                            <HorizontalStackLayout Spacing="5">
+                                <Label Text="{Binding TotalDuration, Converter={StaticResource DurationConverter}}"/>
+                                <Label Text="{Binding TotalSize, Converter={StaticResource FileSizeConverter}}"/>
+                                <Label Text="{Binding TotalSongsCount, StringFormat='| {0} Songs'}"/>
+                            </HorizontalStackLayout>
+                            <BoxView HeightRequest="0.8"/>
                         </VerticalStackLayout>
                     </Border>
                     

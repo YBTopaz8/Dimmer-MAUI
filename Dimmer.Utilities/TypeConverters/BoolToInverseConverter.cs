@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.Utilities.TypeConverters;
-public class BytesToMegabytesConverter : IValueConverter
+public class BoolToInverseConverter : IValueConverter
 {
-
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is double)
+        if (parameter != null)
         {
-            return ((double)value / 1024.0 / 1024.0).ToString("0.##") + " MB";
+            var val = !(bool)value;
+            return val;
         }
-        return "0 MB"; // Default case if conversion fails
+        return value;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

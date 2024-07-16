@@ -42,21 +42,25 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentRepeatMode;
 
-    MediaPlayerState isSongCurrentlyPlaying;
-
     IFolderPicker folderPicker { get; }
     IFilePicker filePicker { get; }
     IPlayBackService PlayBackManagerService { get; }
     ILyricsService LyricsManagerService { get; }
+    public IServiceProvider ServiceProvider { get; }
+
+    [ObservableProperty]
+    string unsyncedLyrics;
 
     public HomePageVM(IPlayBackService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService,
+                      IServiceProvider serviceProvider)
     {
         this.folderPicker = folderPickerService;
         filePicker = filePickerService;
         
         PlayBackManagerService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
+        ServiceProvider = serviceProvider;
 
         //Subscriptions to SongsManagerService
         SubscribeToPlayerStateChanges();
@@ -71,6 +75,7 @@ public partial class HomePageVM : ObservableObject
         VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
         LoadPickedSongCoverImage();
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
+        //PickedSong = PlaybackManagerService.CurrentlyPlayingSong;
         TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
 
@@ -85,7 +90,6 @@ public partial class HomePageVM : ObservableObject
             PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
         }
     }
-
     [ObservableProperty]
     string shuffleOnOffImage = MaterialTwoTone.Shuffle;
 
@@ -150,9 +154,8 @@ public partial class HomePageVM : ObservableObject
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
         
-#if ANDROID        
-        var folder = "/storage/emulated/0/Music";
-#elif WINDOWS
+
+#if WINDOWS || ANDROID
 
         var folderPickingResult = await FolderPicker.PickAsync(token);
         if (folderPickingResult.Folder is null)
@@ -201,21 +204,9 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PauseResumeSong()
     {
-        SwitchPlayPauseImage();
         await PlayBackManagerService.PauseResumeSongAsync();
     }
 
-    private void SwitchPlayPauseImage()
-    {
-        if (isSongCurrentlyPlaying == MediaPlayerState.Playing)
-        {
-            PlayPauseImage = MaterialTwoTone.Pause;
-        }
-        else
-        {
-            PlayPauseImage = MaterialTwoTone.Play_arrow;
-        }
-    }
 
     [RelayCommand]
     async Task StopSong()
@@ -276,9 +267,12 @@ public partial class HomePageVM : ObservableObject
 
 
     [RelayCommand]
-    void AddSongToFavorites(SongsModelView song)// = null)
-    {
-        PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
+    void OpenBtmSheet(SongsModelView song)// = null)
+    {        
+        SongMenuBtmSheet btmSheet =  new(ServiceProvider.GetService<PlaylistsPageVM>(), song);
+        btmSheet.HomePageVM = this;
+        btmSheet.ShowAsync();
+        //PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
     }
 
     //Subscriptions to SongsManagerService
@@ -312,35 +306,38 @@ public partial class HomePageVM : ObservableObject
     bool isPlaying;
     private void SubscribeToPlayerStateChanges()
     {
-
         PlayBackManagerService.PlayerState.Subscribe(state =>
         {
             TemporarilyPickedSong = PlayBackManagerService.CurrentlyPlayingSong;
             PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
-            isSongCurrentlyPlaying = state;
             switch (state)
-            {                
-                case MediaPlayerState.Playing:                    
-                    IsPlaying = PlayBackManagerService.CurrentlyPlayingSong.IsPlaying;
-                    
-                    if (PickedSong.CoverImage is not null)
-                    {                        
-                        PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
-                    }
-                    else
-                    {
-                        PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
-                    }
-                    SwitchPlayPauseImage();
+            {
+                case MediaPlayerState.Playing:
+                    IsPlaying = true;
+                    LoadSongCoverImage();
                     break;
                 case MediaPlayerState.Paused:
-                    SwitchPlayPauseImage();
+                    IsPlaying = false;
                     break;
                 case MediaPlayerState.Stopped:
                     //PickedSong = "Stopped";
                     break;
             }
+
+            Debug.WriteLine($"Is Playing = " + IsPlaying);
         });
+    }
+
+    public void LoadSongCoverImage()
+    {
+        if (PickedSong.CoverImage is not null)
+        {
+            PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
+        }
+        else
+        {
+            PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
+        }
     }
 
 
@@ -353,8 +350,7 @@ public partial class HomePageVM : ObservableObject
         });
     }
 
-    [ObservableProperty]
-    string unsyncedLyrics;
+
     private void SubscribeToUnSyncedLyricsChanges()
     {
         LyricsManagerService.UnSynchedLyricsStream.Subscribe(unsyncedLyrics =>

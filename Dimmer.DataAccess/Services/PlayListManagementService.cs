@@ -51,6 +51,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 {
                     db.Add(specificPlaylist);
                 });
+                GetPlayLists();
                 return true;
             }
             else
@@ -86,6 +87,7 @@ public class PlayListManagementService : IPlaylistManagementService
                     };
 
                     db.Add(specificPlaylist);
+                    var s = new PlaylistModelView(specificPlaylist);
                 }
 
                 if (!specificPlaylist.SongsIDs.Contains(songmodel.Id))
@@ -93,12 +95,12 @@ public class PlayListManagementService : IPlaylistManagementService
                     specificPlaylist.SongsIDs.Add(songmodel.Id);
                     specificPlaylist.TotalDuration += songmodel.DurationInSeconds;
                     specificPlaylist.TotalSize += songmodel.FileSize;
+                    specificPlaylist.TotalSongsCount += 1; 
                 }
 
             });
-            specificPlaylist.SongsIDs.Add(specificPlaylist.Id);
+            GetPlayLists();
             return true;
-            
         }
         catch (Exception ex)
         {
@@ -121,8 +123,9 @@ public class PlayListManagementService : IPlaylistManagementService
                 specificPlaylist.SongsIDs.Remove(song.Id);
                 specificPlaylist.TotalDuration -= song.DurationInSeconds;
                 specificPlaylist.TotalSize -= song.FileSize;
+                specificPlaylist.TotalSongsCount -= 1;
             });
-            
+            GetPlayLists();
             return true;
         }
         catch (Exception ex)

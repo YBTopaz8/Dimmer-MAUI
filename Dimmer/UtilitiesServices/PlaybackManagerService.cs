@@ -99,8 +99,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
-            ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
-            
+            ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);            
         }
         
     }
@@ -111,8 +110,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             return;
         }
         isSongPlaying = e;
-        ObservableCurrentlyPlayingSong.IsPlaying = isSongPlaying;
-
+        
         if (isSongPlaying)
         {
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
@@ -144,6 +142,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             }
 
             var allSongs = new List<SongsModelView>();
+            allSongs = SongsMgtService.AllSongs.ToList();
             var artistDict = new Dictionary<string, ArtistModel>();
             int totalFiles = allFiles.Count;
             int processedFiles = 0;
@@ -188,7 +187,10 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
                 };
-                
+                if (allSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
+                {
+                    continue;
+                }
                 allSongs.Add(song);
 
                 artist.SongsIDs.Add(song.Id);
@@ -199,7 +201,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                     loadingSongsProgress.Report((processedFiles * 100) / totalFiles);
                 }
             }
-            _nowPlayingSubject.OnNext(allSongs);
 
             return (allSongs, artistDict);
         }
@@ -231,6 +232,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             //save songs to db to songs table
             await SongsMgtService.AddSongBatchAsync(songs);
         }
+        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
         return true;
     }
 
@@ -361,12 +363,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             currentPosition = audioService.CurrentPosition;
             await audioService.PauseAsync();
-            //audioService.IsPlaying = false;
-            ObservableCurrentlyPlayingSong.IsPlaying = false;
-
-
+            // ObservableCurrentlyPlayingSong.IsPlaying = false;
             _playerStateSubject.OnNext(MediaPlayerState.Paused);  // Update state to paused
-
             _positionTimer.Stop();
 
         }
@@ -469,16 +467,18 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             if (!song.IsFavorite)
             {
-                song.IsFavorite = true;
-                PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites")
-;               PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites");
+                song.IsFavorite = true;                
+                if(PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites"))
+                {
+                    PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites");
+                }
                 SongsMgtService.UpdateSongDetails(song);
             }
             else
             {
                 song.IsFavorite = false;
-                PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
                 PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+                PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
                 SongsMgtService.UpdateSongDetails(song);
             }
         }
@@ -539,12 +539,12 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
     public void DecreaseVolume()
     {
-        audioService.Volume -= 1;
+        audioService.Volume -= 0.1;
     }
 
     public void IncreaseVolume()
     {
-        audioService.Volume += 1;
+        audioService.Volume += 0.1;
     }
 
     Dictionary<string, string> normalizationCache = new();

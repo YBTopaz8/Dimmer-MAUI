@@ -1,5 +1,7 @@
 ﻿
 
+using System.Collections.Specialized;
+
 namespace Dimmer.Models;
 public class PlaylistModel : RealmObject
 {
@@ -10,7 +12,7 @@ public class PlaylistModel : RealmObject
     public DateTimeOffset DateCreated { get; set; }
     public double TotalDuration { get; set; }
     public double TotalSize { get; set; }
-
+    public int TotalSongsCount { get; set; }
     public PlaylistModel()
     {
         
@@ -23,6 +25,7 @@ public class PlaylistModel : RealmObject
         DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;
+        TotalSongsCount = model.TotalSongsCount;
     }
 
 }
@@ -30,13 +33,18 @@ public class PlaylistModel : RealmObject
 public partial class PlaylistModelView : ObservableObject
 {
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    public string Name { get; set; }
-    public IList<ObjectId> SongsIDs { get; set; }
+    [ObservableProperty]
+    string name;
+    [ObservableProperty]
+    IList<ObjectId> songsIDs;
     public DateTimeOffset DateCreated { get; set; }
-    public double TotalDuration { get; set; }
-    public double TotalSize { get; set; }
-
-
+    [ObservableProperty]
+    double totalDuration;
+    [ObservableProperty]
+    double totalSize;
+    [ObservableProperty]
+    int totalSongsCount;
+    
     public PlaylistModelView()
     {
         
@@ -51,6 +59,6 @@ public partial class PlaylistModelView : ObservableObject
         DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;
-
+        TotalSongsCount= model.TotalSongsCount;
     }
 }

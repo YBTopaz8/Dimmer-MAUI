@@ -17,6 +17,11 @@ public class CheckPermissions : Permissions.BasePlatformPermission
             if (OperatingSystem.IsAndroidVersionAtLeast(33))
             {
                 result.Add((Manifest.Permission.PostNotifications, true));
+                result.Add((Manifest.Permission.ReadMediaAudio, true));
+                result.Add((Manifest.Permission.ReadMediaImages, true));
+                result.Add((Manifest.Permission.ManageExternalStorage, true));
+                result.Add((Manifest.Permission.ReadExternalStorage, true));
+                result.Add((Manifest.Permission.WriteExternalStorage, true));
             }
             return result.ToArray();
         }

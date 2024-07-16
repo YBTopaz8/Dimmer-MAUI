@@ -55,8 +55,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     {
         get => mediaPlayer?.Volume ?? 0;
 
-
-        set => mediaPlayer.Volume = Math.Clamp(value, 0, 1);
+        set
+        {
+            if (mediaPlayer is not null)
+            {
+                mediaPlayer.Volume = Math.Clamp(value, 0, 1);
+            }            
+        }
     }
     public bool Muted
     {
@@ -70,7 +75,6 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
     public event PropertyChangedEventHandler PropertyChanged;
-    public event EventHandler NotificationTapped;
 
     public void InitializeAsync(string audioURI)
     {
@@ -153,6 +157,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             };
             mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
             mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
+            mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
             mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
         }
@@ -162,6 +167,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             mediaPlayer.Source = mediaPlaybackItem(media);
         }
     }
+
+
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
     {
         PlayEnded?.Invoke(sender, EventArgs.Empty);
@@ -177,8 +184,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     }
     private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
     {
-        IsPlayingChanged?.Invoke(sender, IsPlaying);
+        IsPlayingChanged?.Invoke(sender, false);
     }
-    
+    private void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
+    {
+        IsPlayingChanged?.Invoke(sender, true);
+    }
+
+   
 }
 

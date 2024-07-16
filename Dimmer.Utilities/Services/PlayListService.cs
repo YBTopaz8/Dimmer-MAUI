@@ -4,42 +4,33 @@ using System.Collections.Specialized;
 namespace Dimmer.Utilities.Services;
 public partial class PlayListService : ObservableObject, IPlayListService
 {
-    public IList<PlaylistModelView> AllPlaylists => AllPlaylistsSubject;
-    
     [ObservableProperty]
-    ObservableCollection<PlaylistModelView> _allPlaylistsSubject;
+    public ObservableCollection<PlaylistModelView> allPlaylists;
 
     public IPlaylistManagementService PlaylistManagementService { get; }
     public ISongsManagementService SongsManagementService { get; }
 
-    public IList<SongsModelView> SongsFromPlaylist => AllSongsFromPlaylist;
     [ObservableProperty]
-    ObservableCollection<SongsModelView> _allSongsFromPlaylist;
+    public ObservableCollection<SongsModelView> songsFromPlaylist;
     
-    [ObservableProperty]
-    string observableSelectedPlaylistName;
-    public string SelectedPlaylistName => ObservableSelectedPlaylistName;
+    
+    [ObservableProperty]    
+    string selectedPlaylistName;
 
-    public event NotifyCollectionChangedEventHandler AllPlaylistsChanged
-    {
-        add { _allPlaylistsSubject.CollectionChanged += value; }
-        remove { _allPlaylistsSubject.CollectionChanged -= value; }
-    }
 
     public PlayListService(IPlaylistManagementService playlistManagementService, ISongsManagementService songsManagementService)
     {
         PlaylistManagementService = playlistManagementService;
         SongsManagementService = songsManagementService;
-        AllPlaylistsSubject = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
-
+        AllPlaylists = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
     }
 
 
-    public ObservableCollection<PlaylistModelView> UpdatePlaylistSongs()
+    public ObservableCollection<PlaylistModelView> GetAllPlaylists()
     {
-        AllPlaylistsSubject = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
+        AllPlaylists = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
         
-        return AllPlaylistsSubject;
+        return AllPlaylists;
     }
     public void GetPlaylistDetails(ObjectId playlistID)
     {
@@ -51,20 +42,16 @@ public partial class PlayListService : ObservableObject, IPlayListService
 
     public void GetSongsFromPlaylistID(ObjectId playlistID)
     {
-        if (playlistID == currentlyLoadedPlaylist) //will remove or change this because what if a user adds/removes a song from PL?
-        {
-            return;
-        }
         var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
 
         if (specificPlaylist != null)
         {
-            ObservableSelectedPlaylistName = specificPlaylist.Name;
+            SelectedPlaylistName = specificPlaylist.Name;
             IList<SongsModelView> songsInPlaylist = SongsManagementService.AllSongs
                 .Where(s => specificPlaylist.SongsIDs.Contains(s.Id))
                 .ToList();
-            AllSongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);
-            currentlyLoadedPlaylist = playlistID;
+            SongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);
+            
         }
 
     }
@@ -78,24 +65,27 @@ public partial class PlayListService : ObservableObject, IPlayListService
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
         specificPlaylist?.SongsIDs.Add(song.Id);
+        specificPlaylist.TotalSongsCount += 1;
     }
 
     public void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playlistName);
         specificPlaylist?.SongsIDs.Add(song.Id);
+        specificPlaylist.TotalSongsCount += 1;
     }
 
     public void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playListName);
         specificPlaylist?.SongsIDs.Remove(song.Id);
-        
+        specificPlaylist.TotalSongsCount -= 1;
     }
 
     public void RemoveFromPlayListWithPlayListID(SongsModelView song, ObjectId playListID)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playListID);
         specificPlaylist?.SongsIDs.Remove(song.Id);
+        specificPlaylist.TotalSongsCount -= 1;
     }
 }

@@ -32,6 +32,7 @@
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
@@ -46,9 +47,8 @@
                     <TapGestureRecognizer Tapped="PlaybackBottomBar_Tapped"/>
                 </FlexLayout.GestureRecognizers>
                 <HorizontalStackLayout Spacing="5">
-                    <Image Source="{Binding PickedSongCoverImage}" 
-                    HeightRequest="45" Aspect="AspectFill"/>
-                    <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center"/>
+                    <Image Source="{Binding PickedSongCoverImage}" HeightRequest="45" Aspect="AspectFill"/>
+                    <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center" MaximumWidthRequest="120"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
                 </HorizontalStackLayout>
 
@@ -58,9 +58,16 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton Command="{Binding PauseResumeSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                    <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}" HeightRequest="45" 
+                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding PlayPauseImage}" />
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_arrow}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton Clicked="pauseImgBtn_Clicked" x:Name="pauseImgBtn" HeightRequest="45" 
+                                 IsVisible="{Binding IsVisible, Source={x:Reference playImgBtn}, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause}"/>
                         </ImageButton.Source>
                     </ImageButton>
                     <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
@@ -73,9 +80,10 @@
             
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
             
-            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" VerticalScrollBarVisibility="Always"
-                        SelectedItem="{Binding PickedSong}" toolkit:DockLayout.DockPosition="Top" x:Name="SongsColView"
-                        Margin="0,0,0,40">
+            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" 
+                            VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"
+                            toolkit:DockLayout.DockPosition="Top" 
+                            x:Name="SongsColView">
             <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
@@ -93,7 +101,7 @@
                         </VisualStateManager.VisualStateGroups>
                         
                         <FlexLayout.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}"
+                                <TapGestureRecognizer Tapped="SpecificSong_Tapped" Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}"
                                                   CommandParameter="{Binding .}"/>
                         </FlexLayout.GestureRecognizers>
                         <HorizontalStackLayout Spacing="5">
@@ -102,6 +110,7 @@
                                 <Label Text="{Binding Title}" FontSize="19"/>
                                 <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                 <Label Text="{Binding PlayCount}" FontSize="14" Opacity="0.5"/>
+                                <Label Text="{Binding IsFavorite}" FontSize="14" Opacity="0.5"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
 
@@ -110,21 +119,14 @@
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
                                 <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
                             </VerticalStackLayout>
-                                <cm:ContextMenuContainer>
-                                    <cm:ContextMenuContainer.MenuItems >
-                                        <cm:ContextMenuItem Text="Share"/>
-                                        <cm:ContextMenuItem Text="Delete"/>
-                                    </cm:ContextMenuContainer.MenuItems>
-
-                                    <cm:ContextMenuContainer.Content>
-                                        <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
-                                            <ImageButton.Source>
-                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
-                                            </ImageButton.Source>
-                                        </ImageButton>
-                                        
-                                    </cm:ContextMenuContainer.Content>
-                                </cm:ContextMenuContainer>
+                                <ImageButton HeightRequest="42" BackgroundColor="Transparent" 
+                                             WidthRequest="30" HorizontalOptions="Center"
+                                             Command="{Binding BindingContext.OpenBtmSheetCommand, Source={x:Reference myPage}}"
+                                             CommandParameter="{Binding .}">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
                             </HorizontalStackLayout>
 
                         </FlexLayout>
@@ -133,23 +135,19 @@
         </CollectionView>
 
     </toolkit:DockLayout>
-        <ImageButton AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" BackgroundColor="DarkSlateBlue"
-                     CornerRadius="20" Padding="12" Clicked="SearchFAB_Clicked"
-                     AbsoluteLayout.LayoutFlags="PositionProportional" Margin="0,0,5,70">
-            <ImageButton.Source>
-                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
-            </ImageButton.Source>
-        </ImageButton>
-        <!--<Button Text="Search" BackgroundColor="DarkSlateBlue" 
-                 AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize"
-                 AbsoluteLayout.LayoutFlags="PositionProportional"
-                 Margin="0,0,5,90" x:Name="SearchFAB"
-                 Clicked="SearchFAB_Clicked_1"/>-->
+    <ImageButton AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" BackgroundColor="DarkSlateBlue"
+                    CornerRadius="20" Padding="12" Clicked="SearchFAB_Clicked"
+                    AbsoluteLayout.LayoutFlags="PositionProportional" Margin="0,0,5,70">
+        <ImageButton.Source>
+            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+        </ImageButton.Source>
+    </ImageButton>
+        
     </AbsoluteLayout>
     <uranium:UraniumContentPage.Attachments>
 
         <material:BackdropView Title="Search" IconImageSource="search_d" x:Name="SearchBackDrop">
-            <VerticalStackLayout Margin="0,0" HeightRequest="60">
+            <VerticalStackLayout Margin="0,0" HeightRequest="100">
                 <Border BackgroundColor="#252526" Stroke="Transparent" 
                         StrokeShape="RoundRectangle 10">
                     

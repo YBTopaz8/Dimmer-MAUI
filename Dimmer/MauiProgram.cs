@@ -1,12 +1,7 @@
-﻿using Dimmer_MAUI.MAudioLib;
-
-using Plugin.ContextMenuContainer;
-using Dimmer_MAUI.UtilitiesServices;
-
-#if ANDROID
+﻿#if ANDROID
 using Dimmer_MAUI.Platforms.Android.MAudioLib;
 #elif WINDOWS
-    using Dimmer_MAUI.Platforms.Windows;
+using Dimmer_MAUI.Platforms.Windows;
 #endif
 
 namespace Dimmer_MAUI;
@@ -20,6 +15,7 @@ public static class MauiProgram
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
+            .UseBottomSheet()
             .ConfigureContextMenuContainer()
             .ConfigureFonts(fonts =>
             {
@@ -39,8 +35,10 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddSingleton(FolderPicker.Default);
-        builder.Services.AddSingleton(Microsoft.Maui.Storage.FilePicker.Default);
+        builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
+
+        builder.Services.AddTransient<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
         builder.Services.AddSingleton<IDataBaseService, DataBaseService>();

@@ -8,40 +8,33 @@ public partial class PlaylistsPageVM : ObservableObject
     string selectedPlaylistPageTitle;
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> displayedSongsFromPlaylist;    
-    
-    public HomePageVM HomePageVM { get; }
+    ObservableCollection<SongsModelView> displayedSongsFromPlaylist;
+
+    [ObservableProperty]
+    SongsModelView selectedSongToOpenBtmSheet;
+    public IPlayBackService PlayBackService { get; }
     public IPlayListService PlayListService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
-    public PlaylistsPageVM(HomePageVM homePageVM, IPlayListService playListService, IPlaylistManagementService playlistManagementService)
+    public PlaylistsPageVM(IPlayBackService playBackService, IPlayListService playListService,
+        IPlaylistManagementService playlistManagementService)
     {
-        HomePageVM = homePageVM;
+        PlayBackService = playBackService;
         PlayListService = playListService;
         PlaylistManagementService = playlistManagementService;
-        DisplayedPlaylists = playlistManagementService.AllPlaylists.ToObservableCollection();
-
-        PlayListService.AllPlaylistsChanged += PlayListService_AllPlaylistsChanged;
-    }
-
-    private void PlayListService_AllPlaylistsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        DisplayedPlaylists.Clear();
-        DisplayedPlaylists = PlayListService.AllPlaylists.ToObservableCollection();
+        DisplayedPlaylists = PlayListService.AllPlaylists;
     }
 
     public void UpdatePlayLists()
     {
         DisplayedPlaylists.Clear();
-        DisplayedPlaylists = PlaylistManagementService!.AllPlaylists.ToObservableCollection();
+        DisplayedPlaylists = PlayListService.GetAllPlaylists();
     }
 
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)
     {
-        Debug.WriteLine(PlaylistID.ToString());
-        Debug.WriteLine(PlaylistID.GetType());
-        SelectedPlaylistPageTitle = PlayListService.SelectedPlaylistName;
         PlayListService.GetSongsFromPlaylistID(PlaylistID);
+        SelectedPlaylistPageTitle = PlayListService.SelectedPlaylistName;
         DisplayedSongsFromPlaylist = PlayListService.SongsFromPlaylist.ToObservableCollection();
         await Shell.Current.GoToAsync(nameof(SinglePlaylistPageM), true);
     
@@ -49,6 +42,24 @@ public partial class PlaylistsPageVM : ObservableObject
     [RelayCommand]
     public void PlaySong(SongsModelView song)
     {
-        HomePageVM.PlaySongCommand.Execute(song);
+        PlayBackService.PlaySongAsync(song);
+        //HomePageVM.PlaySongCommand.Execute(song);
+    }
+
+    [RelayCommand]
+    public void AddSongToSpecifcPlaylist(ObjectId PlaylistID)
+    {
+
+    }
+
+    [RelayCommand]
+    public void CreatePlaylistAndAddSong(string PlaylistName)
+    {
+        if (!string.IsNullOrEmpty(PlaylistName))
+        {
+            PlaylistManagementService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
+            PlayListService.GetAllPlaylists();
+        }
+        
     }
 }

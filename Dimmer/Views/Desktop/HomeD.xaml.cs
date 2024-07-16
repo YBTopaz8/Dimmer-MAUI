@@ -9,7 +9,6 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         VolumeSlider.Value = 1;
-
     }
 
     public HomePageVM HomePageVM { get; }
@@ -46,6 +45,24 @@ public partial class HomeD : UraniumContentPage
 
     private void Button_Clicked(object sender, EventArgs e)
     {
+        if (HomePageVM.PickedSong is null)
+        {
+            HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
+        }
         SongsColView.ScrollTo(HomePageVM.PickedSong);
+    }
+
+    private void playImgBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.PauseResumeSongCommand.Execute(null);
+        playImgBtn.IsVisible = false;
+        pauseImgBtn.IsVisible = true;
+    }
+
+    private void pauseImgBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.PauseResumeSongCommand.Execute(null);
+        playImgBtn.IsVisible = true;
+        pauseImgBtn.IsVisible = false;
     }
 }

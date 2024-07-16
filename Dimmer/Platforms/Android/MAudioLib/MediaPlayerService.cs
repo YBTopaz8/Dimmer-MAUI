@@ -13,7 +13,7 @@ using Android.Content.PM;
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 [Service(Enabled = true, Exported = true, ForegroundServiceType =ForegroundService.TypeMediaPlayback)]
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionNotifTapped })]
+[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener,
    MediaPlayer.IOnBufferingUpdateListener,
@@ -29,7 +29,6 @@ public class MediaPlayerService : Service,
     public const string ActionNext = "com.xamarin.action.NEXT";
     public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
     public const string ActionSeekTo = "com.xamarin.action.ActionSeekTo";
-    public const string ActionNotifTapped = "com.xamarin.action.ActionNotifTapped";
 
     public MediaPlayer mediaPlayer;
     private AudioManager audioManager;
@@ -47,7 +46,6 @@ public class MediaPlayerService : Service,
     public event EventHandler TaskPlayEnded;
     public event EventHandler TaskPlayNext;
     public event EventHandler TaskPlayPrevious;
-    public event EventHandler TaskNotificationTapped;
 
     public Activity MainAct;
     public MediaPlay mediaPlay;
@@ -429,10 +427,6 @@ public class MediaPlayerService : Service,
         });
     }
 
-    public void NotificationTapped(Intent intent)
-    {
-        TaskNotificationTapped?.Invoke(this, EventArgs.Empty);
-    }
     public async Task PlayNext()
     {
         TaskPlayNext?.Invoke(this, EventArgs.Empty);
@@ -510,7 +504,7 @@ public class MediaPlayerService : Service,
 
             UpdatePlaybackState(PlaybackStateCode.Stopped);
             mediaPlayer.Reset();
-            NotificationHelper.StopNotification(ApplicationContext);
+            NotificationHelper.StopNotification(ApplicationContext!);
             StopForeground(true);
             ReleaseWifiLock();
             UnregisterMediaSessionCompat();
@@ -644,10 +638,6 @@ public class MediaPlayerService : Service,
                 break;
             case ActionSeekTo:
                 mediaController.GetTransportControls().SeekTo(Position);
-                break;
-            case ActionNotifTapped:
-                this.NotificationTapped(intent);
-
                 break;
             default:
                 break;

@@ -15,7 +15,6 @@ public partial class HomePageM : UraniumContentPage
         SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
     }
 
-
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "IsPresented")
@@ -60,7 +59,7 @@ public partial class HomePageM : UraniumContentPage
         if (thisKeyStroke == lastKeyStroke)
         {
             var searchText = e.NewTextValue;
-            if (searchText.Length >=2)
+            if (searchText.Length >= 2)
             {
                 HomePageVM.SearchSongCommand.Execute(searchText);
             }
@@ -79,16 +78,44 @@ public partial class HomePageM : UraniumContentPage
 
     private async void PlaybackBottomBar_Tapped(object sender, TappedEventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);
+        await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
     }
-
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
+        HomePageVM.LoadSongCoverImage();
+        if (HomePageVM.IsPlaying)
+        {
+            playImgBtn.IsVisible = false;
+            pauseImgBtn.IsVisible = true;
+        }
+        else
+        {
+            playImgBtn.IsVisible = true;
+            pauseImgBtn.IsVisible = false;
+        }
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
+    }
+    private void playImgBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.PauseResumeSongCommand.Execute(null);
+        playImgBtn.IsVisible = false;
+        pauseImgBtn.IsVisible = true;
+    }
+
+    private void pauseImgBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.PauseResumeSongCommand.Execute(null);
+        playImgBtn.IsVisible = true;
+        pauseImgBtn.IsVisible = false;
+    }
+
+    private void SpecificSong_Tapped(object sender, TappedEventArgs e)
+    {
+        playImgBtn.IsVisible = false;
+        pauseImgBtn.IsVisible = true;
     }
 }

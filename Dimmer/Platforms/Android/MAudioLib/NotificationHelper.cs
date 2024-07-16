@@ -67,7 +67,6 @@ public static class NotificationHelper
         bool isPlaying)
     {
         Intent intent = new(context, typeof(MainActivity));
-        intent.SetAction(MediaPlayerService.ActionNotifTapped);
         intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
 
         var pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
