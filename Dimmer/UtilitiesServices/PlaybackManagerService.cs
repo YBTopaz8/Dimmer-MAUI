@@ -63,7 +63,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         this.audioService = AudioService;
 #elif ANDROID
 
-        this.audioService = NativeAudioService.Current;
+        this.audioService = AudioService;// NativeAudioService.Current;
 #endif
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
@@ -264,6 +264,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         bool isLocked = await _playLock.WaitAsync(0);
         if (!isLocked)
             return;
+
+        Console.WriteLine("Step0");
         try
         {
             if (CurrentRepeatMode == 2) //repeat the same song
@@ -273,6 +275,19 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             }
             
             await PlayNextSongAsync();
+
+            await Task.Delay(500);
+            if (!audioService.IsPlaying)
+            {
+
+                if (CurrentRepeatMode == 2) //repeat the same song
+                {
+                    await PlaySongAsync();
+                    return;
+                }
+
+                await PlayNextSongAsync();
+            }
         }
         finally
         {

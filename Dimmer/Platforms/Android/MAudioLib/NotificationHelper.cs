@@ -99,8 +99,9 @@ public static class NotificationHelper
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
         AddPlayPauseActionCompat(builder, context, isPlaying);
         builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
+        builder.AddAction(GenerateActionCompat(context, Drawable.ButtonStar, "Fav", MediaPlayerService.ActionNext));
         
-        style.SetShowActionsInCompactView(0, 1, 2, 3);
+        style.SetShowActionsInCompactView(0, 1, 2, 3, 4);
         return builder.Build();
         //NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
     }

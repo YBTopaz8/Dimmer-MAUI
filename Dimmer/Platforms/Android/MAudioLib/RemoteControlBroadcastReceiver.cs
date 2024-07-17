@@ -27,8 +27,6 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
     {
         if (intent.Action == Intent.ActionMediaButton)
         {
-
-
             //The event will fire twice, up and down.
             // we only want to handle the down event though.
             var key = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);

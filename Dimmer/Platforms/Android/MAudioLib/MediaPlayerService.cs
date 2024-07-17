@@ -77,7 +77,7 @@ public class MediaPlayerService : Service,
 
             if (MediaPlayerState == PlaybackStateCode.Playing)
             {
-                PlayingHandler.PostDelayed(PlayingHandlerRunnable, 150);
+                PlayingHandler.PostDelayed(PlayingHandlerRunnable, 1000);
             }
         });
 
@@ -90,7 +90,7 @@ public class MediaPlayerService : Service,
             }
         };
     }
-
+    
     protected virtual void OnStatusChanged(EventArgs e)
     {
         StatusChanged?.Invoke(this, e);
@@ -176,14 +176,11 @@ public class MediaPlayerService : Service,
     private void InitializePlayer()
     {
         mediaPlayer = new MediaPlayer();
-
-        mediaPlayer.SetAudioAttributes(
-            new AudioAttributes.Builder()
+        mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
             .SetContentType(AudioContentType.Music)
-            .SetUsage(AudioUsageKind.Media)
-                .Build());
+            .SetUsage(AudioUsageKind.Media).Build());
 
-        mediaPlayer.SetWakeMode(ApplicationContext, WakeLockFlags.Partial);
+        mediaPlayer.SetWakeMode(Platform.AppContext, WakeLockFlags.Partial);
 
         mediaPlayer.SetOnBufferingUpdateListener(this);
         mediaPlayer.SetOnCompletionListener(this);
@@ -203,6 +200,8 @@ public class MediaPlayerService : Service,
         {
             Buffered = newBufferedTime;
         }
+
+        Console.WriteLine("Step 7 on buffering");
     }
 
     public async void OnCompletion(MediaPlayer mp)
@@ -215,6 +214,8 @@ public class MediaPlayerService : Service,
     public bool OnError(MediaPlayer mp, MediaError what, int extra)
     {
         UpdatePlaybackState(PlaybackStateCode.Error);
+        Console.WriteLine("Step 8 error");
+        Task.Run(() => Play());
         return true;
     }
 
@@ -222,6 +223,7 @@ public class MediaPlayerService : Service,
     {
         mp.Start();
         UpdatePlaybackState(PlaybackStateCode.Playing);
+        Console.WriteLine("Step 9 Prepared");
     }
 
     public int Position
@@ -241,12 +243,11 @@ public class MediaPlayerService : Service,
     {
         get
         {
-            if (mediaPlayer == null
-                || MediaPlayerState != PlaybackStateCode.Playing
-                    && MediaPlayerState != PlaybackStateCode.Paused)
+            if (mediaPlayer == null || MediaPlayerState != PlaybackStateCode.Playing && MediaPlayerState != PlaybackStateCode.Paused)
                 return 0;
             else
-                return mediaPlayer.Duration;
+                Console.WriteLine("Step 10 getDuration");
+            return mediaPlayer.Duration;
         }
     }
 
@@ -290,9 +291,11 @@ public class MediaPlayerService : Service,
     /// </summary>
     public async Task Play()
     {
+        Console.WriteLine("Step 6 Play method from mediaplayerservice");
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
             //We are simply paused so just start again
+            Console.WriteLine("Not null");
             mediaPlayer.Start();
             UpdatePlaybackState(PlaybackStateCode.Playing);
             StartNotification();
@@ -303,10 +306,16 @@ public class MediaPlayerService : Service,
         }
 
         if (mediaPlayer == null)
+        {
+            Console.WriteLine("Media Player is null");
             InitializePlayer();
+        }
 
         if (mediaSession == null)
+        {
+            Console.WriteLine("mediaSession is null");
             InitMediaSession();
+        }
 
         if (mediaPlayer.IsPlaying && isCurrentEpisode)
         {
@@ -318,11 +327,12 @@ public class MediaPlayerService : Service,
 
         await PrepareAndPlayMediaPlayerAsync();
     }
-
+    
     private async Task PrepareAndPlayMediaPlayerAsync()
     {
         try
         {
+            Console.WriteLine("Preparing");
             if (OperatingSystem.IsAndroidVersionAtLeast(21))
             {
                 MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
@@ -336,11 +346,26 @@ public class MediaPlayerService : Service,
                     uri = AndroidNet.Uri.Parse(FileSystem.Current.CacheDirectory + "temp.wav");
                 }
                 else
-                {
+                {   
                     uri = AndroidNet.Uri.Parse(mediaPlay.URL);
                 }
-                await mediaPlayer.SetDataSourceAsync(ApplicationContext, uri);
 
+                mediaPlayer.Reset();
+                mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
+                    .SetContentType(AudioContentType.Music)
+                    .SetUsage(AudioUsageKind.Media).Build());
+
+                mediaPlayer.SetWakeMode(Platform.AppContext, WakeLockFlags.Partial);
+
+                mediaPlayer.SetOnBufferingUpdateListener(this);
+                mediaPlayer.SetOnCompletionListener(this);
+                mediaPlayer.SetOnErrorListener(this);
+                mediaPlayer.SetOnPreparedListener(this);
+
+
+
+                await mediaPlayer.SetDataSourceAsync(Platform.AppContext, uri);
+                
                 //If Uri Scheme is not set its a local file so there's no metadata to fetch
                 if (!string.IsNullOrWhiteSpace(uri.Scheme))
                     await metaRetriever.SetDataSourceAsync(uri.ToString(), new Dictionary<string, string>());
@@ -348,9 +373,9 @@ public class MediaPlayerService : Service,
                 if (OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     var focusResult = audioManager.RequestAudioFocus(new AudioFocusRequestClass
-                   .Builder(AudioFocus.Gain)
-                   .SetOnAudioFocusChangeListener(this)
-                   .Build());
+                    .Builder(AudioFocus.Gain)
+                    .SetOnAudioFocusChangeListener(this)
+                    .Build());
 
                     if (focusResult != AudioFocusRequest.Granted)
                     {
@@ -358,16 +383,13 @@ public class MediaPlayerService : Service,
                         Console.WriteLine("Could not get audio focus");
                     }
                 }
-                UpdatePlaybackState(PlaybackStateCode.Buffering);
-                mediaPlayer.PrepareAsync();
 
+                UpdatePlaybackState(PlaybackStateCode.Buffering);
+                triedCount++;
+                mediaPlayer.PrepareAsync();
+                triedAfterCount++;
                 AquireWifiLock();
 
-                //Check if there's some metadata
-                //if (!string.IsNullOrEmpty(mediaPlay.Image))
-                //{
-                //    Cover = await GetImageBitmapFromUrl(mediaPlay.Image);
-                //}
                 if (mediaPlay.ImageBytes is not null)
                 {
                     Cover = await GetImageBitmapFromBytesAsync(mediaPlay.ImageBytes);
@@ -375,24 +397,30 @@ public class MediaPlayerService : Service,
                 else if (metaRetriever != null && !string.IsNullOrWhiteSpace(metaRetriever.ExtractMetadata(MetadataKey.Album)))
                 {
                     byte[] imageByteArray = metaRetriever.GetEmbeddedPicture();
-                    //if (imageByteArray == null)
-                    //    Cover = await BitmapFactory.DecodeResourceAsync(Resources, Resource.Drawable.abc_ab_share_pack_mtrl_alpha); //TODO player_play
-                    //else
+
                     if (imageByteArray != null)
                         Cover = await BitmapFactory.DecodeByteArrayAsync(imageByteArray, 0, imageByteArray.Length);
                 }
                 UpdateMediaMetadataCompat(metaRetriever);
                 StartNotification();
             }
+            
         }
         catch (Exception ex)
         {
             UpdatePlaybackStateStopped();
-
+            failedCount++;
             // Unable to start playback log error
-            Console.WriteLine(ex);
+            Console.WriteLine("Error !!!!!!!!!!!! when preparing. Msg: "+ ex.Message 
+                +" failedCount = "+failedCount
+                +" tried Before Count= " + triedCount
+                +" tried after Count= " + triedAfterCount );
+            Console.WriteLine($"Is Playing = {mediaPlayer.IsPlaying}");
         }
     }
+    int failedCount = 0;
+    int triedCount = 0;
+    int triedAfterCount = 0;
     private async Task<Bitmap> GetImageBitmapFromUrl(string url)
     {
         Bitmap imageBitmap = null;
@@ -437,7 +465,7 @@ public class MediaPlayerService : Service,
         //    mediaPlayer = null;
         //}
         UpdatePlaybackState(PlaybackStateCode.SkippingToNext);
-
+        Console.WriteLine("Step 5: TaskPlayNext called");
         //await Play();
     }
 
@@ -504,7 +532,7 @@ public class MediaPlayerService : Service,
 
             UpdatePlaybackState(PlaybackStateCode.Stopped);
             mediaPlayer.Reset();
-            NotificationHelper.StopNotification(ApplicationContext!);
+            NotificationHelper.StopNotification(Platform.AppContext!);
             StopForeground(true);
             ReleaseWifiLock();
             UnregisterMediaSessionCompat();
@@ -524,8 +552,8 @@ public class MediaPlayerService : Service,
         if (mediaPlayer != null)
         {
             mediaPlayer.Reset();
-            mediaPlayer.Release();
-            mediaPlayer = null;
+            //mediaPlayer.Release();
+            //mediaPlayer = null;
         }
     }
 
@@ -550,7 +578,7 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionSeekTo
                 )
                 .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
-
+            
             mediaSession.SetPlaybackState(stateBuilder.Build());
 
             OnStatusChanged(EventArgs.Empty);
@@ -571,7 +599,7 @@ public class MediaPlayerService : Service,
         if (mediaSession == null)
             return;
 
-        var notif = NotificationHelper.StartNotification(ApplicationContext,mediaController.Metadata,mediaSession,
+        var notif = NotificationHelper.StartNotification(Platform.AppContext,mediaController.Metadata,mediaSession,
             Cover,MediaPlayerState == PlaybackStateCode.Playing);
 
         StartForeground(1000, notif);
@@ -626,6 +654,7 @@ public class MediaPlayerService : Service,
         {
             case ActionPlay:
                 mediaController.GetTransportControls().Play();
+                Console.WriteLine("Step 3 Play from Intent");
                 break;
             case ActionPause:
                 mediaController.GetTransportControls().Pause();
@@ -635,6 +664,7 @@ public class MediaPlayerService : Service,
                 break;
             case ActionNext:
                 mediaController.GetTransportControls().SkipToNext();
+                Console.WriteLine("Step 4 Skip To Next From Intent");
                 break;
             case ActionSeekTo:
                 mediaController.GetTransportControls().SeekTo(Position);
@@ -695,7 +725,7 @@ public class MediaPlayerService : Service,
 
     public override bool OnUnbind(Intent intent)
     {
-        NotificationHelper.StopNotification(ApplicationContext);
+        NotificationHelper.StopNotification(Platform.AppContext);
         return base.OnUnbind(intent);
     }
 
@@ -710,7 +740,7 @@ public class MediaPlayerService : Service,
             mediaPlayer.Release();
             mediaPlayer = null;
 
-            NotificationHelper.StopNotification(ApplicationContext);
+            NotificationHelper.StopNotification(Platform.AppContext);
             StopForeground(true);
             ReleaseWifiLock();
             UnregisterMediaSessionCompat();
@@ -730,12 +760,11 @@ public class MediaPlayerService : Service,
                 {
                     mediaPlayer.Start();
                 }
-
                 mediaPlayer.SetVolume(1.0f, 1.0f);
                 break;
             case AudioFocus.Loss:
                 //We have lost focus stop!
-                await Stop();
+                //await Stop();
                 break;
             case AudioFocus.LossTransient:
                 //We have lost focus for a short time, but likely to resume so pause
@@ -769,6 +798,7 @@ public class MediaPlayerService : Service,
 
         public override async void OnPlay()
         {
+            Console.WriteLine("Step 2 On Play Callback Method");
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(true);
             base.OnPlay();
             isPlaying = true;
@@ -776,7 +806,8 @@ public class MediaPlayerService : Service,
 
         public override async void OnSkipToNext()
         {
-            await mediaPlayerService.GetMediaPlayerService().PlayNext();
+            Console.WriteLine("Step 1 Skip to next Callback Method");
+            await mediaPlayerService.GetMediaPlayerService().PlayNext();            
             base.OnSkipToNext();
         }
 

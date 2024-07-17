@@ -59,7 +59,6 @@ public partial class PlaylistsPageVM : ObservableObject
         {
             PlaylistManagementService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
             DisplayedPlaylists = PlayListService.GetAllPlaylists();
-        }
-        
+        }        
     }
 }

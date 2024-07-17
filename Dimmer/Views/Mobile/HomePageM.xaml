@@ -89,8 +89,9 @@
                 </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
 
-                    <DataTemplate x:DataType="models:SongsModelView">
-                        <FlexLayout JustifyContent="SpaceBetween" >
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <FlexLayout JustifyContent="SpaceBetween">
+                        
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal"></VisualState>
@@ -100,7 +101,6 @@
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
-
                         </VisualStateManager.VisualStateGroups>
                         
                         <FlexLayout.GestureRecognizers>
@@ -130,9 +130,9 @@
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
-                            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
 
-                        </FlexLayout>
+                    </FlexLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

@@ -20,19 +20,29 @@ public class NativeAudioService : INativeAudioService
     {
         get
         {
-            if (instance != null && instance.Binder.GetMediaPlayerService() != null)
+            if (instance != null)
             {
-                return instance.Binder.GetMediaPlayerService().mediaPlayer;
+                var service = instance.Binder.GetMediaPlayerService();
+                if (service != null)
+                {
+                    return service.mediaPlayer;
+                }
             }
-            else
-            {
-                return new MediaPlayer();
-                //return null;
-            }
+            return null;
         }
     }
+
     public bool IsPlaying => mediaPlayer?.IsPlaying ?? false;
-    public double Duration => mediaPlayer?.Duration / 1000 ?? 0;
+    public double Duration
+    {
+        get
+        {
+            if (mediaPlayer == null)
+                Console.WriteLine("media player is null");
+            return mediaPlayer?.Duration / 1000 ?? 0;
+        }
+    }
+
     public double CurrentPosition => mediaPlayer?.CurrentPosition / 1000 ?? 0;
 
     public double Volume
@@ -140,6 +150,9 @@ public class NativeAudioService : INativeAudioService
             instance.Binder.GetMediaPlayerService().isCurrentEpisode = false;
             instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
         }
+
+        if (instance.Binder.GetMediaPlayerService().mediaPlayer == null)
+            Console.WriteLine("MediaPlayer is null");
         instance.Binder.GetMediaPlayerService().IsPlayingChanged += IsPlayingChanged;
         instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
         instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
