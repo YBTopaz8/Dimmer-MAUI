@@ -50,8 +50,7 @@ public partial class PlayListService : ObservableObject, IPlayListService
             IList<SongsModelView> songsInPlaylist = SongsManagementService.AllSongs
                 .Where(s => specificPlaylist.SongsIDs.Contains(s.Id))
                 .ToList();
-            SongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);
-            
+            SongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);            
         }
 
     }
@@ -105,4 +104,6 @@ public partial class PlayListService : ObservableObject, IPlayListService
         specificPlaylist?.SongsIDs.Remove(song.Id);
         specificPlaylist.TotalSongsCount -= 1;
     }
+
+    
 }

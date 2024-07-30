@@ -49,4 +49,9 @@ public partial class SongMenuBtmSheet : BottomSheet
         await NewPlaylistName.EntryView.HideKeyboardAsync();
         await this.DismissAsync();
     }
+
+    private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)
+    {
+        this.DismissAsync();
+    }
 }

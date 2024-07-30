@@ -38,6 +38,7 @@ public static class MauiProgram
         builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
+        builder.Services.AddSingleton<NowPlayingSongPageBtmSheet>();
         builder.Services.AddTransient<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
@@ -61,7 +62,6 @@ public static class MauiProgram
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
-        builder.Services.AddSingleton<NowPlayingPageM>();
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
 

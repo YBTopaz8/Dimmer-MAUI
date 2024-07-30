@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class PlaylistsPageVM : ObservableObject
 {
@@ -11,10 +14,13 @@ public partial class PlaylistsPageVM : ObservableObject
     ObservableCollection<SongsModelView> displayedSongsFromPlaylist;
 
     [ObservableProperty]
+    PlaylistModelView selectedPlaylistToOpenBtmSheet;
+    [ObservableProperty]
     SongsModelView selectedSongToOpenBtmSheet;
     public IPlayBackService PlayBackService { get; }
     public IPlayListService PlayListService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
+    PlaylistMenuBtmSheet btmSheet {  get; set; }
     public PlaylistsPageVM(IPlayBackService playBackService, IPlayListService playListService,
         IPlaylistManagementService playlistManagementService)
     {
@@ -35,7 +41,8 @@ public partial class PlaylistsPageVM : ObservableObject
     {
         PlayListService.GetSongsFromPlaylistID(PlaylistID);
         SelectedPlaylistPageTitle = PlayListService.SelectedPlaylistName;
-        DisplayedSongsFromPlaylist = PlayListService.SongsFromPlaylist.ToObservableCollection();
+        DisplayedSongsFromPlaylist = PlayListService.SongsFromPlaylist;
+        PlayBackService.UpdateCurrentQueue();
         await Shell.Current.GoToAsync(nameof(SinglePlaylistPageM), true);
     
     }
@@ -45,20 +52,56 @@ public partial class PlaylistsPageVM : ObservableObject
         PlayBackService.PlaySongAsync(song);
         //HomePageVM.PlaySongCommand.Execute(song);
     }
-
+    CancellationTokenSource cts = new();
+    const string songAddedToPlaylistText = "Song Added to Playlist";
+    const string songDeletedFromPlaylistText = "Song Removed from Playlist";
+    const string PlaylistCreatedText = "Playlist Created Successfully!";
+    const string PlaylistDeletedText = "Playlist Deleted Successfully!";
+    const ToastDuration duration = ToastDuration.Short;
+    
     [RelayCommand]
-    public void AddSongToSpecifcPlaylist(ObjectId PlaylistID)
+    public async Task AddSongToSpecifcPlaylist(ObjectId PlaylistID)
     {
-
+        PlaylistManagementService.AddSongToPlayListWithPlayListID(SelectedSongToOpenBtmSheet, PlaylistID);
+        DisplayedPlaylists = PlayListService.GetAllPlaylists();
+        var toast = Toast.Make(songAddedToPlaylistText, duration);
+        await toast.Show(cts.Token);
     }
 
     [RelayCommand]
-    public void CreatePlaylistAndAddSong(string PlaylistName)
+    public async Task CreatePlaylistAndAddSong(string PlaylistName)
     {
         if (!string.IsNullOrEmpty(PlaylistName))
         {
             PlaylistManagementService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
             DisplayedPlaylists = PlayListService.GetAllPlaylists();
+            var toast = Toast.Make(songAddedToPlaylistText, duration);
+            await toast.Show(cts.Token);
         }        
+    }
+
+    [RelayCommand]
+    public async Task DeletePlaylist()
+    {
+        await btmSheet.DismissAsync();
+        PlaylistManagementService.DeletePlaylist(SelectedPlaylistToOpenBtmSheet.Id);
+        DisplayedPlaylists = PlayListService.GetAllPlaylists();
+        var toast = Toast.Make(PlaylistDeletedText, duration);
+        await toast.Show(cts.Token);
+    }
+
+    [RelayCommand]
+    async Task OpenPlaylistMenuBtmSheet(PlaylistModelView playlist)
+    {
+        SelectedPlaylistToOpenBtmSheet = playlist;
+        btmSheet = new PlaylistMenuBtmSheet(this);
+        await btmSheet.ShowAsync();
+    }
+
+    [RelayCommand]
+    void RenamePlaylist(string newPlaylistName)
+    {
+        PlaylistManagementService.RenamePlaylist(SelectedPlaylistToOpenBtmSheet.Id, newPlaylistName);
+        DisplayedPlaylists = PlayListService.GetAllPlaylists();
     }
 }

@@ -1,4 +1,6 @@
 ﻿
+using Dimmer.Models;
+
 namespace Dimmer.DataAccess.Services;
 public class PlayListManagementService : IPlaylistManagementService
 {
@@ -42,22 +44,24 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
-            OpenDB();
+            //OpenDB();
             var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
-            if (specificPlaylist is not null)
-            {
-                specificPlaylist.SongsIDs.Add(song.Id);
-                db.Write(() =>
-                {
-                    db.Add(specificPlaylist);
-                });
-                GetPlayLists();
-                return true;
-            }
-            else
+            if(specificPlaylist is null)
             {
                 return false;
             }
+            db.Write(() =>
+            {
+                if (!specificPlaylist!.SongsIDs.Contains(song.Id))
+                {
+                    specificPlaylist.SongsIDs.Add(song.Id);
+                    specificPlaylist.TotalDuration += song.DurationInSeconds;
+                    specificPlaylist.TotalSize += song.FileSize;
+                    specificPlaylist.TotalSongsCount += 1;
+                }
+            });
+            GetPlayLists();
+            return true;
         }
         catch (Exception ex)
         {
@@ -141,4 +145,42 @@ public class PlayListManagementService : IPlaylistManagementService
         throw new NotImplementedException();
     }
 
+    public bool DeletePlaylist(ObjectId playlistID)
+    {
+        try
+        {
+            var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
+            db.Write(() =>
+            {
+                db.Remove(specificPlaylist);
+            });
+
+            GetPlayLists();
+            return true;
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+            throw new Exception("Error when deleting playlist" + ex.Message);
+            
+        }
+    }
+
+    public bool RenamePlaylist(ObjectId playlistID, string newPlaylistName)
+    {
+        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
+        if (specificPlaylist is null)
+        {
+            //await Shell.Current.DisplayAlert("Error While Renaming", "No Such Playlist Exists", "OK");
+            return false;
+        }
+        db.Write(() =>
+        {
+            specificPlaylist.Name = newPlaylistName;
+        });
+
+        GetPlayLists();
+        return true;
+    }
 }

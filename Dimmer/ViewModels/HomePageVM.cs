@@ -48,7 +48,7 @@ public partial class HomePageVM : ObservableObject
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IServiceProvider ServiceProvider { get; }
-
+    
     [ObservableProperty]
     string unsyncedLyrics;
 
@@ -58,7 +58,6 @@ public partial class HomePageVM : ObservableObject
     {
         this.folderPicker = folderPickerService;
         filePicker = filePickerService;
-        
         PlayBackManagerService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
@@ -265,11 +264,11 @@ public partial class HomePageVM : ObservableObject
 
 
     [RelayCommand]
-    void OpenBtmSheet(SongsModelView song)// = null)
+    async Task OpenBtmSheet(SongsModelView song)// = null)
     {        
         SongMenuBtmSheet btmSheet =  new(ServiceProvider.GetService<PlaylistsPageVM>(), song);
         btmSheet.HomePageVM = this;
-        btmSheet.ShowAsync();
+        await btmSheet.ShowAsync();
         
     }
     [RelayCommand]

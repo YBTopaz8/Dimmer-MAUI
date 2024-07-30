@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<the49:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:the49="https://schemas.the49.com/dotnet/2023/maui"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             x:DataType="vm:PlaylistsPageVM"
+             BackgroundColor="Black" 
+             x:Name="myBtmPage"
+             x:Class="Dimmer_MAUI.Views.Mobile.PlaylistMenuBtmSheet">
+    <the49:BottomSheet.Detents>
+        <the49:ContentDetent />
+    </the49:BottomSheet.Detents>
+    
+    <toolkit:DockLayout Margin="0,10">
+        <toolkit:DockLayout.Resources>
+            <ResourceDictionary>
+                <Style TargetType="Label">
+                    <Setter Property="VerticalTextAlignment" Value="Center"/>
+                    <Setter Property="TextColor" Value="White"/>
+                    <Setter Property="FontAttributes" Value="Bold"/>
+                    <Setter Property="FontSize" Value="17"/>
+                </Style>
+            </ResourceDictionary>
+        </toolkit:DockLayout.Resources>
+        <Label Text="{Binding SelectedPlaylistToOpenBtmSheet.Name}" HorizontalTextAlignment="Center"/>
+
+        <HorizontalStackLayout>
+            <HorizontalStackLayout.GestureRecognizers>
+            </HorizontalStackLayout.GestureRecognizers>
+            <ImageButton HeightRequest="35">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Play_circle_filled}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            <Label Text="Play Playlist"/>
+        </HorizontalStackLayout>
+        
+        <HorizontalStackLayout>
+            <HorizontalStackLayout.GestureRecognizers>
+            </HorizontalStackLayout.GestureRecognizers>
+            <ImageButton HeightRequest="35">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Drive_file_rename_outline}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            <Label Text="Rename Playlist"/>
+        </HorizontalStackLayout>
+        <VerticalStackLayout/>
+
+
+        <HorizontalStackLayout>
+            <HorizontalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding DeletePlaylistCommand}"/>
+            </HorizontalStackLayout.GestureRecognizers>
+            <ImageButton HeightRequest="35">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Delete}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            <Label Text="Delete Playlist"/>
+        </HorizontalStackLayout>
+        
+    </toolkit:DockLayout>
+</the49:BottomSheet>

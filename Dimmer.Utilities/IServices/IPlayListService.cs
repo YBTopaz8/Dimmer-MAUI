@@ -13,6 +13,5 @@ public interface IPlayListService
     void GetPlaylistDetails(ObjectId playlistID);
     void GetSongsFromPlaylistID(ObjectId playlistID);
     bool DeletePlaylistThroughID(ObjectId playlistID);
-
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
 }

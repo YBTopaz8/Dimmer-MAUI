@@ -59,12 +59,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         PlaylistMgtService = playlistMgtService;
         PlayListService = playListService;
 
-#if WINDOWS
-        this.audioService = AudioService;
-#elif ANDROID
+        audioService = AudioService;
 
-        this.audioService = AudioService;// NativeAudioService.Current;
-#endif
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
@@ -187,7 +183,9 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                     FileSize = fileInfo.Length,
                     TrackNumber = track.TrackNumber,
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
+                    CoverImage = track.EmbeddedPictures[0].PictureData,
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
+                    
                 };
                 if (allSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
                 {
@@ -342,7 +340,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             ObservableCurrentlyPlayingSong.PlayCount++;
 
-
             StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Title, ObservableCurrentlyPlayingSong.DurationInSeconds);
             Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
@@ -477,6 +474,13 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
         return null;
     }
+
+    ObjectId PreviouslyLoadedPlaylist;
+    public void UpdateCurrentQueue()
+    {
+        _nowPlayingSubject.OnNext(PlayListService.SongsFromPlaylist);
+        Debug.WriteLine("Called");
+    }
     public void UpdateSongToFavoritesPlayList(SongsModelView song)
     {
         
@@ -515,12 +519,12 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
     public async Task SetSongPosition(double positionFraction)
     {
-        
+
         // Convert the fraction to actual seconds
         double positionInSeconds = positionFraction * audioService.Duration;
 
         // Set the current time in the audio service
-        if(!await audioService.SetCurrentTime(positionInSeconds))
+        if (!await audioService.SetCurrentTime(positionInSeconds))
         {
             await audioService.InitializeAsync(new MediaPlay()
             {
@@ -616,6 +620,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
     void ResetSearch()
     {
+        Debug.WriteLine("Resetting");
         SearchedSongsList?.Clear();
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
         GetReadableFileSize();

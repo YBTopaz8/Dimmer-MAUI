@@ -5,11 +5,11 @@
              x:Class="Dimmer_MAUI.Views.Mobile.SongMenuBtmSheet"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
-            x:DataType="vm:PlaylistsPageVM"
-            BackgroundColor="Black" 
-                   x:Name="myBtmPage">
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             x:DataType="vm:PlaylistsPageVM"
+             BackgroundColor="Black" 
+             x:Name="myBtmPage">
     <the49:BottomSheet.Detents>
         <the49:ContentDetent />
     </the49:BottomSheet.Detents>
@@ -30,6 +30,13 @@
         </ResourceDictionary>
     </the49:BottomSheet.Resources>
     <VerticalStackLayout>
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <Label Text=" by "/>
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
+        </HorizontalStackLayout>
+        <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
+                   RadiusX="15" Margin="0,10"/>
         <VerticalStackLayout x:Name="FirstPageBtmSheet" Spacing="10" Margin="5">
             
             <Label Text="Add to Playlist" x:Name="AddToPlaylist">
@@ -63,11 +70,16 @@
                         <Border Margin="0,10" StrokeThickness="0.8"
                                 Stroke="DarkSlateBlue" Padding="0,5"
                                 StrokeShape="RoundRectangle, 8">
-                            <Label Text="{Binding Name}" FontSize="25">
-                                <Label.GestureRecognizers>
-                                </Label.GestureRecognizers>
-                            </Label>
-                            
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Tapped="CloseBtmSheet_Tapped"
+                                    Command="{Binding BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myBtmPage}}" 
+                                    CommandParameter="{Binding Id}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding Name}" FontSize="25"/>
+
+
+
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
@@ -86,7 +98,9 @@
                                 x:Name="NewPlaylistName"/>
             <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
                 <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
-                <Button Text="Create" x:Name="CreatePlaylistBtn" Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+                <Button Text="Create" x:Name="CreatePlaylistBtn" 
+                        Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+                        Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </VerticalStackLayout>

@@ -1,18 +1,39 @@
-using CommunityToolkit.Maui.Core.Platform;
+#if ANDROID
+using Android.Graphics.Drawables;
+using Color = Android.Graphics.Color;
+#endif
 using Plainer.Maui.Controls;
 using UraniumUI.Material.Attachments;
+
 
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : UraniumContentPage
 {
     
-    public HomePageM(HomePageVM homePageVM)
+    public HomePageM(HomePageVM homePageVM, NowPlayingSongPageBtmSheet nowPlayingSongPageBtmSheet)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
+        NowPlayingBtmSheet = nowPlayingSongPageBtmSheet;
         BindingContext = homePageVM;
         SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
+        NowPlayingBtmSheet.Dismissed += NowPlayingBtmSheet_Dismissed;
+    }
+
+    private void NowPlayingBtmSheet_Dismissed(object? sender, DismissOrigin e)
+    {
+        if (HomePageVM.IsPlaying)
+        {
+            playImgBtn.IsVisible = false;
+            pauseImgBtn.IsVisible = true;
+        }
+        else
+        {
+            playImgBtn.IsVisible = true;
+            pauseImgBtn.IsVisible = false;
+        }
+        DeviceDisplay.Current.KeepScreenOn = false;
     }
 
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -38,7 +59,8 @@ public partial class HomePageM : UraniumContentPage
     }
 
     public HomePageVM HomePageVM { get; }
-    
+    public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
+
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
         
@@ -72,33 +94,26 @@ public partial class HomePageM : UraniumContentPage
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
-        //SearchBackDrop.IsPresented = !SearchBackDrop.IsPresented;
-        SongsColView.ScrollTo(HomePageVM.PickedSong, position:ScrollToPosition.Center, animate: true);
+        SongsColView.ScrollTo(HomePageVM.PickedSong, position:ScrollToPosition.Center, animate: false);
     }
 
-    private async void PlaybackBottomBar_Tapped(object sender, TappedEventArgs e)
+    private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
+        await NowPlayingBtmSheet.ShowAsync();
+        DeviceDisplay.Current.KeepScreenOn = true;
+        //await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.LoadSongCoverImage();
-        if (HomePageVM.IsPlaying)
-        {
-            playImgBtn.IsVisible = false;
-            pauseImgBtn.IsVisible = true;
-        }
-        else
-        {
-            playImgBtn.IsVisible = true;
-            pauseImgBtn.IsVisible = false;
-        }
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
     }
+
+
     private void playImgBtn_Clicked(object sender, EventArgs e)
     {
         HomePageVM.PauseResumeSongCommand.Execute(null);
@@ -119,3 +134,20 @@ public partial class HomePageM : UraniumContentPage
         pauseImgBtn.IsVisible = true;
     }
 }
+
+public class ThumblessSlider : Slider
+{
+    public ThumblessSlider()
+    {
+#if ANDROID
+        Microsoft.Maui.Handlers.SliderHandler.Mapper.AppendToMapping("No Thumb", (handler, view) =>
+        {
+            if(view is ThumblessSlider)
+            {
+                handler.PlatformView.SetThumb(null);
+            }
+        });
+#endif
+    }
+}
+

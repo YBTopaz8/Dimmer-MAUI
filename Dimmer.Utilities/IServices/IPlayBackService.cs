@@ -30,4 +30,6 @@ public interface IPlayBackService
     int ToggleRepeatMode();
 
     void UpdateSongToFavoritesPlayList(SongsModelView song);
+
+    void UpdateCurrentQueue();
 }

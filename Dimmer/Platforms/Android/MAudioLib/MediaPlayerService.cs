@@ -384,7 +384,7 @@ public class MediaPlayerService : Service,
                     }
                 }
 
-                UpdatePlaybackState(PlaybackStateCode.Buffering);
+                //UpdatePlaybackState(PlaybackStateCode.Buffering);
                 triedCount++;
                 mediaPlayer.PrepareAsync();
                 triedAfterCount++;
@@ -549,12 +549,7 @@ public class MediaPlayerService : Service,
     {
         UpdatePlaybackState(PlaybackStateCode.Stopped);
 
-        if (mediaPlayer != null)
-        {
-            mediaPlayer.Reset();
-            //mediaPlayer.Release();
-            //mediaPlayer = null;
-        }
+        mediaPlayer?.Reset();
     }
 
     private void UpdatePlaybackState(PlaybackStateCode state, int SeekedPosition = 0)
@@ -599,7 +594,7 @@ public class MediaPlayerService : Service,
         if (mediaSession == null)
             return;
 
-        var notif = NotificationHelper.StartNotification(Platform.AppContext,mediaController.Metadata,mediaSession,
+        var notif = NotificationHelper.StartNotification(Platform.AppContext,mediaController.Metadata!, mediaSession,
             Cover,MediaPlayerState == PlaybackStateCode.Playing);
 
         StartForeground(1000, notif);
@@ -764,6 +759,7 @@ public class MediaPlayerService : Service,
                 break;
             case AudioFocus.Loss:
                 //We have lost focus stop!
+                await Pause();
                 //await Stop();
                 break;
             case AudioFocus.LossTransient:

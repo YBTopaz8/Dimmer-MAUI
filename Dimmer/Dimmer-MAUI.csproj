@@ -110,6 +110,7 @@
 	<ItemGroup>
 	  <None Remove="Resources\Images\high_volume_d.svg" />
 	  <None Remove="Resources\Images\low_volume_d.svg" />
+	  <None Remove="Resources\Images\msc.jpg" />
 	  <None Remove="Resources\Images\musical.svg" />
 	  <None Remove="Resources\Images\pause_d.svg" />
 	  <None Remove="Resources\Images\play_d.svg" />
@@ -125,9 +126,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
-		<PackageReference Include="UraniumUI" Version="2.9.0" />
-		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.0" />
-		<PackageReference Include="UraniumUI.Material" Version="2.9.0" />
+		<PackageReference Include="UraniumUI" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
 		<PackageReference Include="Xceed.Product.Maui.Toolkit.Full" Version="1.7.24157.1331" />
 		<PackageReference Include="z440.atl.core" Version="5.25.0" />
 	</ItemGroup>
@@ -145,7 +146,10 @@
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingPageM.xaml">
+	  <MauiXaml Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\PlaylistMenuBtmSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\PlaylistsPageM.xaml">
@@ -163,6 +167,12 @@
 	  <ProjectReference Include="..\Dimmer.DataAccess\Dimmer.DataAccess.csproj" />
 	  <ProjectReference Include="..\Dimmer.Models\Dimmer.Models.csproj" />
 	  <ProjectReference Include="..\Dimmer.Utilities\Dimmer.Utilities.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml.cs">
+	    <DependentUpon>NowPlayingSongPageBtmSheet.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 </Project>
