@@ -9,12 +9,29 @@ public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (parameter != null)
+        switch (parameter)
         {
-            var val = !(bool)value;
-            return val;
+            case "playbtn":
+                if ((bool)value!)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            case "pausebtn":
+                if ((bool)value!)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            default:
+                return false;
         }
-        return value;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

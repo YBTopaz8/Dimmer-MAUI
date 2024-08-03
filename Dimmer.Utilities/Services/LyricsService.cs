@@ -1,8 +1,5 @@
-﻿using ATL;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
-using static ATL.LyricsInfo;
 
 namespace Dimmer.Utilities.Services;
 public class LyricsService : ILyricsService
@@ -17,7 +14,6 @@ public class LyricsService : ILyricsService
     private BehaviorSubject<string> _unsyncedLyricsSubject = new("");
 
     private IDisposable _lyricUpdateSubscription;
-
     public IObservable<string> UnSynchedLyricsStream => _unsyncedLyricsSubject.AsObservable();
 
     public IPlayBackService PlayBackService { get; }
@@ -33,33 +29,41 @@ public class LyricsService : ILyricsService
     {
         PlayBackService.PlayerState.Subscribe(state =>
         {
-            if (state == MediaPlayerState.Stopped)
+            switch (state)
             {
-                StopLyricIndexUpdateTimer();
+                case MediaPlayerState.Initialized:
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong.FilePath);
+                    break;
+                case MediaPlayerState.Playing:
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong.FilePath);
+                    if (hasLyrics)
+                    {
+                        StartLyricIndexUpdateTimer();
+                    }
+                    else
+                    {
+                        _currentLyricSubject.OnNext(null);
+                    }
+                    break;
+                case MediaPlayerState.Paused:
+                    StopLyricIndexUpdateTimer();
+                    break;
+                case MediaPlayerState.Stopped:
+                    StopLyricIndexUpdateTimer();
+                    break;
+                default:
+                    break;
             }
-            else if (state == MediaPlayerState.Playing)
-            {
-                LoadLyrics(PlayBackService.CurrentlyPlayingSong.FilePath);
-                if (hasLyrics)
-                {
-                    StartLyricIndexUpdateTimer();
-                }
-                else
-                {
-                    _currentLyricSubject.OnNext(null);
-                }
-            }
+
         });
     }
 
     public void LoadLyrics(string songPath)
     {
         sortedLyrics = [];
-        IList<LyricPhraseModel>? loadedLyrics = LoadSynchronizedLyrics(songPath);
-        //string unsyncedLyrics = LoadUnsyncedLyrics(songPath);
+        IList<LyricPhraseModel> loadedLyrics = LoadSynchronizedLyrics(songPath);
 
-        _synchronizedLyricsSubject.OnNext(loadedLyrics);
-
+        _synchronizedLyricsSubject.OnNext(loadedLyrics.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : loadedLyrics);
     }
 
     private static string LoadUnsyncedLyrics(string songPath)
@@ -76,7 +80,7 @@ public class LyricsService : ILyricsService
     }
 
     LyricPhraseModel[]? sortedLyrics;
-    private LyricPhraseModel[]? LoadSynchronizedLyrics(string songPath)
+    private LyricPhraseModel[] LoadSynchronizedLyrics(string songPath)
     {
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
@@ -98,7 +102,7 @@ public class LyricsService : ILyricsService
         if (!File.Exists(lrcFilePath))
         {
             hasLyrics = false;
-            return null;
+            return Enumerable.Empty<LyricPhraseModel>().ToArray();
         }
         else
         {
@@ -195,12 +199,49 @@ public class LyricsService : ILyricsService
             Debug.WriteLine($"Error when finding closest lyric: {ex.Message}");
             return null;
         }
-
     }
-
 
     public void StopLyricIndexUpdateTimer()
     {
         _lyricUpdateSubscription?.Dispose();
     }
+
+    public async Task<string> FetchLyricsOnline(SongsModelView song)
+    {
+        HttpClient client = new HttpClient();
+        try
+        {
+            // Construct the URL with query parameters
+            string artistName = Uri.EscapeDataString(song.ArtistName);
+            string trackName = Uri.EscapeDataString(song.Title);
+            string url = $"https://lrclib.net/api/search?artist_name={artistName}&track_name={trackName}";
+
+            // Send the GET request
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode(); // Throw if not a success code
+
+            // Read the response content
+            string content = await response.Content.ReadAsStringAsync();
+
+            // Optionally, parse the JSON response if needed
+            var lyricsData = JsonSerializer.Deserialize<LyricsAPIReponse.Content[]>(content);
+
+            return content; // Return the raw content or processed data
+        }
+        catch (HttpRequestException e)
+        {
+            Debug.WriteLine($"Request error: {e.Message}");
+            return "Error fetching lyrics";
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"Unexpected error: {e.Message}");
+            return "Unexpected error fetching lyrics";
+        }
+        finally
+        {
+            client.Dispose(); // Dispose of HttpClient to free resources
+        }
+    }
+
 }

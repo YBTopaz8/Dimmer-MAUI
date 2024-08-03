@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.PlayPauseView"         
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+         xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+         xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+         x:DataType="vm:HomePageVM">
+    <ContentView.Resources>
+        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+    </ContentView.Resources>
+    <StackLayout VerticalOptions="Center">
+        <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
+         Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" >
+            <ImageButton.Source>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
+            </ImageButton.Source>
+        </ImageButton>
+        <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
+         x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}">
+            <ImageButton.Source>
+                <FontImageSource FontFamily="MaterialRound" 
+                             Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
+            </ImageButton.Source>
+        </ImageButton>
+
+    </StackLayout>
+</ContentView>

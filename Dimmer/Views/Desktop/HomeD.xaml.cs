@@ -2,7 +2,7 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
 {
-	public HomeD(HomePageVM homePageVM)
+    public HomeD(HomePageVM homePageVM)
     {
         InitializeComponent();
         HomePageVM = homePageVM;
@@ -19,7 +19,7 @@ public partial class HomeD : UraniumContentPage
         if (SongsColView.IsLoaded)
         {
             SongsColView.ScrollTo(HomePageVM.PickedSong);
-        }        
+        }
     }
 
 
@@ -52,17 +52,4 @@ public partial class HomeD : UraniumContentPage
         SongsColView.ScrollTo(HomePageVM.PickedSong);
     }
 
-    private void playImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = false;
-        pauseImgBtn.IsVisible = true;
-    }
-
-    private void pauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = true;
-        pauseImgBtn.IsVisible = false;
-    }
 }

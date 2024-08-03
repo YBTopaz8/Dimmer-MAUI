@@ -12,9 +12,9 @@ public partial class PlayListService : ObservableObject, IPlayListService
 
     [ObservableProperty]
     public ObservableCollection<SongsModelView> songsFromPlaylist;
-    
-    
-    [ObservableProperty]    
+
+
+    [ObservableProperty]
     string selectedPlaylistName;
 
 
@@ -29,7 +29,7 @@ public partial class PlayListService : ObservableObject, IPlayListService
     public ObservableCollection<PlaylistModelView> GetAllPlaylists()
     {
         AllPlaylists = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
-        
+
         return AllPlaylists;
     }
     public void GetPlaylistDetails(ObjectId playlistID)
@@ -50,7 +50,7 @@ public partial class PlayListService : ObservableObject, IPlayListService
             IList<SongsModelView> songsInPlaylist = SongsManagementService.AllSongs
                 .Where(s => specificPlaylist.SongsIDs.Contains(s.Id))
                 .ToList();
-            SongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);            
+            SongsFromPlaylist = new ObservableCollection<SongsModelView>(songsInPlaylist);
         }
 
     }
@@ -79,7 +79,7 @@ public partial class PlayListService : ObservableObject, IPlayListService
             return;
         }
         specificPlaylist?.SongsIDs.Add(song.Id);
-        
+
         specificPlaylist.TotalSongsCount += 1;
     }
 
@@ -105,5 +105,5 @@ public partial class PlayListService : ObservableObject, IPlayListService
         specificPlaylist.TotalSongsCount -= 1;
     }
 
-    
+
 }

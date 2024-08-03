@@ -127,6 +127,7 @@
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="UraniumUI" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
 		<PackageReference Include="Xceed.Product.Maui.Toolkit.Full" Version="1.7.24157.1331" />
@@ -137,10 +138,13 @@
 	  <MauiXaml Update="AppShellMobile.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\HomeD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Desktop\HomePageD.xaml">
+	  <MauiXaml Update="Views\Desktop\NowPlayingD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">

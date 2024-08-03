@@ -3,7 +3,7 @@ public class SongsModel : RealmObject
 {
     [PrimaryKey]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    
+
     public string Title { get; set; }
     public string ArtistName { get; set; }
     public string AlbumName { get; set; }
@@ -19,7 +19,7 @@ public class SongsModel : RealmObject
     public double SampleRate { get; set; }
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
-    public byte[]? CoverImage { get; set; }
+    public string? CoverImagePath { get; set; }
 
     public DateTimeOffset DateAdded { get; set; }
     public DateTimeOffset DateEdited { get; set; }
@@ -52,7 +52,7 @@ public class SongsModel : RealmObject
         SampleRate = modelView.SampleRate;
         Rating = modelView.Rating;
         HasLyrics = modelView.HasLyrics;
-        CoverImage = modelView.CoverImage;
+        CoverImagePath = modelView.CoverImagePath;
         DateAdded = modelView.DateAdded;
         DateEdited = modelView.DateEdited;
         LastPlayed = modelView.LastPlayed;
@@ -74,11 +74,11 @@ public partial class SongsModelView : ObservableObject
 
     public SongsModelView()
     {
-        
+
     }
     public SongsModelView(SongsModel _model)
     {
-        if(_model is not null)
+        if (_model is not null)
         {
             Id = _model.Id;
             Title = _model.Title;
@@ -92,7 +92,7 @@ public partial class SongsModelView : ObservableObject
             SampleRate = _model.SampleRate;
             Rating = _model.Rating;
             HasLyrics = _model.HasLyrics;
-            CoverImage = _model.CoverImage;
+            CoverImagePath = _model.CoverImagePath;
             DateAdded = _model.DateAdded;
             DateEdited = _model.DateEdited;
             LastPlayed = _model.LastPlayed;
@@ -129,7 +129,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     int rating;
     public bool HasLyrics { get; set; }
-    public byte[]? CoverImage { get; set; }
+    public string? CoverImagePath { get; set; }
 
     public DateTimeOffset DateAdded { get; set; }
     public DateTimeOffset DateEdited { get; set; }
@@ -150,7 +150,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     bool isPlaying;
     [ObservableProperty]
-    bool isFavorite; 
+    bool isFavorite;
 
 }
 
@@ -173,5 +173,26 @@ public class LyricPhraseModel
             TimeStampMs = 0; // Default timestamp, adjust if necessary
             Text = ""; // Default text, could be "No lyrics available" etc.
         }
+    }
+}
+
+public class LyricsAPIReponse
+{
+    public class Rootobject
+    {
+        public Content[] ApiContent { get; set; }
+    }
+
+    public class Content
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public string trackName { get; set; }
+        public string artistName { get; set; }
+        public string albumName { get; set; }
+        public float duration { get; set; }
+        public bool instrumental { get; set; }
+        public string plainLyrics { get; set; }
+        public string syncedLyrics { get; set; }
     }
 }

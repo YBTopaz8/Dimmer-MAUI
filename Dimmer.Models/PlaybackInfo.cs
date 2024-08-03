@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Models;
+﻿namespace Dimmer.Models;
 
 public enum MediaPlayerState
 {
+    Initialized,
     Playing,
     Paused,
     Stopped

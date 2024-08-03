@@ -9,7 +9,7 @@ public class DataBaseService : IDataBaseService
 
     public Realm GetRealm()
     {
-        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDB";
+        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDDB";
 
         if (!Directory.Exists(dbPath))
         {

@@ -9,7 +9,8 @@ public interface ILyricsService
 
     void LoadLyrics(string songPath);
     void UpdateCurrentLyricIndex(double currentPositionInSeconds);
-
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
+
+    Task<string> FetchLyricsOnline(SongsModelView songs);
 }

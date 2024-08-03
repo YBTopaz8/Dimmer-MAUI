@@ -15,10 +15,10 @@ public partial class HomePageVM : ObservableObject
     double currentPosition;
     [ObservableProperty]
     double currentPositionText = 0;
-    
+
     [ObservableProperty]
     ObservableCollection<SongsModelView> displayedSongs;
-    
+
     [ObservableProperty]
     int totalNumberOfSongs;
     [ObservableProperty]
@@ -29,8 +29,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     IList<LyricPhraseModel>? synchronizedLyrics;
     [ObservableProperty]
-    string currentLyricPhrase;
-    
+    LyricPhraseModel? currentLyricPhrase;
+
     [ObservableProperty]
     int loadingSongsProgress;
 
@@ -48,10 +48,11 @@ public partial class HomePageVM : ObservableObject
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IServiceProvider ServiceProvider { get; }
-    
+
     [ObservableProperty]
     string unsyncedLyrics;
-
+    [ObservableProperty]
+    string localFilePath;
     public HomePageVM(IPlayBackService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService,
                       IServiceProvider serviceProvider)
@@ -74,37 +75,40 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
+
         LoadSongCoverImage();
+        LoadLyrics();
+
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
         //PickedSong = PlaybackManagerService.CurrentlyPlayingSong;
-        TotalSongsDuration= PlaybackManagerService.TotalSongsDuration;
+        TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
+        IsPlaying = false;
 
         ToggleShuffleState();
-        ToggleRepeatMode();
+        ToggleRepeatMode(); 
+    }
+
+    private void LoadLyrics()
+    {
+        try
+        {
+            LyricsManagerService.LoadLyrics(TemporarilyPickedSong.FilePath);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    public void LoadLocalSong(string filePath)
+    {
+        Debug.WriteLine("Loaded path should be " + filePath);
     }
 
     [ObservableProperty]
     string shuffleOnOffImage = MaterialTwoTone.Shuffle;
 
-    [RelayCommand]
-    void ToggleShuffleState(bool IsCalledByUI = false)
-    {
-        IsShuffleOn = PlayBackManagerService.IsShuffleOn;
-        if(IsCalledByUI)
-        {
-            IsShuffleOn = !IsShuffleOn;
-            PlayBackManagerService.ToggleShuffle(IsShuffleOn);
-        }
-        if (IsShuffleOn)
-        {
-            ShuffleOnOffImage = MaterialTwoTone.Shuffle_on;
-        }
-        else
-        {
-            ShuffleOnOffImage = MaterialTwoTone.Shuffle;
-        }
-    }
 
     [ObservableProperty]
     string repeatModeImage = MaterialTwoTone.Repeat;
@@ -134,6 +138,12 @@ public partial class HomePageVM : ObservableObject
 
     }
 
+    [RelayCommand]
+    async Task NavToNowPlayingPage()
+    {
+       await Shell.Current.GoToAsync(nameof(NowPlayingD));
+    }
+
     [ObservableProperty]
     bool isLoadingSongs;
 
@@ -147,10 +157,9 @@ public partial class HomePageVM : ObservableObject
         }
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
-        
+
 
 #if WINDOWS || ANDROID
-
         var folderPickingResult = await FolderPicker.PickAsync(token);
         if (folderPickingResult.Folder is null)
         {
@@ -162,7 +171,7 @@ public partial class HomePageVM : ObservableObject
 #endif
         IsLoadingSongs = true;
         var progressIndicator = new Progress<int>(percent =>
-        {            
+        {
             LoadingSongsProgress = percent;
         });
         IsLoadingSongs = true;
@@ -172,7 +181,7 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs?.Clear();
             DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
             Debug.WriteLine("Songs Loaded Successfully");
-            
+
         }
         else
         {
@@ -181,13 +190,11 @@ public partial class HomePageVM : ObservableObject
         IsLoadingSongs = false;
     }
 
-    [ObservableProperty]
-    string playPauseImage = MaterialTwoTone.Play_arrow;
+    #region Playback Control Region
     [RelayCommand]
     void PlaySong(SongsModelView? SelectedSong = null)
     {
-         PlayPauseImage = MaterialTwoTone.Pause;
-        
+
         if (SelectedSong is not null)
         {
             PlayBackManagerService.PlaySongAsync(SelectedSong);
@@ -202,6 +209,7 @@ public partial class HomePageVM : ObservableObject
     async Task PauseResumeSong()
     {
         await PlayBackManagerService.PauseResumeSongAsync();
+        //Debug.WriteLine($"is liked : {TemporarilyPickedSong.Title} {TemporarilyPickedSong.IsFavorite}");
     }
 
 
@@ -214,21 +222,13 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
-        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
-        {
-            PlayPauseImage = MaterialTwoTone.Pause;
-        }
         await PlayBackManagerService.PlayNextSongAsync();
     }
 
     [RelayCommand]
     async Task PlayPreviousSong()
     {
-        if (PlayPauseImage == MaterialTwoTone.Play_arrow)
-        {
-            PlayPauseImage = MaterialTwoTone.Pause;
-        }
-        await PlayBackManagerService.PlayPreviousSongAsync();        
+        await PlayBackManagerService.PlayPreviousSongAsync();
     }
 
     [RelayCommand]
@@ -247,7 +247,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SeekSongPosition(object? value)
     {
-        PlayBackManagerService.SetSongPosition(CurrentPosition);        
+        PlayBackManagerService.SetSongPosition(CurrentPosition);
     }
 
     [RelayCommand]
@@ -256,6 +256,26 @@ public partial class HomePageVM : ObservableObject
         PlayBackManagerService.ChangeVolume(VolumeSliderValue);
     }
 
+
+    [RelayCommand]
+    void ToggleShuffleState(bool IsCalledByUI = false)
+    {
+        IsShuffleOn = PlayBackManagerService.IsShuffleOn;
+        if (IsCalledByUI)
+        {
+            IsShuffleOn = !IsShuffleOn;
+            PlayBackManagerService.ToggleShuffle(IsShuffleOn);
+        }
+        if (IsShuffleOn)
+        {
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle_on;
+        }
+        else
+        {
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle;
+        }
+    }
+    #endregion
     [RelayCommand]
     void SearchSong(string songText)
     {
@@ -264,39 +284,18 @@ public partial class HomePageVM : ObservableObject
 
 
     [RelayCommand]
-    async Task OpenBtmSheet(SongsModelView song)// = null)
-    {        
-        SongMenuBtmSheet btmSheet =  new(ServiceProvider.GetService<PlaylistsPageVM>(), song);
+    async Task OpenNowPlayingBtmSheet(SongsModelView song)// = null)
+    {
+        SongMenuBtmSheet btmSheet = new(ServiceProvider.GetService<PlaylistsPageVM>(), song);
         btmSheet.HomePageVM = this;
         await btmSheet.ShowAsync();
-        
     }
     [RelayCommand]
     void AddSongToFavorites(SongsModelView song)
     {
         PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
     }
-    //Subscriptions to SongsManagerService
-    private void SubscribeToCurrentSongPosition()
-    {
-        PlayBackManagerService.CurrentPosition.Subscribe(position =>
-        {
-            CurrentPositionText = position.CurrentTimeInSeconds;
-            CurrentPosition = position.TimeElapsed;
-        });
-    }
 
-    private void SubscribetoDisplayedSongsChanges()
-    {
-        PlayBackManagerService.NowPlayingSongs.Subscribe(songs =>
-        {
-            DisplayedSongs?.Clear();
-            DisplayedSongs = songs.ToObservableCollection();
-            TotalNumberOfSongs = songs.Count;
-            ReloadSizeAndDuration();
-        });
-        IsLoadingSongs = false;
-    }
     void ReloadSizeAndDuration()
     {
         Debug.WriteLine(DisplayedSongs.Count);
@@ -304,8 +303,25 @@ public partial class HomePageVM : ObservableObject
         TotalSongsSize = PlayBackManagerService.TotalSongsSizes;
     }
 
+
+    public void LoadSongCoverImage()
+    {
+        if (PickedSong is null)
+            return;
+        if (PickedSong.CoverImagePath is not null)
+        {
+            PickedSongCoverImage = ImageSource.FromFile(PickedSong.CoverImagePath);
+            //PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
+        }
+        else
+        {
+            PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
+        }
+    }
+
+    #region Subscriptions to LyricsServices
     [ObservableProperty]
-    bool isPlaying;
+    bool isPlaying = false;
     private void SubscribeToPlayerStateChanges()
     {
         PlayBackManagerService.PlayerState.Subscribe(state =>
@@ -329,31 +345,33 @@ public partial class HomePageVM : ObservableObject
             Debug.WriteLine($"Is Playing = " + IsPlaying);
         });
     }
-
-    public void LoadSongCoverImage()
-    {
-        if (PickedSong is null)
-            return;
-        if (PickedSong.CoverImage is not null)
-        {
-            PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
-        }
-        else
-        {
-            PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
-        }
-    }
-
-
-    //Subscriptions to LyricsServices
     private void SubscribeToLyricIndexChanges()
     {
         LyricsManagerService.CurrentLyricStream.Subscribe(highlightedLyric =>
         {
-            CurrentLyricPhrase = highlightedLyric is null ? string.Empty : highlightedLyric!.Text;
+            CurrentLyricPhrase = highlightedLyric is null ? null : highlightedLyric!;
+        });
+        Debug.WriteLine("Current lyric phrase " + CurrentLyricPhrase.Text);
+    }
+    private void SubscribeToCurrentSongPosition()
+    {
+        PlayBackManagerService.CurrentPosition.Subscribe(position =>
+        {
+            CurrentPositionText = position.CurrentTimeInSeconds;
+            CurrentPosition = position.TimeElapsed;
         });
     }
-
+    private void SubscribetoDisplayedSongsChanges()
+    {
+        PlayBackManagerService.NowPlayingSongs.Subscribe(songs =>
+        {
+            DisplayedSongs?.Clear();
+            DisplayedSongs = songs.ToObservableCollection();
+            TotalNumberOfSongs = songs.Count;
+            ReloadSizeAndDuration();
+        });
+        IsLoadingSongs = false;
+    }
 
     private void SubscribeToUnSyncedLyricsChanges()
     {
@@ -371,7 +389,13 @@ public partial class HomePageVM : ObservableObject
         });
         Debug.WriteLine("here");
     }
-
+    #endregion
+    [RelayCommand]
+    void FetchLyrics()
+    {
+        return;
+        LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
+    }
 
     [RelayCommand]
     void OpenSongFolder()//SongsModel SelectedSong)
@@ -404,7 +428,7 @@ public partial class HomePageVM : ObservableObject
             if (File.Exists(PickedSong.FilePath))
             {
                 bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
-                if(result is true)
+                if (result is true)
                 {
                     FileSystem.DeleteFile(PickedSong.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
 

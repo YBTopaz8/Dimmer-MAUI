@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.NowPlayingD"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"     
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            x:DataType="vm:HomePageVM"
+            x:Name="myPage"
+             Shell.NavBarIsVisible="False">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+            <MenuFlyout x:Key="LyricsContentMenu">
+                <MenuFlyoutItem Text="Search Lyrics" Command="{Binding FetchLyricsCommand}"/>
+                <!--<MenuFlyoutSubItem Text="">
+                    <MenuFlyoutItem Text=""
+                </MenuFlyoutSubItem>-->
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Edit"/>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Save in Audio File"/>
+            </MenuFlyout>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <toolkit:DockLayout x:Name="dockPan">
+        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" 
+                      HeightRequest="135" >
+            <Slider Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
+            </Slider>
+            <Grid ColumnSpacing="25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="230"/>
+                </Grid.ColumnDefinitions>
+                <Grid.Resources>
+                    <ResourceDictionary>
+                        <Style TargetType="ImageButton">
+                            <Setter Property="WidthRequest" Value="75"/>
+                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                            <Setter Property="BorderColor" Value="Transparent"/>
+                        </Style>
+                    </ResourceDictionary>
+                </Grid.Resources>
+                <HorizontalStackLayout Grid.Column="0" Spacing="5">
+                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="5,0,0,5"
+                 MaximumHeightRequest="100" Aspect="AspectFill"
+                 toolkit:DockLayout.DockPosition="Left" >
+                    </Image>
+
+                    <VerticalStackLayout VerticalOptions="Center" >
+                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
+                        <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation"/>
+                        <Label Text="{Binding TemporarilyPickedSong.PlayCount}" />
+                        <Label Text="{Binding TemporarilyPickedSong.AlbumName}" MaximumWidthRequest="200"
+                        LineBreakMode="HeadTruncation"/>
+                    </VerticalStackLayout>
+
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
+                       HorizontalOptions="Center">
+                    <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton
+        Command="{Binding PlayPreviousSongCommand}" ToolTipProperties.Text="Play Previous">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+
+                    <cw:PlayPauseView x:Name="PlayPauseV" />
+
+                    <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton Command="{Binding ToggleShuffleStateCommand}">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                </HorizontalStackLayout>
+
+                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" 
+                                     VerticalOptions="Center">
+
+                    <HorizontalStackLayout >
+                        <Label Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}"/>
+                        <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
+                            Opacity="0.6"/>
+                    </HorizontalStackLayout>
+                
+                <!--<HorizontalStackLayout HorizontalOptions="Start" >
+                    
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
+                    DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
+                        Minimum="0" Maximum="1" VerticalOptions="Center"/>
+
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>-->
+                    
+                </VerticalStackLayout>
+
+            </Grid>
+            
+        </VerticalStackLayout>
+
+        <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" BackgroundColor="Transparent">
+            <Grid.Effects>
+                <uranium:BlurEffect AccentOpacity="0.7"/>
+            </Grid.Effects>
+            <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Opacity="0.05"
+                   Aspect="AspectFill"/>
+            <toolkit:DockLayout Margin="50">
+                <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
+                                     WidthRequest="200" >
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                            WidthRequest="200" HeightRequest="200"/>
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}"
+                           FontSize="13" TextColor="Grey"/>
+                    <Label Text="{Binding TemporarilyPickedSong.Title}"
+                           FontSize="16"/>
+
+                </VerticalStackLayout>
+
+                <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
+                                SelectionMode="Single" x:Name="LyricsColView"
+                                SelectedItem="{Binding CurrentLyricPhrase}"
+                                EmptyView="No Lyrics...">
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Red"/>
+                                </VisualState.Setters>
+                            </VisualState>
+
+                        </VisualStateGroup>
+                    </VisualStateManager.VisualStateGroups>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LyricPhraseModel">
+                            <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center"
+                                   VerticalOptions="Center" HorizontalTextAlignment="Center" FontSize="15">
+
+                            </Label>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </toolkit:DockLayout>
+
+        </Grid>
+
+    </toolkit:DockLayout>
+</ContentPage>

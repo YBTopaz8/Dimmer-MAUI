@@ -14,6 +14,7 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
+            .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseBottomSheet()
             .ConfigureContextMenuContainer()
@@ -59,6 +60,8 @@ public static class MauiProgram
         
         /* Registering the Desktop Views */
         builder.Services.AddSingleton<HomeD>();
+        builder.Services.AddSingleton<NowPlayingD>();
+
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
