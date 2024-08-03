@@ -149,9 +149,9 @@
                    Aspect="AspectFill"/>
             <toolkit:DockLayout Margin="50">
                 <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
-                                     WidthRequest="200" >
+                                     WidthRequest="250" >
                     <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                            WidthRequest="200" HeightRequest="200"/>
+                            WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}"
                            FontSize="13" TextColor="Grey"/>
                     <Label Text="{Binding TemporarilyPickedSong.Title}"

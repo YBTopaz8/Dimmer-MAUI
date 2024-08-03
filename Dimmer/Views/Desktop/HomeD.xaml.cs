@@ -18,7 +18,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate:false);            
         }
     }
 
@@ -28,7 +28,7 @@ public partial class HomeD : UraniumContentPage
     {
         lastKeyStroke = DateTime.Now;
         var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(1000);
+        await Task.Delay(750);
         if (thisKeyStroke == lastKeyStroke)
         {
             var searchText = e.NewTextValue;

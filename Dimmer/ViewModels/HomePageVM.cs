@@ -393,8 +393,12 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void FetchLyrics()
     {
+        if (SynchronizedLyrics?.Count < 1)
+        {
+            LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
+
+        }
         return;
-        LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
     }
 
     [RelayCommand]
