@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"  
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            x:DataType="vm:HomePageVM"
+             x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView">
+
+    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
+                SelectionMode="Single" x:Name="LyricsColView"
+                SelectedItem="{Binding CurrentLyricPhrase}"
+                EmptyView="No Lyrics...">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Selected">
+                    <VisualState.Setters>
+                        <Setter Property="BackgroundColor" Value="Red"/>
+                    </VisualState.Setters>
+                </VisualState>
+
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="models:LyricPhraseModel">
+                <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center"
+                   VerticalOptions="Center" HorizontalTextAlignment="Center" FontSize="15">
+
+                </Label>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentView>

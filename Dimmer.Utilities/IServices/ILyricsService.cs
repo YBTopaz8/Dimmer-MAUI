@@ -7,10 +7,12 @@ public interface ILyricsService
     IObservable<LyricPhraseModel> CurrentLyricStream { get; }
     IObservable<string> UnSynchedLyricsStream { get; }
 
-    void LoadLyrics(string songPath);
+    void LoadLyrics(SongsModelView song);
     void UpdateCurrentLyricIndex(double currentPositionInSeconds);
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
 
-    Task<string> FetchLyricsOnline(SongsModelView songs);
+    Task<Content[]> FetchLyricsOnline(SongsModelView songs);
+    bool WriteLyricsToLrcFile(string syncedLyrics, SongsModelView songObj);
+    void InitializeLyrics(string synclyrics);
 }

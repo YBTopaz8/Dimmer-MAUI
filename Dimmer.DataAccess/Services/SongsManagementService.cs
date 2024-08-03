@@ -100,14 +100,12 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             var song = new SongsModel(songsModelView);
             db.Write(() =>
             {
-                db.Add(song, true);
-               
+                db.Add(song, true);               
             });
             return true;
         }
         catch (Exception ex)
         {
-
             Debug.WriteLine(ex.Message);
             throw new Exception("Error when updating song " + ex.Message);
         }

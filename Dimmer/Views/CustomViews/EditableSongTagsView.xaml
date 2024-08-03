@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            x:DataType="vm:HomePageVM"
+            x:Name="myPage"   >
+    <toolkit:DockLayout>
+        <VerticalStackLayout Spacing="5">
+            <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title }"/>            
+            <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName }"/>
+            <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }"/>
+        </VerticalStackLayout>
+    </toolkit:DockLayout>
+</ContentView>

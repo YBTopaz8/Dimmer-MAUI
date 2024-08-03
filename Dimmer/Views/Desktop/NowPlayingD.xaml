@@ -19,14 +19,32 @@
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
 
             <MenuFlyout x:Key="LyricsContentMenu">
-                <MenuFlyoutItem Text="Search Lyrics" Command="{Binding FetchLyricsCommand}"/>
-                <!--<MenuFlyoutSubItem Text="">
-                    <MenuFlyoutItem Text=""
-                </MenuFlyoutSubItem>-->
+                <MenuFlyoutItem Text="Show Synced Lyrics" Command="{Binding SwitchViewNowPlayingPageCommand}">
+                    <MenuFlyoutItem.CommandParameter>
+                        <x:Int32>0</x:Int32>
+                    </MenuFlyoutItem.CommandParameter>
+                </MenuFlyoutItem>
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Edit"/>
+                <MenuFlyoutItem Text="Fetch Lyrics Results" Command="{Binding SwitchViewNowPlayingPageCommand}">
+                    <MenuFlyoutItem.CommandParameter>
+                        <x:Int32>1</x:Int32>
+                    </MenuFlyoutItem.CommandParameter>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Song Details" Command="{Binding SwitchViewNowPlayingPageCommand}">
+                    <MenuFlyoutItem.CommandParameter>
+                        <x:Int32>2</x:Int32>
+                    </MenuFlyoutItem.CommandParameter>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Edit Song Details" Command="{Binding SwitchViewNowPlayingPageCommand}">
+                    <MenuFlyoutItem.CommandParameter>
+                        <x:Int32>3</x:Int32>
+                    </MenuFlyoutItem.CommandParameter>
+                </MenuFlyoutItem>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Save in Audio File"/>
             </MenuFlyout>
@@ -53,8 +71,8 @@
                         </Style>
                     </ResourceDictionary>
                 </Grid.Resources>
-                <HorizontalStackLayout Grid.Column="0" Spacing="5">
-                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="5,0,0,5"
+                <HorizontalStackLayout Grid.Column="0" Spacing="5" Margin="10,0">
+                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
                  MaximumHeightRequest="100" Aspect="AspectFill"
                  toolkit:DockLayout.DockPosition="Left" >
                     </Image>
@@ -150,7 +168,7 @@
             <toolkit:DockLayout Margin="50">
                 <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
                                      WidthRequest="250" >
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
                             WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}"
                            FontSize="13" TextColor="Grey"/>
@@ -158,30 +176,14 @@
                            FontSize="16"/>
 
                 </VerticalStackLayout>
+                <!--<Label Text="Pas toucher"/>-->
+                
+                <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"/>
+                <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}"/>
+                <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"/>
+                <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"/>
+                
 
-                <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
-                                SelectionMode="Single" x:Name="LyricsColView"
-                                SelectedItem="{Binding CurrentLyricPhrase}"
-                                EmptyView="No Lyrics...">
-                    <VisualStateManager.VisualStateGroups>
-                        <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="Selected">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="Red"/>
-                                </VisualState.Setters>
-                            </VisualState>
-
-                        </VisualStateGroup>
-                    </VisualStateManager.VisualStateGroups>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:LyricPhraseModel">
-                            <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center"
-                                   VerticalOptions="Center" HorizontalTextAlignment="Center" FontSize="15">
-
-                            </Label>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
             </toolkit:DockLayout>
 
         </Grid>

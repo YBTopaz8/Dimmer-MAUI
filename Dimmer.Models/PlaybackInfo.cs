@@ -5,7 +5,8 @@ public enum MediaPlayerState
     Initialized,
     Playing,
     Paused,
-    Stopped
+    Stopped,
+    LyricsLoad
 }
 public class PlaybackInfo
 {

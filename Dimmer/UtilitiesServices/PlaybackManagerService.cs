@@ -376,6 +376,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     double currentPosition = 0;
     public async Task<bool> PlaySongAsync(SongsModelView? song = null)
     {
+
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -401,7 +402,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             }
 
             ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value[_currentSongIndex];
-
+            _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad); 
+            
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);
 
             await audioService.InitializeAsync(new MediaPlay()
@@ -456,7 +458,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         {
             currentPosition = audioService.CurrentPosition;
             await audioService.PauseAsync();
-            // ObservableCurrentlyPlayingSong.IsPlaying = false;
+            ObservableCurrentlyPlayingSong.IsPlaying = false;
             _playerStateSubject.OnNext(MediaPlayerState.Paused);  // Update state to paused
             _positionTimer.Stop();
 
@@ -549,6 +551,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             if (jpgFiles.Length > 0)
             {
                 return File.ReadAllBytes(jpgFiles[0]);
+                
             }
         }
         return null;
@@ -565,9 +568,11 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
         if (song is not null)
         {
+            song.IsPlaying = false;
             if (!song.IsFavorite)
             {
                 song.IsFavorite = true;
+                
                 if (PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites"))
                 {
                     PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites");

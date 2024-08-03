@@ -93,7 +93,7 @@ public partial class HomePageVM : ObservableObject
     {
         try
         {
-            LyricsManagerService.LoadLyrics(TemporarilyPickedSong.FilePath);
+            LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
         }
         catch (Exception ex)
         {
@@ -203,6 +203,7 @@ public partial class HomePageVM : ObservableObject
         {
             PlayBackManagerService.PlaySongAsync(null);
         }
+        AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
     }
 
     [RelayCommand]
@@ -390,16 +391,53 @@ public partial class HomePageVM : ObservableObject
         Debug.WriteLine("here");
     }
     #endregion
-    [RelayCommand]
-    void FetchLyrics()
-    {
-        if (SynchronizedLyrics?.Count < 1)
-        {
-            LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
 
+    [ObservableProperty]
+    Content[] allSyncLyrics;
+    [RelayCommand]
+    async Task FetchLyrics(bool fromUI=false)
+    {
+        if(fromUI)
+        {
+            AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
+            AllSyncLyrics = await LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
+        }
+        if(SynchronizedLyrics?.Count <1)
+        {
+            AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
+            AllSyncLyrics = await LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
         }
         return;
     }
+
+    [RelayCommand]
+    async void SaveUserSelectedLyricsToLrcFile(int id)
+    {
+        var s = AllSyncLyrics.First(x => x.id == id);
+        if(LyricsManagerService.WriteLyricsToLrcFile(s.syncedLyrics, TemporarilyPickedSong))
+        {
+            await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+
+            CurrentViewIndex = 0;
+            LyricsManagerService.InitializeLyrics(s.syncedLyrics);
+        }
+
+
+    }
+
+    [ObservableProperty]
+    int currentViewIndex;
+
+    [RelayCommand]
+    async Task SwitchViewNowPlayingPage(int viewIndex)
+    {
+        CurrentViewIndex = viewIndex;
+        if (viewIndex == 1)
+        {
+            await FetchLyrics();
+        }
+    }
+
 
     [RelayCommand]
     void OpenSongFolder()//SongsModel SelectedSong)
