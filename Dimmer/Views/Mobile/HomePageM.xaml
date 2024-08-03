@@ -134,6 +134,11 @@
                                 <VerticalStackLayout>
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
                                     <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
+                                    <Image IsVisible="{Binding HasLyrics}" HeightRequest="10" HorizontalOptions="End">
+                                        <Image.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                        </Image.Source>
+                                    </Image>
                                 </VerticalStackLayout>
                                 <ImageButton HeightRequest="42" BackgroundColor="Transparent" 
                                              WidthRequest="30" HorizontalOptions="Center"

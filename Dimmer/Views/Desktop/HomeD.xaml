@@ -33,15 +33,17 @@
                 <Setter Property="WidthRequest" Value="50"/>
                 <Setter Property="HeightRequest" Value="45"/>
             </Style>
-            <Style TargetType="Label">
-                <Setter Property="VerticalTextAlignment" Value="Center"/>
-            </Style>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
     <uranium:UraniumContentPage.ToolbarItems>
         <ToolbarItem Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
     </uranium:UraniumContentPage.ToolbarItems>
+
+    <VerticalStackLayout>
+        <Label Text="Hi"/>
+    </VerticalStackLayout>
+    
     <toolkit:DockLayout>
 
 
@@ -161,7 +163,6 @@
         </VerticalStackLayout>
         <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
         
-        <!-- Header Grid -->
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" />
@@ -200,7 +201,7 @@
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
-                    <Grid ColumnSpacing="25" Padding="8" FlyoutBase.ContextFlyout="{StaticResource SelectedSongContextMenu}">
+                    <Grid ColumnSpacing="25" Padding="8">
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference page}}"
                                                   NumberOfTapsRequired="2"
@@ -228,7 +229,6 @@
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        <!-- Previous Color: #1E1E1E-->
                                     </VisualState.Setters>
                                 </VisualState>
 
@@ -240,9 +240,9 @@
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
 
-                            <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>
+                            <!--<Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>-->
                             <Label Text="{Binding Title}" HorizontalOptions="Start"/>
-                            <Image IsVisible="{Binding IsPlaying}"  VerticalOptions="Center">
+                            <Image IsVisible="{Binding IsPlaying}" >
                                 <Image.Source>
                                     <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
                                 </Image.Source>
@@ -274,6 +274,9 @@
         </CollectionView>
 
     </toolkit:DockLayout>
+    
+    
+    
     <!--<cm:ContextMenuContainer BackgroundColor="Red">
     <cm:ContextMenuContainer.MenuItems >
         <cm:ContextMenuItem Text="Action 1" />
