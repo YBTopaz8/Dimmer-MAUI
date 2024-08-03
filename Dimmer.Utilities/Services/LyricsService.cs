@@ -36,6 +36,7 @@ public class LyricsService : ILyricsService
             {
                 case MediaPlayerState.Initialized:
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    Debug.WriteLine("Initialized");
                     break;
                 case MediaPlayerState.Playing:
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
@@ -64,21 +65,27 @@ public class LyricsService : ILyricsService
         });
     }
 
+    #region Manage Loadings and Initializations
     public void LoadLyrics(SongsModelView song)
-    {        
-        if(songSyncLyrics?.Count > 1)
+    {
+        if (song is null)
+        {
+            return;
+        }
+        if (lastSongIDLyrics == song?.Id && songSyncLyrics?.Count > 1)
         {
             return;
         }
 
-        IList<LyricPhraseModel> loadedLyrics = LoadSynchronizedLyrics(song.FilePath);
-        if (loadedLyrics?.Count > 1)
+        songSyncLyrics = LoadSynchronizedAndSortedLyrics(song.FilePath);
+        if (songSyncLyrics?.Count > 1)
         {
             song.HasLyrics = true;
             SongsManagementService.UpdateSongDetails(song);
         }
+        lastSongIDLyrics = song.Id;
         //Debug.WriteLine($"Loaded song lyrics {");
-        _synchronizedLyricsSubject.OnNext(loadedLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : loadedLyrics);
+        _synchronizedLyricsSubject.OnNext(songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : songSyncLyrics);
     }
 
     private static string LoadUnsyncedLyrics(string songPath)
@@ -95,20 +102,17 @@ public class LyricsService : ILyricsService
     }
 
     List<LyricPhraseModel>? sortedLyrics;
-    private List<LyricPhraseModel> LoadSynchronizedLyrics(string songPath)
+    private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath)
     {
         
         List<LyricPhraseModel> lyrr = new();
-        if(songSyncLyrics?.Count > 0)
-        {
-            return songSyncLyrics;
-        }
+        
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
         if (lyrics is not null && lyrics!.Count != 0)
         {
             hasLyrics = true;
-            var lyricss = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
+            sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
             if (sortedLyrics?.Count > 1)
             {
                 sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
@@ -140,6 +144,7 @@ public class LyricsService : ILyricsService
     }
     
     List<LyricPhraseModel> songSyncLyrics;
+    ObjectId lastSongIDLyrics;
     public void InitializeLyrics(string synclyrics)
     {
         
@@ -179,7 +184,9 @@ public class LyricsService : ILyricsService
         }
         return lyricPhrases;
     }
+#endregion
 
+    #region Manage Sync and timer
     public void StartLyricIndexUpdateTimer()
     {
         var sampleTime = 1000;
@@ -201,22 +208,16 @@ public class LyricsService : ILyricsService
         {
             LoadLyrics(PlayBackService.CurrentlyPlayingSong);
             if (hasLyrics)
-            {
-                Debug.WriteLine(songSyncLyrics[0].Text);
-                Debug.WriteLine(songSyncLyrics[1].Text);
-                Debug.WriteLine(songSyncLyrics[2].Text);
-                    
+            {                    
                 _synchronizedLyricsSubject.OnNext(songSyncLyrics);
             }
-            Debug.WriteLineIf(lyrics is null, "Lyrics is null");
-            Debug.WriteLineIf(lyrics?.Count < 1, "Lyrics Count isss 0");
             return;
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
         int offsetValue = 1450;
         var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
-
+        
         if (highlightedLyric == null)
         {
             return;
@@ -261,34 +262,35 @@ public class LyricsService : ILyricsService
     {
         _lyricUpdateSubscription?.Dispose();
     }
+#endregion
 
-    public async Task<Content[]> FetchLyricsOnline(SongsModelView song)
+    #region Fetch Lyrics Online from Lrclib
+    public async Task<(bool IsFetchSuccessul, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView song)
     {
-        HttpClient client = new HttpClient();
+        HttpClient client = HttpClientSingleton.Instance;
         try
         {
-            Content[] lyricsData = null;
+            Content[]? lyricsData = null;
             lyricsData = await SearchLyricsByTitleOnly(song, client);
             
-            Debug.WriteLineIf(condition: lyricsData.Length < 1, "No Lyrics Found");
             if (lyricsData is null || lyricsData.Length < 1)
             {
-                return Enumerable.Empty<Content>().ToArray();                
+                return (false, Array.Empty<Content>());
             }
             WriteLyricsToLrcFile(lyricsData[0].syncedLyrics, song);
 
 
-            return lyricsData;
+            return (true, lyricsData);
         }
         catch (HttpRequestException e)
         {
             Debug.WriteLine($"Request error: {e.Message}");
-            return Enumerable.Empty<Content>().ToArray();
+            return (false, Array.Empty<Content>());
         }
         catch (Exception e)
         {
             Debug.WriteLine($"Unexpected error: {e.Message}");
-            return Enumerable.Empty<Content>().ToArray();
+            return (false, Array.Empty<Content>());
         }
         finally
         {
@@ -342,4 +344,126 @@ public class LyricsService : ILyricsService
         File.WriteAllText(lrcFilePath, syncedLyrics);
         return true;
     }
+
+    #endregion
+
+    #region Fetch Lyrics Online from Lyrics
+
+    public async Task<(bool IsFetchSuccessul, LyristApiResponse? contentData)> FetchLyricsOnlineLyrics(SongsModelView song)
+    {
+        try
+        {
+            LyristApiResponse? contentData = null;
+            contentData = await SearchLyricsByTitleOnlyToLyrist(song, HttpClientSingleton.Instance);
+            return (true, contentData);
+        }
+        catch (HttpRequestException e)
+        {
+            Debug.WriteLine($"Request error: {e.Message}");
+            return (false, null);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"Unexpected error: {e.Message}");
+            return (false, null);
+        }
+    }
+
+    private async Task<LyristApiResponse?> SearchLyricsByTitleOnlyToLyrist(SongsModelView song, HttpClient client)
+    {
+
+        string trackName = Uri.EscapeDataString(song.Title);
+        string url = $"https://lyrist.vercel.app/api/{trackName}/{song.ArtistName}";
+
+        // Send the GET request
+        HttpResponseMessage response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode(); // Throw if not a success code
+
+        // Read the response content
+        string content = await response.Content.ReadAsStringAsync();
+
+        return JsonSerializer.Deserialize<LyristApiResponse>(content);
+
+    }
+
+    async Task<byte[]> DownloadSongImage(string coverImageURL, HttpClient client)
+    {
+        // Send the GET request
+        HttpResponseMessage response = await client.GetAsync(coverImageURL);
+        response.EnsureSuccessStatusCode(); // Throw if not a success code
+
+        // Read the response content
+        byte[] ImageBytes = await response.Content.ReadAsByteArrayAsync();
+
+        return ImageBytes;
+    }
+
+    public async Task FetchAndDownloadCoverImage(SongsModelView songs)
+    {
+        if (!string.IsNullOrEmpty(SaveCoverImageToFile(songs.FilePath)))
+        {
+            songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath);
+        }
+        HttpClient client = new();
+        byte[]? ImageBytes = null;
+        (_, LyristApiResponse? apiResponse)= await FetchLyricsOnlineLyrics(songs);
+        if (apiResponse is null)
+        {
+            return;
+        }
+        if (!string.IsNullOrEmpty(apiResponse?.image))
+        {
+            ImageBytes = await DownloadSongImage(apiResponse.image, client);
+            songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath, ImageBytes);
+            SongsManagementService.UpdateSongDetails(songs);
+        }
+    }
+    static string SaveCoverImageToFile(string fullfilePath, byte[]? imageData = null)
+    {
+        if (imageData is null)
+        {
+            return string.Empty;
+        }
+
+        // Extract the file name from the full path
+        string fileNameWithExtension = Path.GetFileName(fullfilePath);
+
+        // Sanitize the file name
+        string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
+
+        // Define the folder path
+        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+
+        // Ensure the directory exists
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+        string filePath = Path.Combine(folderPath, $"{sanitizedFileName}.png");
+        string filePathjpg = Path.Combine(folderPath, $"{sanitizedFileName}.jpg");
+
+        if (File.Exists(filePath))
+        {
+            return filePath;
+        }
+        if (File.Exists(filePathjpg))
+        {
+            return filePathjpg;
+        }
+
+        // Write the image data to the file
+        try
+        {
+            File.WriteAllBytes(filePath, imageData);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error saving file: " + ex.Message);
+        }
+
+        return filePath;
+    }
+
+
+    #endregion
 }

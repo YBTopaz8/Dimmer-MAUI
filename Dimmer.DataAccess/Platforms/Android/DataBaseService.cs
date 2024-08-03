@@ -25,6 +25,7 @@ public class DataBaseService : IDataBaseService
         }
 
         string filePath = Path.Combine(dbPath, "Dimmer.realm");
+        
 
         var config = new RealmConfiguration(filePath);
 

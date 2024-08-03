@@ -46,7 +46,7 @@
                     </MenuFlyoutItem.CommandParameter>
                 </MenuFlyoutItem>
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Save in Audio File"/>
+                <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
             </MenuFlyout>
         </ResourceDictionary>
     </ContentPage.Resources>

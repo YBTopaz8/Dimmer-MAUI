@@ -29,13 +29,13 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </the49:BottomSheet.Resources>
-    <Grid toolkit:DockLayout.DockPosition="Bottom" Margin="10,0">
+    <Grid toolkit:DockLayout.DockPosition="Bottom" Margin="10,0" >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border StrokeShape="RoundRectangle 18" Margin="0,20" VerticalOptions="Start"
+        <Border StrokeShape="RoundRectangle 18" Margin="0,20"
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
             <Border.GestureRecognizers>
                 <SwipeGestureRecognizer Swiped="SwipedToPrevious_Swiped" x:Name="swipedToPrevious" Direction="Right"/>
@@ -45,7 +45,7 @@
             <Grid>
                 <Image Source="{Binding PickedSongCoverImage}" Aspect="Fill" Opacity="0.45"/>
                 <!-- Synced lyics Col View -->
-                <Label Text="{Binding CurrentLyricPhrase}" VerticalTextAlignment="Center"
+                <Label Text="{Binding CurrentLyricPhrase.Text}" VerticalTextAlignment="Center"
                        HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>
             </Grid>
         </Border>

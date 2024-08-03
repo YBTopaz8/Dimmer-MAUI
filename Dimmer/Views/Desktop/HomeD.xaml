@@ -33,6 +33,9 @@
                 <Setter Property="WidthRequest" Value="50"/>
                 <Setter Property="HeightRequest" Value="45"/>
             </Style>
+            <Style TargetType="Label">
+                <Setter Property="VerticalTextAlignment" Value="Center"/>
+            </Style>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
@@ -58,7 +61,7 @@
                         <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
                     </HorizontalStackLayout.GestureRecognizers>
 
-                    <Image Source="{Binding PickedSongCoverImage}" Margin="5,0,0,5" 
+                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="5,0,0,5" 
                         MaximumHeightRequest="100" Aspect="AspectFill">
                     </Image>
 
@@ -239,7 +242,7 @@
 
                             <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>
                             <Label Text="{Binding Title}" HorizontalOptions="Start"/>
-                            <Image IsVisible="{Binding IsPlaying}" VerticalOptions="Start">
+                            <Image IsVisible="{Binding IsPlaying}"  VerticalOptions="Center">
                                 <Image.Source>
                                     <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
                                 </Image.Source>

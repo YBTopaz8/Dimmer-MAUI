@@ -135,7 +135,7 @@ public class PlayListManagementService : IPlaylistManagementService
         catch (Exception ex)
         {
 
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("Error when removingSongfrom playing with name " + ex.Message);
             throw new Exception("Error when removing from playlist" + ex.Message);
         }
     }
@@ -161,7 +161,7 @@ public class PlayListManagementService : IPlaylistManagementService
         catch (Exception ex)
         {
 
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("Error when deleting playlist " + ex.Message);
             throw new Exception("Error when deleting playlist" + ex.Message);
             
         }

@@ -1,5 +1,7 @@
 ﻿
 
+using Realms;
+
 namespace Dimmer.DataAccess.Services;
 public class SongsManagementService : ISongsManagementService, IDisposable
 {   Realm db;
@@ -88,7 +90,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("Error when batch add song " + ex.Message);
             throw new Exception("Error when adding Songs in Batch " + ex.Message);
         }
     }
@@ -97,19 +99,36 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-            var song = new SongsModel(songsModelView);
-            db.Write(() =>
+            // Capture the current synchronization context
+            var context = SynchronizationContext.Current;
+            if (context == null)
             {
-                db.Add(song, true);               
-            });
+                throw new InvalidOperationException("SynchronizationContext is not set.");
+            }
+
+            // Run the write operation in a separate task
+            Task.Run(() =>
+            {
+                context.Post(_ =>
+                {
+                    db.Write(() =>
+                    {
+                        var song = new SongsModel(songsModelView);
+                        song.IsPlaying = false;
+                        db.Add(song, update: true);
+                    });
+                }, null);
+            }).Wait();
+
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
-            throw new Exception("Error when updating song " + ex.Message);
+            Debug.WriteLine("Error when updating song " + ex.Message);
+            return false;
         }
     }
+
 
     public async Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artistss)
     {
@@ -127,8 +146,8 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         catch (Exception ex)
         {
 
-            Debug.WriteLine(ex.Message);
-            throw new Exception("Error when adding Artists in Batch " + ex.Message);
+            Debug.WriteLine("Error when batchaddArtist " + ex.Message);
+            return false;
         }
     }
 

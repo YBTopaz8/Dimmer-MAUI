@@ -9,7 +9,7 @@
     <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
                 SelectionMode="Single" x:Name="LyricsColView"
                 SelectedItem="{Binding CurrentLyricPhrase}"
-                EmptyView="No Lyrics...">
+                EmptyView="No Synced Lyrics...">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Selected">

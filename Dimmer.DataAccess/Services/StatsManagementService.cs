@@ -84,7 +84,7 @@ public class StatsManagementService : IStatsManagementService
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("Error when setting setting as fav " + ex.Message);
         }
     }
 }

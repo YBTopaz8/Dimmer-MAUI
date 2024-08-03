@@ -5,22 +5,33 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"   
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             x:DataType="vm:HomePageVM"
              x:Name="page">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
     <VerticalStackLayout>
-        <Button Text="Refresh" Command="{Binding FetchLyricsCommand}" Opacity="0.4">
+        <Button Text="Refresh" Command="{Binding FetchLyricsCommand}">
             <Button.CommandParameter>
                 <x:Boolean>True</x:Boolean>
             </Button.CommandParameter>
         </Button>
         
         <CollectionView ItemsSource="{Binding AllSyncLyrics}" HeightRequest="600">
-            <CollectionView.GroupHeaderTemplate>
-                <DataTemplate x:DataType="models:Content">
-                    <Label Text="{Binding name}" FontSize="20"/>
-                </DataTemplate>
-            </CollectionView.GroupHeaderTemplate>
+            <CollectionView.EmptyView>
+                <ContentView>
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="No Results Found" HorizontalTextAlignment="Center"/>
+                        <ActivityIndicator IsVisible="{Binding IsFetching}" IsRunning="{Binding IsFetching}"/>
+                        <Label Text="Service is Unavailable, try again !" IsVisible="{Binding IsFetchSuccessul, Converter={StaticResource BoolToInverse}}"/>
+                    </VerticalStackLayout>
+                    
+                </ContentView>  
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Content">
                     <Grid Padding="10">

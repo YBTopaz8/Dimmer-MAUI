@@ -16,7 +16,7 @@ public class SongsModel : RealmObject
     public string FileFormat { get; set; }
     public long FileSize { get; set; }
     public int? BitRate { get; set; }
-    public double SampleRate { get; set; }
+    public double? SampleRate { get; set; }
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
     public string? CoverImagePath { get; set; }
@@ -116,24 +116,38 @@ public partial class SongsModelView : ObservableObject
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     [ObservableProperty]
     string title;
-    public string FilePath { get; set; }
-    public string ArtistName { get; set; }
-    public string AlbumName { get; set; }
-    public double DurationInSeconds { get; set; }
-    public int? ReleaseYear { get; set; }
-    public int? TrackNumber { get; set; }
-    public string FileFormat { get; set; }
-    public long FileSize { get; set; }
-    public int? BitRate { get; set; }
-    public double SampleRate { get; set; }
+    [ObservableProperty]
+    string filePath;
+    [ObservableProperty]
+    string? artistName;
+    [ObservableProperty]
+    string? albumName;
+    [ObservableProperty]
+    double durationInSeconds;
+    [ObservableProperty]
+    int? releaseYear;
+    [ObservableProperty]
+    int? trackNumber;
+    [ObservableProperty]
+    string fileFormat;
+    [ObservableProperty]
+    long fileSize;
+    [ObservableProperty]
+    int? bitRate;
+    [ObservableProperty]
+    double? sampleRate;
     [ObservableProperty]
     int rating;
-    public bool HasLyrics { get; set; }
-    public string? CoverImagePath { get; set; }
+    [ObservableProperty]
+    bool hasLyrics;
 
+    [ObservableProperty]
+    string? coverImagePath;
     public DateTimeOffset DateAdded { get; set; }
-    public DateTimeOffset DateEdited { get; set; }
+    [ObservableProperty]
+    DateTimeOffset dateEdited;
     public DateTimeOffset LastPlayed { get; set; }
+    public DateTime CreationTime { get; set; }
     public int SkipCount { get; set; }
 
     public ObjectId? ArtistID { get; set; }
@@ -154,10 +168,12 @@ public partial class SongsModelView : ObservableObject
 
 }
 
-public class LyricPhraseModel
+public partial class LyricPhraseModel : ObservableObject
 {
-    public int TimeStampMs { get; set; }
-    public string Text { get; set; }
+    [ObservableProperty]
+    int timeStampMs;
+    [ObservableProperty]
+    string text;
 
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
     public LyricPhraseModel(LyricsInfo.LyricsPhrase phrase)
@@ -174,25 +190,4 @@ public class LyricPhraseModel
             Text = ""; // Default text, could be "No lyrics available" etc.
         }
     }
-}
-
-public class LyricsAPIReponse
-{
-    public class Rootobject
-    {
-        public Content ApiContent { get; set; }
-    }
-
-}
-public class Content
-{
-    public int id { get; set; }
-    public string name { get; set; }
-    public string trackName { get; set; }
-    public string artistName { get; set; }
-    public string albumName { get; set; }
-    public float duration { get; set; }
-    public bool instrumental { get; set; }
-    public string plainLyrics { get; set; }
-    public string syncedLyrics { get; set; }
 }

@@ -30,7 +30,8 @@ public class BoolToInverseConverter : IValueConverter
                     return false;
                 }
             default:
-                return false;
+
+                return !(bool)value!;
         }
     }
 

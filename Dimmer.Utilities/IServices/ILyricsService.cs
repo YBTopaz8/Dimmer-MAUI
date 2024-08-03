@@ -12,7 +12,9 @@ public interface ILyricsService
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
 
-    Task<Content[]> FetchLyricsOnline(SongsModelView songs);
+    Task<(bool IsFetchSuccessul, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView songs);
+    Task<(bool IsFetchSuccessul, LyristApiResponse contentData)> FetchLyricsOnlineLyrics(SongsModelView songs);
+    Task FetchAndDownloadCoverImage(SongsModelView songs);
     bool WriteLyricsToLrcFile(string syncedLyrics, SongsModelView songObj);
     void InitializeLyrics(string synclyrics);
 }

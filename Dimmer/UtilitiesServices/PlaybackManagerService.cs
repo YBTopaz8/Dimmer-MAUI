@@ -127,7 +127,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             if (lastPlayedSong is null)
                 return;
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
-            //ObservableCurrentlyPlayingSong.CoverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath);            
         }
 
     }
@@ -187,6 +186,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 {
                     continue;
                 }
+                
 
                 Track track = new(file);
                 Debug.WriteLine($"Now on file: {track.Title}");
@@ -228,6 +228,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 {
                     continue;
                 }
+                song.CreationTime = fileInfo.CreationTime;
                 allSongs.Add(song);
 
                 artist.SongsIDs.Add(song.Id);
@@ -374,9 +375,20 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
 
     double currentPosition = 0;
+    //public async Task<bool> PlaySelectedSongsOutsideApp(string[] filePaths)
+    //{
+    //    var allSongs = new List<SongsModelView>();
+    //    foreach (var file in filePaths)
+    //    {
+    //        FileInfo fileInfo = new(file);
+    //        if (fileInfo.Length < 1000)
+    //        {
+    //            continue;
+    //        }
+    //    }
+    //}
     public async Task<bool> PlaySongAsync(SongsModelView? song = null)
     {
-
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -540,15 +552,21 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     byte[]? GetCoverImage(string filePath)
     {
         var LoadTrack = new Track(filePath);
+        
         if (LoadTrack.EmbeddedPictures.Count != 0)
         {
             return LoadTrack.EmbeddedPictures[0].PictureData;
         }
         else
         {
+            string[] pngFiles=Array.Empty<string>();
             string directoryPath = Path.GetDirectoryName(filePath);
             var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
-            if (jpgFiles.Length > 0)
+            if (jpgFiles.Length <1)
+            {
+                pngFiles = Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly);
+            }
+            if (jpgFiles.Length > 0 || pngFiles.Length > 0)
             {
                 return File.ReadAllBytes(jpgFiles[0]);
                 
@@ -568,7 +586,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 
         if (song is not null)
         {
-            song.IsPlaying = false;
             if (!song.IsFavorite)
             {
                 song.IsFavorite = true;
@@ -577,15 +594,15 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 {
                     PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites");
                 }
-                SongsMgtService.UpdateSongDetails(song);
             }
             else
             {
                 song.IsFavorite = false;
                 PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
                 PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
-                SongsMgtService.UpdateSongDetails(song);
             }
+
+            SongsMgtService.UpdateSongDetails(song);
         }
     }
     public void AddSongToQueue(SongsModelView song)

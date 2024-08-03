@@ -97,7 +97,7 @@ public partial class HomePageVM : ObservableObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("Error when Loading lyrics in homepagevm " + ex.Message);
         }
     }
 
@@ -108,7 +108,6 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     string shuffleOnOffImage = MaterialTwoTone.Shuffle;
-
 
     [ObservableProperty]
     string repeatModeImage = MaterialTwoTone.Repeat;
@@ -203,7 +202,7 @@ public partial class HomePageVM : ObservableObject
         {
             PlayBackManagerService.PlaySongAsync(null);
         }
-        AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
+        AllSyncLyrics = Array.Empty<Content>();
     }
 
     [RelayCommand]
@@ -320,7 +319,7 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    #region Subscriptions to LyricsServices
+    #region Subscriptions to Services
     [ObservableProperty]
     bool isPlaying = false;
     private void SubscribeToPlayerStateChanges()
@@ -388,30 +387,30 @@ public partial class HomePageVM : ObservableObject
         {
             SynchronizedLyrics = synchronizedLyrics is null ? null : synchronizedLyrics;
         });
-        Debug.WriteLine("here");
     }
     #endregion
 
     [ObservableProperty]
     Content[] allSyncLyrics;
+    [ObservableProperty]
+    bool isFetchSuccessul=true;
+    [ObservableProperty]
+    bool isFetching;
     [RelayCommand]
     async Task FetchLyrics(bool fromUI=false)
     {
-        if(fromUI)
+        IsFetching = true;
+        if(fromUI || SynchronizedLyrics?.Count < 1)
         {
-            AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
-            AllSyncLyrics = await LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
+            AllSyncLyrics = Array.Empty<Content>();
+            (IsFetchSuccessul, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);            
         }
-        if(SynchronizedLyrics?.Count <1)
-        {
-            AllSyncLyrics = Enumerable.Empty<Content>().ToArray();
-            AllSyncLyrics = await LyricsManagerService.FetchLyricsOnline(TemporarilyPickedSong);
-        }
+        IsFetching = false;
         return;
     }
 
     [RelayCommand]
-    async void SaveUserSelectedLyricsToLrcFile(int id)
+    async Task SaveUserSelectedLyricsToLrcFile(int id)
     {
         var s = AllSyncLyrics.First(x => x.id == id);
         if(LyricsManagerService.WriteLyricsToLrcFile(s.syncedLyrics, TemporarilyPickedSong))
@@ -421,8 +420,12 @@ public partial class HomePageVM : ObservableObject
             CurrentViewIndex = 0;
             LyricsManagerService.InitializeLyrics(s.syncedLyrics);
         }
-
-
+    }
+    [RelayCommand]
+    async Task FetchSongCoverImage()
+    {
+        await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
+        Debug.WriteLine($"{TemporarilyPickedSong.CoverImagePath}");
     }
 
     [ObservableProperty]
