@@ -31,12 +31,12 @@ public partial class App : MauiWinUIApplication
         mainInstance.Activated += MainInstance_Activated;
 
         this.InitializeComponent();
-
     }
 
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
-        HandleActivated(e);
+            HandleActivated(e);
+        //TODO :  Optimize this. HandleActivated is called an unknown number of time and is slow with many songs
     }
 
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
@@ -46,10 +46,14 @@ public partial class App : MauiWinUIApplication
     {
         base.OnLaunched(args);
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-        HandleActivated(activatedArgs);
+        do
+        {
+            HandleActivated(activatedArgs);
+
+        }while (activatedArgs.Kind == ExtendedActivationKind.File && paths?.Length < 0);
     }
 
-
+    string[]? paths = Array.Empty<string>();
     private void HandleActivated(AppActivationArguments args)
     {
         switch (args.Kind)
@@ -58,22 +62,37 @@ public partial class App : MauiWinUIApplication
                 var fileArgs = args.Data as IFileActivatedEventArgs;
                 if (fileArgs is not null)
                 {
-                    var paths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+                    paths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
                     HandleFiles(paths);
                 }
+
                 break;
             default:
                 break;
         }
+
+        //switch (args.Kind)
+        //{
+        //    case ExtendedActivationKind.File:
+        //        var fileArgs = args.Data as IFileActivatedEventArgs;
+        //        if (fileArgs is not null)
+        //        {
+        //            var pathss = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+        //            paths = pathss;
+        //            HandleFiles(pathss);
+        //        }
+        //        break;
+        //    default:
+        //        break;
+        //}
     }
 
     private void HandleFiles(string?[] paths)
     {
         if (paths.Length < 1)
             return;
-        Debug.WriteLine($"File Activated: {paths[0]}");
         var home = Services.GetService<HomePageVM>();
-        home.LoadLocalSong(paths[0]);
+        home.LoadLocalSong(paths);
 
     }
 

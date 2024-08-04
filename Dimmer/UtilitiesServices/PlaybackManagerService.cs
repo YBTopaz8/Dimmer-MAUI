@@ -78,7 +78,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
 
     }
-
+    #region Watcher Region
     private void Watcher_Error(object sender, ErrorEventArgs e)
     {
         Debug.WriteLine("File Watcher: Error");
@@ -107,28 +107,51 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     {
         Debug.WriteLine("File Watcher: Changed");
     }
-
+    #endregion
+    #region Audio Service Events Region
     private void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
         //throw new NotImplementedException();
     }
+    SemaphoreSlim _playLock = new SemaphoreSlim(1, 1);
+    private async void AudioService_PlayNext(object? sender, EventArgs e)
+    {
+        bool isLocked = await _playLock.WaitAsync(0);
+        if (!isLocked)
+            return;
 
+        Console.WriteLine("Step0");
+        try
+        {
+            if (CurrentRepeatMode == 2) //repeat the same song
+            {
+                await PlaySongAsync();
+                return;
+            }
+
+            await PlayNextSongAsync();
+
+            await Task.Delay(500);
+            if (!audioService.IsPlaying)
+            {
+
+                if (CurrentRepeatMode == 2) //repeat the same song
+                {
+                    await PlaySongAsync();
+                    return;
+                }
+
+                await PlayNextSongAsync();
+            }
+        }
+        finally
+        {
+            _playLock.Release();
+        }
+    }
     private void AudioService_PlayEnded(object? sender, EventArgs e)
     {
         Debug.WriteLine("Ended");
-    }
-
-    private void LoadLastPlayedSong(ISongsManagementService SongsMgtService)
-    {
-        var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
-        if (lastPlayedSongID is not null)
-        {
-            var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
-            if (lastPlayedSong is null)
-                return;
-            ObservableCurrentlyPlayingSong = lastPlayedSong!;
-        }
-
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -149,7 +172,9 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         Debug.WriteLine("Play state " + e);
         Debug.WriteLine("Pause Play changed");
     }
+    #endregion
 
+    #region Setups Region
     private (List<SongsModelView> songs, Dictionary<string, ArtistModel>) LoadSongs(string folderPath, IProgress<int> loadingSongsProgress)
     {
         try
@@ -224,10 +249,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
                 };
                 song.CoverImagePath = SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
-                if (allSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
-                {
-                    continue;
-                }
+                
                 song.CreationTime = fileInfo.CreationTime;
                 allSongs.Add(song);
 
@@ -251,6 +273,31 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
     }
 
+    byte[]? GetCoverImage(string filePath)
+    {
+        var LoadTrack = new Track(filePath);
+
+        if (LoadTrack.EmbeddedPictures.Count != 0)
+        {
+            return LoadTrack.EmbeddedPictures[0].PictureData;
+        }
+        else
+        {
+            string[] pngFiles = Array.Empty<string>();
+            string directoryPath = Path.GetDirectoryName(filePath);
+            var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
+            if (jpgFiles.Length < 1)
+            {
+                pngFiles = Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly);
+            }
+            if (jpgFiles.Length > 0 || pngFiles.Length > 0)
+            {
+                return File.ReadAllBytes(jpgFiles[0]);
+
+            }
+        }
+        return null;
+    }
     static string SaveCoverImageToFile(string fullfilePath, byte[] imageData = null)
     {
         if (imageData is null)
@@ -312,10 +359,23 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             //save songs to db to songs table
             await SongsMgtService.AddSongBatchAsync(songs);
         }
-        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
+        _nowPlayingSubject.OnNext(songs);
+        //_nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
         return true;
     }
 
+    private void LoadLastPlayedSong(ISongsManagementService SongsMgtService)
+    {
+        var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
+        if (lastPlayedSongID is not null)
+        {
+            var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
+            if (lastPlayedSong is null)
+                return;
+            ObservableCurrentlyPlayingSong = lastPlayedSong!;
+        }
+    }
+    #endregion
     private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         double currentPositionInSeconds = audioService.CurrentPosition;
@@ -336,57 +396,45 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
     }
 
-    SemaphoreSlim _playLock = new SemaphoreSlim(1, 1);
-    private async void AudioService_PlayNext(object? sender, EventArgs e)
-    {
-        bool isLocked = await _playLock.WaitAsync(0);
-        if (!isLocked)
-            return;
-
-        Console.WriteLine("Step0");
-        try
-        {
-            if (CurrentRepeatMode == 2) //repeat the same song
-            {
-                await PlaySongAsync();
-                return;
-            }
-
-            await PlayNextSongAsync();
-
-            await Task.Delay(500);
-            if (!audioService.IsPlaying)
-            {
-
-                if (CurrentRepeatMode == 2) //repeat the same song
-                {
-                    await PlaySongAsync();
-                    return;
-                }
-
-                await PlayNextSongAsync();
-            }
-        }
-        finally
-        {
-            _playLock.Release();
-        }
-    }
-
+    
 
     double currentPosition = 0;
-    //public async Task<bool> PlaySelectedSongsOutsideApp(string[] filePaths)
-    //{
-    //    var allSongs = new List<SongsModelView>();
-    //    foreach (var file in filePaths)
-    //    {
-    //        FileInfo fileInfo = new(file);
-    //        if (fileInfo.Length < 1000)
-    //        {
-    //            continue;
-    //        }
-    //    }
-    //}
+
+    public bool PlaySelectedSongsOutsideApp(string[] filePaths)
+    {
+        var allSongs = new List<SongsModelView>();
+        foreach (var file in filePaths)
+        {
+            FileInfo fileInfo = new(file);
+            if (fileInfo.Length < 1000)
+            {
+                continue;
+            }
+            Track track = new Track(file);
+            var song = new SongsModelView
+            {
+                Title = track.Title,
+                ArtistID = ObjectId.Empty,
+                ArtistName = track.Artist,
+                AlbumName = track.Album,
+                ReleaseYear = track.Year,
+                SampleRate = track.SampleRate,
+                FilePath = track.Path,
+                DurationInSeconds = track.Duration,
+                BitRate = track.Bitrate,
+                FileSize = fileInfo.Length,
+                TrackNumber = track.TrackNumber,
+                FileFormat = Path.GetExtension(file).TrimStart('.'),
+                HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
+            };
+            song.CoverImagePath = SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
+            song.CreationTime = fileInfo.CreationTime;
+            allSongs.Add(song);
+        }
+        _nowPlayingSubject.OnNext(allSongs);
+        return true;
+    }
+    #region Playback Control Region
     public async Task<bool> PlaySongAsync(SongsModelView? song = null)
     {
         if (ObservableCurrentlyPlayingSong != null)
@@ -549,74 +597,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         return true;
     }
 
-    byte[]? GetCoverImage(string filePath)
-    {
-        var LoadTrack = new Track(filePath);
-        
-        if (LoadTrack.EmbeddedPictures.Count != 0)
-        {
-            return LoadTrack.EmbeddedPictures[0].PictureData;
-        }
-        else
-        {
-            string[] pngFiles=Array.Empty<string>();
-            string directoryPath = Path.GetDirectoryName(filePath);
-            var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
-            if (jpgFiles.Length <1)
-            {
-                pngFiles = Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly);
-            }
-            if (jpgFiles.Length > 0 || pngFiles.Length > 0)
-            {
-                return File.ReadAllBytes(jpgFiles[0]);
-                
-            }
-        }
-        return null;
-    }
-
-    ObjectId PreviouslyLoadedPlaylist;
-    public void UpdateCurrentQueue()
-    {
-        _nowPlayingSubject.OnNext(PlayListService.SongsFromPlaylist);
-        Debug.WriteLine("Called");
-    }
-    public void UpdateSongToFavoritesPlayList(SongsModelView song)
-    {
-
-        if (song is not null)
-        {
-            if (!song.IsFavorite)
-            {
-                song.IsFavorite = true;
-                
-                if (PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites"))
-                {
-                    PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites");
-                }
-            }
-            else
-            {
-                song.IsFavorite = false;
-                PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
-                PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
-            }
-
-            SongsMgtService.UpdateSongDetails(song);
-        }
-    }
-    public void AddSongToQueue(SongsModelView song)
-    {
-        var list = _nowPlayingSubject.Value;
-        list.Add(song);
-        _nowPlayingSubject.OnNext(list);
-    }
-    public void RemoveSongFromQueue(SongsModelView song)
-    {
-        var list = _nowPlayingSubject.Value;
-        list.Remove(song);
-        _nowPlayingSubject.OnNext(list);
-    }
 
     public async Task SetSongPosition(double positionFraction)
     {
@@ -669,6 +649,79 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     {
         audioService.Volume += 0.1;
     }
+
+
+    public void ToggleShuffle(bool isShuffleOn)
+    {
+        IsShuffleOn = isShuffleOn;
+        AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
+    }
+    public int ToggleRepeatMode()
+    {
+
+        switch (CurrentRepeatMode)
+        {
+            case 0:
+                CurrentRepeatMode = 1;
+                break;
+            case 1:
+                CurrentRepeatMode = 2;
+                break;
+            case 2:
+                CurrentRepeatMode = 0;
+                break;
+            default:
+                break;
+        }
+        AppSettingsService.RepeatModePreference.ToggleRepeatState();
+        return CurrentRepeatMode;
+    }
+    #endregion
+
+    ObjectId PreviouslyLoadedPlaylist;
+    public void UpdateCurrentQueue()
+    {
+        _nowPlayingSubject.OnNext(PlayListService.SongsFromPlaylist);
+        Debug.WriteLine("Called");
+    }
+    public void UpdateSongToFavoritesPlayList(SongsModelView song)
+    {
+
+        if (song is not null)
+        {
+            if (!song.IsFavorite)
+            {
+                song.IsFavorite = true;
+                
+                if (PlaylistMgtService.AddSongToPlayListWithPlayListName(song, "Favorites"))
+                {
+                    PlayListService.AddSongToPlayListWithPlayListName(song, "Favorites");
+                }
+            }
+            else
+            {
+                song.IsFavorite = false;
+                PlaylistMgtService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+                PlayListService.RemoveFromPlayListWithPlayListName(song, "Favorites");
+            }
+
+            SongsMgtService.UpdateSongDetails(song);
+        }
+    }
+    public void AddSongToQueue(SongsModelView song)
+    {
+        var list = _nowPlayingSubject.Value;
+        list.Add(song);
+        _nowPlayingSubject.OnNext(list);
+    }
+    public void RemoveSongFromQueue(SongsModelView song)
+    {
+        var list = _nowPlayingSubject.Value;
+        list.Remove(song);
+        _nowPlayingSubject.OnNext(list);
+    }
+
+    #region Region Search
 
     Dictionary<string, string> normalizationCache = new();
     List<SongsModelView> SearchedSongsList;
@@ -729,6 +782,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         GetReadableDuration();
     }
 
+    #endregion
     void GetReadableFileSize(List<SongsModelView>? songsList = null)
     {
         long totalBytes;
@@ -791,30 +845,5 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         Debug.WriteLine($"Total Duration: {TotalSongsDuration}");
     }
 
-    public void ToggleShuffle(bool isShuffleOn)
-    {
-        IsShuffleOn = isShuffleOn;
-        AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
-    }
-    public int ToggleRepeatMode()
-    {
-
-        switch (CurrentRepeatMode)
-        {
-            case 0:
-                CurrentRepeatMode = 1;
-                break;
-            case 1:
-                CurrentRepeatMode = 2;
-                break;
-            case 2:
-                CurrentRepeatMode = 0;
-                break;
-            default:
-                break;
-        }
-        AppSettingsService.RepeatModePreference.ToggleRepeatState();
-        return CurrentRepeatMode;
-    }
 }
 

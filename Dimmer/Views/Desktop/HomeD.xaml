@@ -39,10 +39,6 @@
     <uranium:UraniumContentPage.ToolbarItems>
         <ToolbarItem Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
     </uranium:UraniumContentPage.ToolbarItems>
-
-    <VerticalStackLayout>
-        <Label Text="Hi"/>
-    </VerticalStackLayout>
     
     <toolkit:DockLayout>
 
@@ -240,7 +236,8 @@
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
 
-                            <!--<Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>-->
+                            <!-- Putting an image here will crash app
+                            <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>-->
                             <Label Text="{Binding Title}" HorizontalOptions="Start"/>
                             <Image IsVisible="{Binding IsPlaying}" >
                                 <Image.Source>

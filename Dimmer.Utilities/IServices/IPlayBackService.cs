@@ -32,4 +32,6 @@ public interface IPlayBackService
     void UpdateSongToFavoritesPlayList(SongsModelView song);
 
     void UpdateCurrentQueue();
+
+    bool PlaySelectedSongsOutsideApp(string[] filePaths);
 }

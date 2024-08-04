@@ -17,7 +17,7 @@ public class DataBaseService : IDataBaseService
 
     public Realm GetRealm()
     {
-        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmer";
+        string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmerr";
 
         if(!Directory.Exists(dbPath))
         {

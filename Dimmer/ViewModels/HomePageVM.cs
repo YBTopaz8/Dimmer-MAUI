@@ -101,9 +101,9 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    public void LoadLocalSong(string filePath)
+    public void LoadLocalSong(string[] filePath)
     {
-        Debug.WriteLine("Loaded path should be " + filePath);
+        PlayBackManagerService.PlaySelectedSongsOutsideApp(filePath);
     }
 
     [ObservableProperty]

@@ -164,8 +164,13 @@
                             </Style>
                         </ResourceDictionary>
                     </HorizontalStackLayout.Resources>
-                    
-                    <ImageButton>
+
+                    <ImageButton Command="{Binding FetchSongCoverImageCommand}" HeightRequest="40">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Image}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton Command="{Binding FetchLyricsCommand}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                         </ImageButton.Source>
