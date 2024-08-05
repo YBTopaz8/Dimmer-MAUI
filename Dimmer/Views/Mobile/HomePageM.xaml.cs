@@ -94,7 +94,7 @@ public partial class HomePageM : UraniumContentPage
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
-        SongsColView.ScrollTo(HomePageVM.PickedSong, position:ScrollToPosition.Center, animate: false);
+        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
     }
 
     private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)

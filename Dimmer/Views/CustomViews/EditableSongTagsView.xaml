@@ -8,12 +8,25 @@
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             x:DataType="vm:HomePageVM"
-            x:Name="myPage"   >
+            x:Name="myPage">
     <toolkit:DockLayout>
         <VerticalStackLayout Spacing="5">
             <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title }"/>            
             <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName }"/>
             <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }"/>
+            
+            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="300" >
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModel">
+                        <HorizontalStackLayout>
+                            <Label Text="{Binding Text}"/>
+                        </HorizontalStackLayout> 
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            
+
+            <material:EditorField Title="Unsynchronized Lyrics" Text="{Binding UnSyncedLyrics}"/>
         </VerticalStackLayout>
     </toolkit:DockLayout>
 </ContentView>

@@ -32,7 +32,7 @@
                     <TapGestureRecognizer Tapped="MediaControlBtmBar_Tapped"/>
                 </FlexLayout.GestureRecognizers>
                 <HorizontalStackLayout Spacing="5">
-                    <Image Source="{Binding PickedSongCoverImage}" WidthRequest="70" Aspect="AspectFill"/>
+                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" WidthRequest="70" Aspect="AspectFill"/>
                     <VerticalStackLayout>
                         <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center" FontSize="18" FontAttributes="Bold"/>
                         <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>

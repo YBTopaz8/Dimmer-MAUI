@@ -2,7 +2,6 @@
 namespace Dimmer.Utilities.IServices;
 public interface ILyricsService
 {
-
     IObservable<IList<LyricPhraseModel>> SynchronizedLyricsStream { get; }
     IObservable<LyricPhraseModel> CurrentLyricStream { get; }
     IObservable<string> UnSynchedLyricsStream { get; }
@@ -12,9 +11,9 @@ public interface ILyricsService
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
 
-    Task<(bool IsFetchSuccessul, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView songs);
-    Task<(bool IsFetchSuccessul, LyristApiResponse contentData)> FetchLyricsOnlineLyrics(SongsModelView songs);
-    Task FetchAndDownloadCoverImage(SongsModelView songs);
-    bool WriteLyricsToLrcFile(string syncedLyrics, SongsModelView songObj);
+    Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView songs, bool useManualSearch=false, List<string>? manualSearchFields=null);
+    Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null);
+    Task<string> FetchAndDownloadCoverImage(SongsModelView songs);
+    bool WriteLyricsToLyricsFile(string syncedLyrics, SongsModelView songObj, bool IsSynchedLyrics);
     void InitializeLyrics(string synclyrics);
 }

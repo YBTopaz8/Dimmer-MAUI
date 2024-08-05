@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace Dimmer.Utilities.IServices;
 public class AppSettingsService : IAppSettingsService
@@ -68,8 +64,8 @@ public class AppSettingsService : IAppSettingsService
         }
 
         public static void ToggleShuffleState(bool shuffleState)
-        {            
-            IsShuffleOn = shuffleState;            
+        {
+            IsShuffleOn = shuffleState;
         }
         public static bool GetShuffleState()
         {
@@ -107,6 +103,64 @@ public class AppSettingsService : IAppSettingsService
         public static int GetRepeatState()
         {
             return RepeatState;
+        }
+    }
+
+    public static class MusicFoldersPreference
+    {
+        const string defaultFolder = null;//Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+
+        public static List<string> MusicFolders
+        {
+            get
+            {
+                string serializedFolders = Preferences.Default.Get(nameof(MusicFolders), JsonSerializer.Serialize(new List<string> { defaultFolder }));
+                return JsonSerializer.Deserialize<List<string>>(serializedFolders);
+            }
+            set
+            {
+                string serializedFolders = JsonSerializer.Serialize(value);
+                Preferences.Default.Set(nameof(MusicFolders), serializedFolders);
+            }
+        }
+
+        public static void AddMusicFolder(List<string> folderPaths)
+        {
+            var folders = MusicFolders;
+            foreach (var folderPath in folderPaths)
+            {
+                if (!folders.Contains(folderPath))
+                {
+                    folders.Add(folderPath);
+                }
+            }
+
+            MusicFolders = folders;
+        }
+
+
+        public static void RemoveMusicFolder(string[] folderPaths)
+        {
+            var folders = MusicFolders;
+            foreach (var folderPath in folderPaths)
+            {
+                if (folders.Contains(folderPath))
+                {
+                    folders.Remove(folderPath);
+                    MusicFolders = folders;
+                }
+            }
+        }
+
+        public static List<string> GetMusicFolders()
+        {
+            return MusicFolders;
+        }
+
+        public static bool ClearListOfFolders()
+        {
+            MusicFolders = []; // Enumerable.Empty<List<string>>();
+            return true;
         }
     }
 

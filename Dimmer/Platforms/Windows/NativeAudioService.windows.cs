@@ -128,7 +128,6 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         if (media.ImageBytes != null)
         {
             props.Thumbnail = ConvertToRandomAccessStreamReference(media.ImageBytes); // ConvertToRandomAccessStreamReference(media.ImageBytes);
-            
             //props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(media.Image));
         }
 

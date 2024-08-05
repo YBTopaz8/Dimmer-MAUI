@@ -43,7 +43,7 @@
                 <SwipeGestureRecognizer Swiped="SwipedToDismiss_Swiped" x:Name="SwipedToDismiss" Direction="Down"/>
             </Border.GestureRecognizers>
             <Grid>
-                <Image Source="{Binding PickedSongCoverImage}" Aspect="Fill" Opacity="0.45"/>
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"/>
                 <!-- Synced lyics Col View -->
                 <Label Text="{Binding CurrentLyricPhrase.Text}" VerticalTextAlignment="Center"
                        HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>

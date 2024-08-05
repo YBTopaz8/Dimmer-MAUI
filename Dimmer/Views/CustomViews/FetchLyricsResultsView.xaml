@@ -3,23 +3,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.FetchLyricsResultsView"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"   
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            x:DataType="vm:HomePageVM"
+            x:DataType="vm:HomePageVM" 
              x:Name="page">
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout>
-        <Button Text="Refresh" Command="{Binding FetchLyricsCommand}">
-            <Button.CommandParameter>
-                <x:Boolean>True</x:Boolean>
-            </Button.CommandParameter>
-        </Button>
+    <VerticalStackLayout Spacing="10">
+        <HorizontalStackLayout Spacing="10">
+            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}">
+                <Button.CommandParameter>
+                    <x:Boolean>True</x:Boolean>
+                </Button.CommandParameter>
+            </Button>
+            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}">
+                <Button.CommandParameter>
+                    <x:Boolean>True</x:Boolean>
+                </Button.CommandParameter>
+            </Button>
+
+        </HorizontalStackLayout>
+        
+        <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" x:Name="ToggleManualSearchViewChkBox"/>
+        <VerticalStackLayout Spacing="10" IsVisible="{Binding IsChecked, Source={x:Reference ToggleManualSearchViewChkBox}}">
+            <material:TextField Text="{Binding SongTitle}" Title="Song Title"/>
+            <material:TextField Text="{Binding ArtistName}" Title="Artist Name"/>
+            <material:TextField Text="{Binding AlbumName}" Title="Album Name"/>
+            <Button Text="Manual Search" Command="{Binding UseManualLyricsSearchCommand}"/>
+
+        </VerticalStackLayout>
         
         <CollectionView ItemsSource="{Binding AllSyncLyrics}" HeightRequest="600">
             <CollectionView.EmptyView>
@@ -27,43 +45,50 @@
                     <VerticalStackLayout HorizontalOptions="Center">
                         <Label Text="No Results Found" HorizontalTextAlignment="Center"/>
                         <ActivityIndicator IsVisible="{Binding IsFetching}" IsRunning="{Binding IsFetching}"/>
-                        <Label Text="Service is Unavailable, try again !" IsVisible="{Binding IsFetchSuccessul, Converter={StaticResource BoolToInverse}}"/>
+                        <Label Text="Service is Unavailable, try again !" IsVisible="{Binding IsFetchSuccessful, Converter={StaticResource BoolToInverse}}"/>
                     </VerticalStackLayout>
-                    
-                </ContentView>  
+
+                </ContentView>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Content">
                     <Grid Padding="10">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="290"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Border HeightRequest="180" VerticalOptions="Start" 
-                                Grid.Column="1" Grid.Row="0" >
+                        <Border HeightRequest="280" VerticalOptions="Start"  MaximumWidthRequest="700"
+                                Grid.Column="1" Grid.Row="0" Padding="10"
+                                Stroke="DarkSlateBlue" StrokeShape="RoundRectangle 10">
+                            
                             <VerticalStackLayout>
                                 <Label Text="{Binding trackName}" HorizontalTextAlignment="Center"/>
-                                <BoxView HeightRequest="1"/>
+                                <BoxView HeightRequest="1" Color="Grey"/>
                                 <Label Text="{Binding artistName}"/>
-                                <BoxView HeightRequest="1"/>
+                                <BoxView HeightRequest="1" Color="Grey"/>
                                 <Label Text="{Binding albumName}"/>
-                                <BoxView HeightRequest="1"/>
-                                <Label Text="{Binding syncedLyrics}" HeightRequest="75"/>
-                                <Button Text="Save" HorizontalOptions="Center" Command="{Binding BindingContext.SaveUserSelectedLyricsToLrcFileCommand, Source={x:Reference page}}"
-            CommandParameter="{Binding id}">
+                                <BoxView HeightRequest="1" Color="Grey"/>
+                                <HorizontalStackLayout MaximumWidthRequest="800" Spacing="15">                                    
+                                    <Label Text="{Binding syncedLyrics}" MaximumHeightRequest="100" LineBreakMode="CharacterWrap"/>
+                                    <Label Text="{Binding plainLyrics}" MaximumHeightRequest="150"/>
+                                </HorizontalStackLayout>
+                                
+                                <Button Text="Save" HorizontalOptions="Center" Command="{Binding BindingContext.SaveUserSelectedLyricsToFileCommand, Source={x:Reference page}}"
+                                        CommandParameter="{Binding id}">
                                 </Button>
                             </VerticalStackLayout>
                         </Border>
-                        
+
                     </Grid>
-                    
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        
+
+
     </VerticalStackLayout>
-    
+
 </ContentView>

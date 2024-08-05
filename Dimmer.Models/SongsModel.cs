@@ -19,6 +19,7 @@ public class SongsModel : RealmObject
     public double? SampleRate { get; set; }
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
+    public bool HasSyncedLyrics { get; set; }
     public string? CoverImagePath { get; set; }
 
     public DateTimeOffset DateAdded { get; set; }
@@ -52,6 +53,7 @@ public class SongsModel : RealmObject
         SampleRate = modelView.SampleRate;
         Rating = modelView.Rating;
         HasLyrics = modelView.HasLyrics;
+        HasSyncedLyrics = modelView.HasSyncedLyrics;
         CoverImagePath = modelView.CoverImagePath;
         DateAdded = modelView.DateAdded;
         DateEdited = modelView.DateEdited;
@@ -107,6 +109,8 @@ public partial class SongsModelView : ObservableObject
             IsPlaying = _model.IsPlaying;
             PlayCount = _model.PlayCount;
             IsFavorite = _model.IsFavorite;
+            HasLyrics = _model.HasLyrics;
+            HasSyncedLyrics = _model.HasSyncedLyrics;
         }
         else
         {
@@ -138,8 +142,11 @@ public partial class SongsModelView : ObservableObject
     double? sampleRate;
     [ObservableProperty]
     int rating;
+    
     [ObservableProperty]
     bool hasLyrics;
+    [ObservableProperty]
+    bool hasSyncedLyrics;
 
     [ObservableProperty]
     string? coverImagePath;
@@ -155,7 +162,8 @@ public partial class SongsModelView : ObservableObject
     public ObjectId? GenreID { get; set; }
     public ObjectId? UserID { get; set; }
     //public IList<LyricPhraseModel>? SynchronizedLyrics { get; }
-    public string? UnSyncLyrics { get; set; }
+    [ObservableProperty]
+    string? unSyncLyrics;
 
     //bool _isPlaying;
     [ObservableProperty]
@@ -168,26 +176,3 @@ public partial class SongsModelView : ObservableObject
 
 }
 
-public partial class LyricPhraseModel : ObservableObject
-{
-    [ObservableProperty]
-    int timeStampMs;
-    [ObservableProperty]
-    string text;
-
-    // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModel(LyricsInfo.LyricsPhrase phrase)
-    {
-        if (phrase != null)
-        {
-            TimeStampMs = phrase.TimestampMs;
-            Text = phrase.Text;
-        }
-        else
-        {
-            // Initialize with default values if 'phrase' is null
-            TimeStampMs = 0; // Default timestamp, adjust if necessary
-            Text = ""; // Default text, could be "No lyrics available" etc.
-        }
-    }
-}

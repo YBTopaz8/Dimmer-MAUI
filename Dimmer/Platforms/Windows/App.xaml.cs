@@ -92,7 +92,7 @@ public partial class App : MauiWinUIApplication
         if (paths.Length < 1)
             return;
         var home = Services.GetService<HomePageVM>();
-        home.LoadLocalSong(paths);
+        home.LoadLocalSongFromOutSideApp(paths);
 
     }
 

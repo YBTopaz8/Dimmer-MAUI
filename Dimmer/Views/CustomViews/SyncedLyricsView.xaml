@@ -4,29 +4,57 @@
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"  
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             x:DataType="vm:HomePageVM"
-             x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView">
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+             x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView"
+             x:Name="myView" 
+             HeightRequest="300">
 
-    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
-                SelectionMode="Single" x:Name="LyricsColView"
-                SelectedItem="{Binding CurrentLyricPhrase}"
-                EmptyView="No Synced Lyrics...">
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Selected">
-                    <VisualState.Setters>
-                        <Setter Property="BackgroundColor" Value="Red"/>
-                    </VisualState.Setters>
-                </VisualState>
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <StackLayout>
 
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
-        <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="models:LyricPhraseModel">
-                <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center"
-                   VerticalOptions="Center" HorizontalTextAlignment="Center" FontSize="15">
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+            SelectionMode="Single" x:Name="LyricsColView" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}" 
+            MaximumHeightRequest="{Binding Height, Source={x:Reference myView}}" SelectedItem="{Binding CurrentLyricPhrase}">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Selected">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="Red"/>
+                        </VisualState.Setters>
+                    </VisualState>
 
-                </Label>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center" 
+                            FontSize="15" 
+                           VerticalOptions="Center" HorizontalTextAlignment="Center">
+
+                    </Label>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ScrollView HeightRequest="{Binding Height, Source={x:Reference myView}}">
+
+            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" IsVisible="True"
+                   HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Start"
+               Padding="10"
+               LineBreakMode="WordWrap"/>
+        
+        </ScrollView>
+        
+        <!--<Label IsVisible="{Binding IsFetchSuccessful}"
+               Text="No Lyrics 💔"/>-->
+        <Label IsVisible="{Binding IsFetchSuccessful, Converter={x:StaticResource BoolToInverse}}"
+               Text="No Lyrics 💔"/>
+    </StackLayout>
+    
 </ContentView>

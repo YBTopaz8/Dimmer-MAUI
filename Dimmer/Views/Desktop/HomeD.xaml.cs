@@ -8,7 +8,7 @@ public partial class HomeD : UraniumContentPage
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
 
-        //VolumeSlider.Value = 1;
+        VolumeSlider.Value = 1;
     }
 
     public HomePageVM HomePageVM { get; }
@@ -16,40 +16,48 @@ public partial class HomeD : UraniumContentPage
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        //if (SongsColView.IsLoaded)
-        //{
-        //    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate:false);            
-        //}
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        }
     }
 
 
     DateTime lastKeyStroke;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-        //lastKeyStroke = DateTime.Now;
-        //var thisKeyStroke = lastKeyStroke;
-        //await Task.Delay(750);
-        //if (thisKeyStroke == lastKeyStroke)
-        //{
-        //    var searchText = e.NewTextValue;
-        //    if (searchText.Length >= 2)
-        //    {
-        //        HomePageVM.SearchSongCommand.Execute(searchText);
-        //    }
-        //    else
-        //    {
-        //        HomePageVM.SearchSongCommand.Execute(string.Empty);
-        //    }
-        //}
+        lastKeyStroke = DateTime.Now;
+        var thisKeyStroke = lastKeyStroke;
+        await Task.Delay(750);
+        if (thisKeyStroke == lastKeyStroke)
+        {
+            var searchText = e.NewTextValue;
+            if (searchText.Length >= 2)
+            {
+                HomePageVM.SearchSongCommand.Execute(searchText);
+            }
+            else
+            {
+                HomePageVM.SearchSongCommand.Execute(string.Empty);
+            }
+        }
     }
 
     private void Button_Clicked(object sender, EventArgs e)
     {
-        if (HomePageVM.PickedSong is null)
+        try
         {
-            HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
+            if (HomePageVM.PickedSong is null)
+            {
+                HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
+            }
+            //SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: true);
         }
-        //SongsColView.ScrollTo(HomePageVM.PickedSong);
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error when scrolling "+ex.Message);
+        }
     }
 
 }

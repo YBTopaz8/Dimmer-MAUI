@@ -1,5 +1,6 @@
 ﻿namespace Dimmer_MAUI.ViewModels;
 using Microsoft.VisualBasic.FileIO;
+using System.Text.RegularExpressions;
 
 public partial class HomePageVM : ObservableObject
 {
@@ -9,8 +10,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     SongsModelView temporarilyPickedSong;
 
-    [ObservableProperty]
-    ImageSource pickedSongCoverImage;
+    //[ObservableProperty]
+    //ImageSource pickedSongCoverImage;
     [ObservableProperty]
     double currentPosition;
     [ObservableProperty]
@@ -27,7 +28,7 @@ public partial class HomePageVM : ObservableObject
     string totalSongsDuration;
 
     [ObservableProperty]
-    IList<LyricPhraseModel>? synchronizedLyrics;
+    ObservableCollection<LyricPhraseModel>? synchronizedLyrics;
     [ObservableProperty]
     LyricPhraseModel? currentLyricPhrase;
 
@@ -50,7 +51,7 @@ public partial class HomePageVM : ObservableObject
     public IServiceProvider ServiceProvider { get; }
 
     [ObservableProperty]
-    string unsyncedLyrics;
+    string unSyncedLyrics;
     [ObservableProperty]
     string localFilePath;
     public HomePageVM(IPlayBackService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
@@ -71,7 +72,6 @@ public partial class HomePageVM : ObservableObject
 
         //Subscriptions to LyricsServices
         SubscribeToSyncedLyricsChanges();
-        SubscribeToUnSyncedLyricsChanges();
         SubscribeToLyricIndexChanges();
 
         VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
@@ -86,8 +86,12 @@ public partial class HomePageVM : ObservableObject
         IsPlaying = false;
 
         ToggleShuffleState();
-        ToggleRepeatMode(); 
+        ToggleRepeatMode();
+        AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
     }
+
+    [ObservableProperty]
+    byte[] allPictureDatas;
 
     private void LoadLyrics()
     {
@@ -101,54 +105,28 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    public void LoadLocalSong(string[] filePath)
+    public void LoadLocalSongFromOutSideApp(string[] filePath)
     {
         PlayBackManagerService.PlaySelectedSongsOutsideApp(filePath);
     }
 
-    [ObservableProperty]
-    string shuffleOnOffImage = MaterialTwoTone.Shuffle;
-
-    [ObservableProperty]
-    string repeatModeImage = MaterialTwoTone.Repeat;
-    [RelayCommand]
-    void ToggleRepeatMode(bool IsCalledByUI = false)
-    {
-        CurrentRepeatMode = PlayBackManagerService.CurrentRepeatMode;
-        if (IsCalledByUI)
-        {
-            CurrentRepeatMode = PlayBackManagerService.ToggleRepeatMode();
-        }
-
-        switch (CurrentRepeatMode)
-        {
-            case 1:
-                RepeatModeImage = MaterialTwoTone.Repeat_on;
-                break;
-            case 2:
-                RepeatModeImage = MaterialTwoTone.Repeat_one_on;
-                break;
-            case 0:
-                RepeatModeImage = MaterialTwoTone.Repeat;
-                break;
-            default:
-                break;
-        }
-
-    }
 
     [RelayCommand]
     async Task NavToNowPlayingPage()
     {
-       await Shell.Current.GoToAsync(nameof(NowPlayingD));
+        await Shell.Current.GoToAsync(nameof(NowPlayingD));
     }
 
     [ObservableProperty]
     bool isLoadingSongs;
 
+    [ObservableProperty]
+    ObservableCollection<string> folderPaths;
     [RelayCommand]
     async Task SelectSongFromFolder()
     {
+        FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
+
         bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
         if (!res)
         {
@@ -168,19 +146,31 @@ public partial class HomePageVM : ObservableObject
 #elif IOS || MACCATALYST
         string folder = null;
 #endif
+
+        var FolderName = Path.GetFileName(folder);
+        FolderPaths.Add(FolderName);
+
+        FullFolderPaths.Add(folder);
+
+        AppSettingsService.MusicFoldersPreference.AddMusicFolder(FullFolderPaths);
+        //await LoadSongsFromFolders();//FullFolderPaths);
+    }
+
+    List<string> FullFolderPaths = new();
+
+    [RelayCommand]
+    private async Task LoadSongsFromFolders()
+    {
         IsLoadingSongs = true;
-        var progressIndicator = new Progress<int>(percent =>
-        {
-            LoadingSongsProgress = percent;
-        });
-        IsLoadingSongs = true;
-        bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(folder!, progressIndicator);
+
+        LoadingSongsProgress = PlayBackManagerService.LoadProgressPercent;
+        
+        bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(FullFolderPaths);
         if (loadSongsResult)
         {
             DisplayedSongs?.Clear();
             DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
             Debug.WriteLine("Songs Loaded Successfully");
-
         }
         else
         {
@@ -196,13 +186,14 @@ public partial class HomePageVM : ObservableObject
 
         if (SelectedSong is not null)
         {
-            PlayBackManagerService.PlaySongAsync(SelectedSong);
+            PlayBackManagerService.PlaySongAsync(SelectedSong);            
         }
         else
         {
             PlayBackManagerService.PlaySongAsync(null);
         }
         AllSyncLyrics = Array.Empty<Content>();
+        
     }
 
     [RelayCommand]
@@ -256,6 +247,36 @@ public partial class HomePageVM : ObservableObject
         PlayBackManagerService.ChangeVolume(VolumeSliderValue);
     }
 
+    [ObservableProperty]
+    string shuffleOnOffImage = MaterialTwoTone.Shuffle;
+
+    [ObservableProperty]
+    string repeatModeImage = MaterialTwoTone.Repeat;
+    [RelayCommand]
+    void ToggleRepeatMode(bool IsCalledByUI = false)
+    {
+        CurrentRepeatMode = PlayBackManagerService.CurrentRepeatMode;
+        if (IsCalledByUI)
+        {
+            CurrentRepeatMode = PlayBackManagerService.ToggleRepeatMode();
+        }
+
+        switch (CurrentRepeatMode)
+        {
+            case 1:
+                RepeatModeImage = MaterialTwoTone.Repeat_on;
+                break;
+            case 2:
+                RepeatModeImage = MaterialTwoTone.Repeat_one_on;
+                break;
+            case 0:
+                RepeatModeImage = MaterialTwoTone.Repeat;
+                break;
+            default:
+                break;
+        }
+
+    }
 
     [RelayCommand]
     void ToggleShuffleState(bool IsCalledByUI = false)
@@ -306,33 +327,31 @@ public partial class HomePageVM : ObservableObject
 
     public void LoadSongCoverImage()
     {
-        if (PickedSong is null)
+        if (TemporarilyPickedSong is null)
             return;
-        if (PickedSong.CoverImagePath is not null)
+        if (TemporarilyPickedSong.CoverImagePath is not null)
         {
-            PickedSongCoverImage = ImageSource.FromFile(PickedSong.CoverImagePath);
-            //PickedSongCoverImage = ImageSource.FromStream(() => new MemoryStream(PickedSong.CoverImage));
+            //PickedSongCoverImage = ImageSource.FromFile(TemporarilyPickedSong.CoverImagePath);
         }
         else
         {
-            PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
+            //PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
         }
     }
 
     #region Subscriptions to Services
     [ObservableProperty]
     bool isPlaying = false;
-    private void SubscribeToPlayerStateChanges()
+    private async void SubscribeToPlayerStateChanges()
     {
         PlayBackManagerService.PlayerState.Subscribe(state =>
         {
             TemporarilyPickedSong = PlayBackManagerService.CurrentlyPlayingSong;
-            PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
+            //PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
             switch (state)
             {
                 case MediaPlayerState.Playing:
                     IsPlaying = true;
-                    LoadSongCoverImage();
                     break;
                 case MediaPlayerState.Paused:
                     IsPlaying = false;
@@ -341,17 +360,16 @@ public partial class HomePageVM : ObservableObject
                     //PickedSong = "Stopped";
                     break;
             }
-
-            Debug.WriteLine($"Is Playing = " + IsPlaying);
         });
+
     }
     private void SubscribeToLyricIndexChanges()
     {
         LyricsManagerService.CurrentLyricStream.Subscribe(highlightedLyric =>
         {
             CurrentLyricPhrase = highlightedLyric is null ? null : highlightedLyric!;
+            Debug.WriteLine("Current lyric phrase " + highlightedLyric is null);
         });
-        Debug.WriteLine("Current lyric phrase " + CurrentLyricPhrase.Text);
     }
     private void SubscribeToCurrentSongPosition()
     {
@@ -373,19 +391,13 @@ public partial class HomePageVM : ObservableObject
         IsLoadingSongs = false;
     }
 
-    private void SubscribeToUnSyncedLyricsChanges()
-    {
-        LyricsManagerService.UnSynchedLyricsStream.Subscribe(unsyncedLyrics =>
-        {
-            UnsyncedLyrics = unsyncedLyrics;
-        });
-    }
-
     private void SubscribeToSyncedLyricsChanges()
     {
         LyricsManagerService.SynchronizedLyricsStream.Subscribe(synchronizedLyrics =>
         {
-            SynchronizedLyrics = synchronizedLyrics is null ? null : synchronizedLyrics;
+            SynchronizedLyrics = synchronizedLyrics is null ? null : synchronizedLyrics.ToObservableCollection();
+
+            Debug.WriteLine("Lyrics should have been updated " + SynchronizedLyrics?.Count);
         });
     }
     #endregion
@@ -393,39 +405,80 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     Content[] allSyncLyrics;
     [ObservableProperty]
-    bool isFetchSuccessul=true;
+    bool isFetchSuccessful = true;
     [ObservableProperty]
     bool isFetching;
     [RelayCommand]
-    async Task FetchLyrics(bool fromUI=false)
+    async Task FetchLyrics(bool fromUI = false)
     {
         IsFetching = true;
-        if(fromUI || SynchronizedLyrics?.Count < 1)
+        if (fromUI || SynchronizedLyrics?.Count < 1)
         {
             AllSyncLyrics = Array.Empty<Content>();
-            (IsFetchSuccessul, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);            
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);            
         }
         IsFetching = false;
         return;
     }
 
     [RelayCommand]
-    async Task SaveUserSelectedLyricsToLrcFile(int id)
+    async Task FetchLyricsLyrist(bool fromUI = false)
     {
-        var s = AllSyncLyrics.First(x => x.id == id);
-        if(LyricsManagerService.WriteLyricsToLrcFile(s.syncedLyrics, TemporarilyPickedSong))
+        IsFetching = true;
+        if (fromUI || SynchronizedLyrics?.Count < 1)
         {
-            await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+            AllSyncLyrics = Array.Empty<Content>();
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong);
+        }
+        IsFetching = false;
+        return;
+    }
 
-            CurrentViewIndex = 0;
-            LyricsManagerService.InitializeLyrics(s.syncedLyrics);
+    [ObservableProperty]
+    string songTitle;
+    [ObservableProperty]
+    string artistName;
+    [ObservableProperty]
+    string albumName;
+    [ObservableProperty]
+    bool useManualSearch;
+    [RelayCommand]
+    async Task UseManualLyricsSearch()
+    {
+        AllSyncLyrics = Array.Empty<Content>();
+        List<string> manualSearchFields = new List<string>();
+        manualSearchFields.Add(SongTitle);
+        manualSearchFields.Add(ArtistName);
+        manualSearchFields.Add(AlbumName);
+        (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true, manualSearchFields);
+        if (!IsFetchSuccessful)
+        {
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong, true, manualSearchFields);
         }
     }
+    [RelayCommand]
+    async Task SaveUserSelectedLyricsToFile(int id)
+    {
+        var s = AllSyncLyrics.First(x => x.id == id);
+        if (s.syncedLyrics is null || s.syncedLyrics?.Length < 1)
+        {
+            TemporarilyPickedSong.UnSyncLyrics = s.plainLyrics;
+            TemporarilyPickedSong.HasLyrics = true;
+            TemporarilyPickedSong.HasSyncedLyrics = false;
+        }
+        if (LyricsManagerService.WriteLyricsToLyricsFile(s.syncedLyrics?.Length > 0 ? s.syncedLyrics : s.plainLyrics, TemporarilyPickedSong, s.syncedLyrics?.Length > 0))
+        {
+            await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+            CurrentViewIndex = 0;
+        }
+        LyricsManagerService.InitializeLyrics(s?.syncedLyrics?.Length > 0 ? s?.syncedLyrics : null);
+        DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+    }
+
     [RelayCommand]
     async Task FetchSongCoverImage()
     {
         await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
-        Debug.WriteLine($"{TemporarilyPickedSong.CoverImagePath}");
     }
 
     [ObservableProperty]
@@ -438,6 +491,7 @@ public partial class HomePageVM : ObservableObject
         if (viewIndex == 1)
         {
             await FetchLyrics();
+
         }
     }
 
@@ -446,7 +500,7 @@ public partial class HomePageVM : ObservableObject
     void OpenSongFolder()//SongsModel SelectedSong)
     {
 #if WINDOWS
-        var directoryPath = Path.GetDirectoryName(PickedSong.FilePath);//SelectedSong.FilePath);
+        var directoryPath = Path.GetDirectoryName(TemporarilyPickedSong.FilePath);//SelectedSong.FilePath);
         Debug.WriteLine(directoryPath);
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
         {
@@ -463,14 +517,14 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task DeleteFile()
     {
-        if (PickedSong is null)
+        if (TemporarilyPickedSong is null)
         {
             Debug.WriteLine("Null");
             return;
         }
         try
         {
-            if (File.Exists(PickedSong.FilePath))
+            if (File.Exists(TemporarilyPickedSong.FilePath))
             {
                 bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
                 if (result is true)

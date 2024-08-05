@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Models;
+﻿namespace Dimmer.Models;
 
 public class Content
 {
@@ -17,6 +11,7 @@ public class Content
     public bool instrumental { get; set; }
     public string plainLyrics { get; set; }
     public string syncedLyrics { get; set; }
+    public string linkToCoverImage { get; set; }
 }
 
 public class LyristApiResponse
@@ -25,5 +20,30 @@ public class LyristApiResponse
     public string title { get; set; }
     public string artist { get; set; }
     public string image { get; set; }
+    public int id { get; set; }
+}
 
+
+public partial class LyricPhraseModel : ObservableObject
+{
+    [ObservableProperty]
+    int timeStampMs;
+    [ObservableProperty]
+    string text;
+
+    // Constructor that accepts a LyricsInfo.LyricsPhrase object
+    public LyricPhraseModel(LyricsInfo.LyricsPhrase phrase)
+    {
+        if (phrase != null)
+        {
+            TimeStampMs = phrase.TimestampMs;
+            Text = phrase.Text;
+        }
+        else
+        {
+            // Initialize with default values if 'phrase' is null
+            TimeStampMs = 0; // Default timestamp, adjust if necessary
+            Text = ""; // Default text, could be "No lyrics available" etc.
+        }
+    }
 }

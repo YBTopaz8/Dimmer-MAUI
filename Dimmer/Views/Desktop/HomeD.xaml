@@ -39,9 +39,8 @@
     <uranium:UraniumContentPage.ToolbarItems>
         <ToolbarItem Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
     </uranium:UraniumContentPage.ToolbarItems>
-    
-    <toolkit:DockLayout>
 
+    <toolkit:DockLayout>
 
         <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" 
                              HeightRequest="135" >
@@ -58,11 +57,10 @@
                     <HorizontalStackLayout.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
                     </HorizontalStackLayout.GestureRecognizers>
-
                     <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="5,0,0,5" 
                         MaximumHeightRequest="100" Aspect="AspectFill">
                     </Image>
-
+                    
                     <VerticalStackLayout VerticalOptions="Center" >
                         <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
                         <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation"/>
@@ -144,20 +142,38 @@
         <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
                    x:Name="SearchSongSB"/>
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top">
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
             <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
                 <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}" FontSize="18"
-                   FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+            FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
-                <ImageButton Clicked="Button_Clicked">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                <HorizontalStackLayout Spacing="10">
+                    <material:CheckBox Text="Show Preferred folders" x:Name="TogglePrefFoldersChbx"/>
+                    <ImageButton Clicked="Button_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>
+                
             </FlexLayout>
         </VerticalStackLayout>
-        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
+           
+                <CollectionView ItemsSource="{Binding FolderPaths}" EmptyView="No Folders Yet">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Label Text="{Binding .}"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
+            <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
+            <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
+        </VerticalStackLayout>
+        
+            
         
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
@@ -235,22 +251,26 @@
                                  Grid.ColumnSpan="8" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
-
-                            <!-- Putting an image here will crash app
-                            <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/>-->
-                            <Label Text="{Binding Title}" HorizontalOptions="Start"/>
-                            <Image IsVisible="{Binding IsPlaying}" >
-                                <Image.Source>
-                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
-                                </Image.Source>
-                            </Image>
+                            <toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
+                                                BorderWidth="0" CornerRadius="5"/>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" HorizontalOptions="Start"/>
+                                <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
+                                    </Image.Source>
+                                </Image>
+                            </VerticalStackLayout>
                         </HorizontalStackLayout>
-
-
+                        
                         <Label Text="{Binding ArtistName}" Grid.Column="1"
                                LineBreakMode="WordWrap"/>
-                        <Label Text="{Binding HasLyrics}" Grid.Column="2"/>
 
+                        <Image WidthRequest="30" Grid.Column="2" IsVisible="{Binding HasLyrics}">
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                            </Image.Source>
+                        </Image>
                         <ImageButton Command="{Binding Source={x:Reference page},Path=BindingContext.AddSongToFavoritesCommand}"
                                      VerticalOptions="Start" CommandParameter="{Binding .}" BackgroundColor="Transparent"
                                      Grid.Column="3">
@@ -271,9 +291,11 @@
         </CollectionView>
 
     </toolkit:DockLayout>
-    
-    
-    
+
+                             <!--Putting an image here will crash app
+    <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/> -->
+
+
     <!--<cm:ContextMenuContainer BackgroundColor="Red">
     <cm:ContextMenuContainer.MenuItems >
         <cm:ContextMenuItem Text="Action 1" />
