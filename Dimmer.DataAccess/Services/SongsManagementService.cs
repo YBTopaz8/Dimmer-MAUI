@@ -99,26 +99,14 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-            // Capture the current synchronization context
-            var context = SynchronizationContext.Current;
-            if (context == null)
-            {
-                throw new InvalidOperationException("SynchronizationContext is not set.");
-            }
-
             // Run the write operation in a separate task
-            Task.Run(() =>
+          
+            db.Write(() =>
             {
-                context.Post(_ =>
-                {
-                    db.Write(() =>
-                    {
-                        var song = new SongsModel(songsModelView);
-                        song.IsPlaying = false;
-                        db.Add(song, update: true);
-                    });
-                }, null);
-            }).Wait();
+                var song = new SongsModel(songsModelView);
+                song.IsPlaying = false;
+                db.Add(song, update: true);
+            });
 
             return true;
         }

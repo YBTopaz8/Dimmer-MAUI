@@ -44,7 +44,7 @@
 
         <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" 
                              HeightRequest="135" >
-            <Slider Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+            <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
                     DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
             </Slider>
             <Grid ColumnSpacing="25">
@@ -57,9 +57,10 @@
                     <HorizontalStackLayout.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
                     </HorizontalStackLayout.GestureRecognizers>
-                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="5,0,0,5" 
-                        MaximumHeightRequest="100" Aspect="AspectFill">
-                    </Image>
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="10,0,5,5" 
+                                        MinimumWidthRequest="80" MinimumHeightRequest="70" HeightRequest="70"
+                                        BorderWidth="0" CornerRadius="8"> 
+                    </toolkit:AvatarView>
                     
                     <VerticalStackLayout VerticalOptions="Center" >
                         <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
@@ -110,7 +111,7 @@
 
                 <VerticalStackLayout Grid.Column="2" Margin="5,0">
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
-                        <Label Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}"/>
+                        <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
                         <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
                                Opacity="0.6"/>
                     </HorizontalStackLayout>
@@ -149,6 +150,9 @@
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
                 <HorizontalStackLayout Spacing="10">
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"/>
+                    <uranium:SelectableLabel Text="{Binding TemporarilyPickedSong.Title}"/>
+                    <Label Text="{Binding TemporarilyPickedSong.Id}"/>
                     <material:CheckBox Text="Show Preferred folders" x:Name="TogglePrefFoldersChbx"/>
                     <ImageButton Clicked="Button_Clicked">
                         <ImageButton.Source>
@@ -207,9 +211,10 @@
             <Label Text="Is Playing" Grid.Column="7" />
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong}" 
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
                         toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged"
+                        Loaded="SongsColView_Loaded"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">

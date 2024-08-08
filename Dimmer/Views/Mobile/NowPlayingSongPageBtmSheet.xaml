@@ -61,12 +61,12 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Left-aligned Label -->
-                <Label Grid.Column="0" Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}" 
+                <Label Grid.Column="0" Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" 
                        VerticalOptions="Center" FontSize="17"/>
 
                 <!-- Slider in the center -->
                 <Slider Grid.Column="1" VerticalOptions="Center" 
-                        Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+                        Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
                         DragCompletedCommand="{Binding SeekSongPositionCommand}"/>
 
                 <!-- Right-aligned Label -->

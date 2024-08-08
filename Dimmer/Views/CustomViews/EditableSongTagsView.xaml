@@ -4,29 +4,81 @@
              x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"    
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             x:DataType="vm:HomePageVM"
             x:Name="myPage">
-    <toolkit:DockLayout>
-        <VerticalStackLayout Spacing="5">
-            <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title }"/>            
-            <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName }"/>
-            <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }"/>
-            
-            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="300" >
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                        <HorizontalStackLayout>
-                            <Label Text="{Binding Text}"/>
-                        </HorizontalStackLayout> 
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-            
 
-            <material:EditorField Title="Unsynchronized Lyrics" Text="{Binding UnSyncedLyrics}"/>
-        </VerticalStackLayout>
-    </toolkit:DockLayout>
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <VerticalStackLayout Spacing="5" x:Name="ContentVSL">
+        <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title }"/>            
+        <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName }"/>
+        <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }"/>
+
+
+        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"/>
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" 
+                        MaximumHeightRequest="300">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <Label Text="{Binding Text}" HorizontalTextAlignment="Center"/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <HorizontalStackLayout MinimumWidthRequest="300" MaximumHeightRequest="700" HorizontalOptions="Center">
+            <ScrollView x:Name="UnSyncLyricsView" MaximumHeightRequest="700"
+                        IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics, Converter={x:StaticResource BoolToInverse}}">
+
+                <Editor x:Name="unSync" WidthRequest="400" MinimumWidthRequest="300" MaximumHeightRequest="700"
+                        Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>
+                <!--<Entry  Completed="UnSync_Completed" TextChanged="UnSync_TextChanged"
+                          Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>-->
+            </ScrollView>
+
+            <ScrollView MaximumHeightRequest="600" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}" 
+                        x:Name="SyncingLyricView" HorizontalOptions="Center">
+                <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LyricPhraseModel">
+                            <FlexLayout JustifyContent="SpaceBetween" WidthRequest="600">
+                                <HorizontalStackLayout Spacing="5" Margin="0,0,0,5" >
+                                    <Label Text="{Binding TimeStampText}" VerticalTextAlignment="Center"/>
+                                    <Entry Text="{Binding Text}"/>
+                                </HorizontalStackLayout>
+
+                                <HorizontalStackLayout>
+                                    <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
+                                                 WidthRequest="20" BackgroundColor="Transparent">
+                                        <ImageButton.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+                                    <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
+                                                 WidthRequest="20" BackgroundColor="Transparent">
+                                        <ImageButton.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+                                    </HorizontalStackLayout>
+                                
+                            </FlexLayout>
+                            
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                
+            </ScrollView>
+        </HorizontalStackLayout>
+        <Label Text="{Binding LyricsLines.Count}"/>
+        
+    </VerticalStackLayout>
+    
 </ContentView>

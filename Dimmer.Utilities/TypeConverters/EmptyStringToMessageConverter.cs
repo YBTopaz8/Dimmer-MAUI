@@ -19,8 +19,11 @@ public class EmptyStringToMessageConverter : IValueConverter
             {
                 return "No Results";
             }
+            return value;
+
         }
-        return string.Empty;
+
+        return "None";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

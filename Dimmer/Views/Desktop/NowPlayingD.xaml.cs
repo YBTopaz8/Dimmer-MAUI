@@ -7,8 +7,10 @@ public partial class NowPlayingD : ContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
+
+        EditableSongsTagsV.homePageVM = homePageVM;
+        EditableSongsTagsV.BindingContext = HomePageVM;
     }
     public HomePageVM HomePageVM { get; }
     
-
 }

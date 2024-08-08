@@ -9,6 +9,7 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         VolumeSlider.Value = 1;
+
     }
 
     public HomePageVM HomePageVM { get; }
@@ -18,7 +19,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: false);
         }
     }
 
@@ -52,7 +53,7 @@ public partial class HomeD : UraniumContentPage
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
             //SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: true);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -60,4 +61,25 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
+
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+        
+    }
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    {
+        base.OnNavigatedFrom(args);
+        HomePageVM.SwitchViewNowPlayingPageCommand.Execute(0);
+    }
+    private void SongsColView_Loaded(object sender, EventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
+        }
+    }
+
+    
 }

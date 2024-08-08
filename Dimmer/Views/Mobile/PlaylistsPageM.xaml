@@ -23,7 +23,7 @@
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Bottom" x:Name="BtmMediaControlsVSL"
                              x:DataType="vm:HomePageVM">
             <thumblessSlider:ThumblessSlider VerticalOptions="Center" Margin="-20,0"
-                                             Value="{Binding CurrentPosition}" MinimumTrackColor="DarkSlateBlue"/>
+                                             Value="{Binding CurrentPositionPercentage}" MinimumTrackColor="DarkSlateBlue"/>
 
             <FlexLayout JustifyContent="SpaceBetween"
                         x:Name="BtmMediaControls" 

@@ -52,9 +52,9 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout x:Name="dockPan">
-        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" 
+        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom"
                       HeightRequest="135" >
-            <Slider Value="{Binding CurrentPosition, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+            <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
              DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
             </Slider>
             <Grid ColumnSpacing="25">
@@ -130,29 +130,10 @@
                                      VerticalOptions="Center">
 
                     <HorizontalStackLayout >
-                        <Label Text="{Binding CurrentPositionText, Converter={StaticResource DurationConverter}}"/>
+                        <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
                         <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
                             Opacity="0.6"/>
                     </HorizontalStackLayout>
-                
-                <!--<HorizontalStackLayout HorizontalOptions="Start" >
-                    
-                    <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
-                    DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
-                        Minimum="0" Maximum="1" VerticalOptions="Center"/>
-
-                    <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                </HorizontalStackLayout>-->
                     
                 </VerticalStackLayout>
 
@@ -160,8 +141,8 @@
             
         </VerticalStackLayout>
 
-        <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}"  
-              x:Name="NowPlayingGrid" >
+        <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
+              x:Name="NowPlayingGrid"  >
             <Grid.Effects>
                 <uranium:BlurEffect AccentOpacity="0.7"/>
             </Grid.Effects>
@@ -179,19 +160,43 @@
 
                 </VerticalStackLayout>
                 <!--<Label Text="Pas toucher"/>-->
-                
-                <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" 
-                                     MaximumHeightRequest="{Binding Height,Source={x:Reference NowPlayingGrid}}"/>
-                <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
-                                           MaximumHeightRequest="{Binding Height,Source={x:Reference NowPlayingGrid}}"/>
-                <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"
-                                 MaximumHeightRequest="{Binding Height,Source={x:Reference NowPlayingGrid}}"/>
-                <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
-                                         MaximumHeightRequest="{Binding Height,Source={x:Reference NowPlayingGrid}}"/>
+                <VerticalStackLayout MaximumHeightRequest="{Binding Height,Source={x:Reference NowPlayingGrid}}">
+                    <Label Text="{Binding Height, Source={x:Reference myPage}}"/>
+                    <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
+                                         />
+                    <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
+                        />
+                    <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"
+                        />
+                    <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
+                        x:Name="EditableSongsTagsV" />
 
+                </VerticalStackLayout>
+                
             </toolkit:DockLayout>
 
         </Grid>
 
     </toolkit:DockLayout>
 </ContentPage>
+
+
+
+<!--<HorizontalStackLayout HorizontalOptions="Start" >
+                    
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
+                    DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
+                        Minimum="0" Maximum="1" VerticalOptions="Center"/>
+
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>-->

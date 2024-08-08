@@ -13,9 +13,9 @@ public partial class HomePageVM : ObservableObject
     //[ObservableProperty]
     //ImageSource pickedSongCoverImage;
     [ObservableProperty]
-    double currentPosition;
+    double currentPositionPercentage;
     [ObservableProperty]
-    double currentPositionText = 0;
+    double currentPositionInSeconds = 0;
 
     [ObservableProperty]
     ObservableCollection<SongsModelView> displayedSongs;
@@ -77,10 +77,8 @@ public partial class HomePageVM : ObservableObject
         VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
 
         LoadSongCoverImage();
-        LoadLyrics();
 
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
-        //PickedSong = PlaybackManagerService.CurrentlyPlayingSong;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
         IsPlaying = false;
@@ -92,18 +90,6 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     byte[] allPictureDatas;
-
-    private void LoadLyrics()
-    {
-        try
-        {
-            LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Error when Loading lyrics in homepagevm " + ex.Message);
-        }
-    }
 
     public void LoadLocalSongFromOutSideApp(string[] filePath)
     {
@@ -164,7 +150,7 @@ public partial class HomePageVM : ObservableObject
         IsLoadingSongs = true;
 
         LoadingSongsProgress = PlayBackManagerService.LoadProgressPercent;
-        
+
         bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(FullFolderPaths);
         if (loadSongsResult)
         {
@@ -186,14 +172,14 @@ public partial class HomePageVM : ObservableObject
 
         if (SelectedSong is not null)
         {
-            PlayBackManagerService.PlaySongAsync(SelectedSong);            
+            PlayBackManagerService.PlaySongAsync(SelectedSong);
         }
         else
         {
             PlayBackManagerService.PlaySongAsync(null);
         }
         AllSyncLyrics = Array.Empty<Content>();
-        
+
     }
 
     [RelayCommand]
@@ -238,7 +224,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SeekSongPosition(object? value)
     {
-        PlayBackManagerService.SetSongPosition(CurrentPosition);
+        PlayBackManagerService.SetSongPosition(CurrentPositionPercentage);
     }
 
     [RelayCommand]
@@ -327,22 +313,14 @@ public partial class HomePageVM : ObservableObject
 
     public void LoadSongCoverImage()
     {
-        if (TemporarilyPickedSong is null)
-            return;
-        if (TemporarilyPickedSong.CoverImagePath is not null)
-        {
-            //PickedSongCoverImage = ImageSource.FromFile(TemporarilyPickedSong.CoverImagePath);
-        }
-        else
-        {
-            //PickedSongCoverImage = ImageSource.FromFile("Resources/musical.png");
-        }
+
+        PickedSong = TemporarilyPickedSong;
     }
 
     #region Subscriptions to Services
     [ObservableProperty]
     bool isPlaying = false;
-    private async void SubscribeToPlayerStateChanges()
+    void SubscribeToPlayerStateChanges()
     {
         PlayBackManagerService.PlayerState.Subscribe(state =>
         {
@@ -351,7 +329,19 @@ public partial class HomePageVM : ObservableObject
             switch (state)
             {
                 case MediaPlayerState.Playing:
+                    if(splittedLyricsLines is not null)
+                    {
+                        Array.Clear(splittedLyricsLines);
+                    }
+                    if (AllSyncLyrics is not null)
+                    {
+                        Array.Clear(AllSyncLyrics);
+                    }
                     IsPlaying = true;
+                    if(CurrentViewIndex == 3)
+                    {
+                        OpenEditableSongsTagsView();
+                    }
                     break;
                 case MediaPlayerState.Paused:
                     IsPlaying = false;
@@ -373,10 +363,15 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribeToCurrentSongPosition()
     {
-        PlayBackManagerService.CurrentPosition.Subscribe(position =>
+        PlayBackManagerService.CurrentPosition.Subscribe(async position =>
         {
-            CurrentPositionText = position.CurrentTimeInSeconds;
-            CurrentPosition = position.TimeElapsed;
+            CurrentPositionInSeconds = position.CurrentTimeInSeconds;
+            CurrentPositionPercentage = position.TimeElapsed;
+            if (CurrentPositionPercentage >= 0.99 && IsPlaying)
+            {
+                //Debug.WriteLine("It should pause now");
+               await PauseResumeSong();
+            }
         });
     }
     private void SubscribetoDisplayedSongsChanges()
@@ -415,7 +410,7 @@ public partial class HomePageVM : ObservableObject
         if (fromUI || SynchronizedLyrics?.Count < 1)
         {
             AllSyncLyrics = Array.Empty<Content>();
-            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);            
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);
         }
         IsFetching = false;
         return;
@@ -475,6 +470,113 @@ public partial class HomePageVM : ObservableObject
         DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
     }
 
+    [ObservableProperty]
+    ObservableCollection<LyricPhraseModel>? lyricsLines = new();
+    [RelayCommand]
+    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    {
+        var CurrPosition = CurrentPositionInSeconds;
+        if (!IsPlaying)
+        {
+            PlaySong();
+        }
+
+        LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
+        if (Lyricline is null)
+            return;
+
+
+        Lyricline.TimeStampMs = (int)CurrPosition * 1000;
+        Lyricline.TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromSeconds(CurrPosition));
+    }
+
+    [RelayCommand]
+    void DeleteLyricLine(LyricPhraseModel lyricPhraseModel)
+    {
+        LyricsLines?.Remove(lyricPhraseModel);
+        if(TemporarilyPickedSong.UnSyncLyrics is null)
+        {
+            return;
+        }
+        TemporarilyPickedSong.UnSyncLyrics = RemoveTextAndFollowingNewline(TemporarilyPickedSong.UnSyncLyrics, lyricPhraseModel.Text);//TemporarilyPickedSong.UnSyncLyrics.Replace(lyricPhraseModel.Text, string.Empty);
+    }
+
+    string[]? splittedLyricsLines;
+
+    void PrepareLyricsSync()
+    {        
+        if (TemporarilyPickedSong?.UnSyncLyrics == null)
+            return;
+
+        // Define the terms to be removed
+        string[] termsToRemove = new[]
+        {
+        "[Chorus]", "Chorus", "[Verse]", "Verse", "[Hook]", "Hook",
+        "[Bridge]", "Bridge", "[Intro]", "Intro", "[Outro]", "Outro",
+        "[Pre-Chorus]", "Pre-Chorus", "[Instrumental]", "Instrumental",
+        "[Interlude]", "Interlude" 
+        };
+
+        // Remove all the terms from the lyrics
+        string cleanedLyrics = TemporarilyPickedSong.UnSyncLyrics;
+        foreach (var term in termsToRemove)
+        {
+            cleanedLyrics = cleanedLyrics.Replace(term, string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+
+        string[]? ss = TemporarilyPickedSong.UnSyncLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line))
+            .ToArray();
+
+        if (splittedLyricsLines is null || splittedLyricsLines.Length < 1)
+        {
+            return;
+        }
+        foreach (var item in splittedLyricsLines)
+        {
+            var LyricPhrase = new ATL.LyricsInfo.LyricsPhrase(0, item);
+            LyricPhraseModel newLyric = new(LyricPhrase);
+            LyricsLines?.Add(newLyric);
+        }
+    }
+
+    static string RemoveTextAndFollowingNewline(string input, string textt)
+    {
+        string result = input;
+
+        // Find the position of the textt
+        int index = result.IndexOf(textt);
+
+        while (index != -1)
+        {
+            // Check if the character after textt is \r or \n
+            int nextCharIndex = index + textt.Length;
+            if (nextCharIndex < result.Length)
+            {
+                if (result[nextCharIndex] == '\r' || result[nextCharIndex] == '\n')
+                {
+                    // Remove both textt and the following \r or \n
+                    result = result.Remove(index, textt.Length + 1);
+                }
+                else
+                {
+                    // Only remove textt
+                    result = result.Remove(index, textt.Length);
+                }
+            }
+            else
+            {
+                // Only remove textt if it's at the end
+                result = result.Remove(index, textt.Length);
+            }
+
+            // Search for the next occurrence of textt
+            index = result.IndexOf(textt);
+        }
+
+        return result;
+    }
+
     [RelayCommand]
     async Task FetchSongCoverImage()
     {
@@ -483,32 +585,55 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     int currentViewIndex;
-
+    [ObservableProperty]
+    bool isOnLyricsSyncMode;
     [RelayCommand]
-    async Task SwitchViewNowPlayingPage(int viewIndex)
+    void SwitchViewNowPlayingPage(int viewIndex)
     {
         CurrentViewIndex = viewIndex;
-        if (viewIndex == 1)
+        switch (viewIndex)
         {
-            await FetchLyrics();
+            case 0:
+                if (splittedLyricsLines is null)
+                {
+                    return;
+                }
+                Array.Clear(splittedLyricsLines);
 
+                break;
+            case 1:
+                //await FetchLyrics();
+                break;
+            case 3:
+                OpenEditableSongsTagsView();
+                break;
+            default:
+                break;
         }
+        
     }
 
+    void OpenEditableSongsTagsView()
+    {
+        LyricsLines?.Clear();
+        PrepareLyricsSync();        
+    }
 
     [RelayCommand]
-    void OpenSongFolder()//SongsModel SelectedSong)
+    void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
-        var directoryPath = Path.GetDirectoryName(TemporarilyPickedSong.FilePath);//SelectedSong.FilePath);
-        Debug.WriteLine(directoryPath);
+        var filePath = TemporarilyPickedSong.FilePath; // SelectedSong.FilePath
+        var directoryPath = Path.GetDirectoryName(filePath);
+
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
         {
+            // Open File Explorer and select the file
             Process.Start(new ProcessStartInfo
             {
-                FileName = directoryPath,
-                UseShellExecute = true,
-                Verb = "open"
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{filePath}\"",
+                UseShellExecute = true
             });
         }
 #endif

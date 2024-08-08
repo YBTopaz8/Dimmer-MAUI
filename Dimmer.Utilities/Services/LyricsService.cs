@@ -258,10 +258,10 @@ public class LyricsService : ILyricsService
             .Sample(TimeSpan.FromMilliseconds(sampleTime))
             .Subscribe(position =>
             {
-                Debug.WriteLine("Sorted Lyrics Count = " + sortedLyrics?.Count);
+
                 double currentTimeinsSecs = position.CurrentTimeInSeconds;
                 UpdateCurrentLyricIndex(currentTimeinsSecs);
-                Debug.WriteLine($"Current time now {currentTimeinsSecs}");
+                
             }, error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
 
@@ -383,6 +383,10 @@ public class LyricsService : ILyricsService
             Debug.WriteLine($"Unexpected error: {e.Message}");
             return (false, Array.Empty<Content>());
         }
+        finally 
+        { 
+            client.Dispose(); 
+        }
     }
 
     async Task<Content[]> SearchLyricsByTitleOnlyToLrc(SongsModelView song, HttpClient client)
@@ -445,9 +449,9 @@ public class LyricsService : ILyricsService
 
     public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
+        HttpClient client = new HttpClient();
         try
         {
-            HttpClient client = new HttpClient();
             Content[]? contentData = null;
             contentData = await SearchLyricsByTitleAndArtistNameToLyrist(song, client);
             return (true, contentData);
@@ -461,6 +465,10 @@ public class LyricsService : ILyricsService
         {
             Debug.WriteLine($"Unexpected error: {e.Message}");
             return (false, null);
+        }
+        finally
+        {            
+            client.Dispose();
         }
     }
 
@@ -502,7 +510,7 @@ public class LyricsService : ILyricsService
 
         // Read the response content
         byte[] ImageBytes = await response.Content.ReadAsByteArrayAsync();
-
+        client.Dispose();
         return ImageBytes;
     }
 

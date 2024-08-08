@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"  
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             x:DataType="vm:HomePageVM"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
              x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView"
-             x:Name="myView" 
-             HeightRequest="300">
+             x:Name="myView">
 
     <ContentView.Resources>
         <ResourceDictionary>
@@ -15,11 +15,12 @@
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <StackLayout>
-
+    <toolkit:DockLayout VerticalOptions="Center" x:Name="SyncedLyricsSL" MaximumHeightRequest="1200" MinimumHeightRequest="760">
+        
+            
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
             SelectionMode="Single" x:Name="LyricsColView" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}" 
-            MaximumHeightRequest="{Binding Height, Source={x:Reference myView}}" SelectedItem="{Binding CurrentLyricPhrase}">
+            HeightRequest="{Binding Height, Source={x:Reference myView}}" SelectedItem="{Binding CurrentLyricPhrase}">
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Selected">
@@ -27,7 +28,6 @@
                             <Setter Property="BackgroundColor" Value="Red"/>
                         </VisualState.Setters>
                     </VisualState>
-
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
             <CollectionView.ItemTemplate>
@@ -40,21 +40,22 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+        <Label Text="{Binding Height,Source={x:Reference SyncedLyricsSL}}"/>
+        
 
-        <ScrollView HeightRequest="{Binding Height, Source={x:Reference myView}}">
-
+        <!--<ScrollView MaximumHeightRequest="1200" MinimumHeightRequest="760" x:Name="scrollv">-->
+            
             <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" IsVisible="True"
-                   HorizontalTextAlignment="Center"
-               VerticalTextAlignment="Start"
-               Padding="10"
-               LineBreakMode="WordWrap"/>
+                   HorizontalTextAlignment="Center" Padding="10" 
+                   LineBreakMode="WordWrap"/>
         
-        </ScrollView>
-        
+        <!--</ScrollView>-->
+
         <!--<Label IsVisible="{Binding IsFetchSuccessful}"
                Text="No Lyrics 💔"/>-->
         <Label IsVisible="{Binding IsFetchSuccessful, Converter={x:StaticResource BoolToInverse}}"
                Text="No Lyrics 💔"/>
-    </StackLayout>
+        
+    </toolkit:DockLayout>
     
 </ContentView>

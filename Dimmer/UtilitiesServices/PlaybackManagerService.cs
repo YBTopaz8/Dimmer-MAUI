@@ -284,6 +284,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 return;
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
         }
+        _playerStateSubject.OnNext(MediaPlayerState.Initialized);
     }
 
     byte[]? GetCoverImage(string filePath, bool isToGetByteArrayImages)
@@ -328,7 +329,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             double percentagePlayed = currentPositionInSeconds / totalDurationInSeconds;
             _currentPositionSubject.OnNext(new PlaybackInfo
             {
-                TimeElapsed = percentagePlayed,
+                TimeElapsed = percentagePlayed, //this is the value of that CurrentPosition then takes
                 CurrentTimeInSeconds = currentPositionInSeconds
             });
         }
@@ -563,7 +564,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 ImageBytes = coverImage,
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
-
+            await audioService.PlayAsync(positionInSeconds);
             await SetSongPosition(positionInSeconds);
         }
 
