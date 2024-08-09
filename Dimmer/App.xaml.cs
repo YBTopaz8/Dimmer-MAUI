@@ -5,6 +5,9 @@ public partial class App : Application
     public App(INativeAudioService audioService)
     {
         InitializeComponent();
+
+        // Handle unhandled exceptions
+        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #if WINDOWS
         MainPage = new AppShell();
 
@@ -13,8 +16,13 @@ public partial class App : Application
 #endif
     }
 
-    public ISongsManagementService SongsManagementService { get; }
-    public IPlaylistManagementService PlaylistManagementService { get; }
+    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    {
+#if DEBUG
+        System.Diagnostics.Debug.WriteLine($"********************************** UNHANDLED EXCEPTION! Details: {e.Exception}");
+#endif
+        LogException(e.Exception);
+    }
 
     protected override Window CreateWindow(IActivationState activationState)
     {
@@ -29,11 +37,20 @@ public partial class App : Application
         return window;
     }
 
-    
-    //protected override void OnSleep()
-    //{
-    //    (SongsManagementService as IDisposable)?.Dispose();
-    //    base.OnSleep();
 
-    //}
+
+    private void LogException(Exception ex)
+    {
+        try
+        {
+            // Log to a file
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "crashlog.txt");
+            string logContent = $"[{DateTime.Now}]\n{ex}\n\n";
+            File.AppendAllText(filePath, logContent);
+        }
+        catch
+        {
+            // If logging fails, there's not much we can do
+        }
+    }
 }

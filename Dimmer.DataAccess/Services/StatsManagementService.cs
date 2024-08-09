@@ -13,12 +13,12 @@ public class StatsManagementService : IStatsManagementService
     }
     public IDataBaseService DataBaseService { get; }
 
-    public void IncrementPlayCount(string songTitle, double songDuration)
+    public void IncrementPlayCount(ObjectId songID)
     {
         try
         {
             OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Title == songTitle && s.DurationInSeconds == songDuration);
+            var song = db.All<SongsModel>().FirstOrDefault(s => s.Id == songID);// s.Title == songTitle && s.DurationInSeconds == songDuration);
 
             if (song is null)
             {
@@ -43,12 +43,12 @@ public class StatsManagementService : IStatsManagementService
         }
     }
 
-    public void IncrementSkipCount(string songTitle, string artistName)
+    public void IncrementSkipCount(ObjectId songID)
     {
         try
         {
             OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Title == songTitle && s.ArtistName == artistName);
+            var song = db.All<SongsModel>().FirstOrDefault(s => s.Id == songID);
 
             if (song is null)
             {

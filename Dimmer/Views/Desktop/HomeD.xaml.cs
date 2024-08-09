@@ -17,10 +17,11 @@ public partial class HomeD : UraniumContentPage
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (SongsColView.IsLoaded)
-        {
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: false);
-        }
+        //if (SongsColView.IsLoaded)
+        //{
+        //    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        //}
+        //This crashes the app :(
     }
 
 
@@ -53,7 +54,7 @@ public partial class HomeD : UraniumContentPage
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
             //SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -71,6 +72,7 @@ public partial class HomeD : UraniumContentPage
     {
         base.OnNavigatedFrom(args);
         HomePageVM.SwitchViewNowPlayingPageCommand.Execute(0);
+        HomePageVM.IsOnLyricsSyncMode = false;
     }
     private void SongsColView_Loaded(object sender, EventArgs e)
     {

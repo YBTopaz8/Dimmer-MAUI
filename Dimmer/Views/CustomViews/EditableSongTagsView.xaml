@@ -19,39 +19,40 @@
         </ResourceDictionary>
     </ContentView.Resources>
     <VerticalStackLayout Spacing="5" x:Name="ContentVSL">
-        <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title }"/>            
-        <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName }"/>
-        <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }"/>
+        <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+        <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+        <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
 
 
         <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"/>
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" 
-                        MaximumHeightRequest="300">
+                        MaximumHeightRequest="300" IsVisible="{Binding IsOnLyricsSyncMode}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Label Text="{Binding Text}" HorizontalTextAlignment="Center"/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <HorizontalStackLayout MinimumWidthRequest="300" MaximumHeightRequest="700" HorizontalOptions="Center">
-            <ScrollView x:Name="UnSyncLyricsView" MaximumHeightRequest="700"
-                        IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics, Converter={x:StaticResource BoolToInverse}}">
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <ScrollView x:Name="UnSyncLyricsView" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
+                        HeightRequest="385">
 
-                <Editor x:Name="unSync" WidthRequest="400" MinimumWidthRequest="300" MaximumHeightRequest="700"
+                <material:EditorField x:Name="unSync" HeightRequest="400" CharacterSpacing="1" Title="UnSynced Lyrics"
                         Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>
                 <!--<Entry  Completed="UnSync_Completed" TextChanged="UnSync_TextChanged"
                           Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>-->
             </ScrollView>
 
-            <ScrollView MaximumHeightRequest="600" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}" 
-                        x:Name="SyncingLyricView" HorizontalOptions="Center">
+            <ScrollView MaximumHeightRequest="850" 
+                        x:Name="SyncingLyricView" HorizontalOptions="Center"
+                        IsVisible="{Binding IsOnLyricsSyncMode}">
                 <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:LyricPhraseModel">
-                            <FlexLayout JustifyContent="SpaceBetween" WidthRequest="600">
+                            <FlexLayout JustifyContent="SpaceBetween" WidthRequest="800">
                                 <HorizontalStackLayout Spacing="5" Margin="0,0,0,5" >
                                     <Label Text="{Binding TimeStampText}" VerticalTextAlignment="Center"/>
-                                    <Entry Text="{Binding Text}"/>
+                                    <Entry Text="{Binding Text}" WidthRequest="600"/>
                                 </HorizontalStackLayout>
 
                                 <HorizontalStackLayout>
@@ -77,7 +78,6 @@
                 
             </ScrollView>
         </HorizontalStackLayout>
-        <Label Text="{Binding LyricsLines.Count}"/>
         
     </VerticalStackLayout>
     

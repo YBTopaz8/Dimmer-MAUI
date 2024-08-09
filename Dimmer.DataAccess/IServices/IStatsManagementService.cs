@@ -1,9 +1,9 @@
 ﻿namespace Dimmer.DataAccess.IServices;
 public interface IStatsManagementService
 {
-    void IncrementPlayCount(string songTitle, double songDuration);
+    void IncrementPlayCount(ObjectId songID);
     
-    void IncrementSkipCount(string songTitle, string artistName);
+    void IncrementSkipCount(ObjectId songID);
 
     void SetAsFavorite(ObjectId songID);
 }

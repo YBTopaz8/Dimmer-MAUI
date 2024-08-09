@@ -15,12 +15,13 @@
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <toolkit:DockLayout VerticalOptions="Center" x:Name="SyncedLyricsSL" MaximumHeightRequest="1200" MinimumHeightRequest="760">
-        
-            
+    <toolkit:DockLayout VerticalOptions="Center" x:Name="SyncedLyricsSL" 
+                        MaximumHeightRequest="1200" MinimumHeightRequest="760">
+
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
-            SelectionMode="Single" x:Name="LyricsColView" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}" 
-            HeightRequest="{Binding Height, Source={x:Reference myView}}" SelectedItem="{Binding CurrentLyricPhrase}">
+                        HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
+            SelectionMode="Single" x:Name="LyricsColView" 
+            SelectedItem="{Binding CurrentLyricPhrase}">
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Selected">
@@ -28,33 +29,34 @@
                             <Setter Property="BackgroundColor" Value="Red"/>
                         </VisualState.Setters>
                     </VisualState>
+
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
-                    <Label Text="{Binding Text}" Margin="0,5" VerticalTextAlignment="Center" 
-                            FontSize="15" 
-                           VerticalOptions="Center" HorizontalTextAlignment="Center">
+                    <Border Stroke="Transparent" >
+                        <Label Text="{Binding Text}" Margin="0,5" HorizontalTextAlignment="Center"
+                            FontSize="15" WidthRequest="800"/>
+                    </Border>
 
-                    </Label>
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Label Text="{Binding Height,Source={x:Reference SyncedLyricsSL}}"/>
-        
+        <ScrollView toolkit:DockLayout.DockPosition="Top" HeightRequest="200"
+                    IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}">
+            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" 
+                   HorizontalTextAlignment="Center" Padding="10"
+                   LineBreakMode="WordWrap"/>
 
+        </ScrollView>
         <!--<ScrollView MaximumHeightRequest="1200" MinimumHeightRequest="760" x:Name="scrollv">-->
             
-            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" IsVisible="True"
-                   HorizontalTextAlignment="Center" Padding="10" 
-                   LineBreakMode="WordWrap"/>
         
         <!--</ScrollView>-->
 
         <!--<Label IsVisible="{Binding IsFetchSuccessful}"
                Text="No Lyrics 💔"/>-->
-        <Label IsVisible="{Binding IsFetchSuccessful, Converter={x:StaticResource BoolToInverse}}"
-               Text="No Lyrics 💔"/>
         
     </toolkit:DockLayout>
     

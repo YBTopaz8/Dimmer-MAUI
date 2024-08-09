@@ -2,6 +2,7 @@
 namespace Dimmer.Utilities.IServices;
 public interface IPlayBackService
 {
+    
     IObservable<IList<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
     Task<bool> PlaySongAsync(SongsModelView song); //to play song
     Task<bool> PlayNextSongAsync(); //to play next song
@@ -12,8 +13,8 @@ public interface IPlayBackService
     void RemoveSongFromQueue(SongsModelView song); //to remove song from queue
     void AddSongToQueue(SongsModelView song); //to add song to queue
 
+    int LoadingSongsProgressPercentage { get; }
     SongsModelView CurrentlyPlayingSong { get; }
-    int LoadProgressPercent { get; }
     string TotalSongsSizes { get; }
     string TotalSongsDuration { get; }
     bool IsShuffleOn { get; set; }

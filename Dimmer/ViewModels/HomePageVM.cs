@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
-    SongsModelView pickedSong;
+    SongsModelView pickedSong; // I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
     SongsModelView temporarilyPickedSong;
@@ -82,10 +82,10 @@ public partial class HomePageVM : ObservableObject
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
         IsPlaying = false;
-
+        IsOnLyricsSyncMode = false;
         ToggleShuffleState();
         ToggleRepeatMode();
-        AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
+        //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
     }
 
     [ObservableProperty]
@@ -95,7 +95,6 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackManagerService.PlaySelectedSongsOutsideApp(filePath);
     }
-
 
     [RelayCommand]
     async Task NavToNowPlayingPage()
@@ -133,8 +132,8 @@ public partial class HomePageVM : ObservableObject
         string folder = null;
 #endif
 
-        var FolderName = Path.GetFileName(folder);
-        FolderPaths.Add(FolderName);
+        //var FolderName = Path.GetFileName(folder);
+        FolderPaths.Add(folder);
 
         FullFolderPaths.Add(folder);
 
@@ -148,8 +147,6 @@ public partial class HomePageVM : ObservableObject
     private async Task LoadSongsFromFolders()
     {
         IsLoadingSongs = true;
-
-        LoadingSongsProgress = PlayBackManagerService.LoadProgressPercent;
 
         bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(FullFolderPaths);
         if (loadSongsResult)
@@ -224,6 +221,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SeekSongPosition(object? value)
     {
+        //if (IsOnLyricsSyncMode)
+        //{
+
+        //}
         PlayBackManagerService.SetSongPosition(CurrentPositionPercentage);
     }
 
@@ -325,7 +326,7 @@ public partial class HomePageVM : ObservableObject
         PlayBackManagerService.PlayerState.Subscribe(state =>
         {
             TemporarilyPickedSong = PlayBackManagerService.CurrentlyPlayingSong;
-            //PickedSong = PlayBackManagerService.CurrentlyPlayingSong;
+            PickedSong = TemporarilyPickedSong;
             switch (state)
             {
                 case MediaPlayerState.Playing:
@@ -349,6 +350,11 @@ public partial class HomePageVM : ObservableObject
                 case MediaPlayerState.Stopped:
                     //PickedSong = "Stopped";
                     break;
+                case MediaPlayerState.LoadingSongs:
+                    LoadingSongsProgress = PlayBackManagerService.LoadingSongsProgressPercentage;
+                    break;
+                default: 
+                    break;
             }
         });
 
@@ -367,10 +373,44 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentPositionInSeconds = position.CurrentTimeInSeconds;
             CurrentPositionPercentage = position.TimeElapsed;
-            if (CurrentPositionPercentage >= 0.99 && IsPlaying)
+            if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
             {
-                //Debug.WriteLine("It should pause now");
-               await PauseResumeSong();
+                await PauseResumeSong();
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                  string? result = await Shell.Current.DisplayActionSheet("Done Syncing?", "No", "Yes");
+                    if (result is null)
+                        return;
+                    if (result.Equals("Yes"))
+                    {
+                        string? lyr = string.Join(Environment.NewLine, LyricsLines?.Select(line => $"{line.TimeStampText} {line.Text}"));
+                        if (lyr is not null)
+                        {
+                            if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
+                            {
+                                await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+                                CurrentViewIndex = 0;
+                            }
+                            LyricsManagerService.InitializeLyrics(lyr);
+                            DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+                        }
+                    }
+                });
+                //var result = await Shell.Current.DisplayPromptAsync("Syncing Mode", "Done Syncing?", "Yes", "No");
+                //if (result.Equals("Yes"))
+                //{
+                //    string? lyr = string.Join(Environment.NewLine, LyricsLines?.Select(line => $"{line.TimeStampText} {line.Text}"));
+                //    if (lyr is not null)
+                //    {
+                //        if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
+                //        {
+                //            await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+                //            CurrentViewIndex = 0;
+                //        }
+                //        LyricsManagerService.InitializeLyrics(lyr);
+                //        DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+                //    }
+                //}
             }
         });
     }
@@ -468,6 +508,7 @@ public partial class HomePageVM : ObservableObject
         }
         LyricsManagerService.InitializeLyrics(s?.syncedLyrics?.Length > 0 ? s?.syncedLyrics : null);
         DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+        SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
     }
 
     [ObservableProperty]
@@ -487,7 +528,8 @@ public partial class HomePageVM : ObservableObject
 
 
         Lyricline.TimeStampMs = (int)CurrPosition * 1000;
-        Lyricline.TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromSeconds(CurrPosition));
+        Lyricline.TimeStampText = string.Format("[{0:mm\\:ss\\.ff}]", TimeSpan.FromSeconds(CurrPosition));
+
     }
 
     [RelayCommand]
@@ -586,7 +628,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentViewIndex;
     [ObservableProperty]
-    bool isOnLyricsSyncMode;
+    bool isOnLyricsSyncMode = false;
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
     {

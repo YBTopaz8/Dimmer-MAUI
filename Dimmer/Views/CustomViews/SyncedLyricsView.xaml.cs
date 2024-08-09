@@ -15,6 +15,5 @@ public partial class SyncedLyricsView : ContentView
             //LyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase, ScrollToPosition.Center);
         }
     }
-
     
 }

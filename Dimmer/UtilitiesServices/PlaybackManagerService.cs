@@ -16,6 +16,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
 {
 
     INativeAudioService audioService;
+
     public IObservable<IList<SongsModelView>> NowPlayingSongs => _nowPlayingSubject.AsObservable();
     BehaviorSubject<IList<SongsModelView>> _nowPlayingSubject = new([]);
 
@@ -29,13 +30,15 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     [ObservableProperty]
     private SongsModelView observableCurrentlyPlayingSong;
     public SongsModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
+
     [ObservableProperty]
-    int observableLoadProgressPercent;
+    int observableLoadingSongsProgress;
+    public int LoadingSongsProgressPercentage => ObservableLoadingSongsProgress;
+
     [ObservableProperty]
     string totalSongsSizes;
     [ObservableProperty]
     string totalSongsDuration;
-    public int LoadProgressPercent => ObservableLoadProgressPercent;
     ISongsManagementService SongsMgtService { get; }
     IStatsManagementService StatsMgtService { get; }
     IPlaylistManagementService PlaylistMgtService { get; }
@@ -243,7 +246,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 processedFiles++;
                 //Debug.WriteLine($"Progress: {processedFiles}");
                 
-                ObservableLoadProgressPercent = (processedFiles * 100 / totalFiles);
+                ObservableLoadingSongsProgress = ((int)(processedFiles * 100 / totalFiles)); //TODO : YOU WANTED TO LET USER KNOW OF PROGRESS %age
+                _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
             }
             Debug.WriteLine($"TotalFiles {allFiles.Count} files");
             Debug.WriteLine($"Skipped {skipCounter} files");
@@ -271,6 +275,8 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
         _nowPlayingSubject.OnNext(songs);
         //_nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
+        ObservableLoadingSongsProgress = 100;
+        _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
         return true;
     }
 
@@ -283,6 +289,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             if (lastPlayedSong is null)
                 return;
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
+            //_nowPlayingSubject.OnNext(ObservableCurrentlyPlayingSong);
         }
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
     }
@@ -290,29 +297,56 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
     byte[]? GetCoverImage(string filePath, bool isToGetByteArrayImages)
     {
         var LoadTrack = new Track(filePath);
+        byte[]? coverImage = null;
 
-        if (LoadTrack.EmbeddedPictures.Count != 0)
+        if (LoadTrack.EmbeddedPictures?.Count > 0)
         {
             string mimeType = LoadTrack.EmbeddedPictures?.FirstOrDefault()?.MimeType;
-            if (mimeType != "image/jpg" || mimeType != "image/jpeg" || mimeType != "image/png")
+            if (mimeType == "image/jpg" || mimeType == "image/jpeg" || mimeType == "image/png")
             {
-                _playerStateSubject.OnNext(MediaPlayerState.CoverImageDownload);
-                return Array.Empty<byte>();
+                coverImage = LoadTrack.EmbeddedPictures?.FirstOrDefault()?.PictureData;
             }
         }
-        else
+
+        //if (coverImage is null || coverImage.Length < 1) TODO : Do code that will scan the image from the folder found in song if it's an album folder 
+        //{
+        //    string directoryPath = Path.GetDirectoryName(filePath);
+        //    string[] imageFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly)
+        //        .Concat(Directory.GetFiles(directoryPath, "*.jpeg", SearchOption.TopDirectoryOnly))
+        //        .Concat(Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly))
+        //        .ToArray();
+
+        //    if (imageFiles.Length > 0)
+        //    {
+        //        coverImage = File.ReadAllBytes(imageFiles[0]);
+        //    }
+        //}
+
+        if (coverImage is null || coverImage.Length < 1)
         {
-            string[] pngFiles = Array.Empty<string>();
-            string directoryPath = Path.GetDirectoryName(filePath);
-            var jpgFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly);
-            if (jpgFiles.Length < 1)
+            string fileNameWithoutExtension = Path.GetFileName(filePath);
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
+                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
+                .ToArray();
+
+            if (imageFiles.Length > 0)
             {
-                pngFiles = Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly);
+                coverImage = File.ReadAllBytes(imageFiles[0]);
+
+                if (!string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.CoverImagePath))
+                {
+                    ObservableCurrentlyPlayingSong.CoverImagePath = imageFiles[0];
+
+                }
+                return coverImage;
             }
-            if (jpgFiles.Length > 0 || pngFiles.Length > 0)
-            {
-                return File.ReadAllBytes(jpgFiles[0]);
-            }
+        }
+
+        if (coverImage is null)
+        {
+            _playerStateSubject.OnNext(MediaPlayerState.CoverImageDownload);
         }
         return null;
     }
@@ -374,8 +408,10 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             song.CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
             song.CreationTime = fileInfo.CreationTime;
             allSongs.Add(song);
+            
         }
-        _nowPlayingSubject.OnNext(allSongs);
+        ObservableCurrentlyPlayingSong = allSongs[0];
+        //_nowPlayingSubject.OnNext(allSongs);
         return true;
     }
 
@@ -410,10 +446,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
-            if (coverImage is null || coverImage.Length < 1)
-            {
-                _playerStateSubject.OnNext(MediaPlayerState.CoverImageDownload);
-            }
+            
             await audioService.InitializeAsync(new MediaPlay()
             {
                 Name = ObservableCurrentlyPlayingSong.Title,
@@ -429,7 +462,6 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             ObservableCurrentlyPlayingSong.PlayCount++;
 
-            StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Title, ObservableCurrentlyPlayingSong.DurationInSeconds);
             Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
@@ -444,6 +476,11 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             await Shell.Current.DisplayAlert("Erromessage: r", ex.Message, "Ok");
             return false;
             //throw new Exception(ex.Message);
+        }
+        finally
+        {
+            StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Id);
+            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         }
     }
 
@@ -503,6 +540,7 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
         }
     }
 
+    Stack<int> shuffleHistory = new();
     public async Task<bool> PlayNextSongAsync()
     {
         var currentList = _nowPlayingSubject.Value;
@@ -523,24 +561,36 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
             } while (playedSongsIDs.Contains(nextSong.Id));
 
             playedSongsIDs.Add(nextSong.Id);
+            shuffleHistory.Push(_currentSongIndex);
         }
         else
         {
             _currentSongIndex = (_currentSongIndex + 1) % currentList.Count;
             nextSong = currentList[_currentSongIndex];
         }
-
         return await PlaySongAsync(nextSong);
-
     }
 
     public async Task<bool> PlayPreviousSongAsync()
     {
         var currentList = _nowPlayingSubject.Value;
-        if (currentList.Count == 0)
-            return false;
-
-        _currentSongIndex = (_currentSongIndex - 1 + currentList.Count) % currentList.Count;
+        if (IsShuffleOn)
+        {
+            if (shuffleHistory.Count > 1)
+            {
+                shuffleHistory.Pop();
+                _currentSongIndex = shuffleHistory.Peek();
+            }
+            else
+            {
+                _currentSongIndex = (_currentSongIndex - 1 + currentList.Count) % currentList.Count;
+            }
+        }
+        else
+        {
+            _currentSongIndex = (_currentSongIndex - 1 + currentList.Count) % currentList.Count;
+        }
+        
         await PlaySongAsync(currentList[_currentSongIndex]);
         return true;
     }
@@ -564,10 +614,10 @@ public partial class PlaybackManagerService : ObservableObject, IPlayBackService
                 ImageBytes = coverImage,
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
-            await audioService.PlayAsync(positionInSeconds);
+            
             await SetSongPosition(positionInSeconds);
         }
-
+        await audioService.PlayAsync(positionInSeconds);
     }
 
     public void ChangeVolume(double newPercentageValue)

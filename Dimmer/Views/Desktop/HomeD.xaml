@@ -150,10 +150,7 @@
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
                 <HorizontalStackLayout Spacing="10">
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"/>
-                    <uranium:SelectableLabel Text="{Binding TemporarilyPickedSong.Title}"/>
-                    <Label Text="{Binding TemporarilyPickedSong.Id}"/>
-                    <material:CheckBox Text="Show Preferred folders" x:Name="TogglePrefFoldersChbx"/>
+                    <material:CheckBox Text="Show Preferred folders" IsChecked="True" x:Name="TogglePrefFoldersChbx"/>
                     <ImageButton Clicked="Button_Clicked">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
@@ -163,7 +160,8 @@
                 
             </FlexLayout>
         </VerticalStackLayout>
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0"
+                             IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
            
                 <CollectionView ItemsSource="{Binding FolderPaths}" EmptyView="No Folders Yet">
                     <CollectionView.ItemTemplate>
@@ -181,7 +179,7 @@
         
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="250" />
                 <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -225,7 +223,7 @@
                                                   CommandParameter="{Binding .}"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="250" />
                             <ColumnDefinition Width="150" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -256,7 +254,7 @@
                                  Grid.ColumnSpan="8" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10">
-                            <toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
+                            <toolkit:AvatarView WidthRequest="55" HeightRequest="55" ImageSource="{Binding CoverImagePath}" 
                                                 BorderWidth="0" CornerRadius="5"/>
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" HorizontalOptions="Start"/>
@@ -268,7 +266,7 @@
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
                         
-                        <Label Text="{Binding ArtistName}" Grid.Column="1"
+                        <Label Text="{Binding ArtistName}" Grid.Column="1" HorizontalTextAlignment="Center"
                                LineBreakMode="WordWrap"/>
 
                         <Image WidthRequest="30" Grid.Column="2" IsVisible="{Binding HasLyrics}">
@@ -286,9 +284,9 @@
                         <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                Grid.Column="4" HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" />
-                        <Label Text="{Binding FileFormat}" Grid.Column="6"/>
-                        <Label Text="{Binding IsPlaying}" Grid.Column="7"/>
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" HorizontalTextAlignment="Center"/>
+                        <Label Text="{Binding FileFormat}" Grid.Column="6" HorizontalTextAlignment="Center"/>
+                        <Label Text="{Binding IsPlaying}" Grid.Column="7" HorizontalTextAlignment="Center"/>
 
                     </Grid>
                 </DataTemplate>

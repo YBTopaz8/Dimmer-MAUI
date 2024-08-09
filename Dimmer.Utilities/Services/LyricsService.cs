@@ -34,10 +34,10 @@ public class LyricsService : ILyricsService
         {
             switch (state)
             {
-                //case MediaPlayerState.Initialized:
-                //    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
-                //    Debug.WriteLine("Initialized");
-                //    break;
+                case MediaPlayerState.Initialized:
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    
+                    break;
                 case MediaPlayerState.Playing:
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     if (PlayBackService.CurrentlyPlayingSong.HasSyncedLyrics)
@@ -406,7 +406,7 @@ public class LyricsService : ILyricsService
         return JsonSerializer.Deserialize<Content[]>(content);
     }
 
-    async Task<Content[]> SearchLyricsByTitleAndArtistNameToLrc(SongsModelView song, HttpClient client, List<string>? manualSearchFields = null)
+    async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongsModelView song, HttpClient client, List<string>? manualSearchFields = null)
     {
         string url;
         if (manualSearchFields is null || manualSearchFields.Count < 1)
@@ -447,7 +447,7 @@ public class LyricsService : ILyricsService
 
     #region Fetch Lyrics Online from Lyrist
 
-    public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new HttpClient();
         try
@@ -502,7 +502,7 @@ public class LyricsService : ILyricsService
 
     }
 
-    static async Task<byte[]> DownloadSongImage(string coverImageURL)//, HttpClient client)
+    static async Task<byte[]>? DownloadSongImage(string coverImageURL)//, HttpClient client)
     {
         HttpClient client = new HttpClient();
         HttpResponseMessage response = await client.GetAsync(coverImageURL);
@@ -563,7 +563,7 @@ public class LyricsService : ILyricsService
         // Sanitize the file name
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
 
-        // Define the folder path
+        //TODO: SET THIS AS PREFERENCE FOR USERS
         string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
 
         // Ensure the directory exists

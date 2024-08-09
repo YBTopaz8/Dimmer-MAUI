@@ -28,5 +28,11 @@ public partial class EditableSongTagsView : ContentView
         UnSyncLyricsView.IsVisible = !UnSyncLyricsView.IsVisible;
         SyncingLyricView.IsVisible = !SyncingLyricView.IsVisible;
         homePageVM.IsOnLyricsSyncMode = SyncingLyricView.IsVisible;
+        if (SyncedLyricsCV.IsVisible)
+        {
+            StartSyncingBtn.Text = "Stop Syncing";
+            return;
+        }
+        StartSyncingBtn.Text = "Start Syncing";
     }
 }
