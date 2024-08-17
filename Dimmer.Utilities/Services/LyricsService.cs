@@ -17,11 +17,11 @@ public class LyricsService : ILyricsService
     private IDisposable _lyricUpdateSubscription;
     public IObservable<string> UnSynchedLyricsStream => _unsyncedLyricsSubject.AsObservable();
 
-    public IPlayBackService PlayBackService { get; }
+    public IPlaybackUtilsService PlayBackService { get; }
     public ISongsManagementService SongsManagementService { get; }
 
     bool hasSyncedLyrics;
-    public LyricsService(IPlayBackService songsManagerService, ISongsManagementService songsManagementService)
+    public LyricsService(IPlaybackUtilsService songsManagerService, ISongsManagementService songsManagementService)
     {
         PlayBackService = songsManagerService;
         SongsManagementService = songsManagementService;
@@ -61,7 +61,6 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong);
-                    Debug.WriteLine("Should fetch cover now");
                     break;
                 default:
                     break;
@@ -94,10 +93,8 @@ public class LyricsService : ILyricsService
                     {
                         StopLyricIndexUpdateTimer();
                     }
-                    Debug.WriteLine("returned bc song was identical");
                     return;
                 }
-                Debug.WriteLine("wasn't identical but still returned");
             }
             songSyncLyrics?.Clear();
             songSyncLyrics = LoadSynchronizedAndSortedLyrics(song.FilePath, _synchronizedLyricsSubject.Value);
@@ -108,9 +105,12 @@ public class LyricsService : ILyricsService
             }
             else
             {
-                song.HasLyrics = true;
-                song.HasSyncedLyrics = true;
-                SongsManagementService.UpdateSongDetails(song);
+                if (song.HasLyrics != true || song.HasSyncedLyrics != true)
+                {
+                    song.HasLyrics = true;
+                    song.HasSyncedLyrics = true;
+                    await SongsManagementService.UpdateSongDetailsAsync(song);
+                }
             }
             lastSongIDLyrics = song.Id;
             //Debug.WriteLine($"Loaded song lyrics {");
@@ -296,12 +296,11 @@ public class LyricsService : ILyricsService
         {
             _currentLyricSubject.OnNext(highlightedLyric);
         }
-        Debug.WriteLine($"Lyric from Lyric Service should be {highlightedLyric.Text}");
+        
     }
 
     LyricPhraseModel FindClosestLyric(double currentPositionInMs)
     {
-
         try
         {
             if (sortedLyrics == null || sortedLyrics.Count == 0)
@@ -532,9 +531,9 @@ public class LyricsService : ILyricsService
             }
             if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
             {
-                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
-                songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath, ImageBytes);
-                SongsManagementService.UpdateSongDetails(songs);
+               ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
+               songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath, ImageBytes);
+               await SongsManagementService.UpdateSongDetailsAsync(songs);
             }
 
             return string.Empty;
@@ -576,12 +575,10 @@ public class LyricsService : ILyricsService
 
         if (File.Exists(filePath))
         {
-            Debug.WriteLine("png cover image existed");
             return filePath;
         }
         if (File.Exists(filePathjpg))
         {
-            Debug.WriteLine("jpg cover image existed");
             return filePathjpg;
         }
 
@@ -601,7 +598,7 @@ public class LyricsService : ILyricsService
     #endregion
 
 
-    public bool WriteLyricsToLyricsFile(string Lyrics, SongsModelView songObj, bool IsSynched)
+    public async Task<bool> WriteLyricsToLyricsFile(string Lyrics, SongsModelView songObj, bool IsSynched)
     {
         if (Lyrics is null)
         {
@@ -611,7 +608,7 @@ public class LyricsService : ILyricsService
         songObj.UnSyncLyrics = Lyrics;
         songObj.HasLyrics = true;
         songObj.HasSyncedLyrics = IsSynched;
-        SongsManagementService.UpdateSongDetails(songObj);
+        await SongsManagementService.UpdateSongDetailsAsync(songObj);
         string songDirectory = Path.GetDirectoryName(songObj.FilePath);
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath);
         string fileExtension = IsSynched ? ".lrc" : ".txt";

@@ -42,104 +42,9 @@
 
     <toolkit:DockLayout>
 
-        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom" 
-                             HeightRequest="135" >
-            <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-                    DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
-            </Slider>
-            <Grid ColumnSpacing="25">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="230"/>
-                </Grid.ColumnDefinitions>
-                <HorizontalStackLayout Grid.Column="0" Spacing="5" >
-                    <HorizontalStackLayout.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
-                    </HorizontalStackLayout.GestureRecognizers>
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" Margin="10,0,5,5" 
-                                        MinimumWidthRequest="80" MinimumHeightRequest="70" HeightRequest="70"
-                                        BorderWidth="0" CornerRadius="8"> 
-                    </toolkit:AvatarView>
-                    
-                    <VerticalStackLayout VerticalOptions="Center" >
-                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
-                        <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation"/>
-                        <Label Text="{Binding TemporarilyPickedSong.PlayCount}" />
-                        <Label Text="{Binding TemporarilyPickedSong.AlbumName}" MaximumWidthRequest="200"
-                               LineBreakMode="HeadTruncation"/>
-                    </VerticalStackLayout>
-
-                </HorizontalStackLayout>
-
-                <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
-                                       HorizontalOptions="Center">
-                    <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
-                        <ImageButton.CommandParameter>
-                            <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <ImageButton
-                        Command="{Binding PlayPreviousSongCommand}"
-                        ToolTipProperties.Text="Play Previous">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <cw:PlayPauseView x:Name="PlayPauseV" />
-
-                    <ImageButton Command="{Binding PlayNextSongCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton Command="{Binding ToggleShuffleStateCommand}">
-                        <ImageButton.CommandParameter>
-                            <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                </HorizontalStackLayout>
-
-                <VerticalStackLayout Grid.Column="2" Margin="5,0">
-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
-                        <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
-                        <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
-                               Opacity="0.6"/>
-                    </HorizontalStackLayout>
-
-                    <HorizontalStackLayout>
-                        <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-
-                        <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
-                            DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
-                                Minimum="0" Maximum="1"/>
-
-                        <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                    </HorizontalStackLayout>
-
-                    <Label Text="{Binding TotalSongsSize}" HorizontalOptions="Center" />
-                    <Label Text="{Binding TotalSongsDuration}" HorizontalOptions="Center"/>
-                </VerticalStackLayout>
-            </Grid>
-        </VerticalStackLayout>
-
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                      x:Name="MediaPlayBackCW"/>
+        
         <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
                    x:Name="SearchSongSB"/>
@@ -150,7 +55,7 @@
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
                 <HorizontalStackLayout Spacing="10">
-                    <material:CheckBox Text="Show Preferred folders" IsChecked="True" x:Name="TogglePrefFoldersChbx"/>
+                    <material:CheckBox Text="Show Preferred folders" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
                     <ImageButton Clicked="Button_Clicked">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
@@ -160,7 +65,7 @@
                 
             </FlexLayout>
         </VerticalStackLayout>
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0"
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0" Spacing="5"
                              IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
            
                 <CollectionView ItemsSource="{Binding FolderPaths}" EmptyView="No Folders Yet">
@@ -170,7 +75,8 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-                <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
+            <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
+            <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
             <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
         </VerticalStackLayout>
@@ -217,6 +123,13 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Grid ColumnSpacing="25" Padding="8">
+                        <Grid.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="Label">
+                                    <Setter Property="HorizontalTextAlignment" Value="Center"/>
+                                </Style>
+                            </ResourceDictionary>
+                        </Grid.Resources>
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference page}}"
                                                   NumberOfTapsRequired="2"
@@ -253,10 +166,10 @@
                         <BoxView HeightRequest="1" BackgroundColor="#212121" 
                                  Grid.ColumnSpan="8" Grid.Row="1"/>
 
-                        <HorizontalStackLayout Grid.Column="0" Spacing="10">
-                            <toolkit:AvatarView WidthRequest="55" HeightRequest="55" ImageSource="{Binding CoverImagePath}" 
-                                                BorderWidth="0" CornerRadius="5"/>
-                            <VerticalStackLayout>
+                        <HorizontalStackLayout Grid.Column="0" Spacing="10" >
+                            <!--<toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
+                                                BorderWidth="0" CornerRadius="5"/>-->
+                            <VerticalStackLayout HorizontalOptions="CenterAndExpand" >
                                 <Label Text="{Binding Title}" HorizontalOptions="Start"/>
                                 <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start">
                                     <Image.Source>
@@ -265,8 +178,8 @@
                                 </Image>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
-                        
-                        <Label Text="{Binding ArtistName}" Grid.Column="1" HorizontalTextAlignment="Center"
+
+                        <Label Text="{Binding ArtistName}" Grid.Column="1"
                                LineBreakMode="WordWrap"/>
 
                         <Image WidthRequest="30" Grid.Column="2" IsVisible="{Binding HasLyrics}">
@@ -284,9 +197,9 @@
                         <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                Grid.Column="4" HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding FileFormat}" Grid.Column="6" HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding IsPlaying}" Grid.Column="7" HorizontalTextAlignment="Center"/>
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" />
+                        <Label Text="{Binding FileFormat}" Grid.Column="6"/>
+                        <Label Text="{Binding IsPlaying}" Grid.Column="7"/>
 
                     </Grid>
                 </DataTemplate>

@@ -15,8 +15,6 @@ global using UraniumUI.Pages;
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
-global using System.Collections.ObjectModel;
-global using System.Diagnostics;
 
 global using Dimmer.DataAccess;
 global using Dimmer.DataAccess.Services;
@@ -31,6 +29,18 @@ global using The49.Maui.BottomSheet;
 global using Dimmer_MAUI.MAudioLib;
 
 global using CommunityToolkit.Maui.Core.Platform;
+
+
+global using System.Globalization;
+global using System.Reactive.Linq;
+global using System.Reactive.Subjects;
+global using System.Text;
+global using System.Timers;
+global using System.Collections.ObjectModel;
+global using System.Diagnostics;
+
+global using ATL;
+
 namespace Dimmer_MAUI;
 internal class GlobalUsings
 {

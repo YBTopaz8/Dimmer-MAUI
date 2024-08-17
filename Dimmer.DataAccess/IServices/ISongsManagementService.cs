@@ -12,7 +12,7 @@ public interface ISongsManagementService
     void GetSongs();
     Task<SongsModel> FindSongsByTitleAsync(string searchText);
 
-    bool UpdateSongDetails(SongsModelView songsModelView);
+    Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView);
     void Dispose();
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);

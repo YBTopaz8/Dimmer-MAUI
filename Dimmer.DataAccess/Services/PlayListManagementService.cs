@@ -11,6 +11,7 @@ public class PlayListManagementService : IPlaylistManagementService
     public PlayListManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
+        OpenDB();
         GetPlayLists();
     }
 
@@ -23,11 +24,11 @@ public class PlayListManagementService : IPlaylistManagementService
     public void GetPlayLists()
     {
 
-       try
+        try
         {
             AllPlaylists?.Clear();
-            OpenDB();
-            var realmPlayLists = db.All<PlaylistModel>().OrderBy(x => x.DateCreated).ToList();
+            
+            var realmPlayLists = db.All<PlaylistModel>().ToList();
             AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
@@ -76,7 +77,7 @@ public class PlayListManagementService : IPlaylistManagementService
         {
             var songmodel = new SongsModel(song);
             PlaylistModel specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Name == playlistName);
-
+            
             db.Write(() =>
             {
                 if (specificPlaylist is null)

@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Models;
+﻿
+namespace Dimmer.Models;
 
 public class ArtistModel : RealmObject
 {
@@ -25,24 +26,20 @@ public class ArtistModel : RealmObject
 }
 
 // ViewModel for ArtistModel
-public class ArtistModelView : INotifyPropertyChanged
+public partial class ArtistModelView : ObservableObject
 {
-    public ObjectId Id { get; set;} = ObjectId.GenerateNewId();
-    public string Name { get; set; }
+    public ObjectId Id { get; set;}
+
+    [ObservableProperty]
+    string name;
     public string ImagePath { get; set; }
-    public IList<ObjectId> SongsIDs { get; set; }
 
+    [ObservableProperty]
+    ObservableCollection<ObjectId> songsIDs;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     public ArtistModelView()
     {
-        //Albums = new List<AlbumModelView>();
-        //Songs = new List<SongsModelView>();
     }
 
     public ArtistModelView(ArtistModel model)
@@ -50,7 +47,7 @@ public class ArtistModelView : INotifyPropertyChanged
         Id = model.Id;
         Name = model.Name;
         ImagePath = model.ImagePath;
-        //Albums = model.Albums.Select(a => new AlbumModelView(a)).ToList();
-        SongsIDs = model.SongsIDs;// model.Songs.Select(s => new SongsModelView(s)).ToList();        
+        SongsIDs = new ObservableCollection<ObjectId>(model.SongsIDs ?? new List<ObjectId>());
+
     }
 }

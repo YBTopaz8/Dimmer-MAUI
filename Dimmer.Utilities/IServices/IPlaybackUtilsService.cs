@@ -1,10 +1,12 @@
 ﻿
 namespace Dimmer.Utilities.IServices;
-public interface IPlayBackService
+public interface IPlaybackUtilsService
 {
-    
-    IObservable<IList<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
-    Task<bool> PlaySongAsync(SongsModelView song); //to play song
+
+    IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
+    IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
+    IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
+    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0); //to play song
     Task<bool> PlayNextSongAsync(); //to play next song
     Task<bool> PlayPreviousSongAsync(); //to play previous song
     Task<bool> StopSongAsync(); //to stop song
@@ -29,11 +31,19 @@ public interface IPlayBackService
     void IncreaseVolume();
     void ToggleShuffle(bool isShuffleOn);
     int ToggleRepeatMode();
-
-    void UpdateSongToFavoritesPlayList(SongsModelView song);
-
-    void UpdateCurrentQueue();
-
+    Task UpdateSongToFavoritesPlayList(SongsModelView song);
+    void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1);
     bool PlaySelectedSongsOutsideApp(string[] filePaths);
 
+    //Playlist Section
+
+    ObservableCollection<PlaylistModelView> AllPlaylists { get; }
+    void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName);
+    void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
+    void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName);
+    void RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName);
+    ObservableCollection<PlaylistModelView> GetAllPlaylists();
+    void GetSongsFromPlaylistID(ObjectId playlistID);
+    bool DeletePlaylistThroughID(ObjectId playlistID);
+    string SelectedPlaylistName { get; }
 }

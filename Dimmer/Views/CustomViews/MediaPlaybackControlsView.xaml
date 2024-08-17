@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.MediaPlaybackControlsView"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"                          
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"      
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="vm:HomePageVM">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="135" >
+        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+            DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
+        </Slider>
+        <Grid ColumnSpacing="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="230"/>
+            </Grid.ColumnDefinitions>
+            <HorizontalStackLayout Grid.Column="0" Spacing="5" >
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
+                </HorizontalStackLayout.GestureRecognizers>
+                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                                WidthRequest="85" HeightRequest="85" Margin="2,0,0,0"
+                                BorderWidth="0" CornerRadius="5">
+                </toolkit:AvatarView>
+
+                <VerticalStackLayout VerticalOptions="Center" >
+                    <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation" FontSize="18"/>
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
+                    <Image WidthRequest="20" HorizontalOptions="Start" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" 
+                       LineBreakMode="HeadTruncation"/>
+                </VerticalStackLayout>
+
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
+                               HorizontalOptions="Center">
+                <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton
+                Command="{Binding PlayPreviousSongCommand}"
+                ToolTipProperties.Text="Play Previous">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <cw:PlayPauseView x:Name="PlayPauseV" />
+
+                <ImageButton Command="{Binding PlayNextSongCommand}">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Command="{Binding ToggleShuffleStateCommand}">
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout Grid.Column="2" Margin="5,0">
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
+                    <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
+                       Opacity="0.6"/>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
+                    DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
+                        Minimum="0" Maximum="1"/>
+
+                    <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding TotalSongsSize}" HorizontalOptions="Center" />
+                <Label Text="{Binding TotalSongsDuration}" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
+    </VerticalStackLayout>
+</ContentView>

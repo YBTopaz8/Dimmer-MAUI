@@ -11,7 +11,8 @@
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM"
             x:Name="myPage"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
@@ -49,98 +50,20 @@
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
             </MenuFlyout>
+
+            <Style TargetType="ImageButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+                <Setter Property="WidthRequest" Value="50"/>
+                <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout x:Name="dockPan">
-        <VerticalStackLayout BackgroundColor="#111111" toolkit:DockLayout.DockPosition="Bottom"
-                      HeightRequest="135" >
-            <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
-            </Slider>
-            <Grid ColumnSpacing="25">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="230"/>
-                </Grid.ColumnDefinitions>
-                <Grid.Resources>
-                    <ResourceDictionary>
-                        <Style TargetType="ImageButton">
-                            <Setter Property="WidthRequest" Value="75"/>
-                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                            <Setter Property="BorderColor" Value="Transparent"/>
-                        </Style>
-                    </ResourceDictionary>
-                </Grid.Resources>
-                <HorizontalStackLayout Grid.Column="0" Spacing="5" Margin="10,0">
-                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
-                 MaximumHeightRequest="100" Aspect="AspectFill"
-                 toolkit:DockLayout.DockPosition="Left" >
-                    </Image>
 
-                    <VerticalStackLayout VerticalOptions="Center" >
-                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
-                        <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation"/>
-                        <Label Text="{Binding TemporarilyPickedSong.PlayCount}" />
-                        <Label Text="{Binding TemporarilyPickedSong.AlbumName}" MaximumWidthRequest="200"
-                        LineBreakMode="HeadTruncation"/>
-                    </VerticalStackLayout>
-
-                </HorizontalStackLayout>
-
-                <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
-                       HorizontalOptions="Center">
-                    <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
-                        <ImageButton.CommandParameter>
-                            <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <ImageButton
-        Command="{Binding PlayPreviousSongCommand}" ToolTipProperties.Text="Play Previous">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-
-                    <cw:PlayPauseView x:Name="PlayPauseV" />
-
-                    <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <ImageButton Command="{Binding ToggleShuffleStateCommand}">
-                        <ImageButton.CommandParameter>
-                            <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                </HorizontalStackLayout>
-
-                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" 
-                                     VerticalOptions="Center">
-
-                    <HorizontalStackLayout >
-                        <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
-                        <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
-                            Opacity="0.6"/>
-                    </HorizontalStackLayout>
-                    
-                </VerticalStackLayout>
-
-            </Grid>
-            
-        </VerticalStackLayout>
-
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                      x:Name="MediaPlayBackCW"/>
         <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
               x:Name="NowPlayingGrid"  >
             <Grid.Effects>
@@ -164,8 +87,44 @@
                     </Image>
 
                 </VerticalStackLayout>
-                <!--<Label Text="Pas toucher"/>-->
-                <VerticalStackLayout>
+                
+                <!--<toolkit:DockLayout IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
+                                     toolkit:DockLayout.DockPosition="Top" x:Name="SyncedLyricsView">
+                    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" toolkit:DockLayout.DockPosition="Top"
+                HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
+                SelectionMode="Single" x:Name="LyricsColView" >
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="Red"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:LyricPhraseModel">
+                                <Border Stroke="Transparent" >
+                                    <Label Text="{Binding Text}" Margin="0,5" 
+                       HorizontalTextAlignment="Center" 
+                       FontSize="15" WidthRequest="800"/>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    
+                    <ScrollView HeightRequest="200"
+                IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}">
+                        <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" 
+               HorizontalTextAlignment="Center" Padding="10"
+               LineBreakMode="WordWrap"/>
+
+                    </ScrollView>
+
+                </toolkit:DockLayout>-->
+                
+
                     <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
                                          />
                     <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
@@ -175,7 +134,6 @@
                     <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
                         x:Name="EditableSongsTagsV" />
 
-                </VerticalStackLayout>
                 
             </toolkit:DockLayout>
 

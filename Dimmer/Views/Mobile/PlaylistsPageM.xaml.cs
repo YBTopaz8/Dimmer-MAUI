@@ -2,24 +2,20 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class PlaylistsPageM : ContentPage
 {
-	public PlaylistsPageM(PlaylistsPageVM playlistsPageVM, HomePageVM homePageVM, NowPlayingSongPageBtmSheet nowPlayingSongPageBtmSheet)
+	public PlaylistsPageM(HomePageVM homePageVM, NowPlayingSongPageBtmSheet nowPlayingSongPageBtmSheet)
     {
 		InitializeComponent();
-        PlaylistsPageVM = playlistsPageVM;
         NowPlayingBtmSheet = nowPlayingSongPageBtmSheet;
         HomePageVM = homePageVM;
         BtmMediaControlsVSL.BindingContext = homePageVM;
-        BindingContext = playlistsPageVM;
+        BindingContext = homePageVM;
     }
-
-    public PlaylistsPageVM PlaylistsPageVM { get; }
     public HomePageVM HomePageVM { get; }
     public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
 
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-        PlaylistsPageVM.UpdatePlayLists();
     }
 
     private void playImgBtn_Clicked(object sender, EventArgs e)

@@ -11,7 +11,7 @@ public partial class SyncedLyricsView : ContentView
     {
         if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
         {
-            LyricsColView.ScrollTo(LyricsColView.SelectedItem, ScrollToPosition.Center);
+            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null,ScrollToPosition.Center);
             //LyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase, ScrollToPosition.Center);
         }
     }

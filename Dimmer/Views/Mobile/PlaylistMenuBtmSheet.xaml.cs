@@ -2,13 +2,13 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class PlaylistMenuBtmSheet : BottomSheet
 {
-	public PlaylistMenuBtmSheet(PlaylistsPageVM playlistsPageVM)
+	public PlaylistMenuBtmSheet(HomePageVM homePageVM)
 	{
 		InitializeComponent();
 		HasBackdrop = true;
-        PlaylistsPageVM = playlistsPageVM;
-		BindingContext = playlistsPageVM;
+        HomePageVM = homePageVM;
+		BindingContext = homePageVM;
     }
 
-    public PlaylistsPageVM PlaylistsPageVM { get; }
+    public HomePageVM HomePageVM { get; }
 }

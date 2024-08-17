@@ -7,10 +7,18 @@ public partial class NowPlayingD : ContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
+        MediaPlayBackCW.BindingContext = homePageVM;
 
         EditableSongsTagsV.homePageVM = homePageVM;
         EditableSongsTagsV.BindingContext = HomePageVM;
     }
     public HomePageVM HomePageVM { get; }
-    
+    private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        //if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+        //{
+        //    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null,ScrollToPosition.Center, false);
+        //    //LyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase, ScrollToPosition.Center);
+        //}
+    }
 }

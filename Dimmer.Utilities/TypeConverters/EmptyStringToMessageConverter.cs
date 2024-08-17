@@ -3,41 +3,62 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value?.GetType() == typeof(ObservableCollection<LyricPhraseModel>))
+        if (targetType == typeof(bool))
         {
-            var val = (ObservableCollection<LyricPhraseModel>)value;
-            if (val.Count > 0)
-                return true;
+            if (value?.GetType() == typeof(ObservableCollection<LyricPhraseModel>))
+            {
+                var val = (ObservableCollection<LyricPhraseModel>)value;
+                if (val.Count > 0 || val is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if(value?.GetType() == typeof(SongsModelView))
+            {
+                var val = (SongsModelView)value;
+                if (val.HasSyncedLyrics)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            return false;
 
         }
-
-        if (value == null)
+        else if (targetType == typeof(string))
         {
+            if (value?.GetType() == typeof(SongsModelView))
+            {
+                var val = (SongsModelView)value;
+                if (val.HasSyncedLyrics)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(val.UnSyncLyrics))
+                    {
+                        return val.UnSyncLyrics;
+                        ;
+                    }
+                    else
+                    {
+                        return "No Lyrics Found...";
+                        //return val.UnSyncLyrics;
+                    }
+                }
+
+                return "No Lyrics Found...";
+            }
+
             return "No Lyrics Found";
-        }
-        if (value?.GetType() == typeof(SongsModelView))
-        {
-            var val = (SongsModelView)value;
-            if (string.IsNullOrEmpty(val.UnSyncLyrics) && !val.HasSyncedLyrics)
-            {
-                return true;
-            }
-            else if(val.HasSyncedLyrics)
-            {
-                return false;
-            }
-        }
-        if (value?.GetType() == typeof(string))
-        {
-            var val = (string)value;
-            if (string.IsNullOrEmpty(val))
-            {
-                return "No Lyrics Found";
-            }
-            else
-            {
-                return value;
-            }
         }
         return true;
     }

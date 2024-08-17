@@ -14,71 +14,75 @@
 
     <ContentView.Resources>
         <ResourceDictionary>
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-            
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>            
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout Spacing="5" x:Name="ContentVSL">
-        <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-        <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-        <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+    <toolkit:DockLayout x:Name="ContentVSL">
+        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}">
 
-
+            <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" />
+            <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+            <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+            
+        </VerticalStackLayout>
         <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"/>
-        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" 
-                        MaximumHeightRequest="300" IsVisible="{Binding IsOnLyricsSyncMode}">
+        
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" toolkit:DockLayout.DockPosition="Top"
+                        IsVisible="{Binding IsOnLyricsSyncMode}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Label Text="{Binding Text}" HorizontalTextAlignment="Center"/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <HorizontalStackLayout HorizontalOptions="Center">
-            <ScrollView x:Name="UnSyncLyricsView" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
-                        HeightRequest="385">
-
-                <material:EditorField x:Name="unSync" HeightRequest="400" CharacterSpacing="1" Title="UnSynced Lyrics"
-                        Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>
-                <!--<Entry  Completed="UnSync_Completed" TextChanged="UnSync_TextChanged"
-                          Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>-->
-            </ScrollView>
-
-            <ScrollView MaximumHeightRequest="850" 
-                        x:Name="SyncingLyricView" HorizontalOptions="Center"
-                        IsVisible="{Binding IsOnLyricsSyncMode}">
-                <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:LyricPhraseModel">
-                            <FlexLayout JustifyContent="SpaceBetween" WidthRequest="800">
-                                <HorizontalStackLayout Spacing="5" Margin="0,0,0,5" >
-                                    <Label Text="{Binding TimeStampText}" VerticalTextAlignment="Center"/>
-                                    <Entry Text="{Binding Text}" WidthRequest="600"/>
-                                </HorizontalStackLayout>
-
-                                <HorizontalStackLayout>
-                                    <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
-                                                 WidthRequest="20" BackgroundColor="Transparent">
-                                        <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                    <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
-                                                 WidthRequest="20" BackgroundColor="Transparent">
-                                        <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                    </HorizontalStackLayout>
-                                
-                            </FlexLayout>
-                            
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-                
-            </ScrollView>
-        </HorizontalStackLayout>
         
-    </VerticalStackLayout>
+        <ScrollView x:Name="UnSyncLyricsView" 
+                    IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}">
+
+            <material:EditorField x:Name="unSync" CharacterSpacing="1" Title="UnSynced Lyrics"
+                    Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>
+            <!--<Entry  Completed="UnSync_Completed" TextChanged="UnSync_TextChanged"
+                        Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"/>-->
+        </ScrollView>
+
+        <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" x:Name="SyncingLyricView"
+                        IsVisible="{Binding IsOnLyricsSyncMode}" Margin="10,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <HorizontalStackLayout HorizontalOptions="Center">
+                        
+                        <Entry Text="{Binding Text}"
+                               WidthRequest="600" Margin="0,0,0,5"/>
+                        
+
+                        <VerticalStackLayout Margin="10,0">
+                            <HorizontalStackLayout>
+                                <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
+                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+                                <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
+                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+
+                            </HorizontalStackLayout>
+                            
+                            <Label Text="{Binding TimeStampText}" HorizontalTextAlignment="Center" 
+                                   VerticalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                                
+                    </HorizontalStackLayout>
+                            
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+                
+        
+    </toolkit:DockLayout>
     
 </ContentView>

@@ -10,7 +10,7 @@
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
              xmlns:thumblessSlider="clr-namespace:Dimmer_MAUI.Views.Mobile"
-             x:DataType="vm:PlaylistsPageVM"
+             x:DataType="vm:HomePageVM"
              x:Name="myPage"  
              >
     <ContentPage.Resources>

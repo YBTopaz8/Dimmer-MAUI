@@ -2,7 +2,7 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class EditableSongTagsView : ContentView
 {
-	public HomePageVM homePageVM {  get; set; }
+	public HomePageVM? homePageVM {  get; set; }
 	public EditableSongTagsView()
 	{
 		

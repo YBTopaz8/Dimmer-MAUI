@@ -8,7 +8,7 @@
             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-            x:DataType="vm:PlaylistsPageVM"
+            x:DataType="vm:HomePageVM"
             Title="{Binding SelectedPlaylistPageTitle}"
              BackgroundColor="Black"
              x:Name="myPage">

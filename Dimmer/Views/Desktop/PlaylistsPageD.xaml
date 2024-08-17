@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.PlaylistsPageD"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"     
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             Title="Playlists"
+             Shell.TabBarBackgroundColor="Red">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
+
+            <Style TargetType="ImageButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+                <Setter Property="WidthRequest" Value="50"/>
+                <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="ss"/>
+    </ContentPage.ToolbarItems>
+    
+    <toolkit:DockLayout >
+
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                      x:Name="MediaPlayBackCV"/>
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Spacing="5"
+                             WidthRequest="200" Margin="10,0" >
+            <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"/>
+            <CollectionView ItemsSource="{Binding DisplayedPlaylists}"  x:Name="DisplayedPlaylistsCV"
+                            EmptyView="No Playlists Existing...">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PlaylistModelView">
+                        <Border StrokeShape="RoundRectangle 5" Padding="10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}" 
+                                    CommandParameter="{Binding Id}"/>
+                            </Border.GestureRecognizers>
+
+                            <Label Text="{Binding Name}"/>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <FlexLayout JustifyContent="SpaceBetween" IsVisible="False" 
+                HeightRequest="50">
+            <Label Text="{Binding DisplayedSongsFromPlaylist.Count, StringFormat='{0} Songs'}"/>
+            <SearchBar Text="" Placeholder="Search Song (Not Yet Working)"/>
+        </FlexLayout>
+
+        <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}"
+                        SelectionMode="Single" x:Name="SongsColView" EmptyView="No Playlist Selected...">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <Border Stroke="Transparent" HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer NumberOfTapsRequired="2" 
+                                                    Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}"/>
+                        </Border.GestureRecognizers>
+                        <!--<Label Text="{Binding Title}" FontSize="18"/>-->
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding ArtistName}" FontSize="13" 
+                                        TextColor="Gray"/>
+
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+
+                            </VerticalStackLayout>
+                        </FlexLayout>
+                    </Border>
+
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        
+    </toolkit:DockLayout>
+</ContentPage>

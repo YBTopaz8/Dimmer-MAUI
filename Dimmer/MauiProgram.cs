@@ -49,19 +49,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlaylistManagementService, PlayListManagementService>();
         
         /* Registering the Utilities services */
-        builder.Services.AddSingleton<IPlayBackService, PlaybackManagerService>();
+        builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
-        builder.Services.AddSingleton<IPlayListService, PlayListService>();
 
         /* Registering the ViewModels */
         builder.Services.AddSingleton<HomePageVM>();
-        builder.Services.AddSingleton<PlaylistsPageVM>();
         
         
         /* Registering the Desktop Views */
         builder.Services.AddSingleton<HomeD>();
         builder.Services.AddSingleton<NowPlayingD>();
-
+        builder.Services.AddSingleton<PlaylistsPageD>();
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();

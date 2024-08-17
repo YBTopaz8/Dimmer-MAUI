@@ -8,8 +8,7 @@ public partial class HomeD : UraniumContentPage
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
 
-        VolumeSlider.Value = 1;
-
+        MediaPlayBackCW.BindingContext = homePageVM;
     }
 
     public HomePageVM HomePageVM { get; }
@@ -78,10 +77,13 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
             SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
         }
     }
 
-    
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
 }

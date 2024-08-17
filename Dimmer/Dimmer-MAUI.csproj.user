@@ -30,6 +30,9 @@
     <MauiXaml Update="Views\CustomViews\FetchLyricsResultsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViews\MediaPlaybackControlsView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -43,6 +46,9 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\NowPlayingD.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\HomePageM.xaml">

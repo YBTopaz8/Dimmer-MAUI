@@ -4,16 +4,16 @@ public partial class SongMenuBtmSheet : BottomSheet
 {
     public bool IsFavorite { get; set; }
     public HomePageVM HomePageVM { get; set; }
-    public PlaylistsPageVM PlaylistsPageVM { get; }
 
-    public SongMenuBtmSheet(PlaylistsPageVM playlistsPageVM, SongsModelView selectedSong)
+    public SongMenuBtmSheet(HomePageVM homePageVM, SongsModelView selectedSong)
 	{
 		InitializeComponent();
         this.HasBackdrop = true;
         this.HasHandle = true;
-        PlaylistsPageVM = playlistsPageVM;
-        BindingContext = playlistsPageVM;
-        PlaylistsPageVM.SelectedSongToOpenBtmSheet = selectedSong!;
+        
+        BindingContext = homePageVM;
+        homePageVM.SelectedSongToOpenBtmSheet = selectedSong!;
+        HomePageVM = homePageVM;
     }
     
     private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)
@@ -45,7 +45,7 @@ public partial class SongMenuBtmSheet : BottomSheet
 
     private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        PlaylistsPageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
+        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
         await NewPlaylistName.EntryView.HideKeyboardAsync();
         await this.DismissAsync();
     }

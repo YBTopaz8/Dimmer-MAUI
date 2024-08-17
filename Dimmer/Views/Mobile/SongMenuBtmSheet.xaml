@@ -7,7 +7,7 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
-             x:DataType="vm:PlaylistsPageVM"
+             x:DataType="vm:HomePageVM"
              BackgroundColor="Black" 
              x:Name="myBtmPage">
     <the49:BottomSheet.Detents>

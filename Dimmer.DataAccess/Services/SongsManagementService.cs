@@ -4,35 +4,29 @@ using Realms;
 
 namespace Dimmer.DataAccess.Services;
 public class SongsManagementService : ISongsManagementService, IDisposable
-{   Realm db;
+{   
+    Realm db ;
 
     public IList<SongsModelView> AllSongs { get; set; }
     public IDataBaseService DataBaseService { get; }
     public SongsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
+        db = DataBaseService.GetRealm();
         GetSongs();
     }
 
-    Realm OpenDB()
-    {
-        db = DataBaseService.GetRealm();
-        return db;
-    }
 
     public void GetSongs()
     {
         
         try
         {
-            AllSongs?.Clear();
-            OpenDB();
-                        
+            AllSongs?.Clear();                        
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
             
-            AllSongs ??= Enumerable.Empty<SongsModelView>().ToList();
-         
+            //AllSongs ??= Enumerable.Empty<SongsModelView>().ToList();
         }
         catch (Exception ex)
         {
@@ -62,31 +56,26 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public async Task<bool> AddSongBatchAsync(IEnumerable<SongsModelView> songss)
+    public async Task<bool> AddSongBatchAsync(IEnumerable<SongsModelView> songs)
     {
         try
         {
-            var songs = new List<SongsModel>();
-            List<SongsModelView> songsToAddOnly = new List<SongsModelView>();
-            foreach (var song in songss)
-            {
-                if (!AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
-                {
-                    songs.Add(new SongsModel(song));
-                }
-            }
-            
-            await db.WriteAsync(() =>
-            {
+            var songsToAdd = songs
+                .Where(song => !AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
+                .Select(song => new SongsModel(song))
+                .ToList();
 
-                foreach (var song in songs)
+            using var realm = DataBaseService.GetRealm();
+            await realm.WriteAsync(() =>
+            {
+                foreach (var song in songsToAdd)
                 {
-                    db.Add(song);                    
+                    realm.Add(song);
                     Debug.WriteLine("Added Song " + song.Title);
                 }
             });
             GetSongs();
-           return true;
+            return true;
         }
         catch (Exception ex)
         {
@@ -95,27 +84,40 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public bool UpdateSongDetails(SongsModelView songsModelView)
+    public async Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView)
     {
         try
         {
-            // Run the write operation in a separate task
-          
-            db.Write(() =>
+            await db.WriteAsync(() =>
             {
-                var song = new SongsModel(songsModelView);
-                song.IsPlaying = false;
-                db.Add(song, update: true);
+                var existingSong = db.Find<SongsModel>(songsModelView.Id);
+
+                if (existingSong != null)
+                {
+                    existingSong.IsFavorite = songsModelView.IsFavorite;
+                    existingSong.IsPlaying = false;
+                    existingSong.PlayCount = songsModelView.PlayCount;
+                    existingSong.LastPlayed = songsModelView.LastPlayed;
+                }
+                else
+                {
+                    var newSong = new SongsModel(songsModelView);
+                    newSong.IsPlaying = false;
+                    db.Add(newSong, update: true);
+                }
             });
 
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error when updating song " + ex.Message);
+            Debug.WriteLine("Error when updating song: " + ex.Message);
             return false;
         }
     }
+
+
+
 
 
     public async Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artistss)

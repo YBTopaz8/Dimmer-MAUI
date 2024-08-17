@@ -2,21 +2,19 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SinglePlaylistPageM : ContentPage
 {
-	public SinglePlaylistPageM(PlaylistsPageVM playlistsPageVM, HomePageVM homePageVM)
+	public SinglePlaylistPageM(HomePageVM playlistsPageVM, HomePageVM homePageVM)
 	{
 		InitializeComponent();
-        PlaylistsPageVM = playlistsPageVM;
         HomePageVM = homePageVM;
         BindingContext = playlistsPageVM;
     }
 
-    public PlaylistsPageVM PlaylistsPageVM { get; }
     public HomePageVM HomePageVM { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        this.Title = PlaylistsPageVM.SelectedPlaylistPageTitle;
+        this.Title = HomePageVM.SelectedPlaylistPageTitle;
     }
 
     protected override void OnDisappearing()

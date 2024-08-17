@@ -8,6 +8,5 @@ public interface IPlaylistManagementService
     bool RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
     bool RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName);
     bool RenamePlaylist(ObjectId playlistID, string newPlaylistName);
-
     bool DeletePlaylist(ObjectId playlistID);
 }

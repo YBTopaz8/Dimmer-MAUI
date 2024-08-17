@@ -5,6 +5,7 @@ public class StatsManagementService : IStatsManagementService
     public StatsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
+        OpenDB();
     }
     Realm OpenDB()
     {
@@ -13,28 +14,20 @@ public class StatsManagementService : IStatsManagementService
     }
     public IDataBaseService DataBaseService { get; }
 
-    public void IncrementPlayCount(ObjectId songID)
+    public async Task IncrementPlayCount(ObjectId songID)
     {
+        
         try
         {
-            OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Id == songID);// s.Title == songTitle && s.DurationInSeconds == songDuration);
-
-            if (song is null)
+            await db.WriteAsync(() =>
             {
-                Debug.WriteLine("Song not found.");
-                return;
-            }
-
-            using var transaction = db.BeginWrite();
-
-            song.PlayCount++;
-            song.LastPlayed = DateTime.Now;
-            if (transaction.State == TransactionState.Running)
-            {
-                transaction.Commit();
-            }
-
+                var existingSong = db.Find<SongsModel>(songID);
+                if (existingSong != null)
+                {
+                    existingSong.PlayCount++;
+                    existingSong.LastPlayed = DateTime.Now;
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -43,23 +36,32 @@ public class StatsManagementService : IStatsManagementService
         }
     }
 
-    public void IncrementSkipCount(ObjectId songID)
+    public async Task IncrementSkipCount(ObjectId songID)
     {
         try
         {
             OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Id == songID);
+            var song = db.Find<SongsModel>(songID);
 
             if (song is null)
             {
-                return;
+                return ;
             }
-            db.Write(() =>
+            if (db.IsInTransaction)
             {
+                Debug.WriteLine("Tried to save inc but was in transaction");
                 song.SkipCount++;
                 song.LastPlayed = DateTime.Now;
-            });
-        }
+            }
+            else
+            {
+                await db.WriteAsync(() =>
+                {
+                    song.SkipCount++;
+                    song.LastPlayed = DateTime.Now;
+                });
+            }
+            }
         catch (Exception ex)
         {
 
@@ -68,23 +70,4 @@ public class StatsManagementService : IStatsManagementService
         }
     }
 
-    public void SetAsFavorite(ObjectId songID)
-    {
-        try
-        {
-            OpenDB();
-            var song = db.All<SongsModel>().FirstOrDefault(s => s.Id == songID);
-            if (song is not null)
-            {
-                db.Write(() =>
-                {
-                    song.IsFavorite = true;
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Error when setting setting as fav " + ex.Message);
-        }
-    }
 }
