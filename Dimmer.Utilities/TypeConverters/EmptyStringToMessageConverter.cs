@@ -6,16 +6,8 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
         if (targetType == typeof(bool))
         {
             if (value?.GetType() == typeof(ObservableCollection<LyricPhraseModel>))
-            {
-                var val = (ObservableCollection<LyricPhraseModel>)value;
-                if (val.Count > 0 || val is null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+            {   
+                return true;
             }
             else if(value?.GetType() == typeof(SongsModelView))
             {
@@ -37,25 +29,17 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
             if (value?.GetType() == typeof(SongsModelView))
             {
                 var val = (SongsModelView)value;
-                if (val.HasSyncedLyrics)
+                
+                if (!string.IsNullOrEmpty(val.UnSyncLyrics))
                 {
-                    return string.Empty;
+                    return val.UnSyncLyrics;
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(val.UnSyncLyrics))
-                    {
-                        return val.UnSyncLyrics;
-                        ;
-                    }
-                    else
-                    {
-                        return "No Lyrics Found...";
-                        //return val.UnSyncLyrics;
-                    }
+                    return "No Lyrics Found...!!";
+                    //return val.UnSyncLyrics;
                 }
-
-                return "No Lyrics Found...";
+                
             }
 
             return "No Lyrics Found";

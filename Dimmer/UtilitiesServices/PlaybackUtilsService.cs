@@ -76,6 +76,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
 
         LoadLastPlayedSong(SongsMgtService);
+        LoadFirstPlaylist();
         GetReadableFileSize();
         GetReadableDuration();
         CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
@@ -317,10 +318,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
 
     }
-    public void LoadFirstPlaylistSongs(IList<SongsModelView> songs)
-    {
-        _secondaryQueueSubject.OnNext(songs.ToObservableCollection());
-    }
     static string? GetCoverImagePath(string filePath)
     {
         
@@ -421,12 +418,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     double currentPosition = 0;
 
-    public bool PlaySelectedSongsOutsideApp(string[] filePaths)
+    public async Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths)
     {
         // Filter the array to include only specific file extensions
         var filteredFiles = filePaths.Where(path => path.EndsWith(".mp3") || path.EndsWith(".flac") || path.EndsWith(".wav")).ToArray();
 
-        var allSongs = new List<SongsModelView>();
+        var allSongs = new ObservableCollection<SongsModelView>();
         foreach (var file in filteredFiles)
         {
             FileInfo fileInfo = new(file);
@@ -434,7 +431,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 continue;
             }
-            Track track = new Track(file);
+            Track track = new (file);
             var song = new SongsModelView
             {
                 Title = track.Title,
@@ -449,14 +446,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 FileSize = fileInfo.Length,
                 TrackNumber = track.TrackNumber,
                 FileFormat = Path.GetExtension(file).TrimStart('.'),
-                HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc"))
+                HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
+                CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
+                CreationTime = fileInfo.CreationTime
             };
-            song.CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
-            song.CreationTime = fileInfo.CreationTime;
             allSongs.Add(song);
-            
+
         }
-        ObservableCurrentlyPlayingSong = allSongs[0];
+        _tertiaryQueueSubject.OnNext(allSongs);
+        await PlaySongAsync(allSongs[0], 2);
         //_nowPlayingSubject.OnNext(allSongs);
         return true;
     }
@@ -468,12 +466,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
         }
-        CurrentQueue = currentQueue;
-        if (currentQueue == 2)
-        {
-            //var s = _nowPlayingSubject.Value;
-            //_secondaryQueueSubject.OnNext()
-        }
+        
         try
         {
             if (song != null)
@@ -503,14 +496,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
             }
+
+            CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
-            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
+            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
 
             await audioService.InitializeAsync(new MediaPlay()
             {
                 Name = ObservableCurrentlyPlayingSong.Title,
-                Author = ObservableCurrentlyPlayingSong.ArtistName,
+                Author = ObservableCurrentlyPlayingSong!.ArtistName!,
                 URL = ObservableCurrentlyPlayingSong.FilePath,
                 ImageBytes = coverImage,
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
@@ -538,7 +533,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         finally
         {
-            if (ObservableCurrentlyPlayingSong != null)
+            if (ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
                 StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Id);
                 await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
@@ -709,7 +704,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task SetSongPosition(double positionFraction)
     {
-
+        if (ObservableCurrentlyPlayingSong is null)
+        {
+            return;
+        }
         // Convert the fraction to actual seconds
         double positionInSeconds = positionFraction * audioService.Duration;
 
@@ -788,7 +786,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #endregion
 
     //ObjectId PreviouslyLoadedPlaylist;
-    public int CurrentQueue = 0;
+    public int CurrentQueue { get; set; } = 0;
     public void UpdateCurrentQueue(IList<SongsModelView> songs,int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     {
         CurrentQueue = QueueNumber;
@@ -945,53 +943,62 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (firstPlaylist is not null)
         {
             SelectedPlaylistName = firstPlaylist.Name;
-            ObservableCollection<SongsModelView> songsInPlaylist = SongsMgtService.AllSongs
-                .Where(s => firstPlaylist.SongsIDs.Contains(s.Id))
-                .ToObservableCollection();
-            _secondaryQueueSubject.OnNext(songsInPlaylist);
+            GetSongsFromPlaylistID(firstPlaylist.Id);            
         }
     }
 
     public void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
-    {
-        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playlistName);
-        if (specificPlaylist is not null)
-        {
-            specificPlaylist?.SongsIDs.Add(song.Id);
-            specificPlaylist.TotalSongsCount += 1;
-
-        }
+    {        
         PlaylistManagementService.AddSongToPlayListWithPlayListName(song, playlistName);
+        GetAllPlaylists();
     }
 
-    public void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName)
+    public void RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
     {
-        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playListName);
-        if (specificPlaylist is not null)
-        {
-            specificPlaylist?.SongsIDs.Remove(song.Id);
-            var songsInPlaylist = _secondaryQueueSubject.Value;
-            songsInPlaylist.Remove(song);
-            _secondaryQueueSubject.OnNext(songsInPlaylist);
-            specificPlaylist.TotalSongsCount -= 1;
+        //var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playListName);
+        //if (specificPlaylist is not null)
+        //{
+        //    specificPlaylist?.SongsIDs.Remove(song.Id);
+        //    var songsInPlaylist = _secondaryQueueSubject.Value;
+        //    songsInPlaylist.Remove(song);
+        //    _secondaryQueueSubject.OnNext(songsInPlaylist);
+        //    specificPlaylist.TotalSongsCount -= 1;
 
-        }
+        //}
 
-        PlaylistManagementService.RemoveSongFromPlayListWithPlayListName(song, playListName);
+        //PlaylistManagementService.RemoveSongFromPlayListWithPlayListName(song, playListName);
+
+        //TODO: DO THIS
     }
 
     public void GetSongsFromPlaylistID(ObjectId playlistID)
     {
-        var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
-
-        if (specificPlaylist != null)
+        try
         {
-            //currentlyLoadedPlaylist = specificPlaylist.Id;
-            SelectedPlaylistName = specificPlaylist.Name;
-            var songsInPlaylist = SongsMgtService.AllSongs
-                .Where(s => specificPlaylist.SongsIDs.Contains(s.Id));                
-            _secondaryQueueSubject.OnNext(new(songsInPlaylist));
+            var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
+
+
+            var songsIdsFromPL = new HashSet<ObjectId>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.Id));
+            
+            var songsFromPlaylist = SongsMgtService.AllSongs;
+
+            ObservableCollection<SongsModelView> songsinpl = new();
+            songsinpl?.Clear();
+            foreach (var song in songsFromPlaylist)
+            {
+                if (songsIdsFromPL.Contains(song.Id))
+                {
+                    songsinpl.Add(song);
+                }
+            }
+            _secondaryQueueSubject.OnNext(songsinpl);
+            
         }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting songs from playlist: {ex.Message}");
+        }
+        
     }
 
     public void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
@@ -1001,9 +1008,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             return;
         }
-        specificPlaylist?.SongsIDs.Add(song.Id);        
-        specificPlaylist.TotalSongsCount += 1;
-        
+        //specificPlaylist?.SongsIDs.Add(song.Id);        
+        specificPlaylist.TotalSongsCount += 1;        
     }
 
     public void RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName)
@@ -1011,7 +1017,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playlistName);
         if (specificPlaylist is not null)
         {
-            specificPlaylist?.SongsIDs.Remove(song.Id);
             var songsInPlaylist = _secondaryQueueSubject.Value;
             songsInPlaylist.Remove(song);
             _secondaryQueueSubject.OnNext(songsInPlaylist);
@@ -1022,13 +1027,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public ObservableCollection<PlaylistModelView> GetAllPlaylists()
     {
+        PlaylistManagementService.GetPlaylists();
         AllPlaylists = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
-
         return AllPlaylists;
     }
     public bool DeletePlaylistThroughID(ObjectId playlistID)
     {
+        //TODO: DO THIS TOO
         throw new NotImplementedException();
     }
+
+   
 }
 

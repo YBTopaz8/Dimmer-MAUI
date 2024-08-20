@@ -2,6 +2,8 @@
 public interface IPlaylistManagementService
 {
     IList<PlaylistModelView> AllPlaylists { get; set; }
+    void GetPlaylists();
+    IList<ObjectId> GetSongsIDsFromPlaylistID(ObjectId playlistID);
     bool AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
     bool AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName);
     

@@ -9,7 +9,7 @@ public partial class NowPlayingD : ContentPage
         BindingContext = homePageVM;
         MediaPlayBackCW.BindingContext = homePageVM;
 
-        EditableSongsTagsV.homePageVM = homePageVM;
+        EditableSongsTagsV.HomePageVM = homePageVM;
         EditableSongsTagsV.BindingContext = HomePageVM;
     }
     public HomePageVM HomePageVM { get; }

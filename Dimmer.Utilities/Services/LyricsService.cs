@@ -35,20 +35,10 @@ public class LyricsService : ILyricsService
             switch (state)
             {
                 case MediaPlayerState.Initialized:
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
-                    
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);                    
                     break;
                 case MediaPlayerState.Playing:
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
-                    if (PlayBackService.CurrentlyPlayingSong.HasSyncedLyrics)
-                    {
-                        StartLyricIndexUpdateTimer();
-                    }
-                    else
-                    {
-                        _currentLyricSubject.OnNext(null);
-                        StopLyricIndexUpdateTimer();
-                    }
                     break;
                 case MediaPlayerState.Paused:
                     StopLyricIndexUpdateTimer();
@@ -78,22 +68,19 @@ public class LyricsService : ILyricsService
             {
                 _synchronizedLyricsSubject.OnNext(null);
                 songSyncLyrics?.Clear();
+                _currentLyricSubject.OnNext(null);
                 StopLyricIndexUpdateTimer();
                 return;
             }
-            //if (lastSongIDLyrics == song?.Id)
-            //{
-            //    return;
-            //}
-            if (songSyncLyrics is not null && songSyncLyrics?.Count > 0)
+            if (songSyncLyrics?.Count > 0)
             {
                 if (lastSongIDLyrics == song?.Id)
                 {
                     if (songSyncLyrics?.Count < 1)
                     {
+                        _currentLyricSubject.OnNext(null);
                         StopLyricIndexUpdateTimer();
                     }
-                    return;
                 }
             }
             songSyncLyrics?.Clear();
@@ -103,7 +90,7 @@ public class LyricsService : ILyricsService
             {
                 song.HasLyrics = false;
             }
-            else
+            else if(PlayBackService.CurrentQueue != 2)
             {
                 if (song.HasLyrics != true || song.HasSyncedLyrics != true)
                 {
@@ -115,7 +102,7 @@ public class LyricsService : ILyricsService
             lastSongIDLyrics = song.Id;
             //Debug.WriteLine($"Loaded song lyrics {");
             _synchronizedLyricsSubject.OnNext(songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : songSyncLyrics);
-            StopLyricIndexUpdateTimer();
+            StartLyricIndexUpdateTimer();
         }
         catch (Exception ex)
         {
@@ -206,17 +193,18 @@ public class LyricsService : ILyricsService
     ObjectId lastSongIDLyrics;
     public void InitializeLyrics(string synclyrics)
     {
-
         if (string.IsNullOrEmpty(synclyrics))
         {
             _synchronizedLyricsSubject.OnNext(null);
             return;
         }
         hasSyncedLyrics = true;
+        songSyncLyrics?.Clear();
         var lines = synclyrics.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         
         //StartLyricIndexUpdateTimer();
         songSyncLyrics = StringToLyricPhraseModel(lines);
+        sortedLyrics = songSyncLyrics;
         _synchronizedLyricsSubject.OnNext(songSyncLyrics);
         if (PlayBackService.CurrentlyPlayingSong.IsPlaying)
         {
@@ -307,6 +295,7 @@ public class LyricsService : ILyricsService
             {
                 if (_synchronizedLyricsSubject?.Value?.Count > 0)
                 {
+                    sortedLyrics?.Clear();
                     sortedLyrics = _synchronizedLyricsSubject.Value.ToList();
                 }
                 else
@@ -604,11 +593,13 @@ public class LyricsService : ILyricsService
         {
             return false;
         }
-        //string processedLyrics = syncedLyrics.Replace("\\n", Environment.NewLine);
         songObj.UnSyncLyrics = Lyrics;
         songObj.HasLyrics = true;
         songObj.HasSyncedLyrics = IsSynched;
-        await SongsManagementService.UpdateSongDetailsAsync(songObj);
+        if (PlayBackService.CurrentQueue != 2)
+        {
+            await SongsManagementService.UpdateSongDetailsAsync(songObj);
+        }
         string songDirectory = Path.GetDirectoryName(songObj.FilePath);
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath);
         string fileExtension = IsSynched ? ".lrc" : ".txt";

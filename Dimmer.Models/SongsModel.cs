@@ -146,7 +146,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     bool hasLyrics;
     [ObservableProperty]
-    bool hasSyncedLyrics;
+    bool hasSyncedLyrics = false;
 
     [ObservableProperty]
     string? coverImagePath;

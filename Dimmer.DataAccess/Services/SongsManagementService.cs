@@ -26,7 +26,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
             
-            //AllSongs ??= Enumerable.Empty<SongsModelView>().ToList();
         }
         catch (Exception ex)
         {
@@ -101,8 +100,10 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                 }
                 else
                 {
-                    var newSong = new SongsModel(songsModelView);
-                    newSong.IsPlaying = false;
+                    var newSong = new SongsModel(songsModelView)
+                    {
+                        IsPlaying = false
+                    };
                     db.Add(newSong, update: true);
                 }
             });

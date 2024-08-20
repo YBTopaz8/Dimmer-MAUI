@@ -45,7 +45,7 @@ public partial class HomePageVM : ObservableObject
 
     IFolderPicker folderPicker { get; }
     IFilePicker filePicker { get; }
-    IPlaybackUtilsService PlayBackManagerService { get; }
+    IPlaybackUtilsService PlayBackUtilsService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IServiceProvider ServiceProvider { get; }
@@ -60,7 +60,7 @@ public partial class HomePageVM : ObservableObject
     {
         this.folderPicker = folderPickerService;
         filePicker = filePickerService;
-        PlayBackManagerService = PlaybackManagerService;
+        PlayBackUtilsService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
         ServiceProvider = serviceProvider;
@@ -79,7 +79,7 @@ public partial class HomePageVM : ObservableObject
         LoadSongCoverImage();
 
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
-        DisplayedPlaylists = PlayBackManagerService.AllPlaylists;
+        DisplayedPlaylists = PlayBackUtilsService.AllPlaylists;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
         IsPlaying = false;
@@ -92,9 +92,9 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     byte[] allPictureDatas;
 
-    public void LoadLocalSongFromOutSideApp(string[] filePath)
+    public async void LoadLocalSongFromOutSideApp(string[] filePath)
     {
-        PlayBackManagerService.PlaySelectedSongsOutsideApp(filePath);
+        await PlayBackUtilsService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
     [RelayCommand]
@@ -154,7 +154,7 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
             return;
         }
-        bool loadSongsResult = await PlayBackManagerService.LoadSongsFromFolder(FolderPaths.ToList());
+        bool loadSongsResult = await PlayBackUtilsService.LoadSongsFromFolder(FolderPaths.ToList());
         if (loadSongsResult)
         {
             DisplayedSongs?.Clear();
@@ -175,51 +175,50 @@ public partial class HomePageVM : ObservableObject
 
         if (SelectedSong is not null)
         {
-            PlayBackManagerService.PlaySongAsync(SelectedSong);
+            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
         }
         else
         {
-            PlayBackManagerService.PlaySongAsync(null);
+            PlayBackUtilsService.PlaySongAsync(null, CurrentQueue);
         }
         AllSyncLyrics = Array.Empty<Content>();
-
     }
 
     [RelayCommand]
     async Task PauseResumeSong()
     {
-        await PlayBackManagerService.PauseResumeSongAsync();
+        await PlayBackUtilsService.PauseResumeSongAsync();
     }
 
 
     [RelayCommand]
     async Task StopSong()
     {
-        await PlayBackManagerService.StopSongAsync();
+        await PlayBackUtilsService.StopSongAsync();
     }
 
     [RelayCommand]
     async Task PlayNextSong()
     {
-        await PlayBackManagerService.PlayNextSongAsync();
+        await PlayBackUtilsService.PlayNextSongAsync();
     }
 
     [RelayCommand]
     async Task PlayPreviousSong()
     {
-        await PlayBackManagerService.PlayPreviousSongAsync();
+        await PlayBackUtilsService.PlayPreviousSongAsync();
     }
 
     [RelayCommand]
     void DecreaseVolume()
     {
-        PlayBackManagerService.DecreaseVolume();
+        PlayBackUtilsService.DecreaseVolume();
         VolumeSliderValue -= 0.2;
     }
     [RelayCommand]
     void IncreaseVolume()
     {
-        PlayBackManagerService.IncreaseVolume();
+        PlayBackUtilsService.IncreaseVolume();
         VolumeSliderValue += 0.2;
     }
 
@@ -230,13 +229,13 @@ public partial class HomePageVM : ObservableObject
         //{
 
         //}
-        PlayBackManagerService.SetSongPosition(CurrentPositionPercentage);
+        PlayBackUtilsService.SetSongPosition(CurrentPositionPercentage);
     }
 
     [RelayCommand]
     void ChangeVolume()
     {
-        PlayBackManagerService.ChangeVolume(VolumeSliderValue);
+        PlayBackUtilsService.ChangeVolume(VolumeSliderValue);
     }
 
     [ObservableProperty]
@@ -247,10 +246,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
-        CurrentRepeatMode = PlayBackManagerService.CurrentRepeatMode;
+        CurrentRepeatMode = PlayBackUtilsService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
-            CurrentRepeatMode = PlayBackManagerService.ToggleRepeatMode();
+            CurrentRepeatMode = PlayBackUtilsService.ToggleRepeatMode();
         }
 
         switch (CurrentRepeatMode)
@@ -273,11 +272,11 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleShuffleState(bool IsCalledByUI = false)
     {
-        IsShuffleOn = PlayBackManagerService.IsShuffleOn;
+        IsShuffleOn = PlayBackUtilsService.IsShuffleOn;
         if (IsCalledByUI)
         {
             IsShuffleOn = !IsShuffleOn;
-            PlayBackManagerService.ToggleShuffle(IsShuffleOn);
+            PlayBackUtilsService.ToggleShuffle(IsShuffleOn);
         }
         if (IsShuffleOn)
         {
@@ -292,36 +291,39 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SearchSong(string songText)
     {
-        PlayBackManagerService.SearchSong(songText);
+        PlayBackUtilsService.SearchSong(songText);
     }
 
 
     [RelayCommand]
     async Task OpenNowPlayingBtmSheet(SongsModelView song)// = null)
     {
+#if ANDROID
         SongMenuBtmSheet btmSheet = new(this, song);
-        btmSheet.HomePageVM = this;
+        SelectedSongToOpenBtmSheet = song;
         await btmSheet.ShowAsync();
+#endif
+
     }
     [RelayCommand]
     void AddSongToFavorites(SongsModelView song)
     {
         song.IsFavorite = !song.IsFavorite;
-        PlayBackManagerService.UpdateSongToFavoritesPlayList(song);
+        PlayBackUtilsService.UpdateSongToFavoritesPlayList(song);
         if (song.IsFavorite)
         {
-            PlayBackManagerService.AddSongToPlayListWithPlayListName(song, "Favorites");
+            PlayBackUtilsService.AddSongToPlayListWithPlayListName(song, "Favorites");
         }
         else
         {
-            PlayBackManagerService.RemoveFromPlayListWithPlayListName(song, "Favorites");
+            PlayBackUtilsService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
         }
     }
 
     void ReloadSizeAndDuration()
     {
-        TotalSongsDuration = PlayBackManagerService.TotalSongsDuration;
-        TotalSongsSize = PlayBackManagerService.TotalSongsSizes;
+        TotalSongsDuration = PlayBackUtilsService.TotalSongsDuration;
+        TotalSongsSize = PlayBackUtilsService.TotalSongsSizes;
     }
 
 
@@ -336,9 +338,9 @@ public partial class HomePageVM : ObservableObject
     bool isPlaying = false;
     void SubscribeToPlayerStateChanges()
     {
-        PlayBackManagerService.PlayerState.Subscribe(state =>
+        PlayBackUtilsService.PlayerState.Subscribe(state =>
         {
-            TemporarilyPickedSong = PlayBackManagerService.CurrentlyPlayingSong;
+            TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
             PickedSong = TemporarilyPickedSong;
             switch (state)
             {
@@ -364,7 +366,7 @@ public partial class HomePageVM : ObservableObject
                     //PickedSong = "Stopped";
                     break;
                 case MediaPlayerState.LoadingSongs:
-                    LoadingSongsProgress = PlayBackManagerService.LoadingSongsProgressPercentage;
+                    LoadingSongsProgress = PlayBackUtilsService.LoadingSongsProgressPercentage;
                     break;
                 default: 
                     break;
@@ -376,20 +378,19 @@ public partial class HomePageVM : ObservableObject
     {
         LyricsManagerService.CurrentLyricStream.Subscribe(highlightedLyric =>
         {
-            //CurrentLyricPhrase = highlightedLyric is null ? null : highlightedLyric!;
-            Debug.WriteLine("Current lyric phrase " + highlightedLyric is null);
+            CurrentLyricPhrase = highlightedLyric is null ? null : highlightedLyric;
         });
     }
     private void SubscribeToPlaylistChanges()
     {
-        PlayBackManagerService.SecondaryQueue.Subscribe(songs =>
+        PlayBackUtilsService.SecondaryQueue.Subscribe(songs =>
         {
             DisplayedSongsFromPlaylist = songs;
         });
     }
     private void SubscribeToCurrentSongPosition()
     {
-        PlayBackManagerService.CurrentPosition.Subscribe(async position =>
+        PlayBackUtilsService.CurrentPosition.Subscribe(async position =>
         {
             CurrentPositionInSeconds = position.CurrentTimeInSeconds;
             CurrentPositionPercentage = position.TimeElapsed;
@@ -416,27 +417,12 @@ public partial class HomePageVM : ObservableObject
                         }
                     }
                 });
-                //var result = await Shell.Current.DisplayPromptAsync("Syncing Mode", "Done Syncing?", "Yes", "No");
-                //if (result.Equals("Yes"))
-                //{
-                //    string? lyr = string.Join(Environment.NewLine, LyricsLines?.Select(line => $"{line.TimeStampText} {line.Text}"));
-                //    if (lyr is not null)
-                //    {
-                //        if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
-                //        {
-                //            await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
-                //            CurrentViewIndex = 0;
-                //        }
-                //        LyricsManagerService.InitializeLyrics(lyr);
-                //        DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
-                //    }
-                //}
             }
         });
     }
     private void SubscribetoDisplayedSongsChanges()
     {
-        PlayBackManagerService.NowPlayingSongs.Subscribe(songs =>
+        PlayBackUtilsService.NowPlayingSongs.Subscribe(songs =>
         {
             DisplayedSongs?.Clear();
             DisplayedSongs = songs.ToObservableCollection();
@@ -451,7 +437,10 @@ public partial class HomePageVM : ObservableObject
         LyricsManagerService.SynchronizedLyricsStream.Subscribe(synchronizedLyrics =>
         {
             SynchronizedLyrics = synchronizedLyrics?.ToObservableCollection();
-
+            if (TemporarilyPickedSong is not null)
+            {
+                TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
+            }
         });
     }
     #endregion
@@ -513,6 +502,11 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task SaveUserSelectedLyricsToFile(int id)
     {
+        if (AllSyncLyrics.Length < 1)
+        {
+            //Notify that user should search again TODO
+            return;
+        }
         var s = AllSyncLyrics.First(x => x.id == id);
         if (s.syncedLyrics is null || s.syncedLyrics?.Length < 1)
         {
@@ -523,11 +517,18 @@ public partial class HomePageVM : ObservableObject
         if (await LyricsManagerService.WriteLyricsToLyricsFile(s.syncedLyrics?.Length > 0 ? s.syncedLyrics : s.plainLyrics, TemporarilyPickedSong, s.syncedLyrics?.Length > 0))
         {
             await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+            AllSyncLyrics = [];
             CurrentViewIndex = 0;
         }
         LyricsManagerService.InitializeLyrics(s?.syncedLyrics?.Length > 0 ? s?.syncedLyrics : null);
-        DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
-        await SongsMgtService.UpdateSongDetailsAsync(TemporarilyPickedSong);
+        if (DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id) is not null)
+        {
+            DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+        }
+        if (PlayBackUtilsService.CurrentQueue != 2)
+        {
+            await SongsMgtService.UpdateSongDetailsAsync(TemporarilyPickedSong);
+        }
     }
 
     [ObservableProperty]
@@ -684,7 +685,7 @@ public partial class HomePageVM : ObservableObject
     void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
-        var filePath = TemporarilyPickedSong.FilePath; // SelectedSong.FilePath
+        var filePath = PickedSong.FilePath; // SelectedSong.FilePath
         var directoryPath = Path.GetDirectoryName(filePath);
 
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))

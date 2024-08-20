@@ -33,10 +33,4 @@
 	  <ProjectReference Include="..\Dimmer.Models\Dimmer.Models.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <MauiXaml Update="CustomPopUpViews\LoadingProgressPopUpView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
-
 </Project>

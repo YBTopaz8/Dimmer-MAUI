@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
+﻿
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
@@ -16,14 +15,14 @@ public partial class HomePageVM
     [ObservableProperty]
     SongsModelView selectedSongToOpenBtmSheet;
     PlaylistMenuBtmSheet btmSheet { get; set; }
-
+    public int CurrentQueue=0;
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
-        PlayBackManagerService.GetSongsFromPlaylistID(PlaylistID);
+        PlayBackUtilsService.GetSongsFromPlaylistID(PlaylistID);
         //PlayListService.GetSongsFromPlaylistID
         
-        SelectedPlaylistPageTitle = PlayBackManagerService.SelectedPlaylistName;
+        SelectedPlaylistPageTitle = PlayBackUtilsService.SelectedPlaylistName;
         //PlayBackService.UpdateCurrentQueue(, 1);
         //PlayListService.
 #if ANDROID
@@ -39,21 +38,27 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     [RelayCommand]
-    public async Task AddSongToSpecifcPlaylist(ObjectId PlaylistID)
+    public async Task AddSongToSpecifcPlaylist(string playlistName)
     {
-        PlayBackManagerService.AddSongToPlayListWithPlayListID(SelectedSongToOpenBtmSheet, PlaylistID);
+        PlayBackUtilsService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, playlistName);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(songAddedToPlaylistText, duration);
         await toast.Show(cts.Token);
     }
-
+    public void LoadFirstPlaylist()
+    {
+        if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
+        {
+            OpenSpecificPlaylistPage(DisplayedPlaylists[0].Id);
+        }
+    }
     [RelayCommand]
     public async Task CreatePlaylistAndAddSong(string PlaylistName)
     {
         if (!string.IsNullOrEmpty(PlaylistName))
         {
-            PlayBackManagerService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
-            //DisplayedPlaylists = PlayListService.GetAllPlaylists();
+            PlayBackUtilsService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
+            DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             await toast.Show(cts.Token);
         }
@@ -63,7 +68,7 @@ public partial class HomePageVM
     public async Task DeletePlaylist()
     {
         await btmSheet.DismissAsync();
-        PlayBackManagerService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
+        PlayBackUtilsService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(PlaylistDeletedText, duration);
         await toast.Show(cts.Token);
@@ -82,5 +87,14 @@ public partial class HomePageVM
     {
         //PlaylistManagementService.RenamePlaylist(SelectedPlaylistToOpenBtmSheet.Id, newPlaylistName);
         //HiDisplayedPlaylists = PlayListService.GetAllPlaylists();
+    }
+
+    [RelayCommand]
+    async Task AddToPlaylist()
+    {
+        SelectedSongToOpenBtmSheet = PickedSong;
+        var allPlaylistNames = DisplayedPlaylists.Select(x => x.Name).ToList();
+        _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames));
+        
     }
 }

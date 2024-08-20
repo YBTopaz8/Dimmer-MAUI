@@ -13,12 +13,25 @@ public partial class PlaylistsPageD : ContentPage
 
     protected override void OnAppearing()
     {
-        base.OnAppearing();        
+        base.OnAppearing();
+        HomePageVM.LoadFirstPlaylist();
+        // Assuming DisplayedPlaylistsCV is your CollectionView
+        if (DisplayedPlaylistsCV.ItemsSource is IEnumerable<object> items && items.Any())
+        {
+            DisplayedPlaylistsCV.SelectedItem = items.First();
+        }
     }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.DisplayedSongsFromPlaylist.Clear();
-        
+        HomePageVM.DisplayedSongsFromPlaylist.Clear();        
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 1;
+        var t = (Border)sender;
+        var song = t.BindingContext as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
     }
 }

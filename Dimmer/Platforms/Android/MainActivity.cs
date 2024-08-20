@@ -41,7 +41,6 @@ public class MainActivity: MauiAppCompatActivity, IAudioActivity
         mediaPlayerServiceConnection = new MediaPlayerServiceConnection(this);
         var mediaPlayerServiceIntent = new Intent(Platform.AppContext, typeof(MediaPlayerService));
         BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
-        
     }
     
 }

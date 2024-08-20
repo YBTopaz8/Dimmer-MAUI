@@ -37,7 +37,7 @@ public partial class App : Application
         return window;
     }
 
-
+    
 
     private void LogException(Exception ex)
     {

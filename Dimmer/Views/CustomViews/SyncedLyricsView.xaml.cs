@@ -15,5 +15,11 @@ public partial class SyncedLyricsView : ContentView
             //LyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase, ScrollToPosition.Center);
         }
     }
-    
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var bor = (Border)sender;
+        var lyr = (LyricPhraseModel)bor.BindingContext;
+
+    }
 }

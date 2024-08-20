@@ -32,15 +32,16 @@ public interface IPlaybackUtilsService
     void ToggleShuffle(bool isShuffleOn);
     int ToggleRepeatMode();
     Task UpdateSongToFavoritesPlayList(SongsModelView song);
+    int CurrentQueue { get; set; }
     void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1);
-    bool PlaySelectedSongsOutsideApp(string[] filePaths);
+    Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths);
 
     //Playlist Section
 
     ObservableCollection<PlaylistModelView> AllPlaylists { get; }
     void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName);
     void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
-    void RemoveFromPlayListWithPlayListName(SongsModelView song, string playListName);
+    void RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
     void RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName);
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
     void GetSongsFromPlaylistID(ObjectId playlistID);

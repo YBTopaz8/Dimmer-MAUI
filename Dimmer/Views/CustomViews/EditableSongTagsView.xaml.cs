@@ -2,7 +2,7 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class EditableSongTagsView : ContentView
 {
-	public HomePageVM? homePageVM {  get; set; }
+	public HomePageVM? HomePageVM {  get; set; }
 	public EditableSongTagsView()
 	{
 		
@@ -13,21 +13,21 @@ public partial class EditableSongTagsView : ContentView
     {
 		var s = (ImageButton)sender;
 		var se = (LyricPhraseModel)s.BindingContext;
-		homePageVM.CaptureTimestampCommand.Execute(se);
+		HomePageVM!.CaptureTimestampCommand.Execute(se);
     }
 
     private void DeleteLyricLine_Clicked(object sender, EventArgs e)
     {
         var s = (ImageButton)sender;
         var se = (LyricPhraseModel)s.BindingContext;
-		homePageVM.DeleteLyricLineCommand.Execute(se);
+		HomePageVM!.DeleteLyricLineCommand.Execute(se);
     }
 
     private void StartSyncingBtn_Clicked(object sender, EventArgs e)
     {
         UnSyncLyricsView.IsVisible = !UnSyncLyricsView.IsVisible;
         SyncingLyricView.IsVisible = !SyncingLyricView.IsVisible;
-        homePageVM.IsOnLyricsSyncMode = SyncingLyricView.IsVisible;
+        HomePageVM!.IsOnLyricsSyncMode = SyncingLyricView.IsVisible;
         if (SyncedLyricsCV.IsVisible)
         {
             StartSyncingBtn.Text = "Stop Syncing";

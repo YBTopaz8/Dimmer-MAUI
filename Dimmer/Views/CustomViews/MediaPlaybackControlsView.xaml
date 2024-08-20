@@ -15,7 +15,7 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="135" >
+    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="120" >
         <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
         </Slider>
@@ -92,7 +92,7 @@
                        Opacity="0.6"/>
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout>
+                <HorizontalStackLayout IsVisible="False">
                     <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>

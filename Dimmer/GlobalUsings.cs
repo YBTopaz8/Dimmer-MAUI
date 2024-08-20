@@ -39,6 +39,11 @@ global using System.Timers;
 global using System.Collections.ObjectModel;
 global using System.Diagnostics;
 
+global using CommunityToolkit.Maui.Views;
+global using CommunityToolkit.Maui.Alerts;
+global using CommunityToolkit.Maui.Core;
+global using Dimmer_MAUI.CustomPopUpViews;
+
 global using ATL;
 
 namespace Dimmer_MAUI;

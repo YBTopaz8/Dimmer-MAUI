@@ -18,8 +18,8 @@
     <toolkit:DockLayout VerticalOptions="Center" x:Name="SyncedLyricsSL">
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" toolkit:DockLayout.DockPosition="Top"
-HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
-SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}">
+                        HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
+                        SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}">
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Selected">
@@ -33,16 +33,20 @@ SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyri
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Border Stroke="Transparent" >
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                        </Border.GestureRecognizers>
+                        
                         <Label Text="{Binding Text}" Margin="0,5" 
-       HorizontalTextAlignment="Center" 
-       FontSize="15" WidthRequest="800"/>
+                               HorizontalTextAlignment="Center" 
+                               FontSize="15" WidthRequest="800"/>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
         
         <ScrollView 
-                IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}">
+                IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}">
             <Label Text="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}" 
                HorizontalTextAlignment="Center" Padding="10"
                LineBreakMode="WordWrap"/>

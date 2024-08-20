@@ -21,12 +21,6 @@
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
 
-            <MenuFlyout x:Key="SelectedSongContextMenu">
-                <MenuFlyoutItem Text="View File Explorer" 
-                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference page}}" CommandParameter="{Binding .}"/>
-                <MenuFlyoutItem Text="Delete File" 
-                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference page}}" CommandParameter="{Binding .}"/>
-            </MenuFlyout>
             <Style TargetType="ImageButton">
                 <Setter Property="BackgroundColor" Value="Transparent"/>
                 <Setter Property="BorderColor" Value="Transparent"/>
@@ -41,13 +35,26 @@
     </uranium:UraniumContentPage.ToolbarItems>
 
     <toolkit:DockLayout>
+        <FlyoutBase.ContextFlyout>
+            <MenuFlyout>
+                <MenuFlyoutItem Text="Find Song"
+                                Clicked="MenuFlyoutItem_Clicked">
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl" 
+                         Key="F"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+            </MenuFlyout>
+        </FlyoutBase.ContextFlyout>
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
-        
+
         <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
-                   x:Name="SearchSongSB"/>
+                   x:Name="SearchSongSB">
+            
+        </SearchBar>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
             <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
@@ -81,8 +88,6 @@
             <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
         </VerticalStackLayout>
         
-            
-        
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250" />
@@ -97,7 +102,7 @@
             <Grid.Resources>
                 <ResourceDictionary>
                     <Style TargetType="Label">
-                        <Setter Property="TextColor" Value="#383838"/>
+                        <Setter Property="TextColor" Value="#575757"/>
                         <Setter Property="FontAttributes" Value="Bold"/>
                         <Setter Property="FontSize" Value="16"/>
                         <Setter Property="HorizontalOptions" Value="Center"/>
@@ -123,6 +128,60 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Grid ColumnSpacing="25" Padding="8">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="View File Explorer" 
+                                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference page}}" CommandParameter="{Binding .}">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
+                                                             Key="E"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+
+                                <MenuFlyoutItem Text="Edit">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl" 
+                                                             Key="E"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+
+                                <MenuFlyoutItem Text="Information">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl" 
+                                                             Key="I"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                
+                                <MenuFlyoutSeparator/>
+                                
+                                <MenuFlyoutItem Text="Remove" 
+                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference page}}" CommandParameter="{Binding .}">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="None" 
+                                                             Key="Delete"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                
+                                <MenuFlyoutItem Text="Remove from Device">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
+                                                             Key="Delete"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                
+                                <MenuFlyoutSeparator/>
+
+                                <MenuFlyoutItem Text="Add To Playlist"
+                                                Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference page}}">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl" 
+                                                             Key="P"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
                         <Grid.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="Label">
@@ -131,9 +190,7 @@
                             </ResourceDictionary>
                         </Grid.Resources>
                         <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference page}}"
-                                                  NumberOfTapsRequired="2"
-                                                  CommandParameter="{Binding .}"/>
+                            <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="250" />

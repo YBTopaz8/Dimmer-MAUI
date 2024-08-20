@@ -65,7 +65,7 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
         <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
-              x:Name="NowPlayingGrid"  >
+              x:Name="NowPlayingGrid">
             <Grid.Effects>
                 <uranium:BlurEffect AccentOpacity="0.7"/>
             </Grid.Effects>

@@ -80,7 +80,7 @@ public class MediaPlayerService : Service,
                 PlayingHandler.PostDelayed(PlayingHandlerRunnable, 1000);
             }
         });
-
+        
         // On Status changed to PLAYING, start raising the Playing event
         StatusChanged += (sender, e) =>
         {
