@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using System.Runtime.InteropServices;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 
@@ -33,6 +34,7 @@ public partial class App : MauiWinUIApplication
         this.InitializeComponent();
     }
 
+    
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
             HandleActivated(e);
@@ -41,10 +43,10 @@ public partial class App : MauiWinUIApplication
 
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
+        
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         do
         {
@@ -91,10 +93,10 @@ public partial class App : MauiWinUIApplication
     {
         if (paths.Length < 1)
             return;
-        var home = Services.GetService<HomePageVM>();
-        home.LoadLocalSongFromOutSideApp(paths);
+        
+        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        home!.LoadLocalSongFromOutSideApp(paths!);
 
     }
-
-
 }
+

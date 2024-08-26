@@ -36,6 +36,9 @@
     <MauiXaml Update="Views\CustomViews\MediaPlaybackControlsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\CustomViews\MiniControlNotificationView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using Dimmer_MAUI.Views.CustomViews;
+using Microsoft.VisualBasic.FileIO;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -741,5 +742,14 @@ public partial class HomePageVM : ObservableObject
             Debug.WriteLine("An error occurred: " + e.Message);
         }
     }
+#if WINDOWS
+
+    [RelayCommand]
+    void BringAppToFront()
+    {
+        MiniPlayBackControlNotif.BringAppToFront();
+    }
+#endif
+
 }
 

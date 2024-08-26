@@ -1,12 +1,20 @@
 ﻿#if ANDROID
 using Dimmer_MAUI.Platforms.Android.MAudioLib;
+using Microsoft.Maui.LifecycleEvents;
 #elif WINDOWS
 using Dimmer_MAUI.Platforms.Windows;
+using Dimmer_MAUI.WinUI;
+using Microsoft.Maui.LifecycleEvents;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using System.Windows.Interop;
+using WinRT.Interop;
 #endif
+
 
 namespace Dimmer_MAUI;
 public static class MauiProgram
-{
+{    
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -28,6 +36,40 @@ public static class MauiProgram
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
+
+#if WINDOWS
+        
+        builder.ConfigureLifecycleEvents(events =>
+        {
+            events.AddWindows(wndLifeCycleBuilder =>
+            {
+                wndLifeCycleBuilder.OnWindowCreated(window =>
+                {
+                    IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
+                    WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
+                    AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
+
+                    // Check if this is the mini player window by checking its title or other identifying property
+                    if (window.Title == "MP")
+                    {
+                        if (winuiAppWindow.Presenter is OverlappedPresenter p)
+                        {                            
+                            p.IsResizable = false;
+                            p.IsAlwaysOnTop = true;
+                            p.SetBorderAndTitleBar(false, false); // Remove title bar and border
+                        }
+                    }
+                    else
+                    {
+                        
+                        // Customizations for the main window, if needed
+                    }
+                });
+            });
+        });
+#endif
+
+
 
 #if ANDROID || WINDOWS
         builder.Services.AddSingleton<INativeAudioService, NativeAudioService>();

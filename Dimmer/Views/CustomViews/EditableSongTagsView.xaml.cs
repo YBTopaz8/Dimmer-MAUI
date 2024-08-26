@@ -4,8 +4,7 @@ public partial class EditableSongTagsView : ContentView
 {
 	public HomePageVM? HomePageVM {  get; set; }
 	public EditableSongTagsView()
-	{
-		
+	{		
 		InitializeComponent();
 	}
 

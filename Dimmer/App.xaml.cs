@@ -10,7 +10,6 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #if WINDOWS
         MainPage = new AppShell();
-
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
@@ -33,11 +32,10 @@ public partial class App : Application
         window.Width = 1200;
         
         window.Title = "Dimmer";
-
+        
         return window;
+        
     }
-
-    
 
     private void LogException(Exception ex)
     {
@@ -53,4 +51,6 @@ public partial class App : Application
             // If logging fails, there's not much we can do
         }
     }
+
+    
 }

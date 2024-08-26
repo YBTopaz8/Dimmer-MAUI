@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.MiniControlNotificationView"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"  
+             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"     
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             Title="MiniControlNotificationView">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="ImageButton">
+                <Setter Property="WidthRequest" Value="40"/>
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+            </Style>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <VerticalStackLayout Spacing="10" Margin="5,5"
+                         x:DataType="vm:HomePageVM">
+        
+        <FlexLayout JustifyContent="SpaceBetween">
+
+            <Grid>
+
+                <ImageButton WidthRequest="140" x:Name="coverImage"
+                    Command="{Binding BringAppToFrontCommand}" 
+                             Opacity="0.5"/>
+
+            </Grid>
+
+            <VerticalStackLayout VerticalOptions="End" Spacing="10" Margin="0,5">
+
+                <ImageButton 
+                        VerticalOptions="Start" 
+                        HorizontalOptions="End"
+                        Margin="5,0,-8,0"
+                        Clicked="CloseImgBtn_Clicked">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Close}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <Label x:Name="songTitle"
+                    LineBreakMode="HeadTruncation"
+                   FontSize="16" FontAttributes="Bold" MaximumWidthRequest="220"
+                       HorizontalOptions="Center"/>
+
+                <Label x:Name="songArtistName"
+                       TextColor="DarkSlateBlue" MaximumWidthRequest="220"
+                       CharacterSpacing="1" FontSize="16"
+                       HorizontalOptions="Center"/>
+
+                <HorizontalStackLayout Spacing="10">
+                    <ImageButton Command="{Binding ToggleRepeatModeCommand}"
+                                 Clicked="ImageButton_Clicked">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}" Clicked="ImageButton_Clicked"
+                                 ToolTipProperties.Text="Play Previous">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
+                                 Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn"
+                                 Clicked="ImageButton_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    
+                    <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
+                                 x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
+                                 Clicked="ImageButton_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" 
+                     Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    
+                    <ImageButton Command="{Binding PlayNextSongCommand}"
+                                 Clicked="ImageButton_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton Command="{Binding ToggleShuffleStateCommand}"
+                                 Clicked="ImageButton_Clicked">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>            
+        </FlexLayout>
+    </VerticalStackLayout>
+</ContentPage>

@@ -151,6 +151,9 @@
 	  <MauiXaml Update="Views\CustomViews\MediaPlaybackControlsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\MiniControlNotificationView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

@@ -52,38 +52,37 @@
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Content">
-                    <Grid Padding="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="290"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
 
-                        <Border HeightRequest="280" VerticalOptions="Start"  MaximumWidthRequest="700"
-                                Grid.Column="1" Grid.Row="0" Padding="10"
-                                Stroke="DarkSlateBlue" StrokeShape="RoundRectangle 10">
-                            
-                            <VerticalStackLayout>
-                                <Label Text="{Binding trackName}" HorizontalTextAlignment="Center"/>
-                                <BoxView HeightRequest="1" Color="Grey"/>
-                                <Label Text="{Binding artistName}"/>
-                                <BoxView HeightRequest="1" Color="Grey"/>
-                                <Label Text="{Binding albumName}"/>
-                                <BoxView HeightRequest="1" Color="Grey"/>
-                                <HorizontalStackLayout MaximumWidthRequest="800" Spacing="15">                                    
-                                    <Label Text="{Binding syncedLyrics}" MaximumHeightRequest="100" LineBreakMode="CharacterWrap"/>
-                                    <Label Text="{Binding plainLyrics}" MaximumHeightRequest="150"/>
-                                </HorizontalStackLayout>
-                                
+                    <Border Stroke="DarkSlateBlue" ToolTipProperties.Text="Tap To View/Hide Lyrics"
+                            StrokeShape="RoundRectangle, 10"
+                            Padding="10" Margin="0,5">
+                        <uranium:ExpanderView MaximumHeightRequest="300" Grid.Column="0">
+                            <uranium:ExpanderView.Header>
+
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                                    <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+
+                                    <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+                                    
+                                </VerticalStackLayout>
+                            </uranium:ExpanderView.Header>
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="{Binding syncedLyrics}" MaximumHeightRequest="100" 
+                                       LineBreakMode="CharacterWrap"/>
+                                <Label Text="{Binding plainLyrics}" MaximumHeightRequest="100" 
+                                       LineBreakMode="CharacterWrap"/>
+
                                 <Button Text="Save" HorizontalOptions="Center" Command="{Binding BindingContext.SaveUserSelectedLyricsToFileCommand, Source={x:Reference page}}"
                                         CommandParameter="{Binding id}">
                                 </Button>
-                            </VerticalStackLayout>
-                        </Border>
+                            </HorizontalStackLayout>
+                            
+                        </uranium:ExpanderView>
 
-                    </Grid>
-
+                    </Border>
+                        
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

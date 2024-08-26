@@ -7,4 +7,8 @@ public partial class FetchLyricsResultsView : ContentView
 		InitializeComponent();
 	}
 
+    private void AllSyncLyr_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
 }

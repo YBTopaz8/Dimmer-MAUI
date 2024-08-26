@@ -44,6 +44,7 @@
               <uap:FileType>.mp3</uap:FileType>
               <uap:FileType>.wav</uap:FileType>
               <uap:FileType>.flac</uap:FileType>
+              <uap:FileType>.m4a</uap:FileType>
               <!-- Add other supported file types -->
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>

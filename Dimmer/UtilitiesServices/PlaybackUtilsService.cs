@@ -421,7 +421,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public async Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths)
     {
         // Filter the array to include only specific file extensions
-        var filteredFiles = filePaths.Where(path => path.EndsWith(".mp3") || path.EndsWith(".flac") || path.EndsWith(".wav")).ToArray();
+        var filteredFiles = filePaths.Where(path => path.EndsWith(".mp3") || path.EndsWith(".flac") || path.EndsWith(".wav") || path.EndsWith(".m4a")).ToArray();
+        var existingSongDictionary = _tertiaryQueueSubject.Value.ToDictionary(song => song.FilePath, song => song, StringComparer.OrdinalIgnoreCase);
 
         var allSongs = new ObservableCollection<SongsModelView>();
         foreach (var file in filteredFiles)
@@ -431,26 +432,35 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 continue;
             }
-            Track track = new (file);
-            var song = new SongsModelView
+            if (existingSongDictionary.TryGetValue(file, out var existingSong))
             {
-                Title = track.Title,
-                ArtistID = ObjectId.Empty,
-                ArtistName = track.Artist,
-                AlbumName = track.Album,
-                ReleaseYear = track.Year,
-                SampleRate = track.SampleRate,
-                FilePath = track.Path,
-                DurationInSeconds = track.Duration,
-                BitRate = track.Bitrate,
-                FileSize = fileInfo.Length,
-                TrackNumber = track.TrackNumber,
-                FileFormat = Path.GetExtension(file).TrimStart('.'),
-                HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
-                CreationTime = fileInfo.CreationTime
-            };
-            allSongs.Add(song);
+                // If the song already exists, use the existing song
+                allSongs.Add(existingSong);
+            }
+            else
+            {
+                // Otherwise, create a new song object and add it to the collection
+                Track track = new Track(file);
+                var newSong = new SongsModelView
+                {
+                    Title = track.Title,
+                    ArtistID = ObjectId.Empty,
+                    ArtistName = track.Artist,
+                    AlbumName = track.Album,
+                    ReleaseYear = track.Year,
+                    SampleRate = track.SampleRate,
+                    FilePath = track.Path,
+                    DurationInSeconds = track.Duration,
+                    BitRate = track.Bitrate,
+                    FileSize = fileInfo.Length,
+                    TrackNumber = track.TrackNumber,
+                    FileFormat = Path.GetExtension(file).TrimStart('.'),
+                    HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
+                    CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
+                    CreationTime = fileInfo.CreationTime
+                };
+                allSongs.Add(newSong);
+            }
 
         }
         _tertiaryQueueSubject.OnNext(allSongs);
@@ -496,7 +506,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
             }
-
+            
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
@@ -522,6 +532,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
+
+#if WINDOWS
+            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+#endif
             return true;
         }
         catch (Exception ex)
