@@ -83,6 +83,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
 
         AllPlaylists = PlaylistManagementService.AllPlaylists.ToObservableCollection();
+        CurrentQueue = 0;
     }
 
     #region Audio Service Events Region
@@ -465,12 +466,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         _tertiaryQueueSubject.OnNext(allSongs);
         await PlaySongAsync(allSongs[0], 2);
-        //_nowPlayingSubject.OnNext(allSongs);
+        
         return true;
     }
 
     #region Playback Control Region
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = -1)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0)
     {
         if (ObservableCurrentlyPlayingSong != null)
         {

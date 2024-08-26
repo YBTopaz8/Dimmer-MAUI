@@ -21,17 +21,26 @@ public static class MiniPlayBackControlNotif
         var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
         miniPlayerView.BindingContext = vm;
-        var secondWindow = new Window(miniPlayerView);
-        var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
-        secondWindow.Title = "MP";
-        secondWindow.MaximumHeight = 150;
-        secondWindow.MinimumHeight = 150;
-        secondWindow.MaximumWidth = 400;
-        secondWindow.MinimumWidth = 400;
-        secondWindow.X = mainScreenBounds.Width - 400;
-        secondWindow.Y = 0;
 
-        Application.Current?.OpenWindow(secondWindow);
+        miniPlayerView.BindingContext = vm;
+
+        // Ensure this is on the main thread
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var secondWindow = new Window(miniPlayerView);
+            var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
+
+            secondWindow.Title = "MP";
+            secondWindow.MaximumHeight = 150;
+            secondWindow.MinimumHeight = 150;
+            secondWindow.MaximumWidth = 400;
+            secondWindow.MinimumWidth = 400;
+            secondWindow.X = mainScreenBounds.Width - 400;
+            secondWindow.Y = 0;
+
+            Application.Current?.OpenWindow(secondWindow);
+        });
+        
     }
     public static void BringAppToFront()
     {
