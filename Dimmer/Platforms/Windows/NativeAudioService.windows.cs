@@ -154,11 +154,17 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
                 Source = mediaPlaybackItem(media),
                 AudioCategory = MediaPlayerAudioCategory.Media
             };
+
             mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
+            mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+
             mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
+            mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+
             mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
             mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+            
         }
         else
         {
@@ -175,6 +181,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     }
     private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
     {
+        
         PlayNext?.Invoke(sender, EventArgs.Empty);
     }
     private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)
