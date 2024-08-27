@@ -1,6 +1,8 @@
 # Dimmer-MAUI
 Time Spent So Far... [![wakatime](https://wakatime.com/badge/user/20225675-04f6-42d1-8535-b25921cfc585/project/6d9509eb-58c7-40db-b0e6-63ad72a6e172.svg)](https://wakatime.com/badge/user/20225675-04f6-42d1-8535-b25921cfc585/project/6d9509eb-58c7-40db-b0e6-63ad72a6e172)
 
+Give a star to the [original repo](https://github.com/YBTopaz8/Dimmer-MAUI)
+
 # Dimmer A Cross Platform Music Player App built in .NET MAUI.
 
 Building this as a hobby and also because the music app I use on Windows (Dopamine) and on Android (Retro Music Player) are discontinued.
