@@ -174,5 +174,20 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     bool isFavorite;
 
+    // Override Equals to compare based on ObjectId
+    public override bool Equals(object? obj)
+    {
+        if (obj is SongsModelView other)
+        {
+            return this.Id == other.Id;
+        }
+        return false;
+    }
+
+    // Override GetHashCode to use ObjectId's hash code
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 }
 

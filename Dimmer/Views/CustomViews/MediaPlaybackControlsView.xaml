@@ -36,11 +36,11 @@
                 <VerticalStackLayout VerticalOptions="Center" >
                     <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation" FontSize="18"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
-                    <Image WidthRequest="20" HorizontalOptions="Start" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
+                    <!--<Image WidthRequest="20" HorizontalOptions="Start" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
                         <Image.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                         </Image.Source>
-                    </Image>
+                    </Image>-->
                     <Label Text="{Binding TemporarilyPickedSong.AlbumName}" 
                        LineBreakMode="HeadTruncation"/>
                 </VerticalStackLayout>

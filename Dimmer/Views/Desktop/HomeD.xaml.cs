@@ -19,7 +19,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: true);
         }
         //This crashes the app :(
     }
@@ -41,6 +41,12 @@ public partial class HomeD : UraniumContentPage
             else
             {
                 HomePageVM.SearchSongCommand.Execute(string.Empty);
+
+                await Task.Delay(1500);
+                if (SongsColView.IsLoaded)
+                {
+                    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: true);
+                }
             }
         }
     }

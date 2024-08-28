@@ -163,8 +163,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
 
                 allFiles.AddRange(Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
-                                    .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav"))
-                                    .AsParallel()
+                                    .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
+                                    .AsParallel() 
                                     .ToList());
             }
 
@@ -325,6 +325,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         
         string fileNameWithoutExtension = Path.GetFileName(filePath);
         string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+        // Ensure the directory exists
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
         string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
             .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
             .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
@@ -356,6 +361,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             string fileNameWithoutExtension = Path.GetFileName(filePath);
             string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+            // Ensure the directory exists
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+
             string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
                 .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
                 .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
@@ -420,6 +432,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     double currentPosition = 0;
 
+    #region Playback Control Region
     public async Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths)
     {
         // Filter the array to include only specific file extensions
@@ -471,7 +484,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    #region Playback Control Region
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0)
     {
         if (ObservableCurrentlyPlayingSong != null)
@@ -550,8 +562,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         finally
         {
             if (ObservableCurrentlyPlayingSong != null && currentQueue != 2)
-            {
-                StatsMgtService.IncrementPlayCount(ObservableCurrentlyPlayingSong.Id);
+            {                
                 await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
             }
         }

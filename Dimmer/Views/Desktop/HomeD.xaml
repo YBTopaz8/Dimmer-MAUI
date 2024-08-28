@@ -61,14 +61,14 @@
                 <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}" FontSize="18"
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
-                <HorizontalStackLayout Spacing="10">
-                    <material:CheckBox Text="Show Preferred folders" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
-                    <ImageButton Clicked="Button_Clicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10">
+                <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
+                <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </HorizontalStackLayout>
                 
             </FlexLayout>
         </VerticalStackLayout>
@@ -82,7 +82,7 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-            <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
+            <Button Text="Click here to Select folder to scan (You can do so multiple times for multiple folders)" Command="{Binding SelectSongFromFolderCommand}"/>
             <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
             <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
