@@ -5,7 +5,7 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer.Models;assembly=Dimmer.Models"
+             xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
              x:DataType="vm:HomePageVM" 
              x:Name="myPage" Color="Transparent"
              x:Class="Dimmer_MAUI.CustomPopUpViews.SongToPlaylistPopup">

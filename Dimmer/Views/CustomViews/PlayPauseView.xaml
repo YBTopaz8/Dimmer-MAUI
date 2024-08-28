@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.CustomViews.PlayPauseView"         
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
          xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-         xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer.Utilities"
+         xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"
          x:DataType="vm:HomePageVM">
     <ContentView.Resources>
         <converters:BoolToInverseConverter x:Key="BoolToInverse"/>

@@ -3,11 +3,9 @@ using Dimmer_MAUI.Platforms.Android.MAudioLib;
 using Microsoft.Maui.LifecycleEvents;
 #elif WINDOWS
 using Dimmer_MAUI.Platforms.Windows;
-using Dimmer_MAUI.WinUI;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
-using System.Windows.Interop;
 using WinRT.Interop;
 #endif
 

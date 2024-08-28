@@ -31,7 +31,6 @@ public partial class MiniControlNotificationView : ContentPage
         CloseWindow();
     }
 
-#if WINDOWS
     private void CloseWindow()
     {
         Dispatcher.Dispatch(() =>
@@ -43,6 +42,12 @@ public partial class MiniControlNotificationView : ContentPage
             }
         });
     }
+    private void ResetTimer()
+    {
+        _closeTimer.Stop();
+        _closeTimer.Start();
+    }
+#if WINDOWS
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -55,11 +60,6 @@ public partial class MiniControlNotificationView : ContentPage
         CloseWindow();
     }
 
-    private void ResetTimer()
-    {
-        _closeTimer.Stop();
-        _closeTimer.Start();
-    }
     public void UpdateSongDetails(SongsModelView playingSong)
     {
         songTitle.Text = playingSong.Title;

@@ -1,8 +1,4 @@
 ﻿using Dimmer_MAUI.Views.CustomViews;
-using Microsoft.UI;
-using Microsoft.UI.Windowing;
-using System.Runtime.InteropServices;
-using WinRT.Interop;
 
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
