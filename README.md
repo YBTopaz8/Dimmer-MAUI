@@ -7,18 +7,44 @@ Give a star to the [original repo](https://github.com/YBTopaz8/Dimmer-MAUI)
 
 Building this as a hobby and also because the music app I use on Windows (Dopamine) and on Android (Retro Music Player) are discontinued.
 
-# Features so far;
-- Play/Pause Songs
-- Show Sync lyrics from either .lrc file or from song's metadata.
-- More to come such as playlist management, lyrics download, song's editing, statistics etc..
+## Screenshots at bottom of the page
 
-The Requirement to run use THIS project, you would need;
+# Features so far;
+- Play/Pause Songs (I knooow..)
+- Show Sync lyrics from either .lrc file or from song's metadata.
+- Lyrics download.
+- More to come such as playlist management, song's editing, statistics etc..
+
+# Requirements
 - A PC running Windows 10 at least.
 - An Android Device running Android 11 at least (API 30).
 - Visual Studio 2019, 2022 or latest (It was built on VS 2022) with MAUI support.
 
-## Authors
+# How To Install on Windows
+- Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases/download/v0.0.1/Dimmer-MAUI_0.0.1.0_Test.zip)
+- Right Click on "install.ps1"
+- Review all on screen instructions and agreed to install certificates and the app.
+- Open the App from Start Menu.
+- Enjoy
+  
+# How to install on Android
+> Coming soon...
 
+# ScreenShots (Work in Progress...)
+| Windows | Android| 
+| ------------- |:-------------:|
+| <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/SearchResults_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>| coming soon...|
+
+## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
 
  [My Simple Portfolio](https://flowcv.me/ybtopaz)
+
+# Disclaimer:
+Running the included sideloading PowerShell script to install will collect usage data on the device where it's run. This is by default set by MS, I'll find a way to remove it.
+I don't need anyone's info 🙂
