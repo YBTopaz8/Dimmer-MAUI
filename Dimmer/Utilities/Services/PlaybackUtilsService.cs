@@ -88,9 +88,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
     #region Audio Service Events Region
-    private void AudioService_PlayPrevious(object? sender, EventArgs e)
+    private async void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
-        //throw new NotImplementedException();
+        await PlayPreviousSongAsync();
     }
     SemaphoreSlim _playLock = new SemaphoreSlim(1, 1);
     private async void AudioService_PlayNext(object? sender, EventArgs e)
