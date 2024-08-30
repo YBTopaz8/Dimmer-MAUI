@@ -97,7 +97,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.Resources>
                 <ResourceDictionary>
@@ -117,7 +116,6 @@
             <Label Text="Duration" Grid.Column="4" />
             <Label Text="Bitrate" Grid.Column="5" />
             <Label Text="File Format" Grid.Column="6"/>
-            <Label Text="Is Playing" Grid.Column="7" />
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
         <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
@@ -200,7 +198,6 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <Grid.RowDefinitions>
@@ -256,7 +253,6 @@
                                HorizontalTextAlignment="Center"/>
                         <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" />
                         <Label Text="{Binding FileFormat}" Grid.Column="6"/>
-                        <Label Text="{Binding IsPlaying}" Grid.Column="7"/>
 
                     </Grid>
                 </DataTemplate>

@@ -19,7 +19,8 @@
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" toolkit:DockLayout.DockPosition="Top"
                         HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
-                        SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}">
+                        SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
+                        >
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Selected">
@@ -45,9 +46,9 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
         
-        <ScrollView 
-                IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}">
-            <Label Text="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}" 
+        <ScrollView x:Name="UnSyncLyrView"
+                IsVisible="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}">
+            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" 
                HorizontalTextAlignment="Center" Padding="10"
                LineBreakMode="WordWrap"/>
 

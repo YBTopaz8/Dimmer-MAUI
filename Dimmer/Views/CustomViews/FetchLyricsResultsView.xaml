@@ -56,7 +56,7 @@
                     <Border Stroke="DarkSlateBlue" ToolTipProperties.Text="Tap To View/Hide Lyrics"
                             StrokeShape="RoundRectangle, 10"
                             Padding="10" Margin="0,5">
-                        <uranium:ExpanderView MaximumHeightRequest="300" Grid.Column="0">
+                        <uranium:ExpanderView MaximumHeightRequest="400" Grid.Column="0">
                             <uranium:ExpanderView.Header>
 
                                 <VerticalStackLayout>
@@ -65,19 +65,19 @@
                                     <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
 
                                     <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
-                                    
+                                    <Button Text="Save" HorizontalOptions="Center" 
+                                            Command="{Binding BindingContext.SaveUserSelectedLyricsToFileCommand, Source={x:Reference page}}" CommandParameter="{Binding id}"/>
+
                                 </VerticalStackLayout>
                             </uranium:ExpanderView.Header>
-                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                                <Label Text="{Binding syncedLyrics}" MaximumHeightRequest="100" 
-                                       LineBreakMode="CharacterWrap"/>
-                                <Label Text="{Binding plainLyrics}" MaximumHeightRequest="100" 
-                                       LineBreakMode="CharacterWrap"/>
+                            <ScrollView HeightRequest="250">
+                                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" >
+                                    <Label Text="{Binding syncedLyrics}" LineBreakMode="CharacterWrap"/>
+                                    <Label Text="{Binding plainLyrics}" LineBreakMode="CharacterWrap"/>
 
-                                <Button Text="Save" HorizontalOptions="Center" Command="{Binding BindingContext.SaveUserSelectedLyricsToFileCommand, Source={x:Reference page}}"
-                                        CommandParameter="{Binding id}">
-                                </Button>
-                            </HorizontalStackLayout>
+                                </HorizontalStackLayout>
+
+                            </ScrollView>
                             
                         </uranium:ExpanderView>
 

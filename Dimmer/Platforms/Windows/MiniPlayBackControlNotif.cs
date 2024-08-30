@@ -9,14 +9,12 @@ public static class MiniPlayBackControlNotif
         var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
         if (miniPlayerWindow is not null)
         {
-            miniPlayerWindow.UpdateSongDetails(song);
+            miniPlayerWindow.ResetTimer();
             return;
         }
-        var miniPlayerView = new MiniControlNotificationView(song);
+        var miniPlayerView = new MiniControlNotificationView();
         
         var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-
-        miniPlayerView.BindingContext = vm;
 
         miniPlayerView.BindingContext = vm;
 

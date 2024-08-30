@@ -55,7 +55,6 @@ public partial class PlaylistModelView : ObservableObject
     {
         Id = model.Id;
         Name = model.Name;
-        //SongsIDs = model.SongsIDs;
         DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;

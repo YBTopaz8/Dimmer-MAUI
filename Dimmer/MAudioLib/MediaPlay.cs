@@ -5,7 +5,7 @@ public class MediaPlay
     public string Author { get; set; }
     public string URL { get; set; }
     public Stream Stream { get; set; }
-    public string Image { get; set; }
+    public string ImagePath { get; set; }
     /// <summary>
     /// Get/Set Album Cover in Byte[] to put on Notification 
     /// </summary>

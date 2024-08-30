@@ -7,9 +7,7 @@ public class SongsModel : RealmObject
     public string Title { get; set; }
     public string ArtistName { get; set; }
     public string AlbumName { get; set; }
-
     public string FilePath { get; set; }
-
     public double DurationInSeconds { get; set; }
     public int? ReleaseYear { get; set; }
     public int? TrackNumber { get; set; }
@@ -21,19 +19,16 @@ public class SongsModel : RealmObject
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
     public string? CoverImagePath { get; set; }
-
     public DateTimeOffset DateAdded { get; set; }
-    public DateTimeOffset DateEdited { get; set; }
     public DateTimeOffset LastPlayed { get; set; }
-    public int SkipCount { get; set; }
-
+    public IList<DateTimeOffset> DatesPlayed { get; }
+    public IList<DateTimeOffset> DatesSkipped { get; }
     public ObjectId? ArtistID { get; set; }
     public ObjectId? AlbumID { get; set; }
     public ObjectId? GenreID { get; set; }
     public ObjectId? UserID { get; set; }
     public string? UnSyncLyrics { get; set; }
     public bool IsPlaying { get; set; }
-    public int PlayCount { get; set; }
     public bool IsFavorite { get; set; }
 
     public SongsModel() { }
@@ -56,18 +51,17 @@ public class SongsModel : RealmObject
         HasSyncedLyrics = modelView.HasSyncedLyrics;
         CoverImagePath = modelView.CoverImagePath;
         DateAdded = modelView.DateAdded;
-        DateEdited = modelView.DateEdited;
-        LastPlayed = modelView.LastPlayed;
-        SkipCount = modelView.SkipCount;
+        LastPlayed = modelView.LastPlayed;        
         ArtistID = modelView.ArtistID;
         AlbumID = modelView.AlbumID;
         AlbumName = modelView.AlbumName;
         GenreID = modelView.GenreID;
         UserID = modelView.UserID;
         UnSyncLyrics = modelView.UnSyncLyrics;
-        IsPlaying = modelView.IsPlaying;
-        PlayCount = modelView.PlayCount;
+        IsPlaying = modelView.IsPlaying;        
         IsFavorite = modelView.IsFavorite;
+        DatesPlayed = modelView.DatesPlayed;
+        DatesSkipped = modelView.DatesSkipped;
     }
 }
 
@@ -96,9 +90,7 @@ public partial class SongsModelView : ObservableObject
             HasLyrics = _model.HasLyrics;
             CoverImagePath = _model.CoverImagePath;
             DateAdded = _model.DateAdded;
-            DateEdited = _model.DateEdited;
             LastPlayed = _model.LastPlayed;
-            SkipCount = _model.SkipCount;
             ArtistID = _model.ArtistID;
             ArtistName = _model.ArtistName;
             AlbumID = _model.AlbumID;
@@ -107,10 +99,11 @@ public partial class SongsModelView : ObservableObject
             UserID = _model.UserID;
             UnSyncLyrics = _model.UnSyncLyrics;
             IsPlaying = _model.IsPlaying;
-            PlayCount = _model.PlayCount;
             IsFavorite = _model.IsFavorite;
             HasLyrics = _model.HasLyrics;
             HasSyncedLyrics = _model.HasSyncedLyrics;
+            DatesPlayed = new List<DateTimeOffset>(_model.DatesPlayed);
+            DatesSkipped = new List<DateTimeOffset>(_model.DatesSkipped);
         }
         else
         {
@@ -151,12 +144,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     string? coverImagePath;
     public DateTimeOffset DateAdded { get; set; }
-    [ObservableProperty]
-    DateTimeOffset dateEdited;
     public DateTimeOffset LastPlayed { get; set; }
-    public DateTime CreationTime { get; set; }
-    public int SkipCount { get; set; }
-
     public ObjectId? ArtistID { get; set; }
     public ObjectId? AlbumID { get; set; }
     public ObjectId? GenreID { get; set; }
@@ -164,10 +152,11 @@ public partial class SongsModelView : ObservableObject
     //public IList<LyricPhraseModel>? SynchronizedLyrics { get; }
     [ObservableProperty]
     string? unSyncLyrics;
-
-    //bool _isPlaying;
     [ObservableProperty]
-    int playCount;
+    public List<DateTimeOffset> datesPlayed;
+
+    [ObservableProperty]
+    public List<DateTimeOffset> datesSkipped;
 
     [ObservableProperty]
     bool isPlaying;

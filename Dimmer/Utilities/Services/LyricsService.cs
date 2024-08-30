@@ -26,7 +26,7 @@ public class LyricsService : ILyricsService
         SongsManagementService = songsManagementService;
         SubscribeToPlayerStateChanges();
     }
-
+    MediaPlayerState pState;
     private void SubscribeToPlayerStateChanges()
     {
         PlayBackService.PlayerState.Subscribe(async state =>
@@ -34,21 +34,27 @@ public class LyricsService : ILyricsService
             switch (state)
             {
                 case MediaPlayerState.Initialized:
+                    pState = MediaPlayerState.Initialized;
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);                    
                     break;
                 case MediaPlayerState.Playing:
+                    pState = MediaPlayerState.Playing;
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     break;
                 case MediaPlayerState.Paused:
+                    pState = MediaPlayerState.Paused;
                     StopLyricIndexUpdateTimer();
                     break;
                 case MediaPlayerState.Stopped:
+                    pState = MediaPlayerState.Stopped;
                     StopLyricIndexUpdateTimer();
                     break;
                 case MediaPlayerState.LyricsLoad:
+                    pState = MediaPlayerState.LyricsLoad;
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);                    
                     break;
                 case MediaPlayerState.CoverImageDownload:
+                    pState = MediaPlayerState.CoverImageDownload;
                     await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong);
                     break;
                 default:
@@ -89,13 +95,12 @@ public class LyricsService : ILyricsService
             {
                 song.HasLyrics = false;
             }
-            else if(PlayBackService.CurrentQueue != 2)
+            else if(PlayBackService.CurrentQueue != 2 && pState == MediaPlayerState.Playing)
             {
                 if (song.HasLyrics != true || song.HasSyncedLyrics != true)
                 {
                     song.HasLyrics = true;
                     song.HasSyncedLyrics = true;
-                    await SongsManagementService.UpdateSongDetailsAsync(song);
                 }
             }
             lastSongIDLyrics = song.Id;
@@ -505,26 +510,29 @@ public class LyricsService : ILyricsService
     {
         try
         {
-
-            if (!string.IsNullOrEmpty(SaveCoverImageToFile(songs.FilePath)))
+            //if (!string.IsNullOrEmpty(songs.CoverImagePath))
+            //{
+            //    return songs.CoverImagePath;
+            //}
+            
+            if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
-                songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath);
+                return songs.CoverImagePath;
             }
-
             byte[]? ImageBytes = null;
             (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(songs);
-            if (apiResponse is null)
+            if (apiResponse is null || apiResponse.Length < 1)
             {
                 return string.Empty;
             }
             if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
             {
                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
-               songs.CoverImagePath = SaveCoverImageToFile(songs.FilePath, ImageBytes);
+               songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath, ImageBytes);
                await SongsManagementService.UpdateSongDetailsAsync(songs);
             }
 
-            return string.Empty;
+            return string.IsNullOrEmpty(songs.CoverImagePath) ? string.Empty : songs.CoverImagePath;
         }
         catch (HttpRequestException e)
         {
@@ -537,11 +545,12 @@ public class LyricsService : ILyricsService
             return string.Empty;
         }
     }
-    public static string SaveCoverImageToFile(string fullfilePath, byte[]? imageData = null)
+    public static string SaveOrGetCoverImageToFilePath(string fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = false)
     {
         if (imageData is null)
         {
-            return string.Empty;
+            Track song = new Track(fullfilePath);
+            imageData = song.EmbeddedPictures?.FirstOrDefault()?.PictureData;
         }
 
         // Extract the file name from the full path
@@ -561,13 +570,21 @@ public class LyricsService : ILyricsService
         string filePath = Path.Combine(folderPath, $"{sanitizedFileName}.png");
         string filePathjpg = Path.Combine(folderPath, $"{sanitizedFileName}.jpg");
 
-        if (File.Exists(filePath))
+
+        if (isDoubleCheckingBeforeFetch)
         {
-            return filePath;
+            if (File.Exists(filePath))
+            {
+                return filePath;
+            }
+            if (File.Exists(filePathjpg))
+            {
+                return filePathjpg;
+            }
         }
-        if (File.Exists(filePathjpg))
+        if (imageData is null)
         {
-            return filePathjpg;
+            return string.Empty;
         }
 
         // Write the image data to the file

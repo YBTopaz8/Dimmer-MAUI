@@ -3,43 +3,21 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        
         if (targetType == typeof(bool))
-        {
-            if (value?.GetType() == typeof(ObservableCollection<LyricPhraseModel>))
-            {   
-                return true;
-            }
-            else if(value?.GetType() == typeof(SongsModelView))
-            {
-                var val = (SongsModelView)value;
-                if (val.HasSyncedLyrics)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            return false;
-
+        {            
+            return true;
         }
         else if (targetType == typeof(string))
         {
-            if (value?.GetType() == typeof(SongsModelView))
+            if (vm.SynchronizedLyrics != null && vm.SynchronizedLyrics.Count > 0)
             {
-                var val = (SongsModelView)value;
-                
-                if (!string.IsNullOrEmpty(val.UnSyncLyrics))
-                {
-                    return val.UnSyncLyrics;
-                }
-                else
-                {
-                    return "No Lyrics Found...!!";
-                    //return val.UnSyncLyrics;
-                }
-                
+                return vm.SynchronizedLyrics;
+            }
+            if (!string.IsNullOrEmpty(vm.TemporarilyPickedSong.UnSyncLyrics))
+            {
+                return vm.TemporarilyPickedSong.UnSyncLyrics;
             }
 
             return "No Lyrics Found";

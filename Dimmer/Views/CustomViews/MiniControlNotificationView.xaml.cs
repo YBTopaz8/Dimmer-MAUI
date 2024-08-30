@@ -3,19 +3,13 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MiniControlNotificationView : ContentPage
 {
-    public event Action<int> ButtonClicked; // Event to pass values to the main app
-
-    private readonly TaskCompletionSource<int> _buttonClickedTcs = new();
-
+   
     private Timer _closeTimer;
-    public MiniControlNotificationView(SongsModelView playingSong)
+    public MiniControlNotificationView()
 	{
-		InitializeComponent();// Initialize and start the timer
+		InitializeComponent();
         
 #if WINDOWS
-        songTitle.Text = playingSong.Title;
-        songArtistName.Text = playingSong.ArtistName;
-        coverImage.Source = playingSong.CoverImagePath;
         _closeTimer = new Timer(5000);
         _closeTimer.Elapsed += _closeTimer_Elapsed;
         _closeTimer.Start();
@@ -33,7 +27,7 @@ public partial class MiniControlNotificationView : ContentPage
 
     private void CloseWindow()
     {
-        Dispatcher.Dispatch(() =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
             var window = Application.Current?.Windows.FirstOrDefault(win => win.Page is MiniControlNotificationView);
             if (window != null)
@@ -42,7 +36,7 @@ public partial class MiniControlNotificationView : ContentPage
             }
         });
     }
-    private void ResetTimer()
+    public void ResetTimer()
     {
         _closeTimer.Stop();
         _closeTimer.Start();
@@ -53,19 +47,10 @@ public partial class MiniControlNotificationView : ContentPage
         base.OnDisappearing();
         _closeTimer?.Stop();
         _closeTimer?.Dispose();
-
     }
     private void _closeTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         CloseWindow();
-    }
-
-    public void UpdateSongDetails(SongsModelView playingSong)
-    {
-        songTitle.Text = playingSong.Title;
-        songArtistName.Text = playingSong.ArtistName;
-        coverImage.Source = playingSong.CoverImagePath;
-        ResetTimer();
     }
 
 #endif

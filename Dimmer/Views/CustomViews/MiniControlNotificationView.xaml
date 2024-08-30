@@ -21,13 +21,11 @@
         
         <FlexLayout JustifyContent="SpaceBetween">
 
-            <Grid>
+           
+            <ImageButton WidthRequest="140" Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+                Command="{Binding BringAppToFrontCommand}" 
+                            Opacity="0.5"/>
 
-                <ImageButton WidthRequest="140" x:Name="coverImage"
-                    Command="{Binding BringAppToFrontCommand}" 
-                             Opacity="0.5"/>
-
-            </Grid>
 
             <VerticalStackLayout VerticalOptions="End" Spacing="10" Margin="0,5">
 
@@ -41,12 +39,12 @@
                     </ImageButton.Source>
                 </ImageButton>
 
-                <Label x:Name="songTitle"
+                <Label Text="{Binding TemporarilyPickedSong.Title}"
                     LineBreakMode="HeadTruncation"
                    FontSize="16" FontAttributes="Bold" MaximumWidthRequest="220"
                        HorizontalOptions="Center"/>
 
-                <Label x:Name="songArtistName"
+                <Label Text="{Binding TemporarilyPickedSong.ArtistName}"
                        TextColor="DarkSlateBlue" MaximumWidthRequest="220"
                        CharacterSpacing="1" FontSize="16"
                        HorizontalOptions="Center"/>

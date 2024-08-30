@@ -785,14 +785,14 @@ public class MediaPlayerService : Service,
 
 
         bool isPlaying = true;
-        public override async void OnPause()
+        public override void OnPause()
         {
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(false);
             base.OnPause();
             isPlaying = false;
         }
 
-        public override async void OnPlay()
+        public override void OnPlay()
         {
             Console.WriteLine("Step 2 On Play Callback Method");
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(true);

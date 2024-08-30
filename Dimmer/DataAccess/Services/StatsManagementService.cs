@@ -24,8 +24,6 @@ public class StatsManagementService : IStatsManagementService
                 var existingSong = db.Find<SongsModel>(songID);
                 if (existingSong != null)
                 {
-                    existingSong.PlayCount++;
-                    existingSong.LastPlayed = DateTime.Now;
                 }
             });
         }
@@ -50,14 +48,11 @@ public class StatsManagementService : IStatsManagementService
             if (db.IsInTransaction)
             {
                 Debug.WriteLine("Tried to save inc but was in transaction");
-                song.SkipCount++;
-                song.LastPlayed = DateTime.Now;
             }
             else
             {
                 await db.WriteAsync(() =>
                 {
-                    song.SkipCount++;
                     song.LastPlayed = DateTime.Now;
                 });
             }

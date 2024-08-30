@@ -1,8 +1,4 @@
-﻿#if ANDROID
-using Dimmer_MAUI.Platforms.Android.MAudioLib;
-#endif
-
-//using static Android.Icu.Text.CaseMap;
+﻿//using static Android.Icu.Text.CaseMap;
 
 
 namespace Dimmer.Utilities.Services;
@@ -74,7 +70,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _positionTimer = new(1000);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
-        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
+        _nowPlayingSubject.OnNext(new ObservableCollection<SongsModelView>(SongsMgtService.AllSongs.ToObservableCollection()));
 
         LoadLastPlayedSong(SongsMgtService);
         LoadFirstPlaylist();
@@ -193,8 +189,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 FileInfo fileInfo = new(file);
                 if (fileInfo.Length < 1000)
                 {
-                    skipCounter++;
-                    
+                    skipCounter++;                    
                     continue;
                 }
 
@@ -217,7 +212,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries) // Split by semicolon and comma
                     .Select(artist => artist.Trim()) // Trim whitespace from each artist name
                     .Distinct() // Remove duplicates
-                    .ToList(); // Convert to list for easy iteration
+                    .ToList();
 
                 // Create the song model
                 var song = new SongsModelView
@@ -233,14 +228,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     TrackNumber = track.TrackNumber,
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    CreationTime = fileInfo.CreationTime
+                    DateAdded = fileInfo.CreationTime
                 };
 
                 // Handle cover image
                 string mimeType = track.EmbeddedPictures?.FirstOrDefault()?.MimeType;
                 if (mimeType == "image/jpg" || mimeType == "image/jpeg" || mimeType == "image/png")
                 {
-                    song.CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
+                    song.CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
                 }
                 if (string.IsNullOrEmpty(song.CoverImagePath))
                 {
@@ -264,16 +259,22 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     artist.SongsIDs ??= new();
                     artist.SongsIDs.Add(song.Id);
 
-                    // Set the ArtistID and ArtistName in the song model
-                    song.ArtistID = artist.Id;
-                    song.ArtistName = artist.Name;
                 }
+                
+                song.ArtistName = artists[0];
 
                 allSongs.Add(song);
                 processedFiles++;
+                ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles;
             }
 
-            ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles; //TODO : YOU WANTED TO LET USER KNOW OF PROGRESS %age
+            //// Update progress percentage on the main thread
+            //MainThread.BeginInvokeOnMainThread(() =>
+            //{
+            //    ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles;
+            //});
+
+            //ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles; //TODO : YOU WANTED TO LET USER KNOW OF PROGRESS %age
             _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
             
             Debug.WriteLine($"TotalFiles {allFiles.Count} files");
@@ -299,7 +300,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             //save songs to db to songs table
             await SongsMgtService.AddSongBatchAsync(songs);
         }
-        _nowPlayingSubject.OnNext(songs.ToObservableCollection());
+        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
         //_nowPlayingSubject.OnNext(SongsMgtService.AllSongs);
         ObservableLoadingSongsProgress = 100;
         _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
@@ -312,6 +313,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (lastPlayedSongID is not null)
         {
             var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
+
             if (lastPlayedSong is null)
                 return;
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
@@ -390,7 +392,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _playerStateSubject.OnNext(MediaPlayerState.CoverImageDownload);
         }
-        return null;
+
+        return coverImage;
 
 
         //if (coverImage is null || coverImage.Length < 1) TODO : Do code that will scan the image from the folder found in song if it's an album folder 
@@ -471,8 +474,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     TrackNumber = track.TrackNumber,
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    CoverImagePath = LyricsService.SaveCoverImageToFile(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
-                    CreationTime = fileInfo.CreationTime
+                    CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
+                    
                 };
                 allSongs.Add(newSong);
             }
@@ -538,8 +541,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _currentPositionSubject.OnNext(new());
             await audioService.PlayAsync();
 
-            ObservableCurrentlyPlayingSong.IsPlaying = true;
-            ObservableCurrentlyPlayingSong.PlayCount++;
 
             Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
@@ -547,14 +548,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
 
-#if WINDOWS
-            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
-#endif
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error message:  " + ex.Message);
+            Debug.WriteLine("Error message!!:  " + ex.Message);
 
             await Shell.Current.DisplayAlert("Error message", ex.Message, "Ok");
             return false;
@@ -563,8 +561,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {                
+            ObservableCurrentlyPlayingSong.IsPlaying = true;
+            ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
                 await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
+
             }
+            #if WINDOWS
+                MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+#endif
         }
     }
 

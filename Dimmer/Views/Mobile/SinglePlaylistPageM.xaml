@@ -55,7 +55,6 @@
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" FontSize="19"/>
                                 <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
-                                <Label Text="{Binding PlayCount}" FontSize="14" Opacity="0.5"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
 

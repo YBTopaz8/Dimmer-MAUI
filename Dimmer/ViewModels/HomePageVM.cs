@@ -224,12 +224,8 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    void SeekSongPosition(object? value)
+    void SeekSongPosition()
     {
-        //if (IsOnLyricsSyncMode)
-        //{
-
-        //}
         PlayBackUtilsService.SetSongPosition(CurrentPositionPercentage);
     }
 
@@ -494,6 +490,7 @@ public partial class HomePageVM : ObservableObject
         manualSearchFields.Add(SongTitle);
         manualSearchFields.Add(ArtistName);
         manualSearchFields.Add(AlbumName);
+
         (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true, manualSearchFields);
         if (!IsFetchSuccessful)
         {
@@ -514,6 +511,7 @@ public partial class HomePageVM : ObservableObject
             TemporarilyPickedSong.UnSyncLyrics = s.plainLyrics;
             TemporarilyPickedSong.HasLyrics = true;
             TemporarilyPickedSong.HasSyncedLyrics = false;
+            this.OnPropertyChanged(TemporarilyPickedSong.UnSyncLyrics);
         }
         if (await LyricsManagerService.WriteLyricsToLyricsFile(s.syncedLyrics?.Length > 0 ? s.syncedLyrics : s.plainLyrics, TemporarilyPickedSong, s.syncedLyrics?.Length > 0))
         {
@@ -643,6 +641,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task FetchSongCoverImage()
     {
+        TemporarilyPickedSong.CoverImagePath = string.Empty;
         await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
     }
 

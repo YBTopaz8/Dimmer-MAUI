@@ -92,8 +92,8 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                 {
                     existingSong.IsFavorite = songsModelView.IsFavorite;
                     existingSong.IsPlaying = false;
-                    existingSong.PlayCount = songsModelView.PlayCount;
                     existingSong.LastPlayed = songsModelView.LastPlayed;
+                    existingSong.DatesPlayed.Add(songsModelView.DatesPlayed.Last());
                 }
                 else
                 {
