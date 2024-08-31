@@ -305,7 +305,6 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void AddSongToFavorites(SongsModelView song)
     {
-        song.IsFavorite = !song.IsFavorite;
         PlayBackUtilsService.UpdateSongToFavoritesPlayList(song);
         if (song.IsFavorite)
         {
@@ -315,6 +314,7 @@ public partial class HomePageVM : ObservableObject
         {
             PlayBackUtilsService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
         }
+        song.IsFavorite = !song.IsFavorite;
     }
 
     void ReloadSizeAndDuration()

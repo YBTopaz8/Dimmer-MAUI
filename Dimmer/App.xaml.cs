@@ -44,7 +44,10 @@ public partial class App : Application
             // Log to a file
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "crashlog.txt");
             string logContent = $"[{DateTime.Now}]\n{ex}\n\n";
-            File.AppendAllText(filePath, logContent);
+            if (File.Exists(filePath))
+            {
+                File.AppendAllText(filePath, logContent);
+            }            
         }
         catch
         {
