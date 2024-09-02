@@ -6,7 +6,7 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:controls="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"
-            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
@@ -14,7 +14,6 @@
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"
-             Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False"
              >
 
@@ -38,19 +37,23 @@
 
     <toolkit:DockLayout>
 
-        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Black"/>
 
-        <controls:SegmentedControl x:Name="SegControl" SelectedSegment="0" toolkit:DockLayout.DockPosition="Bottom"
-                                   TintColor="DarkSlateBlue" SelectedTextColor="White" >
-            <controls:SegmentedControl.Children>
-                <controls:SegmentedControlOption Text="View Lyrics"/>
-                <controls:SegmentedControlOption Text="Search Lyrics"/>
+        <controls:SegmentedControl toolkit:DockLayout.DockPosition="Bottom" IsVisible="False"
+                                   SelectedSegment="{Binding CurrentViewIndex}" x:Name="SegControl"
+                                   BackgroundColor="#151C1C" TextColor="White"
+                                   SelectedTextColor="White" TintColor="DarkSlateBlue" >
+            <controls:SegmentedControl.Children>                
+                <controls:SegmentedControlOption Text="View Lyrics" WidthRequest="40"/>
+                <controls:SegmentedControlOption Text="Search Lyrics" WidthRequest="40"/>
+                <controls:SegmentedControlOption Text="Tag Editor" WidthRequest="40"/>
             </controls:SegmentedControl.Children>
         </controls:SegmentedControl>
-
+        
         <cv:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"/>
-        <cv:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
+        <!--<cv:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
         <cv:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+        -->
                 
     </toolkit:DockLayout>
 </ContentPage>

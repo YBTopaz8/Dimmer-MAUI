@@ -18,13 +18,16 @@ public class LyricsService : ILyricsService
 
     public IPlaybackUtilsService PlayBackService { get; }
     public ISongsManagementService SongsManagementService { get; }
+    public IFileSaver FileSaver { get; }
 
     bool hasSyncedLyrics;
-    public LyricsService(IPlaybackUtilsService songsManagerService, ISongsManagementService songsManagementService)
+    public LyricsService(IPlaybackUtilsService songsManagerService, ISongsManagementService songsManagementService, IFileSaver fileSaver)
     {
         PlayBackService = songsManagerService;
         SongsManagementService = songsManagementService;
+        FileSaver = fileSaver;
         SubscribeToPlayerStateChanges();
+        _currentLyricSubject.OnNext(new LyricPhraseModel() { Text = ""});
     }
     MediaPlayerState pState;
     private void SubscribeToPlayerStateChanges()
@@ -40,6 +43,7 @@ public class LyricsService : ILyricsService
                 case MediaPlayerState.Playing:
                     pState = MediaPlayerState.Playing;
                     LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    //_currentLyricSubject.OnNext(new LyricPhraseModel() { Text = "No Lyrics" });
                     break;
                 case MediaPlayerState.Paused:
                     pState = MediaPlayerState.Paused;
@@ -69,7 +73,7 @@ public class LyricsService : ILyricsService
     {
         try
         {
-            _currentLyricSubject.OnNext(null);
+            
             if (song is null)
             {
                 _synchronizedLyricsSubject.OnNext(null);
@@ -81,6 +85,11 @@ public class LyricsService : ILyricsService
             {
                 if (lastSongIDLyrics == song?.Id)
                 {
+                    if (pState == MediaPlayerState.Playing)
+                    {
+                        lastSongIDLyrics = song.Id;
+                        return;
+                    }
                     if (songSyncLyrics?.Count < 1)
                     {
                         StopLyricIndexUpdateTimer();
@@ -90,9 +99,13 @@ public class LyricsService : ILyricsService
             songSyncLyrics?.Clear();
             songSyncLyrics = LoadSynchronizedAndSortedLyrics(song.FilePath, _synchronizedLyricsSubject.Value);
 
-            if (!(songSyncLyrics?.Count > 1))
+            if (songSyncLyrics?.Count < 1)
             {
+                //_currentLyricSubject.OnNext(new LyricPhraseModel());
+                _synchronizedLyricsSubject.OnNext(Enumerable.Empty<LyricPhraseModel>().ToList());
                 song.HasLyrics = false;
+                StopLyricIndexUpdateTimer();
+                return;
             }
             else if (PlayBackService.CurrentQueue != 2 && pState == MediaPlayerState.Playing)
             {
@@ -150,45 +163,32 @@ public class LyricsService : ILyricsService
             }
             return sortedLyrics;
         }
-
-        string lrcFilePath = Path.ChangeExtension(songPath, ".lrc");
-        string txtFilePath = Path.ChangeExtension(songPath, ".txt");
-
-        hasSyncedLyrics = false;
-
-        if (!File.Exists(lrcFilePath))
+        string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath);
+        string lrcExtension = ".lrc";
+        string txtExtension = ".txt";
+        string lrcFilePath;
+        if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))
         {
+            hasSyncedLyrics = false;
+            //lrcFilePath = Path.ChangeExtension(songPath,txtExtension);
             StopLyricIndexUpdateTimer();
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
         else
         {
             hasSyncedLyrics = true;
+            lrcFilePath = Path.ChangeExtension(songPath, lrcExtension);
             string[] lines = File.ReadAllLines(lrcFilePath);
             lyrr = StringToLyricPhraseModel(lines);
 
             sortedLyrics = lyrr;
-        }
-        if (!hasSyncedLyrics)
-        {
-            if (!File.Exists(txtFilePath))
-            {
-                StopLyricIndexUpdateTimer();
-                return Enumerable.Empty<LyricPhraseModel>().ToList();
-            }
-            else
-            {
-                hasSyncedLyrics = false;
-                string[] lines = File.ReadAllLines(txtFilePath);
-                lyrr = StringToLyricPhraseModel(lines);
-            }
             if (sortedLyrics.Count > 1)
             {
                 sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
                 //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
             }
-
         }
+        
         return sortedLyrics.ToList();//lyricPhrases;
     }
 
@@ -238,7 +238,7 @@ public class LyricsService : ILyricsService
         }
         return lyricPhrases;
     }
-    #endregion
+#endregion
 
     #region Manage Sync and timer
     public void StartLyricIndexUpdateTimer()
@@ -622,12 +622,27 @@ public class LyricsService : ILyricsService
         string songDirectory = Path.GetDirectoryName(songObj.FilePath);
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath);
         string fileExtension = IsSynched ? ".lrc" : ".txt";
-        string lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
+        string lrcFilePath;
+#if WINDOWS
+lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
+#elif ANDROID
+        //string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+        lrcFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Dimmer" , songFileNameWithoutExtension+fileExtension);
+#endif
+        if (!Directory.Exists(lrcFilePath))
+        {
+            Directory.CreateDirectory(lrcFilePath);
+        }
+
         if (File.Exists(lrcFilePath))
         {
             File.Delete(lrcFilePath);
         }
-        File.WriteAllText(lrcFilePath, Lyrics);
+        byte[] byteArr = Encoding.UTF8.GetBytes(Lyrics);
+        using MemoryStream stream = new MemoryStream(byteArr);
+
+        await FileSaver.SaveAsync(lrcFilePath, songFileNameWithoutExtension+fileExtension, stream);
+        //File.WriteAllText(lrcFilePath, Lyrics);
 
         return true;
     }

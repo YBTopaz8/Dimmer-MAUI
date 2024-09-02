@@ -1,3 +1,5 @@
+
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class NowPlayingSongPageBtmSheet : BottomSheet
@@ -12,16 +14,7 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
 
     private void NowPlayingSongPageBtmSheet_Showing(object? sender, EventArgs e)
     {
-        if (HomePageVM.IsPlaying)
-        {
-            playImgBtn.IsVisible = false;
-            pauseImgBtn.IsVisible = true;
-        }
-        else
-        {
-            playImgBtn.IsVisible = true;
-            pauseImgBtn.IsVisible = false;
-        }
+        CoverFlowV.SelectedItem = HomePageVM.TemporarilyPickedSong;
     }
 
     public HomePageVM HomePageVM { get; }
@@ -30,32 +23,28 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
         await Shell.Current.GoToAsync("..", true);
     }
 
-    private void PlayImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = false;
-        pauseImgBtn.IsVisible = true;
-    }
-
-    private void PauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = true;
-        pauseImgBtn.IsVisible = false;
-    }
-
-    private void SwipedToNext_Swiped(object sender, SwipedEventArgs e)
-    {
-        HomePageVM.PlayNextSongCommand.Execute(null);
-    }
-
-    private void SwipedToPrevious_Swiped(object sender, SwipedEventArgs e)
-    {
-        HomePageVM.PlayPreviousSongCommand.Execute(null);
-    }
-
     private async void SwipedToDismiss_Swiped(object sender, SwipedEventArgs e)
     {
         await this.DismissAsync();
+    }
+
+    private async void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        await this.DismissAsync();
+    }
+
+   
+
+    private void CoverFlowView_ItemSwiped(CardsView view, PanCardView.EventArgs.ItemSwipedEventArgs args)
+    {
+        if (args.Direction == PanCardView.Enums.ItemSwipeDirection.Right)
+        {
+            HomePageVM.PlayPreviousSongCommand.Execute(null);
+        }
+        else
+        {
+            HomePageVM.PlayNextSongCommand.Execute(null);
+        }
     }
 }

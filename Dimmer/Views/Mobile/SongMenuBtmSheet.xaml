@@ -45,6 +45,12 @@
                 </Label.GestureRecognizers>
             </Label>
             <BoxView/>
+            <Label Text="Explore Song" x:Name="ExploreSong">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+            <BoxView/>
             <Label Text="Song Details*"/>
             <BoxView/>
             <Label Text="Go to Album*"/>

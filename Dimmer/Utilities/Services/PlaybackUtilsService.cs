@@ -81,8 +81,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         LoadLastPlayedSong(SongsMgtService);
         LoadFirstPlaylist();
-        GetReadableFileSize();
-        GetReadableDuration();
         CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
 
@@ -623,14 +621,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
 
-            _currentPositionSubject.OnNext(new());
             await audioService.PlayAsync();
 
-
-            Debug.WriteLine("Play " + CurrentlyPlayingSong.Title);
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
+            _currentPositionSubject.OnNext(new());
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
 
             return true;
@@ -784,6 +780,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                         shuffleHistory.Pop(); // Remove current song from history if going back
                     }
                     _currentSongIndex = shuffleHistory.Peek();
+                    shuffleHistory.Clear();
                 }
                 else
                 {

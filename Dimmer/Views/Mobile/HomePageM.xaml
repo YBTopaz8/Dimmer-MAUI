@@ -13,11 +13,12 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
+            Shell.NavBarIsVisible="True"
+                            
             x:Name="myPage"          
             BackgroundColor="Black"
             Title="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
             >
-
     <Shell.TitleColor>
         <OnPlatform x:TypeArguments="Color">
             <On Platform="Android" Value="DarkSlateBlue"/>
@@ -75,10 +76,11 @@
                             <FlexLayout.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="SpecificSong_Tapped" />
                             </FlexLayout.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="5">
-                                <Image Source="{Binding CoverImagePath}" WidthRequest="60" IsVisible="False"/>
+                            <HorizontalStackLayout Spacing="5" MaximumWidthRequest="50">
+                                <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
+                                                    CornerRadius="10" BorderWidth="0"/>
                                 <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="19"/>
+                                    <Label Text="{Binding Title}" FontSize="19" MaximumWidthRequest="350" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
@@ -98,8 +100,8 @@
                                         </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>
-                                <ImageButton HeightRequest="42" BackgroundColor="Transparent" 
-                                             WidthRequest="30" HorizontalOptions="Center"
+                                <ImageButton BackgroundColor="Transparent" 
+                                             WidthRequest="20" HorizontalOptions="Center"
                                              Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
                                              CommandParameter="{Binding .}">
                                     <ImageButton.Source>
@@ -126,7 +128,7 @@
     <uranium:UraniumContentPage.Attachments>
 
         <material:BackdropView Title="Search" IconImageSource="search_d" x:Name="SearchBackDrop">
-            <VerticalStackLayout Margin="0,0" HeightRequest="390">
+            <VerticalStackLayout Margin="0,0" HeightRequest="250">
                 <Border BackgroundColor="#252526" Stroke="Transparent" 
                         StrokeShape="RoundRectangle 10">
                     

@@ -18,6 +18,7 @@ public class CheckPermissions : Permissions.BasePlatformPermission
                 result.Add((Manifest.Permission.ManageExternalStorage, true));
                 result.Add((Manifest.Permission.ReadExternalStorage, true));
                 result.Add((Manifest.Permission.WriteExternalStorage, true));
+
             }
             return result.ToArray();
         }

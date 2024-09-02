@@ -4,7 +4,6 @@
              x:Class="Dimmer_MAUI.AppShellMobile"
              xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-             Shell.NavBarIsVisible="True"
              Shell.TabBarUnselectedColor="Gray"
              Shell.TabBarForegroundColor="DarkSlateBlue"
              Shell.TabBarBackgroundColor="#171919"
@@ -12,16 +11,8 @@
              Shell.TabBarTitleColor="DarkSlateBlue"
              Shell.ForegroundColor="DarkSlateBlue"
              FlyoutBackgroundColor="Black"
-             Shell.FlyoutBehavior="Disabled">
-    <Shell.ItemTemplate>
-        <DataTemplate>
-            <Label Text="{Binding Title}" HorizontalTextAlignment="Center"
-                   FontSize="22"
-                   TextColor="DarkSlateBlue"/>
-        </DataTemplate>
-    </Shell.ItemTemplate>
-
-    <TabBar x:Name="btmTabBar">
+             Shell.FlyoutBehavior="Flyout">
+    
         <ShellContent Title="Home"
                   ContentTemplate="{DataTemplate viewsM:HomePageM}"
                   Route="HomeM">
@@ -37,8 +28,11 @@
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
             </ShellContent.Icon>
         </ShellContent>
-    </TabBar>
-        
 
+    <ShellContent Title="SongShell" IsVisible="False"
+              ContentTemplate="{DataTemplate viewsM:SingleSongShell}"
+              Route="SingleSongShell">
+        
+    </ShellContent>
 
 </Shell>

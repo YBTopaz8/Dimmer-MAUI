@@ -5,7 +5,8 @@ using Dimmer_MAUI.Platforms.Android.MAudioLib;
 using Dimmer_MAUI.Utilities.IServices;
 using Dimmer_MAUI.Utilities.Services;
 using Microsoft.Maui.LifecycleEvents;
-using Plugin.Maui.SegmentedControl;
+using PanCardView;
+
 #elif WINDOWS
 using Dimmer_MAUI.DataAccess.IServices;
 using Dimmer_MAUI.DataAccess.Services;
@@ -35,6 +36,7 @@ public static class MauiProgram
             .UseBottomSheet()
             .UseSegmentedControl()
             .ConfigureContextMenuContainer()
+            .UseCardsView()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -46,8 +48,7 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
-#if WINDOWS
-        
+#if WINDOWS        
         builder.ConfigureLifecycleEvents(events =>
         {
             events.AddWindows(wndLifeCycleBuilder =>

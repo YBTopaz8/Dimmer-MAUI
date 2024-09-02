@@ -10,6 +10,7 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             x:DataType="vm:HomePageVM"
              BackgroundColor="Black"
+             Title="Song View"
              x:Name="myPage">
 
     <ContentPage.Resources>

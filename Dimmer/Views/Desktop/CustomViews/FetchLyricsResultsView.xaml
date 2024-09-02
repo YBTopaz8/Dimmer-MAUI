@@ -70,8 +70,8 @@
                                 <Label Text="{Binding albumName, StringFormat='Album: {0}'}"/>
                                 <Button Text="Save Lyrics" Clicked="Button_Clicked"/>
 
-                                <ScrollView HeightRequest="250">
-                                    <Label Text="{Binding plainLyrics}" VerticalTextAlignment="Center"/>
+                                <ScrollView MaximumHeightRequest="250">
+                                    <Label Text="{Binding syncedLyrics}" VerticalTextAlignment="Center"/>
                                 </ScrollView>
                                 
 

@@ -18,14 +18,27 @@
         </ResourceDictionary>
     </ContentView.Resources>
     <toolkit:DockLayout x:Name="ContentVSL">
-        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}">
+        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}" toolkit:DockLayout.DockPosition="Top"
+                             Spacing="10" Margin="10,0">
+
+            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                                HeightRequest="150" WidthRequest="150" BorderWidth="0"
+                                CornerRadius="25" />
 
             <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" />
             <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
+            <material:TextField Title="Album Name" Text="{Binding TemporarilyPickedSong.AlbumName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
             <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-            
+            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="300" >
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModel">
+                        <Label Text="{Binding Text}"/>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </VerticalStackLayout>
-        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"/>
+        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"
+                Margin="0,10"/>
         
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" toolkit:DockLayout.DockPosition="Top"
                         IsVisible="{Binding IsOnLyricsSyncMode}">
@@ -36,7 +49,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
         
-        <ScrollView x:Name="UnSyncLyricsView" 
+        <ScrollView x:Name="UnSyncLyricsView" toolkit:DockLayout.DockPosition="Bottom" 
                     IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}">
 
             <material:EditorField x:Name="unSync" CharacterSpacing="1" Title="UnSynced Lyrics"

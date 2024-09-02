@@ -106,9 +106,9 @@ public partial class HomePageVM : ObservableObject
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
+
         await Shell.Current.GoToAsync(nameof(SingleSongShell));
-        NowPlayingSongPageBtmSheet NPBtmSheet = IPlatformApplication.Current!.Services!.GetService<NowPlayingSongPageBtmSheet>()!;
-        await NPBtmSheet.DismissAsync();
+        
 #endif
     }
 
@@ -215,12 +215,14 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
+        SynchronizedLyrics?.Clear();
         await PlayBackUtilsService.PlayNextSongAsync();
     }
 
     [RelayCommand]
     async Task PlayPreviousSong()
     {
+        SynchronizedLyrics?.Clear();
         await PlayBackUtilsService.PlayPreviousSongAsync();
     }
 
@@ -314,7 +316,6 @@ public partial class HomePageVM : ObservableObject
         SelectedSongToOpenBtmSheet = song;
         await btmSheet.ShowAsync();
 #endif
-
     }
     [RelayCommand]
     async Task AddSongToFavorites(SongsModelView song)
@@ -356,10 +357,10 @@ public partial class HomePageVM : ObservableObject
         {
             TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
             PickedSong = TemporarilyPickedSong;
+            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
             switch (state)
             {
                 case MediaPlayerState.Playing:
-                    
                     if(splittedLyricsLines is not null)
                     {
                         Array.Clear(splittedLyricsLines);
@@ -370,6 +371,7 @@ public partial class HomePageVM : ObservableObject
                     }
                     
                     IsPlaying = true;
+                    CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                     if(CurrentViewIndex == 3)
                     {
                         OpenEditableSongsTagsView();
@@ -520,20 +522,18 @@ public partial class HomePageVM : ObservableObject
     public async Task SaveSelectedLyricsToFile(bool isSync, string lyrics)
     {
         bool isSavedSuccessfully;
+        TemporarilyPickedSong.HasLyrics = true;
         if (!isSync)
         {
             TemporarilyPickedSong.UnSyncLyrics = lyrics;
-            TemporarilyPickedSong.HasLyrics = true;
             TemporarilyPickedSong.HasSyncedLyrics = false;
-            isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
             
         }
         else
         {
-            TemporarilyPickedSong.HasLyrics = true;
             TemporarilyPickedSong.HasSyncedLyrics = true;
-            isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
         }
+        isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
         if (isSavedSuccessfully)
         {
             await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");

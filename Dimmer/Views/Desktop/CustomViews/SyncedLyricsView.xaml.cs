@@ -10,9 +10,17 @@ public partial class SyncedLyricsView : ContentView
 
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+        try
         {
-            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null,ScrollToPosition.Center);
+            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+            {
+                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
         }
     }
 

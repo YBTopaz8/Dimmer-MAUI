@@ -20,7 +20,7 @@ public partial class SinglePlaylistPageM : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.SearchSongCommand.Execute(null);
+        //HomePageVM.SearchSongCommand.Execute(null);
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

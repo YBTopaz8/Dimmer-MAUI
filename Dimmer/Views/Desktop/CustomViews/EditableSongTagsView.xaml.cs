@@ -6,6 +6,8 @@ public partial class EditableSongTagsView : ContentView
 	public EditableSongTagsView()
 	{		
 		InitializeComponent();
+        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        BindingContext = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 	}
 
     private void StampLyricLine_Clicked(object sender, EventArgs e)
