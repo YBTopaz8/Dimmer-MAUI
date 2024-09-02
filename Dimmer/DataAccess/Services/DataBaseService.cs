@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DataAccess;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 public class DataBaseService : IDataBaseService
 {
     public void DeleteDB() => throw new NotImplementedException();
@@ -7,7 +7,7 @@ public class DataBaseService : IDataBaseService
     {
         string dbPath;
 #if ANDROID
-        dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmerr";
+        dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmer";
 #elif WINDOWS
         dbPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD";
 #endif
@@ -18,7 +18,7 @@ public class DataBaseService : IDataBaseService
         }
 
         string filePath = Path.Combine(dbPath, "DimmerDB.realm");
-
+     
         var config = new RealmConfiguration(filePath)
         {
             SchemaVersion = 2, // Increment schema version for each migration
@@ -53,5 +53,6 @@ public class DataBaseService : IDataBaseService
 
         return Realm.GetInstance(config);
     }
+
 }
 

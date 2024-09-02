@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.Services.Models;
+﻿namespace Dimmer_MAUI.Utilities.Models;
 public class GenreModel : RealmObject
 {
     [PrimaryKey]

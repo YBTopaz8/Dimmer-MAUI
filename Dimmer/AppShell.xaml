@@ -13,23 +13,25 @@
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem">
         <Tab Title="Home" Shell.TabBarIsVisible="True">
 
-            <ShellContent 
-        Title="Home" 
-        ContentTemplate="{DataTemplate viewsD:HomeD}"
-        Route="MainPageD" />
+            <ShellContent
+                ContentTemplate="{DataTemplate viewsD:HomeD}"
+                Route="MainPageD" />
+        </Tab>
+        
+        <Tab Title="Artists">
+            <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
         
         <Tab Title="Playlists" Shell.TabBarIsVisible="True">
 
-            <ShellContent
-        Title="Playlists"
-        ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
-        Route="PlaylistsD"/>
+            <ShellContent 
+                ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
+                Route="PlaylistsD"/>
             
         </Tab>
 
-        <Tab>
+        <!--<Tab>
             <ShellContent Title="Exit"/>
-        </Tab>
+        </Tab>-->
     </FlyoutItem>
 </Shell>

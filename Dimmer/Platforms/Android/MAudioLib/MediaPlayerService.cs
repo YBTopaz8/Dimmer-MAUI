@@ -455,7 +455,7 @@ public class MediaPlayerService : Service,
         });
     }
 
-    public async Task PlayNext()
+    public Task PlayNext()
     {
         TaskPlayNext?.Invoke(this, EventArgs.Empty);
         //if (mediaPlayer != null)
@@ -466,7 +466,8 @@ public class MediaPlayerService : Service,
         //}
         UpdatePlaybackState(PlaybackStateCode.SkippingToNext);
         Console.WriteLine("Step 5: TaskPlayNext called");
-        //await Play();
+
+        return Task.CompletedTask;
     }
 
     public void PlayPrevious()

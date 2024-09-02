@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.ArtistsPageD"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             Title="Artists">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
+
+            <MenuFlyout x:Key="ArtistAlbumSongsContextMenu">
+                <MenuFlyoutItem Text="Edit Song Details">
+                    <MenuFlyoutItem.CommandParameter>
+                        <x:Int32>3</x:Int32>
+                    </MenuFlyoutItem.CommandParameter>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Set Song Cover as Album Cover" 
+                                Clicked="MenuFlyoutItem_Clicked"/>
+                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
+            </MenuFlyout>
+            <Style TargetType="ImageButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+                <Setter Property="WidthRequest" Value="50"/>
+                <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <toolkit:DockLayout>
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                      x:Name="MediaPlayBackCV"/>
+
+        <CollectionView  HeightRequest="170" toolkit:DockLayout.DockPosition="Top"
+                         ItemsLayout="HorizontalList" 
+                         SelectionMode="Single" VerticalOptions="Start"
+                         ItemsSource="{Binding AllArtistsAlbums}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AlbumModelView">
+                    <Border Stroke="Transparent" HorizontalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                        </Border.GestureRecognizers>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
+                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
+                                            WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
+                                        BorderWidth="0"/>
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <Label Text="{Binding Name}" FontSize="12"
+                                       Padding="10,5" LineBreakMode="WordWrap" 
+                                       MaximumWidthRequest="120" />
+
+                                
+                            </FlexLayout>
+                            
+                        </VerticalStackLayout>
+
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        
+        <ScrollView toolkit:DockLayout.DockPosition="Left"
+                     WidthRequest="200" Margin="10,0">
+            <CollectionView ItemsSource="{Binding AllArtists}" x:Name="DisplayedArtistsCV"
+                    EmptyView="No Artists Existing..." SelectionMode="Single">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <Border StrokeShape="RoundRectangle 5">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                            Command="{Binding BindingContext.GetAllArtistsAlbumCommand, Source={x:Reference myPage}}" 
+                            CommandParameter="{Binding Id}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding Name}" Padding="5,5" Margin="5,5"/>
+                            
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+
+
+        <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
+        ItemsSource="{Binding AllArtistslbumSongs}" SelectedItem="{Binding PickedSong}"
+            EmptyView="No songs...">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <Border Stroke="Transparent" HorizontalOptions="Center" 
+                            FlyoutBase.ContextFlyout="{StaticResource ArtistAlbumSongsContextMenu}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ShowArtistAlbumsSongs_Tapped" NumberOfTapsRequired="2"/>
+                        </Border.GestureRecognizers>
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                    </Image.Source>
+                                </Image>
+                            </VerticalStackLayout>
+                        </FlexLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </toolkit:DockLayout>
+</ContentPage>

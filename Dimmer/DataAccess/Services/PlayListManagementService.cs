@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 public class PlayListManagementService : IPlaylistManagementService
 {
     Realm db;
@@ -17,14 +17,13 @@ public class PlayListManagementService : IPlaylistManagementService
         db = DataBaseService.GetRealm();
         return db;
     }
-    
+
     public void GetPlaylists()
     {
         try
         {
-            AllPlaylists?.Clear();            
             var realmPlayLists = db.All<PlaylistModel>().ToList();
-            AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));            
+            AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
             Debug.WriteLine($"Playlist Count {AllPlaylists.Count}");
         }
@@ -43,7 +42,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 .FirstOrDefault(x => x.Id == playlistID);
 
             if (specificPlaylist != null)
-            {                
+            {
                 // Get the song IDs associated with this playlist
                 var songIds = db.All<PlaylistSongLink>()
                                 .Where(link => link.PlaylistId == playlistID)
@@ -51,9 +50,9 @@ public class PlayListManagementService : IPlaylistManagementService
                                 .Select(link => link.SongId)
                                 .ToList();
 
-                return songIds is not null? songIds : Enumerable.Empty<ObjectId>().ToList();
+                return songIds is not null ? songIds : Enumerable.Empty<ObjectId>().ToList();
             }
-            
+
             return Enumerable.Empty<ObjectId>().ToList();
         }
         catch (Exception ex)
@@ -209,7 +208,8 @@ public class PlayListManagementService : IPlaylistManagementService
         {
 
             Debug.WriteLine("Error when removingSongfrom playing with name " + ex.Message);
-            throw new Exception("Error when removing from playlist" + ex.Message);
+            return false;
+            //throw new Exception("Error when removing from playlist" + ex.Message);
         }
     }
 
@@ -271,7 +271,7 @@ public class PlayListManagementService : IPlaylistManagementService
 
             Debug.WriteLine("Error when deleting playlist " + ex.Message);
             throw new Exception("Error when deleting playlist" + ex.Message);
-            
+
         }
     }
 

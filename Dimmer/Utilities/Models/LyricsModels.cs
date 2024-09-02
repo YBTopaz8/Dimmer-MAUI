@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.Services.Models;
+﻿namespace Dimmer_MAUI.Utilities.Services.Models;
 public class Content
 {
     public int id { get; set; }

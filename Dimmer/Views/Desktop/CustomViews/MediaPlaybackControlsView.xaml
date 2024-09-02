@@ -5,7 +5,7 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"                          
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:HomePageVM">
     <ContentView.Resources>
@@ -14,13 +14,15 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="120" >
+    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="120">
+        
         <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
         </Slider>
+        
         <Grid ColumnSpacing="25">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="230"/>
             </Grid.ColumnDefinitions>
@@ -28,27 +30,24 @@
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
                 </HorizontalStackLayout.GestureRecognizers>
-                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                 WidthRequest="90" HeightRequest="90" Margin="2,0,0,0"
-                                BorderWidth="0" CornerRadius="5">
-                </toolkit:AvatarView>
+                               >
+                </Image>
 
                 <VerticalStackLayout VerticalOptions="Center" >
-                    <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="HeadTruncation" FontSize="18"/>
-                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6"/>
-                    <!--<Image WidthRequest="20" HorizontalOptions="Start" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
-                        <Image.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
-                        </Image.Source>
-                    </Image>-->
-                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" 
+                    <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
+                           LineBreakMode="HeadTruncation" FontSize="18"/>
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6" HorizontalOptions="Start"/>
+                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
                        LineBreakMode="HeadTruncation"/>
                 </VerticalStackLayout>
 
             </HorizontalStackLayout>
 
-            <HorizontalStackLayout Spacing="15" Grid.Column="1" Margin="10,0" 
+            <HorizontalStackLayout Spacing="15" Grid.Column="1" 
                                HorizontalOptions="Center">
+                
                 <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
@@ -84,31 +83,12 @@
 
             </HorizontalStackLayout>
 
-            <VerticalStackLayout Grid.Column="2" Margin="5,0">
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
+            <VerticalStackLayout Grid.Column="2" Margin="10,0">
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="2">
                     <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
                     <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
                        Opacity="0.6"/>
                 </HorizontalStackLayout>
-
-                <HorizontalStackLayout IsVisible="False">
-                    <ImageButton BackgroundColor="Transparent" Command="{Binding DecreaseVolumeCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_down}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-
-                    <Slider Value="{Binding VolumeSliderValue}" x:Name="VolumeSlider" MinimumTrackColor="DarkSlateBlue"  
-                    DragCompletedCommand="{Binding ChangeVolumeCommand}" WidthRequest="120" Margin="0,5"
-                        Minimum="0" Maximum="1"/>
-
-                    <ImageButton BackgroundColor="Transparent" Command="{Binding IncreaseVolumeCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Volume_up}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                </HorizontalStackLayout>
-
             </VerticalStackLayout>
         </Grid>
     </VerticalStackLayout>

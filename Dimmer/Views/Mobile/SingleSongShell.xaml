@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.SingleSongShell"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:controls="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"
+            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             Shell.TabBarIsVisible="False"
+             Shell.NavBarIsVisible="False"
+             >
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <Style TargetType="ImageButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+                <Setter Property="WidthRequest" Value="50"/>
+                <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <toolkit:DockLayout>
+
+        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+
+        <controls:SegmentedControl x:Name="SegControl" SelectedSegment="0" toolkit:DockLayout.DockPosition="Bottom"
+                                   TintColor="DarkSlateBlue" SelectedTextColor="White" >
+            <controls:SegmentedControl.Children>
+                <controls:SegmentedControlOption Text="View Lyrics"/>
+                <controls:SegmentedControlOption Text="Search Lyrics"/>
+            </controls:SegmentedControl.Children>
+        </controls:SegmentedControl>
+
+        <cv:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"/>
+        <cv:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
+        <cv:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
+                
+    </toolkit:DockLayout>
+</ContentPage>

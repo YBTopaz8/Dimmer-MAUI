@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.TypeConverters;
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class BytesArrayToImageSource : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -13,6 +13,6 @@ public class BytesArrayToImageSource : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotSupportedException();
-        
+
     }
 }

@@ -1,8 +1,18 @@
 ﻿#if ANDROID
+using Dimmer_MAUI.DataAccess.IServices;
+using Dimmer_MAUI.DataAccess.Services;
 using Dimmer_MAUI.Platforms.Android.MAudioLib;
+using Dimmer_MAUI.Utilities.IServices;
+using Dimmer_MAUI.Utilities.Services;
 using Microsoft.Maui.LifecycleEvents;
+using Plugin.Maui.SegmentedControl;
 #elif WINDOWS
+using Dimmer_MAUI.DataAccess.IServices;
+using Dimmer_MAUI.DataAccess.Services;
 using Dimmer_MAUI.Platforms.Windows;
+using Dimmer_MAUI.Utilities.IServices;
+using Dimmer_MAUI.Utilities.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -23,6 +33,7 @@ public static class MauiProgram
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseBottomSheet()
+            .UseSegmentedControl()
             .ConfigureContextMenuContainer()
             .ConfigureFonts(fonts =>
             {
@@ -31,7 +42,7 @@ public static class MauiProgram
                 fonts.AddMaterialIconFonts();
             });
         
-#if DEBUG
+#if WINDOWS || Debug
 		builder.Logging.AddDebug();
 #endif
 
@@ -87,7 +98,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISongsManagementService, SongsManagementService>();
         builder.Services.AddSingleton<IStatsManagementService, StatsManagementService>();
         builder.Services.AddSingleton<IPlaylistManagementService, PlayListManagementService>();
-        
+        builder.Services.AddSingleton<IArtistsManagementService, ArtistsManagementService>();
+
         /* Registering the Utilities services */
         builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
@@ -100,9 +112,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomeD>();
         builder.Services.AddSingleton<NowPlayingD>();
         builder.Services.AddSingleton<PlaylistsPageD>();
+        builder.Services.AddSingleton<ArtistsPageD>();
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
+        builder.Services.AddSingleton<SingleSongShell>();
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
 

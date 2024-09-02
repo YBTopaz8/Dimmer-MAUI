@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.IServices;
+﻿namespace Dimmer_MAUI.Utilities.IServices;
 public interface ILyricsService
 {
     IObservable<IList<LyricPhraseModel>> SynchronizedLyricsStream { get; }
@@ -10,7 +10,7 @@ public interface ILyricsService
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
 
-    Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView songs, bool useManualSearch=false, List<string>? manualSearchFields=null);
+    Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null);
     Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null);
     Task<string> FetchAndDownloadCoverImage(SongsModelView songs);
     Task<bool> WriteLyricsToLyricsFile(string syncedLyrics, SongsModelView songObj, bool IsSynchedLyrics);

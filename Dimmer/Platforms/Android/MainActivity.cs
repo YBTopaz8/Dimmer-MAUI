@@ -8,7 +8,7 @@ using Dimmer_MAUI.Platforms.Android.CurrentActivity;
 namespace Dimmer_MAUI;
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 
-public class MainActivity: MauiAppCompatActivity, IAudioActivity
+public class MainActivity : MauiAppCompatActivity, IAudioActivity
 {
     MediaPlayerServiceConnection mediaPlayerServiceConnection;
 
@@ -18,14 +18,14 @@ public class MainActivity: MauiAppCompatActivity, IAudioActivity
     public event CoverReloadedEventHandler CoverReloaded;
     public event PlayingEventHandler Playing;
     public event BufferingEventHandler Buffering;
-    
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#483D8B"));
-        Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#483D8B"));
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
+        Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#151C1C"));
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
-        
+
         NotificationHelper.CreateNotificationChannel(Platform.AppContext);
         if (mediaPlayerServiceConnection is null)
         {
@@ -42,5 +42,5 @@ public class MainActivity: MauiAppCompatActivity, IAudioActivity
         var mediaPlayerServiceIntent = new Intent(Platform.AppContext, typeof(MediaPlayerService));
         BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
     }
-    
+
 }

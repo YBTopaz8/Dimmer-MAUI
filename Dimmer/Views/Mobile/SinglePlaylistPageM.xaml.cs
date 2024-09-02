@@ -22,4 +22,13 @@ public partial class SinglePlaylistPageM : ContentPage
         base.OnDisappearing();
         HomePageVM.SearchSongCommand.Execute(null);
     }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 1;
+
+        var view = (FlexLayout)sender;
+        var song = view.BindingContext as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
+    }
 }

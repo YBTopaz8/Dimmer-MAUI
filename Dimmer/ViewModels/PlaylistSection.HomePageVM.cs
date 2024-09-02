@@ -16,6 +16,12 @@ public partial class HomePageVM
     SongsModelView selectedSongToOpenBtmSheet;
     PlaylistMenuBtmSheet btmSheet { get; set; }
     public int CurrentQueue=0;
+
+    public void RefreshPlaylists()
+    {
+        DisplayedPlaylists.Clear();
+        DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
+    }
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
@@ -45,11 +51,11 @@ public partial class HomePageVM
         var toast = Toast.Make(songAddedToPlaylistText, duration);
         await toast.Show(cts.Token);
     }
-    public void LoadFirstPlaylist()
+    public async void LoadFirstPlaylist()
     {
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
-            OpenSpecificPlaylistPage(DisplayedPlaylists[0].Id);
+            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].Id);
         }
     }
     [RelayCommand]

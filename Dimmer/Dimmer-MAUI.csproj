@@ -134,6 +134,7 @@
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.80" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
+		<PackageReference Include="Plugin.Maui.SegmentedControl" Version="1.0.8" />
 		<PackageReference Include="Realm" Version="12.4.0" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
@@ -152,25 +153,31 @@
 	  <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\EditableSongTagsView.xaml">
+	  <MauiXaml Update="CustomPopUpViews\ViewLyricsPopUp.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\FetchLyricsResultsView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\EditableSongTagsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\MediaPlaybackControlsView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\FetchLyricsResultsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\MiniControlNotificationView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\MediaPlaybackControlsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\MiniControlNotificationView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\SongTagsView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\PlayPauseView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\SyncedLyricsView.xaml">
+	  <MauiXaml Update="Views\Desktop\CustomViews\SongTagsView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Desktop\CustomViews\SyncedLyricsView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Desktop\ArtistsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\HomeD.xaml">
@@ -180,6 +187,12 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\CustomViewsM\MediaPlaybackControlsViewM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
@@ -195,6 +208,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\SinglePlaylistPageM.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\SingleSongShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\SongMenuBtmSheet.xaml">

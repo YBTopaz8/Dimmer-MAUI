@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DataAccess.IServices;
+﻿namespace Dimmer_MAUI.DataAccess.IServices;
 public interface IDataBaseService
 {
     Realm GetRealm();

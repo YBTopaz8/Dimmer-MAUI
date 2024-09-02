@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 public class StatsManagementService : IStatsManagementService
 {
     Realm db;
@@ -16,7 +16,7 @@ public class StatsManagementService : IStatsManagementService
 
     public async Task IncrementPlayCount(ObjectId songID)
     {
-        
+
         try
         {
             await db.WriteAsync(() =>
@@ -30,7 +30,7 @@ public class StatsManagementService : IStatsManagementService
         catch (Exception ex)
         {
             Debug.WriteLine($"Error incrementing play count: {ex.Message}");
-            
+
         }
     }
 
@@ -43,7 +43,7 @@ public class StatsManagementService : IStatsManagementService
 
             if (song is null)
             {
-                return ;
+                return;
             }
             if (db.IsInTransaction)
             {
@@ -56,7 +56,7 @@ public class StatsManagementService : IStatsManagementService
                     song.LastPlayed = DateTime.Now;
                 });
             }
-            }
+        }
         catch (Exception ex)
         {
 

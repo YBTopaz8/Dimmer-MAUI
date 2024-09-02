@@ -1,7 +1,8 @@
+
 #if ANDROID
-using Android.Graphics.Drawables;
-using Color = Android.Graphics.Color;
+using Dimmer_MAUI.Platforms.Android;
 #endif
+
 using Plainer.Maui.Controls;
 using UraniumUI.Material.Attachments;
 
@@ -11,29 +12,12 @@ namespace Dimmer_MAUI.Views.Mobile;
 public partial class HomePageM : UraniumContentPage
 {
     
-    public HomePageM(HomePageVM homePageVM, NowPlayingSongPageBtmSheet nowPlayingSongPageBtmSheet)
+    public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
-        NowPlayingBtmSheet = nowPlayingSongPageBtmSheet;
         BindingContext = homePageVM;
         SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
-        NowPlayingBtmSheet.Dismissed += NowPlayingBtmSheet_Dismissed;
-    }
-
-    private void NowPlayingBtmSheet_Dismissed(object? sender, DismissOrigin e)
-    {
-        if (HomePageVM.IsPlaying)
-        {
-            playImgBtn.IsVisible = false;
-            pauseImgBtn.IsVisible = true;
-        }
-        else
-        {
-            playImgBtn.IsVisible = true;
-            pauseImgBtn.IsVisible = false;
-        }
-        DeviceDisplay.Current.KeepScreenOn = false;
     }
 
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -97,41 +81,24 @@ public partial class HomePageM : UraniumContentPage
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
     }
 
-    private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
-    {
-        await NowPlayingBtmSheet.ShowAsync();
-        DeviceDisplay.Current.KeepScreenOn = true;
-        //await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
-    }
-
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.LoadSongCoverImage();
+
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
     }
 
 
-    private void playImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = false;
-        pauseImgBtn.IsVisible = true;
-    }
-
-    private void pauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = true;
-        pauseImgBtn.IsVisible = false;
-    }
-
+    
     private void SpecificSong_Tapped(object sender, TappedEventArgs e)
     {
-        playImgBtn.IsVisible = false;
-        pauseImgBtn.IsVisible = true;
+        HomePageVM.CurrentQueue = 0;
+        var view = (FlexLayout)sender;
+        var song = view.BindingContext as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
     }
 }
 

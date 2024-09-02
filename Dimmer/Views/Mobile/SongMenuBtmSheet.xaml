@@ -6,7 +6,7 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              x:DataType="vm:HomePageVM"
              BackgroundColor="Black" 
              x:Name="myBtmPage">
@@ -45,17 +45,17 @@
                 </Label.GestureRecognizers>
             </Label>
             <BoxView/>
-            <Label Text="Song Details"/>
+            <Label Text="Song Details*"/>
             <BoxView/>
-            <Label Text="Go to Album"/>
+            <Label Text="Go to Album*"/>
             <BoxView/>
-            <Label Text="Go to Artist"/>
+            <Label Text="Go to Artist*"/>
             <BoxView/>
-            <Label Text="Tag Editor"/>
+            <Label Text="Tag Editor*"/>
             <BoxView/>
-            <Label Text="Share"/>
+            <Label Text="Share*"/>
             <BoxView/>
-            <Label Text="Delete from Device"/>
+            <Label Text="Delete from Device*"/>
         </VerticalStackLayout>
 
         <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="False" Spacing="10"

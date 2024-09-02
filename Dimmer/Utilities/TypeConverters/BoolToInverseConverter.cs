@@ -1,27 +1,29 @@
-﻿namespace Dimmer.Utilities.TypeConverters;
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         switch (parameter)
         {
-            case "playbtn":
-                if ((bool)value!)
+            
+            case "playbtn":                
+                if (!vm.IsPlaying)
                 {
-                    return false;
+                    return true;
                 }
                 else
                 {
-                    return true;
+                    return false;
                 }
             case "pausebtn":
-                if ((bool)value!)
+                if (!vm.IsPlaying)
                 {
-                    return true;
+                    return false;
                 }
                 else
                 {
-                    return false;
+                    return true;
                 }
             default:
                 return !(bool)value!;

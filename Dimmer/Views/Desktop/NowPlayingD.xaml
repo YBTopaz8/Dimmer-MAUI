@@ -4,10 +4,10 @@
              x:Class="Dimmer_MAUI.Views.Desktop.NowPlayingD"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"     
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM"
             x:Name="myPage"
@@ -87,52 +87,15 @@
                     </Image>
 
                 </VerticalStackLayout>
-                
-                <!--<toolkit:DockLayout IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
-                                     toolkit:DockLayout.DockPosition="Top" x:Name="SyncedLyricsView">
-                    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" toolkit:DockLayout.DockPosition="Top"
-                HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
-                SelectionMode="Single" x:Name="LyricsColView" >
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="Red"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:LyricPhraseModel">
-                                <Border Stroke="Transparent" >
-                                    <Label Text="{Binding Text}" Margin="0,5" 
-                       HorizontalTextAlignment="Center" 
-                       FontSize="15" WidthRequest="800"/>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                    
-                    <ScrollView HeightRequest="200"
-                IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}">
-                        <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" 
-               HorizontalTextAlignment="Center" Padding="10"
-               LineBreakMode="WordWrap"/>
-
-                    </ScrollView>
-
-                </toolkit:DockLayout>-->
-                
-
-                    <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
-                                         />
-                    <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
-                        />
-                    <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"
-                        />
-                    <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
-                        x:Name="EditableSongsTagsV" />
+           
+                <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"
+                                        />
+                <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
+                    />
+                <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"
+                    />
+                <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
+                    x:Name="EditableSongsTagsV" />
 
                 
             </toolkit:DockLayout>

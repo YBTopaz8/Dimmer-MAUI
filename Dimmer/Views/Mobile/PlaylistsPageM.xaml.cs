@@ -7,7 +7,6 @@ public partial class PlaylistsPageM : ContentPage
 		InitializeComponent();
         NowPlayingBtmSheet = nowPlayingSongPageBtmSheet;
         HomePageVM = homePageVM;
-        BtmMediaControlsVSL.BindingContext = homePageVM;
         BindingContext = homePageVM;
     }
     public HomePageVM HomePageVM { get; }
@@ -16,20 +15,17 @@ public partial class PlaylistsPageM : ContentPage
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
+        //HomePageVM.RefreshPlaylists();
     }
 
     private void playImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = false;
-        pauseImgBtn.IsVisible = true;
+        HomePageVM.PauseResumeSongCommand.Execute(null);        
     }
 
     private void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
         HomePageVM.PauseResumeSongCommand.Execute(null);
-        playImgBtn.IsVisible = true;
-        pauseImgBtn.IsVisible = false;
     }
     private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
     {

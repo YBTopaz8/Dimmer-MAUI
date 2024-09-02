@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.Services.Models;
+﻿namespace Dimmer_MAUI.Utilities.Models;
 public enum MediaPlayerState
 {
     Initialized,

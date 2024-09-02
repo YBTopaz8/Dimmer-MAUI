@@ -6,10 +6,11 @@
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters" 
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:thumblessSlider="clr-namespace:Dimmer_MAUI.Views.Mobile"
+            xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
             x:Name="myPage"          
@@ -41,52 +42,8 @@
     <AbsoluteLayout>       
 
         <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
-            <VerticalStackLayout toolkit:DockLayout.DockPosition="Bottom">
 
-                <thumblessSlider:ThumblessSlider VerticalOptions="Center" Margin="-20,0"
-                        Value="{Binding CurrentPositionPercentage}" MinimumTrackColor="DarkSlateBlue"/>
-
-                <FlexLayout JustifyContent="SpaceBetween" x:Name="BtmMediaControls" 
-                        HeightRequest="55" BackgroundColor="#171919" Margin="-5,0">
-                    <FlexLayout.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="MediaControlBtmBar_Tapped"/>
-                    </FlexLayout.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="5">
-                        <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" WidthRequest="70" Aspect="AspectFill"/>
-                        <VerticalStackLayout>
-                            <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center" FontSize="18" FontAttributes="Bold"/>
-                            <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
-                        </VerticalStackLayout>
-
-                    </HorizontalStackLayout>
-
-                    <HorizontalStackLayout Spacing="5">
-                        <ImageButton Command="{Binding PlayPreviousSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                        <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}" HeightRequest="45" 
-                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                        <ImageButton Clicked="pauseImgBtn_Clicked" x:Name="pauseImgBtn" HeightRequest="45" 
-                                 IsVisible="{Binding IsVisible, Source={x:Reference playImgBtn}, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                        <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                    </HorizontalStackLayout>
-                </FlexLayout>
-
-            </VerticalStackLayout>
+            <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
             <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" 
@@ -94,12 +51,15 @@
                             toolkit:DockLayout.DockPosition="Top" 
                             x:Name="SongsColView">
                 <CollectionView.EmptyView>
-                    <Label Text="No Songs Found... 💔" HorizontalOptions="Center" FontSize="30"/>
+                    <VerticalStackLayout>
+                        <Label Text="No Songs Found... 💔" HorizontalOptions="Center" FontSize="30"/>
+                        <Label Text="Tap On Search Icon On Top Right To Scan Songs" HorizontalOptions="Center" FontSize="15"/>
+                    </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <FlexLayout JustifyContent="SpaceBetween">
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="0,3">
 
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup Name="CommonStates">
@@ -113,11 +73,10 @@
                             </VisualStateManager.VisualStateGroups>
 
                             <FlexLayout.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="SpecificSong_Tapped" Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}"
-                                                  CommandParameter="{Binding .}"/>
+                                <TapGestureRecognizer Tapped="SpecificSong_Tapped" />
                             </FlexLayout.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5">
-                                <Image Source="{Binding CoverImagePath}" WidthRequest="60"/>
+                                <Image Source="{Binding CoverImagePath}" WidthRequest="60" IsVisible="False"/>
                                 <VerticalStackLayout>
                                     <Label Text="{Binding Title}" FontSize="19"/>
                                     <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
@@ -167,7 +126,7 @@
     <uranium:UraniumContentPage.Attachments>
 
         <material:BackdropView Title="Search" IconImageSource="search_d" x:Name="SearchBackDrop">
-            <VerticalStackLayout Margin="0,0" HeightRequest="350">
+            <VerticalStackLayout Margin="0,0" HeightRequest="390">
                 <Border BackgroundColor="#252526" Stroke="Transparent" 
                         StrokeShape="RoundRectangle 10">
                     
@@ -179,7 +138,7 @@
                 <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-                <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
+                <ListView ItemsSource="{Binding FolderPaths}"/>
             </VerticalStackLayout>
 
         </material:BackdropView>

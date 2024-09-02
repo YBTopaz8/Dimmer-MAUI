@@ -1,10 +1,12 @@
-﻿namespace Dimmer.DataAccess.Services;
+﻿
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public class SongsManagementService : ISongsManagementService, IDisposable
-{   
-    Realm db ;
+{
+    Realm db;
 
     public IList<SongsModelView> AllSongs { get; set; }
+    public IList<AlbumModelView> AllAlbums { get; set; }
     public IDataBaseService DataBaseService { get; }
     public SongsManagementService(IDataBaseService dataBaseService)
     {
@@ -16,24 +18,26 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     public void GetSongs()
     {
-        
         try
         {
-            AllSongs?.Clear();                        
+            AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-            
+
+            AllAlbums?.Clear();
+            var realmAlbums = db.All<AlbumModel>().ToList();
+            AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
         }
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
         }
-        
+
     }
 
     public Task<SongsModel> FindSongsByTitleAsync(string searchText)
     {
-        throw new NotImplementedException();        
+        throw new NotImplementedException();
     }
 
     public async Task<bool> AddSongAsync(SongsModel song)
@@ -48,11 +52,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed while inserting Song " + ex.Message) ;
+            throw new Exception("Failed while inserting Song " + ex.Message);
         }
     }
 
-    public async Task<bool> AddSongBatchAsync(IEnumerable<SongsModelView> songs)
+    public bool AddSongBatchAsync(IEnumerable<SongsModelView> songs)
     {
         try
         {
@@ -61,12 +65,12 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                 .Select(song => new SongsModel(song))
                 .ToList();
 
-            using var realm = DataBaseService.GetRealm();
-            await realm.WriteAsync(() =>
+            
+            db.Write(() =>
             {
                 foreach (var song in songsToAdd)
                 {
-                    realm.Add(song);
+                    db.Add(song);
                     Debug.WriteLine("Added Song " + song.Title);
                 }
             });
@@ -114,17 +118,13 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-
-
-
-
     public async Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artistss)
     {
         try
         {
             var artists = new List<ArtistModel>();
             artists.AddRange(artistss.Select(art => new ArtistModel(art)));
-            
+
             await db.WriteAsync(() =>
             {
                 db.Add(artists);
@@ -144,5 +144,85 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         db?.Dispose();
     }
 
-    
+    public IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID)
+    {
+        try
+        {
+            
+            var songLinks = db
+                .All<AlbumArtistSongLink>() 
+                .Where(link => link.AlbumId == albumID && link.ArtistId == artistID) 
+                .ToList();
+
+            var songIDs = songLinks.Select(link => link.SongId).ToList();
+
+            return songIDs;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting songs by album and artist: {ex.Message}");
+            return Enumerable.Empty<ObjectId>().ToList();
+        }
+    }
+
+    public IList<AlbumModelView> GetAlbumsFromArtistID(ObjectId artistID)
+    {
+        try
+        {            
+            var albumLinks = db
+                .All<AlbumArtistSongLink>()
+                .Where(link => link.ArtistId == artistID)
+                
+                .ToList();
+
+            var albumIDs = albumLinks
+                .Select(link => link.AlbumId) 
+                .Distinct() 
+                .ToList();
+            
+            var realmAlbums = db.All<AlbumModel>().ToList();
+            AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
+
+            var albumsFromArtist = AllAlbums
+                .Where(album => albumIDs.Contains(album.Id)) 
+                .ToList();
+
+            return albumsFromArtist;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting albums from artist: {ex.Message}");
+            return Enumerable.Empty<AlbumModelView>().ToList();
+        }
+    }
+
+    public void UpdateAlbum(AlbumModelView album)
+    {
+        try
+        {
+            db.Write(() =>
+            {
+                var existingAlbum = db.Find<AlbumModel>(album.Id);
+
+                if (existingAlbum != null)
+                {
+                    existingAlbum.ImagePath = album.AlbumImagePath;
+                }
+                else
+                {
+                    var newSong = new AlbumModel(album);
+                    db.Add(newSong, update: true);
+                }
+            });
+
+            
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error when updating song: " + ex.Message);
+            
+        }
+
+    }
+
 }

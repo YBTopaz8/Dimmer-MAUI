@@ -1,6 +1,6 @@
 ﻿using Android;
 
-namespace Dimmer.DataAccess;
+namespace Dimmer_MAUI.Platforms.Android;
 
 // All the code in this file is only included on Android.
 public class CheckPermissions : Permissions.BasePlatformPermission

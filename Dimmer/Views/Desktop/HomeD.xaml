@@ -6,14 +6,14 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"             
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"             
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"             
-             x:Name="page">
+             x:Name="myPage">
 
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
@@ -26,6 +26,11 @@
                 <Setter Property="BorderColor" Value="Transparent"/>
                 <Setter Property="WidthRequest" Value="50"/>
                 <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+
+            <Style TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="Center"/>
+                <Setter Property="HorizontalTextAlignment" Value="Center"/>
             </Style>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
@@ -58,7 +63,7 @@
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
             <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
-                <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}" FontSize="18"
+                <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
             <HorizontalStackLayout Spacing="10">
@@ -74,26 +79,23 @@
         </VerticalStackLayout>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0" Spacing="5"
                              IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
-           
-                <CollectionView ItemsSource="{Binding FolderPaths}" EmptyView="No Folders Yet">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <Label Text="{Binding .}"/>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+
+            <ListView ItemsSource="{Binding FolderPaths}"/>
+
+
             <Button Text="Click here to Select folder to scan (You can do so multiple times for multiple folders)" Command="{Binding SelectSongFromFolderCommand}"/>
             <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-            <Label Text="{Binding LoadingSongsProgress, StringFormat='{0}%'}"/>
+            
         </VerticalStackLayout>
         
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -108,14 +110,15 @@
                     </Style>
                 </ResourceDictionary>
             </Grid.Resources>
-            <Label Text="Song Title" Grid.Column="0"/>
+            <Label Text="Song Title" Grid.Column="0" HorizontalOptions="Start"/>
             <Label Text="Artist" Grid.Column="1" />
             <Label Text="Has Lyrics?" Grid.Column="2" 
                             HeightRequest="30" ToolTipProperties.Text="Has Lyrics?"/>
             <Label Text="Love" Grid.Column="3" />
-            <Label Text="Duration" Grid.Column="4" />
-            <Label Text="Bitrate" Grid.Column="5" />
-            <Label Text="File Format" Grid.Column="6"/>
+            <Label Text="Album" Grid.Column="4" />
+            <Label Text="Duration" Grid.Column="5" />
+            <Label Text="Bitrate" Grid.Column="6" />
+            <Label Text="File Format" Grid.Column="7"/>
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
         <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
@@ -129,7 +132,7 @@
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="View File Explorer" 
-                                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference page}}" CommandParameter="{Binding .}">
+                                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl,Shift" 
                                                              Key="E"/>
@@ -154,7 +157,7 @@
                                 <MenuFlyoutSeparator/>
                                 
                                 <MenuFlyoutItem Text="Remove" 
-                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference page}}" CommandParameter="{Binding .}">
+                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="None" 
                                                              Key="Delete"/>
@@ -171,7 +174,7 @@
                                 <MenuFlyoutSeparator/>
 
                                 <MenuFlyoutItem Text="Add To Playlist"
-                                                Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference page}}">
+                                                Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl" 
                                                              Key="P"/>
@@ -191,10 +194,11 @@
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="200" />
                             <ColumnDefinition Width="150" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="200" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -241,18 +245,19 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                             </Image.Source>
                         </Image>
-                        <ImageButton Command="{Binding Source={x:Reference page},Path=BindingContext.AddSongToFavoritesCommand}"
+                        <ImageButton Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
                                      VerticalOptions="Start" CommandParameter="{Binding .}" BackgroundColor="Transparent"
                                      Grid.Column="3">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
-                               Grid.Column="4" HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"/>
-                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="5" />
-                        <Label Text="{Binding FileFormat}" Grid.Column="6"/>
+                        <Label Text="{Binding AlbumName}" Grid.Column="4" LineBreakMode="HeadTruncation"/>
+                        <Label Grid.Column="5"
+                               Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                               />
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="6" />
+                        <Label Text="{Binding FileFormat}" Grid.Column="7"/>
 
                     </Grid>
                 </DataTemplate>

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Dimmer.Utilities.Services;
+namespace Dimmer_MAUI.Utilities.Services;
 public class LyricsService : ILyricsService
 {
 
@@ -35,7 +35,7 @@ public class LyricsService : ILyricsService
             {
                 case MediaPlayerState.Initialized:
                     pState = MediaPlayerState.Initialized;
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);                    
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     break;
                 case MediaPlayerState.Playing:
                     pState = MediaPlayerState.Playing;
@@ -51,7 +51,7 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.LyricsLoad:
                     pState = MediaPlayerState.LyricsLoad;
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);                    
+                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     pState = MediaPlayerState.CoverImageDownload;
@@ -69,11 +69,11 @@ public class LyricsService : ILyricsService
     {
         try
         {
+            _currentLyricSubject.OnNext(null);
             if (song is null)
             {
                 _synchronizedLyricsSubject.OnNext(null);
                 songSyncLyrics?.Clear();
-                _currentLyricSubject.OnNext(null);
                 StopLyricIndexUpdateTimer();
                 return;
             }
@@ -83,7 +83,6 @@ public class LyricsService : ILyricsService
                 {
                     if (songSyncLyrics?.Count < 1)
                     {
-                        _currentLyricSubject.OnNext(null);
                         StopLyricIndexUpdateTimer();
                     }
                 }
@@ -95,7 +94,7 @@ public class LyricsService : ILyricsService
             {
                 song.HasLyrics = false;
             }
-            else if(PlayBackService.CurrentQueue != 2 && pState == MediaPlayerState.Playing)
+            else if (PlayBackService.CurrentQueue != 2 && pState == MediaPlayerState.Playing)
             {
                 if (song.HasLyrics != true || song.HasSyncedLyrics != true)
                 {
@@ -128,7 +127,7 @@ public class LyricsService : ILyricsService
     }
 
     List<LyricPhraseModel>? sortedLyrics;
-    private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath=null, IList<LyricPhraseModel>? syncedLyrics=null)
+    private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null, IList<LyricPhraseModel>? syncedLyrics = null)
     {
         if (syncedLyrics is not null && songSyncLyrics?.Count > 0)
         {
@@ -156,7 +155,7 @@ public class LyricsService : ILyricsService
         string txtFilePath = Path.ChangeExtension(songPath, ".txt");
 
         hasSyncedLyrics = false;
-        
+
         if (!File.Exists(lrcFilePath))
         {
             StopLyricIndexUpdateTimer();
@@ -167,7 +166,7 @@ public class LyricsService : ILyricsService
             hasSyncedLyrics = true;
             string[] lines = File.ReadAllLines(lrcFilePath);
             lyrr = StringToLyricPhraseModel(lines);
-            
+
             sortedLyrics = lyrr;
         }
         if (!hasSyncedLyrics)
@@ -205,7 +204,7 @@ public class LyricsService : ILyricsService
         hasSyncedLyrics = true;
         songSyncLyrics?.Clear();
         var lines = synclyrics.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         //StartLyricIndexUpdateTimer();
         songSyncLyrics = StringToLyricPhraseModel(lines);
         sortedLyrics = songSyncLyrics;
@@ -253,7 +252,7 @@ public class LyricsService : ILyricsService
 
                 double currentTimeinsSecs = position.CurrentTimeInSeconds;
                 UpdateCurrentLyricIndex(currentTimeinsSecs);
-                
+
             }, error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
 
@@ -263,17 +262,17 @@ public class LyricsService : ILyricsService
         var lyrics = _synchronizedLyricsSubject.Value;
         if (lyrics is null || lyrics?.Count < 1)
         {
-            if(!hasSyncedLyrics)
+            if (!hasSyncedLyrics)
             {
                 StopLyricIndexUpdateTimer();
                 return;
             }
-            
+
             LoadLyrics(PlayBackService.CurrentlyPlayingSong);
             if (hasSyncedLyrics)
             {
                 _synchronizedLyricsSubject.OnNext(songSyncLyrics);
-            }            
+            }
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
@@ -288,7 +287,7 @@ public class LyricsService : ILyricsService
         {
             _currentLyricSubject.OnNext(highlightedLyric);
         }
-        
+
     }
 
     LyricPhraseModel FindClosestLyric(double currentPositionInMs)
@@ -307,7 +306,7 @@ public class LyricsService : ILyricsService
                     StopLyricIndexUpdateTimer();
                     return null;
                 }
-                
+
             }
 
             // Iterate through the lyrics until we find the first one with a timestamp greater than the current position
@@ -375,9 +374,9 @@ public class LyricsService : ILyricsService
             Debug.WriteLine($"Unexpected error: {e.Message}");
             return (false, Array.Empty<Content>());
         }
-        finally 
-        { 
-            client.Dispose(); 
+        finally
+        {
+            client.Dispose();
         }
     }
 
@@ -459,7 +458,7 @@ public class LyricsService : ILyricsService
             return (false, null);
         }
         finally
-        {            
+        {
             client.Dispose();
         }
     }
@@ -514,7 +513,7 @@ public class LyricsService : ILyricsService
             //{
             //    return songs.CoverImagePath;
             //}
-            
+
             if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
                 return songs.CoverImagePath;
@@ -527,9 +526,9 @@ public class LyricsService : ILyricsService
             }
             if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
             {
-               ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
-               songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath, ImageBytes);
-               await SongsManagementService.UpdateSongDetailsAsync(songs);
+                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
+                songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath, ImageBytes);
+                await SongsManagementService.UpdateSongDetailsAsync(songs);
             }
 
             return string.IsNullOrEmpty(songs.CoverImagePath) ? string.Empty : songs.CoverImagePath;
@@ -550,7 +549,11 @@ public class LyricsService : ILyricsService
         if (imageData is null)
         {
             Track song = new Track(fullfilePath);
-            imageData = song.EmbeddedPictures?.FirstOrDefault()?.PictureData;
+            string? mimeType = song.EmbeddedPictures?.FirstOrDefault()?.MimeType;
+            if (mimeType == "image/jpg" || mimeType == "image/jpeg" || mimeType == "image/png")
+            {
+                imageData = song.EmbeddedPictures?.FirstOrDefault()?.PictureData;
+            }
         }
 
         // Extract the file name from the full path

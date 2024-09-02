@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-namespace Dimmer.Utilities.Services;
+namespace Dimmer_MAUI.Utilities.Services;
 public class AppSettingsService : IAppSettingsService
 {
     public static class VolumeSettingsPreference

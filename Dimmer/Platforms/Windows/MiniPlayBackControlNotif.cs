@@ -1,39 +1,38 @@
-﻿using Dimmer_MAUI.Views.CustomViews;
-
+﻿
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
 {
    
     public static void ShowUpdateMiniView(SongsModelView song)
     {
-        var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
-        if (miniPlayerWindow is not null)
-        {
-            miniPlayerWindow.ResetTimer();
-            return;
-        }
-        var miniPlayerView = new MiniControlNotificationView();
+        //var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
+        //if (miniPlayerWindow is not null)
+        //{
+        //    miniPlayerWindow.ResetTimer();
+        //    return;
+        //}
+        //var miniPlayerView = new MiniControlNotificationView();
         
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        //var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
-        miniPlayerView.BindingContext = vm;
+        //miniPlayerView.BindingContext = vm;
 
-        // Ensure this is on the main thread
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            var secondWindow = new Window(miniPlayerView);
-            var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
+        //// Ensure this is on the main thread
+        //MainThread.BeginInvokeOnMainThread(() =>
+        //{
+        //    var secondWindow = new Window(miniPlayerView);
+        //    var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
 
-            secondWindow.Title = "MP";
-            secondWindow.MaximumHeight = 150;
-            secondWindow.MinimumHeight = 150;
-            secondWindow.MaximumWidth = 400;
-            secondWindow.MinimumWidth = 400;
-            secondWindow.X = mainScreenBounds.Width - 400;
-            secondWindow.Y = 0;
+        //    secondWindow.Title = "MP";
+        //    secondWindow.MaximumHeight = 150;
+        //    secondWindow.MinimumHeight = 150;
+        //    secondWindow.MaximumWidth = 400;
+        //    secondWindow.MinimumWidth = 400;
+        //    secondWindow.X = mainScreenBounds.Width - 400;
+        //    secondWindow.Y = 0;
 
-            Application.Current?.OpenWindow(secondWindow);
-        });
+        //    Application.Current?.OpenWindow(secondWindow);
+        //});
         
     }
     public static void BringAppToFront()

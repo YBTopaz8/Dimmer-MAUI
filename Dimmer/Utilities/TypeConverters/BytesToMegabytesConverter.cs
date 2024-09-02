@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utilities.TypeConverters;
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class BytesToMegabytesConverter : IValueConverter
 {
 
@@ -7,7 +7,8 @@ public class BytesToMegabytesConverter : IValueConverter
         if (value is long)
         {
             return ((long)value / 1024.0 / 1024.0).ToString("0.##") + " MB";
-        }else if (value is double)
+        }
+        else if (value is double)
         {
             return ((double)value / 1024.0 / 1024.0).ToString("0.##") + " MB";
         }

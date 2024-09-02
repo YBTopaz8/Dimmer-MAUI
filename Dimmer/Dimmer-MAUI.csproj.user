@@ -24,6 +24,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android34.0|AnyCPU'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <ItemGroup>
     <MauiXaml Update="AppShellMobile.xaml">
       <SubType>Designer</SubType>
@@ -31,25 +34,31 @@
     <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\EditableSongTagsView.xaml">
+    <MauiXaml Update="CustomPopUpViews\ViewLyricsPopUp.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\FetchLyricsResultsView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\EditableSongTagsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\MediaPlaybackControlsView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\FetchLyricsResultsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\MiniControlNotificationView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\MediaPlaybackControlsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\PlayPauseView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\MiniControlNotificationView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\SongTagsView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\PlayPauseView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\CustomViews\SyncedLyricsView.xaml">
+    <MauiXaml Update="Views\Desktop\CustomViews\SongTagsView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Desktop\CustomViews\SyncedLyricsView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Desktop\ArtistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\HomeD.xaml">
@@ -59,6 +68,12 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\CustomViewsM\MediaPlaybackControlsViewM.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\HomePageM.xaml">
@@ -74,6 +89,9 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\SinglePlaylistPageM.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\SingleSongShell.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\SongMenuBtmSheet.xaml">

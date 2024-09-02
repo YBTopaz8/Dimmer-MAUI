@@ -8,7 +8,6 @@ public partial class PlaylistsPageD : ContentPage
         InitializeComponent();
         BindingContext = homePageVM;
         HomePageVM = homePageVM;
-        MediaPlayBackCV.BindingContext = homePageVM;
     }
 
     protected override void OnAppearing()

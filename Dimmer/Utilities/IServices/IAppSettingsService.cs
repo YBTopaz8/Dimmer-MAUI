@@ -1,6 +1,6 @@
-﻿namespace Dimmer.Utilities.IServices;
+﻿namespace Dimmer_MAUI.Utilities.IServices;
 public interface IAppSettingsService
 {
-    
+
 
 }

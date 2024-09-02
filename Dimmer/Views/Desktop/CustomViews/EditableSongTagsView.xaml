@@ -6,8 +6,8 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"    
-            xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"    
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             x:DataType="vm:HomePageVM"
             x:Name="myPage">
@@ -46,7 +46,7 @@
         </ScrollView>
 
         <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" x:Name="SyncingLyricView"
-                        IsVisible="{Binding IsOnLyricsSyncMode}" Margin="10,0">
+                        IsVisible="{Binding IsOnLyricsSyncMode}" >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <HorizontalStackLayout HorizontalOptions="Center">

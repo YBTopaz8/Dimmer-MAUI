@@ -36,7 +36,7 @@ public partial class SongToPlaylistPopup : Popup
         AddSongToPlayListPageBtmSheet.IsVisible = true;
     }
 
-    private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
+    private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
         HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
         this.Close();

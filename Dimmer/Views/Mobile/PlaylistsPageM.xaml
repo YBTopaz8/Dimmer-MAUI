@@ -6,10 +6,11 @@
              BackgroundColor="Black"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters" 
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:thumblessSlider="clr-namespace:Dimmer_MAUI.Views.Mobile"
+             xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
              >
@@ -20,52 +21,8 @@
     </ContentPage.Resources>
     <toolkit:DockLayout Margin="5,0">
 
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Bottom" x:Name="BtmMediaControlsVSL"
-                             x:DataType="vm:HomePageVM">
-            <thumblessSlider:ThumblessSlider VerticalOptions="Center" Margin="-20,0"
-                                             Value="{Binding CurrentPositionPercentage}" MinimumTrackColor="DarkSlateBlue"/>
+        <CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
 
-            <FlexLayout JustifyContent="SpaceBetween"
-                        x:Name="BtmMediaControls" 
-                        HeightRequest="55" BackgroundColor="#171919" Margin="-5,0">
-                <FlexLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="MediaControlBtmBar_Tapped"/>
-                </FlexLayout.GestureRecognizers>
-                <HorizontalStackLayout Spacing="5">
-                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" WidthRequest="70" Aspect="AspectFill"/>
-                    <VerticalStackLayout>
-                        <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center" FontSize="18" FontAttributes="Bold"/>
-                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" VerticalOptions="Center"/>
-                    </VerticalStackLayout>
-
-                </HorizontalStackLayout>
-
-                <HorizontalStackLayout Spacing="5">
-                    <ImageButton Command="{Binding PlayPreviousSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}" HeightRequest="45" 
-                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton Clicked="pauseImgBtn_Clicked" x:Name="pauseImgBtn" HeightRequest="45" 
-                                 IsVisible="{Binding IsVisible, Source={x:Reference playImgBtn}, Converter={StaticResource BoolToInverse}, ConverterParameter='FromUI'}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" BackgroundColor="Transparent">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                </HorizontalStackLayout>
-            </FlexLayout>
-        </VerticalStackLayout>
         
         <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView" toolkit:DockLayout.DockPosition="Top">
             <CollectionView.EmptyView>

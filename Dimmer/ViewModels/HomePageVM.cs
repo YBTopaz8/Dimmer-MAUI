@@ -1,4 +1,4 @@
-﻿
+﻿using Dimmer_MAUI.UtilitiesServices;
 using Microsoft.VisualBasic.FileIO;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
@@ -11,8 +11,6 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     SongsModelView temporarilyPickedSong;
 
-    //[ObservableProperty]
-    //ImageSource pickedSongCoverImage;
     [ObservableProperty]
     double currentPositionPercentage;
     [ObservableProperty]
@@ -43,20 +41,20 @@ public partial class HomePageVM : ObservableObject
     bool isShuffleOn;
     [ObservableProperty]
     int currentRepeatMode;
-
     IFolderPicker folderPicker { get; }
     IFilePicker filePicker { get; }
     IPlaybackUtilsService PlayBackUtilsService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
-    public IServiceProvider ServiceProvider { get; }
+    public IArtistsManagementService ArtistMgtService { get; }
 
     [ObservableProperty]
     string unSyncedLyrics;
     [ObservableProperty]
     string localFilePath;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IServiceProvider serviceProvider)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService)
+                      
     
     {
         this.folderPicker = folderPickerService;
@@ -64,13 +62,15 @@ public partial class HomePageVM : ObservableObject
         PlayBackUtilsService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
-        ServiceProvider = serviceProvider;
+        ArtistMgtService = artistMgtService;
+        
 
         //Subscriptions to SongsManagerService
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
         SubscribeToCurrentSongPosition();
         SubscribeToPlaylistChanges();
+
         //Subscriptions to LyricsServices
         SubscribeToSyncedLyricsChanges();
         SubscribeToLyricIndexChanges();
@@ -87,7 +87,9 @@ public partial class HomePageVM : ObservableObject
         IsOnLyricsSyncMode = false;
         ToggleShuffleState();
         ToggleRepeatMode();
+
         AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
+        GetAllArtists();
     }
     protected int sss;
     [ObservableProperty]
@@ -101,8 +103,16 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task NavToNowPlayingPage()
     {
+#if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
+#elif ANDROID
+        await Shell.Current.GoToAsync(nameof(SingleSongShell));
+        NowPlayingSongPageBtmSheet NPBtmSheet = IPlatformApplication.Current!.Services!.GetService<NowPlayingSongPageBtmSheet>()!;
+        await NPBtmSheet.DismissAsync();
+#endif
     }
+
+ 
 
     [ObservableProperty]
     bool isLoadingSongs;
@@ -173,9 +183,13 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void PlaySong(SongsModelView? SelectedSong = null)
     {
-
         if (SelectedSong is not null)
         {
+            if (CurrentQueue == 1)
+            {
+                PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistslbumSongs);
+                return;
+            }
             PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
         }
         else
@@ -303,12 +317,15 @@ public partial class HomePageVM : ObservableObject
 
     }
     [RelayCommand]
-    void AddSongToFavorites(SongsModelView song)
+    async Task AddSongToFavorites(SongsModelView song)
     {
-        PlayBackUtilsService.UpdateSongToFavoritesPlayList(song);
-        if (song.IsFavorite)
+        await PlayBackUtilsService.UpdateSongToFavoritesPlayList(song);
+        if (!song.IsFavorite)
         {
             PlayBackUtilsService.AddSongToPlayListWithPlayListName(song, "Favorites");
+            DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
+            var toast = Toast.Make(songAddedToPlaylistText, duration);
+            await toast.Show(cts.Token);
         }
         else
         {
@@ -342,6 +359,7 @@ public partial class HomePageVM : ObservableObject
             switch (state)
             {
                 case MediaPlayerState.Playing:
+                    
                     if(splittedLyricsLines is not null)
                     {
                         Array.Clear(splittedLyricsLines);
@@ -350,6 +368,7 @@ public partial class HomePageVM : ObservableObject
                     {
                         Array.Clear(AllSyncLyrics);
                     }
+                    
                     IsPlaying = true;
                     if(CurrentViewIndex == 3)
                     {
@@ -497,29 +516,31 @@ public partial class HomePageVM : ObservableObject
             (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong, true, manualSearchFields);
         }
     }
-    [RelayCommand]
-    async Task SaveUserSelectedLyricsToFile(int id)
+    
+    public async Task SaveSelectedLyricsToFile(bool isSync, string lyrics)
     {
-        if (AllSyncLyrics.Length < 1)
+        bool isSavedSuccessfully;
+        if (!isSync)
         {
-            //Notify that user should search again TODO
-            return;
-        }
-        var s = AllSyncLyrics.First(x => x.id == id);
-        if (s.syncedLyrics is null || s.syncedLyrics?.Length < 1)
-        {
-            TemporarilyPickedSong.UnSyncLyrics = s.plainLyrics;
+            TemporarilyPickedSong.UnSyncLyrics = lyrics;
             TemporarilyPickedSong.HasLyrics = true;
             TemporarilyPickedSong.HasSyncedLyrics = false;
-            this.OnPropertyChanged(TemporarilyPickedSong.UnSyncLyrics);
+            isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
+            
         }
-        if (await LyricsManagerService.WriteLyricsToLyricsFile(s.syncedLyrics?.Length > 0 ? s.syncedLyrics : s.plainLyrics, TemporarilyPickedSong, s.syncedLyrics?.Length > 0))
+        else
+        {
+            TemporarilyPickedSong.HasLyrics = true;
+            TemporarilyPickedSong.HasSyncedLyrics = true;
+            isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
+        }
+        if (isSavedSuccessfully)
         {
             await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
             AllSyncLyrics = [];
             CurrentViewIndex = 0;
         }
-        LyricsManagerService.InitializeLyrics(s?.syncedLyrics?.Length > 0 ? s?.syncedLyrics : null);
+        LyricsManagerService.InitializeLyrics(lyrics);
         if (DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id) is not null)
         {
             DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
@@ -528,6 +549,7 @@ public partial class HomePageVM : ObservableObject
         {
             await SongsMgtService.UpdateSongDetailsAsync(TemporarilyPickedSong);
         }
+        
     }
 
     [ObservableProperty]
@@ -585,7 +607,7 @@ public partial class HomePageVM : ObservableObject
             cleanedLyrics = cleanedLyrics.Replace(term, string.Empty, StringComparison.OrdinalIgnoreCase);
         }
 
-        string[]? ss = TemporarilyPickedSong.UnSyncLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        string[]? ss = cleanedLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
         splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line))
             .ToArray();
 
@@ -605,33 +627,27 @@ public partial class HomePageVM : ObservableObject
     {
         string result = input;
 
-        // Find the position of the textt
         int index = result.IndexOf(textt);
 
         while (index != -1)
         {
-            // Check if the character after textt is \r or \n
             int nextCharIndex = index + textt.Length;
             if (nextCharIndex < result.Length)
             {
                 if (result[nextCharIndex] == '\r' || result[nextCharIndex] == '\n')
                 {
-                    // Remove both textt and the following \r or \n
                     result = result.Remove(index, textt.Length + 1);
                 }
                 else
                 {
-                    // Only remove textt
                     result = result.Remove(index, textt.Length);
                 }
             }
             else
             {
-                // Only remove textt if it's at the end
                 result = result.Remove(index, textt.Length);
             }
 
-            // Search for the next occurrence of textt
             index = result.IndexOf(textt);
         }
 
@@ -642,7 +658,8 @@ public partial class HomePageVM : ObservableObject
     async Task FetchSongCoverImage()
     {
         TemporarilyPickedSong.CoverImagePath = string.Empty;
-        await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
+        
+        await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong); 
     }
 
     [ObservableProperty]
@@ -656,15 +673,14 @@ public partial class HomePageVM : ObservableObject
         switch (viewIndex)
         {
             case 0:
+
                 if (splittedLyricsLines is null)
                 {
                     return;
                 }
                 Array.Clear(splittedLyricsLines);
-
                 break;
             case 1:
-                //await FetchLyrics();
                 break;
             case 3:
                 OpenEditableSongsTagsView();
@@ -745,7 +761,9 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void BringAppToFront()
     {
+#if WINDOWS
         MiniPlayBackControlNotif.BringAppToFront();
+#endif
     }
 
 }

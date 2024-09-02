@@ -1,9 +1,9 @@
-﻿namespace Dimmer.DataAccess.IServices;
+﻿namespace Dimmer_MAUI.DataAccess.IServices;
 public interface ISongsManagementService
 {
     IList<SongsModelView> AllSongs { get; set; }
     Task<bool> AddSongAsync(SongsModel song);
-    Task<bool> AddSongBatchAsync(IEnumerable<SongsModelView> song);
+    bool AddSongBatchAsync(IEnumerable<SongsModelView> song);
     Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artists);
     //public Task UpdateSongAsync(SongsModel song);
     //public Task DeleteSongAsync(SongsModel song);
@@ -12,6 +12,11 @@ public interface ISongsManagementService
 
     Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView);
     void Dispose();
+
+    IList<AlbumModelView> AllAlbums { get; set; }
+    IList<AlbumModelView> GetAlbumsFromArtistID(ObjectId artistID);
+    IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID);
+    void UpdateAlbum(AlbumModelView album);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);
     //public Task<SongsModel> FindSongsByGenre(string searchText);
@@ -24,6 +29,6 @@ public interface ISongsManagementService
     //public Task<SongsModel> FindSongsByLastPlayed(string searchText);
     //public Task<SongsModel> FindSongsByPlayCount(string searchText);
     //public Task<SongsModel> FindSongsBySkipCount(string searchText);
-    
+
 
 }

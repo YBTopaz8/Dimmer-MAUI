@@ -1,6 +1,4 @@
-﻿
-
-namespace Dimmer.Utilities.TypeConverters;
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class DurationConverterFromMsToTimeSpan : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
