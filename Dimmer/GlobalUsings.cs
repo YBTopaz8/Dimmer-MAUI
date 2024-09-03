@@ -25,8 +25,6 @@ global using CommunityToolkit.Maui.Core.Platform;
 global using PanCardView;
 global using The49.Maui.BottomSheet;
 
-global using Plugin.Maui.SegmentedControl;
-
 #if WINDOWS
 global using Dimmer_MAUI.Platforms.Windows;
 #endif

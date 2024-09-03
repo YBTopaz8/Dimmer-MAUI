@@ -34,7 +34,6 @@ public static class MauiProgram
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseBottomSheet()
-            .UseSegmentedControl()
             .ConfigureContextMenuContainer()
             .UseCardsView()
             .ConfigureFonts(fonts =>
