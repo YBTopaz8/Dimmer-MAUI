@@ -5,6 +5,9 @@
     <ActiveDebugFramework>net8.0-windows10.0.19041.0</ActiveDebugFramework>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
+
+    <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
+
     <DefaultDevice>pixel_7_pro_-_api_34</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
@@ -80,6 +83,7 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
+
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
