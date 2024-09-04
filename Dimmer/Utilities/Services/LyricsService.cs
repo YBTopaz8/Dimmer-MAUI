@@ -13,7 +13,7 @@ public class LyricsService : ILyricsService
 
     private BehaviorSubject<string> _unsyncedLyricsSubject = new("");
 
-    private IDisposable _lyricUpdateSubscription;
+    private IDisposable? _lyricUpdateSubscription;
     public IObservable<string> UnSynchedLyricsStream => _unsyncedLyricsSubject.AsObservable();
 
     public IPlaybackUtilsService PlayBackService { get; }
@@ -72,8 +72,7 @@ public class LyricsService : ILyricsService
     public async void LoadLyrics(SongsModelView song)
     {
         try
-        {
-            
+        {            
             if (song is null)
             {
                 _synchronizedLyricsSubject.OnNext(null);
@@ -87,7 +86,7 @@ public class LyricsService : ILyricsService
                 {
                     if (pState == MediaPlayerState.Playing)
                     {
-                        lastSongIDLyrics = song.Id;
+                        StartLyricIndexUpdateTimer();
                         return;
                     }
                     if (songSyncLyrics?.Count < 1)
@@ -243,6 +242,12 @@ public class LyricsService : ILyricsService
     #region Manage Sync and timer
     public void StartLyricIndexUpdateTimer()
     {
+        if (pState != MediaPlayerState.Playing)
+        {
+            StopLyricIndexUpdateTimer();
+            return;
+        }
+
         StopLyricIndexUpdateTimer();
         var sampleTime = 1000;
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
@@ -628,22 +633,23 @@ lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExt
 #elif ANDROID
         //string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
         lrcFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Dimmer" , songFileNameWithoutExtension+fileExtension);
-#endif
-        if (!Directory.Exists(lrcFilePath))
-        {
-            Directory.CreateDirectory(lrcFilePath);
-        }
-
+#endif       
         if (File.Exists(lrcFilePath))
         {
             File.Delete(lrcFilePath);
         }
-        byte[] byteArr = Encoding.UTF8.GetBytes(Lyrics);
+
+        File.WriteAllText(lrcFilePath, Lyrics);
+        return true; 
+
+        byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
         using MemoryStream stream = new MemoryStream(byteArr);
-
-        await FileSaver.SaveAsync(lrcFilePath, songFileNameWithoutExtension+fileExtension, stream);
-        //File.WriteAllText(lrcFilePath, Lyrics);
-
+        var result= await FileSaver.SaveAsync( songFileNameWithoutExtension+fileExtension, stream);
+        result.EnsureSuccess();
+        if (!result.IsSuccessful)
+        {
+            return false;
+        }
         return true;
     }
 }

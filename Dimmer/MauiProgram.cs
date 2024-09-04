@@ -8,11 +8,6 @@ using Microsoft.Maui.LifecycleEvents;
 using PanCardView;
 
 #elif WINDOWS
-using Dimmer_MAUI.DataAccess.IServices;
-using Dimmer_MAUI.DataAccess.Services;
-using Dimmer_MAUI.Platforms.Windows;
-using Dimmer_MAUI.Utilities.IServices;
-using Dimmer_MAUI.Utilities.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
@@ -62,7 +57,7 @@ public static class MauiProgram
                     if (window.Title == "MP")
                     {
                         if (winuiAppWindow.Presenter is OverlappedPresenter p)
-                        {                            
+                        {
                             p.IsResizable = false;
                             p.IsAlwaysOnTop = true;
                             p.SetBorderAndTitleBar(false, false); // Remove title bar and border
@@ -70,7 +65,7 @@ public static class MauiProgram
                     }
                     else
                     {
-                        
+
                         // Customizations for the main window, if needed
                     }
                 });
@@ -87,7 +82,7 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddSingleton(FolderPicker.Default);
-        builder.Services.AddSingleton(FilePicker.Default);
+        //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddSingleton<NowPlayingSongPageBtmSheet>();
@@ -113,12 +108,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<NowPlayingD>();
         builder.Services.AddSingleton<PlaylistsPageD>();
         builder.Services.AddSingleton<ArtistsPageD>();
+        builder.Services.AddSingleton<FullStatsD>();
+        builder.Services.AddSingleton<SingleSongStatsPageD>();
+
 
         /* Registering the Mobile Views */
         builder.Services.AddSingleton<HomePageM>();
         builder.Services.AddSingleton<SingleSongShell>();
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
+        builder.Services.AddSingleton<FullStatsPageM>();
+        
 
         return builder.Build();
     }

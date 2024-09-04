@@ -37,6 +37,7 @@ public partial class HomePageM : UraniumContentPage
                 {
                     SearchSongSB.Unfocus();
                     await searchSongTextField!.HideKeyboardAsync();
+                    
                 }
             }
         }
@@ -68,10 +69,12 @@ public partial class HomePageM : UraniumContentPage
             if (searchText.Length >= 2)
             {
                 HomePageVM.SearchSongCommand.Execute(searchText);
+                HomePageVM.TemporarilyPickedSong = HomePageVM.PickedSong;
             }
             else
             {
                 HomePageVM.SearchSongCommand.Execute(string.Empty);
+                SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
             }
         }        
     }
@@ -99,6 +102,11 @@ public partial class HomePageM : UraniumContentPage
         var view = (FlexLayout)sender;
         var song = view.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
+    }
+
+    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {        
+
     }
 }
 

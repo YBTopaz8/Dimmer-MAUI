@@ -28,11 +28,19 @@
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
             </ShellContent.Icon>
         </ShellContent>
+    <ShellContent Title="Stats" 
+          ContentTemplate="{DataTemplate viewsM:FullStatsPageM}"
+          Route="FullStatsPageM">
+        <ShellContent.Icon>
+            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Show_chart}"/>
+        </ShellContent.Icon>
+    </ShellContent>
 
     <ShellContent Title="SongShell" IsVisible="False"
               ContentTemplate="{DataTemplate viewsM:SingleSongShell}"
               Route="SingleSongShell">
         
+
     </ShellContent>
 
 </Shell>

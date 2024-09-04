@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"           
+            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            x:DataType="vm:HomePageVM" 
+            x:Name="myPage" 
+            Color="Transparent"
+             x:Class="Dimmer_MAUI.CustomPopUpViews.SleepTimerSelectionPopup">
+    <Border WidthRequest="300" BackgroundColor="Black"
+            HeightRequest="150" 
+            Stroke="Transparent"
+            StrokeShape="RoundRectangle 10">
+        <VerticalStackLayout Margin="15">
+            <Label Text="Sleep Timer"/>
+            <Label Text="{Binding Source={x:Reference sleepSlider}, Path=Value, StringFormat='{0:n0} Mins'}" />
+            <Slider Maximum="100" Minimum="1" x:Name="sleepSlider"/>
+            <Button Text="Start" Clicked="Button_Clicked"/>
+        </VerticalStackLayout>
+    </Border>
+</mct:Popup>

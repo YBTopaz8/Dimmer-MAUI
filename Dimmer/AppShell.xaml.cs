@@ -12,6 +12,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(NowPlayingD), typeof(NowPlayingD));
         Routing.RegisterRoute(nameof(PlaylistsPageD), typeof(PlaylistsPageD));
         Routing.RegisterRoute(nameof(ArtistsPageD), typeof (ArtistsPageD));
+        Routing.RegisterRoute(nameof(FullStatsD), typeof (FullStatsD));
+        Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof (SingleSongStatsPageD));
     }
 
 
@@ -25,4 +27,12 @@ public partial class AppShell : Shell
     }
 
     
+}
+
+public enum PageEnum
+{
+    MainPage,
+    NowPlayingPage,
+    PlaylistsPage,
+    FullStatsPage
 }

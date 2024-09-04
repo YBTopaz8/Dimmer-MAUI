@@ -31,15 +31,15 @@
 
         </HorizontalStackLayout>
 
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Spacing="5">
             <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" 
                            x:Name="ToggleManualSearchViewChkBox" />
         
             <VerticalStackLayout Spacing="10" IsVisible="{Binding IsChecked, Source={x:Reference ToggleManualSearchViewChkBox}}" 
                                  >
-                <material:TextField Text="{Binding SongTitle}" Title="Song Title"/>
-                <material:TextField Text="{Binding ArtistName}" Title="Artist Name"/>
-                <material:TextField Text="{Binding AlbumName}" Title="Album Name"/>
+                <material:TextField Text="{Binding TemporarilyPickedSong.Title}" Title="Song Title"/>
+                <material:TextField Text="{Binding TemporarilyPickedSong.ArtistName}" Title="Artist Name"/>
+                <material:TextField Text="{Binding TemporarilyPickedSong.AlbumName}" Title="Album Name"/>
                 <Button Text="Manual Search" Command="{Binding UseManualLyricsSearchCommand}"/>
 
             </VerticalStackLayout>
@@ -85,7 +85,7 @@
                                         <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
 
                                         <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
-                                        <Button Text="Save" HorizontalOptions="Center" />
+                                        <Button Text="Save" HorizontalOptions="Center" Clicked="Button_Clicked"/>
 
                                     </VerticalStackLayout>
                                 </uranium:ExpanderView.Header>

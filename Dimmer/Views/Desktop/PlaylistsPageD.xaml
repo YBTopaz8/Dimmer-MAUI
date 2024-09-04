@@ -26,6 +26,7 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
+
     
     <toolkit:DockLayout >
 
@@ -84,7 +85,7 @@
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Border.GestureRecognizers>
-                        <!--<Label Text="{Binding Title}" FontSize="18"/>-->
+
                         <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" FontSize="18"/>
@@ -104,6 +105,6 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        
+
     </toolkit:DockLayout>
 </ContentPage>

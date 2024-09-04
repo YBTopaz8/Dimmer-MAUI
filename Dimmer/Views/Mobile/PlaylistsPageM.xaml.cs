@@ -31,7 +31,6 @@ public partial class PlaylistsPageM : ContentPage
     {
         await NowPlayingBtmSheet.ShowAsync();
         DeviceDisplay.Current.KeepScreenOn = true;
-        //await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
     }
 
 }

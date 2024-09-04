@@ -61,9 +61,7 @@ public partial class HomePageVM
         AllArtistslbumSongs?.Clear();
         
         AllArtistslbumSongs = PlayBackUtilsService.GetallArtistsSongsById( albumId,SelectedArtistId);
-    }
-
-    
+    }    
     public async Task SetSongCoverAsAlbumCover(SongsModelView ss)
     {
         var specificAlbum = AllArtistsAlbums.FirstOrDefault(x => x.Id == SelectedArtistAlbumId)!;
@@ -73,5 +71,29 @@ public partial class HomePageVM
 
 
         AllArtistsAlbums = PlayBackUtilsService.GetAllArtistsAlbums(SelectedArtistId).OrderBy(x => x.Name).ToObservableCollection();
+    }
+
+    [RelayCommand]
+    void SearchArtist(string aName)
+    {
+        if (string.IsNullOrEmpty(aName))
+        {
+            AllArtists = PlayBackUtilsService.GetAllArtists();
+            return;
+        }
+        AllArtists = PlayBackUtilsService.GetAllArtists()
+    .Where(a => a.Name.Contains(aName, StringComparison.OrdinalIgnoreCase))
+    .OrderBy(x => x.Name)
+    .ToObservableCollection();
+
+        if (AllArtists.Count > 0)
+        {
+            SelectedArtistAlbumId = AllArtists.FirstOrDefault().Id;
+            GetAllArtistsAlbum(SelectedArtistAlbumId);
+        }
+        else
+        {
+            AllArtistslbumSongs?.Clear();
+        }
     }
 }

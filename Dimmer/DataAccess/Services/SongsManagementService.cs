@@ -94,13 +94,23 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
                 if (existingSong != null)
                 {
+                    Debug.WriteLine("found song");
                     existingSong.IsFavorite = songsModelView.IsFavorite;
                     existingSong.IsPlaying = false;
+                    existingSong.CoverImagePath = songsModelView.CoverImagePath;
                     existingSong.LastPlayed = songsModelView.LastPlayed;
-                    existingSong.DatesPlayed.Add(songsModelView.DatesPlayed.Last());
+                    foreach (var date in songsModelView.DatesPlayed)
+                    {
+                        if (!existingSong.DatesPlayed.Contains(date))
+                        {
+                            existingSong.DatesPlayed.Add(date);
+                        }
+                    }
+                    //existingSong.DatesPlayed.Add(songsModelView.DatesPlayed.Last());
                 }
                 else
                 {
+                    Debug.WriteLine("didn't found song");
                     var newSong = new SongsModel(songsModelView)
                     {
                         IsPlaying = false

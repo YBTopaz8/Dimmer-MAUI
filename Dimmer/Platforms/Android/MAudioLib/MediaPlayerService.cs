@@ -335,6 +335,7 @@ public class MediaPlayerService : Service,
             Console.WriteLine("Preparing");
             if (OperatingSystem.IsAndroidVersionAtLeast(21))
             {
+                mediaPlayer.Reset();
                 MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
 
                 AndroidNet.Uri uri;
@@ -346,11 +347,17 @@ public class MediaPlayerService : Service,
                     uri = AndroidNet.Uri.Parse(FileSystem.Current.CacheDirectory + "temp.wav");
                 }
                 else
-                {   
+                {
+                    if (!File.Exists(mediaPlay.URL))
+                    {
+                        Console.WriteLine($"File not found at path: {mediaPlay.URL}");
+                        return; // Exit if the file does not exist
+                    }
+                    // Directly use the file path to create a URI for local files
                     uri = AndroidNet.Uri.Parse(mediaPlay.URL);
+
                 }
 
-                mediaPlayer.Reset();
                 mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
                     .SetContentType(AudioContentType.Music)
                     .SetUsage(AudioUsageKind.Media).Build());
@@ -749,14 +756,14 @@ public class MediaPlayerService : Service,
         switch (focusChange)
         {
             case AudioFocus.Gain:
-                if (mediaPlayer == null)
-                    InitializePlayer();
+                //if (mediaPlayer == null)
+                //    InitializePlayer();
 
-                if (!mediaPlayer.IsPlaying)
-                {
-                    mediaPlayer.Start();
-                }
-                mediaPlayer.SetVolume(1.0f, 1.0f);
+                //if (!mediaPlayer.IsPlaying)
+                //{
+                //    mediaPlayer.Start();
+                //}
+                //mediaPlayer.SetVolume(1.0f, 1.0f);
                 break;
             case AudioFocus.Loss:
                 //We have lost focus stop!

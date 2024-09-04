@@ -15,10 +15,11 @@
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <Grid VerticalOptions="Center" x:Name="SyncedLyricsSL" >
+    <Grid VerticalOptions="Center" x:Name="SyncedLyricsSL" 
+          BackgroundColor="{OnPlatform Android=#171919}">
         
-        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged"
-            HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}}"
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+            HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
             SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
             Grid.Column="0">
             
@@ -52,11 +53,10 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ScrollView x:Name="UnSyncLyrView" Grid.Column="0"
-            IsVisible="False">
-            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}}" 
-            HorizontalTextAlignment="Center" Padding="10"
-            LineBreakMode="WordWrap"/>
+        <ScrollView>
+            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}" 
+                HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" Grid.Column="0"
+                LineBreakMode="WordWrap"/>
 
         </ScrollView>
 

@@ -47,7 +47,7 @@
             <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
-            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" 
+            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
                             VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"
                             toolkit:DockLayout.DockPosition="Top" 
                             x:Name="SongsColView">
@@ -125,6 +125,7 @@
     </ImageButton>
         
     </AbsoluteLayout>
+    
     <uranium:UraniumContentPage.Attachments>
 
         <material:BackdropView Title="Search" IconImageSource="search_d" x:Name="SearchBackDrop">

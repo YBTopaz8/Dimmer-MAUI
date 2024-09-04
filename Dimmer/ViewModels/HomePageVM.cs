@@ -42,7 +42,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentRepeatMode;
     IFolderPicker folderPicker { get; }
-    IFilePicker filePicker { get; }
+    IFileSaver FileSaver { get; }
+    
     IPlaybackUtilsService PlayBackUtilsService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
@@ -52,13 +53,13 @@ public partial class HomePageVM : ObservableObject
     string unSyncedLyrics;
     [ObservableProperty]
     string localFilePath;
-    public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFilePicker filePickerService,
+    public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService)
                       
     
     {
         this.folderPicker = folderPickerService;
-        filePicker = filePickerService;
+        FileSaver = fileSaver;
         PlayBackUtilsService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
@@ -91,9 +92,6 @@ public partial class HomePageVM : ObservableObject
         AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
     }
-    protected int sss;
-    [ObservableProperty]
-    byte[] allPictureDatas;
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
     {
@@ -179,10 +177,17 @@ public partial class HomePageVM : ObservableObject
         IsLoadingSongs = false;
     }
 
+    public PageEnum CurrentPage;
     #region Playback Control Region
     [RelayCommand]
+    //void PlaySong(SongsModelView? SelectedSong = null)
     void PlaySong(SongsModelView? SelectedSong = null)
     {
+        if (CurrentPage == PageEnum.FullStatsPage)
+        {
+            ShowGeneralTopTenSongs();
+            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+        }
         if (SelectedSong is not null)
         {
             if (CurrentQueue == 1)
@@ -197,6 +202,8 @@ public partial class HomePageVM : ObservableObject
             PlayBackUtilsService.PlaySongAsync(null, CurrentQueue);
         }
         AllSyncLyrics = Array.Empty<Content>();
+
+
     }
 
     [RelayCommand]
@@ -305,6 +312,7 @@ public partial class HomePageVM : ObservableObject
     void SearchSong(string songText)
     {
         PlayBackUtilsService.SearchSong(songText);
+        TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
     }
 
 
@@ -442,10 +450,11 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackUtilsService.NowPlayingSongs.Subscribe(songs =>
         {
+            TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
             DisplayedSongs = songs.ToObservableCollection();
             TotalNumberOfSongs = songs.Count;
-            ReloadSizeAndDuration();
+            //ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
     }
@@ -540,6 +549,11 @@ public partial class HomePageVM : ObservableObject
             AllSyncLyrics = [];
             CurrentViewIndex = 0;
         }
+        else
+        {
+            await Shell.Current.DisplayAlert("Error !", "Failed to Save Lyrics!", "OK");
+            return;
+        }
         LyricsManagerService.InitializeLyrics(lyrics);
         if (DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id) is not null)
         {
@@ -560,7 +574,7 @@ public partial class HomePageVM : ObservableObject
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            PlaySong();
+//            PlaySong();
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
@@ -766,5 +780,33 @@ public partial class HomePageVM : ObservableObject
 #endif
     }
 
+
+    [RelayCommand]
+    async Task ShowSleepTimerPopup()
+    {
+        await Shell.Current.ShowPopupAsync(new SleepTimerSelectionPopup(this));
+    }
+
+    private System.Timers.Timer sleepTimer;
+    [RelayCommand]
+    void StartSleepTimer(double value)
+    {
+        var valueInMinutes = value * 3 * 1000;
+        sleepTimer = new System.Timers.Timer(valueInMinutes);
+        sleepTimer.Elapsed += SleepTimer_Elapsed;
+        sleepTimer.Start();
+    }
+
+    private async void SleepTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (IsPlaying)
+        {
+            await PauseResumeSong();
+        }
+        
+        sleepTimer.Stop();
+    }
+
+   
 }
 

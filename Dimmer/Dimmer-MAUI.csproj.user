@@ -4,7 +4,9 @@
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
     <ActiveDebugFramework>net8.0-windows10.0.19041.0</ActiveDebugFramework>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
+
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
+
     <DefaultDevice>pixel_7_pro_-_api_34</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
@@ -27,8 +29,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android34.0|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android34.0|AnyCPU'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <ItemGroup>
     <MauiXaml Update="AppShellMobile.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
@@ -61,6 +69,9 @@
     <MauiXaml Update="Views\Desktop\ArtistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\Desktop\FullStatsD.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Desktop\HomeD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -70,13 +81,17 @@
     <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\Desktop\StatisticsPageD.xaml">
+    <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
+
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\CustomViewsM\MediaPlaybackControlsViewM.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\FullStatsPageM.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\HomePageM.xaml">

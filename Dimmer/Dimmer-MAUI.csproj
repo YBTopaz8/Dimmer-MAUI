@@ -145,12 +145,14 @@
 		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
-		<PackageReference Include="Xceed.Product.Maui.Toolkit.Full" Version="1.7.24157.1331" />
 		<PackageReference Include="z440.atl.core" Version="6.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <MauiXaml Update="AppShellMobile.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
@@ -183,6 +185,9 @@
 	  <MauiXaml Update="Views\Desktop\ArtistsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Desktop\FullStatsD.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\HomeD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -192,13 +197,16 @@
 	  <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Desktop\StatisticsPageD.xaml">
+	  <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\CustomViewsM\MediaPlaybackControlsViewM.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\FullStatsPageM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">

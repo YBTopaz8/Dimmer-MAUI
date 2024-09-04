@@ -5,15 +5,18 @@ public partial class MiniControlNotificationView : ContentPage
 {
    
     private Timer _closeTimer;
-    public MiniControlNotificationView()
-	{
+    public MiniControlNotificationView(string title, string artistName, string imagePath)
+    {
 		InitializeComponent();
-        
+        //BindingContext = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 #if WINDOWS
         _closeTimer = new Timer(5000);
         _closeTimer.Elapsed += _closeTimer_Elapsed;
         _closeTimer.Start();
 #endif
+        songTitle.Text = title;
+        ArtistName.Text = artistName;
+        ImagePathh.Source = imagePath;
     }
 
     private void ImageButton_Clicked(object sender, EventArgs e)
@@ -27,9 +30,11 @@ public partial class MiniControlNotificationView : ContentPage
 
     private void CloseWindow()
     {
+      
         MainThread.BeginInvokeOnMainThread(() =>
         {
             var window = Application.Current?.Windows.FirstOrDefault(win => win.Page is MiniControlNotificationView);
+
             if (window != null)
             {
                 Application.Current?.CloseWindow(window);
@@ -54,4 +59,12 @@ public partial class MiniControlNotificationView : ContentPage
     }
 
 #endif
+
+    public void Update(string title, string artistName, string imagePath)
+    {
+        songTitle.Text = title;
+        ArtistName.Text = artistName;
+        ImagePathh.Source = imagePath;
+        ResetTimer();
+    }
 }

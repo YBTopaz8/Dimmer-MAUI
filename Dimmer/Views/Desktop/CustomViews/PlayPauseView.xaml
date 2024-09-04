@@ -3,13 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.PlayPauseView"         
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
          xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
          xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
          x:DataType="vm:HomePageVM">
     <ContentView.Resources>
         <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
     </ContentView.Resources>
-    <StackLayout VerticalOptions="Center">
+    <StackLayout VerticalOptions="Center" x:Name="PpView">
+        
         <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
          Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" >
             
