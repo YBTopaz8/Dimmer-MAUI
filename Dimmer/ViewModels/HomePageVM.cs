@@ -786,27 +786,41 @@ public partial class HomePageVM : ObservableObject
     {
         await Shell.Current.ShowPopupAsync(new SleepTimerSelectionPopup(this));
     }
+    private CancellationTokenSource? _sleepTimerCancellationTokenSource;
 
-    private System.Timers.Timer sleepTimer;
     [RelayCommand]
-    void StartSleepTimer(double value)
+    async Task StartSleepTimer(double value)
     {
-        var valueInMinutes = value * 3 * 1000;
-        sleepTimer = new System.Timers.Timer(valueInMinutes);
-        sleepTimer.Elapsed += SleepTimer_Elapsed;
-        sleepTimer.Start();
-    }
+        // Convert value to milliseconds (e.g., value in minutes * 60 * 1000)
+        var valueInMilliseconds = value * 60 * 1000;
 
-    private async void SleepTimer_Elapsed(object? sender, ElapsedEventArgs e)
-    {
-        if (IsPlaying)
+        // Cancel any existing timer
+        _sleepTimerCancellationTokenSource?.Cancel();
+
+        // Create a new CancellationTokenSource
+        _sleepTimerCancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = _sleepTimerCancellationTokenSource.Token;
+
+        try
         {
-            await PauseResumeSong();
-        }
-        
-        sleepTimer.Stop();
-    }
+            string min = value < 2 ? "Minute" : "Minutes";
+            var toast = Toast.Make($"Started ! Song will pause after {value}{min}}}");
+            await toast.Show(cts.Token);
+            
+            await Task.Delay((int)valueInMilliseconds, cancellationToken);
 
+            // If the delay completed without cancellation, pause the song
+            if (!cancellationToken.IsCancellationRequested && IsPlaying)
+            {
+                await PauseResumeSong();
+            }
+        }
+        catch (TaskCanceledException ex)
+        {
+            // Handle the cancellation (if needed but i'm not sure I will ngl but still)
+            Debug.WriteLine(ex.Message);
+        }
+    }
    
 }
 

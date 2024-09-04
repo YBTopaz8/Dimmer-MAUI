@@ -11,6 +11,7 @@
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
              x:Name="myPage">
+             <!--xmlns:s="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"-->
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
@@ -109,6 +110,17 @@
                 </VerticalStackLayout>
                 </FlexLayout>
             </Border>
+            <!--<VerticalStackLayout>
+                <s:SegmentedControl x:Name="SegControl" SelectedTextColor="DarkSlateBlue"
+                                    >
+                    <s:SegmentedControl.Children>
+                        <s:SegmentedControlOption Text="Daily"/>
+                        <s:SegmentedControlOption Text="Weekly"/>
+                        <s:SegmentedControlOption Text="Monthly"/>
+                    </s:SegmentedControl.Children>
+                </s:SegmentedControl>
+            </VerticalStackLayout>-->
+            
         </VerticalStackLayout>
     </toolkit:DockLayout>
 </ContentPage>

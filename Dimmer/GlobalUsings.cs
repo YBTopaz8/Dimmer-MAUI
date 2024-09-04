@@ -23,13 +23,25 @@ global using Dimmer_MAUI.MAudioLib;
 global using CommunityToolkit.Maui.Core.Platform;
 global using PanCardView;
 global using The49.Maui.BottomSheet;
+global using Plugin.Maui.SegmentedControl;
+
+global using Microsoft.Maui.LifecycleEvents;
 
 #if WINDOWS
 global using Dimmer_MAUI.Platforms.Windows;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.UI;
+global using Microsoft.UI.Windowing;
+global using WinRT.Interop;
 #endif
+
 #if ANDROID
 global using Dimmer_MAUI.Platforms.Android;
+global using Dimmer_MAUI.Platforms.Android.MAudioLib;
+
 #endif
+
+
 global using System.Globalization;
 global using System.Reactive.Linq;
 global using System.Reactive.Subjects;

@@ -696,7 +696,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
     Stack<int> shuffleHistory = new();
-    bool IsTrueShuffleEnabled;
+    bool IsTrueShuffleEnabled = false;
     public async Task<bool> PlayNextSongAsync()
     {
         ObservableCollection<SongsModelView>? currentList = null;

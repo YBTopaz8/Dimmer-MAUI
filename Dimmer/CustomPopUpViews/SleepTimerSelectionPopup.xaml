@@ -11,14 +11,17 @@
             Color="Transparent"
              x:Class="Dimmer_MAUI.CustomPopUpViews.SleepTimerSelectionPopup">
     <Border WidthRequest="300" BackgroundColor="Black"
-            HeightRequest="150" 
+            HeightRequest="160" 
             Stroke="Transparent"
             StrokeShape="RoundRectangle 10">
-        <VerticalStackLayout Margin="15">
-            <Label Text="Sleep Timer"/>
+        <VerticalStackLayout Margin="15" Spacing="5">
+            <Label Text="Sleep Timer" HorizontalTextAlignment="Center"
+                   FontAttributes="Bold" FontSize="20"/>
             <Label Text="{Binding Source={x:Reference sleepSlider}, Path=Value, StringFormat='{0:n0} Mins'}" />
             <Slider Maximum="100" Minimum="1" x:Name="sleepSlider"/>
-            <Button Text="Start" Clicked="Button_Clicked"/>
+            <Button Text="Start" Clicked="Button_Clicked"
+                    HorizontalOptions="Center"
+                    WidthRequest="100"/>
         </VerticalStackLayout>
     </Border>
 </mct:Popup>
