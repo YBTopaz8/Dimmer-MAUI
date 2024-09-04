@@ -39,9 +39,7 @@
 
         <Border StrokeShape="RoundRectangle 18" Margin="0,20"
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
-            <Border.GestureRecognizers>
-                <SwipeGestureRecognizer Swiped="SwipedToDismiss_Swiped" x:Name="SwipedToDismiss" Direction="Down"/>
-            </Border.GestureRecognizers>
+            
             <Grid>
                 <cards:CoverFlowView ItemsSource="{Binding DisplayedSongs}" ItemSwiped="CoverFlowView_ItemSwiped" x:Name="CoverFlowV"
                                     SelectedItem="{Binding TemporarilyPickedSong}" IsVerticalSwipeEnabled="False">

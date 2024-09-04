@@ -1,22 +1,4 @@
-﻿#if ANDROID
-using Dimmer_MAUI.DataAccess.IServices;
-using Dimmer_MAUI.DataAccess.Services;
-using Dimmer_MAUI.Platforms.Android.MAudioLib;
-using Dimmer_MAUI.Utilities.IServices;
-using Dimmer_MAUI.Utilities.Services;
-using Microsoft.Maui.LifecycleEvents;
-using PanCardView;
-
-#elif WINDOWS
-using Microsoft.Extensions.Logging;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.UI;
-using Microsoft.UI.Windowing;
-using WinRT.Interop;
-#endif
-
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -31,6 +13,7 @@ public static class MauiProgram
             .UseBottomSheet()
             .ConfigureContextMenuContainer()
             .UseCardsView()
+            //.UseSegmentedControl()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

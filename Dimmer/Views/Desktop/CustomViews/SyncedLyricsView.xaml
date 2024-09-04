@@ -7,7 +7,8 @@
             x:DataType="vm:HomePageVM"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView"
-             x:Name="myView">
+             x:Name="myView"
+             >
 
     <ContentView.Resources>
         <ResourceDictionary>
@@ -15,14 +16,15 @@
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <Grid VerticalOptions="Center" x:Name="SyncedLyricsSL" 
-          BackgroundColor="{OnPlatform Android=#171919}">
-        
+    <Grid x:Name="SyncedLyricsSL" 
+          BackgroundColor="{OnPlatform Android=#171919}"
+          RowDefinitions="*"
+          ColumnDefinitions="*">
+
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
-            HorizontalOptions="Fill" IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
+            IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
             SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
             Grid.Column="0">
-            
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Border Stroke="Transparent" Margin="5,0" >
@@ -53,9 +55,9 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ScrollView>
+        <ScrollView Grid.Column="0">
             <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}" 
-                HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" Grid.Column="0"
+                HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" 
                 LineBreakMode="WordWrap"/>
 
         </ScrollView>
