@@ -1,3 +1,5 @@
+
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class ArtistsPageD : ContentPage
@@ -7,6 +9,7 @@ public partial class ArtistsPageD : ContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
+        HomePageVM.GetAllArtistsCommand.Execute(null);
     }
 
     public HomePageVM HomePageVM { get; }
@@ -31,7 +34,6 @@ public partial class ArtistsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.GetAllArtistsCommand.Execute(null);
     }
 
     private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
@@ -39,5 +41,12 @@ public partial class ArtistsPageD : ContentPage
         var view = (MenuFlyoutItem)sender;
         SongsModelView song = view.BindingContext as SongsModelView;
         HomePageVM.SetSongCoverAsAlbumCover(song);
+    }
+
+    private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        
+        HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
+        
     }
 }

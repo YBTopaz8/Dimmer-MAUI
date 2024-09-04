@@ -1,7 +1,6 @@
 ﻿global using CommunityToolkit.Maui;
 global using CommunityToolkit.Maui.Storage;
 
-
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
@@ -25,7 +24,6 @@ global using CommunityToolkit.Maui.Core.Platform;
 global using PanCardView;
 global using The49.Maui.BottomSheet;
 
-global using Plugin.Maui.SegmentedControl;
 
 #if WINDOWS
 global using Dimmer_MAUI.Platforms.Windows;

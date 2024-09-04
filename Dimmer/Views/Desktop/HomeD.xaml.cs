@@ -19,7 +19,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: true);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
         }
         //This crashes the app :(
     }
@@ -59,7 +59,7 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
-            SongsColView.ScrollTo(HomePageVM.PickedSong, position: ScrollToPosition.Center, animate: true);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {

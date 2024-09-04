@@ -6,7 +6,7 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"             
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
@@ -68,7 +68,8 @@
 
             <HorizontalStackLayout Spacing="10">
                 <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
-                <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                    
+                    <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
                     </ImageButton.Source>

@@ -9,6 +9,7 @@
     FlyoutBackgroundColor="Blue"
     Shell.NavBarIsVisible="False"
     Shell.TabBarBackgroundColor="#1f1f1f"
+    
     >
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem">
         <Tab Title="Home" Shell.TabBarIsVisible="True">
@@ -28,6 +29,10 @@
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
                 Route="PlaylistsD"/>
             
+        </Tab>
+        <Tab Title="Stats">
+            <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
+                Route="StatsD"/>
         </Tab>
 
         <!--<Tab>

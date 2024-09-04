@@ -176,7 +176,7 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton >
+                    <ImageButton Command="{Binding ShowSleepTimerPopupCommand}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Nights_stay}"/>
                         </ImageButton.Source>

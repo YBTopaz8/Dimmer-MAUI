@@ -249,13 +249,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     .Select(artist => artist.Trim())
                     .ToList();
 
-                
-
-                foreach (var oName in otherArtists)
+                if (otherArtists != null)
                 {
-                    if (!artistNames!.Contains(oName))
+                    foreach (var oName in otherArtists)
                     {
-                        artistNames.Add(oName);
+                        if (!artistNames!.Contains(oName))
+                        {
+                            artistNames.Add(oName);
+                        }
                     }
                 }
 
@@ -305,21 +306,21 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
                 foreach (var artistName in artistNames)
                 {
+                    // Check if the artist already exists in the dictionary or database
                     if (!artistDict.TryGetValue(artistName, out var artist))
                     {
-                        artist = new ArtistModelView
+                        artist = existingArtists.FirstOrDefault(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
+                        if (artist == null)
                         {
-                            Id = ObjectId.GenerateNewId(),
-                            Name = artistName,
-                            ImagePath = null
-                        };
-                        artistDict[artistName] = artist;
-
-                        // Check if the artist already exists in the database
-                        if (!existingArtists.Any(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase)))
-                        {
+                            artist = new ArtistModelView
+                            {
+                                Id = ObjectId.GenerateNewId(),
+                                Name = artistName,
+                                ImagePath = null
+                            };
                             newArtists.Add(artist);
                         }
+                        artistDict[artistName] = artist;
                     }
 
                     // Create links for each artist
@@ -475,21 +476,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
         return coverImage;
-
-
-        //if (coverImage is null || coverImage.Length < 1) TODO : Do code that will scan the image from the folder found in song if it's an album folder 
-        //{
-        //    string directoryPath = Path.GetDirectoryName(filePath);
-        //    string[] imageFiles = Directory.GetFiles(directoryPath, "*.jpg", SearchOption.TopDirectoryOnly)
-        //        .Concat(Directory.GetFiles(directoryPath, "*.jpeg", SearchOption.TopDirectoryOnly))
-        //        .Concat(Directory.GetFiles(directoryPath, "*.png", SearchOption.TopDirectoryOnly))
-        //        .ToArray();
-
-        //    if (imageFiles.Length > 0)
-        //    {
-        //        coverImage = File.ReadAllBytes(imageFiles[0]);
-        //    }
-        //}
     }
 
 
@@ -933,23 +919,29 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     List<SongsModelView> SearchedSongsList;
     public void SearchSong(string songTitleOrArtistName)
     {
-        if (string.IsNullOrWhiteSpace(songTitleOrArtistName))
-        {
-            ResetSearch();
-            return;
+        try
+        {        
+            if (string.IsNullOrWhiteSpace(songTitleOrArtistName))
+            {
+                ResetSearch();
+                return;
+            }
+            string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName).ToLower();
+            SearchedSongsList?.Clear();
+            SearchedSongsList = SongsMgtService.AllSongs
+            .Where(s => NormalizeAndCache(s.Title).ToLower().Contains(normalizedSearchTerm)
+                        || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).Contains(normalizedSearchTerm, StringComparison.CurrentCultureIgnoreCase))
+                        || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).Contains(normalizedSearchTerm, StringComparison.InvariantCultureIgnoreCase)))
+            .ToList();
+
+            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value.First(x => x.Id == ObservableCurrentlyPlayingSong.Id);
+            _nowPlayingSubject.OnNext(SearchedSongsList.ToObservableCollection());
+
         }
-
-        string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName).ToLower();
-
-        SearchedSongsList?.Clear();
-        SearchedSongsList = SongsMgtService.AllSongs
-        .Where(s => NormalizeAndCache(s.Title).ToLower().Contains(normalizedSearchTerm) ||
-                    (s.ArtistName != null && NormalizeAndCache(s.ArtistName).Contains(normalizedSearchTerm, StringComparison.CurrentCultureIgnoreCase)))
-        .ToList();
-
-        _nowPlayingSubject.OnNext(SearchedSongsList.ToObservableCollection());
-        GetReadableFileSize(SearchedSongsList);
-        GetReadableDuration(SearchedSongsList);
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private string NormalizeAndCache(string text)
@@ -980,12 +972,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
     void ResetSearch()
-    {
-        Debug.WriteLine("Resetting");
+    {        
         SearchedSongsList?.Clear();
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
-        GetReadableFileSize();
-        GetReadableDuration();
+        
     }
 
     #endregion

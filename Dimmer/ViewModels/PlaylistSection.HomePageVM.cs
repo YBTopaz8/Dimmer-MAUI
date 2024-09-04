@@ -1,5 +1,6 @@
 ﻿
 
+
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
@@ -103,4 +104,7 @@ public partial class HomePageVM
         _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames));
         
     }
+
+   
+
 }

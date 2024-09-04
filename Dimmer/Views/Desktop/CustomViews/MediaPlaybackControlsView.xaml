@@ -89,6 +89,13 @@
                     <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
                        Opacity="0.6"/>
                 </HorizontalStackLayout>
+
+                <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
+                             HorizontalOptions="End">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Nights_stay}"/>
+                    </ImageButton.Source> 
+                </ImageButton>
             </VerticalStackLayout>
         </Grid>
     </VerticalStackLayout>

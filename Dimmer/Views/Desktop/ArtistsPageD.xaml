@@ -42,6 +42,8 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCV"/>
 
+        <SearchBar toolkit:DockLayout.DockPosition="Top" HorizontalOptions="End" x:Name="SearchArtistBar"
+                   WidthRequest="200" Placeholder="Type To Search" TextChanged="SearchBar_TextChanged"/>
         <CollectionView  HeightRequest="170" toolkit:DockLayout.DockPosition="Top"
                          ItemsLayout="HorizontalList" 
                          SelectionMode="Single" VerticalOptions="Start"
@@ -83,43 +85,45 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        
-        <ScrollView toolkit:DockLayout.DockPosition="Left"
-                     WidthRequest="200" Margin="10,0">
-            <CollectionView ItemsSource="{Binding AllArtists}" x:Name="DisplayedArtistsCV"
-                    EmptyView="No Artists Existing..." SelectionMode="Single">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:AlbumModelView">
-                        <Border StrokeShape="RoundRectangle 5">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
 
-                                    <VisualState x:Name="PointerOver">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer 
-                            Command="{Binding BindingContext.GetAllArtistsAlbumCommand, Source={x:Reference myPage}}" 
-                            CommandParameter="{Binding Id}"/>
-                            </Border.GestureRecognizers>
-                            <Label Text="{Binding Name}" Padding="5,5" Margin="5,5"/>
+        <CollectionView ItemsSource="{Binding AllArtists}" x:Name="DisplayedArtistsCV"
+                EmptyView="No Artists Existing..." SelectionMode="Single" toolkit:DockLayout.DockPosition="Left"
+                        WidthRequest="200" Margin="10,0">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" 
+                                   ItemSpacing="5"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AlbumModelView">
+                    <Border StrokeShape="RoundRectangle 5">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer 
+                        Command="{Binding BindingContext.GetAllArtistsAlbumCommand, Source={x:Reference myPage}}" 
+                        CommandParameter="{Binding Id}"/>
+                        </Border.GestureRecognizers>
+                        <Label Text="{Binding Name}" Padding="5,5" Margin="5,5"/>
                             
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </ScrollView>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
 
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"

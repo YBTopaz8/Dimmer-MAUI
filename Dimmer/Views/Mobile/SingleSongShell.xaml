@@ -5,7 +5,6 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-             xmlns:controls="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -39,17 +38,6 @@
 
         <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Black"/>
 
-        <controls:SegmentedControl toolkit:DockLayout.DockPosition="Bottom" IsVisible="False"
-                                   SelectedSegment="{Binding CurrentViewIndex}" x:Name="SegControl"
-                                   BackgroundColor="#151C1C" TextColor="White"
-                                   SelectedTextColor="White" TintColor="DarkSlateBlue" >
-            <controls:SegmentedControl.Children>                
-                <controls:SegmentedControlOption Text="View Lyrics" WidthRequest="40"/>
-                <controls:SegmentedControlOption Text="Search Lyrics" WidthRequest="40"/>
-                <controls:SegmentedControlOption Text="Tag Editor" WidthRequest="40"/>
-            </controls:SegmentedControl.Children>
-        </controls:SegmentedControl>
-        
         <cv:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}"/>
         <!--<cv:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
         <cv:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
