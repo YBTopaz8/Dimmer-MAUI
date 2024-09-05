@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿using Microcharts.Maui;
+
+namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -13,7 +15,7 @@ public static class MauiProgram
             .UseBottomSheet()
             .ConfigureContextMenuContainer()
             .UseCardsView()
-            //.UseSegmentedControl()
+            .UseMicrocharts()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -101,6 +103,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
         builder.Services.AddSingleton<FullStatsPageM>();
+        builder.Services.AddSingleton<SingleSongStatsPageM>();
         
 
         return builder.Build();

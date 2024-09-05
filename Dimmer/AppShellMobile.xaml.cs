@@ -11,5 +11,6 @@ public partial class AppShellMobile : Shell
 		Routing.RegisterRoute(nameof(PlaylistsPageM), typeof(PlaylistsPageM));
 		Routing.RegisterRoute(nameof(SinglePlaylistPageM), typeof(SinglePlaylistPageM));
 		Routing.RegisterRoute(nameof(FullStatsPageM), typeof(FullStatsPageM));
+		Routing.RegisterRoute(nameof(SingleSongStatsPageM), typeof(SingleSongStatsPageM));
     }
 }

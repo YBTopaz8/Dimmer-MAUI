@@ -3,10 +3,10 @@ namespace Dimmer_MAUI.Views.CustomViews;
 public partial class SyncedLyricsView : ContentView
 {
     public string UnSyncLyrics { get; set; }
-	public SyncedLyricsView()
-	{
-		InitializeComponent();
-	}
+    public SyncedLyricsView()
+    {
+        InitializeComponent();
+    }
 
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

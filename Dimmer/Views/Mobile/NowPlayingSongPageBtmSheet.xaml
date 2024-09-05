@@ -41,7 +41,8 @@
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
             
             <Grid>
-                <cards:CoverFlowView ItemsSource="{Binding DisplayedSongs}" ItemSwiped="CoverFlowView_ItemSwiped" x:Name="CoverFlowV"
+                
+                <!--<cards:CoverFlowView ItemsSource="{Binding DisplayedSongs}" ItemSwiped="CoverFlowView_ItemSwiped" x:Name="CoverFlowV"
                                     SelectedItem="{Binding TemporarilyPickedSong}" IsVerticalSwipeEnabled="False">
                     <cards:CoverFlowView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongsModelView">
@@ -50,8 +51,8 @@
                             </Border>
                         </DataTemplate>
                     </cards:CoverFlowView.ItemTemplate>
-                </cards:CoverFlowView>
-                <!--<Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"/>-->
+                </cards:CoverFlowView>-->
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"/>
                 <!-- Synced lyics Col View -->
                 <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center"
                        HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>

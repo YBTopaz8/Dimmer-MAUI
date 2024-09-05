@@ -2,8 +2,7 @@
 public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THIS
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        
+    {        
 
         if (targetType == typeof(bool) && (string)parameter == "Sync")
         {
@@ -19,25 +18,19 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
         }
         else if (targetType == typeof(bool) && (string)parameter == "UnSync")
         {
-            var val = value as string;
-            if (!string.IsNullOrEmpty(val))
-            {
-                return true;
-            }
-            else
+            var val = value as SongsModelView;
+            if (val.HasLyrics)
             {
                 return false;
             }
+            return true;
         }
-        //else if (targetType == typeof(string) && (string)parameter == "UnSync")
-        //{
-        //    var val = value as string;
-        //    if (string.IsNullOrEmpty(val))
-        //    {
-        //        return
-        //    }
-        //}
-        return string.Empty;   
+        else if (targetType == typeof(string))
+        {
+            var val = value as SongsModelView;
+            return val.UnSyncLyrics is null ? "No Lyrics Found..." : val.UnSyncLyrics;
+        }
+        return false;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

@@ -11,7 +11,6 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             x:DataType="vm:HomePageVM"
              BackgroundColor="Black"
-             Title="Song View"
              x:Name="myPage">
 
     <ContentPage.Resources>
@@ -44,10 +43,10 @@
                             </VisualStateGroup>
 
                         </VisualStateManager.VisualStateGroups>
-
                         <FlexLayout.GestureRecognizers>
                             <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
                         </FlexLayout.GestureRecognizers>
+                        
                         <HorizontalStackLayout Spacing="5">
 
                             <VerticalStackLayout>

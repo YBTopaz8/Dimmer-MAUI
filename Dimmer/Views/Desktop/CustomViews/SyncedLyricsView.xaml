@@ -16,10 +16,13 @@
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <Grid x:Name="SyncedLyricsSL" 
+    <Grid x:Name="SyncedLyricsSL"
           BackgroundColor="{OnPlatform Android=#171919}"
           RowDefinitions="*"
           ColumnDefinitions="*">
+        <Image Source="{Binding SelectedSongToOpenBtmSheet}"
+               Grid.Column="0"/>
+
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
             IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
@@ -55,8 +58,8 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ScrollView Grid.Column="0">
-            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}" 
+        <ScrollView Grid.Column="0" IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}">
+            <Label Text="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}" 
                 HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" 
                 LineBreakMode="WordWrap"/>
 

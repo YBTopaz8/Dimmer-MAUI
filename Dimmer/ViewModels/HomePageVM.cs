@@ -183,10 +183,15 @@ public partial class HomePageVM : ObservableObject
     //void PlaySong(SongsModelView? SelectedSong = null)
     void PlaySong(SongsModelView? SelectedSong = null)
     {
+        if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
+        {
+            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
+        }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
-            ShowGeneralTopTenSongs();
             PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+
+            ShowGeneralTopTenSongs();
         }
         if (SelectedSong is not null)
         {
@@ -384,6 +389,10 @@ public partial class HomePageVM : ObservableObject
                     {
                         OpenEditableSongsTagsView();
                     }
+                    if (CurrentPage == PageEnum.FullStatsPage)
+                    {
+
+                    }
                     break;
                 case MediaPlayerState.Paused:
                     IsPlaying = false;
@@ -467,6 +476,10 @@ public partial class HomePageVM : ObservableObject
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
+            }
+            else
+            {
+                TemporarilyPickedSong!.UnSyncLyrics = "No Lyrics Found...";
             }
         });
     }
@@ -574,7 +587,7 @@ public partial class HomePageVM : ObservableObject
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-//            PlaySong();
+            PlaySong();
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);

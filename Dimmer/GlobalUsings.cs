@@ -23,7 +23,9 @@ global using Dimmer_MAUI.MAudioLib;
 global using CommunityToolkit.Maui.Core.Platform;
 global using PanCardView;
 global using The49.Maui.BottomSheet;
-global using Plugin.Maui.SegmentedControl;
+
+global using Microcharts;
+global using SkiaSharp;
 
 global using Microsoft.Maui.LifecycleEvents;
 
