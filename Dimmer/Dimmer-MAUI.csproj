@@ -228,6 +228,9 @@
 	  <MauiXaml Update="Views\Mobile\SingleSongShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\SingleSongStatsPageM.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\SongMenuBtmSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

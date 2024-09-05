@@ -9,12 +9,6 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        this.Showing += NowPlayingSongPageBtmSheet_Showing;
-    }
-
-    private void NowPlayingSongPageBtmSheet_Showing(object? sender, EventArgs e)
-    {
-        CoverFlowV.SelectedItem = HomePageVM.TemporarilyPickedSong;
     }
 
     public HomePageVM HomePageVM { get; }

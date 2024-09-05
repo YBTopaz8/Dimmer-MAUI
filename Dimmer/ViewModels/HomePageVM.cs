@@ -183,6 +183,10 @@ public partial class HomePageVM : ObservableObject
     //void PlaySong(SongsModelView? SelectedSong = null)
     void PlaySong(SongsModelView? SelectedSong = null)
     {
+        if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
+        {
+            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
+        }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
@@ -472,6 +476,10 @@ public partial class HomePageVM : ObservableObject
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
+            }
+            else
+            {
+                TemporarilyPickedSong!.UnSyncLyrics = "No Lyrics Found...";
             }
         });
     }

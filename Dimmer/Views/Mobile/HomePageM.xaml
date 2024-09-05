@@ -39,9 +39,7 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-
-    <AbsoluteLayout>       
-
+    <AbsoluteLayout>
         <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
 
             <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>

@@ -15,6 +15,7 @@ public partial class SinglePlaylistPageM : ContentPage
     {
         base.OnAppearing();
         this.Title = HomePageVM.SelectedPlaylistPageTitle;
+        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
     }
 
     protected override void OnDisappearing()
@@ -26,7 +27,6 @@ public partial class SinglePlaylistPageM : ContentPage
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
-
         var view = (FlexLayout)sender;
         var song = view.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);

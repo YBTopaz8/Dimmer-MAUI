@@ -8,6 +8,17 @@ public partial class HomePageVM
 
     [ObservableProperty]
     ObservableCollection<SingleSongStatistics> topTenPlayedSongs = new();
+
+
+    List<ChartEntry> lineChartEntries;
+    [ObservableProperty]
+    public LineChart lChart;
+
+    List<ChartEntry> ChartEntries;
+    [ObservableProperty]
+    public DonutChart dChart;
+
+
     [RelayCommand]
     void ShowGeneralTopTenSongs()
     {
@@ -18,7 +29,7 @@ public partial class HomePageVM
                 PlayCount = s.DatesPlayed.Count,
             })
             .OrderByDescending(s => s.PlayCount)
-            .Take(15)
+            .Take(10)
             .ToObservableCollection();
         ShowSingleSongStats(TopTenPlayedSongs.FirstOrDefault()?.Song);
     }
@@ -141,14 +152,15 @@ public partial class HomePageVM
         };
     }
 
-
-    List<ChartEntry> lineChartEntries;
-    [ObservableProperty]
-    public LineChart lChart;
-
-    List<ChartEntry> ChartEntries;
-    [ObservableProperty]
-    public DonutChart dChart;
+    [RelayCommand]
+    async Task NavigateToSingleSongStatsPage(SongsModelView song)
+    {
+#if ANDROID
+        await Shell.Current.GoToAsync(nameof(SingleSongStatsPageM));
+#elif WINDOWS
+        await Shell.Current.GoToAsync(nameof(SingleSongStatsPageD));
+#endif
+    }
 }
 
 public class SingleSongStatistics

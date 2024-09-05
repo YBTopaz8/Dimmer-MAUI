@@ -8,7 +8,7 @@ public partial class MiniControlNotificationView : ContentPage
     public MiniControlNotificationView(string title, string artistName, string imagePath)
     {
 		InitializeComponent();
-        //BindingContext = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        BindingContext = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 #if WINDOWS
         _closeTimer = new Timer(5000);
         _closeTimer.Elapsed += _closeTimer_Elapsed;

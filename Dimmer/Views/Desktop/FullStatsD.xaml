@@ -89,47 +89,53 @@
                           x:Name="CalFilter"
                           />
         </VerticalStackLayout>-->
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="None" Spacing="5">
             <Border Padding="10"
                     Stroke="DarkSlateBlue"
                     StrokeShape="RoundRectangle 15">
-                <Border.Shadow>
+                <!--<Border.Shadow>
                     <Shadow Offset="10,30"
-                            Radius="80"/>
-                </Border.Shadow>
-                <FlexLayout JustifyContent="SpaceBetween">
-                <VerticalStackLayout VerticalOptions="End">
-                    <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="20"/>
-                    <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
-                    <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="20"/>
-                    <Label Text="{Binding SongPickedForStats.DatesPlayed.Count, StringFormat='Played : {0} Times'}" FontSize="20"/>
+                            Radius="210"/>
+                </Border.Shadow>-->
+                <VerticalStackLayout Spacing="5">
+                    <FlexLayout JustifyContent="SpaceBetween">
+                        <VerticalStackLayout VerticalOptions="End">
+                            <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="20"/>
+                            <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
+                            <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="20"/>
+                            <Label Text="{Binding SongPickedForStats.DatesPlayed.Count, StringFormat='Played : {0} Times'}" FontSize="20"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout>
+                            <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}"
+                            HeightRequest="190"
+                            WidthRequest="190"
+                            Text="S"/>
+                        <ImageButton WidthRequest="25" HeightRequest="25"
+             Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding SongPickedForStats}">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Bar_chart}"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </VerticalStackLayout>
+                    </FlexLayout>
+
                 </VerticalStackLayout>
-                <VerticalStackLayout>
-                    <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}"
-                                            HeightRequest="190"
-                                            WidthRequest="190"
-                                            Text="S"/>
-                </VerticalStackLayout>
-                </FlexLayout>
+                
             </Border>
 
             <Border x:Name="donutBor" HeightRequest="220" IsVisible="False"
-                    Stroke="DarkSlateBlue"
-                    StrokeShape="RoundRectangle 15">
-               
+                    StrokeThickness="0"
+                    >               
                 <mc:ChartView x:Name="ChartView" Chart="{Binding DChart}"
                        EnableTouchEvents="True" 
                               IgnorePixelScaling="True"
                               >
                 </mc:ChartView>
-
             </Border>
-            <Border x:Name="LineChartBor" HeightRequest="400"
-                    Stroke="DarkSlateBlue" WidthRequest="900"
-                    StrokeShape="RoundRectangle 15">
-                <mc:ChartView Chart="{Binding LChart}"
-                              EnableTouchEvents="True"/>
-            </Border>
-        </VerticalStackLayout>
+        <Border x:Name="LineChartBor" HeightRequest="400"
+            StrokeThickness="1" WidthRequest="900"
+                StrokeShape="RoundRectangle 15">
+            <mc:ChartView Chart="{Binding LChart}"
+                EnableTouchEvents="True"/>
+        </Border>
     </toolkit:DockLayout>
 </ContentPage>

@@ -103,6 +103,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
         builder.Services.AddSingleton<FullStatsPageM>();
+        builder.Services.AddSingleton<SingleSongStatsPageM>();
         
 
         return builder.Build();
