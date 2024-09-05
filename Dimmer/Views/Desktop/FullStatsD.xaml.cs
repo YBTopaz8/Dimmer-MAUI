@@ -17,7 +17,26 @@ public partial class FullStatsD : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowGeneralTopTenSongsCommand.Execute(null);
+        HomePageVM.ShowGeneralTopTenSongsCommand.Execute(null);        
+    }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (FlexLayout)sender;
+        var song = send.BindingContext as SingleSongStatistics;
+        if (song is null)
+        {
+            return;
+        }
+        HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
+
+        LineChartBor.WidthRequest = LineChartBor.Width + 1;
+
+
+        await Task.Delay(250);
+
+        LineChartBor.WidthRequest = LineChartBor.Width - 1;
+
     }
 
     //private void Calendar_SelectedDatesChanged(object sender, ValueChangedEventArgs<Collection<DateTime>> e)

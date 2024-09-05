@@ -185,8 +185,9 @@ public partial class HomePageVM : ObservableObject
     {
         if (CurrentPage == PageEnum.FullStatsPage)
         {
-            ShowGeneralTopTenSongs();
             PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+
+            ShowGeneralTopTenSongs();
         }
         if (SelectedSong is not null)
         {
@@ -384,6 +385,10 @@ public partial class HomePageVM : ObservableObject
                     {
                         OpenEditableSongsTagsView();
                     }
+                    if (CurrentPage == PageEnum.FullStatsPage)
+                    {
+
+                    }
                     break;
                 case MediaPlayerState.Paused:
                     IsPlaying = false;
@@ -574,7 +579,7 @@ public partial class HomePageVM : ObservableObject
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-//            PlaySong();
+            PlaySong();
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);

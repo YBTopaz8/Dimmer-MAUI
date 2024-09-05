@@ -10,6 +10,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
+             xmlns:mc ="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
              x:Name="myPage">
              <!--xmlns:s="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"-->
     <ContentPage.Resources>
@@ -34,10 +35,11 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
 
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" 
-                             WidthRequest="250">
-            <CollectionView Footer="Top Played Songs" Margin="5,0"
-                            SelectionMode="Single" 
+        <Grid toolkit:DockLayout.DockPosition="Left" 
+                             WidthRequest="250"
+              ColumnDefinitions="*">
+            <CollectionView Header="Top Played Songs" Margin="5,0"
+                            SelectionMode="Single" VerticalScrollBarVisibility="Never"
                             ItemsSource="{Binding TopTenPlayedSongs}">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" 
@@ -48,12 +50,12 @@
                         <FlexLayout JustifyContent="SpaceBetween">
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="Play Song"
+                                    <MenuFlyoutItem Text="Play Song" 
                                                     Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding Song}"/>
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
                             <FlexLayout.GestureRecognizers>
-                                <TapGestureRecognizer NumberOfTapsRequired="1" Command="{Binding BindingContext.ShowSingleSongStatsCommand, Source={x:Reference myPage} }" CommandParameter="{Binding Song}"/>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
                             </FlexLayout.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5">
                                 <toolkit:AvatarView ImageSource="{Binding Song.CoverImagePath}" BorderWidth="0"
@@ -70,7 +72,7 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </VerticalStackLayout>
+        </Grid>
 
         <!--<VerticalStackLayout toolkit:DockLayout.DockPosition="Right" Margin="10,0,0,0"
                              MaximumWidthRequest="350" Spacing="5">
@@ -87,7 +89,7 @@
                           x:Name="CalFilter"
                           />
         </VerticalStackLayout>-->
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="None">
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="None" Spacing="5">
             <Border Padding="10"
                     Stroke="DarkSlateBlue"
                     StrokeShape="RoundRectangle 15">
@@ -110,17 +112,24 @@
                 </VerticalStackLayout>
                 </FlexLayout>
             </Border>
-            <!--<VerticalStackLayout>
-                <s:SegmentedControl x:Name="SegControl" SelectedTextColor="DarkSlateBlue"
-                                    >
-                    <s:SegmentedControl.Children>
-                        <s:SegmentedControlOption Text="Daily"/>
-                        <s:SegmentedControlOption Text="Weekly"/>
-                        <s:SegmentedControlOption Text="Monthly"/>
-                    </s:SegmentedControl.Children>
-                </s:SegmentedControl>
-            </VerticalStackLayout>-->
-            
+
+            <Border x:Name="donutBor" HeightRequest="220" IsVisible="False"
+                    Stroke="DarkSlateBlue"
+                    StrokeShape="RoundRectangle 15">
+               
+                <mc:ChartView x:Name="ChartView" Chart="{Binding DChart}"
+                       EnableTouchEvents="True" 
+                              IgnorePixelScaling="True"
+                              >
+                </mc:ChartView>
+
+            </Border>
+            <Border x:Name="LineChartBor" HeightRequest="400"
+                    Stroke="DarkSlateBlue" WidthRequest="900"
+                    StrokeShape="RoundRectangle 15">
+                <mc:ChartView Chart="{Binding LChart}"
+                              EnableTouchEvents="True"/>
+            </Border>
         </VerticalStackLayout>
     </toolkit:DockLayout>
 </ContentPage>

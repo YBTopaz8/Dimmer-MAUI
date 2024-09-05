@@ -22,18 +22,18 @@ public partial class App : Application
 #endif
         LogException(e.Exception);
     }
-
+    public Window win;
     protected override Window CreateWindow(IActivationState activationState)
     {
-        var window = base.CreateWindow(activationState);
-        window.MinimumHeight = 800;
-        window.MinimumWidth = 1200;
-        window.Height = 900;
-        window.Width = 1200;
+        win = base.CreateWindow(activationState);
+        win.MinimumHeight = 800;
+        win.MinimumWidth = 1200;
+        win.Height = 900;
+        win.Width = 1200;
         
-        window.Title = "Dimmer";
+        win.Title = "Dimmer";
         
-        return window;
+        return win;
         
     }
 
