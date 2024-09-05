@@ -79,7 +79,7 @@
                             <VerticalStackLayout>
                                 
                                 <Label Text="{Binding PlayCount}" VerticalOptions="Center" />
-                                <ImageButton WidthRequest="25" HeightRequest="25" IsVisible="False"
+                                <ImageButton WidthRequest="25" HeightRequest="25" IsVisible="True"
                                              Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding Song}">
                                     <ImageButton.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Bar_chart}"/>
