@@ -1,8 +1,6 @@
 # Dimmer-MAUI
 Time Spent So Far... [![wakatime](https://wakatime.com/badge/user/20225675-04f6-42d1-8535-b25921cfc585/project/6d9509eb-58c7-40db-b0e6-63ad72a6e172.svg)](https://wakatime.com/badge/user/20225675-04f6-42d1-8535-b25921cfc585/project/6d9509eb-58c7-40db-b0e6-63ad72a6e172)
 
-Give a star to the [original repo](https://github.com/YBTopaz8/Dimmer-MAUI)
-
 # Dimmer A Cross Platform Music Player App built in .NET MAUI.
 
 Building this as a hobby and also because the music app I use on Windows (Dopamine) and on Android (Retro Music Player) are discontinued.
@@ -33,11 +31,12 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 # ScreenShots (Work in Progress...)
 | Windows | Android| 
 | ------------- |:-------------:|
-| <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| <img src="ScreenShots/Mobile/MainUI_M.png" height=500> |
+| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUI_M.png" height=500> |
+| <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
+| <img src="ScreenShots/Desktop/StatisPage_D.png" height=500>| <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> <img src="ScreenShots/Mobile/StatisPage_M2.png" height=500>  | 
 | <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| coming soon...|
 | <img src="ScreenShots/Desktop/SearchResults_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| coming soon...|
 | <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>| coming soon...|
 
 ## Authors
