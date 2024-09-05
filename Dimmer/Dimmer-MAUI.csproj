@@ -140,6 +140,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="Realm" Version="12.4.0" />
+		<PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
 		<PackageReference Include="UraniumUI" Version="2.9.1" />

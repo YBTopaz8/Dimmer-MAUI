@@ -17,11 +17,14 @@ public partial class SingleSongStatsPageM : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowGeneralTopTenSongsCommand.Execute(null);
+        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SongPickedForStats);
     }
 
     private async void CoverFlowV_ItemSwiped(CardsView view, PanCardView.EventArgs.ItemSwipedEventArgs args)
     {
+        Debug.WriteLine(view.BindingContext.ToString());
+        var w = view.ItemsSource;
+        
 		var song = view.BindingContext as SingleSongStatistics;
         if (song is null)
         {

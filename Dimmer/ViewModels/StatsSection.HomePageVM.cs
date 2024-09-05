@@ -107,7 +107,6 @@ public partial class HomePageVM
             { "Sunday", 0 }
         };
 
-
         foreach (var date in song.DatesPlayed)
         {
             var day = date.Date.ToString("dddd");
@@ -155,6 +154,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task NavigateToSingleSongStatsPage(SongsModelView song)
     {
+        SongPickedForStats = song;
 #if ANDROID
         await Shell.Current.GoToAsync(nameof(SingleSongStatsPageM));
 #elif WINDOWS
