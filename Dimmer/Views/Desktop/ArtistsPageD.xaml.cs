@@ -22,12 +22,11 @@ public partial class ArtistsPageD : ContentPage
         HomePageVM.ShowSpecificArtistsSongsCommand.Execute(album.Id);
     }
 
-    private void ShowArtistAlbumsSongs_Tapped(object sender, TappedEventArgs e)
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
         var s = (Border)sender;
         var song = s.BindingContext as SongsModelView;
-
         HomePageVM.PlaySongCommand.Execute(song);
     }
 
@@ -36,17 +35,23 @@ public partial class ArtistsPageD : ContentPage
         base.OnAppearing();
     }
 
-    private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
+    private async void MenuFlyoutItem_Clicked(object sender, EventArgs e)
     {
         var view = (MenuFlyoutItem)sender;
         SongsModelView song = view.BindingContext as SongsModelView;
-        HomePageVM.SetSongCoverAsAlbumCover(song);
+        await HomePageVM.SetSongCoverAsAlbumCover();
     }
 
     private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        
+    {        
         HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
         
+    }
+
+    private void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
+    {
+        TapGestureRecognizer? view = (TapGestureRecognizer)sender;
+        ArtistModelView artist = view.BindingContext as ArtistModelView;
+        HomePageVM.GetAllArtistsAlbum(artist.Id);
     }
 }

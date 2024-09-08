@@ -16,20 +16,7 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
                 return false;
             }
         }
-        else if (targetType == typeof(bool) && (string)parameter == "UnSync")
-        {
-            var val = value as SongsModelView;
-            if (val.HasLyrics)
-            {
-                return false;
-            }
-            return true;
-        }
-        else if (targetType == typeof(string))
-        {
-            var val = value as SongsModelView;
-            return val.UnSyncLyrics is null ? "No Lyrics Found..." : val.UnSyncLyrics;
-        }
+       
         return false;
     }
 

@@ -34,4 +34,9 @@ public partial class PlaylistsPageD : ContentPage
         var song = t.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);        
     }
+
+    private void StateTrigger_IsActiveChanged(object sender, EventArgs e)
+    {
+
+    }
 }

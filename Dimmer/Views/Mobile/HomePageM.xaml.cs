@@ -45,7 +45,6 @@ public partial class HomePageM : UraniumContentPage
 
     public HomePageVM HomePageVM { get; }
     public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
-
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
         

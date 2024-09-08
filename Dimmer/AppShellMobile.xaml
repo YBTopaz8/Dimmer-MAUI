@@ -36,9 +36,9 @@
         </ShellContent.Icon>
     </ShellContent>
 
-    <ShellContent Title="SongShell" IsVisible="False"
-              ContentTemplate="{DataTemplate viewsM:SingleSongShell}"
-              Route="SingleSongShell">
+    <ShellContent 
+              ContentTemplate="{DataTemplate viewsM:AlbumPageM}"
+              Route="AlbumM">
         
 
     </ShellContent>

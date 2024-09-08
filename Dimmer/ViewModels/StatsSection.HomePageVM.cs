@@ -10,7 +10,7 @@ public partial class HomePageVM
     ObservableCollection<SingleSongStatistics> topTenPlayedSongs = new();
 
 
-    List<ChartEntry> lineChartEntries;
+    List<ChartEntry> LineChartEntries;
     [ObservableProperty]
     public LineChart lChart;
 

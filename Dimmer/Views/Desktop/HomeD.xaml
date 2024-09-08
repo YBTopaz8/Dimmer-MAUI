@@ -9,7 +9,6 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
-             xmlns:xc="clr-namespace:Xceed.Maui.Toolkit;assembly=Xceed.Maui.Toolkit"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"             
@@ -173,6 +172,22 @@
                                 </MenuFlyoutItem>
                                 
                                 <MenuFlyoutSeparator/>
+                                
+                                <MenuFlyoutSubItem Text="Artist">
+                                    <MenuFlyoutItem Text="Show Artist Songs" x:Name="ShowArtistSongs"
+                                                    Clicked="ShowArtistSongs_Clicked"/>
+                                    <MenuFlyoutItem Text="Play Artist Songs"/>
+                                    
+                                </MenuFlyoutSubItem>
+                                
+                                <MenuFlyoutItem Text="Remove from Device">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
+                                                             Key="Delete"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+                                
+                                <MenuFlyoutSeparator/>
 
                                 <MenuFlyoutItem Text="Add To Playlist"
                                                 Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
@@ -214,6 +229,9 @@
                                 <VisualState x:Name="Normal" />
 
                                 <VisualState x:Name="PointerOver">
+                                    <VisualState.StateTriggers>
+                                        <StateTrigger IsActiveChanged="StateTrigger_IsActiveChanged"/>
+                                    </VisualState.StateTriggers>
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                     </VisualState.Setters>

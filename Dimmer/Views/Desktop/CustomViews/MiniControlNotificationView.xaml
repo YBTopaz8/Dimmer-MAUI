@@ -91,15 +91,6 @@
                         </ImageButton.Source>
                     </ImageButton>
 
-                    <ImageButton Command="{Binding ToggleShuffleStateCommand}"
-                                 Clicked="ImageButton_Clicked">
-                        <ImageButton.CommandParameter>
-                            <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
                 </HorizontalStackLayout>
             </VerticalStackLayout>            
         </FlexLayout>

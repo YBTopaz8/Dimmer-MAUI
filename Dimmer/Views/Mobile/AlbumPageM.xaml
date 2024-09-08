@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.AlbumPageM"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
+            xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             BackgroundColor="Black">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+<toolkit:DockLayout x:Name="tkDL">
+    <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+
+        <ScrollView toolkit:DockLayout.DockPosition="Top">
+            
+        
+    <Grid ColumnDefinitions="*" toolkit:DockLayout.DockPosition="Top"
+            RowDefinitions="*,*,*,*,*"
+            RowSpacing="10">
+
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                        HeightRequest="400" WidthRequest="{Binding Width,Source={x:Reference tkDL}}"
+                        Grid.Row="0"/>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="8" 
+                                MaximumHeightRequest="50">
+            <toolkit:AvatarView VerticalOptions="Start" BorderWidth="0" 
+            Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
+            <VerticalStackLayout>
+                <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                    FontSize="28" FontAttributes="Bold"/>
+                <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
+            </VerticalStackLayout>
+        </HorizontalStackLayout>
+        <Grid ColumnDefinitions="*,*" Padding="10" HorizontalOptions="FillAndExpand"
+                Grid.Row="2" ColumnSpacing="10">
+
+            <Button Grid.Column="0" 
+                Text="Play all"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Center"
+                BackgroundColor="Transparent"
+                BorderColor="Red"
+                BorderWidth="2"
+                TextColor="Red"
+                CornerRadius="25"/>
+                    <!-- Shuffle Button -->
+         <Button Grid.Column="1" 
+            Text="Shuffle"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Center"
+            BackgroundColor="Red"
+            TextColor="White"
+            CornerRadius="25"/>
+        </Grid>
+
+                <CollectionView SelectionMode="Single" Grid.Row="3" 
+                ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
+                EmptyView="No songs...">
+                    <CollectionView.Header>
+                        <Label Text="Songs" FontAttributes="Bold"
+                               FontSize="18" Margin="10,0"/>
+                    </CollectionView.Header>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <Border Stroke="Transparent">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="1"/>
+                        </Border.GestureRecognizers>
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                    </Image.Source>
+                                </Image>
+                            </VerticalStackLayout>
+                        </FlexLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Grid ColumnDefinitions="*" RowDefinitions="*,*,*"  Grid.Row="4">
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName, StringFormat='More From {0}'}"
+                Grid.Row="0" FontAttributes="Bold"
+                    FontSize="25"/>
+                    
+            <CollectionView  HeightRequest="170" toolkit:DockLayout.DockPosition="Top"
+            ItemsLayout="HorizontalList" Grid.Row="1"
+            SelectionMode="Single" VerticalOptions="Start"
+            ItemsSource="{Binding AllArtistsAlbums}">
+                        
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <Border Stroke="Transparent" HorizontalOptions="Center">
+                                    
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                                </VerticalStackLayout.GestureRecognizers>
+                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
+                            WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
+                            BorderWidth="0" CornerRadius="15"/>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="{Binding Name}" FontSize="12"
+                                Padding="10,5" LineBreakMode="WordWrap" 
+                                MaximumWidthRequest="120" />
+                                </FlexLayout>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+            </Grid>
+        </ScrollView>
+    </toolkit:DockLayout>
+    
+</ContentPage>

@@ -20,14 +20,15 @@
           BackgroundColor="{OnPlatform Android=#171919}"
           RowDefinitions="*"
           ColumnDefinitions="*">
-        <Image Source="{Binding SelectedSongToOpenBtmSheet}"
-               Grid.Column="0"/>
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+               IsVisible="{OnPlatform WinUI=false, Android=True}"
+               Grid.Column="0" Aspect="Center"/>
 
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
             IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
             SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
-            Grid.Column="0">
+            Grid.Column="0" EmptyView="No Syncronized Lyrics Found...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Border Stroke="Transparent" Margin="5,0" >
@@ -58,12 +59,12 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ScrollView Grid.Column="0" IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}">
+        <!--<ScrollView Grid.Column="0" IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}">
             <Label Text="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}" 
                 HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" 
                 LineBreakMode="WordWrap"/>
 
-        </ScrollView>
+        </ScrollView>-->
 
 
         <!--<ScrollView MaximumHeightRequest="1200" MinimumHeightRequest="760" x:Name="scrollv">-->

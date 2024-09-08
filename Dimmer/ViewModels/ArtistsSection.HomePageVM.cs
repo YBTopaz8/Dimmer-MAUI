@@ -7,7 +7,7 @@ public partial class HomePageVM
     [ObservableProperty]
     ObservableCollection<AlbumModelView> allAlbums;
     [ObservableProperty]
-    ObservableCollection<SongsModelView> allArtistslbumSongs;
+    ObservableCollection<SongsModelView> allArtistsAlbumSongs;
     [ObservableProperty]
     ObservableCollection<AlbumModelView> allArtistsAlbums;
     [ObservableProperty]
@@ -17,24 +17,45 @@ public partial class HomePageVM
     public ObjectId selectedArtistAlbumId;
     [ObservableProperty]
     ObjectId selectedArtistId;
+
+    public async Task NavigateToArtistsPage(ObjectId songId, bool isFromSongId=true)
+    {
+#if WINDOWS
+        await Shell.Current.GoToAsync(nameof(ArtistsPageD));
+#elif ANDROID
+        await Shell.Current.GoToAsync(nameof(AlbumPageM));
+#endif
+        GetAllArtistsAlbum(songId, isFromSongId);
+    }
+
     [RelayCommand]
     void GetAllArtists()
     {
         //AllArtists?.Clear();
         if (AllArtists?.Count != PlayBackUtilsService.GetAllArtists().Count)
         {
-            AllArtists = PlayBackUtilsService.GetAllArtists().OrderBy(x => x.Name).ToObservableCollection();
+            AllArtists = PlayBackUtilsService
+                .GetAllArtists()
+                .OrderBy(x => x.Name)
+                .ToObservableCollection();
             if (AllArtists.Count > 0)
             {
                 SelectedArtistId = AllArtists.FirstOrDefault()!.Id;
             }
             GetAllArtistsAlbum(SelectedArtistId);
-        }        
+        }
     }
 
-    [RelayCommand]
-    void GetAllArtistsAlbum(ObjectId artistId)
+    public void GetAllArtistsAlbum(ObjectId artistOrSongId, bool isFromSongID = false)
     {
+        if (!isFromSongID)
+        {
+            SelectedArtistId = artistOrSongId;
+        }
+        else
+        {
+            SelectedArtistId = SongsMgtService.GetArtistIdFromSongId(artistOrSongId);
+        }
         
         if (AllArtists?.Count < 1)
         {
@@ -44,11 +65,9 @@ public partial class HomePageVM
                 return;
             }
         }
-
-        SelectedArtistId = artistId == ObjectId.Empty ? AllArtists!.FirstOrDefault()!.Id : artistId;
         
         AllArtistsAlbums?.Clear();
-        AllArtistsAlbums = PlayBackUtilsService.GetAllArtistsAlbums(SelectedArtistId).ToObservableCollection();
+        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistId).ToObservableCollection();
         if (AllArtistsAlbums.Count > 0)
         {
             SelectedArtistAlbumId = AllArtistsAlbums.FirstOrDefault()!.Id;
@@ -58,19 +77,20 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSpecificArtistsSongs(ObjectId albumId)
     {
-        AllArtistslbumSongs?.Clear();
-        
-        AllArtistslbumSongs = PlayBackUtilsService.GetallArtistsSongsById( albumId,SelectedArtistId);
-    }    
-    public async Task SetSongCoverAsAlbumCover(SongsModelView ss)
+        AllArtistsAlbumSongs?.Clear();        
+        AllArtistsAlbumSongs = PlayBackUtilsService.GetallArtistsSongsById( albumId,SelectedArtistId);
+        SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
+    }
+    [RelayCommand]
+    public async Task SetSongCoverAsAlbumCover()
     {
         var specificAlbum = AllArtistsAlbums.FirstOrDefault(x => x.Id == SelectedArtistAlbumId)!;
         specificAlbum.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
-        specificAlbum.NumberOfTracks = AllArtistslbumSongs.Count;
+        specificAlbum.NumberOfTracks = AllArtistsAlbumSongs.Count;
         SongsMgtService.UpdateAlbum(specificAlbum);
 
 
-        AllArtistsAlbums = PlayBackUtilsService.GetAllArtistsAlbums(SelectedArtistId).OrderBy(x => x.Name).ToObservableCollection();
+        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistId).OrderBy(x => x.Name).ToObservableCollection();
     }
 
     [RelayCommand]
@@ -93,7 +113,7 @@ public partial class HomePageVM
         }
         else
         {
-            AllArtistslbumSongs?.Clear();
+            AllArtistsAlbumSongs?.Clear();
         }
     }
 }

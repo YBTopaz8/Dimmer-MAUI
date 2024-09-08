@@ -618,7 +618,7 @@ public class LyricsService : ILyricsService
             return false;
         }
         songObj.UnSyncLyrics = Lyrics;
-        songObj.HasLyrics = true;
+        songObj.HasLyrics = !IsSynched;
         songObj.HasSyncedLyrics = IsSynched;
         if (PlayBackService.CurrentQueue != 2)
         {
