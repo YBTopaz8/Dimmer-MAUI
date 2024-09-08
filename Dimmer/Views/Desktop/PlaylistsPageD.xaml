@@ -45,6 +45,9 @@
                                     <VisualState x:Name="Normal" />
 
                                     <VisualState x:Name="PointerOver">
+                                        <VisualState.StateTriggers>
+                                            <StateTrigger IsActiveChanged="StateTrigger_IsActiveChanged"/>
+                                        </VisualState.StateTriggers>
                                         <VisualState.Setters>
                                             <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                             <Setter Property="Stroke" Value="DarkSlateBlue"/>

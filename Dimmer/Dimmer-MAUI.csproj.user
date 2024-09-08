@@ -82,6 +82,12 @@
     <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\Mobile\AlbumPageM.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\ArtistsPageM.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

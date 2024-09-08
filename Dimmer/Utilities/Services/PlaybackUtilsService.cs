@@ -1188,12 +1188,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         throw new NotImplementedException();
     }
 
-    public IList<AlbumModelView> GetAllArtistsAlbums(ObjectId artistId)
-    {
-        return SongsMgtService.GetAlbumsFromArtistID(artistId);
-        
-    }
-
-    
+ 
 }
 

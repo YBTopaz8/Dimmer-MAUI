@@ -85,7 +85,6 @@ public partial class HomePageVM : ObservableObject
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
         IsPlaying = false;
-        IsOnLyricsSyncMode = false;
         ToggleShuffleState();
         ToggleRepeatMode();
 
@@ -197,7 +196,7 @@ public partial class HomePageVM : ObservableObject
         {
             if (CurrentQueue == 1)
             {
-                PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistslbumSongs);
+                PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
                 return;
             }
             PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
@@ -227,6 +226,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
+        IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         await PlayBackUtilsService.PlayNextSongAsync();
     }
@@ -234,6 +234,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayPreviousSong()
     {
+        IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         await PlayBackUtilsService.PlayPreviousSongAsync();
     }
@@ -434,27 +435,34 @@ public partial class HomePageVM : ObservableObject
                 await PauseResumeSong();
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                  string? result = await Shell.Current.DisplayActionSheet("Done Syncing?", "No", "Yes");
-                    if (result is null)
-                        return;
-                    if (result.Equals("Yes"))
-                    {
-                        string? lyr = string.Join(Environment.NewLine, LyricsLines?.Select(line => $"{line.TimeStampText} {line.Text}"));
-                        if (lyr is not null)
-                        {
-                            if (await LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
-                            {
-                                await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
-                                CurrentViewIndex = 0;
-                            }
-                            LyricsManagerService.InitializeLyrics(lyr);
-                            DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
-                        }
-                    }
+                    await SaveLyricsToLrcAfterSyncing();
                 });
             }
         });
     }
+
+    [RelayCommand]
+    async Task SaveLyricsToLrcAfterSyncing()
+    {
+        string? result = await Shell.Current.DisplayActionSheet("Done Syncing?", "No", "Yes");
+        if (result is null)
+            return;
+        if (result.Equals("Yes"))
+        {
+            string? lyr = string.Join(Environment.NewLine, LyricsLines.Select(line => $"{line.TimeStampText} {line.Text}"));
+            if (lyr is not null)
+            {
+                if (await LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
+                {
+                    await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
+                    CurrentViewIndex = 0;
+                }
+                LyricsManagerService.InitializeLyrics(lyr);
+                DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+            }
+        }
+    }
+
     private void SubscribetoDisplayedSongsChanges()
     {
         PlayBackUtilsService.NowPlayingSongs.Subscribe(songs =>
@@ -544,15 +552,17 @@ public partial class HomePageVM : ObservableObject
     public async Task SaveSelectedLyricsToFile(bool isSync, string lyrics)
     {
         bool isSavedSuccessfully;
-        TemporarilyPickedSong.HasLyrics = true;
+        
         if (!isSync)
         {
+            TemporarilyPickedSong.HasLyrics = true;
             TemporarilyPickedSong.UnSyncLyrics = lyrics;
-            TemporarilyPickedSong.HasSyncedLyrics = false;
-            
+            TemporarilyPickedSong.HasSyncedLyrics = false;            
         }
         else
         {
+            TemporarilyPickedSong.HasLyrics = false;
+            TemporarilyPickedSong.UnSyncLyrics = string.Empty;
             TemporarilyPickedSong.HasSyncedLyrics = true;
         }
         isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
@@ -696,11 +706,11 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
     {
+        IsOnLyricsSyncMode = viewIndex != 3 ? false : true;
         CurrentViewIndex = viewIndex;
         switch (viewIndex)
         {
             case 0:
-
                 if (splittedLyricsLines is null)
                 {
                     return;

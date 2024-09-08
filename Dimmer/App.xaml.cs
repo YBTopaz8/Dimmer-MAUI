@@ -18,7 +18,8 @@ public partial class App : Application
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
 #if DEBUG
-        System.Diagnostics.Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception}");
+        System.Diagnostics.Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
+            $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 #endif
         LogException(e.Exception);
     }

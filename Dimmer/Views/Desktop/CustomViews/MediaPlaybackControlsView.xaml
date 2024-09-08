@@ -38,16 +38,18 @@
                 <VerticalStackLayout VerticalOptions="Center" >
                     <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
                            LineBreakMode="HeadTruncation" FontSize="18"/>
-                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" Opacity="0.6" HorizontalOptions="Start"/>
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" MaximumWidthRequest="150"
+                           LineBreakMode="TailTruncation"
+                           Opacity="0.6" HorizontalOptions="Start"/>
                     <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
                        LineBreakMode="HeadTruncation"/>
                 </VerticalStackLayout>
-                <ImageButton HeightRequest="40" BackgroundColor="Transparent"
+                <!--<ImageButton HeightRequest="40" BackgroundColor="Transparent"
              Command="{Binding AddSongToFavoritesCommand}" CommandParameter="{Binding TemporarilyPickedSong}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                     </ImageButton.Source>
-                </ImageButton>
+                </ImageButton>-->
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Spacing="15" Grid.Column="1" 

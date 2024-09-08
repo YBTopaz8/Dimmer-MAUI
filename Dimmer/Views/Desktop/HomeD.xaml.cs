@@ -100,4 +100,17 @@ public partial class HomeD : UraniumContentPage
     {
         SearchSongSB.Focus();
     }
+
+    private void StateTrigger_IsActiveChanged(object sender, EventArgs e)
+    {
+       
+    }
+
+
+    private async void ShowArtistSongs_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext! as SongsModelView;
+        await HomePageVM.NavigateToArtistsPage(song.Id);
+    }
 }

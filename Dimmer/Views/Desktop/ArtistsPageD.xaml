@@ -28,6 +28,7 @@
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Set Song Cover as Album Cover" 
                                 Clicked="MenuFlyoutItem_Clicked"/>
+                
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
             </MenuFlyout>
             <Style TargetType="ImageButton">
@@ -70,7 +71,7 @@
                         <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
                                             WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
-                                        BorderWidth="0"/>
+                                        BorderWidth="0" CornerRadius="15"/>
                             <FlexLayout JustifyContent="SpaceBetween">
                                 <Label Text="{Binding Name}" FontSize="12"
                                        Padding="10,5" LineBreakMode="WordWrap" 
@@ -115,8 +116,7 @@
                         </VisualStateManager.VisualStateGroups>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer 
-                        Command="{Binding BindingContext.GetAllArtistsAlbumCommand, Source={x:Reference myPage}}" 
-                        CommandParameter="{Binding Id}"/>
+                                Tapped="ArtistFromArtistPage_Tapped"/>
                         </Border.GestureRecognizers>
                         <Label Text="{Binding Name}" Padding="5,5" Margin="5,5"/>
                             
@@ -127,7 +127,7 @@
 
 
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
-        ItemsSource="{Binding AllArtistslbumSongs}" SelectedItem="{Binding PickedSong}"
+        ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
             EmptyView="No songs...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
@@ -151,7 +151,7 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="ShowArtistAlbumsSongs_Tapped" NumberOfTapsRequired="2"/>
+                            <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="2"/>
                         </Border.GestureRecognizers>
                         <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                             <VerticalStackLayout>

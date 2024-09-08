@@ -22,7 +22,7 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
         await this.DismissAsync();
     }
 
-    private async void ImageButton_Clicked(object sender, EventArgs e)
+    private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {
         HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         await this.DismissAsync();
@@ -40,5 +40,13 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
         {
             HomePageVM.PlayNextSongCommand.Execute(null);
         }
+    }
+
+    private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
+    {
+        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        await HomePageVM.NavigateToArtistsPage(HomePageVM.SelectedSongToOpenBtmSheet.Id);
+        await this.DismissAsync();
+        
     }
 }

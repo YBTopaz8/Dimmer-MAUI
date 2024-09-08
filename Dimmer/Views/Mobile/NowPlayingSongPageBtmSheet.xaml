@@ -83,18 +83,24 @@
                         VerticalOptions="Center" Opacity="0.6" FontSize="16"/>
             </Grid>
 
-            <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
-                    FontAttributes="Bold" FontSize="25"/>
+            <VerticalStackLayout>
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
+        FontAttributes="Bold" FontSize="25"/>
 
-            <Label HorizontalTextAlignment="Center" FontSize="18">
-                <Label.Text>
-                    <MultiBinding StringFormat="{} {0} · {1}">
-                        <Binding Path="TemporarilyPickedSong.ArtistName"/>
-                        <Binding Path="TemporarilyPickedSong.AlbumName"/>
-                    </MultiBinding>
-                </Label.Text>
-            </Label>
+                <Label HorizontalTextAlignment="Center" FontSize="18">
+                    <Label.Text>
+                        <MultiBinding StringFormat="{} {0} · {1}">
+                            <Binding Path="TemporarilyPickedSong.ArtistName"/>
+                            <Binding Path="TemporarilyPickedSong.AlbumName"/>
+                        </MultiBinding>
+                    </Label.Text>
+                </Label>
 
+            </VerticalStackLayout>
+            
             <Grid HorizontalOptions="FillAndExpand" VerticalOptions="Start" ColumnSpacing="20"
                   BackgroundColor="Transparent" Margin="5,0">
                 <Grid.Resources>
@@ -170,7 +176,7 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Image}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton Command="{Binding NavToNowPlayingPageCommand}" Clicked="ImageButton_Clicked">
+                    <ImageButton Command="{Binding NavToNowPlayingPageCommand}" Clicked="ShowLyricsPage_Clicked">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                         </ImageButton.Source>
@@ -180,13 +186,13 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Nights_stay}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton HeightRequest="40" BackgroundColor="Transparent"
+                    <!--<ImageButton HeightRequest="40" BackgroundColor="Transparent"
                                  Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
                         CommandParameter="{Binding TemporarilyPickedSong}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                         </ImageButton.Source>
-                    </ImageButton>
+                    </ImageButton>-->
                     <ImageButton>
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>

@@ -35,11 +35,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     }
 
-    public Task<SongsModel> FindSongsByTitleAsync(string searchText)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<bool> AddSongAsync(SongsModel song)
     {
         try
@@ -175,17 +170,27 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public IList<AlbumModelView> GetAlbumsFromArtistID(ObjectId artistID)
+    public IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong=false)
     {
         try
-        {            
-            var albumLinks = db
-                .All<AlbumArtistSongLink>()
-                .Where(link => link.ArtistId == artistID)
-                
-                .ToList();
+        {
+            List<AlbumArtistSongLink>? songLinks = new();
+            if (fromSong)
+            {
+                songLinks= db
+                    .All<AlbumArtistSongLink>()
+                    .Where(link => link.SongId == artistOrSongId)
+                    .ToList();
+            }
+            else
+            {
+                songLinks = db
+                    .All<AlbumArtistSongLink>()
+                    .Where(link => link.ArtistId == artistOrSongId)
+                    .ToList();
+            }
 
-            var albumIDs = albumLinks
+            var albumIDs = songLinks
                 .Select(link => link.AlbumId) 
                 .Distinct() 
                 .ToList();
@@ -235,4 +240,19 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     }
 
+    public ObjectId GetArtistIdFromSongId(ObjectId songId)
+    {
+        try
+        {
+            var artistID = db.All<AlbumArtistSongLink>()
+                .Where(link => link.SongId == songId)
+                .FirstOrDefault().ArtistId;            
+            return artistID;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return ObjectId.Empty;
+        }
+    }
 }
