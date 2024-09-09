@@ -14,4 +14,12 @@ public partial class SpecificAlbumPage : UraniumContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.SpecificAlbumPage;
     }
+
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 1;
+        var s = (Border)sender;
+        var song = s.BindingContext as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
+    }
 }

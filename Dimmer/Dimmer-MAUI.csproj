@@ -219,7 +219,7 @@
 	  <MauiXaml Update="Views\Mobile\CustomViewsM\MediaPlaybackControlsViewM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\FullStatsPageM.xaml">
+	  <MauiXaml Update="Views\Mobile\SearchPageM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
@@ -249,6 +249,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\Mobile\AlbumSection\AlbumsM.xaml.cs">
+	    <DependentUpon>AlbumsM.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\Mobile\SearchPageM.xaml.cs">
+	    <DependentUpon>SearchPageM.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml.cs">
 	    <DependentUpon>NowPlayingSongPageBtmSheet.xaml</DependentUpon>
 	  </Compile>

@@ -23,10 +23,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-
-            AllAlbums?.Clear();
-            var realmAlbums = db.All<AlbumModel>().ToList();
-            AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
         }
         catch (Exception ex)
         {
@@ -34,7 +30,12 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
 
     }
-
+    public void GetAlbums()
+    {
+        AllAlbums?.Clear();
+        var realmAlbums = db.All<AlbumModel>().ToList();
+        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
+    }
     public async Task<bool> AddSongAsync(SongsModel song)
     {
         try
@@ -169,14 +170,14 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         db?.Dispose();
     }
 
-    public IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID)
+    public IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID)
     {
         try
         {
             
             var songLinks = db
                 .All<AlbumArtistSongLink>() 
-                .Where(link => link.AlbumId == albumID && link.ArtistId == artistID) 
+                .Where(link => link.AlbumId == albumID) 
                 .ToList();
 
             var songIDs = songLinks.Select(link => link.SongId).ToList();
@@ -210,6 +211,24 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             return Enumerable.Empty<ObjectId>().ToList();
         }
     }
+    public int GetSongsCountFromAlbumID(ObjectId albumID)
+    {
+        try
+        {
+            // Get the count of songs linked to the specific album
+            var songCount = db
+                .All<AlbumArtistSongLink>()
+                .Count(link => link.AlbumId == albumID);
+
+            return songCount;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting song count for album: {ex.Message}");
+            return 0; // Return 0 if there's an error
+        }
+    }
+
     public IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong=false)
     {
         try

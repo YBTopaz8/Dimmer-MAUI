@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.AlbumsM"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
+            xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             x:DataType="vm:HomePageVM"
+            Shell.BackgroundColor="#151C1C"
+            BackgroundColor="#151C1C"
+             x:Name="myPage">
+ 
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="*,Auto">
+             
+            <Label Text="Albums" HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center" FontAttributes="Bold" 
+                   FontSize="20" Grid.Column="0"/>
+             
+            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                          Grid.Column="1">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                </ImageButton.Source>
+            </ImageButton>
+             
+        </Grid>
+    </Shell.TitleView>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <toolkit:DockLayout x:Name="tkDL" Margin="5,0">
+        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+        
+        <Grid ColumnDefinitions="*" toolkit:DockLayout.DockPosition="Top"
+                RowDefinitions="*"
+                RowSpacing="2">
+            <CollectionView  Grid.Row="1" EmptyView="No Albums..."
+                                 VerticalOptions="Start" 
+                                ItemsSource="{Binding AllAlbums}">
+
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical"
+                                       Span="4"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <Border Stroke="Transparent" HorizontalOptions="Center">
+
+                            <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                                </VerticalStackLayout.GestureRecognizers>
+                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
+                                                    WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
+                                                    BorderWidth="0" CornerRadius="10"/>
+
+                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
+                                        Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
+
+
+                            </VerticalStackLayout>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+
+    </toolkit:DockLayout>
+
+</uranium:UraniumContentPage>
+
+<!--<HorizontalStackLayout Grid.Row="1" Spacing="8" 
+                      MaximumHeightRequest="50">
+      <toolkit:AvatarView VerticalOptions="Start" BorderWidth="0" 
+  Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
+      <VerticalStackLayout>
+          <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+          FontSize="28" FontAttributes="Bold"/>
+          <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
+      </VerticalStackLayout>
+  </HorizontalStackLayout>-->

@@ -2,12 +2,150 @@
 <uranium:UraniumContentPage x:Class="Dimmer_MAUI.Views.Mobile.SpecificAlbumPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             >
-    <StackLayout>
-        <Label Text="Welcome to .NET MAUI!!!"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"/>
-    </StackLayout>
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+              x:DataType="vm:HomePageVM"
+             Shell.BackgroundColor="#151C1C"
+             BackgroundColor="#151C1C"
+              x:Name="myPage">
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="*,Auto">
+            <!-- Centered Title -->
+            <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center" FontAttributes="Bold" 
+                   FontSize="20" Grid.Column="0"/>
+            <!-- Right-aligned albums count -->
+            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                          Grid.Column="1">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            <!-- Adjust margin to give some spacing from the right -->
+        </Grid>
+    </Shell.TitleView>
+    
+    <uranium:UraniumContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </uranium:UraniumContentPage.Resources>
+    
+    <toolkit:DockLayout>
+
+        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+        <Grid toolkit:DockLayout.DockPosition="Top" 
+            ColumnDefinitions="*" Margin="10,0" RowSpacing="10"
+          RowDefinitions="auto,auto,auto"
+        >
+            <HorizontalStackLayout HorizontalOptions="FillAndExpand" Grid.Row="0"
+                               Spacing="5">
+                <toolkit:AvatarView ImageSource="{Binding SelectedAlbumOnArtistPage.AlbumImagePath}" 
+                                BorderWidth="0" HeightRequest="180" WidthRequest="180"/>
+                <VerticalStackLayout Spacing="20"
+                                 VerticalOptions="Center">
+                    <HorizontalStackLayout Spacing="5">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Music_note}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="{Binding SelectedAlbumOnArtistPage.NumberOfTracks, StringFormat='{0} Track(s)'}"
+                               VerticalTextAlignment="Center"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="5">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person_3}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" VerticalTextAlignment="Center"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="5">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Access_time}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" VerticalTextAlignment="Center"/>
+                    </HorizontalStackLayout >
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+
+            <Grid ColumnDefinitions="*,*" Grid.Row="1"
+             HorizontalOptions="FillAndExpand"
+           ColumnSpacing="10">
+
+        <Button Grid.Column="0" 
+          Text="Play" TextColor="White"
+          HorizontalOptions="FillAndExpand"
+          VerticalOptions="Center"
+          BackgroundColor="DarkSlateBlue"
+          BorderColor="DarkSlateBlue"
+          BorderWidth="2"
+          CornerRadius="5"/>
+
+        <Button Grid.Column="1" Text="Shuffle" 
+                HorizontalOptions="FillAndExpand" VerticalOptions="Center" 
+                BorderColor="DarkSlateBlue" BorderWidth="2"
+      BackgroundColor="Transparent" TextColor="White"
+      CornerRadius="5"/>
+            </Grid>
+
+            <CollectionView SelectionMode="Single" Grid.Row="3" 
+        ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
+        EmptyView="No Songs...">
+                <CollectionView.Header>
+                    <Label Text="Songs" FontAttributes="Bold"
+                       FontSize="18" Margin="10,0"/>
+                </CollectionView.Header>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongsModelView">
+                        <Border Stroke="Transparent">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" >
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+
+                                    <VisualState Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="1"/>
+                            </Border.GestureRecognizers>
+                            <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Title}" FontSize="18"/>
+                                    <Label Text="{Binding ArtistName}" FontSize="14" TextColor="Gray"/>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
+                                        <Image.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                        </Image.Source>
+                                    </Image>
+                                </VerticalStackLayout>
+                            </FlexLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </toolkit:DockLayout>
 </uranium:UraniumContentPage>

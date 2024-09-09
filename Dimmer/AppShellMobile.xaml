@@ -12,35 +12,46 @@
              Shell.ForegroundColor="DarkSlateBlue"
              FlyoutBackgroundColor="Black"
              Shell.FlyoutBehavior="Flyout">
-    
-        <ShellContent Title="Home"
-                  ContentTemplate="{DataTemplate viewsM:HomePageM}"
-                  Route="HomeM">
-            <ShellContent.Icon>
-                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"
-                                 />
-            </ShellContent.Icon>
-        </ShellContent>
-        <ShellContent Title="Playlists"
-                      ContentTemplate="{DataTemplate viewsM:PlaylistsPageM}"
-                      Route="PlaylistsM">
-            <ShellContent.Icon>
-                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
-            </ShellContent.Icon>
-        </ShellContent>
-    <ShellContent Title="Stats" 
-          ContentTemplate="{DataTemplate viewsM:FullStatsPageM}"
-          Route="FullStatsPageM">
-        <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Show_chart}"/>
-        </ShellContent.Icon>
-    </ShellContent>
 
-    <ShellContent 
-              ContentTemplate="{DataTemplate viewsM:AlbumPageM}"
-              Route="AlbumM">
+  
+    <TabBar>
+        <Tab Title="Stats">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"/>
+            </Tab.Icon>
+            <ShellContent Title="Home"
+   ContentTemplate="{DataTemplate viewsM:HomePageM}"
+   Route="HomeM"/>
+        </Tab>
         
+        <Tab Title="Album" >
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Album}"/>
 
-    </ShellContent>
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate viewsM:AlbumsM}" Route="FullStatsPageM"/>
 
+        </Tab>
+        <Tab Title="Stats">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Show_chart}"/>
+            </Tab.Icon>
+
+            <ShellContent 
+       ContentTemplate="{DataTemplate viewsM:ArtistsPageM}"
+       Route="AlbumM"/>
+        </Tab>
+        <Tab Title="Playlists">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
+            </Tab.Icon>
+
+            <ShellContent Title="Playlists"
+               ContentTemplate="{DataTemplate viewsM:PlaylistsPageM}"
+               Route="PlaylistsM"/>
+        </Tab>
+
+<!-- album pageM, artistpageM and searchsong work-->
+
+    </TabBar>
 </Shell>

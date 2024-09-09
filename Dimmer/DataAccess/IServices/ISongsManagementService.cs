@@ -8,16 +8,17 @@ public interface ISongsManagementService
     //public Task UpdateSongAsync(SongsModel song);
     //public Task DeleteSongAsync(SongsModel song);
     void GetSongs();
-
     Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView);
     void Dispose();
 
     IList<AlbumModelView> AllAlbums { get; set; }
+    void GetAlbums();
     (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
-    IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID);
+    IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID);
     IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
     void UpdateAlbum(AlbumModelView album);
+    public int GetSongsCountFromAlbumID(ObjectId albumID);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);
     //public Task<SongsModel> FindSongsByGenre(string searchText);

@@ -44,6 +44,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     ObservableCollection<PlaylistModelView> allPlaylists;
     [ObservableProperty]
     ObservableCollection<ArtistModelView> allArtists;
+    [ObservableProperty]
+    ObservableCollection<AlbumModelView> allAlbums;
 
     [ObservableProperty]
     string selectedPlaylistName;
@@ -1165,7 +1167,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         AllArtists = new ObservableCollection<ArtistModelView>(ArtistsMgtService.AllArtists);
         return AllArtists;
     }
-    
+    public ObservableCollection<AlbumModelView> GetAllAlbums()
+    {
+        SongsMgtService.GetAlbums();
+        AllAlbums = new ObservableCollection<AlbumModelView>(SongsMgtService.AllAlbums);
+        return AllAlbums;
+    }
     public IList<SongsModelView> GetSongsFromArtistID(ObjectId artistID)
     {
         try
@@ -1192,7 +1199,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public ObservableCollection<SongsModelView> GetallArtistsSongsByAlbumAndArtistId(ObjectId albumID, ObjectId artistID)
+    public ObservableCollection<SongsModelView> GetallArtistsSongsByAlbumID(ObjectId albumID)
     {
         try
         {
@@ -1203,7 +1210,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 return (Enumerable.Empty<SongsModelView>().ToObservableCollection());
             }
             var AllAlbumsForSpecificArtist = SongsMgtService.AllAlbums;
-            var songsIDsFromAlbum = new HashSet<ObjectId>(SongsMgtService.GetSongsIDsFromAlbumID(albumID, artistID));
+            var songsIDsFromAlbum = new HashSet<ObjectId>(SongsMgtService.GetSongsIDsFromAlbumID(albumID));
             
             ObservableCollection<SongsModelView> songsFromArtistAndAlbum = new();
 
@@ -1257,5 +1264,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         throw new NotImplementedException();
     }
 
+    
 }
 

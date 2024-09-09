@@ -24,7 +24,21 @@ public partial class HomePageVM
     [ObservableProperty]
     ArtistModelView selectedArtistOnArtistPage;
 
+    [RelayCommand]
+    async Task NavigateToSpecificAlbumPage(ObjectId selectedAlbumId)
+    {
+        SelectedAlbumOnArtistPage = AllAlbums.First(x => x.Id == selectedAlbumId);
+        SelectedAlbumOnArtistPage.NumberOfTracks = SongsMgtService.GetSongsCountFromAlbumID(selectedAlbumId);
+        SelectedAlbumOnArtistPage.AlbumImagePath = DisplayedSongs.First(x => x.AlbumName == SelectedAlbumOnArtistPage.Name).CoverImagePath;
+        SelectedAlbumOnArtistPage.TotalDuration = TimeSpan
+            .FromSeconds(DisplayedSongs
+            .Where(x => x.AlbumName == SelectedAlbumOnArtistPage.Name)
+            .Sum(x => x.DurationInSeconds))
+            .ToString(@"mm\:ss");
 
+        ShowSpecificArtistsSongsWithAlbumId(selectedAlbumId);
+        await Shell.Current.GoToAsync(nameof(SpecificAlbumPage));
+    }
     public async Task NavigateToArtistsPage(SongsModelView? song=null)
     {
         GetAllArtistsAlbum(song.Id, song);
@@ -34,7 +48,14 @@ public partial class HomePageVM
         await Shell.Current.GoToAsync(nameof(AlbumPageM));
 #endif
     }
-
+    [RelayCommand]
+    void GetAllAlbums()
+    {
+        if (AllAlbums?.Count != PlayBackService.GetAllAlbums().Count)
+        {
+            AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
+        }
+    }
     [RelayCommand]
     void GetAllArtists()
     {
@@ -47,9 +68,14 @@ public partial class HomePageVM
                 .ToObservableCollection();
             if (AllArtists.Count > 0)
             {
-                SelectedArtistOnArtistPage = AllArtists.FirstOrDefault()!;
+#if WINDOWS
+     SelectedArtistOnArtistPage = AllArtists.FirstOrDefault()!;
                 SelectedArtistId = SelectedArtistOnArtistPage.Id;
                 GetAllArtistsAlbum(SelectedArtistId);
+#elif ANDROID
+
+#endif
+
             }
         }
     }
@@ -102,7 +128,7 @@ public partial class HomePageVM
     void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
         AllArtistsAlbumSongs?.Clear();        
-        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumAndArtistId( albumId,SelectedArtistId);
+        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID( albumId);
         SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
     void ShowSpecificArtistsSongs()

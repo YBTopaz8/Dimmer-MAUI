@@ -105,20 +105,3 @@ public partial class HomePageM : UraniumContentPage
 
     }
 }
-
-public class ThumblessSlider : Slider
-{
-    public ThumblessSlider()
-    {
-#if ANDROID
-        Microsoft.Maui.Handlers.SliderHandler.Mapper.AppendToMapping("No Thumb", (handler, view) =>
-        {
-            if(view is ThumblessSlider)
-            {
-                handler.PlatformView.SetThumb(null);
-            }
-        });
-#endif
-    }
-}
-

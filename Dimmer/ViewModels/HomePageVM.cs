@@ -87,6 +87,7 @@ public partial class HomePageVM : ObservableObject
 
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
+        GetAllAlbums();
     }
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
@@ -186,8 +187,11 @@ public partial class HomePageVM : ObservableObject
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
-
             ShowGeneralTopTenSongs();
+        }
+        if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
+        {
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
         }
         if (SelectedSong is not null)
         {
@@ -743,9 +747,14 @@ public partial class HomePageVM : ObservableObject
             {
                 DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs, CurrentSortingOption);
             }
-            else if (CurrentPage == PageEnum.AllAlbumsPage || CurrentPage == PageEnum.AllAlbumsPage)
+            else if (CurrentPage == PageEnum.AllAlbumsPage)
             {
                 AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs,CurrentSortingOption);
+
+            }
+            else if(CurrentPage == PageEnum.SpecificAlbumPage)
+            {
+                AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
             }
         }
     }

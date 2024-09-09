@@ -45,6 +45,8 @@
         [ObservableProperty]
         int numberOfTracks;
         [ObservableProperty]
+        string totalDuration;
+        [ObservableProperty]
         string? albumImagePath;
 
         public AlbumModelView(AlbumModel model)

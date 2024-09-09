@@ -14,7 +14,7 @@
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
             Shell.NavBarIsVisible="True"                            
-            x:Name="myPage"          
+            x:Name="myPage" 
             BackgroundColor="Black"
             Title="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
             >
