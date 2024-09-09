@@ -31,8 +31,8 @@
 
         </HorizontalStackLayout>
 
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Spacing="5">
-            <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" 
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Spacing="5" >
+            <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" IsVisible="False"
                            x:Name="ToggleManualSearchViewChkBox" />
         
             <VerticalStackLayout Spacing="10" IsVisible="{Binding IsChecked, Source={x:Reference ToggleManualSearchViewChkBox}}" 

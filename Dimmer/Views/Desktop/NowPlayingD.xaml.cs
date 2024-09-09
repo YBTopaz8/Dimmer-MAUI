@@ -8,7 +8,6 @@ public partial class NowPlayingD : ContentPage
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
         MediaPlayBackCW.BindingContext = homePageVM;
-
         EditableSongsTagsV.HomePageVM = homePageVM;
         EditableSongsTagsV.BindingContext = HomePageVM;
     }

@@ -14,7 +14,6 @@ public static class MauiProgram
             .UseUraniumUIMaterial()
             .UseBottomSheet()
             .ConfigureContextMenuContainer()
-            .UseCardsView()
             .UseMicrocharts()
             .ConfigureFonts(fonts =>
             {
