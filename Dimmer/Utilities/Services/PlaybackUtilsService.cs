@@ -101,7 +101,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (!isLocked)
             return;
 
-        Console.WriteLine("Step0");
         try
         {
             if (CurrentRepeatMode == 2) //repeat the same song
@@ -109,21 +108,21 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 await PlaySongAsync();
                 return;
             }
-
+          
             await PlayNextSongAsync();
 
-            await Task.Delay(500);
-            if (!audioService.IsPlaying)
-            {
+            //await Task.Delay(500);
+            //if (!audioService.IsPlaying)
+            //{
 
-                if (CurrentRepeatMode == 2) //repeat the same song
-                {
-                    await PlaySongAsync();
-                    return;
-                }
+            //    if (CurrentRepeatMode == 2) //repeat the same song
+            //    {
+            //        await PlaySongAsync();
+            //        return;
+            //    }
 
-                await PlayNextSongAsync();
-            }
+            //    await PlayNextSongAsync();
+            //}
         }
         finally
         {
@@ -478,13 +477,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return coverImage;
     }
 
-
+    int bugCount = 0;
     #endregion
-    private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
+    private async void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
+        bugCount++;
         double currentPositionInSeconds = audioService.CurrentPosition;
         double totalDurationInSeconds = audioService.Duration;
-
+        if (bugCount >=2)
+        {
+            if (currentPositionInSeconds <= 2 && !audioService.IsPlaying)
+            {
+               await PlaySongAsync();
+            }
+        }
         if (totalDurationInSeconds > 0)
         {
             double percentagePlayed = currentPositionInSeconds / totalDurationInSeconds;
@@ -608,7 +614,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             });
 
             await audioService.PlayAsync();
-
+            bugCount = 0;
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
@@ -699,6 +705,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     bool IsTrueShuffleEnabled = false;
     public async Task<bool> PlayNextSongAsync()
     {
+        var elapsedPlayTime = audioService.CurrentPosition;
+        if (elapsedPlayTime <= 10)
+        {
+            ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
+            ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
+            await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
+        }
+        else
+        {
+            ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
+            await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
+        }
         ObservableCollection<SongsModelView>? currentList = null;
 
         switch (CurrentQueue)

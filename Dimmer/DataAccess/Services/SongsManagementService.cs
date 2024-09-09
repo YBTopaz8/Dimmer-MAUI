@@ -94,14 +94,34 @@ public class SongsManagementService : ISongsManagementService, IDisposable
                     existingSong.IsPlaying = false;
                     existingSong.CoverImagePath = songsModelView.CoverImagePath;
                     existingSong.LastPlayed = songsModelView.LastPlayed;
-                    foreach (var date in songsModelView.DatesPlayed)
+
+                    if(existingSong.DatesPlayed.Count > songsModelView.DatesPlayed.Count)
                     {
-                        if (!existingSong.DatesPlayed.Contains(date))
+                        existingSong.DatesPlayed.RemoveAt(existingSong.DatesPlayed.Count - 1);
+                    }
+
+                    if (existingSong.DatesPlayed.Count < songsModelView.DatesPlayed.Count)
+                    {
+                        foreach (var date in songsModelView.DatesPlayed)
                         {
-                            existingSong.DatesPlayed.Add(date);
+                            if (!existingSong.DatesPlayed.Contains(date))
+                            {
+                                existingSong.DatesPlayed.Add(date);
+                            }
                         }
                     }
-                    //existingSong.DatesPlayed.Add(songsModelView.DatesPlayed.Last());
+
+                    if (existingSong.DatesSkipped.Count < songsModelView.DatesSkipped.Count)
+                    {
+                        foreach (var date in songsModelView.DatesSkipped)
+                        {
+                            if (!existingSong.DatesSkipped.Contains(date))
+                            {
+                                existingSong.DatesSkipped.Add(date);
+                            }
+                        }
+                    }
+
                 }
                 else
                 {
