@@ -12,6 +12,11 @@ public partial class NowPlayingD : ContentPage
         EditableSongsTagsV.BindingContext = HomePageVM;
     }
     public HomePageVM HomePageVM { get; }
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
+    }
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         //if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)

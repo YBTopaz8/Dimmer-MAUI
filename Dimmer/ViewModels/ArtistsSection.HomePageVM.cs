@@ -9,6 +9,8 @@ public partial class HomePageVM
     [ObservableProperty]
     ObservableCollection<SongsModelView> allArtistsAlbumSongs;
     [ObservableProperty]
+    ObservableCollection<SongsModelView> allArtistsSongs;
+    [ObservableProperty]
     ObservableCollection<AlbumModelView> allArtistsAlbums;
     [ObservableProperty]
     string selectedArtistPageTitle;
@@ -37,9 +39,9 @@ public partial class HomePageVM
     void GetAllArtists()
     {
         //AllArtists?.Clear();
-        if (AllArtists?.Count != PlayBackUtilsService.GetAllArtists().Count)
+        if (AllArtists?.Count != PlayBackService.GetAllArtists().Count)
         {
-            AllArtists = PlayBackUtilsService
+            AllArtists = PlayBackService
                 .GetAllArtists()
                 .OrderBy(x => x.Name)
                 .ToObservableCollection();
@@ -66,7 +68,7 @@ public partial class HomePageVM
         
         if (AllArtists?.Count < 1)
         {
-            AllArtists = PlayBackUtilsService.GetAllArtists()
+            AllArtists = PlayBackService.GetAllArtists()
                 .OrderBy(x => x.Name)
                 .ToObservableCollection();
 
@@ -89,16 +91,28 @@ public partial class HomePageVM
             {
                 SelectedAlbumOnArtistPage = AllArtistsAlbums.First();
             }
-            ShowSpecificArtistsSongs(SelectedArtistAlbumId);
+#if ANDROID
+            ShowSpecificArtistsSongs();
+#elif WINDOWS
+            ShowSpecificArtistsSongsWithAlbumId(SelectedArtistAlbumId);
+#endif
         }
     }
     [RelayCommand]
-    void ShowSpecificArtistsSongs(ObjectId albumId)
+    void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
         AllArtistsAlbumSongs?.Clear();        
-        AllArtistsAlbumSongs = PlayBackUtilsService.GetallArtistsSongsById( albumId,SelectedArtistId);
+        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumAndArtistId( albumId,SelectedArtistId);
         SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
+    void ShowSpecificArtistsSongs()
+    {
+        AllArtistsSongs?.Clear();
+        var songss = PlayBackService.GetallArtistsSongsByArtistId(SelectedArtistId);
+        
+        AllArtistsAlbumSongs = songss;
+    }
+
     [RelayCommand]
     public async Task SetSongCoverAsAlbumCover()
     {
@@ -106,9 +120,9 @@ public partial class HomePageVM
         specificAlbum.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
         specificAlbum.NumberOfTracks = AllArtistsAlbumSongs.Count;
         SongsMgtService.UpdateAlbum(specificAlbum);
-
-
-        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistId).OrderBy(x => x.Name).ToObservableCollection();
+        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistId)
+            .OrderBy(x => x.Name)
+            .ToObservableCollection();
     }
 
     [RelayCommand]
@@ -116,10 +130,10 @@ public partial class HomePageVM
     {
         if (string.IsNullOrEmpty(aName))
         {
-            AllArtists = PlayBackUtilsService.GetAllArtists();
+            AllArtists = PlayBackService.GetAllArtists();
             return;
         }
-        AllArtists = PlayBackUtilsService.GetAllArtists()
+        AllArtists = PlayBackService.GetAllArtists()
     .Where(a => a.Name.Contains(aName, StringComparison.OrdinalIgnoreCase))
     .OrderBy(x => x.Name)
     .ToObservableCollection();

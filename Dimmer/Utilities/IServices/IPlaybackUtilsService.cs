@@ -50,5 +50,6 @@ public interface IPlaybackUtilsService
     //Artist Section
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<ArtistModelView> AllArtists { get; }
-    ObservableCollection<SongsModelView> GetallArtistsSongsById(ObjectId albumID, ObjectId artistID);
+    ObservableCollection<SongsModelView> GetallArtistsSongsByAlbumAndArtistId(ObjectId albumID, ObjectId artistID);
+    ObservableCollection<SongsModelView> GetallArtistsSongsByArtistId(ObjectId artistID);
 }

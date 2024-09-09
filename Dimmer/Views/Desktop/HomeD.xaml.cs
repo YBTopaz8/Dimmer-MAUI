@@ -13,8 +13,11 @@ public partial class HomeD : UraniumContentPage
     }
 
     public HomePageVM HomePageVM { get; }
-
-
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.MainPage;
+    }
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (SongsColView.IsLoaded)

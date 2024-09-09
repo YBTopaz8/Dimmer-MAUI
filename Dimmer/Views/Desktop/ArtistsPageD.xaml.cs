@@ -20,14 +20,14 @@ public partial class ArtistsPageD : ContentPage
             AllArtistsColView.ScrollTo(AllArtistsColView.SelectedItem, null, ScrollToPosition.Center, false);
         }
     }
-
     public HomePageVM HomePageVM { get; }
 
     protected override void OnAppearing()
     {
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
-        
+        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+
         base.OnAppearing();
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
@@ -60,7 +60,7 @@ public partial class ArtistsPageD : ContentPage
         HomePageVM.CurrentQueue = 1;
         var t = (Border)sender;
         var album = t.BindingContext as AlbumModelView;
-        HomePageVM.ShowSpecificArtistsSongsCommand.Execute(album.Id);
+        HomePageVM.ShowSpecificArtistsSongsWithAlbumIdCommand.Execute(album.Id);
     }
 
     private void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)

@@ -190,6 +190,26 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
+    public IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID)
+    {
+        try
+        {
+
+            var songLinks = db
+                .All<AlbumArtistSongLink>()
+                .Where(link => link.ArtistId == artistID)
+                .ToList();
+
+            var songIDs = songLinks.Select(link => link.SongId).ToList();
+
+            return songIDs;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting songs by album and artist: {ex.Message}");
+            return Enumerable.Empty<ObjectId>().ToList();
+        }
+    }
     public IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong=false)
     {
         try
@@ -284,4 +304,5 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             return (ObjectId.Empty, ObjectId.Empty);  // Return empty ObjectIds in case of error
         }
     }
+
 }

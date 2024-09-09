@@ -13,8 +13,7 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
-            Shell.NavBarIsVisible="True"
-                            
+            Shell.NavBarIsVisible="True"                            
             x:Name="myPage"          
             BackgroundColor="Black"
             Title="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
@@ -126,7 +125,7 @@
     
     <uranium:UraniumContentPage.Attachments>
 
-        <material:BackdropView Title="Search" IconImageSource="search_d" x:Name="SearchBackDrop">
+        <material:BackdropView Title="Search" IsPresented="False" IconImageSource="search_d" x:Name="SearchBackDrop">
             <VerticalStackLayout Margin="0,0" HeightRequest="250">
                 <Border BackgroundColor="#252526" Stroke="Transparent" 
                         StrokeShape="RoundRectangle 10">

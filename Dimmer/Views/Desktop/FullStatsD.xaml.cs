@@ -6,11 +6,8 @@ public partial class FullStatsD : ContentPage
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
-        HomePageVM = homePageVM;
-        
+        HomePageVM = homePageVM;        
     }
-
-
     public HomePageVM HomePageVM { get; }
 
     protected override void OnAppearing()

@@ -18,7 +18,7 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     ObservableCollection<SongsModelView> displayedSongs;
-
+    SortingEnum CurrentSortingOption;
     [ObservableProperty]
     int totalNumberOfSongs;
     [ObservableProperty]
@@ -44,7 +44,7 @@ public partial class HomePageVM : ObservableObject
     IFolderPicker folderPicker { get; }
     IFileSaver FileSaver { get; }
     
-    IPlaybackUtilsService PlayBackUtilsService { get; }
+    IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
@@ -60,7 +60,7 @@ public partial class HomePageVM : ObservableObject
     {
         this.folderPicker = folderPickerService;
         FileSaver = fileSaver;
-        PlayBackUtilsService = PlaybackManagerService;
+        PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
         ArtistMgtService = artistMgtService;
@@ -76,25 +76,24 @@ public partial class HomePageVM : ObservableObject
         SubscribeToSyncedLyricsChanges();
         SubscribeToLyricIndexChanges();
 
-        VolumeSliderValue = AppSettingsService.VolumeSettingsPreference.GetVolumeLevel();
-
         LoadSongCoverImage();
 
         DisplayedSongs = songsMgtService.AllSongs.ToObservableCollection();
-        DisplayedPlaylists = PlayBackUtilsService.AllPlaylists;
+        DisplayedPlaylists = PlayBackService.AllPlaylists;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
         IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
 
-        AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
+        CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
+        //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
     }
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
     {
-        await PlayBackUtilsService.PlaySelectedSongsOutsideAppAsync(filePath);
+        await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
     [RelayCommand]
@@ -162,7 +161,7 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
             return;
         }
-        bool loadSongsResult = await PlayBackUtilsService.LoadSongsFromFolder(FolderPaths.ToList());
+        bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
         if (loadSongsResult)
         {
             DisplayedSongs?.Clear();
@@ -184,11 +183,11 @@ public partial class HomePageVM : ObservableObject
     {
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
-            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
-            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
 
             ShowGeneralTopTenSongs();
         }
@@ -196,14 +195,14 @@ public partial class HomePageVM : ObservableObject
         {
             if (CurrentQueue == 1)
             {
-                PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
+                PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
                 return;
             }
-            PlayBackUtilsService.PlaySongAsync(SelectedSong, CurrentQueue);
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
         }
         else
         {
-            PlayBackUtilsService.PlaySongAsync(null, CurrentQueue);
+            PlayBackService.PlaySongAsync(null, CurrentQueue);
         }
         AllSyncLyrics = Array.Empty<Content>();
 
@@ -213,14 +212,14 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PauseResumeSong()
     {
-        await PlayBackUtilsService.PauseResumeSongAsync();
+        await PlayBackService.PauseResumeSongAsync();
     }
 
 
     [RelayCommand]
     async Task StopSong()
     {
-        await PlayBackUtilsService.StopSongAsync();
+        await PlayBackService.StopSongAsync();
     }
 
     [RelayCommand]
@@ -228,7 +227,7 @@ public partial class HomePageVM : ObservableObject
     {
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackUtilsService.PlayNextSongAsync();
+        await PlayBackService.PlayNextSongAsync();
     }
 
     [RelayCommand]
@@ -236,32 +235,32 @@ public partial class HomePageVM : ObservableObject
     {
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackUtilsService.PlayPreviousSongAsync();
+        await PlayBackService.PlayPreviousSongAsync();
     }
 
     [RelayCommand]
     void DecreaseVolume()
     {
-        PlayBackUtilsService.DecreaseVolume();
+        PlayBackService.DecreaseVolume();
         VolumeSliderValue -= 0.2;
     }
     [RelayCommand]
     void IncreaseVolume()
     {
-        PlayBackUtilsService.IncreaseVolume();
+        PlayBackService.IncreaseVolume();
         VolumeSliderValue += 0.2;
     }
 
     [RelayCommand]
     void SeekSongPosition()
     {
-        PlayBackUtilsService.SetSongPosition(CurrentPositionPercentage);
+        PlayBackService.SetSongPosition(CurrentPositionPercentage);
     }
 
     [RelayCommand]
     void ChangeVolume()
     {
-        PlayBackUtilsService.ChangeVolume(VolumeSliderValue);
+        PlayBackService.ChangeVolume(VolumeSliderValue);
     }
 
     [ObservableProperty]
@@ -272,10 +271,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
-        CurrentRepeatMode = PlayBackUtilsService.CurrentRepeatMode;
+        CurrentRepeatMode = PlayBackService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
-            CurrentRepeatMode = PlayBackUtilsService.ToggleRepeatMode();
+            CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
         }
 
         switch (CurrentRepeatMode)
@@ -298,11 +297,11 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleShuffleState(bool IsCalledByUI = false)
     {
-        IsShuffleOn = PlayBackUtilsService.IsShuffleOn;
+        IsShuffleOn = PlayBackService.IsShuffleOn;
         if (IsCalledByUI)
         {
             IsShuffleOn = !IsShuffleOn;
-            PlayBackUtilsService.ToggleShuffle(IsShuffleOn);
+            PlayBackService.ToggleShuffle(IsShuffleOn);
         }
         if (IsShuffleOn)
         {
@@ -317,8 +316,8 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SearchSong(string songText)
     {
-        PlayBackUtilsService.SearchSong(songText);
-        TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
+        PlayBackService.SearchSong(songText);
+        TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
 
 
@@ -334,25 +333,25 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task AddSongToFavorites(SongsModelView song)
     {
-        await PlayBackUtilsService.UpdateSongToFavoritesPlayList(song);
+        await PlayBackService.UpdateSongToFavoritesPlayList(song);
         if (!song.IsFavorite)
         {
-            PlayBackUtilsService.AddSongToPlayListWithPlayListName(song, "Favorites");
-            DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
+            PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
+            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             await toast.Show(cts.Token);
         }
         else
         {
-            PlayBackUtilsService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+            PlayBackService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
         }
         song.IsFavorite = !song.IsFavorite;
     }
 
     void ReloadSizeAndDuration()
     {
-        TotalSongsDuration = PlayBackUtilsService.TotalSongsDuration;
-        TotalSongsSize = PlayBackUtilsService.TotalSongsSizes;
+        TotalSongsDuration = PlayBackService.TotalSongsDuration;
+        TotalSongsSize = PlayBackService.TotalSongsSizes;
     }
 
 
@@ -367,9 +366,9 @@ public partial class HomePageVM : ObservableObject
     bool isPlaying = false;
     void SubscribeToPlayerStateChanges()
     {
-        PlayBackUtilsService.PlayerState.Subscribe(state =>
+        PlayBackService.PlayerState.Subscribe(state =>
         {
-            TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
+            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             PickedSong = TemporarilyPickedSong;
             SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
             switch (state)
@@ -402,7 +401,7 @@ public partial class HomePageVM : ObservableObject
                     //PickedSong = "Stopped";
                     break;
                 case MediaPlayerState.LoadingSongs:
-                    LoadingSongsProgress = PlayBackUtilsService.LoadingSongsProgressPercentage;
+                    LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
                     break;
                 default: 
                     break;
@@ -419,14 +418,14 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribeToPlaylistChanges()
     {
-        PlayBackUtilsService.SecondaryQueue.Subscribe(songs =>
+        PlayBackService.SecondaryQueue.Subscribe(songs =>
         {
             DisplayedSongsFromPlaylist = songs;
         });
     }
     private void SubscribeToCurrentSongPosition()
     {
-        PlayBackUtilsService.CurrentPosition.Subscribe(async position =>
+        PlayBackService.CurrentPosition.Subscribe(async position =>
         {
             CurrentPositionInSeconds = position.CurrentTimeInSeconds;
             CurrentPositionPercentage = position.TimeElapsed;
@@ -465,12 +464,14 @@ public partial class HomePageVM : ObservableObject
 
     private void SubscribetoDisplayedSongsChanges()
     {
-        PlayBackUtilsService.NowPlayingSongs.Subscribe(songs =>
+        PlayBackService.NowPlayingSongs.Subscribe(songs =>
         {
-            TemporarilyPickedSong = PlayBackUtilsService.CurrentlyPlayingSong;
+            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
             DisplayedSongs = songs.ToObservableCollection();
             TotalNumberOfSongs = songs.Count;
+
+            ApplySorting(DisplayedSongs);
             //ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
@@ -582,7 +583,7 @@ public partial class HomePageVM : ObservableObject
         {
             DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
         }
-        if (PlayBackUtilsService.CurrentQueue != 2)
+        if (PlayBackService.CurrentQueue != 2)
         {
             await SongsMgtService.UpdateSongDetailsAsync(TemporarilyPickedSong);
         }
@@ -654,7 +655,7 @@ public partial class HomePageVM : ObservableObject
         }
         foreach (var item in splittedLyricsLines)
         {
-            var LyricPhrase = new ATL.LyricsInfo.LyricsPhrase(0, item);
+            var LyricPhrase = new LyricsPhrase(0, item);
             LyricPhraseModel newLyric = new(LyricPhrase);
             LyricsLines?.Add(newLyric);
         }
@@ -726,6 +727,72 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
         
+    }
+
+    [RelayCommand]
+    async Task OpenSortingPopup()
+    {
+        var result = await Shell.Current.ShowPopupAsync(new SortingPopUp(this, CurrentSortingOption));
+
+        if (result != null)
+        {
+            var e = (SortingEnum)result;
+            if (e == CurrentSortingOption)
+            {
+                return;
+            }
+            CurrentSortingOption = e;
+            if (CurrentPage == PageEnum.MainPage)
+            {
+                DisplayedSongs = ApplySorting(DisplayedSongs);
+            }
+            else if (CurrentPage == PageEnum.AllAlbumsPage || CurrentPage == PageEnum.AllAlbumsPage)
+            {
+                AllArtistsAlbumSongs =  ApplySorting(AllArtistsAlbumSongs);
+            }
+        }
+    }
+
+    private ObservableCollection<SongsModelView> ApplySorting(ObservableCollection<SongsModelView> colToSort)
+    {
+        switch (CurrentSortingOption)
+        {
+            case SortingEnum.TitleAsc:
+                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.TitleDesc:
+                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameAsc:
+                colToSort = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameDesc:
+                colToSort = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedAsc:
+                colToSort = colToSort.OrderBy(x => x.DateAdded).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DateAdded).ToObservableCollection();
+                break;
+            case SortingEnum.DurationAsc:
+                colToSort = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.DurationDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.YearAsc:
+                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.YearDesc:
+                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            default:
+                break;
+
+        }
+        AppSettingsService.SortingModePreference.SetSortingPref(CurrentSortingOption);
+        return colToSort;
     }
 
     void OpenEditableSongsTagsView()

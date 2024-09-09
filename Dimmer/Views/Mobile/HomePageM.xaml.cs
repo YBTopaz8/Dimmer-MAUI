@@ -20,6 +20,8 @@ public partial class HomePageM : UraniumContentPage
         SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
     }
 
+    public HomePageVM HomePageVM { get; }
+    public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
     private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "IsPresented")
@@ -42,9 +44,14 @@ public partial class HomePageM : UraniumContentPage
             }
         }
     }
-
-    public HomePageVM HomePageVM { get; }
-    public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+#if ANDROID
+        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
+#endif
+    }
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
         
@@ -83,18 +90,8 @@ public partial class HomePageM : UraniumContentPage
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
     }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        HomePageVM.LoadSongCoverImage();
+    //HomePageVM.LoadSongCoverImage();
 
-#if ANDROID
-        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
-#endif
-    }
-
-
-    
     private void SpecificSong_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 0;

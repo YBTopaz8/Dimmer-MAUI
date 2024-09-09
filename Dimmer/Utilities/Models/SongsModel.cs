@@ -180,3 +180,16 @@ public partial class SongsModelView : ObservableObject
     }
 }
 
+public enum SortingEnum
+{
+    TitleAsc,
+    TitleDesc,
+    ArtistNameAsc,
+    ArtistNameDesc,
+    DateAddedAsc,
+    DateAddedDesc,
+    DurationAsc,
+    DurationDesc,
+    YearAsc,
+    YearDesc,
+}

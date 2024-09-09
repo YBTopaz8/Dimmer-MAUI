@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.CustomPopUpViews.SortingPopUp"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"     
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+           CanBeDismissedByTappingOutsideOfPopup="False"
+           Color="Transparent">
+    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" 
+            BackgroundColor="Transparent">
+        <Border.Resources>
+            <ResourceDictionary>
+                <Style TargetType="Label">
+                    <Setter Property="FontSize" Value="17"/>
+                </Style>
+            </ResourceDictionary>
+        </Border.Resources>
+        <VerticalStackLayout BackgroundColor="Black" Spacing="5"
+                             Padding="20">
+            <Label Text="Sort by..." FontSize="Header" 
+                   FontAttributes="Bold" />
+            <material:RadioButtonGroupView 
+                                           x:Name="RBtnGroup">
+                <material:RadioButton Text="Title - Ascending" />
+                <material:RadioButton Text="Title - Descending" />
+                <material:RadioButton Text="Artist Name - Ascending" />
+                <material:RadioButton Text="Artist Name - Descending" />
+                <material:RadioButton Text="Date Added - Ascending" />
+                <material:RadioButton Text="Date Added - Descending" />
+                <material:RadioButton Text="Duration - Ascending" />
+                <material:RadioButton Text="Duration - Descending" />
+                <material:RadioButton Text="Year - Ascending" />
+                <material:RadioButton Text="Year - Descending" /> 
+            </material:RadioButtonGroupView>
+
+            <HorizontalStackLayout HorizontalOptions="End"
+                                   Spacing="5">
+                <Button Text="Cancel" Clicked="CloseButton_Clicked" FontAttributes="Bold"
+                        BackgroundColor="Transparent" TextColor="DarkRed"/>
+                <Button Text="OK" CornerRadius="15" WidthRequest="60" Clicked="OkButton_Clicked"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Border>
+</mct:Popup>

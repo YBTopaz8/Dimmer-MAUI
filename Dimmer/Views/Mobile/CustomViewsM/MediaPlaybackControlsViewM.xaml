@@ -19,9 +19,10 @@
     </ContentView.Resources>
 
     <VerticalStackLayout >
-        <thumblessSlider:ThumblessSlider VerticalOptions="Center" Margin="-20,0" 
-                                         Value="{Binding CurrentPositionPercentage}" MinimumTrackColor="DarkSlateBlue"/>
-
+        <ProgressBar Progress="{Binding CurrentPositionPercentage}" ProgressColor="DarkSlateBlue"
+                     Margin="-4,-5"
+                     />
+        
         <FlexLayout JustifyContent="SpaceBetween" x:Name="BtmMediaControls" 
                     HeightRequest="55" BackgroundColor="#171919" Margin="-5,0">
             <FlexLayout.GestureRecognizers>

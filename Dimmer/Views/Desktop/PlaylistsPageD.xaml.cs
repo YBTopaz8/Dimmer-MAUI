@@ -10,17 +10,13 @@ public partial class PlaylistsPageD : ContentPage
         BindingContext = homePageVM;
         HomePageVM = homePageVM;
     }
-
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
         HomePageVM.LoadFirstPlaylist();
-        // Assuming DisplayedPlaylistsCV is your CollectionView
-        //if (DisplayedPlaylistsCV.ItemsSource is IEnumerable<object> items && items.Any())
-        //{
-        //    DisplayedPlaylistsCV.SelectedItem = items.First();
-        //}
     }
+
     protected override void OnDisappearing()
     {
         base.OnDisappearing();

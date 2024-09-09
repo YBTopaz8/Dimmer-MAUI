@@ -105,6 +105,26 @@ public class AppSettingsService : IAppSettingsService
         }
     }
 
+    public static class SortingModePreference
+    {
+        public const int sortingMode = 0;
+        public static int SortingMode
+        {
+            get => Preferences.Default.Get(nameof(SortingMode), sortingMode);
+            set => Preferences.Default.Set(nameof(SortingMode), value);
+        }
+
+        public static void SetSortingPref(SortingEnum sortingMode)
+        {
+            var mode = (int)sortingMode;
+            SortingMode = mode;
+        }
+        public static SortingEnum GetSortingPref()
+        {
+            return (SortingEnum)SortingMode;
+        }
+
+    }
     public static class MusicFoldersPreference
     {
         const string defaultFolder = null;//Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);

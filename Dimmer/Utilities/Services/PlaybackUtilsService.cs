@@ -979,7 +979,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         // Normalize the string (spaces are preserved)
         var normalizedString = text.Normalize(NormalizationForm.FormD);
-        var stringBuilder = new System.Text.StringBuilder();
+        var stringBuilder = new StringBuilder();
 
         foreach (var c in normalizedString)
         {
@@ -1179,7 +1179,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public ObservableCollection<SongsModelView> GetallArtistsSongsById(ObjectId albumID, ObjectId artistID)
+    public ObservableCollection<SongsModelView> GetallArtistsSongsByAlbumAndArtistId(ObjectId albumID, ObjectId artistID)
     {
         try
         {
@@ -1208,12 +1208,41 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return (Enumerable.Empty<SongsModelView>().ToObservableCollection());
         }
     }
+
+    public ObservableCollection<SongsModelView> GetallArtistsSongsByArtistId(ObjectId artistID)
+    {
+        try
+        {
+            ObservableCollection<SongsModelView> songsFromArtist = new();
+
+            // Get all song IDs associated with the artist
+            var songsIDsFromArtist = new HashSet<ObjectId>(SongsMgtService.GetSongsIDsFromArtistID(artistID));
+
+            // Add each song found by its ID
+            foreach (var songId in songsIDsFromArtist)
+            {
+                var song = SongsMgtService.AllSongs.FirstOrDefault(s => s.Id == songId);
+                if (song != null)
+                {
+                    songsFromArtist.Add(song);  // Assuming AllSongs returns SongsModelView objects
+                }
+            }
+
+            return songsFromArtist;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting songs by artist ID: {ex.Message}");
+            return (Enumerable.Empty<SongsModelView>().ToObservableCollection());
+        }
+    }
+
+
     public bool DeletePlaylistThroughID(ObjectId playlistID)
     {
         //TODO: DO THIS TOO
         throw new NotImplementedException();
     }
 
- 
 }
 

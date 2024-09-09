@@ -33,7 +33,7 @@ public partial class LyricPhraseModel : ObservableObject
     string text = string.Empty;
     
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModel(ATL.LyricsInfo.LyricsPhrase? phrase=null)
+    public LyricPhraseModel(LyricsPhrase? phrase=null)
     {
         
         if (phrase != null)

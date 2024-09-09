@@ -7,8 +7,6 @@ public partial class SongToPlaylistPopup : Popup
     public SongToPlaylistPopup(HomePageVM homePageVM, IList<string> AllPlaylists)
 	{
 		InitializeComponent();
-        HomePageVM = homePageVM;
-        this.BindingContext = homePageVM;
 
         PlaylistsCV.ItemsSource = null;
         PlaylistsCV.ItemsSource = AllPlaylists;

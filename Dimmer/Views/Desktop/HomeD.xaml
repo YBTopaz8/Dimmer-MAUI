@@ -68,9 +68,15 @@
             <HorizontalStackLayout Spacing="10">
                 <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
                     
-                    <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
+                    </ImageButton.Source>                        
+                </ImageButton>
+                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
+                             Grid.Column="1">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>
@@ -244,7 +250,7 @@
                             <!--<toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
                                                 BorderWidth="0" CornerRadius="5"/>-->
                             <VerticalStackLayout HorizontalOptions="CenterAndExpand" >
-                                <Label Text="{Binding Title}" HorizontalOptions="Start"/>
+                                <Label Text="{Binding Title}" LineBreakMode="TailTruncation" HorizontalOptions="Start"/>
                                 <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>

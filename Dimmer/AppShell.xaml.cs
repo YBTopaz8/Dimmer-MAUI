@@ -34,5 +34,7 @@ public enum PageEnum
     MainPage,
     NowPlayingPage,
     PlaylistsPage,
-    FullStatsPage
+    FullStatsPage,
+    AllAlbumsPage,
+    SpecificAlbumPage
 }

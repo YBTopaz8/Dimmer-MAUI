@@ -21,15 +21,15 @@ public partial class HomePageVM
     public void RefreshPlaylists()
     {
         DisplayedPlaylists.Clear();
-        DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
+        DisplayedPlaylists = PlayBackService.GetAllPlaylists();
     }
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
-        PlayBackUtilsService.GetSongsFromPlaylistID(PlaylistID);
+        PlayBackService.GetSongsFromPlaylistID(PlaylistID);
         //PlayListService.GetSongsFromPlaylistID
         
-        SelectedPlaylistPageTitle = PlayBackUtilsService.SelectedPlaylistName;
+        SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;
         //PlayBackService.UpdateCurrentQueue(, 1);
         //PlayListService.
 #if ANDROID
@@ -47,7 +47,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task AddSongToSpecifcPlaylist(string playlistName)
     {
-        PlayBackUtilsService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, playlistName);
+        PlayBackService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, playlistName);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(songAddedToPlaylistText, duration);
         await toast.Show(cts.Token);
@@ -64,8 +64,8 @@ public partial class HomePageVM
     {
         if (!string.IsNullOrEmpty(PlaylistName))
         {
-            PlayBackUtilsService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
-            DisplayedPlaylists = PlayBackUtilsService.GetAllPlaylists();
+            PlayBackService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
+            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             await toast.Show(cts.Token);
         }
@@ -75,7 +75,7 @@ public partial class HomePageVM
     public async Task DeletePlaylist()
     {
         await btmSheet.DismissAsync();
-        PlayBackUtilsService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
+        PlayBackService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(PlaylistDeletedText, duration);
         await toast.Show(cts.Token);

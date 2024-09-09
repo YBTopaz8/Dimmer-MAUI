@@ -1,8 +1,8 @@
-namespace Dimmer_MAUI.Views.Desktop;
+﻿namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class SingleSongStatsPageD : ContentPage
+public partial class SpecificAlbumPage : UraniumContentPage
 {
-	public SingleSongStatsPageD(HomePageVM homePageVM)
+    public SpecificAlbumPage(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
@@ -12,6 +12,6 @@ public partial class SingleSongStatsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+        HomePageVM.CurrentPage = PageEnum.SpecificAlbumPage;
     }
 }

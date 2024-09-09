@@ -16,6 +16,7 @@ public interface ISongsManagementService
     (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
     IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID);
+    IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
     void UpdateAlbum(AlbumModelView album);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);

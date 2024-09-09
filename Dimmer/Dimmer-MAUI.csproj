@@ -159,6 +159,9 @@
 	  <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\SortingPopUp.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="CustomPopUpViews\ViewLyricsPopUp.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -201,7 +204,10 @@
 	  <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\AlbumPageM.xaml">
+	  <MauiXaml Update="Views\Mobile\AlbumSection\AlbumPageM.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Mobile\AlbumSection\SpecificAlbumPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\ArtistsPageM.xaml">
