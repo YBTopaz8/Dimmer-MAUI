@@ -45,8 +45,10 @@
 
         <SearchBar toolkit:DockLayout.DockPosition="Top" HorizontalOptions="End" x:Name="SearchArtistBar"
                    WidthRequest="200" Placeholder="Type To Search" TextChanged="SearchBar_TextChanged"/>
-        <CollectionView  HeightRequest="170" toolkit:DockLayout.DockPosition="Top"
-                         ItemsLayout="HorizontalList" 
+
+        <CollectionView toolkit:DockLayout.DockPosition="Top" 
+                        HeightRequest="170" x:Name="AllAlbumsColView"
+                         ItemsLayout="HorizontalList" SelectedItem="{Binding SelectedAlbumOnArtistPage}"
                          SelectionMode="Single" VerticalOptions="Start"
                          ItemsSource="{Binding AllArtistsAlbums}">
             <CollectionView.ItemTemplate>
@@ -58,7 +60,6 @@
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
-
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
@@ -87,8 +88,10 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <CollectionView ItemsSource="{Binding AllArtists}" x:Name="DisplayedArtistsCV"
-                EmptyView="No Artists Existing..." SelectionMode="Single" toolkit:DockLayout.DockPosition="Left"
+        <CollectionView toolkit:DockLayout.DockPosition="Left"
+                        ItemsSource="{Binding AllArtists}" x:Name="AllArtistsColView"
+                        EmptyView="No Artists Existing..." SelectionMode="Single" 
+                         SelectedItem="{Binding SelectedArtistOnArtistPage}"
                         WidthRequest="200" Margin="10,0">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" 
@@ -100,7 +103,6 @@
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
-
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
@@ -128,7 +130,7 @@
 
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
         ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-            EmptyView="No songs...">
+            EmptyView="No Songs to display, Please Select an Album...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 

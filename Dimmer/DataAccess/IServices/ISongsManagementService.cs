@@ -13,7 +13,7 @@ public interface ISongsManagementService
     void Dispose();
 
     IList<AlbumModelView> AllAlbums { get; set; }
-    ObjectId GetArtistIdFromSongId(ObjectId songId);
+    (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
     IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID, ObjectId artistID);
     void UpdateAlbum(AlbumModelView album);

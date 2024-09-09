@@ -260,19 +260,28 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     }
 
-    public ObjectId GetArtistIdFromSongId(ObjectId songId)
+    public (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId)
     {
         try
         {
-            var artistID = db.All<AlbumArtistSongLink>()
-                .Where(link => link.SongId == songId)
-                .FirstOrDefault().ArtistId;            
-            return artistID;
+            // Query the database for the AlbumArtistSongLink using the songId
+            var link = db.All<AlbumArtistSongLink>()
+                         .Where(link => link.SongId == songId)
+                         .FirstOrDefault();
+
+            // Check if the link was found to avoid null reference
+            if (link == null)
+            {
+                return (ObjectId.Empty, ObjectId.Empty);
+            }
+
+            // Return both artistID and albumID as a tuple
+            return (link.ArtistId, link.AlbumId);
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
-            return ObjectId.Empty;
+            return (ObjectId.Empty, ObjectId.Empty);  // Return empty ObjectIds in case of error
         }
     }
 }
