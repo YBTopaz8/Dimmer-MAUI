@@ -18,7 +18,7 @@
         </Border.Resources>
         <VerticalStackLayout BackgroundColor="Black" Spacing="5"
                              Padding="20">
-            <Label Text="Sort by..." FontSize="Header" 
+            <Label Text="Sort by..." FontSize="Medium" 
                    FontAttributes="Bold" />
             <material:RadioButtonGroupView 
                                            x:Name="RBtnGroup">

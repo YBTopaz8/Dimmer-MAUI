@@ -249,9 +249,10 @@
                         <HorizontalStackLayout Grid.Column="0" Spacing="10" >
                             <!--<toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
                                                 BorderWidth="0" CornerRadius="5"/>-->
-                            <VerticalStackLayout HorizontalOptions="CenterAndExpand" >
-                                <Label Text="{Binding Title}" LineBreakMode="TailTruncation" HorizontalOptions="Start"/>
-                                <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start">
+                            <VerticalStackLayout HorizontalOptions="CenterAndExpand" WidthRequest="200">
+                                <Label Text="{Binding Title}" LineBreakMode="HeadTruncation"
+                                       HorizontalOptions="Start"/>
+                                <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start" HeightRequest="30">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
                                     </Image.Source>

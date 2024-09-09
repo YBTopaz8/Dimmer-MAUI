@@ -59,6 +59,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     List<ObjectId> playedSongsIDs = [];
     Random _shuffleRandomizer = new Random();
+    SortingEnum CurrentSorting;
     public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistManagementService,
         IArtistsManagementService artistsMgtService)
@@ -69,17 +70,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         ArtistsMgtService = artistsMgtService;
         audioService = AudioService;
 
-
         audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.PlayEnded += AudioService_PlayEnded;
-        _positionTimer = new(1000);
+        _positionTimer = new(500);
         _positionTimer.Elapsed += OnPositionTimerElapsed;
         _positionTimer.AutoReset = true;
-        _nowPlayingSubject.OnNext(new ObservableCollection<SongsModelView>(SongsMgtService.AllSongs.ToObservableCollection()));
 
-        LoadLastPlayedSong(SongsMgtService);
+        LoadSongsWithSorting();
+
+        LoadLastPlayedSong();
         LoadFirstPlaylist();
         CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
@@ -87,6 +88,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         AllPlaylists = PlaylistManagementService.AllPlaylists.ToObservableCollection();
         AllArtists = ArtistsMgtService.AllArtists.ToObservableCollection();
         CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
+    }
+
+    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
+    {
+        if (songss == null || songss.Count < 1)
+        {
+            songss = SongsMgtService.AllSongs.ToObservableCollection();
+        }
+        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
+        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
+        _nowPlayingSubject.OnNext(sortedSongs);
     }
 
     #region Audio Service Events Region
@@ -377,9 +389,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbum(allArtists, allAlbums, allLinks, dbSongs);
 
-        var songss = SongsMgtService.AllSongs.Concat(songs).ToList();
-        
-        _nowPlayingSubject.OnNext(songss.ToObservableCollection());
+        var songss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
+        LoadSongsWithSorting(songss);
+      
         
         SongsMgtService.GetSongs();
 
@@ -388,7 +400,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    private void LoadLastPlayedSong(ISongsManagementService SongsMgtService)
+    private void LoadLastPlayedSong()
     {
         var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
         if (lastPlayedSongID is not null)
@@ -957,8 +969,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                         || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
                         || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
             .ToList();
+
+            LoadSongsWithSorting(SearchedSongsList.ToObservableCollection());
             
-            _nowPlayingSubject.OnNext(SearchedSongsList.ToObservableCollection());
         }
         catch (Exception ex)
         {
@@ -1000,7 +1013,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     void ResetSearch()
     {        
         SearchedSongsList?.Clear();
-        _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
+        LoadSongsWithSorting();
         
     }
 

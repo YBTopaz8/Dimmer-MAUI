@@ -117,13 +117,57 @@ public class AppSettingsService : IAppSettingsService
         public static void SetSortingPref(SortingEnum sortingMode)
         {
             var mode = (int)sortingMode;
-            SortingMode = mode;
+            if (mode != SortingMode)
+            {
+                SortingMode = mode;
+            }
         }
         public static SortingEnum GetSortingPref()
         {
             return (SortingEnum)SortingMode;
         }
 
+    }
+
+    public static ObservableCollection<SongsModelView> ApplySorting(ObservableCollection<SongsModelView> colToSort, SortingEnum mode)
+    {
+        switch (mode)
+        {
+            case SortingEnum.TitleAsc:
+                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.TitleDesc:
+                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameAsc:
+                colToSort = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameDesc:
+                colToSort = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedAsc:
+                colToSort = colToSort.OrderBy(x => x.DateAdded).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DateAdded).ToObservableCollection();
+                break;
+            case SortingEnum.DurationAsc:
+                colToSort = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.DurationDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.YearAsc:
+                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.YearDesc:
+                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            default:
+                break;
+        }
+        AppSettingsService.SortingModePreference.SetSortingPref(mode);
+        return colToSort;
     }
     public static class MusicFoldersPreference
     {
