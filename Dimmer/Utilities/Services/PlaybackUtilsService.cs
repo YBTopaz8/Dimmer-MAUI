@@ -938,23 +938,27 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void SearchSong(string songTitleOrArtistName)
     {
         try
-        {        
+        {
             if (string.IsNullOrWhiteSpace(songTitleOrArtistName))
             {
                 ResetSearch();
                 return;
             }
-            string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName).ToLower();
+
+            // Normalize the search term
+            string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName).ToLowerInvariant();
+
+            // Clear the search result list
             SearchedSongsList?.Clear();
+
+            // Perform the search with proper normalization and comparison
             SearchedSongsList = SongsMgtService.AllSongs
-            .Where(s => NormalizeAndCache(s.Title).ToLower().Contains(normalizedSearchTerm)
-                        || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).Contains(normalizedSearchTerm, StringComparison.CurrentCultureIgnoreCase))
-                        || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).Contains(normalizedSearchTerm, StringComparison.InvariantCultureIgnoreCase)))
+            .Where(s => NormalizeAndCache(s.Title).ToLowerInvariant().Contains(normalizedSearchTerm)
+                        || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
+                        || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
             .ToList();
-
-            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value.First(x => x.Id == ObservableCurrentlyPlayingSong.Id);
+            
             _nowPlayingSubject.OnNext(SearchedSongsList.ToObservableCollection());
-
         }
         catch (Exception ex)
         {
@@ -967,16 +971,19 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (string.IsNullOrEmpty(text))
             return text;
 
-        if (normalizationCache.TryGetValue(text, out string? value))
+        // Retrieve from cache if already normalized
+        if (normalizationCache.TryGetValue(text, out string? cachedValue))
         {
-            return value;
+            return cachedValue;
         }
 
+        // Normalize the string (spaces are preserved)
         var normalizedString = text.Normalize(NormalizationForm.FormD);
         var stringBuilder = new System.Text.StringBuilder();
 
         foreach (var c in normalizedString)
         {
+            // Retain characters that are not non-spacing marks
             var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
             if (unicodeCategory != UnicodeCategory.NonSpacingMark)
             {
@@ -984,6 +991,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
         }
 
+        // Convert back to Form C and cache the result
         var result = stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         normalizationCache[text] = result;
         return result;
