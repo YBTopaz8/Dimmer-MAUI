@@ -47,7 +47,7 @@ public partial class HomePageM : UraniumContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+        HomePageVM.CurrentPage = PageEnum.MainPage;
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
@@ -103,5 +103,19 @@ public partial class HomePageM : UraniumContentPage
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {        
 
+    }
+
+
+    private void ShowSearchView_Clicked(object sender, EventArgs e)
+    {
+        NormalTitleView.IsVisible = false;
+        TitleSearchView.IsVisible = true;
+
+    }
+
+    private void HideSearchView_Clicked(object sender, EventArgs e)
+    {
+        NormalTitleView.IsVisible = true;
+        TitleSearchView.IsVisible = false;
     }
 }

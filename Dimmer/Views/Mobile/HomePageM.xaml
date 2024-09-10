@@ -16,15 +16,52 @@
             Shell.NavBarIsVisible="True"                            
             x:Name="myPage" 
             BackgroundColor="Black"
-            Title="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
             >
-    <Shell.TitleColor>
-        <OnPlatform x:TypeArguments="Color">
-            <On Platform="Android" Value="DarkSlateBlue"/>
-            <On Platform="iOS" Value="White"/>
-        </OnPlatform>
-    </Shell.TitleColor>
+   
+    <Shell.TitleView>
+        <VerticalStackLayout VerticalOptions="Center" >
+            <Grid ColumnDefinitions="*,auto,Auto" IsVisible="True" x:Name="NormalTitleView">
 
+                <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
+                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" 
+                       FontAttributes="Bold" 
+                        FontSize="20" Grid.Column="0"/>
+                <ImageButton  Clicked="ShowSearchView_Clicked" HeightRequest="30"
+                            Grid.Column="1">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                
+                <ImageButton Clicked="HideSearchView_Clicked" HeightRequest="30"
+                            Grid.Column="2" Command="{Binding OpenSortingPopupCommand}" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,auto,auto" IsVisible="False" x:Name="TitleSearchView">
+                <material:TextField Title="Search The Music ..." x:Name="SearchSongSB" 
+                                    ClearButtonVisibility="WhileEditing" TextColor="White" 
+                                    TextChanged="SearchSongSB_TextChanged" Grid.Column="0" />
+                
+                <ImageButton Clicked="HideSearchView_Clicked" HeightRequest="30"
+                            Grid.Column="1" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Close}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton  HeightRequest="30" Command="{Binding OpenSortingPopupCommand}" 
+                            Grid.Column="2" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </Grid>
+        </VerticalStackLayout>
+    </Shell.TitleView>
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
@@ -125,16 +162,11 @@
     
     <uranium:UraniumContentPage.Attachments>
 
-        <material:BackdropView Title="Search" IsPresented="False" IconImageSource="search_d" x:Name="SearchBackDrop">
+        <material:BackdropView Title="Search" IsPresented="False" x:Name="SearchBackDrop">
+            <material:BackdropView.IconImageSource>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
+            </material:BackdropView.IconImageSource>
             <VerticalStackLayout Margin="0,0" HeightRequest="250">
-                <Border BackgroundColor="#252526" Stroke="Transparent" 
-                        StrokeShape="RoundRectangle 10">
-                    
-                    <material:TextField Title="Search Music" x:Name="SearchSongSB" ClearButtonVisibility="WhileEditing"
-                           TextColor="White" TextChanged="SearchSongSB_TextChanged"/>
-
-                </Border>
-
                 <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
