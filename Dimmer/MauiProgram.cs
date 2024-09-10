@@ -101,11 +101,12 @@ public static class MauiProgram
         builder.Services.AddSingleton<SingleSongShell>();
         builder.Services.AddSingleton<PlaylistsPageM>();
         builder.Services.AddSingleton<SinglePlaylistPageM>();
-        builder.Services.AddSingleton<SearchPageM>();
+        builder.Services.AddSingleton<TopStatsPageM>();
         builder.Services.AddSingleton<SingleSongStatsPageM>();
         builder.Services.AddSingleton<ArtistsPageM>();
         builder.Services.AddSingleton<AlbumsM>();
         builder.Services.AddSingleton<SpecificAlbumPage>();
+        builder.Services.AddSingleton<AlbumPageM>();
 
         return builder.Build();
     }

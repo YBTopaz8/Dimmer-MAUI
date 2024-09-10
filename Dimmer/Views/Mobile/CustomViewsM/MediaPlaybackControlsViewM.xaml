@@ -9,7 +9,7 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             xmlns:thumblessSlider="clr-namespace:Dimmer_MAUI.Views.Mobile"
-            x:DataType="vm:HomePageVM" 
+            x:DataType="vm:HomePageVM"
             x:Name="myPage">
     <ContentView.Resources>
         <ResourceDictionary>
@@ -18,13 +18,16 @@
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout >
+    <VerticalStackLayout BackgroundColor="#151C1C">
+        <VerticalStackLayout.GestureRecognizers>
+            <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_Swiped"/>
+        </VerticalStackLayout.GestureRecognizers>
         <ProgressBar Progress="{Binding CurrentPositionPercentage}" ProgressColor="DarkSlateBlue"
                      Margin="-4,-5"
                      />
         
         <FlexLayout JustifyContent="SpaceBetween" x:Name="BtmMediaControls" 
-                    HeightRequest="55" BackgroundColor="#171919" Margin="-5,0">
+                    HeightRequest="55" Margin="-5,0">
             <FlexLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="MediaControlBtmBar_Tapped"/>
             </FlexLayout.GestureRecognizers>

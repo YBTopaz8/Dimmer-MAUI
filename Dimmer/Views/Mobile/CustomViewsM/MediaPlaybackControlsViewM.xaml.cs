@@ -37,4 +37,9 @@ public partial class MediaPlaybackControlsViewM : ContentView
         HomePageVM.PauseResumeSongCommand.Execute(null);        
     }
 
+    private async void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
+    {
+        await NowPlayingBtmSheet.ShowAsync();
+        DeviceDisplay.Current.KeepScreenOn = true;
+    }
 }

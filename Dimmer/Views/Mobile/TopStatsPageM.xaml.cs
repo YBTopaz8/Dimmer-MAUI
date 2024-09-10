@@ -1,8 +1,8 @@
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class SearchPageM : ContentPage
+public partial class TopStatsPageM : ContentPage
 {
-	public SearchPageM(HomePageVM homePageVM)
+	public TopStatsPageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.BindingContext = homePageVM;

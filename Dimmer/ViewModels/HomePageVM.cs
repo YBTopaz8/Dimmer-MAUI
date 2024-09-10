@@ -489,7 +489,11 @@ public partial class HomePageVM : ObservableObject
             }
             else
             {
-                TemporarilyPickedSong!.UnSyncLyrics = "No Lyrics Found...";
+                if (TemporarilyPickedSong is null)
+                {
+                    return;
+                }
+                TemporarilyPickedSong.UnSyncLyrics = "No Lyrics Found...";
             }
         });
     }
@@ -742,6 +746,7 @@ public partial class HomePageVM : ObservableObject
             {
                 return;
             }
+            IsLoadingSongs = true;
             CurrentSortingOption = e;
             if (CurrentPage == PageEnum.MainPage)
             {
@@ -757,6 +762,8 @@ public partial class HomePageVM : ObservableObject
                 AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
             }
         }
+
+        IsLoadingSongs = false;
     }
 
  

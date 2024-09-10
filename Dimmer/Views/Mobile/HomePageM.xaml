@@ -14,17 +14,18 @@
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
             Shell.NavBarIsVisible="True"                            
-            x:Name="myPage" 
+            x:Name="myPage" Shell.TitleColor="Black"
             BackgroundColor="Black"
+            Shell.TabBarBackgroundColor="Black"
             >
    
     <Shell.TitleView>
-        <VerticalStackLayout VerticalOptions="Center" >
+        <VerticalStackLayout VerticalOptions="Center">
             <Grid ColumnDefinitions="*,auto,Auto" IsVisible="True" x:Name="NormalTitleView">
 
                 <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
-                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" 
-                       FontAttributes="Bold" 
+                       HorizontalTextAlignment="Start" VerticalTextAlignment="Center" 
+                       FontAttributes="Bold" TextColor="DarkSlateBlue"
                         FontSize="20" Grid.Column="0"/>
                 <ImageButton  Clicked="ShowSearchView_Clicked" HeightRequest="30"
                             Grid.Column="1">
@@ -81,9 +82,9 @@
             <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
-            <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
-                            VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"
-                            toolkit:DockLayout.DockPosition="Top" 
+            <CollectionView toolkit:DockLayout.DockPosition="Top" 
+                            ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
+                            VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"                            
                             x:Name="SongsColView">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout>

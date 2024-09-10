@@ -32,8 +32,8 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
 
         base.OnCreate(savedInstanceState);
         //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
-        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
-        Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#151C1C"));
+        Window.SetStatusBarColor(Android.Graphics.Color.Black);
+        Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
 
         NotificationHelper.CreateNotificationChannel(Platform.AppContext);

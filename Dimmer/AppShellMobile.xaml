@@ -6,12 +6,12 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              Shell.TabBarUnselectedColor="Gray"
              Shell.TabBarForegroundColor="DarkSlateBlue"
-             Shell.TabBarBackgroundColor="#171919"
+             Shell.TabBarBackgroundColor="#0C0E0D"
              Shell.BackgroundColor="Black"
              Shell.TabBarTitleColor="DarkSlateBlue"
              Shell.ForegroundColor="DarkSlateBlue"
              FlyoutBackgroundColor="Black"
-             Shell.FlyoutBehavior="Flyout">
+             Shell.FlyoutBehavior="Disabled">
 
   
     <TabBar>
@@ -38,7 +38,7 @@
             </Tab.Icon>
 
             <ShellContent 
-       ContentTemplate="{DataTemplate viewsM:ArtistsPageM}"
+       ContentTemplate="{DataTemplate viewsM:TopStatsPageM}"
        Route="AlbumM"/>
         </Tab>
         <Tab Title="Playlists">

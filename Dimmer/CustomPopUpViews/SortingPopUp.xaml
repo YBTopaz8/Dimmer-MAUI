@@ -7,7 +7,7 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
            CanBeDismissedByTappingOutsideOfPopup="False"
            Color="Transparent">
-    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" 
+    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" MinimumWidthRequest="{OnPlatform Android= 300}"
             BackgroundColor="Transparent">
         <Border.Resources>
             <ResourceDictionary>
@@ -16,12 +16,19 @@
                 </Style>
             </ResourceDictionary>
         </Border.Resources>
-        <VerticalStackLayout BackgroundColor="Black" Spacing="5"
+        <VerticalStackLayout BackgroundColor="Black" Spacing="15"
                              Padding="20">
             <Label Text="Sort by..." FontSize="Medium" 
                    FontAttributes="Bold" />
-            <material:RadioButtonGroupView 
+            <material:RadioButtonGroupView Spacing="20"
                                            x:Name="RBtnGroup">
+                <material:RadioButtonGroupView.Resources>
+                    <ResourceDictionary>
+                        <Style TargetType="Label">
+                            <Setter Property="FontSize" Value="20"/>
+                        </Style>
+                    </ResourceDictionary>
+                </material:RadioButtonGroupView.Resources>
                 <material:RadioButton Text="Title - Ascending" />
                 <material:RadioButton Text="Title - Descending" />
                 <material:RadioButton Text="Artist Name - Ascending" />
