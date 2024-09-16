@@ -13,6 +13,7 @@ global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 
 global using UraniumUI.Icons.MaterialIcons;
+global using UraniumUI.Material.Controls;
 
 global using MongoDB.Bson;
 global using Realms;
@@ -28,6 +29,8 @@ global using LiveChartsCore;
 global using LiveChartsCore.SkiaSharpView;
 global using LiveChartsCore.SkiaSharpView.Painting;
 global using LiveChartsCore.SkiaSharpView.VisualElements;
+global using LiveChartsCore.SkiaSharpView.Extensions;
+
 global using SkiaSharp.Views.Maui.Controls.Hosting;
 
 global using Microsoft.Maui.LifecycleEvents;

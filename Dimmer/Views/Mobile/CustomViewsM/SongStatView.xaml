@@ -12,7 +12,7 @@
             x:DataType="vm:HomePageVM"
             x:Name="myPage">
     <Grid RowDefinitions="Auto,*" Margin="8,5">
-        <Grid RowDefinitions="Auto,*">
+        <Grid RowDefinitions="Auto,*" Grid.Row="0">
 
             <FlexLayout JustifyContent="SpaceBetween" Grid.Row="0" x:Name="OverViewSection">
                 <VerticalStackLayout >
@@ -44,6 +44,11 @@
             </FlexLayout>
 
         </Grid>
-        <Label Text="rr" Grid.Row="1"/>
+
+        <VerticalStackLayout Grid.Row="1">
+            <lvc:PieChart Series="{Binding MyPieSeries}" HeightRequest="450"
+              Title="{Binding MyPieSeriesTitle}">
+            </lvc:PieChart>
+        </VerticalStackLayout>
     </Grid>
 </ContentView>

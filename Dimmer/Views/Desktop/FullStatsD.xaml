@@ -78,7 +78,7 @@
                     Stroke="DarkSlateBlue"
                     StrokeShape="RoundRectangle 15">
             <VerticalStackLayout Spacing="5">
-                    <FlexLayout JustifyContent="SpaceBetween">
+                    <FlexLayout JustifyContent="SpaceBetween" IsVisible="False">
                         <VerticalStackLayout VerticalOptions="End">
                             <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="20"/>
                             <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
@@ -98,7 +98,9 @@
                         </ImageButton>
                     </VerticalStackLayout>
                     </FlexLayout>
-                <CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" SelectionMode="Single">
+                
+                <CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" 
+                                SelectionMode="Single" IsVisible="True">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout ItemSpacing="5" Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>
@@ -111,33 +113,14 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+
+                <lvc:PieChart HeightRequest="500" Series="{Binding MyPieSeries}" 
+                              WidthRequest="700"
+                    Title="{Binding MyPieSeriesTitle}">
+                </lvc:PieChart>
             </VerticalStackLayout>
                 
         </Border>
-
-
-
-        <VerticalStackLayout IsVisible="False">
-            <lvc:CartesianChart HeightRequest="400" IsVisible="True"
- Series="{Binding MySeries}"
-                         YAxes="{Binding YAxes}"
-                         XAxes="{Binding XAxes}"
- Title="{Binding Title}">
-            </lvc:CartesianChart>
-            <CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" SelectionMode="Single">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="5" Orientation="Vertical"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:DatePlayCount">
-                        <FlexLayout JustifyContent="SpaceBetween" Padding="10" Margin="10">
-                            <Label Text="{Binding DatePlayed}"/>
-                            <Label Text="{Binding Count}"/>
-                        </FlexLayout>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
 
     </toolkit:DockLayout>
 </ContentPage>

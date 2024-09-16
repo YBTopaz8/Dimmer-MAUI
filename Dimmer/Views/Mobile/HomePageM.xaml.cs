@@ -4,7 +4,6 @@ using Dimmer_MAUI.Platforms.Android;
 #endif
 
 using Plainer.Maui.Controls;
-using UraniumUI.Material.Attachments;
 
 
 namespace Dimmer_MAUI.Views.Mobile;

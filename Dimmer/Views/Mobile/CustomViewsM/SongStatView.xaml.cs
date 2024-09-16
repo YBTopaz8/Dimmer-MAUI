@@ -19,4 +19,5 @@ public partial class SongStatView : ContentView
     {
 
     }
+    
 }

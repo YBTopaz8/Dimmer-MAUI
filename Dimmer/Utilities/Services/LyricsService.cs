@@ -166,6 +166,7 @@ public class LyricsService : ILyricsService
         string lrcExtension = ".lrc";
         string txtExtension = ".txt";
         string lrcFilePath;
+
         if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))
         {
             hasSyncedLyrics = false;
@@ -187,7 +188,7 @@ public class LyricsService : ILyricsService
                 //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
             }
         }
-        
+
         return sortedLyrics.ToList();//lyricPhrases;
     }
 
@@ -615,6 +616,7 @@ public class LyricsService : ILyricsService
     {
         if (Lyrics is null)
         {
+            
             return false;
         }
         songObj.UnSyncLyrics = Lyrics;
@@ -630,26 +632,32 @@ public class LyricsService : ILyricsService
         string lrcFilePath;
 #if WINDOWS
 lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
-#elif ANDROID
-        //string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
-        lrcFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Dimmer" , songFileNameWithoutExtension+fileExtension);
-#endif       
         if (File.Exists(lrcFilePath))
         {
             File.Delete(lrcFilePath);
         }
 
         File.WriteAllText(lrcFilePath, Lyrics);
-        return true; 
-
-        //byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
-        //using MemoryStream stream = new MemoryStream(byteArr);
-        //var result= await FileSaver.SaveAsync( songFileNameWithoutExtension+fileExtension, stream);
-        //result.EnsureSuccess();
-        //if (!result.IsSuccessful)
+#elif ANDROID
+        //lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
+        //string folderPath = Path.Combine(FileSystem.AppDataDirectory, "Dimmer","AllLrc");
+        //if (!Directory.Exists(folderPath))
         //{
-        //    return false;
+        //    Directory.CreateDirectory(folderPath);
         //}
-        //return true;
+        //lrcFilePath = Path.Combine(folderPath, songFileNameWithoutExtension+fileExtension);
+
+        byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
+        using MemoryStream stream = new MemoryStream(byteArr);
+        var result = await FileSaver.SaveAsync(songFileNameWithoutExtension + fileExtension, stream);
+        result.EnsureSuccess();
+        if (!result.IsSuccessful)
+        {
+            return false;
+        }
+        return true;
+#endif
+        return true;
+
     }
 }

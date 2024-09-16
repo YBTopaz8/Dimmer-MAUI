@@ -18,7 +18,7 @@
     <VerticalStackLayout>
         <lvc:PieChart HeightRequest="400"
         Series="{Binding MySeries}"
-        Title="{Binding Title}">
+        Title="{Binding MyPieSeriesTitle}">
         </lvc:PieChart>
 
     </VerticalStackLayout>

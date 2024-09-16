@@ -1,6 +1,4 @@
-﻿using LiveChartsCore;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -67,6 +65,8 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
+        MyPieSeries = null;
+        MyPieSeriesTitle = null;
         if (song == null)
         {
             return;
@@ -74,63 +74,85 @@ public partial class HomePageVM
 
         SongPickedForStats = song;
 
-        if (song.DatesPlayed == null || song.DatesPlayed.Count < 1)
+        if (song.DatesPlayed != null && song.DatesPlayed.Count > 1)
         {
-            song = TemporarilyPickedSong;
+            PlotPieSeries(song);
         }
+        //PlotLineSeries(song);
+    }
 
+    private void PlotPieSeries(SongsModelView? song)
+    {
         var today = DateTime.Today;
         var lastWeek = today.AddDays(-6);
+        int[] dayOfWeekCountsArray;
+        List<string> dayNamesList;
+        AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
+
+        int _index = 0;
+
+        MyPieSeries = dayOfWeekCountsArray.AsPieSeries((value, series) =>
+        {
+            // Get the name of the day
+            var dayName = dayNamesList[_index++];
+            series.Name = dayName;
+            var dayOfWeek = Enum.Parse<DayOfWeek>(dayName);
+            series.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Middle;
+            series.Fill = new SolidColorPaint(GetColorForDay(dayOfWeek));
+
+            series.DataLabelsSize = 14;
+            series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
+            series.DataLabelsFormatter = point => 
+                series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
+            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}"; 
+            
+        });
+
+        // No need for XAxes in a pie chart
+
+        // Set the title
+        MyPieSeriesTitle = new LabelVisual
+        {
+            Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
+            TextSize = 15,
+            Padding = new LiveChartsCore.Drawing.Padding(15),
+            Paint = new SolidColorPaint(SKColors.White)
+        };
+    }
+
+    private void AllLoadingsBeforePlotting(SongsModelView? song, DateTime today, DateTime lastWeek, out int[] dayOfWeekCountsArray, out List<string> dayNamesList)
+    {
+        today = DateTime.Today;
+        lastWeek = today.AddDays(-6);
 
         var filteredDates = song.DatesPlayed
             .Where(date => date.Date >= lastWeek && date.Date <= today)
             .ToList();
 
-        var dateCounts = new Dictionary<DateTime, int>();
-        for (var date = lastWeek; date <= today; date = date.AddDays(1))
-        {
-            dateCounts[date] = 0;
-        }
+        var filteredDayCounts = filteredDates
+            .GroupBy(date => date.DayOfWeek)
+            .ToDictionary(g => g.Key, g => g.Count());
 
-        foreach (var date in filteredDates)
-        {
-            dateCounts[date.Date]++;
-        }
+        dayOfWeekCountsArray = filteredDayCounts
+            .Select(kvp => kvp.Value) 
+            .ToArray();
 
-        var datePlayCounts = dateCounts.Select(d => new DatePlayCount
-        {
-            DatePlayed = d.Key.ToString("dddd"), 
-            Count = d.Value
-        }).ToList();
+        dayNamesList = filteredDayCounts
+            .Select(kvp => kvp.Key.ToString()) 
+            .ToList();
 
-        NumberOfTimesPlayed = datePlayCounts.Sum(d => d.Count);
+        NumberOfTimesPlayed = filteredDayCounts.Sum(kvp => kvp.Value);
 
-        SongDatePlayCounts = new ObservableCollection<DatePlayCount>(datePlayCounts);
-
-
-        DayOfWeek? mostPlayedDay = null;
-        int maxPlays = -1;
-
-        var dayOfWeekCountsArray = Enum.GetValues(typeof(DayOfWeek))
-            .Cast<DayOfWeek>() 
-            .Where(day => day != DayOfWeek.Sunday) 
-            .Concat(new[] { DayOfWeek.Sunday }) 
-            .Select(day =>
-            {
-                var count = dateCounts.Where(d => d.Key.DayOfWeek == day).Sum(d => d.Value);
-
-                if (count > maxPlays)
-                {
-                    maxPlays = count;
-                    mostPlayedDay = day;
-                }
-
-                return count;
-            })
-            .ToArray(); 
-
-        MostPlayedDay = mostPlayedDay?.ToString();
-
+        var mostPlayedDay = filteredDayCounts.OrderByDescending(kvp => kvp.Value).FirstOrDefault();
+        MostPlayedDay = mostPlayedDay.Key.ToString();
+    }
+    private void PlotLineSeries(SongsModelView? song)
+    {
+        var today = DateTime.Today;
+        var lastWeek = today.AddDays(-6);
+        int[] dayOfWeekCountsArray;
+        List<string> dayNamesList;
+        AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
         var lines = new LineSeries<int>
         {
@@ -143,7 +165,7 @@ public partial class HomePageVM
 
             Fill = null
         };
-        
+
         MySeries = new ISeries[]
         {
         lines
@@ -163,7 +185,7 @@ public partial class HomePageVM
         }
         ];
 
-        Title = new LabelVisual
+        MyPieSeriesTitle = new LabelVisual
         {
             Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
             TextSize = 25,
@@ -172,22 +194,6 @@ public partial class HomePageVM
         };
     }
 
-
-
-    private SKColor GetColorForDay(DayOfWeek dayOfWeek)
-    {
-        return dayOfWeek switch
-        {
-            DayOfWeek.Monday => SKColors.Red,
-            DayOfWeek.Tuesday => SKColors.Blue,
-            DayOfWeek.Wednesday => SKColors.Green,
-            DayOfWeek.Thursday => SKColors.Yellow,
-            DayOfWeek.Friday => SKColors.Purple,
-            DayOfWeek.Saturday => SKColors.Orange,
-            DayOfWeek.Sunday => SKColors.Cyan,
-            _ => SKColors.Gray // Default color
-        };
-    }
     [RelayCommand]
     async Task NavigateToSingleSongStatsPage(SongsModelView song)
     {
@@ -200,11 +206,13 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    public ISeries[] mySeries;
+    ISeries[] mySeries;
     [ObservableProperty]
-    public ObservableCollection<DatePlayCount> songDatePlayCounts;
+    IEnumerable<ISeries> myPieSeries;
     [ObservableProperty]
-    public Axis[] xAxes =
+    ObservableCollection<DatePlayCount> songDatePlayCounts;
+    [ObservableProperty]
+    Axis[] xAxes =
     { new Axis
         {
             Name = "Days of the Week",
@@ -214,7 +222,7 @@ public partial class HomePageVM
     };
 
     [ObservableProperty]
-    public Axis[] yAxes =
+    Axis[] yAxes =
     {
         new Axis
         {
@@ -227,9 +235,22 @@ public partial class HomePageVM
             LabelsPaint = new SolidColorPaint(SKColors.White, 3),
         }
     };
-
+    private SKColor GetColorForDay(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => SKColor.Parse("#AEDFF7"),    // Soft Light Blue
+            DayOfWeek.Tuesday => SKColor.Parse("#A8E6CF"),   // Soft Mint Green
+            DayOfWeek.Wednesday => SKColor.Parse("#D3E4CD"), // Soft Pale Green
+            DayOfWeek.Thursday => SKColor.Parse("#FFD3B6"),  // Soft Peach
+            DayOfWeek.Friday => SKColor.Parse("#FFAAA5"),    // Soft Coral
+            DayOfWeek.Saturday => SKColor.Parse("#FF8B94"),  // Soft Pink
+            DayOfWeek.Sunday => SKColor.Parse("#B5EAD7"),    // Soft Teal
+            _ => SKColors.Gray // Default color
+        };
+    }
     [ObservableProperty]
-    public LabelVisual title;
+    LabelVisual myPieSeriesTitle;
 
 
 }
