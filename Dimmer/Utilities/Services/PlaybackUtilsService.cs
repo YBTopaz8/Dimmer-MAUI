@@ -89,17 +89,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     }
 
-    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
-    {
-        if (songss == null || songss.Count < 1)
-        {
-            songss = SongsMgtService.AllSongs.ToObservableCollection();
-        }
-        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
-        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
-        _nowPlayingSubject.OnNext(sortedSongs);
-    }
-
+   
     #region Audio Service Events Region
     private async void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
@@ -120,7 +110,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 return;
             }
           
-            await PlayNextSongAsync();
+           await PlayNextSongAsync();
         }
         finally
         {
@@ -155,6 +145,19 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #endregion
 
     #region Setups/Loadings Region
+
+    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
+    {
+        if (songss == null || songss.Count < 1)
+        {
+            songss = SongsMgtService.AllSongs.ToObservableCollection();
+        }
+        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
+        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
+        _nowPlayingSubject.OnNext(sortedSongs);
+    }
+
+
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
 
     private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?) LoadSongs(List<string> folderPaths)
@@ -479,34 +482,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     int bugCount = 0;
     #endregion
-    private async void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        bugCount++;
-        double currentPositionInSeconds = audioService.CurrentPosition;
-        double totalDurationInSeconds = audioService.Duration;
-        if (bugCount >=2)
-        {
-            if (currentPositionInSeconds <= 2 && !audioService.IsPlaying)
-            {
-               await PlaySongAsync();
-            }
-        }
-        if (totalDurationInSeconds > 0)
-        {
-            double percentagePlayed = currentPositionInSeconds / totalDurationInSeconds;
-            _currentPositionSubject.OnNext(new PlaybackInfo
-            {
-                TimeElapsed = percentagePlayed, //this is the value of that CurrentPosition then takes
-                CurrentTimeInSeconds = currentPositionInSeconds
-            });
-        }
-        else
-        {
-            _currentPositionSubject.OnNext(new());
-        }
-    }
-
-    double currentPosition = 0;
+   
 
     #region Playback Control Region
     public async Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths)
@@ -650,10 +626,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {                
-            ObservableCurrentlyPlayingSong.IsPlaying = true;
-            ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
-                await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
-
+                ObservableCurrentlyPlayingSong.IsPlaying = true;
+                ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
+                SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
             }
             #if WINDOWS
                 MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
@@ -726,12 +701,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
-            await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
+            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         }
         else
         {
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
-            await SongsMgtService.UpdateSongDetailsAsync(ObservableCurrentlyPlayingSong);
+            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         }
         ObservableCollection<SongsModelView>? currentList = null;
 
@@ -756,7 +731,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         UpdateCurrentSongIndex(currentList, isNext: true);
         return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList);
     }
-
 
     public async Task<bool> PlayPreviousSongAsync()
     {
@@ -833,7 +807,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 : (_currentSongIndex - 1 + currentList.Count) % currentList.Count;
         }
     }
-
 
     public async Task SetSongPosition(double positionFraction)
     {
@@ -917,6 +890,34 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return CurrentRepeatMode;
     }
 
+    private async void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        bugCount++;
+        double currentPositionInSeconds = audioService.CurrentPosition;
+        double totalDurationInSeconds = audioService.Duration;
+        if (bugCount >= 2)
+        {
+            if (currentPositionInSeconds <= 2 && !audioService.IsPlaying)
+            {
+                await PlaySongAsync();
+            }
+        }
+        if (totalDurationInSeconds > 0)
+        {
+            double percentagePlayed = currentPositionInSeconds / totalDurationInSeconds;
+            _currentPositionSubject.OnNext(new PlaybackInfo
+            {
+                TimeElapsed = percentagePlayed, //this is the value of that CurrentPosition then takes
+                CurrentTimeInSeconds = currentPositionInSeconds
+            });
+        }
+        else
+        {
+            _currentPositionSubject.OnNext(new());
+        }
+    }
+
+    double currentPosition = 0;
     #endregion
 
     //ObjectId PreviouslyLoadedPlaylist;
@@ -926,12 +927,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         CurrentQueue = QueueNumber;
         _secondaryQueueSubject.OnNext(songs.ToObservableCollection());        
     }
-    public async Task UpdateSongToFavoritesPlayList(SongsModelView song)
+    public void UpdateSongToFavoritesPlayList(SongsModelView song)
     {
-
         if (song is not null)
         {
-            await SongsMgtService.UpdateSongDetailsAsync(song);
+            SongsMgtService.UpdateSongDetails(song);
         }
     }
     public void AddSongToQueue(SongsModelView song)

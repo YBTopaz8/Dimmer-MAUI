@@ -80,61 +80,62 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public async Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView)
+    public bool UpdateSongDetails(SongsModelView songsModelView)
     {
         try
         {
-            await db.WriteAsync(() =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                var existingSong = db.Find<SongsModel>(songsModelView.Id);
-
-                if (existingSong != null)
+                db.Write(() =>
                 {
-                    Debug.WriteLine("found song");
-                    existingSong.IsFavorite = songsModelView.IsFavorite;
-                    existingSong.IsPlaying = false;
-                    existingSong.CoverImagePath = songsModelView.CoverImagePath;
-                    existingSong.LastPlayed = songsModelView.LastPlayed;
+                    var existingSong = db.Find<SongsModel>(songsModelView.Id);
 
-                    if(existingSong.DatesPlayed.Count > songsModelView.DatesPlayed.Count)
+                    if (existingSong != null)
                     {
-                        existingSong.DatesPlayed.RemoveAt(existingSong.DatesPlayed.Count - 1);
-                    }
+                        existingSong.IsFavorite = songsModelView.IsFavorite;
+                        existingSong.IsPlaying = false;
+                        existingSong.CoverImagePath = songsModelView.CoverImagePath;
+                        existingSong.LastPlayed = songsModelView.LastPlayed;
 
-                    if (existingSong.DatesPlayed.Count < songsModelView.DatesPlayed.Count)
-                    {
-                        foreach (var date in songsModelView.DatesPlayed)
+                        if (existingSong.DatesPlayed.Count > songsModelView.DatesPlayed.Count)
                         {
-                            if (!existingSong.DatesPlayed.Contains(date))
+                            existingSong.DatesPlayed.RemoveAt(existingSong.DatesPlayed.Count - 1);
+                        }
+
+                        if (existingSong.DatesPlayed.Count < songsModelView.DatesPlayed.Count)
+                        {
+                            foreach (var date in songsModelView.DatesPlayed)
                             {
-                                existingSong.DatesPlayed.Add(date);
+                                if (!existingSong.DatesPlayed.Contains(date))
+                                {
+                                    existingSong.DatesPlayed.Add(date);
+                                }
                             }
                         }
-                    }
 
-                    if (existingSong.DatesSkipped.Count < songsModelView.DatesSkipped.Count)
-                    {
-                        foreach (var date in songsModelView.DatesSkipped)
+                        if (existingSong.DatesSkipped.Count < songsModelView.DatesSkipped.Count)
                         {
-                            if (!existingSong.DatesSkipped.Contains(date))
+                            foreach (var date in songsModelView.DatesSkipped)
                             {
-                                existingSong.DatesSkipped.Add(date);
+                                if (!existingSong.DatesSkipped.Contains(date))
+                                {
+                                    existingSong.DatesSkipped.Add(date);
+                                }
                             }
                         }
-                    }
 
-                }
-                else
-                {
-                    Debug.WriteLine("didn't found song");
-                    var newSong = new SongsModel(songsModelView)
+                    }
+                    else
                     {
-                        IsPlaying = false
-                    };
-                    db.Add(newSong, update: true);
-                }
+                        Debug.WriteLine("didn't found song");
+                        var newSong = new SongsModel(songsModelView)
+                        {
+                            IsPlaying = false
+                        };
+                        db.Add(newSong, update: true);
+                    }
+                });
             });
-
             return true;
         }
         catch (Exception ex)

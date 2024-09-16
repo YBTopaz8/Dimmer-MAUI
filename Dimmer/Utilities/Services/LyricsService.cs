@@ -533,7 +533,7 @@ public class LyricsService : ILyricsService
             {
                 ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
                 songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath, ImageBytes);
-                await SongsManagementService.UpdateSongDetailsAsync(songs);
+                 SongsManagementService.UpdateSongDetails(songs);
             }
 
             return string.IsNullOrEmpty(songs.CoverImagePath) ? string.Empty : songs.CoverImagePath;
@@ -622,7 +622,7 @@ public class LyricsService : ILyricsService
         songObj.HasSyncedLyrics = IsSynched;
         if (PlayBackService.CurrentQueue != 2)
         {
-            await SongsManagementService.UpdateSongDetailsAsync(songObj);
+             SongsManagementService.UpdateSongDetails(songObj);
         }
         string songDirectory = Path.GetDirectoryName(songObj.FilePath);
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath);
