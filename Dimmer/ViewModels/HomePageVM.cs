@@ -436,15 +436,14 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentPositionInSeconds = position.CurrentTimeInSeconds;
             CurrentPositionPercentage = position.TimeElapsed;
-            //if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
-            //{
-            //    Debug.WriteLine("Synccc");
-            //    await PauseResumeSong();
-            //    MainThread.BeginInvokeOnMainThread(async () =>
-            //    {
-            //        await SaveLyricsToLrcAfterSyncing();
-            //    });
-            //}
+            if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
+            {
+                await PauseResumeSong();
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await SaveLyricsToLrcAfterSyncing();
+                });
+            }
         });
     }
 

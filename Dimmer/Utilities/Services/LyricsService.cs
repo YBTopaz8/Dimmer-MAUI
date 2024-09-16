@@ -642,14 +642,14 @@ lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExt
         File.WriteAllText(lrcFilePath, Lyrics);
         return true; 
 
-        byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
-        using MemoryStream stream = new MemoryStream(byteArr);
-        var result= await FileSaver.SaveAsync( songFileNameWithoutExtension+fileExtension, stream);
-        result.EnsureSuccess();
-        if (!result.IsSuccessful)
-        {
-            return false;
-        }
-        return true;
+        //byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
+        //using MemoryStream stream = new MemoryStream(byteArr);
+        //var result= await FileSaver.SaveAsync( songFileNameWithoutExtension+fileExtension, stream);
+        //result.EnsureSuccess();
+        //if (!result.IsSuccessful)
+        //{
+        //    return false;
+        //}
+        //return true;
     }
 }

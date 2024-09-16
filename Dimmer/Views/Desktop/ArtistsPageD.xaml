@@ -131,6 +131,18 @@
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
         ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
             EmptyView="No Songs to display, Please Select an Album...">
+            <CollectionView.Header>
+                <FlexLayout JustifyContent="SpaceBetween">
+                    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='Songs : {0}'}"/>
+                    
+                    <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
+                                 ToolTipProperties.Text="Show All Artist Songs">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </FlexLayout>
+            </CollectionView.Header>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 

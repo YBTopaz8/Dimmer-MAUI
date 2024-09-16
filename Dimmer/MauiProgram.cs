@@ -48,14 +48,6 @@ public static class MauiProgram
                     }
                     else
                     {
-                        if (winuiAppWindow.Presenter is OverlappedPresenter p)
-                        {
-                            p.IsResizable = false;
-                            p.IsAlwaysOnTop = true;
-                            p.SetBorderAndTitleBar (false, true);
-                            //p.SetBorderAndTitleBar(false, false); // Remove title bar and border
-                        }
-                        // Customizations for the main window, if needed
                     }
                 });
             });
