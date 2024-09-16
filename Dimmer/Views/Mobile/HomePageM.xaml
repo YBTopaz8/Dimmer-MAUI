@@ -175,7 +175,7 @@
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
             </material:BackdropView.IconImageSource>
             <VerticalStackLayout Margin="0,0" HeightRequest="250">
-                <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
+                <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
                 <ListView ItemsSource="{Binding FolderPaths}"/>

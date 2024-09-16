@@ -1,7 +1,4 @@
-﻿//using static Android.Icu.Text.CaseMap;
-
-
-using Dimmer_MAUI.UtilitiesServices;
+﻿using Dimmer_MAUI.UtilitiesServices;
 
 namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
@@ -123,11 +120,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
-        if (isSongPlaying == e)
+        if (isSongPlaying != e)
         {
-            return;
+            isSongPlaying = e;
         }
-        isSongPlaying = e;
 
         if (isSongPlaying)
         {
@@ -167,6 +163,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             List<string> allFiles = new();
             foreach (var folder in folderPaths)
             {
+                if (folder is null)
+                {
+                    continue;
+                }
                 allFiles.AddRange(Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
                                     .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
                                     .AsParallel()

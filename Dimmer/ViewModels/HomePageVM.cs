@@ -85,6 +85,7 @@ public partial class HomePageVM : ObservableObject
         ToggleShuffleState();
         ToggleRepeatMode();
 
+        FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
@@ -117,7 +118,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task SelectSongFromFolder()
     {
-        FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
+        
 
         bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
         if (!res)
@@ -158,6 +159,7 @@ public partial class HomePageVM : ObservableObject
         if (FolderPaths is null)
         {
             await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+            IsLoadingSongs = false;
             return;
         }
         bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
