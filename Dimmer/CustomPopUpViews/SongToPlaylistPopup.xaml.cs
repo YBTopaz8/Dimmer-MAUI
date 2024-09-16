@@ -10,6 +10,7 @@ public partial class SongToPlaylistPopup : Popup
 
         PlaylistsCV.ItemsSource = null;
         PlaylistsCV.ItemsSource = AllPlaylists;
+        HomePageVM = homePageVM;
     }
 
     private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)

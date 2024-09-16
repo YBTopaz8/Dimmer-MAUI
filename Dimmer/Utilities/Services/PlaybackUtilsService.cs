@@ -76,10 +76,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.PlayEnded += AudioService_PlayEnded;
-        _positionTimer = new(500);
-        _positionTimer.Elapsed += OnPositionTimerElapsed;
-        _positionTimer.AutoReset = true;
-
+        
         LoadSongsWithSorting();
 
         LoadLastPlayedSong();
@@ -124,19 +121,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
           
             await PlayNextSongAsync();
-
-            //await Task.Delay(500);
-            //if (!audioService.IsPlaying)
-            //{
-
-            //    if (CurrentRepeatMode == 2) //repeat the same song
-            //    {
-            //        await PlaySongAsync();
-            //        return;
-            //    }
-
-            //    await PlayNextSongAsync();
-            //}
         }
         finally
         {
@@ -157,10 +141,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         if (isSongPlaying)
         {
+            _positionTimer?.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
         }
         else
         {
+            _positionTimer?.Stop();
             _playerStateSubject.OnNext(MediaPlayerState.Paused);
         }
         Debug.WriteLine("Play state " + e);
@@ -576,6 +562,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null)
     {
+
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -612,7 +599,22 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
             }
-            
+
+            // Dispose of the existing timer if it exists
+            if (_positionTimer != null)
+            {
+                _positionTimer.Stop(); 
+                _positionTimer.Elapsed -= OnPositionTimerElapsed;
+                _positionTimer.Dispose(); 
+                _positionTimer = null; 
+            }
+
+            _positionTimer = new System.Timers.Timer(500); 
+            _positionTimer.Elapsed += OnPositionTimerElapsed; 
+            _positionTimer.AutoReset = true; 
+            _positionTimer.Start(); 
+
+
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
@@ -627,7 +629,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
 
-            await audioService.PlayAsync();
+            await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
@@ -685,7 +687,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
-            await audioService.PlayAsync(currentPosition);
+            await audioService.PlayAsync(currentPosition, IsFromUser: true);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
             _positionTimer.Start();
@@ -857,7 +859,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             
             await SetSongPosition(positionInSeconds);
         }
-        await audioService.PlayAsync(positionInSeconds);
+        await audioService.PlayAsync(positionInSeconds, IsFromUser: true);
     }
 
     public void ChangeVolume(double newPercentageValue)

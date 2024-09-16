@@ -183,15 +183,18 @@ public partial class HomePageVM : ObservableObject
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
+            return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
             ShowGeneralTopTenSongs();
+            return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
+            return;
         }
         if (SelectedSong is not null)
         {
@@ -201,10 +204,12 @@ public partial class HomePageVM : ObservableObject
                 return;
             }
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
+            return;
         }
         else
         {
             PlayBackService.PlaySongAsync(null, CurrentQueue);
+            return;
         }
         AllSyncLyrics = Array.Empty<Content>();
 

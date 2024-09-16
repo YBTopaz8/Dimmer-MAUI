@@ -1,6 +1,4 @@
-﻿using Microcharts.Maui;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -8,13 +6,14 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseSkiaSharp(true)
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseBottomSheet()
             .ConfigureContextMenuContainer()
-            .UseMicrocharts()
+            
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

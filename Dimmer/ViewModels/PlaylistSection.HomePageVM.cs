@@ -20,7 +20,7 @@ public partial class HomePageVM
 
     public void RefreshPlaylists()
     {
-        DisplayedPlaylists.Clear();
+        DisplayedPlaylists?.Clear();
         DisplayedPlaylists = PlayBackService.GetAllPlaylists();
     }
     [RelayCommand]
@@ -54,6 +54,7 @@ public partial class HomePageVM
     }
     public async void LoadFirstPlaylist()
     {
+        RefreshPlaylists();
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
             await OpenSpecificPlaylistPage(DisplayedPlaylists[0].Id);

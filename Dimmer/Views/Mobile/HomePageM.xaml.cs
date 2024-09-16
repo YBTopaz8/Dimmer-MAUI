@@ -17,7 +17,7 @@ public partial class HomePageM : UraniumContentPage
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
+        
     }
 
     public HomePageVM HomePageVM { get; }
@@ -48,6 +48,7 @@ public partial class HomePageM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
+        
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
@@ -101,21 +102,30 @@ public partial class HomePageM : UraniumContentPage
     }
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {        
-
+    {
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        }
     }
 
-
-    private void ShowSearchView_Clicked(object sender, EventArgs e)
+    EntryView searchSongTextField;
+    private async void ShowSearchView_Clicked(object sender, EventArgs e)
     {
         NormalTitleView.IsVisible = false;
         TitleSearchView.IsVisible = true;
-
+        SearchSongSB.Focus();
+        var searchSongTextField = SearchSongSB.Content as EntryView;
+        _ = await searchSongTextField!.ShowKeyboardAsync();
     }
 
-    private void HideSearchView_Clicked(object sender, EventArgs e)
+    private async void HideSearchView_Clicked(object sender, EventArgs e)
     {
         NormalTitleView.IsVisible = true;
         TitleSearchView.IsVisible = false;
+        SearchSongSB.Unfocus();
+         searchSongTextField = SearchSongSB.Content as EntryView;
+        _ = await searchSongTextField!.HideKeyboardAsync();
+        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
 }

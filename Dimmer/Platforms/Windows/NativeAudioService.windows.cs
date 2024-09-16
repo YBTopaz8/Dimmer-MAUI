@@ -79,16 +79,18 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     {
         mediaPlayer?.Pause();
         IsPlaying = false;
+        IsPlayingChanged.Invoke(this, false);
         return Task.CompletedTask;
     }
 
-    public Task PlayAsync(double position = 0)
+    public Task PlayAsync(double position = 0, bool IsFromUser=false)
     {
-        if (mediaPlayer != null)
+        if (mediaPlayer != null && IsFromUser)
         {
             mediaPlayer.Position = TimeSpan.FromSeconds(position);
             mediaPlayer.Play();
             IsPlaying = true;
+            IsPlayingChanged.Invoke(this, true);
         }
 
         return Task.CompletedTask;
@@ -114,7 +116,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         var props = mediaItem.GetDisplayProperties();
 
         props.Type = MediaPlaybackType.Music;
-
+        
         if (media.Name != null)
             props.MusicProperties.Title = media.Name;
         if (media.Author != null)
@@ -156,6 +158,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
 
             mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
+            
             mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
             

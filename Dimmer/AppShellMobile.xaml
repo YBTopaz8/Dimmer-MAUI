@@ -15,7 +15,7 @@
 
   
     <TabBar>
-        <Tab Title="Stats">
+        <Tab Title="Home">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"/>
             </Tab.Icon>

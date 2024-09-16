@@ -95,7 +95,7 @@
                         WidthRequest="200" Margin="10,0">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" 
-                                   ItemSpacing="8"/>
+                                   ItemSpacing="6"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
