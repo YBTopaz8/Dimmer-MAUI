@@ -7,11 +7,15 @@ public partial class SingleSongShell : ContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        
     }
 
-    
     public HomePageVM HomePageVM { get; }
 
-    
+    private void TabV_SelectedTabChanged(object sender, UraniumUI.Material.Controls.TabItem e)
+    {
+        if (e != null && e.Title == "Stats")
+        {
+            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+        }
+    }
 }

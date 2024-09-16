@@ -17,38 +17,25 @@ public partial class HomePageM : UraniumContentPage
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        
+        SongsColView.Loaded += SongsColView_Loaded;
+    }
+
+    private void SongsColView_Loaded(object? sender, EventArgs e)
+    {
+        SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
     }
 
     public HomePageVM HomePageVM { get; }
     public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
-    private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == "IsPresented")
-        {
-            var backDrop = sender as BackdropView;
-            var searchSongTextField = SearchSongSB.Content as EntryView;
-            if (backDrop != null)
-            {
-                if (backDrop.IsPresented)
-                {
-                    SearchSongSB.Focus();
-                    await searchSongTextField!.ShowKeyboardAsync();
-                }
-                else
-                {
-                    SearchSongSB.Unfocus();
-                    await searchSongTextField!.HideKeyboardAsync();
-                    
-                }
-            }
-        }
-    }
+
     protected async override void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
-        
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        }
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif

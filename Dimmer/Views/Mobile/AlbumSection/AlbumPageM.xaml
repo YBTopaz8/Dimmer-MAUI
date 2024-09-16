@@ -17,18 +17,18 @@
  
     <Shell.TitleView>
         <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-            <!-- Centered Title -->
+            
             <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center" FontAttributes="Bold" 
                    FontSize="20" Grid.Column="0"/>
-            <!-- Right-aligned albums count -->
+            
             <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                           Grid.Column="1">
                 <ImageButton.Source>
                     <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                 </ImageButton.Source>
             </ImageButton>
-            <!-- Adjust margin to give some spacing from the right -->
+            
         </Grid>
     </Shell.TitleView>
 

@@ -55,7 +55,7 @@
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
                             <FlexLayout.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                                <TapGestureRecognizer Tapped="ShowSongStats_Tapped"/>
                             </FlexLayout.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5">
                                 <toolkit:AvatarView ImageSource="{Binding Song.CoverImagePath}" BorderWidth="0"

@@ -102,7 +102,7 @@ public partial class HomePageVM : ObservableObject
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
-
+        SongPickedForStats = SelectedSongToOpenBtmSheet;
         await Shell.Current.GoToAsync(nameof(SingleSongShell));
         
 #endif

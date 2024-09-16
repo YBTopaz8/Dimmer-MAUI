@@ -16,7 +16,7 @@ public partial class PlaylistsPageM : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
-        HomePageVM.LoadFirstPlaylist();
+        HomePageVM.RefreshPlaylists();
     }
     protected override void OnDisappearing()
     {

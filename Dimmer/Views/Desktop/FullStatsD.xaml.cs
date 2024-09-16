@@ -18,7 +18,7 @@ public partial class FullStatsD : ContentPage
 
     }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
     {
         var send = (FlexLayout)sender;
         var song = send.BindingContext as SingleSongStatistics;

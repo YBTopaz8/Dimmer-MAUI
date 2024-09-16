@@ -193,7 +193,7 @@ public partial class HomePageVM
     {
         SongPickedForStats = song;
 #if ANDROID
-        await Shell.Current.GoToAsync(nameof(SingleSongStatsPageM));
+        //await Shell.Current.GoToAsync(nameof(SingleSongStatsPageM));
 #elif WINDOWS
         await Shell.Current.GoToAsync(nameof(SingleSongStatsPageD));
 #endif
