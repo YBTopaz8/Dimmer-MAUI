@@ -585,6 +585,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 _positionTimer = null; 
             }
 
+            if (!File.Exists(ObservableCurrentlyPlayingSong.FilePath))
+            {
+                return false;
+            }
+
             _positionTimer = new System.Timers.Timer(500); 
             _positionTimer.Elapsed += OnPositionTimerElapsed; 
             _positionTimer.AutoReset = true; 
@@ -624,15 +629,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         finally
         {
-            if (ObservableCurrentlyPlayingSong != null && currentQueue != 2)
-            {                
+            if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
+            {
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
                 ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
             }
-            #if WINDOWS
-                MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
-#endif
         }
     }
 

@@ -20,7 +20,7 @@ public partial class PlaylistsPageD : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.DisplayedSongsFromPlaylist.Clear();        
+        HomePageVM.DisplayedSongsFromPlaylist.Clear();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

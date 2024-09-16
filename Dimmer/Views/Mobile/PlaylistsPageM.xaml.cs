@@ -12,12 +12,17 @@ public partial class PlaylistsPageM : ContentPage
     public HomePageVM HomePageVM { get; }
     public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
 
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    protected override void OnAppearing()
     {
-        base.OnNavigatedTo(args);
-        //HomePageVM.RefreshPlaylists();
+        base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
+        HomePageVM.LoadFirstPlaylist();
     }
-
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        HomePageVM.DisplayedSongsFromPlaylist.Clear();
+    }
     private void playImgBtn_Clicked(object sender, EventArgs e)
     {
         HomePageVM.PauseResumeSongCommand.Execute(null);        
