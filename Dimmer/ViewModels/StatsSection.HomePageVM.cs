@@ -62,9 +62,12 @@ public partial class HomePageVM
     int numberOfTimesPlayed;
     [ObservableProperty]
     string? mostPlayedDay;
+    [ObservableProperty]
+    bool isChartVisible;
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
+        IsChartVisible = false;
         MyPieSeries = null;
         MyPieSeriesTitle = null;
         if (song == null)
@@ -76,13 +79,28 @@ public partial class HomePageVM
 
         if (song.DatesPlayed != null && song.DatesPlayed.Count > 1)
         {
+            
+            var mostPlayedDay = song.DatesPlayed
+                .GroupBy(d => d.DayOfWeek)
+                .OrderByDescending(g => g.Count())
+                .FirstOrDefault();
+
+            
+            MostPlayedDay = mostPlayedDay.Key.ToString();
+            
+
             PlotPieSeries(song);
+        }
+        else
+        {
+            MostPlayedDay = "Never Played Yet";
         }
         //PlotLineSeries(song);
     }
 
     private void PlotPieSeries(SongsModelView? song)
     {
+        IsChartVisible = true;
         var today = DateTime.Today;
         var lastWeek = today.AddDays(-6);
         int[] dayOfWeekCountsArray;
@@ -108,12 +126,9 @@ public partial class HomePageVM
             
         });
 
-        // No need for XAxes in a pie chart
-
-        // Set the title
         MyPieSeriesTitle = new LabelVisual
         {
-            Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
+            Text = $"From {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
             TextSize = 15,
             Padding = new LiveChartsCore.Drawing.Padding(15),
             Paint = new SolidColorPaint(SKColors.White)

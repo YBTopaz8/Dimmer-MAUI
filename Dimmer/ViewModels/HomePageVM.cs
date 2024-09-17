@@ -103,8 +103,14 @@ public partial class HomePageVM : ObservableObject
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
         SongPickedForStats = SelectedSongToOpenBtmSheet;
-        await Shell.Current.GoToAsync(nameof(SingleSongShell));
-        
+        ShowSingleSongStats(SongPickedForStats);
+
+        var currentPage = Shell.Current.CurrentPage;
+
+        if (currentPage.GetType() != typeof(SingleSongShell))
+        {
+            await Shell.Current.GoToAsync(nameof(SingleSongShell));
+        }
 #endif
     }
 

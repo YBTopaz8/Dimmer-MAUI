@@ -190,7 +190,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             int totalFiles = allFiles.Count;
             int processedFiles = 0;
 
-            Debug.WriteLine("Begin Scanning");
             int skipCounter = 0;
 
             foreach (var file in allFiles)
@@ -203,7 +202,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 }
 
                 Track track = new(file);
-                Debug.WriteLine($"Now on file: {track.Title}");
 
                 // Process the title
                 string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
@@ -611,6 +609,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
+            ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
             _currentPositionSubject.OnNext(new());
@@ -630,7 +629,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
-                ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
             }
         }

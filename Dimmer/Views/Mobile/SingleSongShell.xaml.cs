@@ -18,7 +18,9 @@ public partial class SingleSongShell : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);        
+        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+
+        DeviceDisplay.Current.KeepScreenOn = true;
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
@@ -29,6 +31,13 @@ public partial class SingleSongShell : ContentPage
             HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
         }
         
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        DeviceDisplay.Current.KeepScreenOn = false;
     }
 
 }

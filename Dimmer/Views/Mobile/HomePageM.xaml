@@ -149,9 +149,9 @@
         <VerticalStackLayout AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" 
                  AbsoluteLayout.LayoutFlags="PositionProportional" Spacing="3">
 
-            <ImageButton HeightRequest="45" WidthRequest="45"
+            <ImageButton 
                          Clicked="ShowSearchView_Clicked" Padding="10"
-                         BackgroundColor="DarkSlateBlue"
+                         BackgroundColor="DarkSlateBlue" 
                          CornerRadius="20">
                 <ImageButton.Source>
                     <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
