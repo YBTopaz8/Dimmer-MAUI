@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -22,7 +24,14 @@ public partial class HomePageVM
             .OrderByDescending(s => s.PlayCount)
             .Take(10)
             .ToObservableCollection();
-        ShowSingleSongStats(TopTenPlayedSongs.FirstOrDefault()?.Song);
+        if (IsPlaying)
+        {
+            ShowSingleSongStats(TemporarilyPickedSong);
+        }
+        else
+        {
+            ShowSingleSongStats(TopTenPlayedSongs.FirstOrDefault()?.Song);
+        }
     }
 
     [RelayCommand]
@@ -67,6 +76,7 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
+        Debug.WriteLine("Called");
         IsChartVisible = false;
         MyPieSeries = null;
         MyPieSeriesTitle = null;
@@ -77,7 +87,7 @@ public partial class HomePageVM
 
         SongPickedForStats = song;
 
-        if (song.DatesPlayed != null && song.DatesPlayed.Count > 1)
+        if (song.DatesPlayed != null && song.DatesPlayed.Count > 0)
         {
             
             var mostPlayedDay = song.DatesPlayed
@@ -87,12 +97,12 @@ public partial class HomePageVM
 
             
             MostPlayedDay = mostPlayedDay.Key.ToString();
-            
-
             PlotPieSeries(song);
         }
         else
         {
+            IsChartVisible = false;
+            
             MostPlayedDay = "Never Played Yet";
         }
         //PlotLineSeries(song);
@@ -135,10 +145,15 @@ public partial class HomePageVM
         };
     }
 
-    private void AllLoadingsBeforePlotting(SongsModelView? song, DateTime today, DateTime lastWeek, out int[] dayOfWeekCountsArray, out List<string> dayNamesList)
+    private void AllLoadingsBeforePlotting(
+    SongsModelView? song,
+    DateTime today,
+    DateTime lastWeek,
+    out int[] dayOfWeekCountsArray,
+    out List<string> dayNamesList)
     {
         today = DateTime.Today;
-        lastWeek = today.AddDays(-6);
+        lastWeek = today.AddDays(-7);
 
         var filteredDates = song.DatesPlayed
             .Where(date => date.Date >= lastWeek && date.Date <= today)
@@ -148,6 +163,14 @@ public partial class HomePageVM
             .GroupBy(date => date.DayOfWeek)
             .ToDictionary(g => g.Key, g => g.Count());
 
+        var datePlayCounts = filteredDayCounts.Select(d => new DatePlayCount
+        {
+            DatePlayed = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(d.Key),
+            Count = d.Value
+        }).ToList();
+
+        SongDatePlayCounts = new ObservableCollection<DatePlayCount>(datePlayCounts);
+
         dayOfWeekCountsArray = filteredDayCounts
             .Select(kvp => kvp.Value) 
             .ToArray();
@@ -156,11 +179,11 @@ public partial class HomePageVM
             .Select(kvp => kvp.Key.ToString()) 
             .ToList();
 
-        NumberOfTimesPlayed = filteredDayCounts.Sum(kvp => kvp.Value);
-
+        NumberOfTimesPlayed = filteredDayCounts.Values.Sum();
         var mostPlayedDay = filteredDayCounts.OrderByDescending(kvp => kvp.Value).FirstOrDefault();
         MostPlayedDay = mostPlayedDay.Key.ToString();
     }
+
     private void PlotLineSeries(SongsModelView? song)
     {
         var today = DateTime.Today;

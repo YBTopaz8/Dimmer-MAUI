@@ -36,7 +36,7 @@ public partial class SingleSongShell : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-
+        TabV.SelectedTab = TabV.Items[0];
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
