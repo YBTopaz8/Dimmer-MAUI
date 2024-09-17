@@ -697,7 +697,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public async Task<bool> PlayNextSongAsync()
     {
         var elapsedPlayTime = audioService.CurrentPosition;
-        if (elapsedPlayTime <= 10)
+        if (elapsedPlayTime <= 30)
         {
             ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);

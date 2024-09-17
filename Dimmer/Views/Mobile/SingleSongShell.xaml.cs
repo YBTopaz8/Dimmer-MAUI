@@ -17,6 +17,7 @@ public partial class SingleSongShell : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
         HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);        
     }
 

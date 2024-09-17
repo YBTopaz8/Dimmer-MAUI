@@ -400,7 +400,7 @@ public partial class HomePageVM : ObservableObject
                     }
                     if (CurrentPage == PageEnum.FullStatsPage)
                     {
-
+                        ShowSingleSongStats(PickedSong);
                     }
                     break;
                 case MediaPlayerState.Paused:

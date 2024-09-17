@@ -10,11 +10,12 @@
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
             x:DataType="vm:HomePageVM"
-            x:Name="myPage">
+            x:Name="myPage" BackgroundColor="#0C0E0D">
     <Grid RowDefinitions="Auto,*" Margin="8,5">
         <Grid RowDefinitions="Auto,*" Grid.Row="0">
 
-            <FlexLayout JustifyContent="SpaceBetween" Grid.Row="0" x:Name="OverViewSection">
+            <FlexLayout JustifyContent="SpaceBetween" Grid.Row="0"
+                        x:Name="OverViewSection" BackgroundColor="#0C0E0D">
                 <VerticalStackLayout >
                     <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="18"/>
                     <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="18"/>
@@ -24,7 +25,7 @@
                 <VerticalStackLayout>
                     <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}"
                                         HeightRequest="150" WidthRequest="150" Text="S"
-                                        BorderWidth="0.1" CornerRadius="10"/>
+                                        BorderWidth="0" CornerRadius="10"/>
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
                         <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
                                      Clicked="FavSong_Clicked">

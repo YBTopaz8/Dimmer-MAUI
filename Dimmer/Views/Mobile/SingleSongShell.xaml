@@ -35,9 +35,9 @@
 
     <toolkit:DockLayout>
 
-        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Black"/>        
+        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Black"/>
 
-        <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" 
+        <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
                           SelectedTabChanged="TabV_SelectedTabChanged">
             <material:TabView.TabHeaderItemTemplate>
                 <DataTemplate>

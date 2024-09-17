@@ -1,3 +1,5 @@
+using Dimmer_MAUI.Views.Mobile.CustomViewsM;
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class TopStatsPageM : ContentPage
@@ -17,10 +19,30 @@ public partial class TopStatsPageM : ContentPage
         HomePageVM.ShowGeneralTopTenSongsCommand.Execute(null);
     }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
     {
         var send = (FlexLayout)sender;
-        var song = send.BindingContext as SongsModelView;
+        var song = send.BindingContext as SingleSongStatistics;
+        if (song is null)
+        {
+            return;
+        }
+        HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
 
     }
+
+    private async void ShareStatBtn_Clicked(object sender, EventArgs e)
+    {
+        ShareStatBtn.IsVisible = false;
+        
+        string shareCapture = "viewToShare.png";
+        string filePath = Path.Combine(FileSystem.CacheDirectory, shareCapture);
+
+        await SongStatView.CaptureCurrentViewAsync(OverViewSection, filePath);
+
+        ShareStatBtn.IsVisible = true;
+        
+    }
+
+
 }
