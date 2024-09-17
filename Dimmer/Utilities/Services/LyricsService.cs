@@ -562,16 +562,13 @@ public class LyricsService : ILyricsService
             }
         }
 
-        // Extract the file name from the full path
         string fileNameWithExtension = Path.GetFileName(fullfilePath);
 
-        // Sanitize the file name
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
 
         //TODO: SET THIS AS PREFERENCE FOR USERS
         string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
 
-        // Ensure the directory exists
         if (!Directory.Exists(folderPath))
         {
             Directory.CreateDirectory(folderPath);
@@ -596,7 +593,6 @@ public class LyricsService : ILyricsService
             return string.Empty;
         }
 
-        // Write the image data to the file
         try
         {
             File.WriteAllBytes(filePath, imageData);
@@ -631,7 +627,11 @@ public class LyricsService : ILyricsService
         string fileExtension = IsSynched ? ".lrc" : ".txt";
         string lrcFilePath;
 #if WINDOWS
-lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
+        if (!Directory.Exists(songDirectory))
+        {
+            Directory.CreateDirectory(songDirectory);
+        }
+        lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
         if (File.Exists(lrcFilePath))
         {
             File.Delete(lrcFilePath);
@@ -647,15 +647,26 @@ lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExt
         //}
         //lrcFilePath = Path.Combine(folderPath, songFileNameWithoutExtension+fileExtension);
 
-        byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
-        using MemoryStream stream = new MemoryStream(byteArr);
-        var result = await FileSaver.SaveAsync(songFileNameWithoutExtension + fileExtension, stream);
-        result.EnsureSuccess();
-        if (!result.IsSuccessful)
+        //byte[] byteArr = Encoding.Default.GetBytes(Lyrics);
+        //using MemoryStream stream = new MemoryStream(byteArr);
+        //var result = await FileSaver.SaveAsync(songFileNameWithoutExtension + fileExtension, stream);
+        //result.EnsureSuccess();
+        //if (!result.IsSuccessful)
+        //{
+        //    return false;
+        //}
+        //return true;
+        if (!Directory.Exists(songDirectory))
         {
-            return false;
+            Directory.CreateDirectory(songDirectory);
         }
-        return true;
+        lrcFilePath = Path.Combine(songDirectory, songFileNameWithoutExtension + fileExtension);
+        if (File.Exists(lrcFilePath))
+        {
+            File.Delete(lrcFilePath);
+        }
+
+        File.WriteAllText(lrcFilePath, Lyrics);
 #endif
         return true;
 
