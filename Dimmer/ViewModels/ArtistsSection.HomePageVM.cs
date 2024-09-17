@@ -117,11 +117,7 @@ public partial class HomePageVM
             {
                 SelectedAlbumOnArtistPage = AllArtistsAlbums.First();
             }
-#if ANDROID
             ShowSpecificArtistsSongs();
-#elif WINDOWS
-            ShowSpecificArtistsSongsWithAlbumId(SelectedArtistAlbumId);
-#endif
         }
     }
     [RelayCommand]
@@ -131,11 +127,12 @@ public partial class HomePageVM
         AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID( albumId);
         SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
+
+    [RelayCommand]
     void ShowSpecificArtistsSongs()
     {
         AllArtistsSongs?.Clear();
-        var songss = PlayBackService.GetallArtistsSongsByArtistId(SelectedArtistId);
-        
+        var songss = PlayBackService.GetallArtistsSongsByArtistId(SelectedArtistId);        
         AllArtistsAlbumSongs = songss;
     }
 

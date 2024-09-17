@@ -9,11 +9,81 @@
              xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              x:DataType="vm:HomePageVM"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+            xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:Name="myPage"
              BackgroundColor="#171919"
              Shell.BackgroundColor="#171919"
              Title="Top Played Songs">
-    <toolkit:DockLayout BackgroundColor="#171919" Margin="5,0">
+
+    <toolkit:DockLayout Margin="3,0">
+        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+        <Grid RowDefinitions="Auto,*">
+
+            <Border Padding="10" Grid.Row="0" x:Name="OverViewSection" 
+                    Stroke="DarkSlateBlue" BackgroundColor="#171919"
+                    StrokeShape="RoundRectangle 15">
+                
+                    <FlexLayout JustifyContent="SpaceBetween" HeightRequest="150">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="18"/>
+                        <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="18"/>
+                        <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="18"/>
+                        <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="18"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout>
+                            <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}" 
+                                                HeightRequest="110" WidthRequest="110" 
+                                                Text="S" BorderWidth="0" CornerRadius="12"/>
+                        <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" 
+                                     Clicked="ShareStatBtn_Clicked">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </VerticalStackLayout>
+                    </FlexLayout>
+
+            </Border>
+        </Grid>
+        
+        <CollectionView Header="Top Played Songs" Margin="5,0" Grid.Row="1"
+                SelectionMode="Single" VerticalScrollBarVisibility="Never"
+                ItemsSource="{Binding TopTenPlayedSongs}">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:SingleSongStatistics">
+                    <FlexLayout JustifyContent="SpaceBetween">
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Play Song" 
+                                        Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding Song}"/>
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                        <FlexLayout.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ShowSongStats_Tapped"/>
+                        </FlexLayout.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="5">
+                            <toolkit:AvatarView ImageSource="{Binding Song.CoverImagePath}" BorderWidth="0"
+                                        WidthRequest="50" HeightRequest="50"/>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Song.Title}" VerticalTextAlignment="Center" FontSize="16"/>
+                                <Label Text="{Binding Song.ArtistName}" VerticalTextAlignment="Center" FontSize="11"
+                               FontAttributes="Italic"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <Label Text="{Binding PlayCount}" VerticalOptions="Center"/>
+                    </FlexLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </toolkit:DockLayout>
+
+    <!--<toolkit:DockLayout BackgroundColor="#171919" Margin="5,0">
 
         <CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
         <Border Stroke="Transparent" toolkit:DockLayout.DockPosition="Top" 
@@ -26,7 +96,7 @@
                         <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="16"/>
                     <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
                     <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
-                    <Label Text="{Binding SongPickedForStats.DatesPlayed.Count, StringFormat='Played : {0} Times'}" FontSize="16"/>
+                    <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
                     </VerticalStackLayout>
 
                 <VerticalStackLayout VerticalOptions="Center" >
@@ -92,5 +162,5 @@
             </CollectionView>
         </Grid>
 
-    </toolkit:DockLayout>
+    </toolkit:DockLayout>-->
 </ContentPage>

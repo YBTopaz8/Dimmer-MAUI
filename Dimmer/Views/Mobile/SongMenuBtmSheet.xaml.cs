@@ -55,10 +55,9 @@ public partial class SongMenuBtmSheet : BottomSheet
         this.DismissAsync();
     }
 
-    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private async void OpenNavPlayingSongPage_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.NavToNowPlayingPageCommand.Execute(null);
-
         await this.DismissAsync();
     }
 }

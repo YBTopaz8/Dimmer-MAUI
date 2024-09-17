@@ -76,7 +76,7 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public async Task PlayAsync(double position = 0)
+    public async Task PlayAsync(double position = 0, bool IsFromUser=false)
     {
         await instance.Binder.GetMediaPlayerService().Play();
         await instance.Binder.GetMediaPlayerService().Seek((int)position * 1000);

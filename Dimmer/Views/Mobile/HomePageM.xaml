@@ -21,21 +21,15 @@
    
     <Shell.TitleView>
         <VerticalStackLayout VerticalOptions="Center">
-            <Grid ColumnDefinitions="*,auto,Auto" IsVisible="True" x:Name="NormalTitleView">
+            <Grid ColumnDefinitions="*,Auto" IsVisible="True" x:Name="NormalTitleView">
 
                 <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
                        HorizontalTextAlignment="Start" VerticalTextAlignment="Center" 
                        FontAttributes="Bold" TextColor="DarkSlateBlue"
                         FontSize="20" Grid.Column="0"/>
-                <ImageButton  Clicked="ShowSearchView_Clicked" HeightRequest="30"
-                            Grid.Column="1">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-                
+                                
                 <ImageButton Clicked="HideSearchView_Clicked" HeightRequest="30"
-                            Grid.Column="2" Command="{Binding OpenSortingPopupCommand}" >
+                            Grid.Column="1" Command="{Binding OpenSortingPopupCommand}" >
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                     </ImageButton.Source>
@@ -151,13 +145,29 @@
             </CollectionView>
 
         </toolkit:DockLayout>
-    <ImageButton AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" BackgroundColor="DarkSlateBlue"
-                    CornerRadius="20" Padding="10" Clicked="SearchFAB_Clicked"
-                    AbsoluteLayout.LayoutFlags="PositionProportional" Margin="0,0,5,70">
-        <ImageButton.Source>
-            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
-        </ImageButton.Source>
-    </ImageButton>
+
+        <VerticalStackLayout AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" 
+                 AbsoluteLayout.LayoutFlags="PositionProportional" Spacing="3">
+
+            <ImageButton 
+                         Clicked="ShowSearchView_Clicked" Padding="10"
+                         BackgroundColor="DarkSlateBlue" 
+                         CornerRadius="20">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            
+            <ImageButton  
+              BackgroundColor="DarkSlateBlue" 
+              CornerRadius="20" Clicked="SearchFAB_Clicked"
+              Padding="10" Margin="0,0,5,70">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
+                </ImageButton.Source>
+            </ImageButton>
+        </VerticalStackLayout>
+   
         
     </AbsoluteLayout>
     
@@ -168,7 +178,7 @@
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
             </material:BackdropView.IconImageSource>
             <VerticalStackLayout Margin="0,0" HeightRequest="250">
-                <Button Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
+                <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
                 <ListView ItemsSource="{Binding FolderPaths}"/>

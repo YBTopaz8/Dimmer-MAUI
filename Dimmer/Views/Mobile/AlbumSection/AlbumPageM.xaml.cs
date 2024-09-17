@@ -7,8 +7,7 @@ public partial class AlbumPageM : UraniumContentPage
         InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
-       
+               
     }
 
     public HomePageVM HomePageVM { get; }
@@ -34,8 +33,11 @@ public partial class AlbumPageM : UraniumContentPage
 
     protected override void OnAppearing()
     {
-        base.OnAppearing();
+        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
+        //AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+        base.OnAppearing();
+        
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)

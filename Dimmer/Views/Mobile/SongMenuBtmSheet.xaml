@@ -45,9 +45,9 @@
                 </Label.GestureRecognizers>
             </Label>
             <BoxView/>
-            <Label Text="Explore Song" x:Name="ExploreSong">
+            <Label Text="View Song Lyrics" x:Name="ExploreSong">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                    <TapGestureRecognizer Tapped="OpenNavPlayingSongPage_Tapped"/>
                 </Label.GestureRecognizers>
             </Label>
             <BoxView/>

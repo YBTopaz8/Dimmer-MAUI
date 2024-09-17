@@ -4,7 +4,7 @@ public interface INativeAudioService
     public static INativeAudioService Current;
     void InitializeAsync(string audioURI);
     Task InitializeAsync(MediaPlay media);
-    Task PlayAsync(double position = 0);
+    Task PlayAsync(double position = 0, bool IsFromUser=false);
 
     Task PauseAsync();
     ///<Summary>
