@@ -16,8 +16,9 @@
             <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <toolkit:DockLayout Margin="5,5">
-        <HorizontalStackLayout Spacing="10" toolkit:DockLayout.DockPosition="Top">
+    <Grid Margin="5,5" 
+          RowDefinitions="Auto, *">
+        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="40">
             <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}">
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
@@ -31,7 +32,7 @@
 
         </HorizontalStackLayout>
 
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Spacing="5" >
+        <!--<VerticalStackLayout Spacing="5" >
             <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" IsVisible="False"
                            x:Name="ToggleManualSearchViewChkBox" />
         
@@ -43,12 +44,13 @@
                 <Button Text="Manual Search" Command="{Binding UseManualLyricsSearchCommand}"/>
 
             </VerticalStackLayout>
-        </VerticalStackLayout>
-        <CollectionView ItemsSource="{Binding AllSyncLyrics}" HeightRequest="600">
+        </VerticalStackLayout>-->
+
+        <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
+                        >
             <CollectionView.EmptyView>
                 <ContentView>
                     <VerticalStackLayout HorizontalOptions="Center">
-                        <Label Text="No Results Found" HorizontalTextAlignment="Center"/>
                         <ActivityIndicator IsVisible="{Binding IsFetching}" IsRunning="{Binding IsFetching}"/>
                         <Label Text="Service is Unavailable, try again !" IsVisible="{Binding IsFetchSuccessful, Converter={StaticResource BoolToInverse}}"/>
                     </VerticalStackLayout>
@@ -117,6 +119,6 @@
         </CollectionView>
 
 
-    </toolkit:DockLayout>
+    </Grid>
 
 </ContentView>

@@ -85,6 +85,7 @@ public partial class HomePageVM : ObservableObject
         ToggleShuffleState();
         ToggleRepeatMode();
 
+        FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
@@ -101,9 +102,15 @@ public partial class HomePageVM : ObservableObject
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
+        SongPickedForStats = SelectedSongToOpenBtmSheet;
+        ShowSingleSongStats(SongPickedForStats);
 
-        await Shell.Current.GoToAsync(nameof(SingleSongShell));
-        
+        var currentPage = Shell.Current.CurrentPage;
+
+        if (currentPage.GetType() != typeof(SingleSongShell))
+        {
+            await Shell.Current.GoToAsync(nameof(SingleSongShell));
+        }
 #endif
     }
 
@@ -117,7 +124,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task SelectSongFromFolder()
     {
-        FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
+        
 
         bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
         if (!res)
@@ -158,6 +165,7 @@ public partial class HomePageVM : ObservableObject
         if (FolderPaths is null)
         {
             await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+            IsLoadingSongs = false;
             return;
         }
         bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
@@ -183,15 +191,18 @@ public partial class HomePageVM : ObservableObject
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
+            return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
             ShowGeneralTopTenSongs();
+            return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
+            return;
         }
         if (SelectedSong is not null)
         {
@@ -201,10 +212,12 @@ public partial class HomePageVM : ObservableObject
                 return;
             }
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
+            return;
         }
         else
         {
             PlayBackService.PlaySongAsync(null, CurrentQueue);
+            return;
         }
         AllSyncLyrics = Array.Empty<Content>();
 
@@ -335,7 +348,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task AddSongToFavorites(SongsModelView song)
     {
-        await PlayBackService.UpdateSongToFavoritesPlayList(song);
+        PlayBackService.UpdateSongToFavoritesPlayList(song);
         if (!song.IsFavorite)
         {
             PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
@@ -393,7 +406,7 @@ public partial class HomePageVM : ObservableObject
                     }
                     if (CurrentPage == PageEnum.FullStatsPage)
                     {
-
+                        ShowSingleSongStats(PickedSong);
                     }
                     break;
                 case MediaPlayerState.Paused:
@@ -590,7 +603,7 @@ public partial class HomePageVM : ObservableObject
         }
         if (PlayBackService.CurrentQueue != 2)
         {
-            await SongsMgtService.UpdateSongDetailsAsync(TemporarilyPickedSong);
+            SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
         }
         
     }

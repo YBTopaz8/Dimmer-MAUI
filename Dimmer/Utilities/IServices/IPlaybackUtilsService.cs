@@ -30,7 +30,7 @@ public interface IPlaybackUtilsService
     void IncreaseVolume();
     void ToggleShuffle(bool isShuffleOn);
     int ToggleRepeatMode();
-    Task UpdateSongToFavoritesPlayList(SongsModelView song);
+    void UpdateSongToFavoritesPlayList(SongsModelView song);
     int CurrentQueue { get; set; }
     void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1);
     Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths);

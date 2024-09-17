@@ -2,7 +2,6 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Dimmer_MAUI.Platforms.Android.MAudioLib;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
 
 namespace Dimmer_MAUI;

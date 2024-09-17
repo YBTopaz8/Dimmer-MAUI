@@ -18,7 +18,7 @@
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout BackgroundColor="#151C1C">
+    <VerticalStackLayout BackgroundColor="#0C0E0D">
         <VerticalStackLayout.GestureRecognizers>
             <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_Swiped"/>
         </VerticalStackLayout.GestureRecognizers>

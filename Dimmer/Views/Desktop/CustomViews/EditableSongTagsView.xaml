@@ -17,13 +17,14 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>            
         </ResourceDictionary>
     </ContentView.Resources>
-    <toolkit:DockLayout x:Name="ContentVSL">
-        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}" toolkit:DockLayout.DockPosition="Top"
-                             Spacing="10" Margin="10,0">
+    <Grid x:Name="ContentVSL"
+          RowDefinitions="Auto, auto, auto, *">
+        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
+                             Spacing="10" Margin="10,0" Grid.Row="0">
 
-            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+            <!--toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
                                 HeightRequest="150" WidthRequest="150" BorderWidth="0"
-                                CornerRadius="25" />
+                                CornerRadius="25" />-->
 
             <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" />
             <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
@@ -37,10 +38,11 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </VerticalStackLayout>
-        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" x:Name="StartSyncingBtn"
+        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
+                x:Name="StartSyncingBtn" Grid.Row="1"
                 Margin="0,10"/>
-        
-        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" toolkit:DockLayout.DockPosition="Top"
+
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" Grid.Row="2"
                         IsVisible="{Binding IsOnLyricsSyncMode}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
@@ -48,47 +50,43 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
-        <Grid ColumnDefinitions="*">
-            
-            <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" x:Name="SyncingLyricView"
-                            IsVisible="{Binding IsOnLyricsSyncMode}" >
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                        <HorizontalStackLayout HorizontalOptions="Center">
+                    
+        <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" x:Name="SyncingLyricView"
+                        IsVisible="{Binding IsOnLyricsSyncMode}" Grid.Row="3">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <HorizontalStackLayout HorizontalOptions="Center">
                         
-                            <Entry Text="{Binding Text}"
-                                   WidthRequest="600" Margin="0,0,0,5"/>                       
+                        <Entry Text="{Binding Text}"
+                                WidthRequest="600" Margin="0,0,0,5"/>                       
 
-                            <VerticalStackLayout Margin="10,0">
-                                <HorizontalStackLayout>
-                                    <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
-                                                 WidthRequest="20" BackgroundColor="Transparent">
-                                        <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                    <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
-                                                 WidthRequest="20" BackgroundColor="Transparent">
-                                        <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
+                        <VerticalStackLayout Margin="10,0">
+                            <HorizontalStackLayout>
+                                <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
+                                                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+                                <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
+                                                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
 
-                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
                             
-                                <Label Text="{Binding TimeStampText}" HorizontalTextAlignment="Center" 
-                                       VerticalTextAlignment="Center"/>
-                            </VerticalStackLayout>
+                            <Label Text="{Binding TimeStampText}" HorizontalTextAlignment="Center" 
+                                    VerticalTextAlignment="Center"/>
+                        </VerticalStackLayout>
                                 
-                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
                             
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-            <Button Text="Save Lyrics !"/>
-        </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
-    </toolkit:DockLayout>
+    </Grid>
     
 </ContentView>

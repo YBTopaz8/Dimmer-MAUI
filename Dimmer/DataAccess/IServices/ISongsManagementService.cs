@@ -8,7 +8,7 @@ public interface ISongsManagementService
     //public Task UpdateSongAsync(SongsModel song);
     //public Task DeleteSongAsync(SongsModel song);
     void GetSongs();
-    Task<bool> UpdateSongDetailsAsync(SongsModelView songsModelView);
+    bool UpdateSongDetails(SongsModelView songsModelView);
     void Dispose();
 
     IList<AlbumModelView> AllAlbums { get; set; }

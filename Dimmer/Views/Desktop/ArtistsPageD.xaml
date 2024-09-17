@@ -72,7 +72,7 @@
                         <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
                                             WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
-                                        BorderWidth="0" CornerRadius="15"/>
+                                        BorderWidth="0" CornerRadius="8"/>
                             <FlexLayout JustifyContent="SpaceBetween">
                                 <Label Text="{Binding Name}" FontSize="12"
                                        Padding="10,5" LineBreakMode="WordWrap" 
@@ -95,7 +95,7 @@
                         WidthRequest="200" Margin="10,0">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" 
-                                   ItemSpacing="8"/>
+                                   ItemSpacing="4"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
@@ -131,6 +131,18 @@
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
         ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
             EmptyView="No Songs to display, Please Select an Album...">
+            <CollectionView.Header>
+                <FlexLayout JustifyContent="SpaceBetween">
+                    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='Songs : {0}'}"/>
+                    
+                    <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
+                                 ToolTipProperties.Text="Show All Artist Songs">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </FlexLayout>
+            </CollectionView.Header>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 

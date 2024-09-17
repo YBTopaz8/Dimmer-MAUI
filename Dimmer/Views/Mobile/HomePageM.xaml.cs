@@ -4,7 +4,6 @@ using Dimmer_MAUI.Platforms.Android;
 #endif
 
 using Plainer.Maui.Controls;
-using UraniumUI.Material.Attachments;
 
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -17,37 +16,25 @@ public partial class HomePageM : UraniumContentPage
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        SearchBackDrop.PropertyChanged += SearchBackDrop_PropertyChanged;
+        SongsColView.Loaded += SongsColView_Loaded;
+    }
+
+    private void SongsColView_Loaded(object? sender, EventArgs e)
+    {
+        SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
     }
 
     public HomePageVM HomePageVM { get; }
     public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
-    private async void SearchBackDrop_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == "IsPresented")
-        {
-            var backDrop = sender as BackdropView;
-            var searchSongTextField = SearchSongSB.Content as EntryView;
-            if (backDrop != null)
-            {
-                if (backDrop.IsPresented)
-                {
-                    SearchSongSB.Focus();
-                    await searchSongTextField!.ShowKeyboardAsync();
-                }
-                else
-                {
-                    SearchSongSB.Unfocus();
-                    await searchSongTextField!.HideKeyboardAsync();
-                    
-                }
-            }
-        }
-    }
+
     protected async override void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        }
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
@@ -101,21 +88,30 @@ public partial class HomePageM : UraniumContentPage
     }
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {        
-
+    {
+        if (SongsColView.IsLoaded)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+        }
     }
 
-
-    private void ShowSearchView_Clicked(object sender, EventArgs e)
+    EntryView searchSongTextField;
+    private async void ShowSearchView_Clicked(object sender, EventArgs e)
     {
         NormalTitleView.IsVisible = false;
         TitleSearchView.IsVisible = true;
-
+        SearchSongSB.Focus();
+        var searchSongTextField = SearchSongSB.Content as EntryView;
+        _ = await searchSongTextField!.ShowKeyboardAsync();
     }
 
-    private void HideSearchView_Clicked(object sender, EventArgs e)
+    private async void HideSearchView_Clicked(object sender, EventArgs e)
     {
         NormalTitleView.IsVisible = true;
         TitleSearchView.IsVisible = false;
+        SearchSongSB.Unfocus();
+         searchSongTextField = SearchSongSB.Content as EntryView;
+        _ = await searchSongTextField!.HideKeyboardAsync();
+        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
 }

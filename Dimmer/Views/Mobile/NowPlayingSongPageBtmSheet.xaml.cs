@@ -44,6 +44,10 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
 
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
+        if (HomePageVM.DisplayedSongs.Count < 1)
+        {
+            return;
+        }
         HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         await HomePageVM.NavigateToArtistsPage(HomePageVM.SelectedSongToOpenBtmSheet);
         await this.DismissAsync();

@@ -27,7 +27,6 @@ public partial class ArtistsPageD : ContentPage
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-
         base.OnAppearing();
     }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
