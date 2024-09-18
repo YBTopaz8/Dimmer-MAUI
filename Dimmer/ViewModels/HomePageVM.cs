@@ -190,7 +190,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, DisplayedSongsFromPlaylist);
             return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
@@ -345,23 +345,7 @@ public partial class HomePageVM : ObservableObject
         await btmSheet.ShowAsync();
 #endif
     }
-    [RelayCommand]
-    async Task AddSongToFavorites(SongsModelView song)
-    {
-        PlayBackService.UpdateSongToFavoritesPlayList(song);
-        if (!song.IsFavorite)
-        {
-            PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
-            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
-            var toast = Toast.Make(songAddedToPlaylistText, duration);
-            await toast.Show(cts.Token);
-        }
-        else
-        {
-            PlayBackService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
-        }
-        song.IsFavorite = !song.IsFavorite;
-    }
+    
 
     void ReloadSizeAndDuration()
     {
@@ -466,7 +450,7 @@ public partial class HomePageVM : ObservableObject
             string? lyr = string.Join(Environment.NewLine, LyricsLines.Select(line => $"{line.TimeStampText} {line.Text}"));
             if (lyr is not null)
             {
-                if (await LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
+                if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
                 {
                     await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
                     CurrentViewIndex = 0;
@@ -584,7 +568,7 @@ public partial class HomePageVM : ObservableObject
             TemporarilyPickedSong.UnSyncLyrics = string.Empty;
             TemporarilyPickedSong.HasSyncedLyrics = true;
         }
-        isSavedSuccessfully = await LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
+        isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
         if (isSavedSuccessfully)
         {
             await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");

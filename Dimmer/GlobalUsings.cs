@@ -76,9 +76,7 @@ global using Dimmer_MAUI.Utilities.Models;
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;
 
-#if ANDROID
-using Dimmer_MAUI.Platforms.Android;
-#endif
+
 
 
 namespace Dimmer_MAUI;

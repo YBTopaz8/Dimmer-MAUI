@@ -78,7 +78,9 @@
                     Stroke="DarkSlateBlue"
                     StrokeShape="RoundRectangle 15">
             <VerticalStackLayout Spacing="5">
+
                     <FlexLayout JustifyContent="SpaceBetween" >
+
                         <VerticalStackLayout VerticalOptions="Center">
                             <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="20"/>
                             <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
@@ -99,6 +101,7 @@
                     </VerticalStackLayout>
                     </FlexLayout>
                 
+
                 <CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" 
                                 HorizontalOptions="Center"
                                 SelectionMode="Single" IsVisible="False">
@@ -108,6 +111,7 @@
                             <Label Text="Play Count" FontAttributes="Bold"/>
                         </FlexLayout>
                     </CollectionView.Header>
+
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout ItemSpacing="5" Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>
@@ -119,7 +123,7 @@
                             </FlexLayout>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
-                </CollectionView>
+                </CollectionView>-->
 
                 <lvc:PieChart HeightRequest="450" Series="{Binding MyPieSeries}" 
                               WidthRequest="700" IsVisible="True"
