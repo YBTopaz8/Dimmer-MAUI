@@ -196,7 +196,7 @@ public partial class HomePageVM : ObservableObject
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
-            ShowGeneralTopTenSongs();
+            //ShowGeneralTopTenSongs();
             return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)

@@ -32,7 +32,7 @@ public partial class App : Application
         win.Height = 900;
         win.Width = 1200;
         
-        win.Title = "Dimmer";
+        win.Title = "Dimmer v0.0.4";
         
         return win;
         
@@ -42,18 +42,30 @@ public partial class App : Application
     {
         try
         {
-            // Log to a file
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "crashlog.txt");
-            string logContent = $"[{DateTime.Now}]\n{ex}\n\n";
-            if (File.Exists(filePath))
+            // Define the directory path
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
+
+            // Ensure the directory exists; if not, create it
+            if (!Directory.Exists(directoryPath))
             {
-                File.AppendAllText(filePath, logContent);
-            }            
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string filePath = Path.Combine(directoryPath, "crashlog.txt");
+
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\n StackTrack:{ex.StackTrace}\n";
+
+            File.AppendAllText(filePath, logContent);
         }
-        catch
+        catch (Exception loggingEx)
         {
-            // If logging fails, there's not much we can do
+            // Optionally, handle exceptions that occur during logging
+            // For example, you might want to notify the user or log to an alternative location
+            // However, avoid throwing exceptions from a logging method to prevent potential infinite loops
+            
+            Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
+
 
 }

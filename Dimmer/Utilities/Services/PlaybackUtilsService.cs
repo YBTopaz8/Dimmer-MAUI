@@ -609,7 +609,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
+
             ObservableCurrentlyPlayingSong.DatesPlayed?.Add(DateTimeOffset.Now);
+
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
             _currentPositionSubject.OnNext(new());

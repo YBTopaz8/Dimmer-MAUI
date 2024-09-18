@@ -18,7 +18,7 @@
     </ContentView.Resources>
     <Grid Margin="5,5" 
           RowDefinitions="Auto, *">
-        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="40">
+        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50">
             <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}">
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>

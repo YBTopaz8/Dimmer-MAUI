@@ -32,9 +32,9 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
 
-        <!--<lvc:CartesianChart HeightRequest="400" Series="{Binding MySeries}" 
-                            YAxes="{Binding YAxes}" XAxes="{Binding XAxes}" 
-                            Title="{Binding Title}">
-        </lvc:CartesianChart>-->
+        <lvc:PieChart HeightRequest="800" Series="{Binding MyPieSeries}" 
+              WidthRequest="800" IsVisible="True"
+    Title="{Binding MyPieSeriesTitle}">
+        </lvc:PieChart>
     </toolkit:DockLayout>
 </ContentPage>
