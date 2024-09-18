@@ -609,7 +609,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
-            ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
+            ObservableCurrentlyPlayingSong.DatesPlayed?.Add(DateTimeOffset.Now);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
             _currentPositionSubject.OnNext(new());
@@ -701,7 +701,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
             SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         }
-        else
+        else if (CurrentQueue != 2)
         {
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
             SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);

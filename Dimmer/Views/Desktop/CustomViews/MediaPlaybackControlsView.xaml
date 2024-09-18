@@ -15,9 +15,9 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout BackgroundColor="#111111" HeightRequest="120">
+    <VerticalStackLayout HeightRequest="120">
 
-        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue" BackgroundColor="#111111"
+        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue" 
             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
         </Slider>
         

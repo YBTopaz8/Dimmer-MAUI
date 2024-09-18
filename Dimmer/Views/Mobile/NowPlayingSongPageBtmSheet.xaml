@@ -30,16 +30,17 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </the49:BottomSheet.Resources>
-    <Grid toolkit:DockLayout.DockPosition="Bottom" Margin="10,0" >
+    <Grid toolkit:DockLayout.DockPosition="Bottom" Margin="10,0" 
+          >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border StrokeShape="RoundRectangle 18" Margin="0,20"
                 StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
             
-            <Grid>
+            <Grid >
                 
                 <!--<cards:CoverFlowView ItemsSource="{Binding DisplayedSongs}" ItemSwiped="CoverFlowView_ItemSwiped" x:Name="CoverFlowV"
                                     SelectedItem="{Binding TemporarilyPickedSong}" IsVerticalSwipeEnabled="False">
@@ -51,7 +52,8 @@
                         </DataTemplate>
                     </cards:CoverFlowView.ItemTemplate>
                 </cards:CoverFlowView>-->
-                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"/>
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"
+                       />
                 <!-- Synced lyics Col View -->
                 <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center"
                        HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>
@@ -59,7 +61,7 @@
         </Border>
 
         <VerticalStackLayout Spacing="25" VerticalOptions="End"
-                             MinimumHeightRequest="310" x:Name="dl" Grid.Row="1">
+                             MaximumHeightRequest="390" x:Name="dl" Grid.Row="1">
             
             <Grid BackgroundColor="Transparent" >
                 <Grid.ColumnDefinitions>
@@ -117,37 +119,62 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <ImageButton Grid.Column="0" WidthRequest="40"
+                <ImageButton Grid.Column="0" WidthRequest="25"
                              Command="{Binding ToggleRepeatModeCommand}">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}" Color="#B8B8B8"/>
                     </ImageButton.Source>
                 </ImageButton>
-                <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}">
+                <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
+                             WidthRequest="45">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"
+                                         Color="#B8B8B8"/>
                     </ImageButton.Source>
                 </ImageButton>
 
-                <cw:PlayPauseView x:Name="PlayPauseV" Grid.Column="2" />
-                
-                <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" BackgroundColor="Transparent">
+                <StackLayout VerticalOptions="Center" x:Name="PpView" Grid.Column="2">
+
+                    <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
+     Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
+                 HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
+
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"
+                                             Color="DarkSlateBlue"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
+     x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
+                 HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
+
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"
+                                             Color="DarkSlateBlue"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                </StackLayout>
+
+                <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" 
+                             WidthRequest="45">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"
+                                         Color="#B8B8B8"/>
                     </ImageButton.Source>
                 </ImageButton>
                 <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                             WidthRequest="40">
+                             WidthRequest="25">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
-                        <!--<FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Shuffle}" Color="White"/>-->
-
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"
+                                         Color="#B8B8B8"/>
                     </ImageButton.Source>
                 </ImageButton>
             </Grid>
@@ -159,7 +186,12 @@
 
             <FlexLayout JustifyContent="SpaceBetween" HeightRequest="40"
                         toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,10">
-                <Label Text="" />
+
+                <ImageButton Command="{Binding ShowSleepTimerPopupCommand}">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Nights_stay}"/>
+                    </ImageButton.Source>
+                </ImageButton>
 
                 <HorizontalStackLayout Spacing="15">
                     <HorizontalStackLayout.Resources>
@@ -180,18 +212,13 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton Command="{Binding ShowSleepTimerPopupCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Nights_stay}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <!--<ImageButton HeightRequest="40" BackgroundColor="Transparent"
+                    <ImageButton HeightRequest="40" BackgroundColor="Transparent"
                                  Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
                         CommandParameter="{Binding TemporarilyPickedSong}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                         </ImageButton.Source>
-                    </ImageButton>-->
+                    </ImageButton>
                     <ImageButton>
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>

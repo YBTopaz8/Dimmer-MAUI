@@ -21,12 +21,13 @@ public partial class SingleSongShell : ContentPage
         HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
 
         DeviceDisplay.Current.KeepScreenOn = true;
+        TabV.SelectedTab = TabV.Items[0];
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
     {
         
-        if (e != null && e.Title == "Stats")
+        if (e!= null && e.Title == "Stats")
         {
             HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
         }
