@@ -147,6 +147,7 @@
 		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
+		<PackageReference Include="Vanara.Windows.Shell" Version="4.0.4" />
 		<PackageReference Include="z440.atl.core" Version="6.1.0" />
 	</ItemGroup>
 
