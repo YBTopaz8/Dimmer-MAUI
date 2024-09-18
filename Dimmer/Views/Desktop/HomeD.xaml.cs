@@ -45,10 +45,10 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.SearchSongCommand.Execute(string.Empty);
 
-                await Task.Delay(1500);
+                await Task.Delay(500);
                 if (SongsColView.IsLoaded)
                 {
-                    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: true);
+                    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Start, animate: true);
                 }
             }
         }

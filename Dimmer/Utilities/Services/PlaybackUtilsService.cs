@@ -609,7 +609,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
-            ObservableCurrentlyPlayingSong.DatesPlayed.Add(DateTimeOffset.Now);
+            ObservableCurrentlyPlayingSong.DatesPlayed?.Add(DateTimeOffset.Now);
 
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
@@ -920,7 +920,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #endregion
 
     //ObjectId PreviouslyLoadedPlaylist;
-    public int CurrentQueue { get; set; } = 0;
+    public int CurrentQueue { get; set; } = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     public void UpdateCurrentQueue(IList<SongsModelView> songs,int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     {
         CurrentQueue = QueueNumber;

@@ -9,8 +9,9 @@ public partial class HomePageVM
     ObservableCollection<SingleSongStatistics> topTenPlayedSongs = new();
 
     [RelayCommand]
-    void ShowGeneralTopTenSongs()
+    void ShowGeneralTopXSongs()
     {
+        Debug.WriteLine("Calledtrrt");
         // Get today's date
         var today = DateTime.Today;
         // Get the date 7 days ago
@@ -24,7 +25,7 @@ public partial class HomePageVM
             .OrderByDescending(s => s.PlayCount)
             .Take(10)
             .ToObservableCollection();
-        if (IsPlaying)
+        if (IsPlaying && CurrentQueue !=2)
         {
             ShowSingleSongStats(TemporarilyPickedSong);
         }
@@ -76,7 +77,7 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
-        Debug.WriteLine("Called");
+        Debug.WriteLine("Calledsss");
         IsChartVisible = false;
         MyPieSeries = null;
         MyPieSeriesTitle = null;

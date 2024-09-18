@@ -14,7 +14,7 @@ public partial class FullStatsD : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowGeneralTopTenSongsCommand.Execute(null);
+        HomePageVM.ShowGeneralTopXSongsCommand.Execute(null);
     }
 
     private void ShowSongStats_Tapped(object sender, TappedEventArgs e)

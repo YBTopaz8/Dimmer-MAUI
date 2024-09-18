@@ -67,5 +67,10 @@ public partial class App : Application
         }
     }
 
+    public override void CloseWindow(Window window)
+    {
+        base.CloseWindow(window);
+    }
+
 
 }

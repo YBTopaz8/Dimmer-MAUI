@@ -12,7 +12,8 @@
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"             
-             x:Name="myPage">
+             x:Name="myPage"
+            BackgroundColor="#1F1F1F">
 
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
@@ -34,11 +35,8 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-    <uranium:UraniumContentPage.ToolbarItems>
-        <ToolbarItem Text="Select Songs" Command="{Binding SelectSongFromFolderCommand}"/>
-    </uranium:UraniumContentPage.ToolbarItems>
 
-    <toolkit:DockLayout>
+    <toolkit:DockLayout BackgroundColor="#1F1F1F">
         <FlyoutBase.ContextFlyout>
             <MenuFlyout>
                 <MenuFlyoutItem Text="Find Song"

@@ -93,6 +93,7 @@ public partial class HomePageVM : ObservableObject
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
     {
+        CurrentQueue = 2;
         await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
@@ -188,6 +189,7 @@ public partial class HomePageVM : ObservableObject
     //void PlaySong(SongsModelView? SelectedSong = null)
     void PlaySong(SongsModelView? SelectedSong = null)
     {
+        CurrentQueue = 0;
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
@@ -196,7 +198,7 @@ public partial class HomePageVM : ObservableObject
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
-            //ShowGeneralTopTenSongs();
+            //ShowGeneralTopXSongs();
             return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
@@ -377,11 +379,18 @@ public partial class HomePageVM : ObservableObject
     }
 
     #region Subscriptions to Services
+
+    private IDisposable _playerStateSubscription;
     [ObservableProperty]
     bool isPlaying = false;
     void SubscribeToPlayerStateChanges()
     {
-        PlayBackService.PlayerState.Subscribe(state =>
+        if (_playerStateSubscription != null)
+            return; // Already subscribed
+
+        _playerStateSubscription = PlayBackService.PlayerState
+            .DistinctUntilChanged()
+            .Subscribe(state =>
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             PickedSong = TemporarilyPickedSong;
@@ -406,7 +415,8 @@ public partial class HomePageVM : ObservableObject
                     }
                     if (CurrentPage == PageEnum.FullStatsPage)
                     {
-                        ShowSingleSongStats(PickedSong);
+                        ShowGeneralTopXSongs();
+                        //ShowSingleSongStats(PickedSong);
                     }
                     break;
                 case MediaPlayerState.Paused:
@@ -424,6 +434,12 @@ public partial class HomePageVM : ObservableObject
         });
 
     }
+
+    public void Dispose()
+    {
+        _playerStateSubscription?.Dispose();
+    }
+
     private void SubscribeToLyricIndexChanges()
     {
         LyricsManagerService.CurrentLyricStream.Subscribe(highlightedLyric =>

@@ -30,7 +30,6 @@ public partial class FetchLyricsResultsView : ContentView
         {
             await VM.SaveSelectedLyricsToFile(false, cont.plainLyrics!);
         }
-        Debug.WriteLine(cont.GetType());
         //await Shell.Current.ShowPopupAsync(new ViewLyricsPopUp(cont, send.Text));
     }
 }
