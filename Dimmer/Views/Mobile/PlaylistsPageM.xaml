@@ -61,5 +61,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+       
     </toolkit:DockLayout>
 </ContentPage>

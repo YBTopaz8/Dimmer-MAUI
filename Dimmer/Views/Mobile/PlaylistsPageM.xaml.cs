@@ -20,18 +20,9 @@ public partial class PlaylistsPageM : ContentPage
     }
     protected override void OnDisappearing()
     {
-        base.OnDisappearing();
-        HomePageVM.DisplayedSongsFromPlaylist.Clear();
+        base.OnDisappearing();        
     }
-    private void playImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);        
-    }
-
-    private void pauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);
-    }
+   
     private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
     {
         await NowPlayingBtmSheet.ShowAsync();

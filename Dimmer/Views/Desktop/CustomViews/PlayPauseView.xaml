@@ -13,7 +13,8 @@
     <StackLayout VerticalOptions="Center" x:Name="PpView">
         
         <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-         Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" >
+         Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
+                     >
             
             <ImageButton.Source>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
@@ -21,7 +22,8 @@
         </ImageButton>
         
         <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-         x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}">
+         x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
+                     >
 
             <ImageButton.Source>
                 <FontImageSource FontFamily="MaterialRound" 

@@ -52,6 +52,23 @@ public partial class HomePageVM
         var toast = Toast.Make(songAddedToPlaylistText, duration);
         await toast.Show(cts.Token);
     }
+    [RelayCommand]
+    async Task AddSongToFavorites(SongsModelView song)
+    {
+        PlayBackService.UpdateSongToFavoritesPlayList(song);
+        if (!song.IsFavorite)
+        {
+            PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
+            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
+            var toast = Toast.Make(songAddedToPlaylistText, duration);
+            await toast.Show(cts.Token);
+        }
+        else
+        {
+            PlayBackService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+        }
+        song.IsFavorite = !song.IsFavorite;
+    }
     public async void LoadFirstPlaylist()
     {
         RefreshPlaylists();
