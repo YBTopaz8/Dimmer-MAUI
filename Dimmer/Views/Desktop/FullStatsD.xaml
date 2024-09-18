@@ -104,9 +104,9 @@
                         </ImageButton>
                     </VerticalStackLayout>
                     </FlexLayout>
-                
 
-                <CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" 
+
+                <!--<CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" 
                                 HorizontalOptions="Center"
                                 SelectionMode="Single" IsVisible="False">
                     <CollectionView.Header>

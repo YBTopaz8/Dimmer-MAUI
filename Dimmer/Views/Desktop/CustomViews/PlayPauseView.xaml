@@ -17,7 +17,7 @@
                      >
             
             <ImageButton.Source>
-                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
             </ImageButton.Source>
         </ImageButton>
         

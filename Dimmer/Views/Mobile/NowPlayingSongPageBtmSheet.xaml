@@ -149,11 +149,11 @@
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-     x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
+     x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}" 
                  HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_filled}"
                                              Color="DarkSlateBlue"/>
                         </ImageButton.Source>
                     </ImageButton>

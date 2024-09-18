@@ -13,6 +13,7 @@
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:Name="myPage"
              Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              >
 
     <ContentPage.Resources>

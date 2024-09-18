@@ -12,7 +12,6 @@ public partial class SingleSongShell : ContentPage
 
     }
 
-    private TabItem InitialTab;
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()
     {

@@ -8,6 +8,11 @@ public partial class SyncedLyricsView : ContentView
         InitializeComponent();
     }
 
+    public void ScrollToLyric()
+    {
+        LyricsColView_SelectionChanged(null, null);
+    }
+
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         try

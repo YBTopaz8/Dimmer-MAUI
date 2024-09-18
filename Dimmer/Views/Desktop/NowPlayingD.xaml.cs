@@ -16,6 +16,7 @@ public partial class NowPlayingD : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
+        SyncLyrView.ScrollToLyric();
     }
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -25,4 +26,6 @@ public partial class NowPlayingD : ContentPage
         //    //LyricsColView.ScrollTo(HomePageVM.CurrentLyricPhrase, ScrollToPosition.Center);
         //}
     }
+
+    
 }

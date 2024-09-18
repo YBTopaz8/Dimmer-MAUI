@@ -133,8 +133,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer?.Stop();
             _playerStateSubject.OnNext(MediaPlayerState.Paused);
         }
-        Debug.WriteLine("Play state " + e);
-        Debug.WriteLine("Pause Play changed");
     }
     #endregion
 
@@ -532,7 +530,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null)
     {
 
         if (ObservableCurrentlyPlayingSong != null)
@@ -544,32 +542,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (song != null)
             {
-                ObservableCollection<SongsModelView>? currentList = null;
-
-                // Determine which queue to use based on currentQueue
-                switch (currentQueue)
-                {
-                    case 0:
-                        currentList = _nowPlayingSubject.Value;
-                        break;
-                    case 1:
-                        currentList = SecQueueSongs;
-                        _secondaryQueueSubject.OnNext(SecQueueSongs!);
-                        break;
-                    case 2:
-                        currentList = _tertiaryQueueSubject.Value;
-                        break;
-                    default:
-                        currentList = _nowPlayingSubject.Value;
-                        break;
-                }
-                int songIndex = currentList.IndexOf(song);
-                if (songIndex != -1)
-                {
-                    _currentSongIndex = songIndex;
-                }
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
+                if (currentList != null)
+                {
+                    int songIndex = currentList.IndexOf(song);
+                    if (songIndex != -1)
+                    {
+                        _currentSongIndex = songIndex;
+                    }
+                }
             }
 
             // Dispose of the existing timer if it exists
@@ -635,6 +617,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
         }
     }
+    private ObservableCollection<SongsModelView>? GetCurrentList(int currentQueue, ObservableCollection<SongsModelView>? secQueueSongs = null)
+    {
+        return currentQueue switch
+        {
+            0 => _nowPlayingSubject.Value,
+            1 => secQueueSongs ?? _secondaryQueueSubject.Value,
+            2 => _tertiaryQueueSubject.Value,
+            _ => _nowPlayingSubject.Value,
+        };
+    }
 
     public async Task<bool> PauseResumeSongAsync()
     {
@@ -696,35 +688,19 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     bool IsTrueShuffleEnabled = false;
     public async Task<bool> PlayNextSongAsync()
     {
-        var elapsedPlayTime = audioService.CurrentPosition;
-        if (elapsedPlayTime <= 30)
+        if (audioService.CurrentPosition <= 30)
         {
             ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
-            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         }
         else if (CurrentQueue != 2)
         {
             ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
-            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-        }
-        ObservableCollection<SongsModelView>? currentList = null;
-
-        switch (CurrentQueue)
-        {
-            case 0:
-                currentList = _nowPlayingSubject.Value;
-                break;
-            case 1:
-                currentList = _secondaryQueueSubject.Value;
-                break;
-            case 2:
-                currentList = _tertiaryQueueSubject.Value;
-                break;
-            default:
-                return false;
         }
 
+        SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
+        
+        var currentList = GetCurrentList(CurrentQueue, _secondaryQueueSubject.Value);
         if (currentList == null || currentList.Count == 0)
             return false;
 
@@ -734,28 +710,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> PlayPreviousSongAsync()
     {
-        IList<SongsModelView>? currentList = null;
-
-        switch (CurrentQueue)
-        {
-            case 0:
-                currentList = _nowPlayingSubject.Value;
-                break;
-            case 1:
-                currentList = _secondaryQueueSubject.Value;
-                break;
-            case 2:
-                currentList = _tertiaryQueueSubject.Value;
-                break;
-            default:
-                return false;
-        }
-
+        var currentList = GetCurrentList(CurrentQueue);
         if (currentList == null || currentList.Count == 0)
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: false);
-        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue);
+        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList);
     }
 
     private void UpdateCurrentSongIndex(IList<SongsModelView>? currentList, bool isNext)

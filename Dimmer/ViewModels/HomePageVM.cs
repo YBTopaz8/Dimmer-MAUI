@@ -115,7 +115,8 @@ public partial class HomePageVM : ObservableObject
 #endif
     }
 
- 
+
+    #region Loadings Region
 
     [ObservableProperty]
     bool isLoadingSongs;
@@ -125,8 +126,6 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task SelectSongFromFolder()
     {
-        
-
         bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
         if (!res)
         {
@@ -184,7 +183,9 @@ public partial class HomePageVM : ObservableObject
     }
 
     public PageEnum CurrentPage;
+    #endregion
     #region Playback Control Region
+
     [RelayCommand]
     //void PlaySong(SongsModelView? SelectedSong = null)
     void PlaySong(SongsModelView? SelectedSong = null)
@@ -192,17 +193,20 @@ public partial class HomePageVM : ObservableObject
         CurrentQueue = 0;
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
+            CurrentQueue = 1;
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, DisplayedSongsFromPlaylist);
             return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
+            CurrentQueue = 1;
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
             //ShowGeneralTopXSongs();
             return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
         {
+            CurrentQueue = 1;
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
             return;
         }
@@ -221,9 +225,7 @@ public partial class HomePageVM : ObservableObject
             PlayBackService.PlaySongAsync(null, CurrentQueue);
             return;
         }
-        AllSyncLyrics = Array.Empty<Content>();
-
-
+        
     }
 
     [RelayCommand]
