@@ -99,7 +99,8 @@
                 <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -120,9 +121,10 @@
                             HeightRequest="30" ToolTipProperties.Text="Has Lyrics?"/>
             <Label Text="Love" Grid.Column="3" />
             <Label Text="Album" Grid.Column="4" />
-            <Label Text="Duration" Grid.Column="5" />
-            <Label Text="Bitrate" Grid.Column="6" />
-            <Label Text="File Format" Grid.Column="7"/>
+            <Label Text="Genre" Grid.Column="5"/>
+            <Label Text="Duration" Grid.Column="6" />
+            <Label Text="Bitrate" Grid.Column="7" />
+            <Label Text="File Format" Grid.Column="8"/>
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
         <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
@@ -218,7 +220,8 @@
                             <ColumnDefinition Width="150" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -245,17 +248,15 @@
                                  Grid.ColumnSpan="8" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10" >
-                            <!--<toolkit:AvatarView WidthRequest="60" ImageSource="{Binding CoverImagePath}" 
-                                                BorderWidth="0" CornerRadius="5"/>-->
-                            <VerticalStackLayout HorizontalOptions="CenterAndExpand" WidthRequest="200">
-                                <Label Text="{Binding Title}" LineBreakMode="HeadTruncation"
+                            
+                                <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
                                        HorizontalOptions="Start"/>
-                                <Image IsVisible="{Binding IsPlaying}" HorizontalOptions="Start" HeightRequest="30">
+                                <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" VerticalOptions="Center">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
                                     </Image.Source>
                                 </Image>
-                            </VerticalStackLayout>
+                            
                         </HorizontalStackLayout>
 
                         <Label Text="{Binding ArtistName}" Grid.Column="1"
@@ -274,11 +275,12 @@
                             </ImageButton.Source>
                         </ImageButton>
                         <Label Text="{Binding AlbumName}" Grid.Column="4" LineBreakMode="HeadTruncation"/>
-                        <Label Grid.Column="5"
+                        <Label Text="{Binding GenreName}" Grid.Column="5" LineBreakMode="HeadTruncation"/>
+                        <Label Grid.Column="6"
                                Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                />
-                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="6" />
-                        <Label Text="{Binding FileFormat}" Grid.Column="7"/>
+                        <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" Grid.Column="7" />
+                        <Label Text="{Binding FileFormat}" Grid.Column="8"/>
 
                     </Grid>
                 </DataTemplate>

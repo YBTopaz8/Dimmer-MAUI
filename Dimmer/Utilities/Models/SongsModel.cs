@@ -3,10 +3,10 @@ public class SongsModel : RealmObject
 {
     [PrimaryKey]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-
     public string Title { get; set; }
     public string ArtistName { get; set; }
     public string AlbumName { get; set; }
+    public string Genre { get; set; }
     public string FilePath { get; set; }
     public double DurationInSeconds { get; set; }
     public int? ReleaseYear { get; set; }
@@ -23,13 +23,11 @@ public class SongsModel : RealmObject
     public DateTimeOffset LastPlayed { get; set; }
     public IList<DateTimeOffset> DatesPlayed { get; }
     public IList<DateTimeOffset> DatesSkipped { get; }
-    public ObjectId? ArtistID { get; set; }
-    public ObjectId? AlbumID { get; set; }
-    public ObjectId? GenreID { get; set; }
     public ObjectId? UserID { get; set; }
     public string? UnSyncLyrics { get; set; }
     public bool IsPlaying { get; set; }
     public bool IsFavorite { get; set; }
+    public string Achievement { get; set; }
 
     public SongsModel() { }
 
@@ -39,6 +37,7 @@ public class SongsModel : RealmObject
         Title = modelView.Title;
         FilePath = modelView.FilePath;
         ArtistName = modelView.ArtistName;
+        Genre = modelView.GenreName;
         DurationInSeconds = modelView.DurationInSeconds;
         ReleaseYear = modelView.ReleaseYear;
         TrackNumber = modelView.TrackNumber;
@@ -52,16 +51,14 @@ public class SongsModel : RealmObject
         CoverImagePath = modelView.CoverImagePath;
         DateAdded = modelView.DateAdded;
         LastPlayed = modelView.LastPlayed;        
-        ArtistID = modelView.ArtistID;
-        AlbumID = modelView.AlbumID;
-        AlbumName = modelView.AlbumName;
-        GenreID = modelView.GenreID;
+        AlbumName = modelView.AlbumName;        
         UserID = modelView.UserID;
         UnSyncLyrics = modelView.UnSyncLyrics;
         IsPlaying = modelView.IsPlaying;        
         IsFavorite = modelView.IsFavorite;
         DatesPlayed = modelView.DatesPlayed;
         DatesSkipped = modelView.DatesSkipped;
+        Achievement = modelView.Achievement;
     }
 }
 
@@ -90,12 +87,11 @@ public partial class SongsModelView : ObservableObject
             HasLyrics = _model.HasLyrics;
             CoverImagePath = _model.CoverImagePath;
             DateAdded = _model.DateAdded;
-            LastPlayed = _model.LastPlayed;
-            ArtistID = _model.ArtistID;
+            LastPlayed = _model.LastPlayed;            
             ArtistName = _model.ArtistName;
-            AlbumID = _model.AlbumID;
+            Achievement = _model.Achievement;
             AlbumName = _model.AlbumName;
-            GenreID = _model.GenreID;
+            GenreName = _model.Genre;
             UserID = _model.UserID;
             UnSyncLyrics = _model.UnSyncLyrics;
             IsPlaying = _model.IsPlaying;
@@ -119,6 +115,8 @@ public partial class SongsModelView : ObservableObject
     string? artistName;
     [ObservableProperty]
     string? albumName;
+    [ObservableProperty]
+    string? genreName;
     [ObservableProperty]
     double durationInSeconds;
     [ObservableProperty]
@@ -145,9 +143,6 @@ public partial class SongsModelView : ObservableObject
     string? coverImagePath;
     public DateTimeOffset DateAdded { get; set; }
     public DateTimeOffset LastPlayed { get; set; }
-    public ObjectId? ArtistID { get; set; }
-    public ObjectId? AlbumID { get; set; }
-    public ObjectId? GenreID { get; set; }
     public ObjectId? UserID { get; set; }
     //public IList<LyricPhraseModel>? SynchronizedLyrics { get; }
     [ObservableProperty]
@@ -162,6 +157,8 @@ public partial class SongsModelView : ObservableObject
     bool isPlaying;
     [ObservableProperty]
     bool isFavorite;
+    [ObservableProperty]
+    string achievement;
 
     // Override Equals to compare based on ObjectId
     public override bool Equals(object? obj)
@@ -192,4 +189,6 @@ public enum SortingEnum
     DurationDesc,
     YearAsc,
     YearDesc,
+    PlayCountAsc,
+    PlayCountDesc,
 }

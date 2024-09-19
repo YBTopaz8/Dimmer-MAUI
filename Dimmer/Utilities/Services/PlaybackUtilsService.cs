@@ -505,7 +505,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 var newSong = new SongsModelView
                 {
                     Title = track.Title,
-                    ArtistID = ObjectId.Empty,
+                    GenreName = track.Genre,
                     ArtistName = track.Artist,
                     AlbumName = track.Album,
                     ReleaseYear = track.Year,

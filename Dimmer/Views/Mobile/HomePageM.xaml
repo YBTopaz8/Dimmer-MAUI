@@ -20,6 +20,7 @@
             >
    
     <Shell.TitleView>
+        
         <VerticalStackLayout VerticalOptions="Center">
             <Grid ColumnDefinitions="*,Auto" IsVisible="True" x:Name="NormalTitleView">
 
