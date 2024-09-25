@@ -68,4 +68,12 @@ public partial class ArtistsPageD : ContentPage
         ArtistModelView artist = view.BindingContext as ArtistModelView;
         HomePageVM.GetAllArtistsAlbum(artist.Id);
     }
+
+    private void AlbumSongsCV_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AlbumSongsCV.IsLoaded)
+        {
+            AlbumSongsCV.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.MakeVisible);
+        }
+    }
 }

@@ -99,6 +99,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         try
         {
+
             if (CurrentRepeatMode == 2) //repeat the same song
             {
                 await PlaySongAsync();
@@ -112,9 +113,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playLock.Release();
         }
     }
-    private void AudioService_PlayEnded(object? sender, EventArgs e)
+    private async void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        Debug.WriteLine("Ended");
+        Debug.WriteLine("Ended in pbutils Serv");
+        if (CurrentRepeatMode == 2) //repeat the same song
+        {
+            await PlaySongAsync();
+            return;
+        }
+        await PlayNextSongAsync();
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -532,7 +539,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null)
     {
-
+        switch (currentQueue)
+        {
+            case 1:
+                _secondaryQueueSubject.OnNext(currentList); 
+                break;
+            case 2:
+                _tertiaryQueueSubject.OnNext(currentList); 
+                break;
+            default:
+                break;
+        }
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -617,17 +634,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
         }
     }
-    private ObservableCollection<SongsModelView>? GetCurrentList(int currentQueue, ObservableCollection<SongsModelView>? secQueueSongs = null)
-    {
-        return currentQueue switch
-        {
-            0 => _nowPlayingSubject.Value,
-            1 => secQueueSongs ?? _secondaryQueueSubject.Value,
-            2 => _tertiaryQueueSubject.Value,
-            _ => _nowPlayingSubject.Value,
-        };
-    }
-
     public async Task<bool> PauseResumeSongAsync()
     {
         if (ObservableCurrentlyPlayingSong is null)
@@ -699,7 +705,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
         SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-        
+
+
+        if (CurrentRepeatMode == 0)
+        {
+            return true;
+        }
         var currentList = GetCurrentList(CurrentQueue, _secondaryQueueSubject.Value);
         if (currentList == null || currentList.Count == 0)
             return false;
@@ -717,6 +728,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         UpdateCurrentSongIndex(currentList, isNext: false);
         return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList);
     }
+    private ObservableCollection<SongsModelView>? GetCurrentList(int currentQueue, ObservableCollection<SongsModelView>? secQueueSongs = null)
+    {
+
+        return currentQueue switch
+        {
+            0 => _nowPlayingSubject.Value,
+            1 => secQueueSongs ?? _secondaryQueueSubject.Value,
+            2 => _tertiaryQueueSubject.Value,
+            _ => _nowPlayingSubject.Value,
+        };
+    }
+
 
     private void UpdateCurrentSongIndex(IList<SongsModelView>? currentList, bool isNext)
     {

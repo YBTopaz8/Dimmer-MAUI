@@ -89,6 +89,7 @@ public partial class HomePageVM : ObservableObject
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
+        RefreshPlaylists();
     }
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
@@ -204,7 +205,7 @@ public partial class HomePageVM : ObservableObject
             //ShowGeneralTopXSongs();
             return;
         }
-        if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
+        if (CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllAlbumsPage && SelectedSong != null)
         {
             CurrentQueue = 1;
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);

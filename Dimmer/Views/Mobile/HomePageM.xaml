@@ -149,7 +149,10 @@
 
         <VerticalStackLayout AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" 
                  AbsoluteLayout.LayoutFlags="PositionProportional" Spacing="3">
-
+            <VerticalStackLayout.GestureRecognizers>
+                <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+            </VerticalStackLayout.GestureRecognizers>
             <ImageButton 
                          Clicked="ShowSearchView_Clicked" Padding="10"
                          BackgroundColor="DarkSlateBlue" 

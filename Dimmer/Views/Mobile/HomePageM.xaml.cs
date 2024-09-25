@@ -114,4 +114,23 @@ public partial class HomePageM : UraniumContentPage
         _ = await searchSongTextField!.HideKeyboardAsync();
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
+
+    private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+            var lItem = col.Last();
+            SongsColView.ScrollTo(lItem, ScrollToPosition.Center, animate: false);
+        }
+    }
+    private void SwipeGestureRecognizer_SwipedDown(object sender, SwipedEventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+            var fItem = col.First();
+            SongsColView.ScrollTo(fItem, ScrollToPosition.Center, animate: false);
+        }
+    }
 }

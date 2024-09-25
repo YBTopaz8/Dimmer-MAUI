@@ -23,7 +23,7 @@ public partial class HomePageVM
                 PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
             })
             .OrderByDescending(s => s.PlayCount)
-            .Take(10)
+            .Take(20)
             .ToObservableCollection();
         if (IsPlaying && CurrentQueue !=2)
         {
@@ -77,7 +77,6 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
-        Debug.WriteLine("Calledsss");
         IsChartVisible = false;
         MyPieSeries = null;
         MyPieSeriesTitle = null;
