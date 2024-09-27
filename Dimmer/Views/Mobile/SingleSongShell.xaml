@@ -40,6 +40,9 @@
 
         <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
                           SelectedTabChanged="TabV_SelectedTabChanged">
+            <material:TabView.GestureRecognizers>
+                <SwipeGestureRecognizer Direction="Left" Swiped="SwipeGestureRecognizer_Swiped"/>
+            </material:TabView.GestureRecognizers>
             <material:TabView.TabHeaderItemTemplate>
                 <DataTemplate>
                     <Button Margin="2,0" Text="{Binding Title}" Command="{Binding Command}">

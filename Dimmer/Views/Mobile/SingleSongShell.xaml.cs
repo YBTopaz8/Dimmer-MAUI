@@ -40,4 +40,8 @@ public partial class SingleSongShell : ContentPage
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
+    private void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
+    {
+
+    }
 }
