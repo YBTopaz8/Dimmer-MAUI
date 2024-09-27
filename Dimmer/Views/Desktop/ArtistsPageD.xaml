@@ -128,12 +128,12 @@
         </CollectionView>
 
 
-        <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None"
-        ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
+        <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None" x:Name="AlbumSongsCV"
+        ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}" SelectionChanged="AlbumSongsCV_SelectionChanged"
             EmptyView="No Songs to display, Please Select an Album...">
             <CollectionView.Header>
                 <FlexLayout JustifyContent="SpaceBetween">
-                    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='Songs : {0}'}"/>
+                    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
                     
                     <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
                                  ToolTipProperties.Text="Show All Artist Songs">

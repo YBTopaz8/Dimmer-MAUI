@@ -117,6 +117,10 @@ public partial class HomePageVM
     [RelayCommand]
     async Task AddToPlaylist()
     {
+        if (DisplayedPlaylists is null)
+        {
+            RefreshPlaylists();
+        }
         SelectedSongToOpenBtmSheet = PickedSong;
         var allPlaylistNames = DisplayedPlaylists.Select(x => x.Name).ToList();
         _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames));

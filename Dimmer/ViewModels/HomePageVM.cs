@@ -89,6 +89,7 @@ public partial class HomePageVM : ObservableObject
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
+        RefreshPlaylists();
     }
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
@@ -204,7 +205,7 @@ public partial class HomePageVM : ObservableObject
             //ShowGeneralTopXSongs();
             return;
         }
-        if (CurrentPage == PageEnum.SpecificAlbumPage && SelectedSong != null)
+        if (CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllAlbumsPage && SelectedSong != null)
         {
             CurrentQueue = 1;
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
@@ -384,21 +385,12 @@ public partial class HomePageVM : ObservableObject
             switch (state)
             {
                 case MediaPlayerState.Playing:
-                    if(splittedLyricsLines is not null)
-                    {
-                        Array.Clear(splittedLyricsLines);
-                    }
-                    if (AllSyncLyrics is not null)
-                    {
-                        Array.Clear(AllSyncLyrics);
-                    }
+
+                    AllSyncLyrics = null;
+                    splittedLyricsLines = null;
                     
                     IsPlaying = true;
                     CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-                    if(CurrentViewIndex == 3)
-                    {
-                        OpenEditableSongsTagsView();
-                    }
                     if (CurrentPage == PageEnum.FullStatsPage)
                     {
                         ShowGeneralTopXSongs();
