@@ -385,21 +385,12 @@ public partial class HomePageVM : ObservableObject
             switch (state)
             {
                 case MediaPlayerState.Playing:
-                    if(splittedLyricsLines is not null)
-                    {
-                        Array.Clear(splittedLyricsLines);
-                    }
-                    if (AllSyncLyrics is not null)
-                    {
-                        Array.Clear(AllSyncLyrics);
-                    }
+
+                    AllSyncLyrics = null;
+                    splittedLyricsLines = null;
                     
                     IsPlaying = true;
                     CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-                    if(CurrentViewIndex == 3)
-                    {
-                        OpenEditableSongsTagsView();
-                    }
                     if (CurrentPage == PageEnum.FullStatsPage)
                     {
                         ShowGeneralTopXSongs();

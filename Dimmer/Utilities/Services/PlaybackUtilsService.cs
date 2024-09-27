@@ -99,7 +99,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         try
         {
-
             if (CurrentRepeatMode == 2) //repeat the same song
             {
                 await PlaySongAsync();
@@ -145,17 +144,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     #region Setups/Loadings Region
 
-    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
-    {
-        if (songss == null || songss.Count < 1)
-        {
-            songss = SongsMgtService.AllSongs.ToObservableCollection();
-        }
-        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
-        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
-        _nowPlayingSubject.OnNext(sortedSongs);
-    }
-
+  
 
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
 
@@ -383,13 +372,22 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         var songss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
         LoadSongsWithSorting(songss);
-      
         
         SongsMgtService.GetSongs();
 
         ObservableLoadingSongsProgress = 100;
         _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
         return true;
+    }
+    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
+    {
+        if (songss == null || songss.Count < 1)
+        {
+            songss = SongsMgtService.AllSongs.ToObservableCollection();
+        }
+        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
+        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
+        _nowPlayingSubject.OnNext(sortedSongs);
     }
 
     private void LoadLastPlayedSong()
@@ -405,7 +403,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             //_nowPlayingSubject.OnNext(ObservableCurrentlyPlayingSong);
         }
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
-
+        _currentSongIndex = _nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong);
     }
     static string? GetCoverImagePath(string filePath)
     {
