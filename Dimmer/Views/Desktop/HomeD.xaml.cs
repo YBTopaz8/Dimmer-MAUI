@@ -87,10 +87,12 @@ public partial class HomeD : UraniumContentPage
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
+        
         HomePageVM.CurrentQueue = 0;
         var t = (Grid)sender;
         var song = t.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
+        
     }
 
     private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
@@ -104,4 +106,5 @@ public partial class HomeD : UraniumContentPage
         var song = send.BindingContext! as SongsModelView;
         await HomePageVM.NavigateToArtistsPage(song);
     }
+
 }

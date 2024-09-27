@@ -1,5 +1,4 @@
-﻿
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Dimmer_MAUI.DataAccess.Services;
 
@@ -332,6 +331,28 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
+    public bool DeleteSongFromDB(ObjectId songID)
+    {
+        try
+        {
+            db.Write(() =>
+            {
+                var existingSong = db.Find<SongsModel>(songID);
+                if (existingSong != null)
+                {
+                    db.Remove(existingSong);
+                }                
+            });
+
+            GetSongs();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return false;
+        }
+    }
 }
 public class CsvExporter
 {

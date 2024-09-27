@@ -36,7 +36,7 @@
                              WidthRequest="200" Margin="10,0" >
             
             <CollectionView ItemsSource="{Binding DisplayedPlaylists}"  x:Name="DisplayedPlaylistsCV"
-                            EmptyView="No Playlists Existing..." SelectionMode="Single">
+                            EmptyView="No Playlists Existing..." SelectionMode="Single" SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
                 <CollectionView.Header>
                     <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
                            HorizontalOptions="Center"/>
@@ -47,7 +47,8 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:PlaylistModelView">
-                        <Border StrokeShape="RoundRectangle 5" Margin="10,10" >
+                        <Border StrokeShape="RoundRectangle 5" Margin="10,10">
+                            
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
@@ -69,6 +70,8 @@
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
                             <Border.GestureRecognizers>
+                                <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedPlaylistCommand, Source={x:Reference myPage}}" 
+                                                    PointerEnteredCommandParameter="{Binding .}"/>
                                 <TapGestureRecognizer 
                                     Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}" 
                                     CommandParameter="{Binding Id}"/>

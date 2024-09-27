@@ -41,6 +41,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.UI;
 global using Microsoft.UI.Windowing;
 global using WinRT.Interop;
+global using Dimmer_MAUI.UtilitiesServices;
 #endif
 
 #if ANDROID

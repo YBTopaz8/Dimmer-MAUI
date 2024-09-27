@@ -1,8 +1,7 @@
 ﻿
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
-{
-   
+{      
     public static void ShowUpdateMiniView(SongsModelView song)
     {
         try

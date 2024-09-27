@@ -802,16 +802,27 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
+    void SetPickedPlaylist(PlaylistModelView pl)
+    {
+        SelectedPlaylistToOpenBtmSheet = pl;
+    }
+    [RelayCommand]
+    void SetPickedSong(SongsModelView song)
+    {
+        PickedSong = song;
+    }
+
+    [RelayCommand]
     async Task DeleteFile()
     {
-        if (TemporarilyPickedSong is null)
+        if (PickedSong is null)
         {
             Debug.WriteLine("Null");
             return;
         }
         try
         {
-            if (File.Exists(TemporarilyPickedSong.FilePath))
+            if (File.Exists(PickedSong.FilePath))
             {
                 bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
                 if (result is true)
