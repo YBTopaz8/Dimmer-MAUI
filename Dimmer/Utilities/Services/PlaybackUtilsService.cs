@@ -557,11 +557,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (song != null)
             {
+                if (!File.Exists(song.FilePath))
+                {
+                    SongsMgtService.DeleteSongFromDB(song.Id);
+                    _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
+                }
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
-                if (currentList != null)
+                if (currentList == null)
                 {
-                    int songIndex = currentList.IndexOf(song);
+                    int songIndex = _nowPlayingSubject.Value.IndexOf(song);
                     if (songIndex != -1)
                     {
                         _currentSongIndex = songIndex;
@@ -630,6 +635,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
             }
+#if WINDOWS
+            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+#endif
         }
     }
     public async Task<bool> PauseResumeSongAsync()
@@ -878,7 +886,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         double totalDurationInSeconds = audioService.Duration;
         if (bugCount >= 2)
         {
-            if (currentPositionInSeconds <= 2 && !audioService.IsPlaying)
+            if (currentPositionInSeconds <= 0.9 && !audioService.IsPlaying)
             {
                 await PlaySongAsync();
             }

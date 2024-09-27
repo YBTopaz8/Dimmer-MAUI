@@ -139,6 +139,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="Realm" Version="12.4.0" />
+		<PackageReference Include="SharpHook.Reactive" Version="5.3.7" />
 		<PackageReference Include="SkiaSharp" Version="2.88.8" />
 		<PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />

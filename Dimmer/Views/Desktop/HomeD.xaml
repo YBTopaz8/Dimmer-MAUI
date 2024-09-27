@@ -97,7 +97,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" />
                 <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="90" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -134,7 +134,7 @@
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
-                    <Grid ColumnSpacing="25" Padding="8">
+                    <Grid ColumnSpacing="25" Padding="8" x:Name="GridOfItems">
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="View File Explorer" 
@@ -215,12 +215,14 @@
                             </ResourceDictionary>
                         </Grid.Resources>
                         <Grid.GestureRecognizers>
+                            <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedSongCommand, Source={x:Reference myPage}}" 
+                                                    PointerEnteredCommandParameter="{Binding .}"/>
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="200" />
                             <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="90" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -250,12 +252,12 @@
                                  Grid.ColumnSpan="9" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10" >
-                            
-                                <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
+
+                            <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
                                        HorizontalOptions="Start"
                                        ToolTipProperties.Text="{Binding Title}"/>
                             
-                                <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" VerticalOptions="Center">
+                            <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" VerticalOptions="Center">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
                                     </Image.Source>
@@ -290,7 +292,7 @@
                                Grid.Column="7"
                                ToolTipProperties.Text="{Binding BitRate, StringFormat='{0} kbps'}" />
                         <Label Text="{Binding FileFormat}" Grid.Column="8"
-                               ToolTipProperties.Text="{Binding FileFormat}"/>
+                               ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
 
                     </Grid>
                 </DataTemplate>
