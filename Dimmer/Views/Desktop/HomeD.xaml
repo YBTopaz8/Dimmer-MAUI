@@ -162,15 +162,15 @@
                                 
                                 <MenuFlyoutSeparator/>
                                 
-                                <MenuFlyoutItem Text="Remove" 
-                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
+                                <MenuFlyoutItem Text="Remove">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="None" 
                                                              Key="Delete"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
                                 
-                                <MenuFlyoutItem Text="Remove from Device">
+                                <MenuFlyoutItem Text="Remove from Device"
+                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl,Shift" 
                                                              Key="Delete"/>
@@ -185,14 +185,7 @@
                                     <MenuFlyoutItem Text="Play Artist Songs"/>
                                     
                                 </MenuFlyoutSubItem>
-                                
-                                <MenuFlyoutItem Text="Remove from Device">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                                                             Key="Delete"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
-                                
+                                                                
                                 <MenuFlyoutSeparator/>
 
                                 <MenuFlyoutItem Text="Add To Playlist"

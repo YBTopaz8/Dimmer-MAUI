@@ -522,8 +522,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     TrackNumber = track.TrackNumber,
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
-                    
+                    CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),                    
                 };
                 allSongs.Add(newSong);
             }
@@ -535,7 +534,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, double lastPosition = 0, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null)
     {
         switch (currentQueue)
         {
@@ -573,6 +572,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     }
                 }
             }
+            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
 
             // Dispose of the existing timer if it exists
             if (_positionTimer != null)
@@ -597,7 +597,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
-            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
+            //var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
 
             await audioService.InitializeAsync(new MediaPlay()
             {
@@ -608,7 +608,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
 
-            await audioService.PlayAsync(IsFromUser:true);
+            await audioService.PlayAsync(lastPosition, IsFromUser:true);
             bugCount = 0;
             _positionTimer.Start();
 
@@ -617,7 +617,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
 
             _currentPositionSubject.OnNext(new());
-            AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(ObservableCurrentlyPlayingSong.Id);
 
             return true;
         }
@@ -725,7 +724,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: true);
-        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList);
+        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList);
     }
 
     public async Task<bool> PlayPreviousSongAsync()
@@ -735,7 +734,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: false);
-        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList);
+        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList);
     }
     private ObservableCollection<SongsModelView>? GetCurrentList(int currentQueue, ObservableCollection<SongsModelView>? secQueueSongs = null)
     {
@@ -867,13 +866,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         switch (CurrentRepeatMode)
         {
             case 0:
-                CurrentRepeatMode = 1;
+                CurrentRepeatMode = 0;
                 break;
             case 1:
-                CurrentRepeatMode = 2;
+                CurrentRepeatMode = 1;
                 break;
             case 2:
-                CurrentRepeatMode = 0;
+                CurrentRepeatMode = 2;
                 break;
             default:
                 break;
