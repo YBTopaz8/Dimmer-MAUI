@@ -28,10 +28,10 @@
         <StackLayout>
             <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
                          Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
-                         HeightRequest="60" WidthRequest="60">
+                         HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
-                    <FontImageSource Size="55" FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
+                    <FontImageSource Size="50" FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -40,7 +40,7 @@
                          HeightRequest="60" WidthRequest="60">
 
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Size="55"
+                    <FontImageSource FontFamily="MaterialRound" Size="50"
                      Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
                 </ImageButton.Source>
             </ImageButton>

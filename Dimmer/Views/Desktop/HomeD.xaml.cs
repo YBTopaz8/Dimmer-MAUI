@@ -62,7 +62,7 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
-            SongsColView.ScrollTo(HomePageVM.PickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {

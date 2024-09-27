@@ -90,7 +90,8 @@
                 <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <FlexLayout JustifyContent="SpaceBetween" Margin="0,3">
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="0,3"
+                                    >
 
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup Name="CommonStates">
@@ -106,11 +107,11 @@
                             <FlexLayout.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="SpecificSong_Tapped" />
                             </FlexLayout.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="5" MaximumWidthRequest="50">
+                            <HorizontalStackLayout Spacing="5">
                                 <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
                                                     CornerRadius="10" BorderWidth="0"/>
                                 <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="19" MaximumWidthRequest="350" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding Title}" FontSize="18" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
