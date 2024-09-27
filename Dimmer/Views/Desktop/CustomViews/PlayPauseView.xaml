@@ -37,7 +37,7 @@
 
             <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
                          x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
-                         HeightRequest="60" WidthRequest="60">
+                         HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
                     <FontImageSource FontFamily="MaterialRound" Size="50"

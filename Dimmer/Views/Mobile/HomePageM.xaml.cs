@@ -74,6 +74,10 @@ public partial class HomePageM : UraniumContentPage
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
+        if (TitleSearchView.IsVisible)
+        {
+            HideSearchView_Clicked(sender, e);
+        }
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
     }
 

@@ -168,7 +168,7 @@
                     </ImageButton.Source>
                 </ImageButton>
                 <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                             WidthRequest="25">
+                             WidthRequest="30">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>
