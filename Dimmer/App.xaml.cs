@@ -13,6 +13,7 @@ public partial class App : Application
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
+        
     }
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -37,7 +38,6 @@ public partial class App : Application
         return win;
         
     }
-
     private void LogException(Exception ex)
     {
         try
