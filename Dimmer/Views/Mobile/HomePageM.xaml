@@ -149,13 +149,13 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End">
-                <VerticalStackLayout.GestureRecognizers>
-                    <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
-                    <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
-                </VerticalStackLayout.GestureRecognizers>
+            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" >
                 <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"
                                   BackgroundColor="DarkSlateBlue" CornerRadius="20">
+                    <ImageButton.GestureRecognizers>
+                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                    </ImageButton.GestureRecognizers>
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
                     </ImageButton.Source>
@@ -164,6 +164,10 @@
                 <ImageButton  BackgroundColor="DarkSlateBlue"  
                   CornerRadius="20" Clicked="SearchFAB_Clicked"
                   Padding="10" >
+                    <ImageButton.GestureRecognizers>
+                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                    </ImageButton.GestureRecognizers>
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
                     </ImageButton.Source>

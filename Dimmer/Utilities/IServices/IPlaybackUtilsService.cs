@@ -5,7 +5,8 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
     IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null); //to play song
+    Task<bool> PlaySongAsync(SongsModelView song, double lastPosition = 0,  int CurrentQueue = 0, 
+        ObservableCollection<SongsModelView>? SecQueueSongs = null); //to play song
     Task<bool> PlayNextSongAsync(); //to play next song
     Task<bool> PlayPreviousSongAsync(); //to play previous song
     Task<bool> StopSongAsync(); //to stop song

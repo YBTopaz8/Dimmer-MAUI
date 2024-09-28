@@ -516,11 +516,7 @@ public class LyricsService : ILyricsService
     {
         try
         {
-            //if (!string.IsNullOrEmpty(songs.CoverImagePath))
-            //{
-            //    return songs.CoverImagePath;
-            //}
-
+       
             if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
                 return songs.CoverImagePath;

@@ -86,6 +86,7 @@ public partial class HomePageVM : ObservableObject
         ToggleRepeatMode();
 
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
+        CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
@@ -195,27 +196,27 @@ public partial class HomePageVM : ObservableObject
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, DisplayedSongsFromPlaylist);
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: DisplayedSongsFromPlaylist);
             return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
             //ShowGeneralTopXSongs();
             return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllAlbumsPage && SelectedSong != null)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
+            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
             return;
         }
         if (SelectedSong is not null)
         {
             if (CurrentQueue == 1)
             {
-                PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, AllArtistsAlbumSongs);
+                PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
                 return;
             }
             PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue);
@@ -749,10 +750,10 @@ public partial class HomePageVM : ObservableObject
         if (result != null)
         {
             var e = (SortingEnum)result;
-            if (e == CurrentSortingOption)
-            {
-                return;
-            }
+            //if (e == CurrentSortingOption)
+            //{
+            //    return;
+            //}
             IsLoadingSongs = true;
             CurrentSortingOption = e;
             if (CurrentPage == PageEnum.MainPage)
@@ -813,12 +814,11 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    async Task DeleteFile()
+    async Task DeleteFile(SongsModelView song)
     {
-        if (PickedSong is null)
+        if (song == PickedSong)
         {
-            Debug.WriteLine("Null");
-            return;
+            PickedSong = DisplayedSongs.First();
         }
         try
         {
@@ -829,9 +829,8 @@ public partial class HomePageVM : ObservableObject
                 {
                     FileSystem.DeleteFile(PickedSong.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
 
-                    //File.Delete(PickedSong.FilePath);
-                    Debug.WriteLine("File Deleted");
-
+                    DisplayedSongs.Remove(song);
+                    SongsMgtService.DeleteSongFromDB(song.Id);
                 }
             }
             else
@@ -903,5 +902,10 @@ public partial class HomePageVM : ObservableObject
         }
     }
    
+    public void ExitingApp()
+    {
+        AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
+        AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
+    }
 }
 

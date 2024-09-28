@@ -17,7 +17,8 @@
 
     <VerticalStackLayout  HeightRequest="120">
         
-        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
+        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+                MinimumTrackColor="DarkSlateBlue"
 
             DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
         </Slider>

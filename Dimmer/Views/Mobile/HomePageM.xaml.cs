@@ -124,7 +124,7 @@ public partial class HomePageM : UraniumContentPage
         if (SongsColView.IsLoaded)
         {
             var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
-            var lItem = col.Last();
+            var lItem = col.First();
             SongsColView.ScrollTo(lItem, ScrollToPosition.Center, animate: false);
         }
     }
@@ -133,7 +133,7 @@ public partial class HomePageM : UraniumContentPage
         if (SongsColView.IsLoaded)
         {
             var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
-            var fItem = col.First();
+            var fItem = col.Last();
             SongsColView.ScrollTo(fItem, ScrollToPosition.Center, animate: false);
         }
     }
