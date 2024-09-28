@@ -129,10 +129,10 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>-->
 
-                <lvc:PieChart HeightRequest="450" Series="{Binding MyPieSeries}" 
+                <!--<lvc:PieChart HeightRequest="450" Series="{Binding MyPieSeries}" 
                               WidthRequest="700" IsVisible="True"
                     Title="{Binding MyPieSeriesTitle}">
-                </lvc:PieChart>
+                </lvc:PieChart>-->
             </VerticalStackLayout>
                 
         </Border>

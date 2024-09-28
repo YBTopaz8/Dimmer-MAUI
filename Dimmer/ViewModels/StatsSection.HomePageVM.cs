@@ -95,7 +95,7 @@ public partial class HomePageVM
 
             
             MostPlayedDay = mostPlayedDay.Key.ToString();
-            PlotPieSeries(song);
+            //PlotPieSeries(song);
         }
         else
         {
@@ -103,9 +103,12 @@ public partial class HomePageVM
             
             MostPlayedDay = "Never Played Yet";
         }
+
+
         //PlotLineSeries(song);
     }
-
+    [ObservableProperty]
+    ObservableCollection<DateTimeOffset> dialyWalkThrough;
     private void PlotPieSeries(SongsModelView? song)
     {
         IsChartVisible = true;

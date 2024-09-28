@@ -114,13 +114,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     private async void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        Debug.WriteLine("Ended in pbutils Serv");
-        if (CurrentRepeatMode == 2) //repeat the same song
+        await Task.Delay(1000);
+        if (!audioService.IsPlaying)
         {
-            await PlaySongAsync();
-            return;
+            Debug.WriteLine("Ended in pbutils Serv");
+            if (CurrentRepeatMode == 2) //repeat the same song
+            {
+                await PlaySongAsync();
+                return;
+            }
+            await PlayNextSongAsync();
+
         }
-        await PlayNextSongAsync();
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -534,7 +539,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, double lastPosition = 0, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null, double lastPosition = 0)
     {
         switch (currentQueue)
         {
@@ -588,10 +593,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 return false;
             }
 
-            _positionTimer = new System.Timers.Timer(500); 
-            _positionTimer.Elapsed += OnPositionTimerElapsed; 
-            _positionTimer.AutoReset = true; 
-            _positionTimer.Start(); 
+            _positionTimer = new System.Timers.Timer(500);
+            _positionTimer.Elapsed += OnPositionTimerElapsed;
+            _positionTimer.AutoReset = true;
+            
 
 
             CurrentQueue = currentQueue;
@@ -610,6 +615,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             await audioService.PlayAsync(lastPosition, IsFromUser:true);
             bugCount = 0;
+
             _positionTimer.Start();
 
             ObservableCurrentlyPlayingSong.DatesPlayed?.Add(DateTimeOffset.Now);
@@ -639,7 +645,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 #endif
         }
     }
-    public async Task<bool> PauseResumeSongAsync()
+    public async Task<bool> PauseResumeSongAsync(double lastPosition)
     {
         if (ObservableCurrentlyPlayingSong is null)
         {
@@ -648,7 +654,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         if (audioService.CurrentPosition == 0 && !audioService.IsPlaying)
         {
-            await PlaySongAsync(ObservableCurrentlyPlayingSong);
+            await PlaySongAsync(ObservableCurrentlyPlayingSong, lastPosition: lastPosition);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
             _positionTimer.Start();
@@ -806,11 +812,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return;
         }
         // Convert the fraction to actual seconds
-        double positionInSeconds = positionFraction * audioService.Duration;
+        
 
         var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
         // Set the current time in the audio service
-        if (!await audioService.SetCurrentTime(positionInSeconds))
+        if (!await audioService.SetCurrentTime(positionFraction))
         {
             await audioService.InitializeAsync(new MediaPlay()
             {
@@ -821,9 +827,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
             
-            await SetSongPosition(positionInSeconds);
+            //await SetSongPosition(positionFraction);
         }
-        await audioService.PlayAsync(positionInSeconds, IsFromUser: true);
+
+        await audioService.PlayAsync(positionFraction, IsFromUser: true);
     }
 
     public void ChangeVolume(double newPercentageValue)

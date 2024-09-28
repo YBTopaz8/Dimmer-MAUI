@@ -6,11 +6,7 @@ namespace Dimmer_MAUI;
 
 public partial class AppShell : Shell
 {
-#if WINDOWS
-    private IDisposable keyPressedSubscription;
-    private IDisposable mousePressedSubscription;
-    private IntPtr _hwnd;
-#endif
+
     public AppShell()
     {
         InitializeComponent();

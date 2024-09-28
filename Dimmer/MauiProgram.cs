@@ -45,7 +45,7 @@ public static class MauiProgram
                             if (win.Title != "MyWin")
                             {
                                 var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-                                homeVM.ExitingApp();
+                                await homeVM.ExitingApp();
                                 bool result = await win.Page.DisplayAlert(
                                     "Confirm Action",
                                     "You sure want to close app?",
@@ -54,6 +54,10 @@ public static class MauiProgram
                                 if (result)
                                 {
                                     Application.Current.CloseWindow(win);
+                                }
+                                else
+                                {
+                                    await homeVM.PauseResumeSong();
                                 }
                             }
                         }
