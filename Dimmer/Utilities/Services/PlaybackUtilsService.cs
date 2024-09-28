@@ -702,8 +702,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         if (audioService.CurrentPosition <= 30)
         {
-            ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
-            ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
+            if (ObservableCurrentlyPlayingSong.DatesPlayed?.Count > 0 )
+            {
+                ObservableCurrentlyPlayingSong.DatesPlayed.RemoveAt(ObservableCurrentlyPlayingSong.DatesPlayed.Count - 1);
+                ObservableCurrentlyPlayingSong.DatesSkipped.Add(DateTimeOffset.Now);
+            }
         }
         else if (CurrentQueue != 2)
         {

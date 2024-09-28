@@ -1,7 +1,5 @@
 ﻿
-using SharpHook;
-using SharpHook.Native;
-using SharpHook.Reactive;
+
 using Dimmer_MAUI.UtilitiesServices;
 
 namespace Dimmer_MAUI;
@@ -9,7 +7,6 @@ namespace Dimmer_MAUI;
 public partial class AppShell : Shell
 {
 #if WINDOWS
-    private IReactiveGlobalHook hook;
     private IDisposable keyPressedSubscription;
     private IDisposable mousePressedSubscription;
     private IntPtr _hwnd;
@@ -30,6 +27,7 @@ public partial class AppShell : Shell
 #endif
     }
 
+    /* If/When I decide to put back sharphook
 #if WINDOWS
     private void InitializeSharpHook()
     {
@@ -93,6 +91,7 @@ public partial class AppShell : Shell
         hook?.Dispose();
     }
 #endif
+    */
 
 
     protected override void OnNavigated(ShellNavigatedEventArgs args)

@@ -34,7 +34,7 @@
           >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="400"/>
         </Grid.RowDefinitions>
 
         <Border StrokeShape="RoundRectangle 18" Margin="0,20"
@@ -60,7 +60,7 @@
             </Grid>
         </Border>
 
-        <VerticalStackLayout Spacing="25" VerticalOptions="End"
+        <VerticalStackLayout Spacing="22" VerticalOptions="End"
                              MaximumHeightRequest="390" x:Name="dl" Grid.Row="1">
             
             <Grid BackgroundColor="Transparent" >
@@ -89,7 +89,7 @@
                     <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
-        FontAttributes="Bold" FontSize="25"/>
+        FontAttributes="Bold" FontSize="20"/>
 
                 <Label HorizontalTextAlignment="Center" FontSize="18">
                     <Label.Text>
@@ -168,7 +168,7 @@
                     </ImageButton.Source>
                 </ImageButton>
                 <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                             WidthRequest="25">
+                             WidthRequest="30">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>
