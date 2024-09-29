@@ -21,14 +21,31 @@ public partial class SingleSongShell : ContentPage
 
         DeviceDisplay.Current.KeepScreenOn = true;
         TabV.SelectedTab = TabV.Items[0];
+        Array.Clear(HomePageVM.AllSyncLyrics);
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
     {
-        
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        if (e!= null &&  e.Title == "Lyrics")
+        {
+            vm.SwitchViewNowPlayingPageCommand.Execute(0);
+        }
+
+        if (e != null && e.Title == "Edit Tags")
+        {
+            vm.SwitchViewNowPlayingPageCommand.Execute(1);
+        }
+
         if (e!= null && e.Title == "Stats")
         {
-            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+            vm.SwitchViewNowPlayingPageCommand.Execute(2);
+        }
+        
+        
+        if (e!= null && e.Title == "Fetch Lyrics")
+        {
+            vm.SwitchViewNowPlayingPageCommand.Execute(2);
         }
         
     }

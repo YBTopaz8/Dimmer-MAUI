@@ -1,5 +1,6 @@
 ﻿using Dimmer_MAUI.UtilitiesServices;
 using Microsoft.VisualBasic.FileIO;
+using System.Diagnostics;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -86,11 +87,13 @@ public partial class HomePageVM : ObservableObject
         ToggleRepeatMode();
 
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
-        CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
+        CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
+        CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+        
     }
 
     public async void LoadLocalSongFromOutSideApp(string[] filePath)
@@ -232,6 +235,7 @@ public partial class HomePageVM : ObservableObject
 
     public async Task PauseResumeSong()
     {
+        Debug.WriteLine($"Current Position {CurrentPositionInSeconds}");
         await PlayBackService.PauseResumeSongAsync(CurrentPositionPercentage);
     }
 
@@ -274,6 +278,7 @@ public partial class HomePageVM : ObservableObject
     
     public void SeekSongPosition()
     {
+        CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
         PlayBackService.SetSongPosition(CurrentPositionPercentage);
     }
 
@@ -538,6 +543,15 @@ public partial class HomePageVM : ObservableObject
         return;
     }
 
+    public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
+    {
+        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont, IsPlain, this));
+        if (result)
+        {
+            await SaveSelectedLyricsToFile(!IsPlain, cont);
+        }
+    }
+
     [ObservableProperty]
     string songTitle;
     [ObservableProperty]
@@ -562,23 +576,24 @@ public partial class HomePageVM : ObservableObject
         }
     }
     
-    public async Task SaveSelectedLyricsToFile(bool isSync, string lyrics)
+    public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
     {
         bool isSavedSuccessfully;
         
         if (!isSync)
         {
             TemporarilyPickedSong.HasLyrics = true;
-            TemporarilyPickedSong.UnSyncLyrics = lyrics;
-            TemporarilyPickedSong.HasSyncedLyrics = false;            
+            TemporarilyPickedSong.UnSyncLyrics = cont.plainLyrics;
+            TemporarilyPickedSong.HasSyncedLyrics = false;
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.plainLyrics, TemporarilyPickedSong, isSync);
         }
         else
         {
             TemporarilyPickedSong.HasLyrics = false;
             TemporarilyPickedSong.UnSyncLyrics = string.Empty;
             TemporarilyPickedSong.HasSyncedLyrics = true;
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.syncedLyrics, TemporarilyPickedSong, isSync);
         }
-        isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(lyrics, TemporarilyPickedSong, true);
         if (isSavedSuccessfully)
         {
             await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
@@ -590,7 +605,11 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.DisplayAlert("Error !", "Failed to Save Lyrics!", "OK");
             return;
         }
-        LyricsManagerService.InitializeLyrics(lyrics);
+        if (!isSync)
+        {
+            return;
+        }
+        LyricsManagerService.InitializeLyrics(cont.syncedLyrics);
         if (DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id) is not null)
         {
             DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
@@ -732,7 +751,7 @@ public partial class HomePageVM : ObservableObject
                 break;
             case 1:
                 break;
-            case 3:
+            case 2:
                 OpenEditableSongsTagsView();
                 break;
             default:
@@ -903,7 +922,9 @@ public partial class HomePageVM : ObservableObject
    
     public async Task ExitingApp()
     {
+#if WINDOWS
         await this.PauseResumeSong();
+#endif
         AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
         AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
     }

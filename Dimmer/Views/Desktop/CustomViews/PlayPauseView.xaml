@@ -27,7 +27,7 @@
         </VisualStateManager.VisualStateGroups>
         <StackLayout>
             <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-                         Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
+                         Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
                          HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
@@ -36,7 +36,7 @@
             </ImageButton>
 
             <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-                         x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
+                         x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
                          HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>

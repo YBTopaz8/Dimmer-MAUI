@@ -156,6 +156,9 @@
 	  <MauiXaml Update="AppShellMobile.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

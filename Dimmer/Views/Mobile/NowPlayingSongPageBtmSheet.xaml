@@ -77,7 +77,7 @@
                 <!-- Slider in the center -->
                 <Slider Grid.Column="1" VerticalOptions="Center" 
                         Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-                        DragCompletedCommand="{Binding SeekSongPositionCommand}"/>
+                        DragCompleted="Slider_DragCompleted"/>
 
                 <!-- Right-aligned Label -->
                 <Label Grid.Column="2" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
@@ -139,7 +139,7 @@
                 <StackLayout VerticalOptions="Center" x:Name="PpView" Grid.Column="2">
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-     Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
+     Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
                  HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                         <ImageButton.Source>
@@ -149,7 +149,7 @@
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-     x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}" 
+     x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
                  HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                         <ImageButton.Source>

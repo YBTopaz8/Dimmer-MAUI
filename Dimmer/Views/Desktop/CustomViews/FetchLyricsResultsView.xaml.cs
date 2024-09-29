@@ -11,25 +11,38 @@ public partial class FetchLyricsResultsView : ContentView
 
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         VM = vm;
+        
 	}
 
-    private void AllSyncLyr_SizeChanged(object sender, EventArgs e)
-    {
-
-    }
-
-    private async void Button_Clicked(object sender, EventArgs e)
+    private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         var send = (Button)sender;
-        var cont = send.BindingContext as Content;
-        if (!string.IsNullOrEmpty(cont.syncedLyrics))
+        var title = send.Text;
+        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Services.Models.Content;
+        if (title == "Synced Lyrics")
         {
-           await VM.SaveSelectedLyricsToFile(true, cont.syncedLyrics);
-        }
-        else
+
+            await VM.ShowSingleLyricsPreviewPopup(thisContent, false);
+        }else
+        if (title == "Plain Lyrics")
         {
-            await VM.SaveSelectedLyricsToFile(false, cont.plainLyrics!);
+
+            await VM.ShowSingleLyricsPreviewPopup(thisContent, true);
         }
-        //await Shell.Current.ShowPopupAsync(new ViewLyricsPopUp(cont, send.Text));
     }
+
+    //private async void SaveSelectedLyricsToFile(object sender, EventArgs e)
+    //{
+    //    var send = (Button)sender;
+    //    var cont = send.BindingContext as Content;
+    //    if (!string.IsNullOrEmpty(cont.syncedLyrics))
+    //    {
+    //       await VM.SaveSelectedLyricsToFile(true);
+    //    }
+    //    else
+    //    {
+    //        await VM.SaveSelectedLyricsToFile(false);
+    //    }
+    //    //await Shell.Current.ShowPopupAsync(new ViewLyricsPopUp(cont, send.Text));
+    //}
 }

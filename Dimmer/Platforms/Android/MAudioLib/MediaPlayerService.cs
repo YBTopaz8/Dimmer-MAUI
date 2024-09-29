@@ -9,6 +9,7 @@ using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
 using Android.Content.PM;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -206,6 +207,8 @@ public class MediaPlayerService : Service,
 
     public async void OnCompletion(MediaPlayer mp)
     {
+        var pos = mp.CurrentPosition;
+        var dur = mp.Duration;
         TaskPlayEnded?.Invoke(this, EventArgs.Empty);
         await PlayNext();
         
@@ -221,7 +224,10 @@ public class MediaPlayerService : Service,
 
     public void OnPrepared(MediaPlayer mp)
     {
+        var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
+        mp.SeekTo(pos, MediaPlayerSeekMode.Closest);
         mp.Start();
+
         UpdatePlaybackState(PlaybackStateCode.Playing);
         Console.WriteLine("Step 9 Prepared");
     }
@@ -289,13 +295,18 @@ public class MediaPlayerService : Service,
     /// <summary>
     /// Intializes the player.
     /// </summary>
-    public async Task Play()
+    public int currentPositionInMs= 0;
+    public async Task Play(int position=0)
     {
+        var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
+        currentPositionInMs = position;
         Console.WriteLine("Step 6 Play method from mediaplayerservice");
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
             //We are simply paused so just start again
             Console.WriteLine("Not null");
+            mediaPlayer.SeekTo(position);
+
             mediaPlayer.Start();
             UpdatePlaybackState(PlaybackStateCode.Playing);
             StartNotification();
@@ -453,12 +464,14 @@ public class MediaPlayerService : Service,
 
         return imageBitmap;
     }
-    public async Task Seek(int position, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
+    public async Task Seek(int position = 0, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
     {
         await Task.Run(() =>
         {
-            mediaPlayer?.SeekTo(position);
-            UpdatePlaybackState(MediaPlayerState, position);
+
+            var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
+            mediaPlayer?.SeekTo(pos, MediaPlayerSeekMode.Closest);
+            UpdatePlaybackState(MediaPlayerState, pos);
         });
     }
 

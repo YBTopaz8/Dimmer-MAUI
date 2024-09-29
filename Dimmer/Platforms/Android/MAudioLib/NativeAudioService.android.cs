@@ -42,7 +42,20 @@ public class NativeAudioService : INativeAudioService
         }
     }
 
-    public double CurrentPosition => mediaPlayer?.CurrentPosition / 1000 ?? 0;
+    double _currentPosInMs;
+    public double CurrentPosition
+    {
+        get
+        {
+            // Return the current position in seconds (convert from milliseconds)
+            return mediaPlayer?.CurrentPosition / 1000.0 ?? _currentPosInMs / 1000.0;
+        }
+        set
+        {
+            // Store the value in milliseconds in the local variable
+            _currentPosInMs = value * 1000;
+        }
+    }
 
     public double Volume
     {
@@ -76,10 +89,10 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public async Task PlayAsync(double position = 0, bool IsFromUser=false)
+    public async Task PlayAsync(bool IsFromUser=false)
     {
-        await instance.Binder.GetMediaPlayerService().Play();
-        await instance.Binder.GetMediaPlayerService().Seek((int)position * 1000);
+        instance.Binder.GetMediaPlayerService().currentPositionInMs = 23;
+        await instance.Binder.GetMediaPlayerService().Play((int)CurrentPosition);
     }
 
     Task SetMuted(bool value)
@@ -119,14 +132,16 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public async Task<bool> SetCurrentTime(double position) //will edit this so it can return something if media is not initialized;
+    public async Task<bool> SetCurrentTime(double position)
     {
+        position = (position / 100) * Duration;
+        var posInMs = (int)position * 1000;
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
             return false;
         }
-        await instance.Binder.GetMediaPlayerService().Seek((int)position * 1000);
+        await instance.Binder.GetMediaPlayerService().Seek(posInMs);
         return true;
 
     }
@@ -161,7 +176,8 @@ public class NativeAudioService : INativeAudioService
             Task.Run(async () => {
                 if (isPlaying)
                 {
-                    await this.PlayAsync(CurrentPosition);
+                    await this.PlayAsync();
+                    await this.SetCurrentTime(CurrentPosition);
                 }
                 else
                 {

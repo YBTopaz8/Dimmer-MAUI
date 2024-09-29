@@ -43,8 +43,21 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     //}
 
     public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
-    public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
-
+    
+    private double _currentPosInSeconds;
+    public double CurrentPosition
+    {
+        get
+        {
+            // Return the current position in seconds using mediaPlayer's position, or the stored value if mediaPlayer is null
+            return mediaPlayer?.Position.TotalSeconds ?? _currentPosInSeconds;
+        }
+        set
+        {
+            // Store the value directly in seconds in the local variable
+            _currentPosInSeconds = value;
+        }
+    }
     public double Volume
     {
         get => mediaPlayer?.Volume ?? 0;
@@ -83,11 +96,11 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public Task PlayAsync(double position = 0, bool IsFromUser=false)
+    public Task PlayAsync(bool IsFromUser=false)
     {
         if (mediaPlayer != null && IsFromUser)
         {
-            mediaPlayer.Position = TimeSpan.FromSeconds(position);
+            mediaPlayer.Position = TimeSpan.FromSeconds(CurrentPosition);
             mediaPlayer.Play();
             IsPlaying = true;
             IsPlayingChanged.Invoke(this, true);
@@ -98,6 +111,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     public Task<bool> SetCurrentTime(double value)
     {
+        value = value * Duration;
         if (mediaPlayer == null)
         {
             return Task.FromResult(false);
@@ -194,6 +208,5 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         IsPlayingChanged?.Invoke(sender, true);
     }
 
-   
 }
 

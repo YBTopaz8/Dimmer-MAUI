@@ -5,10 +5,12 @@ public partial class MiniControlNotificationView : ContentPage
 {
    
     private Timer _closeTimer;
+    HomePageVM vm;
     public MiniControlNotificationView(string title, string artistName, string imagePath)
     {
 		InitializeComponent();
-        BindingContext = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        BindingContext = vm;
 #if WINDOWS
         _closeTimer = new Timer(5000);
         _closeTimer.Elapsed += _closeTimer_Elapsed;
@@ -19,8 +21,9 @@ public partial class MiniControlNotificationView : ContentPage
         ImagePathh.Source = imagePath;
     }
 
-    private void ImageButton_Clicked(object sender, EventArgs e)
+    private async void PlayPauseImgBtn_Clicked(object sender, EventArgs e)
     {
+        await vm.PauseResumeSong();   
         ResetTimer();
     }
     private void CloseImgBtn_Clicked(object sender, EventArgs e)
@@ -65,6 +68,16 @@ public partial class MiniControlNotificationView : ContentPage
         songTitle.Text = title;
         ArtistName.Text = artistName;
         ImagePathh.Source = imagePath;
+        ResetTimer();
+    }
+
+    private void ToggleRepeatButton_Clicked(object sender, EventArgs e)
+    {
+        ResetTimer();
+    }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
         ResetTimer();
     }
 }

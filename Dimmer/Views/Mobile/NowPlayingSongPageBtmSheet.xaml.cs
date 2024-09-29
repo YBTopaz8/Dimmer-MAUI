@@ -53,4 +53,14 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
         await this.DismissAsync();
         
     }
+
+    private async void PlayPauseImgBtn_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.PauseResumeSong();
+    }
+
+    private void Slider_DragCompleted(object sender, EventArgs e)
+    {
+        HomePageVM.SeekSongPosition();
+    }
 }

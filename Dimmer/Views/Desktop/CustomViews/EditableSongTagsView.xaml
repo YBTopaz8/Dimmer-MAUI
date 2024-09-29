@@ -19,6 +19,11 @@
     </ContentView.Resources>
     <Grid x:Name="ContentVSL"
           RowDefinitions="Auto, auto, auto, *">
+        
+        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
+        x:Name="StartSyncingBtn" Grid.Row="1"
+        Margin="0,10" IsVisible="{Binding TemporarilyPickedSong.HasLyrics, Converter={x:StaticResource BoolToInverse}}"/>
+        
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
                              Spacing="10" Margin="10,0" Grid.Row="0">
 
@@ -38,9 +43,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </VerticalStackLayout>
-        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
-                x:Name="StartSyncingBtn" Grid.Row="1"
-                Margin="0,10"/>
+        
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" Grid.Row="2"
                         IsVisible="{Binding IsOnLyricsSyncMode}">

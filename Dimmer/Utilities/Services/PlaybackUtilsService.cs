@@ -409,6 +409,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
         _currentSongIndex = _nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong);
+        audioService.InitializeAsync(audioURI: ObservableCurrentlyPlayingSong.FilePath);
     }
     static string? GetCoverImagePath(string filePath)
     {
@@ -539,7 +540,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return true;
     }
 
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, ObservableCollection<SongsModelView>? currentList = null, double lastPosition = 0)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, 
+        ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0)
     {
         switch (currentQueue)
         {
@@ -596,8 +598,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer = new System.Timers.Timer(500);
             _positionTimer.Elapsed += OnPositionTimerElapsed;
             _positionTimer.AutoReset = true;
-            
-
 
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
@@ -613,7 +613,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
             });
 
-            await audioService.PlayAsync(lastPosition, IsFromUser:true);
+            var positionInSeconds = (lastPositionPercentage / 100) * ObservableCurrentlyPlayingSong.DurationInSeconds;
+
+            audioService.CurrentPosition = lastPositionPercentage;
+            await audioService.PlayAsync(IsFromUser:true);
             bugCount = 0;
 
             _positionTimer.Start();
@@ -645,8 +648,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 #endif
         }
     }
-    public async Task<bool> PauseResumeSongAsync(double lastPosition)
+    public async Task<bool> PauseResumeSongAsync(double lastPositionPercentage)
     {
+        var positionInSeconds = (lastPositionPercentage / 100) * ObservableCurrentlyPlayingSong.DurationInSeconds;
+
+        audioService.CurrentPosition = lastPositionPercentage;
         if (ObservableCurrentlyPlayingSong is null)
         {
             await PlaySongAsync();
@@ -654,7 +660,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         if (audioService.CurrentPosition == 0 && !audioService.IsPlaying)
         {
-            await PlaySongAsync(ObservableCurrentlyPlayingSong, lastPosition: lastPosition);
+            await PlaySongAsync(ObservableCurrentlyPlayingSong, lastPositionPercentage: currentPosition);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
             _positionTimer.Start();
@@ -671,9 +677,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
-            await audioService.PlayAsync(currentPosition, IsFromUser: true);
+            await audioService.PlayAsync(IsFromUser: true);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
+            _positionTimer?.Stop();
+            _positionTimer?.Dispose();
+
+
+            _positionTimer = new System.Timers.Timer(500);
+            _positionTimer.Elapsed += OnPositionTimerElapsed;
+            _positionTimer.AutoReset = true;
             _positionTimer.Start();
         }
 
@@ -830,7 +843,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             //await SetSongPosition(positionFraction);
         }
 
-        await audioService.PlayAsync(positionFraction, IsFromUser: true);
     }
 
     public void ChangeVolume(double newPercentageValue)
