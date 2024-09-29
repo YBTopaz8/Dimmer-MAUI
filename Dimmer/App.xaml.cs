@@ -74,9 +74,6 @@ public partial class App : Application
 
     protected async override void OnSleep()
     {
-        base.OnSleep();
-
-        var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        await homeVM.ExitingApp();
+        
     }
 }

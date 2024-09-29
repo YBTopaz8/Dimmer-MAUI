@@ -95,7 +95,7 @@ public partial class HomePageVM
 
             
             MostPlayedDay = mostPlayedDay.Key.ToString();
-            //PlotPieSeries(song);
+            PlotPieSeries(song);
         }
         else
         {
@@ -105,7 +105,7 @@ public partial class HomePageVM
         }
 
 
-        //PlotLineSeries(song);
+        PlotLineSeries(song);
     }
     [ObservableProperty]
     ObservableCollection<DateTimeOffset> dialyWalkThrough;
@@ -193,6 +193,7 @@ public partial class HomePageVM
         List<string> dayNamesList;
         AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
+        return;
         var lines = new LineSeries<int>
         {
             Values = dayOfWeekCountsArray,

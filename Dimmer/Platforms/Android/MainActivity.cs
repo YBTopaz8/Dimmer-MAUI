@@ -52,4 +52,11 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
     }
 
+    protected async override void OnStop()
+    {
+        base.OnStop();
+        
+        var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        await homeVM.ExitingApp();
+    }
 }

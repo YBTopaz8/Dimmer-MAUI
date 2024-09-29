@@ -17,7 +17,10 @@ public partial class NowPlayingD : ContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
         SyncLyrView.ScrollToLyric();
-        Array.Clear(HomePageVM.AllSyncLyrics);
+        if (HomePageVM.AllSyncLyrics is not null)
+        {
+            Array.Clear(HomePageVM.AllSyncLyrics);
+        }
     }
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
