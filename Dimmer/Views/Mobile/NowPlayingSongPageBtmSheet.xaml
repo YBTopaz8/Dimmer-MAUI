@@ -38,7 +38,7 @@
         </Grid.RowDefinitions>
 
         <Border StrokeShape="RoundRectangle 18" Margin="0,20"
-                StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
+                StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="500" x:Name="lyricsCover">
             
             <Grid >
                 

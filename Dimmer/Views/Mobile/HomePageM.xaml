@@ -183,7 +183,7 @@
             <material:BackdropView.IconImageSource>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
             </material:BackdropView.IconImageSource>
-            <VerticalStackLayout Margin="0,0" HeightRequest="250">
+            <VerticalStackLayout Margin="0,0" HeightRequest="200">
                 <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>

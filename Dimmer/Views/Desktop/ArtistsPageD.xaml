@@ -31,12 +31,7 @@
                 
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
             </MenuFlyout>
-            <Style TargetType="ImageButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="BorderColor" Value="Transparent"/>
-                <Setter Property="WidthRequest" Value="50"/>
-                <Setter Property="HeightRequest" Value="45"/>
-            </Style>
+            
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout>
@@ -134,8 +129,8 @@
             <CollectionView.Header>
                 <FlexLayout JustifyContent="SpaceBetween">
                     <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
-                    
-                    <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
+
+                    <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"  BackgroundColor="Transparent"
                                  ToolTipProperties.Text="Show All Artist Songs">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>

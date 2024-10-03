@@ -21,7 +21,10 @@ public partial class SingleSongShell : ContentPage
 
         DeviceDisplay.Current.KeepScreenOn = true;
         TabV.SelectedTab = TabV.Items[0];
-        Array.Clear(HomePageVM.AllSyncLyrics);
+        if (HomePageVM.AllSyncLyrics?.Length > 0)
+        {
+            Array.Clear(HomePageVM.AllSyncLyrics);
+        }
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)

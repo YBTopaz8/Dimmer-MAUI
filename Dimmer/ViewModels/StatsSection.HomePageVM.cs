@@ -14,7 +14,7 @@ public partial class HomePageVM
         var today = DateTime.Today;
         // Get the date 7 days ago
         var lastWeek = today.AddDays(-6);
-        TopTenPlayedSongs = SongsMgtService.AllSongs
+        TopTenPlayedSongs = DisplayedSongs
             .Select(s => new SingleSongStatistics
             {
                 Song = s,
@@ -23,7 +23,7 @@ public partial class HomePageVM
             .OrderByDescending(s => s.PlayCount)
             .Take(20)
             .ToObservableCollection();
-        if (IsPlaying && CurrentQueue !=2)
+        if (IsPlaying && CurrentQueue != 2)
         {
             ShowSingleSongStats(TemporarilyPickedSong);
         }
@@ -87,20 +87,20 @@ public partial class HomePageVM
 
         if (song.DatesPlayed != null && song.DatesPlayed.Count > 0)
         {
-            
+
             var mostPlayedDay = song.DatesPlayed
                 .GroupBy(d => d.DayOfWeek)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault();
 
-            
+
             MostPlayedDay = mostPlayedDay.Key.ToString();
             PlotPieSeries(song);
         }
         else
         {
             IsChartVisible = false;
-            
+
             MostPlayedDay = "Never Played Yet";
         }
 
@@ -131,10 +131,10 @@ public partial class HomePageVM
 
             series.DataLabelsSize = 14;
             series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
-            series.DataLabelsFormatter = point => 
+            series.DataLabelsFormatter = point =>
                 series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
-            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}"; 
-            
+            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}";
+
         });
 
         MyPieSeriesTitle = new LabelVisual
@@ -173,11 +173,11 @@ public partial class HomePageVM
         SongDatePlayCounts = new ObservableCollection<DatePlayCount>(datePlayCounts);
 
         dayOfWeekCountsArray = filteredDayCounts
-            .Select(kvp => kvp.Value) 
+            .Select(kvp => kvp.Value)
             .ToArray();
 
         dayNamesList = filteredDayCounts
-            .Select(kvp => kvp.Key.ToString()) 
+            .Select(kvp => kvp.Key.ToString())
             .ToList();
 
         NumberOfTimesPlayed = filteredDayCounts.Values.Sum();

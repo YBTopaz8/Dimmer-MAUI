@@ -9,7 +9,6 @@ using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
 using Android.Content.PM;
-using System.Diagnostics;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -281,7 +280,7 @@ public class MediaPlayerService : Service,
     {
         get
         {
-            cover ??= BitmapFactory.DecodeResource(Resources, Resource.Drawable.abc_btn_check_material); //TODO player_play
+            cover = null;
             return cover;
         }
         set
@@ -295,11 +294,8 @@ public class MediaPlayerService : Service,
     /// <summary>
     /// Intializes the player.
     /// </summary>
-    public int currentPositionInMs= 0;
-    public async Task Play(int position=0)
+    public async Task Play(int position = 0)
     {
-        var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
-        currentPositionInMs = position;
         Console.WriteLine("Step 6 Play method from mediaplayerservice");
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
@@ -315,6 +311,7 @@ public class MediaPlayerService : Service,
             UpdateMediaMetadataCompat();
             return;
         }
+
 
         if (mediaPlayer == null)
         {
@@ -468,10 +465,8 @@ public class MediaPlayerService : Service,
     {
         await Task.Run(() =>
         {
-
-            var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
-            mediaPlayer?.SeekTo(pos, MediaPlayerSeekMode.Closest);
-            UpdatePlaybackState(MediaPlayerState, pos);
+            mediaPlayer?.SeekTo(position, MediaPlayerSeekMode.Closest);
+            UpdatePlaybackState(MediaPlayerState, position);
         });
     }
 

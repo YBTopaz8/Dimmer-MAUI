@@ -12,15 +12,15 @@
            CanBeDismissedByTappingOutsideOfPopup="False">
 
     <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
-            Stroke="Transparent"
-            WidthRequest="500" HeightRequest="{OnPlatform WinUI=650, Android=450}"
-            BackgroundColor="Transparent"
-            Margin="5"
-            Padding="10">
-        <Grid BackgroundColor="Black" Padding="10"
-              RowDefinitions="*,Auto,50">
+        Stroke="Transparent" 
+        WidthRequest="500" HeightRequest="{OnPlatform WinUI=450, Android=450}"
+        BackgroundColor="Black"
+        Margin="5"
+        Padding="10">
+        <Grid BackgroundColor="Transparent" Padding="10"
+          RowDefinitions="30,Auto,50">
             <VerticalStackLayout HorizontalOptions="Center" 
-                                   Grid.Row="0">
+                               Grid.Row="0">
                 <HorizontalStackLayout HorizontalOptions="Center">
                     <Label Text="Artist name" x:Name="ArtistNameLabel" FontSize="23" FontAttributes="Bold"/>
                     <Label Text=" - " FontSize="23" FontAttributes="Bold"/>
@@ -30,16 +30,16 @@
             </VerticalStackLayout>
 
             <ScrollView Grid.Row="1" HeightRequest="330">
-                <Label Text="Lyrics" x:Name="LyricsView" 
-                    VerticalOptions="Start" HorizontalTextAlignment="Start"
-                    Padding="10"/>
+                <Label Text="Lyrics" x:Name="LyricsView" LineBreakMode="WordWrap"
+                VerticalOptions="Start" HorizontalTextAlignment="Start"
+                Padding="10"/>
             </ScrollView>
-            
+
             <HorizontalStackLayout HorizontalOptions="End" 
-                                   Grid.Row="2">
+                               Grid.Row="2">
                 <Button Text="Cancel" BackgroundColor="Transparent"
-                        TextColor="Red"
-                        Clicked="CloseButton_Clicked"/>
+                    TextColor="Red"
+                    Clicked="CloseButton_Clicked"/>
                 <Button Text="Save" Clicked="OkButton_Clicked"/>
             </HorizontalStackLayout>
         </Grid>

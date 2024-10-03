@@ -50,11 +50,7 @@ public class NativeAudioService : INativeAudioService
             // Return the current position in seconds (convert from milliseconds)
             return mediaPlayer?.CurrentPosition / 1000.0 ?? _currentPosInMs / 1000.0;
         }
-        set
-        {
-            // Store the value in milliseconds in the local variable
-            _currentPosInMs = value * 1000;
-        }
+
     }
 
     public double Volume
@@ -89,10 +85,10 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public async Task PlayAsync(bool IsFromUser=false)
+    public async Task PlayAsync(double position = 0, bool IsFromUser = false)
     {
-        instance.Binder.GetMediaPlayerService().currentPositionInMs = 23;
-        await instance.Binder.GetMediaPlayerService().Play((int)CurrentPosition);
+        var posInMs = (int)(position * Duration * 1000);
+        await instance.Binder.GetMediaPlayerService().Play((int)posInMs);
     }
 
     Task SetMuted(bool value)
@@ -134,8 +130,8 @@ public class NativeAudioService : INativeAudioService
 
     public async Task<bool> SetCurrentTime(double position)
     {
-        position = (position / 100) * Duration;
-        var posInMs = (int)position * 1000;
+        //position = (position) * Duration;
+        var posInMs = (int)(position * Duration * 1000);
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");

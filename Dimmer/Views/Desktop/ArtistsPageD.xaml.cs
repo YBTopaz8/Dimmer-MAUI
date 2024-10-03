@@ -5,8 +5,8 @@ namespace Dimmer_MAUI.Views.Desktop;
 public partial class ArtistsPageD : ContentPage
 {
     public ArtistsPageD(HomePageVM homePageVM)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
         HomePageVM.GetAllArtistsCommand.Execute(null);
@@ -24,16 +24,13 @@ public partial class ArtistsPageD : ContentPage
 
     protected override void OnAppearing()
     {
+        base.OnAppearing();
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        base.OnAppearing();
-    }
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
-    {
+        HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
+        AllArtistsColView.ScrollTo(AllArtistsColView.SelectedItem, null, ScrollToPosition.Center, false);
 
-        base.OnNavigatedTo(args);
-        
     }
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
@@ -45,14 +42,12 @@ public partial class ArtistsPageD : ContentPage
 
     private async void MenuFlyoutItem_Clicked(object sender, EventArgs e)
     {
-        var view = (MenuFlyoutItem)sender;
-        SongsModelView song = view.BindingContext as SongsModelView;
         await HomePageVM.SetSongCoverAsAlbumCover();
     }
 
     private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
-    {        
-        HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);        
+    {
+        HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
