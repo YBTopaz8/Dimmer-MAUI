@@ -121,6 +121,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="Resources\Images\high_volume_d.svg" />
 	  <None Remove="Resources\Images\low_volume_d.svg" />
 	  <None Remove="Resources\Images\msc.jpg" />
@@ -154,6 +158,9 @@
 
 	<ItemGroup>
 	  <MauiXaml Update="AppShellMobile.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">

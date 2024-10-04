@@ -633,7 +633,7 @@ public class LyricsService : ILyricsService
             File.Delete(lrcFilePath);
         }
 
-        File.WriteAllText(lrcFilePath, Lyrics);
+        File.WriteAllText(lrcFilePath, Lyrics); //I had a case one time where an exception was thrown because there was a folder with exact same name alreay existing
 
         return true;
 

@@ -62,7 +62,7 @@
             <HorizontalStackLayout Spacing="15" Grid.Column="1" 
                                HorizontalOptions="Center">
                 
-                <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
+                <ImageButton Command="{Binding ToggleRepeatModeCommand}">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>

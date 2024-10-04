@@ -51,7 +51,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     bool isShuffleOn;
     [ObservableProperty]
     int currentRepeatMode;
-
+    public int CurrentRepeatCount { get; set; } = 1;
     bool isSongPlaying;
 
     List<ObjectId> playedSongsIDs = [];
@@ -112,20 +112,66 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playLock.Release();
         }
     }
+
+    private int repeatCountMax;
+    int comCount = 0;
+    private bool isCooldownActive = false; // To prevent rapid re-triggering
+
     private async void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        await Task.Delay(1000);
+        // If cooldown is active, prevent re-triggering
+        if (isCooldownActive)
+        {
+            return;
+        }
+
+        // Set cooldown flag to prevent rapid re-triggering
+        isCooldownActive = true;
+
+        // Proceed with your logic
         if (!audioService.IsPlaying)
         {
             Debug.WriteLine("Ended in pbutils Serv");
-            if (CurrentRepeatMode == 2) //repeat the same song
+
+            if (CurrentRepeatMode == 2) // Repeat the same song
             {
                 await PlaySongAsync();
-                return;
             }
-            await PlayNextSongAsync();
+            
+            else if(CurrentRepeatMode == 4) // Custom repeat mode
+            {
+                if (CurrentRepeatCount < repeatCountMax)
+                {
+                    CurrentRepeatCount++;
+                    Debug.WriteLine($"Repeating song {CurrentRepeatCount}/{repeatCountMax}");
+                    await PlaySongAsync();
+                }
+                else
+                {
+                    CurrentRepeatMode = 1;
+                    CurrentRepeatCount = 1;
+                    Debug.WriteLine("Finished repeating the song, moving to next song.");
+                    await PlayNextSongAsync();
+                }
+            }
+            else
+            {
+                await PlayNextSongAsync();
+            }
 
+
+            // Additional logic to force re-triggering if the app is stuck
+            await Task.Delay(2000); // Wait for 2 seconds
+            if (!audioService.IsPlaying)
+            {
+                Debug.WriteLine("Audio service seems stuck, forcing play event.");
+                AudioService_PlayEnded(null, null); // Force re-triggering if still stuck
+            }
         }
+
+        // Wait for the cooldown period before allowing re-trigger
+        await Task.Delay(1000);
+        isCooldownActive = false; // Cooldown period over, allow re-trigger
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -543,7 +589,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0,
-        ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0)
+        ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0, int repeatMode = 0, int repeatMaxCount = 0)
     {
         switch (currentQueue)
         {
@@ -560,7 +606,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
         }
-
+        if (repeatMode == 4)
+        {
+            CurrentRepeatCount = 1;
+            CurrentRepeatMode = 4;
+            this.repeatCountMax = repeatMaxCount;
+        }
         try
         {
             if (song != null)
@@ -736,6 +787,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         if (CurrentRepeatMode == 0)
         {
+            await PlaySongAsync(currentQueue: CurrentQueue);
             return true;
         }
         var currentList = GetCurrentList(CurrentQueue, _secondaryQueueSubject.Value);
@@ -894,6 +946,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return CurrentRepeatMode;
     }
 
+   
+
     private async void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         bugCount++;
@@ -926,6 +980,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     //ObjectId PreviouslyLoadedPlaylist;
     public int CurrentQueue { get; set; } = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
+
     public void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     {
         CurrentQueue = QueueNumber;

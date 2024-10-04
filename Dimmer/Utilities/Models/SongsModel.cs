@@ -177,6 +177,7 @@ public partial class SongsModelView : ObservableObject
     }
 }
 
+
 public enum SortingEnum
 {
     TitleAsc,

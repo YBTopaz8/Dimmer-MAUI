@@ -182,8 +182,9 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
     {
+        IsPlaying = false;
         PlayEnded?.Invoke(sender, EventArgs.Empty);
-        PlayNext?.Invoke(sender, EventArgs.Empty);
+        //PlayNext?.Invoke(sender, EventArgs.Empty);
     }
     private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
     {

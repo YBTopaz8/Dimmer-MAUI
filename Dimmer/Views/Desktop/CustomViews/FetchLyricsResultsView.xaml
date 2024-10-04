@@ -19,13 +19,15 @@
     <Grid Margin="5,5" 
           RowDefinitions="Auto, *">
         <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
-                               Margin="5">
-            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}">
+                               Margin="5" HorizontalOptions="Center">
+            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}"
+                    >
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
                 </Button.CommandParameter>
             </Button>
-            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}">
+            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                    IsVisible="False">
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
                 </Button.CommandParameter>

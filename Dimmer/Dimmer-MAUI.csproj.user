@@ -34,6 +34,9 @@
     <MauiXaml Update="AppShellMobile.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

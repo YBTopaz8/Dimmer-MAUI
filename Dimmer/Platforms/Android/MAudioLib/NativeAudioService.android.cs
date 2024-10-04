@@ -31,7 +31,16 @@ public class NativeAudioService : INativeAudioService
         }
     }
 
-    public bool IsPlaying => mediaPlayer?.IsPlaying ?? false;
+    public bool IsPlaying
+    {
+        get
+        {
+            return mediaPlayer?.IsPlaying ?? false;
+        }
+        
+
+    }
+
     public double Duration
     {
         get

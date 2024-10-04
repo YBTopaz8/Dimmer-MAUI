@@ -17,6 +17,7 @@
             x:Name="myPage" Shell.TitleColor="Black"
             BackgroundColor="Black"
             Shell.TabBarBackgroundColor="Black"
+            Shell.TabBarIsVisible="True"
             >
    
     <Shell.TitleView>

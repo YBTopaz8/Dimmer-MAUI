@@ -191,41 +191,41 @@ public partial class HomePageVM : ObservableObject
 
     [RelayCommand]
     //void PlaySong(SongsModelView? SelectedSong = null)
-    void PlaySong(SongsModelView? SelectedSong = null)
+    async Task PlaySong(SongsModelView? SelectedSong = null)
     {
         CurrentQueue = 0;
         if (SelectedSong != null && CurrentPage == PageEnum.PlaylistsPage)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: DisplayedSongsFromPlaylist);
+            await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: DisplayedSongsFromPlaylist, repeatMode:CurrentRepeatMode, repeatMaxCount: CurrentRepeatMaxCount);
             return;
         }
         if (CurrentPage == PageEnum.FullStatsPage)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+            await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
             //ShowGeneralTopXSongs();
             return;
         }
         if (CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllAlbumsPage && SelectedSong != null)
         {
             CurrentQueue = 1;
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
+            await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
             return;
         }
         if (SelectedSong is not null)
         {
             if (CurrentQueue == 1)
             {
-                PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
+                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
                 return;
             }
-            PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue);
+            await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue);
             return;
         }
         else
         {
-            PlayBackService.PlaySongAsync(null, CurrentQueue);
+            await PlayBackService.PlaySongAsync(PickedSong, CurrentQueue, repeatMaxCount: CurrentRepeatMaxCount, repeatMode:CurrentRepeatMode);
             return;
         }
 
@@ -294,7 +294,6 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
-        CurrentRepeatMode = PlayBackService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
             CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
@@ -306,6 +305,7 @@ public partial class HomePageVM : ObservableObject
                 RepeatModeImage = MaterialTwoTone.Repeat_on;
                 break;
             case 2:
+            case 4:
                 RepeatModeImage = MaterialTwoTone.Repeat_one_on;
                 break;
             case 0:
@@ -413,6 +413,7 @@ public partial class HomePageVM : ObservableObject
                             ShowGeneralTopXSongs();
                             //ShowSingleSongStats(PickedSong);
                         }
+                        CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                         break;
                     case MediaPlayerState.Paused:
                         IsPlaying = false;
@@ -642,12 +643,12 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     ObservableCollection<LyricPhraseModel>? lyricsLines = new();
     [RelayCommand]
-    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            PlaySong();
+            await PlaySong();
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
@@ -810,7 +811,29 @@ public partial class HomePageVM : ObservableObject
         IsLoadingSongs = false;
     }
 
+    
+    int CurrentRepeatMaxCount;
+    [ObservableProperty]
+    int currentRepeatCount;
+    [RelayCommand]
+    async Task OpenRepeatSetterPopup()
+    {
+#if ANDROID
+        PickedSong = SelectedSongToOpenBtmSheet;
+#endif
 
+        var result = (int)await Shell.Current.ShowPopupAsync(new CustomRepeatPopup(CurrentRepeatMaxCount, PickedSong));
+
+        if (result > 0)
+        {
+            CurrentRepeatMode = 4;
+            CurrentRepeatMaxCount = result;
+            await PlaySong();
+            ToggleRepeatMode();
+
+            CurrentRepeatMaxCount = 0;
+        }
+    }
 
     void OpenEditableSongsTagsView()
     {

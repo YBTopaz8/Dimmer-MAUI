@@ -33,7 +33,7 @@ public partial class App : Application
         win.Height = 900;
         win.Width = 1200;
 
-        win.Title = "Dimmer v0.0.4";
+        win.Title = "Dimmer v0.0.5";
 
         return win;
 

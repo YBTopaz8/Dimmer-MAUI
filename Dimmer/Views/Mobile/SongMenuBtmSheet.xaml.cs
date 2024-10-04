@@ -60,4 +60,10 @@ public partial class SongMenuBtmSheet : BottomSheet
         HomePageVM.NavToNowPlayingPageCommand.Execute(null);
         await this.DismissAsync();
     }
+
+    private async void SetPlayRepeat_Tapped(object sender, TappedEventArgs e)
+    {
+        await this.DismissAsync();
+        HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
+    }
 }

@@ -63,4 +63,5 @@ public partial class NowPlayingSongPageBtmSheet : BottomSheet
     {
         HomePageVM.SeekSongPosition();
     }
+
 }

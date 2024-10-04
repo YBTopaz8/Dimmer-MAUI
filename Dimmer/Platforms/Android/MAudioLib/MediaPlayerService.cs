@@ -9,6 +9,7 @@ using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
 using Android.Content.PM;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -204,12 +205,15 @@ public class MediaPlayerService : Service,
         Console.WriteLine("Step 7 on buffering");
     }
 
+    int comCount = 0;
     public async void OnCompletion(MediaPlayer mp)
     {
-        var pos = mp.CurrentPosition;
-        var dur = mp.Duration;
+        comCount++;
+        Console.WriteLine("completed " + comCount + " times OnComp");
+        mp.SeekTo(0);
+        IsPlayingChanged?.Invoke(this, false);
         TaskPlayEnded?.Invoke(this, EventArgs.Empty);
-        await PlayNext();
+        //await PlayNext();
         
     }
     
@@ -224,7 +228,7 @@ public class MediaPlayerService : Service,
     public void OnPrepared(MediaPlayer mp)
     {
         var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
-        mp.SeekTo(pos, MediaPlayerSeekMode.Closest);
+        mp.SeekTo(pos);
         mp.Start();
 
         UpdatePlaybackState(PlaybackStateCode.Playing);
@@ -465,7 +469,7 @@ public class MediaPlayerService : Service,
     {
         await Task.Run(() =>
         {
-            mediaPlayer?.SeekTo(position, MediaPlayerSeekMode.Closest);
+        mediaPlayer?.SeekTo(position);
             UpdatePlaybackState(MediaPlayerState, position);
         });
     }

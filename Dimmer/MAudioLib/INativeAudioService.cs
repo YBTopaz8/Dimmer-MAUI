@@ -16,7 +16,7 @@ public interface INativeAudioService
     ///<Summary>
     /// Gets a value indicating whether the currently loaded audio file is playing.
     ///</Summary>
-    bool IsPlaying { get; }
+    bool IsPlaying { get;}
     ///<Summary>
     /// Gets the current position of audio playback in seconds.
     ///</Summary>

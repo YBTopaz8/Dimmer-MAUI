@@ -126,9 +126,12 @@
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
-                    <Grid ColumnSpacing="25" Padding="8" x:Name="GridOfItems">
+                    <Grid ColumnSpacing="25" Padding="8" x:Name="GridOfItems" BackgroundColor="Transparent">
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Text="Set Play Repeat Count" 
+                                                 Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
+                                </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="View File Explorer" 
                                                 Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
@@ -223,7 +226,8 @@
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
-
+                                <VisualState x:Name="Selected"/>
+                                    
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
