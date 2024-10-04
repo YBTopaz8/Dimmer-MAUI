@@ -39,7 +39,7 @@ public partial class HomePageVM
         ShowSpecificArtistsSongsWithAlbumId(selectedAlbumId);
         await Shell.Current.GoToAsync(nameof(SpecificAlbumPage));
     }
-    public async Task NavigateToArtistsPage(SongsModelView? song=null)
+    public async Task NavigateToArtistsPage(SongsModelView song)
     {
         GetAllArtistsAlbum(song.Id, song);
 #if WINDOWS
@@ -80,7 +80,7 @@ public partial class HomePageVM
         }
     }
 
-    public void GetAllArtistsAlbum(ObjectId artistOrSongId, SongsModelView? song=null)
+    public void GetAllArtistsAlbum(ObjectId artistOrSongId, SongsModelView? song = null)
     {
         if (song is null)
         {
@@ -91,7 +91,7 @@ public partial class HomePageVM
             (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(artistOrSongId);
             SelectedArtistOnArtistPage = AllArtists.First(x => x.Id == SelectedArtistId);
         }
-        
+
         if (AllArtists?.Count < 1)
         {
             AllArtists = PlayBackService.GetAllArtists()
@@ -103,7 +103,7 @@ public partial class HomePageVM
                 return;
             }
         }
-        
+
         AllArtistsAlbums?.Clear();
         AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistId).ToObservableCollection();
         if (AllArtistsAlbums.Count > 0)
@@ -123,8 +123,8 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
-        AllArtistsAlbumSongs?.Clear();        
-        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID( albumId);
+        AllArtistsAlbumSongs?.Clear();
+        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID(albumId);
         SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
 
@@ -132,7 +132,7 @@ public partial class HomePageVM
     void ShowSpecificArtistsSongs()
     {
         AllArtistsSongs?.Clear();
-        var songss = PlayBackService.GetallArtistsSongsByArtistId(SelectedArtistId);        
+        var songss = PlayBackService.GetallArtistsSongsByArtistId(SelectedArtistId);
         AllArtistsAlbumSongs = songss;
     }
 

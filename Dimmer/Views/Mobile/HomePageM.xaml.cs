@@ -74,6 +74,10 @@ public partial class HomePageM : UraniumContentPage
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
+        if (TitleSearchView.IsVisible)
+        {
+            HideSearchView_Clicked(sender, e);
+        }
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
     }
 
@@ -113,5 +117,24 @@ public partial class HomePageM : UraniumContentPage
          searchSongTextField = SearchSongSB.Content as EntryView;
         _ = await searchSongTextField!.HideKeyboardAsync();
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+    }
+
+    private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+            var lItem = col.First();
+            SongsColView.ScrollTo(lItem, ScrollToPosition.Center, animate: false);
+        }
+    }
+    private void SwipeGestureRecognizer_SwipedDown(object sender, SwipedEventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+            var fItem = col.Last();
+            SongsColView.ScrollTo(fItem, ScrollToPosition.Center, animate: false);
+        }
     }
 }

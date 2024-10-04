@@ -29,16 +29,24 @@
             </Style>
         </ResourceDictionary>
     </the49:BottomSheet.Resources>
-    <VerticalStackLayout>
-        <HorizontalStackLayout HorizontalOptions="Center">
-            <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
-            <Label Text=" by "/>
+    <VerticalStackLayout Margin="5">
+        <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" LineBreakMode="TailTruncation" FontSize="20"/>
+            <Label Text="-" />
             <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
         </HorizontalStackLayout>
         <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
                    RadiusX="15" Margin="0,10"/>
         <VerticalStackLayout x:Name="FirstPageBtmSheet" Spacing="10" Margin="5">
-            
+
+            <Label Text="Set Play Repeat Count" x:Name="SetPlayRepeat">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="SetPlayRepeat_Tapped"/>
+                </Label.GestureRecognizers>
+
+            </Label>
+            <BoxView/>
+
             <Label Text="Add to Playlist" x:Name="AddToPlaylist">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="AddToPlaylist_Tapped"/>

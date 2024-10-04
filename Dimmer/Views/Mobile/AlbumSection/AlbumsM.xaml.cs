@@ -19,7 +19,7 @@ public partial class AlbumsM : UraniumContentPage
         HomePageVM.PlaySongCommand.Execute(song);
     }
     ObjectId previousAlbID = ObjectId.Empty;
-    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
         var t = (VerticalStackLayout)sender;
         var album = t.BindingContext as AlbumModelView;

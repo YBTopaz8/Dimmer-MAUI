@@ -18,13 +18,16 @@
     </ContentView.Resources>
     <Grid Margin="5,5" 
           RowDefinitions="Auto, *">
-        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50">
-            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}">
+        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
+                               Margin="5" HorizontalOptions="Center">
+            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}"
+                    >
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
                 </Button.CommandParameter>
             </Button>
-            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}">
+            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                    IsVisible="False">
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
                 </Button.CommandParameter>
@@ -46,7 +49,9 @@
             </VerticalStackLayout>
         </VerticalStackLayout>-->
 
-        <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
+        
+        
+        <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1" 
                         >
             <CollectionView.EmptyView>
                 <ContentView>
@@ -60,57 +65,27 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Content">
 
-                    <Border Stroke="DarkSlateBlue" ToolTipProperties.Text="Tap To View/Hide Lyrics"
+                    <Border Stroke="DarkSlateBlue" 
                             StrokeShape="RoundRectangle, 10"
                             Padding="10" Margin="0,5">
                         <VerticalStackLayout>
-                            <VerticalStackLayout IsVisible="{OnPlatform Android=True,WinUI=False}">
-                                <Label Text="{Binding trackName, StringFormat='Title: {0}'}" HorizontalTextAlignment="Center"/>
-
-                                <Label Text="{Binding artistName, StringFormat='Artist: {0}'}"/>
-
-                                <Label Text="{Binding albumName, StringFormat='Album: {0}'}"/>
-                                <Button Text="Save Lyrics" Clicked="Button_Clicked"/>
-
-                                <ScrollView MaximumHeightRequest="250">
-                                    <Label Text="{Binding syncedLyrics}" VerticalTextAlignment="Center"/>
-                                </ScrollView>
                                 
+                            <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                            </VerticalStackLayout>
-                            <uranium:ExpanderView MaximumHeightRequest="400" IsVisible="{OnPlatform Android=False,WinUI=True }">
-                                <uranium:ExpanderView.Header>
+                            <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
 
-                                    <VerticalStackLayout>
-                                        <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
 
-                                        <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+                            <HorizontalStackLayout>
 
-                                        <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
-                                        <Button Text="Save" HorizontalOptions="Center" Clicked="Button_Clicked"/>
+                                <Button Text="Plain Lyrics" HorizontalOptions="Center"  Clicked="ViewLyricsBtn_Clicked"
+                                    IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+                                    />
 
-                                    </VerticalStackLayout>
-                                </uranium:ExpanderView.Header>
 
-                                <ScrollView>
-                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" >
-                                        <VerticalStackLayout>
-                                            <Label Text="Syncronized Lyrics" HorizontalOptions="Center"/>
-                                            <BoxView HeightRequest="2"/>
-                                            <Label Text="{Binding syncedLyrics}" LineBreakMode="CharacterWrap"/>
-
-                                        </VerticalStackLayout>
-                                        <VerticalStackLayout>
-                                            <Label Text="Plain Lyrics" HorizontalOptions="Center"/>
-                                            <BoxView HeightRequest="2"/>
-                                            <Label Text="{Binding plainLyrics}" LineBreakMode="CharacterWrap"/>
-                                        </VerticalStackLayout>
-
-                                    </HorizontalStackLayout>
-
-                                </ScrollView>
-
-                            </uranium:ExpanderView>
+                                <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                                    IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                            </HorizontalStackLayout>
                         </VerticalStackLayout>
                     </Border>
                         

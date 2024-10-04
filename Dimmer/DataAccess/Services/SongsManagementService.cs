@@ -1,5 +1,4 @@
-﻿
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 
 public class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -23,6 +22,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
+
+            //var exp = new CsvExporter();
+
+            //string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "SongssDataExport.txt");
+            //exp.ExportSongsToCsv(realmSongs, dataPath);
         }
         catch (Exception ex)
         {
@@ -325,4 +329,124 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
+    public bool DeleteSongFromDB(ObjectId songID)
+    {
+        try
+        {
+            db.Write(() =>
+            {
+                var existingSong = db.Find<SongsModel>(songID);
+                if (existingSong != null)
+                {
+                    db.Remove(existingSong);
+                }                
+            });
+
+            GetSongs();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return false;
+        }
+    }
+}
+public class CsvExporter
+{
+    /// <summary>
+    /// Exports a list of SongsModel to a CSV file with specified columns.
+    /// </summary>
+    /// <param name="songs">List of SongsModel instances.</param>
+    /// <param name="csvFilePath">Path to the output CSV file.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    public void ExportSongsToCsv(List<SongsModel> songs, string csvFilePath)
+    {
+        // Define the CSV headers
+        string[] headers = new string[]
+        {
+            "Title",
+            "ArtistName",
+            "AlbumName",
+            "Genre",
+            "DurationInSeconds",
+            "Action",
+            "ActionDate"
+        };
+
+        // Open the file with a StreamWriter and include BOM for UTF-8
+        using (var writer = new StreamWriter(csvFilePath, false, new UTF8Encoding(true)))
+        {
+            // Write the header line
+             writer.WriteLine(string.Join(",", headers));
+
+            // Iterate through each song
+            foreach (var song in songs)
+            {
+                // Create a list to hold all action dates with their corresponding action
+                var actionEntries = new List<(int Action, DateTimeOffset ActionDate)>();
+
+                // Add DatesPlayed as Action = 1
+                foreach (var datePlayed in song.DatesPlayed)
+                {
+                    actionEntries.Add((1, datePlayed));
+                }
+
+                // Add DatesSkipped as Action = 0
+                foreach (var dateSkipped in song.DatesSkipped)
+                {
+                    actionEntries.Add((0, dateSkipped));
+                }
+
+                // Only proceed if there are any action entries
+                if (actionEntries.Any())
+                {
+                    // Sort the combined list by ActionDate in ascending order
+                    var sortedActions = actionEntries
+                        .OrderBy(a => a.ActionDate)
+                        .ToList();
+
+                    foreach (var entry in sortedActions)
+                    {
+                        if (entry.Action != 1 && entry.Action != 0)
+                        {
+                            Debug.WriteLine("Skipped!!");
+                        }
+
+                        var row = new List<string>
+                            {
+                                EscapeCsvField(song.Title),
+                                EscapeCsvField(song.ArtistName),
+                                EscapeCsvField(song.AlbumName),
+                                EscapeCsvField(string.IsNullOrWhiteSpace(song.Genre) ? "Unknown" : song.Genre),  // Handle empty genre
+                                song.DurationInSeconds.ToString(CultureInfo.InvariantCulture),
+                                entry.Action.ToString(),
+                                entry.ActionDate.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                            };
+                         writer.WriteLine(string.Join(",", row));
+                    }
+                }
+                // If there are no action entries, do not write any row for this song
+            }
+        }
+
+        Console.WriteLine($"Data successfully exported to {csvFilePath}");
+    }
+
+    /// <summary>
+    /// Escapes a CSV field by enclosing it in quotes if it contains special characters.
+    /// Doubles any existing quotes within the field.
+    /// </summary>
+    /// <param name="field">The CSV field to escape.</param>
+    /// <returns>The escaped CSV field.</returns>
+    private string EscapeCsvField(string field)
+    {
+        if (field.Contains(",") || field.Contains("\"") || field.Contains("\n"))
+        {
+            // Escape quotes by doubling them
+            string escaped = field.Replace("\"", "\"\"");
+            return $"\"{escaped}\"";
+        }
+        return field;
+    }
 }

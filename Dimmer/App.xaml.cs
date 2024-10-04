@@ -13,14 +13,15 @@ public partial class App : Application
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
+
     }
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
-#if DEBUG
-        System.Diagnostics.Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
+
+        Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
-#endif
+
         LogException(e.Exception);
     }
     public Window win;
@@ -31,13 +32,14 @@ public partial class App : Application
         win.MinimumWidth = 1200;
         win.Height = 900;
         win.Width = 1200;
-        
-        win.Title = "Dimmer v0.0.4";
-        
+
+        win.Title = "Dimmer v0.0.5";
+
         return win;
-        
+
     }
 
+    private static readonly object _logLock = new object();
     private void LogException(Exception ex)
     {
         try
@@ -53,17 +55,38 @@ public partial class App : Application
 
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
 
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\n StackTrack:{ex.StackTrace}\n";
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 
-            File.AppendAllText(filePath, logContent);
+            // Retry mechanism for file writing
+            bool success = false;
+            int retries = 3;
+            int delay = 500; // Delay between retries in milliseconds
+
+            lock (_logLock)
+            {
+                while (retries-- > 0 && !success)
+                {
+                    try
+                    {
+                        File.AppendAllText(filePath, logContent);
+                        success = true; // Write successful
+                    }
+                    catch (IOException ioEx) when (retries > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to log, retrying... ({ioEx.Message})");
+                        System.Threading.Thread.Sleep(delay); // Wait and retry
+                    }
+                }
+
+                if (!success)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to log exception after multiple attempts.");
+                }
+            }
         }
         catch (Exception loggingEx)
         {
-            // Optionally, handle exceptions that occur during logging
-            // For example, you might want to notify the user or log to an alternative location
-            // However, avoid throwing exceptions from a logging method to prevent potential infinite loops
-            
-            Debug.WriteLine($"Failed to log exception: {loggingEx}");
+            System.Diagnostics.Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
 
@@ -72,5 +95,8 @@ public partial class App : Application
         base.CloseWindow(window);
     }
 
+    protected async override void OnSleep()
+    {
 
+    }
 }

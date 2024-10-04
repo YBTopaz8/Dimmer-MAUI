@@ -53,7 +53,7 @@
 
                 <cw:PlayPauseView x:Name="PlayPauseV" />                
                 
-                <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45">
+                <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" >
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                     </ImageButton.Source>

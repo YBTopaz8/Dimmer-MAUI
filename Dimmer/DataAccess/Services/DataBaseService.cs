@@ -22,14 +22,13 @@ public class DataBaseService : IDataBaseService
 
         var config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 2, // Increment schema version for each migration
+            SchemaVersion = 3, // Increment schema version for each migration
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
+                var oldSongs = migration.OldRealm.DynamicApi.All("SongsModel");
+                var newSongs = migration.NewRealm.All<SongsModel>();
                 if (oldSchemaVersion < 2)
                 {
-                    var oldSongs = migration.OldRealm.DynamicApi.All("SongsModel");
-                    var newSongs = migration.NewRealm.All<SongsModel>();
-
                     // Migrate each song
                     foreach (var oldSong in oldSongs)
                     {
@@ -48,6 +47,38 @@ public class DataBaseService : IDataBaseService
                         }
                     }
                 }
+                if (oldSchemaVersion < 3)
+                {
+                    foreach (var oldSong in oldSongs)
+                    {
+                        var oldId = oldSong.DynamicApi.Get<ObjectId>("Id");
+                        var newSong = newSongs.FirstOrDefault(s => s.Id == oldId);
+
+                        if (newSong != null)
+                        {
+                            // Assign Genre by reading from the file
+                            var filePath = oldSong.DynamicApi.Get<string?>("FilePath");
+                            if (!string.IsNullOrEmpty(filePath))
+                            {
+                                try
+                                {
+                                    newSong.Genre = GetGenreNameFromFile(filePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log the exception if necessary
+                                    // Assign a default value
+                                    newSong.Genre = "Unknown Genre";
+                                }
+                            }
+                            else
+                            {
+                                newSong.Genre = "Unknown Genre";
+                            }
+                            newSong.Achievement = string.Empty;
+                        }
+                    }
+                }
             }
         };
 
@@ -55,5 +86,9 @@ public class DataBaseService : IDataBaseService
         return Realm.GetInstance(config);
     }
 
+    private string GetGenreNameFromFile(string filePath)
+    {
+        return new Track(filePath).Genre;
+    }
 }
 

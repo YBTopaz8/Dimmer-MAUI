@@ -10,7 +10,7 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
-            x:DataType="vm:HomePageVM"
+            x:DataType="vm:HomePageVM" 
             x:Name="myPage"
              BackgroundColor="Black">
 
@@ -34,13 +34,13 @@
           >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="400"/>
         </Grid.RowDefinitions>
 
         <Border StrokeShape="RoundRectangle 18" Margin="0,20"
-                StrokeThickness="0" Grid.Row="0" MinimumHeightRequest="350" x:Name="lyricsCover">
+                StrokeThickness="0" Grid.Row="0" x:Name="lyricsCover">
             
-            <Grid >
+            <Grid>
                 
                 <!--<cards:CoverFlowView ItemsSource="{Binding DisplayedSongs}" ItemSwiped="CoverFlowView_ItemSwiped" x:Name="CoverFlowV"
                                     SelectedItem="{Binding TemporarilyPickedSong}" IsVerticalSwipeEnabled="False">
@@ -52,7 +52,7 @@
                         </DataTemplate>
                     </cards:CoverFlowView.ItemTemplate>
                 </cards:CoverFlowView>-->
-                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45"
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Aspect="Fill" Opacity="0.45" HeightRequest="350"
                        />
                 <!-- Synced lyics Col View -->
                 <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center"
@@ -60,8 +60,8 @@
             </Grid>
         </Border>
 
-        <VerticalStackLayout Spacing="25" VerticalOptions="End"
-                             MaximumHeightRequest="390" x:Name="dl" Grid.Row="1">
+        <VerticalStackLayout Spacing="22" VerticalOptions="End"
+                             x:Name="dl" Grid.Row="1">
             
             <Grid BackgroundColor="Transparent" >
                 <Grid.ColumnDefinitions>
@@ -77,7 +77,7 @@
                 <!-- Slider in the center -->
                 <Slider Grid.Column="1" VerticalOptions="Center" 
                         Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-                        DragCompletedCommand="{Binding SeekSongPositionCommand}"/>
+                        DragCompleted="Slider_DragCompleted"/>
 
                 <!-- Right-aligned Label -->
                 <Label Grid.Column="2" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
@@ -89,7 +89,7 @@
                     <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
-        FontAttributes="Bold" FontSize="25"/>
+        FontAttributes="Bold" FontSize="20"/>
 
                 <Label HorizontalTextAlignment="Center" FontSize="18">
                     <Label.Text>
@@ -139,7 +139,7 @@
                 <StackLayout VerticalOptions="Center" x:Name="PpView" Grid.Column="2">
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-     Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
+     Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
                  HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                         <ImageButton.Source>
@@ -149,7 +149,7 @@
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-     x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}" 
+     x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
                  HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                         <ImageButton.Source>
@@ -168,7 +168,7 @@
                     </ImageButton.Source>
                 </ImageButton>
                 <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                             WidthRequest="25">
+                             WidthRequest="30">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>

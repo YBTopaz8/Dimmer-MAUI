@@ -5,11 +5,12 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
     IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null); //to play song
+    Task<bool> PlaySongAsync(SongsModelView song,  int CurrentQueue = 0, 
+        ObservableCollection<SongsModelView>? SecQueueSongs = null, double lastPosition = 0, int repeatMode = 0, int repeatMaxCount=0); //to play song
     Task<bool> PlayNextSongAsync(); //to play next song
     Task<bool> PlayPreviousSongAsync(); //to play previous song
     Task<bool> StopSongAsync(); //to stop song
-    Task<bool> PauseResumeSongAsync(); //to pause/resume song
+    Task<bool> PauseResumeSongAsync(double lastPosition); //to pause/resume song
 
     void RemoveSongFromQueue(SongsModelView song); //to remove song from queue
     void AddSongToQueue(SongsModelView song); //to add song to queue
@@ -20,6 +21,7 @@ public interface IPlaybackUtilsService
     string TotalSongsDuration { get; }
     bool IsShuffleOn { get; set; }
     int CurrentRepeatMode { get; set; }
+    int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
     Task SetSongPosition(double positionFraction); // to set position from slider
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button

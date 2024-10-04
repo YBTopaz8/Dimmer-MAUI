@@ -10,26 +10,42 @@
     <ContentView.Resources>
         <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
     </ContentView.Resources>
-    <StackLayout VerticalOptions="Center" x:Name="PpView">
-        
-        <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-         Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn" 
-                     >
-            
-            <ImageButton.Source>
-                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
-            </ImageButton.Source>
-        </ImageButton>
-        
-        <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-         x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
-                     >
+    <Border VerticalOptions="Center" x:Name="PpView" StrokeShape="RoundRectangle 20"
+            Stroke="Transparent">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
 
-            <ImageButton.Source>
-                <FontImageSource FontFamily="MaterialRound" 
-                             Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
-            </ImageButton.Source>
-        </ImageButton>
+                <VisualState x:Name="PointerOver">
+                    <VisualState.Setters>
+                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                    </VisualState.Setters>
+                </VisualState>
 
-    </StackLayout>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <StackLayout>
+            <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
+                         Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
+                         HeightRequest="50" WidthRequest="50">
+
+                <ImageButton.Source>
+                    <FontImageSource Size="50" FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+            <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
+                         x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
+                         HeightRequest="50" WidthRequest="50">
+
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Size="50"
+                     Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+        </StackLayout>
+        
+    </Border>
 </ContentView>

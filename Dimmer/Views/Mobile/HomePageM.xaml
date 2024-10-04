@@ -17,9 +17,11 @@
             x:Name="myPage" Shell.TitleColor="Black"
             BackgroundColor="Black"
             Shell.TabBarBackgroundColor="Black"
+            Shell.TabBarIsVisible="True"
             >
    
     <Shell.TitleView>
+        
         <VerticalStackLayout VerticalOptions="Center">
             <Grid ColumnDefinitions="*,Auto" IsVisible="True" x:Name="NormalTitleView">
 
@@ -70,16 +72,21 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-    <AbsoluteLayout>
-        <toolkit:DockLayout Margin="5,0" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All">
+    <toolkit:DockLayout Margin="5,0">
 
-            <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
-            <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
+        <VerticalStackLayout toolkit:DockLayout.DockPosition="Bottom">
 
+
+            <cv:MediaPlaybackControlsViewM />
+        </VerticalStackLayout>
+
+        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
+
+        <Grid>
             <CollectionView toolkit:DockLayout.DockPosition="Top" 
-                            ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
-                            VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"                            
-                            x:Name="SongsColView">
+                ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
+                VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"                            
+                x:Name="SongsColView">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout>
                         <Label Text="No Songs Found... 💔" HorizontalOptions="Center" FontSize="30"/>
@@ -105,11 +112,11 @@
                             <FlexLayout.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="SpecificSong_Tapped" />
                             </FlexLayout.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="5" MaximumWidthRequest="50">
+                            <HorizontalStackLayout Spacing="5">
                                 <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
-                                                    CornerRadius="10" BorderWidth="0"/>
+                                        CornerRadius="10" BorderWidth="0"/>
                                 <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="19" MaximumWidthRequest="350" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding Title}" FontSize="18" LineBreakMode="TailTruncation" />
                                     <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
@@ -117,8 +124,8 @@
                             <HorizontalStackLayout>
                                 <HorizontalStackLayout.GestureRecognizers>
                                     <TapGestureRecognizer 
-                                             Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
-                                             CommandParameter="{Binding .}"/>
+                                 Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
+                                 CommandParameter="{Binding .}"/>
                                 </HorizontalStackLayout.GestureRecognizers>
                                 <VerticalStackLayout>
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
@@ -130,9 +137,9 @@
                                     </Image>
                                 </VerticalStackLayout>
                                 <ImageButton BackgroundColor="Transparent" 
-                                             WidthRequest="20" HorizontalOptions="Center"
-                                             Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
-                                             CommandParameter="{Binding .}">
+                                 WidthRequest="20" HorizontalOptions="Center"
+                                 Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
+                                 CommandParameter="{Binding .}">
                                     <ImageButton.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
                                     </ImageButton.Source>
@@ -143,41 +150,41 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" >
+                <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"
+                                  BackgroundColor="DarkSlateBlue" CornerRadius="20">
+                    <ImageButton.GestureRecognizers>
+                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                    </ImageButton.GestureRecognizers>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+                    </ImageButton.Source>
+                </ImageButton>
 
-        </toolkit:DockLayout>
+                <ImageButton  BackgroundColor="DarkSlateBlue"  
+                  CornerRadius="20" Clicked="SearchFAB_Clicked"
+                  Padding="10" >
+                    <ImageButton.GestureRecognizers>
+                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                    </ImageButton.GestureRecognizers>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </VerticalStackLayout>
+        </Grid>
 
-        <VerticalStackLayout AbsoluteLayout.LayoutBounds="1,1,AutoSize, AutoSize" 
-                 AbsoluteLayout.LayoutFlags="PositionProportional" Spacing="3">
 
-            <ImageButton 
-                         Clicked="ShowSearchView_Clicked" Padding="10"
-                         BackgroundColor="DarkSlateBlue" 
-                         CornerRadius="20">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
-                </ImageButton.Source>
-            </ImageButton>
-            
-            <ImageButton  
-              BackgroundColor="DarkSlateBlue" 
-              CornerRadius="20" Clicked="SearchFAB_Clicked"
-              Padding="10" Margin="0,0,5,70">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
-                </ImageButton.Source>
-            </ImageButton>
-        </VerticalStackLayout>
-   
-        
-    </AbsoluteLayout>
-    
+    </toolkit:DockLayout>
     <uranium:UraniumContentPage.Attachments>
 
         <material:BackdropView Title="Search" IsPresented="False" x:Name="SearchBackDrop">
             <material:BackdropView.IconImageSource>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
             </material:BackdropView.IconImageSource>
-            <VerticalStackLayout Margin="0,0" HeightRequest="250">
+            <VerticalStackLayout Margin="0,0" HeightRequest="200">
                 <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>

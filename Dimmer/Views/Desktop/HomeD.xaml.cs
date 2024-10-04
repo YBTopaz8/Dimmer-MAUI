@@ -9,7 +9,7 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         MediaPlayBackCW.BindingContext = homePageVM;
-
+        
     }
 
     public HomePageVM HomePageVM { get; }
@@ -18,12 +18,16 @@ public partial class HomeD : UraniumContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
     }
-    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        //var send = (CollectionView)sender;
+        //send.BackgroundColor = Color.Parse("Red");
         if (SongsColView.IsLoaded)
         {
+            await Task.Delay(1000);
             SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
         }
+
         //This crashes the app :(
     }
 
@@ -62,7 +66,7 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
-            SongsColView.ScrollTo(HomePageVM.PickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -87,10 +91,12 @@ public partial class HomeD : UraniumContentPage
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
+        
         HomePageVM.CurrentQueue = 0;
         var t = (Grid)sender;
         var song = t.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
+        
     }
 
     private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
@@ -104,4 +110,5 @@ public partial class HomeD : UraniumContentPage
         var song = send.BindingContext! as SongsModelView;
         await HomePageVM.NavigateToArtistsPage(song);
     }
+
 }
