@@ -30,12 +30,38 @@ public static class MauiProgram
         {
             events.AddWindows(wndLifeCycleBuilder =>
             {
-                wndLifeCycleBuilder.OnWindowCreated(window =>
+                wndLifeCycleBuilder.OnWindowCreated(async window =>
                 {
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
                     WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                     AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
 
+                    winuiAppWindow.Closing += async (s, e) =>
+                    {
+                        e.Cancel = true;
+                        var allWins = Application.Current.Windows.ToList<Microsoft.Maui.Controls.Window>();
+                        foreach (var win in allWins)
+                        {
+                            if (win.Title != "MyWin")
+                            {
+                                var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+                                await homeVM.ExitingApp();
+                                bool result = await win.Page.DisplayAlert(
+                                    "Confirm Action",
+                                    "You sure want to close app?",
+                                    "Yes",
+                                    "Cancel");
+                                if (result)
+                                {
+                                    Application.Current.CloseWindow(win);
+                                }
+                                else
+                                {
+                                    await homeVM.PauseResumeSong();
+                                }
+                            }
+                        }
+                    };
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")
                     {
@@ -47,7 +73,7 @@ public static class MauiProgram
                         }
                     }
                     else
-                    {
+                    {                        
                     }
                 });
             });
@@ -107,4 +133,5 @@ public static class MauiProgram
 
         return builder.Build();
     }
+
 }

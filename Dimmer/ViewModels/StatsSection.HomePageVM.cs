@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -16,16 +14,16 @@ public partial class HomePageVM
         var today = DateTime.Today;
         // Get the date 7 days ago
         var lastWeek = today.AddDays(-6);
-        TopTenPlayedSongs = SongsMgtService.AllSongs
+        TopTenPlayedSongs = DisplayedSongs
             .Select(s => new SingleSongStatistics
             {
                 Song = s,
                 PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
             })
             .OrderByDescending(s => s.PlayCount)
-            .Take(10)
+            .Take(20)
             .ToObservableCollection();
-        if (IsPlaying && CurrentQueue !=2)
+        if (IsPlaying && CurrentQueue != 2)
         {
             ShowSingleSongStats(TemporarilyPickedSong);
         }
@@ -77,7 +75,6 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSingleSongStats(SongsModelView? song)
     {
-        Debug.WriteLine("Calledsss");
         IsChartVisible = false;
         MyPieSeries = null;
         MyPieSeriesTitle = null;
@@ -90,25 +87,28 @@ public partial class HomePageVM
 
         if (song.DatesPlayed != null && song.DatesPlayed.Count > 0)
         {
-            
+
             var mostPlayedDay = song.DatesPlayed
                 .GroupBy(d => d.DayOfWeek)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault();
 
-            
+
             MostPlayedDay = mostPlayedDay.Key.ToString();
             PlotPieSeries(song);
         }
         else
         {
             IsChartVisible = false;
-            
+
             MostPlayedDay = "Never Played Yet";
         }
-        //PlotLineSeries(song);
-    }
 
+
+        PlotLineSeries(song);
+    }
+    [ObservableProperty]
+    ObservableCollection<DateTimeOffset> dialyWalkThrough;
     private void PlotPieSeries(SongsModelView? song)
     {
         IsChartVisible = true;
@@ -131,10 +131,10 @@ public partial class HomePageVM
 
             series.DataLabelsSize = 14;
             series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
-            series.DataLabelsFormatter = point => 
+            series.DataLabelsFormatter = point =>
                 series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
-            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}"; 
-            
+            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}";
+
         });
 
         MyPieSeriesTitle = new LabelVisual
@@ -173,11 +173,11 @@ public partial class HomePageVM
         SongDatePlayCounts = new ObservableCollection<DatePlayCount>(datePlayCounts);
 
         dayOfWeekCountsArray = filteredDayCounts
-            .Select(kvp => kvp.Value) 
+            .Select(kvp => kvp.Value)
             .ToArray();
 
         dayNamesList = filteredDayCounts
-            .Select(kvp => kvp.Key.ToString()) 
+            .Select(kvp => kvp.Key.ToString())
             .ToList();
 
         NumberOfTimesPlayed = filteredDayCounts.Values.Sum();
@@ -193,6 +193,7 @@ public partial class HomePageVM
         List<string> dayNamesList;
         AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
+        return;
         var lines = new LineSeries<int>
         {
             Values = dayOfWeekCountsArray,

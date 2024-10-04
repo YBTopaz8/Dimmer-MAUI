@@ -53,6 +53,24 @@ public class AppSettingsService : IAppSettingsService
         }
     }
 
+    public static class LastPlayedSongPositionPref
+    {
+        const double positionFraction = 0;
+        public static double LastSongPosition
+        {
+            get => Preferences.Default.Get(nameof(LastSongPosition), positionFraction);
+            set => Preferences.Default.Set(nameof(LastSongPosition), value);
+        }
+        public static void SetLastPosition(double Position)
+        {
+            LastSongPosition = Position;
+        }
+        public static double GetLastPosition()
+        {
+            return LastSongPosition;
+        }
+    }
+
     public static class ShuffleStatePreference
     {
         public const bool isShuffleOn = false;

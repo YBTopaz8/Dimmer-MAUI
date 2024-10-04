@@ -19,6 +19,8 @@ public interface ISongsManagementService
     IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
     void UpdateAlbum(AlbumModelView album);
     public int GetSongsCountFromAlbumID(ObjectId albumID);
+
+    public bool DeleteSongFromDB(ObjectId songID);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);
     //public Task<SongsModel> FindSongsByGenre(string searchText);

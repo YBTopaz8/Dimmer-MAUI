@@ -27,15 +27,6 @@ public partial class MediaPlaybackControlsViewM : ContentView
         DeviceDisplay.Current.KeepScreenOn = true;
         //await Shell.Current.GoToAsync(nameof(NowPlayingPageM),true);        
     }
-    private void playImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);        
-    }
-
-    private void pauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.PauseResumeSongCommand.Execute(null);        
-    }
 
     private async void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
     {

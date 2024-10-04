@@ -9,6 +9,7 @@ using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
 using Android.Content.PM;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -204,10 +205,15 @@ public class MediaPlayerService : Service,
         Console.WriteLine("Step 7 on buffering");
     }
 
+    int comCount = 0;
     public async void OnCompletion(MediaPlayer mp)
     {
+        comCount++;
+        Console.WriteLine("completed " + comCount + " times OnComp");
+        mp.SeekTo(0);
+        IsPlayingChanged?.Invoke(this, false);
         TaskPlayEnded?.Invoke(this, EventArgs.Empty);
-        await PlayNext();
+        //await PlayNext();
         
     }
     
@@ -221,7 +227,10 @@ public class MediaPlayerService : Service,
 
     public void OnPrepared(MediaPlayer mp)
     {
+        var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
+        mp.SeekTo(pos);
         mp.Start();
+
         UpdatePlaybackState(PlaybackStateCode.Playing);
         Console.WriteLine("Step 9 Prepared");
     }
@@ -275,7 +284,7 @@ public class MediaPlayerService : Service,
     {
         get
         {
-            cover ??= BitmapFactory.DecodeResource(Resources, Resource.Drawable.abc_btn_check_material); //TODO player_play
+            cover = null;
             return cover;
         }
         set
@@ -289,13 +298,15 @@ public class MediaPlayerService : Service,
     /// <summary>
     /// Intializes the player.
     /// </summary>
-    public async Task Play()
+    public async Task Play(int position = 0)
     {
         Console.WriteLine("Step 6 Play method from mediaplayerservice");
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
             //We are simply paused so just start again
             Console.WriteLine("Not null");
+            mediaPlayer.SeekTo(position);
+
             mediaPlayer.Start();
             UpdatePlaybackState(PlaybackStateCode.Playing);
             StartNotification();
@@ -304,6 +315,7 @@ public class MediaPlayerService : Service,
             UpdateMediaMetadataCompat();
             return;
         }
+
 
         if (mediaPlayer == null)
         {
@@ -453,11 +465,11 @@ public class MediaPlayerService : Service,
 
         return imageBitmap;
     }
-    public async Task Seek(int position, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
+    public async Task Seek(int position = 0, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
     {
         await Task.Run(() =>
         {
-            mediaPlayer?.SeekTo(position);
+        mediaPlayer?.SeekTo(position);
             UpdatePlaybackState(MediaPlayerState, position);
         });
     }

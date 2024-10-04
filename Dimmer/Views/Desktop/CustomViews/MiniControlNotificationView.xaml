@@ -51,7 +51,7 @@
 
                 <HorizontalStackLayout Spacing="10">
                     <ImageButton Command="{Binding ToggleRepeatModeCommand}"
-                                 Clicked="ImageButton_Clicked">
+                                 Clicked="ToggleRepeatButton_Clicked">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
@@ -68,16 +68,14 @@
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-                                 Command="{Binding PauseResumeSongCommand}" x:Name="playImgBtn"
-                                 Clicked="ImageButton_Clicked">
+                                 Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
                         </ImageButton.Source>
                     </ImageButton>
                     
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-                                 x:Name="pauseImgBtn" Command="{Binding PauseResumeSongCommand}"
-                                 Clicked="ImageButton_Clicked">
+                                 x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" 
                      Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>

@@ -26,7 +26,6 @@
 
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
-            IsVisible="{Binding SynchronizedLyrics, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='Sync'}"
             SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
             Grid.Column="0" EmptyView="No Syncronized Lyrics Found...">
             <CollectionView.ItemTemplate>

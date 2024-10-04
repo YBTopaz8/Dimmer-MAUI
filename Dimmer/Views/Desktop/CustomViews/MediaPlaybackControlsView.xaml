@@ -17,9 +17,14 @@
 
     <VerticalStackLayout  HeightRequest="120">
         
-        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-
-            DragCompletedCommand="{Binding SeekSongPositionCommand}" Margin="3,0">
+        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+                MinimumTrackColor="DarkSlateBlue" x:Name="slid"
+                DragCompleted="Slider_DragCompleted" Margin="3,0">
+            <Slider.GestureRecognizers>
+                <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerReleased"
+                                          
+                    PointerReleased="PointerGestureRecognizer_PointerReleased"/>
+            </Slider.GestureRecognizers>
         </Slider>
         
         <Grid ColumnSpacing="25">
@@ -57,7 +62,7 @@
             <HorizontalStackLayout Spacing="15" Grid.Column="1" 
                                HorizontalOptions="Center">
                 
-                <ImageButton HeightRequest="30" Command="{Binding ToggleRepeatModeCommand}">
+                <ImageButton Command="{Binding ToggleRepeatModeCommand}">
                     <ImageButton.CommandParameter>
                         <x:Boolean>True</x:Boolean>
                     </ImageButton.CommandParameter>

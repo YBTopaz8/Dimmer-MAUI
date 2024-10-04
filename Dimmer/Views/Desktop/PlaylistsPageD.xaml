@@ -34,20 +34,26 @@
                                       x:Name="MediaPlayBackCV"/>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Spacing="5"
                              WidthRequest="200" Margin="10,0" >
-            <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"/>
+            
             <CollectionView ItemsSource="{Binding DisplayedPlaylists}"  x:Name="DisplayedPlaylistsCV"
-                            EmptyView="No Playlists Existing..." SelectionMode="Single">
+                            EmptyView="No Playlists Existing..." SelectionMode="Single" SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
+                <CollectionView.Header>
+                    <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
+                           HorizontalOptions="Center"/>
+                </CollectionView.Header>
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                                       ItemSpacing="4"/>
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:PlaylistModelView">
-                        <Border StrokeShape="RoundRectangle 5" Margin="10,10" >
+                        <Border StrokeShape="RoundRectangle 5" Margin="10,10">
+                            
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
 
                                     <VisualState x:Name="PointerOver">
-                                        <VisualState.StateTriggers>
-                                            <StateTrigger IsActiveChanged="StateTrigger_IsActiveChanged"/>
-                                        </VisualState.StateTriggers>
                                         <VisualState.Setters>
                                             <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                             <Setter Property="Stroke" Value="DarkSlateBlue"/>
@@ -61,6 +67,8 @@
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
                             <Border.GestureRecognizers>
+                                <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedPlaylistCommand, Source={x:Reference myPage}}" 
+                                                    PointerEnteredCommandParameter="{Binding .}"/>
                                 <TapGestureRecognizer 
                                     Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}" 
                                     CommandParameter="{Binding Id}"/>

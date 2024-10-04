@@ -283,7 +283,7 @@ public class LyricsService : ILyricsService
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
-        int offsetValue = 1450;
+        int offsetValue = 1050;
         var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
 
         if (highlightedLyric == null)
@@ -516,11 +516,7 @@ public class LyricsService : ILyricsService
     {
         try
         {
-            //if (!string.IsNullOrEmpty(songs.CoverImagePath))
-            //{
-            //    return songs.CoverImagePath;
-            //}
-
+       
             if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
                 return songs.CoverImagePath;
@@ -637,7 +633,7 @@ public class LyricsService : ILyricsService
             File.Delete(lrcFilePath);
         }
 
-        File.WriteAllText(lrcFilePath, Lyrics);
+        File.WriteAllText(lrcFilePath, Lyrics); //I had a case one time where an exception was thrown because there was a folder with exact same name alreay existing
 
         return true;
 
