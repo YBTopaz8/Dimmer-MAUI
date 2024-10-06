@@ -417,8 +417,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //    await SongsMgtService.AddSongBatchAsync(songs!);
         //}
 
-        List<SongsModel> dbSongs = songs.Select(song => new SongsModel(song)).ToList();
-
+        List<SongsModel> dbSongs = new();
+        if (songs != null)
+        {
+            dbSongs = songs.Select(song => new SongsModel(song)).ToList();
+        }
         ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbum(allArtists, allAlbums, allLinks, dbSongs);
 
         var songss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();

@@ -65,7 +65,7 @@ public partial class HomePageVM : ObservableObject
         ArtistMgtService = artistMgtService;
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
-        //Subscriptions to SongsManagerService
+        
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
         SubscribeToCurrentSongPosition();
@@ -387,55 +387,64 @@ public partial class HomePageVM : ObservableObject
             .Subscribe(state =>
             {
                 TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-                if (DisplayedSongs is not null)
+                if (TemporarilyPickedSong is not null)
                 {
-                    var songIndex = DisplayedSongs.IndexOf(DisplayedSongs.First(x => x.Id == TemporarilyPickedSong.Id));
 
-                    if (songIndex != -1)
+                    if (DisplayedSongs is not null)
                     {
-                        DisplayedSongs[songIndex] = TemporarilyPickedSong;
-                    }
-                }
-
-                PickedSong = TemporarilyPickedSong;
-                SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
-                switch (state)
-                {
-                    case MediaPlayerState.Playing:
-
-                        AllSyncLyrics = null;
-                        splittedLyricsLines = null;
-
-                        IsPlaying = true;
-                        CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-                        if (CurrentPage == PageEnum.FullStatsPage)
+                        if (TemporarilyPickedSong is not null)
                         {
-                            ShowGeneralTopXSongs();
-                            //ShowSingleSongStats(PickedSong);
+                            var songIndex = DisplayedSongs.IndexOf(DisplayedSongs.First(x => x.Id == TemporarilyPickedSong.Id));
+
+                            if (songIndex != -1)
+                            {
+                                DisplayedSongs[songIndex] = TemporarilyPickedSong;
+                            }
                         }
-                        CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
-                        break;
-                    case MediaPlayerState.Paused:
-                        IsPlaying = false;
-                        break;
-                    case MediaPlayerState.Stopped:
-                        //PickedSong = "Stopped";
-                        break;
-                    case MediaPlayerState.LoadingSongs:
-                        LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
-                        break;
-                    case MediaPlayerState.ShowPlayBtn:
-                        IsPlaying = false;
-                        break;
-                    case MediaPlayerState.ShowPauseBtn:
-                        IsPlaying = true;
-                        break;
-                    default:
-                        break;
+
+                    }
+
+                    PickedSong = TemporarilyPickedSong;
+                    SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+                    switch (state)
+                    {
+                        case MediaPlayerState.Playing:
+
+                            AllSyncLyrics = null;
+                            splittedLyricsLines = null;
+
+                            IsPlaying = true;
+                            CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
+                            if (CurrentPage == PageEnum.FullStatsPage)
+                            {
+                                ShowGeneralTopXSongs();
+                                //ShowSingleSongStats(PickedSong);
+                            }
+                            CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
+                            break;
+                        case MediaPlayerState.Paused:
+                            IsPlaying = false;
+                            break;
+                        case MediaPlayerState.Stopped:
+                            //PickedSong = "Stopped";
+                            break;
+                        case MediaPlayerState.LoadingSongs:
+                            LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
+                            break;
+                        case MediaPlayerState.ShowPlayBtn:
+                            IsPlaying = false;
+                            break;
+                        case MediaPlayerState.ShowPauseBtn:
+                            IsPlaying = true;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             });
 
     }
+
 
     public void Dispose()
     {

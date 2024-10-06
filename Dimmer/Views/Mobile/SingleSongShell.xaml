@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.SingleSongShell"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -8,15 +8,14 @@
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+             
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:Name="myPage"
-             Shell.NavBarIsVisible="False"
-             Shell.TabBarIsVisible="False"
              >
 
-    <ContentPage.Resources>
+    <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
@@ -32,11 +31,10 @@
             </Style>
 
         </ResourceDictionary>
-    </ContentPage.Resources>
+    </uranium:UraniumContentPage.Resources>
 
     <toolkit:DockLayout>
 
-        <cw:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Black"/>
 
         <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
                           SelectedTabChanged="TabV_SelectedTabChanged" >
@@ -100,4 +98,4 @@
         -->
                 
     </toolkit:DockLayout>
-</ContentPage>
+</uranium:UraniumContentPage>

@@ -10,6 +10,7 @@ using Android.Graphics;
 using Activity = Android.App.Activity;
 using Android.Content.PM;
 using System.Diagnostics;
+using static Android.Icu.Text.Transliterator;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -304,7 +305,8 @@ public class MediaPlayerService : Service,
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
             //We are simply paused so just start again
-            Console.WriteLine("Not null");
+
+            Console.WriteLine("From Play Seeking to " + position);
             mediaPlayer.SeekTo(position);
 
             mediaPlayer.Start();
@@ -469,7 +471,8 @@ public class MediaPlayerService : Service,
     {
         await Task.Run(() =>
         {
-        mediaPlayer?.SeekTo(position);
+            Console.WriteLine("From Seek Seeking to "+position);
+            mediaPlayer?.SeekTo(position);
             UpdatePlaybackState(MediaPlayerState, position);
         });
     }
@@ -842,6 +845,7 @@ public class MediaPlayerService : Service,
         public override async void OnSeekTo(long pos)
         {
             await mediaPlayerService.GetMediaPlayerService().Seek((int)pos);
+            Console.WriteLine("From OnSeek Seeking to " + pos);
             base.OnSeekTo(pos);
         }
 

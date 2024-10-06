@@ -13,6 +13,11 @@
             <ResourceDictionary>
                 <Style TargetType="Label">
                     <Setter Property="FontSize" Value="17"/>
+                    <Setter Property="TextColor" Value="White"/>
+                </Style>
+
+                <Style TargetType="material:RadioButton">
+                    <Setter Property="TextColor" Value="White"/>
                 </Style>
             </ResourceDictionary>
         </Border.Resources>

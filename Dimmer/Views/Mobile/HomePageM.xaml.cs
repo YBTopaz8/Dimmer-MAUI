@@ -1,22 +1,22 @@
-
-#if ANDROID
-using Dimmer_MAUI.Platforms.Android;
-#endif
-
 using Plainer.Maui.Controls;
 
 
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : UraniumContentPage
-{
-    
+{    
     public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         SongsColView.Loaded += SongsColView_Loaded;
+        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+
+        Shell.SetNavBarIsVisible(this, true                                                                                                                                                                                                                    );
+        Shell.SetTabBarIsVisible(this, true);
+
+        SettingsBtmSheet.Header.HeightRequest = 0;
     }
 
     private void SongsColView_Loaded(object? sender, EventArgs e)
@@ -25,7 +25,6 @@ public partial class HomePageM : UraniumContentPage
     }
 
     public HomePageVM HomePageVM { get; }
-    public NowPlayingSongPageBtmSheet NowPlayingBtmSheet { get; set; }
 
     protected async override void OnAppearing()
     {
@@ -136,5 +135,10 @@ public partial class HomePageM : UraniumContentPage
             var fItem = col.Last();
             SongsColView.ScrollTo(fItem, ScrollToPosition.Center, animate: false);
         }
+    }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        SettingsBtmSheet.IsPresented = !SettingsBtmSheet.IsPresented;
     }
 }

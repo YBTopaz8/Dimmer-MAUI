@@ -17,4 +17,16 @@ public partial class AppShellMobile : Shell
 		Routing.RegisterRoute(nameof(SpecificAlbumPage), typeof(SpecificAlbumPage));
 		Routing.RegisterRoute(nameof(AlbumPageM), typeof(AlbumPageM));
     }
+
+    protected override bool OnBackButtonPressed()
+    {
+        var bmtSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        if (bmtSheet.IsPresented)
+        {
+            bmtSheet.IsPresented = false;
+			return true;
+        }
+        return base.OnBackButtonPressed();
+
+    }
 }
