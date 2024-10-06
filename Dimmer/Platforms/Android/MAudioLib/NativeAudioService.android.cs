@@ -1,6 +1,7 @@
 ﻿using Stream = Android.Media.Stream;
 using Android.Media;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -15,6 +16,7 @@ public class NativeAudioService : INativeAudioService
     //private MediaPlayer mediaPlayer => instance != null &&
     //    instance.Binder.GetMediaPlayerService() != null ?
     //    instance.Binder.GetMediaPlayerService().mediaPlayer : null;
+    MediaPlay CurrentMedia { get; set; }
     private MediaPlayer mediaPlayer
     {
         get
@@ -46,7 +48,7 @@ public class NativeAudioService : INativeAudioService
         get
         {
             if (mediaPlayer == null)
-                Console.WriteLine("media player is null");
+                Console.WriteLine("media player is null in duration");
             return mediaPlayer?.Duration / 1000 ?? 0;
         }
     }
@@ -96,7 +98,7 @@ public class NativeAudioService : INativeAudioService
 
     public async Task PlayAsync(double position = 0, bool IsFromUser = false)
     {
-        var posInMs = (int)(position * Duration * 1000);
+        var posInMs = (int)(position * CurrentMedia.DurationInMs);
         await instance.Binder.GetMediaPlayerService().Play((int)posInMs);
     }
 
@@ -159,6 +161,7 @@ public class NativeAudioService : INativeAudioService
 
     public async Task InitializeAsync(MediaPlay media)
     {
+        CurrentMedia = media; 
         if (instance == null)
         {
             var activity = CrossCurrentActivity.Current;
@@ -169,9 +172,15 @@ public class NativeAudioService : INativeAudioService
             instance.Binder.GetMediaPlayerService().isCurrentEpisode = false;
             instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
         }
-
+        instance.Binder.GetMediaPlayerService().mediaPlay = media;
         if (instance.Binder.GetMediaPlayerService().mediaPlayer == null)
-            Console.WriteLine("MediaPlayer is null");
+        {
+            instance.Binder.GetMediaPlayerService().DoInitialInitialization();
+        }
+        if (instance.Binder.GetMediaPlayerService().mediaPlayer == null)
+        {
+            Debug.WriteLine("Let me know");
+        }
         instance.Binder.GetMediaPlayerService().IsPlayingChanged += IsPlayingChanged;
         instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
         instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
@@ -193,7 +202,7 @@ public class NativeAudioService : INativeAudioService
         };
         //if(media.Image!=null) instance.Binder.GetMediaPlayerService().Cover= await GetImageBitmapFromUrl(media.Image);
         //else instance.Binder.GetMediaPlayerService().Cover = null;
-        instance.Binder.GetMediaPlayerService().mediaPlay = media;
+        
     }
 
 }

@@ -417,8 +417,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //    await SongsMgtService.AddSongBatchAsync(songs!);
         //}
 
-        List<SongsModel> dbSongs = songs.Select(song => new SongsModel(song)).ToList();
-
+        List<SongsModel> dbSongs = new();
+        if (songs != null)
+        {
+            dbSongs = songs.Select(song => new SongsModel(song)).ToList();
+        }
         ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbum(allArtists, allAlbums, allLinks, dbSongs);
 
         var songss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
@@ -587,6 +590,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         return true;
     }
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);  // Initialize with a count of 1
 
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0,
         ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0, int repeatMode = 0, int repeatMaxCount = 0)
@@ -656,20 +660,27 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
             //var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
-
-            await audioService.InitializeAsync(new MediaPlay()
+            await _semaphore.WaitAsync();
+            try
             {
-                Name = ObservableCurrentlyPlayingSong.Title,
-                Author = ObservableCurrentlyPlayingSong!.ArtistName!,
-                URL = ObservableCurrentlyPlayingSong.FilePath,
-                ImageBytes = coverImage,
-                DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
-            });
+                // First, initialize the audio service
+                await audioService.InitializeAsync(new MediaPlay()
+                {
+                    Name = ObservableCurrentlyPlayingSong.Title,
+                    Author = ObservableCurrentlyPlayingSong!.ArtistName!,
+                    URL = ObservableCurrentlyPlayingSong.FilePath,
+                    ImageBytes = coverImage,
+                    DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
+                });
 
-            var positionInSeconds = (double)lastPositionPercentage * ObservableCurrentlyPlayingSong.DurationInSeconds;
-
-            await audioService.PlayAsync(lastPositionPercentage, IsFromUser: true);
-            bugCount = 0;
+                // Now, play the audio after initialization has completed
+                await audioService.PlayAsync(lastPositionPercentage, IsFromUser: true);
+            }
+            finally
+            {
+                // Release the semaphore so other tasks can proceed
+                _semaphore.Release();
+            }
 
             _positionTimer.Start();
 

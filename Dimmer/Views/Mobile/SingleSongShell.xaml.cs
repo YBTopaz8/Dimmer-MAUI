@@ -2,14 +2,16 @@
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class SingleSongShell : ContentPage
+public partial class SingleSongShell : UraniumContentPage
 {
 	public SingleSongShell(HomePageVM homePageVM)
 	{
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-
+        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+        Shell.SetTabBarIsVisible(this, false);
+        Shell.SetNavBarIsVisible(this, false);
     }
 
     public HomePageVM HomePageVM { get; }
