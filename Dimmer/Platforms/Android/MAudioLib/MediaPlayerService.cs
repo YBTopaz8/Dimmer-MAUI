@@ -175,9 +175,16 @@ public class MediaPlayerService : Service,
     /// <summary>
     /// Intializes the player.
     /// </summary>
+    public void DoInitialInitialization()
+    {
+        InitializePlayer();
+        InitMediaSession();
+        
+    }
     private void InitializePlayer()
     {
         mediaPlayer = new MediaPlayer();
+        
         mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
             .SetContentType(AudioContentType.Music)
             .SetUsage(AudioUsageKind.Media).Build());
@@ -228,10 +235,8 @@ public class MediaPlayerService : Service,
 
     public void OnPrepared(MediaPlayer mp)
     {
-        var pos = (int)IPlatformApplication.Current.Services.GetService<HomePageVM>().CurrentPositionInSeconds * 100;
-        mp.SeekTo(pos);
+        mp.SeekTo(positionInMs);
         mp.Start();
-
         UpdatePlaybackState(PlaybackStateCode.Playing);
         Console.WriteLine("Step 9 Prepared");
     }
@@ -299,9 +304,11 @@ public class MediaPlayerService : Service,
     /// <summary>
     /// Intializes the player.
     /// </summary>
+    int positionInMs = 0;
     public async Task Play(int position = 0)
     {
         Console.WriteLine("Step 6 Play method from mediaplayerservice");
+        positionInMs = position;
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
             //We are simply paused so just start again
@@ -340,6 +347,7 @@ public class MediaPlayerService : Service,
         isCurrentEpisode = true;
 
         await PrepareAndPlayMediaPlayerAsync();
+        
     }
     
     private async Task PrepareAndPlayMediaPlayerAsync()
