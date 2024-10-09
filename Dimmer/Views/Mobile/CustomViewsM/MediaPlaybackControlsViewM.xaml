@@ -45,7 +45,7 @@
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Spacing="5">
-                <ImageButton Command="{Binding PlayPreviousSongCommand}" HeightRequest="45">
+                <ImageButton Command="{Binding PlayPreviousSongCommand}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
                     </ImageButton.Source>
@@ -53,7 +53,7 @@
 
                 <cw:PlayPauseView x:Name="PlayPauseV" />                
                 
-                <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" >
+                <ImageButton Command="{Binding PlayNextSongCommand}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                     </ImageButton.Source>

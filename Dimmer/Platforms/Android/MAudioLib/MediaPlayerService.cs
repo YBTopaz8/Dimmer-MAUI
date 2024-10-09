@@ -188,7 +188,8 @@ public class MediaPlayerService : Service,
                 var pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
 
                 mediaSession.SetSessionActivity(pendingIntent);
-
+                mediaSession.SetRatingType(RatingStyle.Heart);
+                
                 mediaController = new MediaController(Platform.AppContext, mediaSession.SessionToken);
             }
 
@@ -197,6 +198,7 @@ public class MediaPlayerService : Service,
             mediaSession.SetCallback(new MediaSessionCallback((MediaPlayerServiceBinder)binder));
 
             mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
+            //useless ^
         }
         catch (Exception ex)
         {
@@ -251,8 +253,16 @@ public class MediaPlayerService : Service,
 
     public void OnPrepared(MediaPlayer mp)
     {
-        mp.SeekTo(positionInMs);
-        mp.Start();
+        try
+        {
+            mp.SeekTo(positionInMs);
+            mp.Start();
+        }
+        catch (Exception ex)
+        {
+            Task.Run(() => Play());
+            Console.WriteLine(ex.Message);
+        }
         UpdatePlaybackState(PlaybackStateCode.Playing);
         Console.WriteLine(DateTime.Now.ToString() + "Step 9 Prepared "+mediaPlay.Name);
     }
@@ -582,7 +592,7 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionSkipToNext |
                     PlaybackState.ActionSkipToPrevious |
                     PlaybackState.ActionStop |
-                    PlaybackState.ActionSeekTo
+                    PlaybackState.ActionSeekTo | PlaybackState.ActionSetRating
                 )
                 .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
 
@@ -628,6 +638,7 @@ public class MediaPlayerService : Service,
             .PutString(MediaMetadata.MetadataKeyAlbum, metaRetriever.ExtractMetadata(MetadataKey.Album))
             .PutString(MediaMetadata.MetadataKeyArtist, mediaPlay.Author ?? metaRetriever.ExtractMetadata(MetadataKey.Artist))
             .PutString(MediaMetadata.MetadataKeyTitle, mediaPlay.Name ?? metaRetriever.ExtractMetadata(MetadataKey.Title))
+            .PutRating("Rate", Rating.NewHeartRating(false))
             .PutLong(MediaMetadata.MetadataKeyDuration, mediaPlay.DurationInMs);
             // using this metaRetriever.ExtractMetadata(MetadataKey.Duration))  doesn't work
         }
@@ -636,6 +647,7 @@ public class MediaPlayerService : Service,
             builder.PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
                    .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
                    .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle))
+                   .PutRating("Rate", Rating.NewHeartRating(false))
                    .PutLong(MediaMetadata.MetadataKeyDuration, mediaSession.Controller.Metadata.GetLong(MediaMetadata.MetadataKeyDuration));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover);
@@ -656,7 +668,7 @@ public class MediaPlayerService : Service,
             return;
 
         string action = intent.Action;
-
+        
         switch (intent.Action)
         {
             case ActionPlay:
@@ -792,7 +804,6 @@ public class MediaPlayerService : Service,
         public MediaSessionCallback(MediaPlayerServiceBinder service)
         {
             mediaPlayerService = service;
-
         }
 
 

@@ -12,7 +12,7 @@
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM" 
             x:Name="myPage"
-             BackgroundColor="Black">
+             BackgroundColor="Red">
 
     <the49:BottomSheet.Detents>
         <the49:FullscreenDetent />

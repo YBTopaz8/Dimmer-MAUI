@@ -15,18 +15,7 @@ public static class NotificationHelper
     public static readonly string CHANNEL_ID = "location_notification";
     private const int NotificationId = 1000;
 
-    internal static Notification.Action GenerateActionCompat(Context context, int icon, string title, string intentAction)
-    {
-        Intent intent = new Intent(context, typeof(MediaPlayerService));
-        intent.SetAction(intentAction);
-        PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
-        if (intentAction.Equals(MediaPlayerService.ActionStop))
-            flags = PendingIntentFlags.CancelCurrent;
-        flags |= PendingIntentFlags.Mutable;
-        PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags);
-        return new Notification.Action.Builder(icon, title, pendingIntent).Build();
-    }
-
+    
 
     internal static void StopNotification(Context context)
     {
@@ -63,7 +52,7 @@ public static class NotificationHelper
     internal static Notification StartNotification(
         Context context,
         MediaMetadata mediaMetadata,
-        AndroidMedia.Session.MediaSession mediaSession,
+        AndroidMedia.Session.MediaSession mediaSession, // this is the same mediaSession as defined earlier being passed here
         Bitmap? largeIcon,
         bool isPlaying)
     {
@@ -90,7 +79,6 @@ public static class NotificationHelper
             MediaStyle style = new MediaStyle();
             style.SetMediaSession(mediaSession.SessionToken);
             var builder = new Builder(context, CHANNEL_ID)
-               
                .SetStyle(style)
                .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
                .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
@@ -98,9 +86,14 @@ public static class NotificationHelper
                .SetSmallIcon(Drawable.IcMediaPlay)
                .SetContentIntent(pendingIntent)
                .SetShowWhen(false)
-               .SetOngoing(isPlaying)
-               .SetVisibility(NotificationVisibility.Public);
-            style.SetShowActionsInCompactView(0);
+               
+               .SetOngoing(isPlaying).SetVisibility(NotificationVisibility.Public);
+            //builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
+            //AddPlayPauseActionCompat(builder, context, isPlaying);
+            //builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
+            //builder.AddAction(GenerateActionCompat(context, Drawable.ButtonStar, "Fav", MediaPlayerService.ActionNext));
+
+            //style.SetShowActionsInCompactView(0, 1, 2, 3, 4);
 
             if (largeIcon is not null)
             {
@@ -114,6 +107,17 @@ public static class NotificationHelper
             return null;
         }
         
+    }
+    internal static Notification.Action GenerateActionCompat(Context context, int icon, string title, string intentAction)
+    {
+        Intent intent = new Intent(context, typeof(MediaPlayerService));
+        intent.SetAction(intentAction);
+        PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
+        if (intentAction.Equals(MediaPlayerService.ActionStop))
+            flags = PendingIntentFlags.CancelCurrent;
+        flags |= PendingIntentFlags.Mutable;
+        PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags);
+        return new Notification.Action.Builder(icon, title, pendingIntent).Build();
     }
 
     private static void AddPlayPauseActionCompat(

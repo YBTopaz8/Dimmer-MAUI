@@ -31,15 +31,14 @@
     <containerr:NowPlayingBtmSheetContainer.HeaderWhenClosed>
 
         <VerticalStackLayout BackgroundColor="#0C0E0D">
-            <ProgressBar Progress="{Binding CurrentPositionPercentage}" ProgressColor="DarkSlateBlue"
-            Margin="-4,-5"
-            />
+            <ProgressBar Progress="{Binding CurrentPositionPercentage}" 
+                         ProgressColor="DarkSlateBlue" Margin="-4,-5"/>
 
             <FlexLayout JustifyContent="SpaceBetween" x:Name="BtmMediaControls" 
-            HeightRequest="55" Margin="-5,0">
+                        HeightRequest="55" Margin="-5,0">
                 <HorizontalStackLayout Spacing="5">
                     <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" WidthRequest="55" 
-                HeightRequest="55" BorderWidth="0" CornerRadius="15"/>
+                                        HeightRequest="55" BorderWidth="0" CornerRadius="15"/>
                     <VerticalStackLayout MaximumWidthRequest="165">
                         <Label Text="{Binding TemporarilyPickedSong.Title}" VerticalOptions="Center" 
                     FontSize="18" FontAttributes="Bold"
@@ -51,15 +50,15 @@
                 </HorizontalStackLayout>
 
                 <HorizontalStackLayout Spacing="5">
-                    <ImageButton Command="{Binding PlayPreviousSongCommand}" HeightRequest="45">
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
-                    <cw:PlayPauseView x:Name="PlayPauseV" />
+                    <cw:PlayPauseView x:Name="PlayPauseV"/>
 
-                    <ImageButton Command="{Binding PlayNextSongCommand}" HeightRequest="45" >
+                    <ImageButton Command="{Binding PlayNextSongCommand}" IsVisible="True">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                         </ImageButton.Source>
@@ -71,8 +70,8 @@
     </containerr:NowPlayingBtmSheetContainer.HeaderWhenClosed>
 
     <toolkit:DockLayout>
-        <Grid Padding="10,0" toolkit:DockLayout.DockPosition="Bottom"
-          RowSpacing="10" >
+        <Grid Padding="10,0" toolkit:DockLayout.DockPosition="Bottom" 
+              RowSpacing="10">
             <VerticalStackLayout Spacing="25" VerticalOptions="End"
                           x:Name="dl">
 
@@ -99,7 +98,7 @@
                         <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
                     </VerticalStackLayout.GestureRecognizers>
                     <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
-     FontAttributes="Bold" FontSize="20"/>
+                           FontAttributes="Bold" FontSize="20"/>
 
                     <Label HorizontalTextAlignment="Center" FontSize="18">
                         <Label.Text>
@@ -114,13 +113,7 @@
 
                 <Grid HorizontalOptions="Fill" VerticalOptions="Start" ColumnSpacing="20"
                BackgroundColor="Transparent" Margin="5,0">
-                    <Grid.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="ImageButton">
-                                <Setter Property="HeightRequest" Value="55"/>
-                            </Style>
-                        </ResourceDictionary>
-                    </Grid.Resources>
+                    
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -129,7 +122,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <ImageButton Grid.Column="0" WidthRequest="25"
+                    <ImageButton Grid.Column="0" 
                           Command="{Binding ToggleRepeatModeCommand}">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
@@ -139,7 +132,7 @@
                         </ImageButton.Source>
                     </ImageButton>
                     <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
-                          WidthRequest="45">
+                          >
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"
                                       Color="#B8B8B8"/>
@@ -149,8 +142,8 @@
                     <StackLayout VerticalOptions="Center" x:Name="PpView" Grid.Column="2">
 
                         <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-  Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
-              HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
+                                    Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
+                                     HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"
@@ -159,8 +152,8 @@
                         </ImageButton>
 
                         <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-  x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
-              HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
+                                     x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
+                                     HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Pause_circle_filled}"
@@ -170,15 +163,13 @@
 
                     </StackLayout>
 
-                    <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" 
-                          WidthRequest="45">
+                    <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" >
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"
                                       Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                          WidthRequest="30">
+                    <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
@@ -194,8 +185,7 @@
                 <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
                 FontSize="16"/>
 
-                <FlexLayout JustifyContent="SpaceBetween" HeightRequest="40"
-                     toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,10">
+                <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,10">
 
                     <ImageButton Command="{Binding ShowSleepTimerPopupCommand}">
                         <ImageButton.Source>
@@ -247,7 +237,8 @@
                 <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                     HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
                                     WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"
-                                    Opacity="0.45" Padding="10,60" BorderColor="Transparent"/>
+                                    Opacity="0.45" Padding="10,60" BorderColor="Transparent"
+                                    CornerRadius="50"/>
 
                 <!--Synced lyics Col View-->
 
