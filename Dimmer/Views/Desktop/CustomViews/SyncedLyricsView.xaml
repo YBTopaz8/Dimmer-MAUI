@@ -9,7 +9,9 @@
              x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView"
              x:Name="myView"
              >
-
+    <ContentView.GestureRecognizers>
+        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" PointerExited="PointerGestureRecognizer_PointerExited"/>
+    </ContentView.GestureRecognizers>
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
@@ -33,14 +35,11 @@
                     <Border Stroke="Transparent" Margin="5,0" >
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="Transparent"></Setter>
-                                    </VisualState.Setters>
-                                </VisualState>
+                                <VisualState Name="Normal"/>                                       
+
                                 <VisualState Name="Selected">
                                     <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="#99483D8B"></Setter>
+                                        <Setter Property="BackgroundColor" Value="Transparent"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>

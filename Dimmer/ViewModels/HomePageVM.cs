@@ -342,8 +342,15 @@ public partial class HomePageVM : ObservableObject
     }
 
 
-    public void SeekSongPosition()
+    public void SeekSongPosition(LyricPhraseModel? lryPhrase=null)
     {
+        if (lryPhrase is not null)
+        {
+            var s = lryPhrase.TimeStampMs / 1000;
+            CurrentPositionPercentage = s / TemporarilyPickedSong.DurationInSeconds;
+            PlayBackService.SetSongPosition(CurrentPositionPercentage);
+            return;
+        }
         CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
         PlayBackService.SetSongPosition(CurrentPositionPercentage);
     }
@@ -844,8 +851,7 @@ public partial class HomePageVM : ObservableObject
     bool isOnLyricsSyncMode = false;
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
-    {
-        IsOnLyricsSyncMode = viewIndex != 3 ? false : true;
+    {        
         CurrentViewIndex = viewIndex;
         switch (viewIndex)
         {
