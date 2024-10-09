@@ -4,6 +4,7 @@ using Android.Graphics;
 using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
+using System.Diagnostics;
 using static Android.App.Notification;
 using static Android.Resource;
 using AndroidMedia = Android.Media;
@@ -63,47 +64,56 @@ public static class NotificationHelper
         Context context,
         MediaMetadata mediaMetadata,
         AndroidMedia.Session.MediaSession mediaSession,
-        object largeIcon,
+        Bitmap? largeIcon,
         bool isPlaying)
     {
-        Intent intent = new(context, typeof(MainActivity));
-        intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
 
-        var pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
-            ? PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable
-            : PendingIntentFlags.UpdateCurrent;
+        try
+        {
+            Intent intent = new(context, typeof(MainActivity));
+            intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
 
-        var pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
-        //var pendingIntent = PendingIntent.GetActivity(
-        //    context,
-        //    0,
-        //    new Intent(context, typeof(Activity)),
-        //    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
-        int pendingIntentId = 0;
-        //PendingIntent pendingIntent = PendingIntent.GetActivity(Platform.AppContext, )
-        MediaMetadata currentTrack = mediaMetadata;
+            var pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
+                ? PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable
+                : PendingIntentFlags.UpdateCurrent;
+
+            var pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
+            //var pendingIntent = PendingIntent.GetActivity(
+            //    context,
+            //    0,
+            //    new Intent(context, typeof(Activity)),
+            //    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
+            int pendingIntentId = 0;
+            //PendingIntent pendingIntent = PendingIntent.GetActivity(Platform.AppContext, )
+            MediaMetadata currentTrack = mediaMetadata;
+
+            MediaStyle style = new MediaStyle();
+            style.SetMediaSession(mediaSession.SessionToken);
+            var builder = new Builder(context, CHANNEL_ID)
+               
+               .SetStyle(style)
+               .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
+               .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
+               .SetSubText(currentTrack.GetString(MediaMetadata.MetadataKeyAlbum))
+               .SetSmallIcon(Drawable.IcMediaPlay)
+               .SetContentIntent(pendingIntent)
+               .SetShowWhen(false)
+               .SetOngoing(isPlaying)
+               .SetVisibility(NotificationVisibility.Public);
+            style.SetShowActionsInCompactView(0);
+
+            if (largeIcon is not null)
+            {
+                builder.SetLargeIcon(largeIcon);
+            }
+            return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message + " ISSUEEEE");
+            return null;
+        }
         
-        MediaStyle style = new MediaStyle();
-        style.SetMediaSession(mediaSession.SessionToken);
-        var builder = new Builder(context, CHANNEL_ID)
-           .SetStyle(style)
-           .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
-           .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
-           .SetSubText(currentTrack.GetString(MediaMetadata.MetadataKeyAlbum))
-           .SetSmallIcon(Drawable.IcMediaPlay) //TODO player_play
-           .SetLargeIcon(largeIcon as Bitmap)
-           .SetContentIntent(pendingIntent)
-           .SetShowWhen(false)
-           .SetOngoing(isPlaying)
-           .SetVisibility(NotificationVisibility.Public);
-        builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
-        AddPlayPauseActionCompat(builder, context, isPlaying);
-        builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaNext, "Next", MediaPlayerService.ActionNext));
-        builder.AddAction(GenerateActionCompat(context, Drawable.ButtonStar, "Fav", MediaPlayerService.ActionNext));
-        
-        style.SetShowActionsInCompactView(0, 1, 2, 3, 4);
-        return builder.Build();
-        //NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
     }
 
     private static void AddPlayPauseActionCompat(

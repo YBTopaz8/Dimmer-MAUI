@@ -51,6 +51,7 @@ public partial class App : MauiWinUIApplication
             HandleActivated(activatedArgs);
 
         }while (activatedArgs.Kind == ExtendedActivationKind.File && paths?.Length < 0);
+
     }
 
     string[]? paths = Array.Empty<string>();

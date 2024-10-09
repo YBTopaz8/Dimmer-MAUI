@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -12,7 +14,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public IObservable<MediaPlayerState> PlayerState => _playerStateSubject.AsObservable();
     BehaviorSubject<MediaPlayerState> _playerStateSubject = new(MediaPlayerState.Stopped);
-
     public IObservable<PlaybackInfo> CurrentPosition => _currentPositionSubject.AsObservable();
     BehaviorSubject<PlaybackInfo> _currentPositionSubject = new(new());
     System.Timers.Timer _positionTimer;
@@ -78,7 +79,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         LoadFirstPlaylist();
         CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
-
         AllPlaylists = PlaylistManagementService.AllPlaylists.ToObservableCollection();
         AllArtists = ArtistsMgtService.AllArtists.ToObservableCollection();
         CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
@@ -101,7 +101,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (CurrentRepeatMode == 2) //repeat the same song
             {
-                await PlaySongAsync();
+                await PlaySongAsync(IsFromPreviousOrNext:true);
                 return;
             }
 
@@ -119,59 +119,54 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     private async void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        // If cooldown is active, prevent re-triggering
-        if (isCooldownActive)
+        Debug.WriteLine(ObservableCurrentlyPlayingSong.Title+" !!!Ended so.. "+comCount++);
+     
+        if (_positionTimer != null)
         {
-            return;
+            _positionTimer.Stop();
+            _positionTimer.Elapsed -= OnPositionTimerElapsed;
+            _positionTimer.Dispose();
+            _positionTimer = null;
         }
+       
+        Debug.WriteLine("Ended in pbutils Serv");
 
-        // Set cooldown flag to prevent rapid re-triggering
-        isCooldownActive = true;
-
-        // Proceed with your logic
-        if (!audioService.IsPlaying)
+        if (CurrentRepeatMode == 2) // Repeat the same song
         {
-            Debug.WriteLine("Ended in pbutils Serv");
-
-            if (CurrentRepeatMode == 2) // Repeat the same song
-            {
-                await PlaySongAsync();
-            }
+            await PlaySongAsync();
+        }
             
-            else if(CurrentRepeatMode == 4) // Custom repeat mode
+        else if(CurrentRepeatMode == 4) // Custom repeat mode
+        {
+            if (CurrentRepeatCount < repeatCountMax)
             {
-                if (CurrentRepeatCount < repeatCountMax)
-                {
-                    CurrentRepeatCount++;
-                    Debug.WriteLine($"Repeating song {CurrentRepeatCount}/{repeatCountMax}");
-                    await PlaySongAsync();
-                }
-                else
-                {
-                    CurrentRepeatMode = 1;
-                    CurrentRepeatCount = 1;
-                    Debug.WriteLine("Finished repeating the song, moving to next song.");
-                    await PlayNextSongAsync();
-                }
+                CurrentRepeatCount++;
+                Debug.WriteLine($"Repeating song {CurrentRepeatCount}/{repeatCountMax}");
+                await PlaySongAsync();
             }
             else
             {
+                CurrentRepeatMode = 1;
+                CurrentRepeatCount = 1;
+                Debug.WriteLine("Finished repeating the song, moving to next song.");
                 await PlayNextSongAsync();
             }
-
-
-            // Additional logic to force re-triggering if the app is stuck
-            await Task.Delay(2000); // Wait for 2 seconds
-            if (!audioService.IsPlaying)
-            {
-                Debug.WriteLine("Audio service seems stuck, forcing play event.");
-                AudioService_PlayEnded(null, null); // Force re-triggering if still stuck
-            }
+        }
+        else
+        {
+            await PlayNextSongAsync();
         }
 
-        // Wait for the cooldown period before allowing re-trigger
-        await Task.Delay(1000);
-        isCooldownActive = false; // Cooldown period over, allow re-trigger
+
+        // Additional logic to force re-triggering if the app is stuck
+        await Task.Delay(2000); // Wait for 2 seconds
+        if (!audioService.IsPlaying)
+        {
+            Debug.WriteLine("Audio service seems stuck, forcing play event.");
+            AudioService_PlayEnded(null, null); // Force re-triggering if still stuck
+        }
+        
+
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -198,19 +193,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
-
+    HomePageVM ViewModel {  get; set; }
     private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?) LoadSongs(List<string> folderPaths)
     {
+        ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         try
         {
             List<string> allFiles = new();
-            foreach (var folder in folderPaths)
+            foreach (var path in folderPaths.Distinct())
             {
-                if (folder is null)
+                if (path is null)
                 {
                     continue;
                 }
-                allFiles.AddRange(Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories)
+                allFiles.AddRange(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                                     .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
                                     .AsParallel()
                                     .ToList());
@@ -387,7 +383,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles;
             }
 
-            _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
+            ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
 
             return (newArtists, newAlbums, newLinks, allSongs.ToList());
         }
@@ -403,7 +399,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
     {
-
+        ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         // Fetch existing data from DB
         ArtistsMgtService.GetArtists();
         SongsMgtService.GetSongs();
@@ -430,7 +426,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         SongsMgtService.GetSongs();
 
         ObservableLoadingSongsProgress = 100;
-        _playerStateSubject.OnNext(MediaPlayerState.LoadingSongs);
+
+        ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
         return true;
     }
     private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
@@ -444,22 +441,25 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _nowPlayingSubject.OnNext(sortedSongs);
     }
 
+    public SongsModelView lastPlayedSong { get; set; }
+    
     private void LoadLastPlayedSong()
     {
         var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
         if (lastPlayedSongID is not null)
         {
-            var lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
+            lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
 
             if (lastPlayedSong is null)
-            {
-                audioService.InitializeAsync(audioURI: ObservableCurrentlyPlayingSong.FilePath);
+            {                
                 return;
             }
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
+            //audioService.InitializeAsync(ObservableCurrentlyPlayingSong);
             //_nowPlayingSubject.OnNext(ObservableCurrentlyPlayingSong);
             _currentSongIndex = _nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong);
         }
+        
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
     }
     static string? GetCoverImagePath(string filePath)
@@ -590,11 +590,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         return true;
     }
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);  // Initialize with a count of 1
+    //private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);  // Initialize with a count of 1
 
-    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0,
-        ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0, int repeatMode = 0, int repeatMaxCount = 0)
+    public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0, 
+        ObservableCollection<SongsModelView>? currentList = null, double lastPositionPercentage = 0,
+        int repeatMode = 0, int repeatMaxCount = 0,
+        bool IsFromPreviousOrNext = false)
     {
+        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
         switch (currentQueue)
         {
             case 1:
@@ -638,14 +641,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
 
-            // Dispose of the existing timer if it exists
-            if (_positionTimer != null)
-            {
-                _positionTimer.Stop();
-                _positionTimer.Elapsed -= OnPositionTimerElapsed;
-                _positionTimer.Dispose();
-                _positionTimer = null;
-            }
+            
 
             if (!File.Exists(ObservableCurrentlyPlayingSong.FilePath))
             {
@@ -658,34 +654,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
-
-            //var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
-            await _semaphore.WaitAsync();
-            try
-            {
-                // First, initialize the audio service
-                await audioService.InitializeAsync(new MediaPlay()
-                {
-                    Name = ObservableCurrentlyPlayingSong.Title,
-                    Author = ObservableCurrentlyPlayingSong!.ArtistName!,
-                    URL = ObservableCurrentlyPlayingSong.FilePath,
-                    ImageBytes = coverImage,
-                    DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
-                });
-
-                // Now, play the audio after initialization has completed
-                await audioService.PlayAsync(lastPositionPercentage, IsFromUser: true);
-            }
-            finally
-            {
-                // Release the semaphore so other tasks can proceed
-                _semaphore.Release();
-            }
-
+            
+            await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
+            
+            // Now, play the audio after initialization has completed
+            await audioService.PlayAsync(IsFromPreviousOrNext);
+            
             _positionTimer.Start();
-
+            
             ObservableCurrentlyPlayingSong.DatesPlayed?.Add(DateTimeOffset.Now);
 
+            ViewModel.SetPlayerState(MediaPlayerState.Playing);
+            _playerStateSubject.OnNext(MediaPlayerState.Playing);
+            ViewModel.SetPlayerState(MediaPlayerState.RefreshStats);
+            Debug.WriteLine("call A on return " + callA++);
             return true;
         }
         catch (Exception ex)
@@ -702,16 +684,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
 
-                _playerStateSubject.OnNext(MediaPlayerState.Playing);
-
+                
                 _currentPositionSubject.OnNext(new());
-
             }
 #if WINDOWS
             MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
 #endif
         }
     }
+    int callA;
+    int callB;
     public async Task<bool> PauseResumeSongAsync(double lastPositionPercentage)
     {
 
@@ -725,6 +707,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await PlaySongAsync(ObservableCurrentlyPlayingSong, lastPositionPercentage: lastPositionPercentage);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
+            ViewModel.SetPlayerState(MediaPlayerState.Playing);
             _positionTimer.Start();
             return true;
         }
@@ -734,14 +717,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.PauseAsync();
             ObservableCurrentlyPlayingSong.IsPlaying = false;
             _playerStateSubject.OnNext(MediaPlayerState.Paused);  // Update state to paused
+            ViewModel.SetPlayerState(MediaPlayerState.Paused);
             _positionTimer.Stop();
 
         }
         else
         {
-            await audioService.PlayAsync(lastPositionPercentage, IsFromUser: true);
+            await audioService.PlayAsync(IsFromPreviousOrNext: false);
             ObservableCurrentlyPlayingSong.IsPlaying = true;
             _playerStateSubject.OnNext(MediaPlayerState.Playing);  // Update state to playing
+            ViewModel.SetPlayerState(MediaPlayerState.Playing);
             _positionTimer?.Stop();
             _positionTimer?.Dispose();
 
@@ -764,6 +749,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             CurrentlyPlayingSong.IsPlaying = false;
 
             _playerStateSubject.OnNext(MediaPlayerState.Stopped);  // Update state to stopped
+            ViewModel.SetPlayerState(MediaPlayerState.Stopped);
             _positionTimer.Stop();
             _currentPositionSubject.OnNext(new());
 
@@ -778,6 +764,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     Stack<int> shuffleHistory = new();
     bool IsTrueShuffleEnabled = false;
+    int calltime;
     public async Task<bool> PlayNextSongAsync()
     {
         if (audioService.CurrentPosition <= 30)
@@ -798,7 +785,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         if (CurrentRepeatMode == 0)
         {
-            await PlaySongAsync(currentQueue: CurrentQueue);
+            await PlaySongAsync(currentQueue: CurrentQueue, IsFromPreviousOrNext: true);
             return true;
         }
         var currentList = GetCurrentList(CurrentQueue, _secondaryQueueSubject.Value);
@@ -806,7 +793,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: true);
-        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList);
+        Debug.WriteLine("call times "+calltime);
+        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList, IsFromPreviousOrNext: true);
     }
     public async Task<bool> PlayPreviousSongAsync()
     {
@@ -815,7 +803,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: false);
-        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList);
+        return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList, IsFromPreviousOrNext: true);
     }
     private ObservableCollection<SongsModelView>? GetCurrentList(int currentQueue, ObservableCollection<SongsModelView>? secQueueSongs = null)
     {
@@ -889,14 +877,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         // Set the current time in the audio service
         if (!await audioService.SetCurrentTime(positionFraction))
         {
-            await audioService.InitializeAsync(new MediaPlay()
-            {
-                Name = ObservableCurrentlyPlayingSong.Title,
-                Author = ObservableCurrentlyPlayingSong.ArtistName,
-                URL = ObservableCurrentlyPlayingSong.FilePath,
-                ImageBytes = coverImage,
-                DurationInMs = (long)(ObservableCurrentlyPlayingSong.DurationInSeconds * 1000),
-            });
+            await audioService.InitializeAsync();
 
             //await SetSongPosition(positionFraction);
         }
@@ -963,14 +944,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         bugCount++;
         double currentPositionInSeconds = audioService.CurrentPosition;
-        double totalDurationInSeconds = audioService.Duration;
-        if (bugCount >= 2)
-        {
-            if (currentPositionInSeconds <= 0.9 && !audioService.IsPlaying)
-            {
-                await PlaySongAsync();
-            }
-        }
+        double totalDurationInSeconds = ObservableCurrentlyPlayingSong.DurationInSeconds;
+        //if (bugCount >= 2)
+        //{
+        //    if (currentPositionInSeconds <= 0.9 && !audioService.IsPlaying)
+        //    {
+        //        await PlaySongAsync();
+        //    }
+        //}
         if (totalDurationInSeconds > 0)
         {
             double percentagePlayed = currentPositionInSeconds / totalDurationInSeconds;
@@ -984,6 +965,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _currentPositionSubject.OnNext(new());
         }
+        
     }
 
     double currentPosition = 0;
@@ -1336,6 +1318,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         throw new NotImplementedException();
     }
 
-
+    public void DeleteSongFromHomePage(ObjectId songId)
+    {
+        throw new NotImplementedException();
+    }
 }
 

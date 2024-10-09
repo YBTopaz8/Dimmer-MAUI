@@ -111,4 +111,19 @@ public partial class HomeD : UraniumContentPage
         await HomePageVM.NavigateToArtistsPage(song);
     }
 
+    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+    {
+        
+#if WINDOWS
+        
+        
+#endif
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (Grid)sender;
+        var song = send.BindingContext! as SongsModelView;
+        HomePageVM.SetContextMenuSong(song);
+    }
 }

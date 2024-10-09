@@ -85,11 +85,11 @@
             </CollectionView>
 
             <Grid ColumnDefinitions="*,*" Grid.Row="2"
-                  Padding="10" HorizontalOptions="FillAndExpand"
+                  Padding="10" HorizontalOptions="Fill"
                  ColumnSpacing="10">
 
                 <Button Grid.Column="0" Text="Play" 
-                        HorizontalOptions="FillAndExpand" VerticalOptions="Center" 
+                        HorizontalOptions="Fill" VerticalOptions="Center" 
                         BackgroundColor="DarkSlateBlue" BorderColor="DarkSlateBlue" 
                         BorderWidth="2" TextColor="White" CornerRadius="5"
                         ContentLayout="Left, 10">
@@ -98,7 +98,7 @@
                     </Button.ImageSource>
                 </Button>
                 <Button Grid.Column="1" Text="Reset"  Command="{Binding ShowSpecificArtistsSongsCommand}"
-                        HorizontalOptions="FillAndExpand" VerticalOptions="Center" 
+                        HorizontalOptions="Fill" VerticalOptions="Center" 
                         BorderColor="DarkSlateBlue" BorderWidth="2" 
                         BackgroundColor="Transparent" TextColor="White" CornerRadius="5"
                         ContentLayout="Left, 10">
@@ -262,12 +262,12 @@
             </CollectionView>
 
             <Grid ColumnDefinitions="*,*" Grid.Row="2"
-                      Padding="10" HorizontalOptions="FillAndExpand"
+                      Padding="10" HorizontalOptions="Fill"
                      ColumnSpacing="10">
 
                 <Button Grid.Column="0" 
                     Text="Play"
-                    HorizontalOptions="FillAndExpand"
+                    HorizontalOptions="Fill"
                     VerticalOptions="Center"
                     BackgroundColor="DarkSlateBlue"
                     BorderColor="DarkSlateBlue"
@@ -276,7 +276,7 @@
                     CornerRadius="5"/>
 
                 <Button Grid.Column="1" Text="Shuffle"
-                HorizontalOptions="FillAndExpand" VerticalOptions="Center"
+                HorizontalOptions="Fill" VerticalOptions="Center"
                 BorderColor="DarkSlateBlue" BorderWidth="2"
                 BackgroundColor="Transparent" TextColor="White"
                 CornerRadius="5"/>

@@ -18,12 +18,7 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
 
-            <Style TargetType="ImageButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="BorderColor" Value="Transparent"/>
-                <Setter Property="WidthRequest" Value="50"/>
-                <Setter Property="HeightRequest" Value="45"/>
-            </Style>
+            
         </ResourceDictionary>
     </ContentPage.Resources>
 

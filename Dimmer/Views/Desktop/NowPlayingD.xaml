@@ -52,12 +52,6 @@
                 <MenuFlyoutItem Text="Show Stats"/>
             </MenuFlyout>
 
-            <Style TargetType="ImageButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="BorderColor" Value="Transparent"/>
-                <Setter Property="WidthRequest" Value="50"/>
-                <Setter Property="HeightRequest" Value="45"/>
-            </Style>
 
         </ResourceDictionary>
     </ContentPage.Resources>

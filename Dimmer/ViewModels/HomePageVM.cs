@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic.FileIO;
+
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -65,7 +66,6 @@ public partial class HomePageVM : ObservableObject
         ArtistMgtService = artistMgtService;
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
-        
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
         SubscribeToCurrentSongPosition();
@@ -89,6 +89,74 @@ public partial class HomePageVM : ObservableObject
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+        
+    }
+
+    void SubscribeToPlayerStateChanges()
+    {
+        if (_playerStateSubscription != null)
+            return; // Already subscribed
+
+        _playerStateSubscription = PlayBackService.PlayerState
+            .DistinctUntilChanged()
+            .Subscribe(state =>
+            {
+                TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                if (TemporarilyPickedSong is not null)
+                {
+
+                    if (DisplayedSongs is not null)
+                    {
+                        if (TemporarilyPickedSong is not null)
+                        {
+                            var songIndex = DisplayedSongs.IndexOf(DisplayedSongs.First(x => x.Id == TemporarilyPickedSong.Id));
+
+                            if (songIndex != -1)
+                            {
+                                DisplayedSongs[songIndex] = TemporarilyPickedSong;
+                            }
+                        }
+
+                    }
+
+                    PickedSong = TemporarilyPickedSong;
+                    SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+                    switch (state)
+                    {
+                        case MediaPlayerState.Playing:
+
+                            AllSyncLyrics = null;
+                            splittedLyricsLines = null;
+
+                            IsPlaying = true;
+                            CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
+                            if (CurrentPage == PageEnum.FullStatsPage)
+                            {
+                                ShowGeneralTopXSongs();
+                                //ShowSingleSongStats(PickedSong);
+                            }
+                            CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
+                            break;
+                        case MediaPlayerState.Paused:
+                            IsPlaying = false;
+                            break;
+                        case MediaPlayerState.Stopped:
+                            //PickedSong = "Stopped";
+                            break;
+                        case MediaPlayerState.LoadingSongs:
+                            LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
+                            break;
+                        case MediaPlayerState.ShowPlayBtn:
+                            IsPlaying = false;
+                            break;
+                        case MediaPlayerState.ShowPauseBtn:
+                            IsPlaying = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
 
     }
 
@@ -233,7 +301,7 @@ public partial class HomePageVM : ObservableObject
 
     public async Task PauseResumeSong()
     {
-        Debug.WriteLine($"Current Position {CurrentPositionInSeconds}");
+        
         await PlayBackService.PauseResumeSongAsync(CurrentPositionPercentage);
     }
 
@@ -294,6 +362,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
+        CurrentRepeatMode = PlayBackService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
             CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
@@ -364,12 +433,19 @@ public partial class HomePageVM : ObservableObject
 
     public void LoadSongCoverImage()
     {
+
         if (TemporarilyPickedSong is not null)
         {
             PickedSong = TemporarilyPickedSong;
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
         }
+        else
+        {
+            var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
+            TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.Id == lastID);
+        }
+        
     }
 
     #region Subscriptions to Services
@@ -377,15 +453,15 @@ public partial class HomePageVM : ObservableObject
     private IDisposable _playerStateSubscription;
     [ObservableProperty]
     bool isPlaying = false;
-    void SubscribeToPlayerStateChanges()
+   
+    MediaPlayerState CurrentPlayerState;
+    public void SetPlayerState(MediaPlayerState? state)
     {
-        if (_playerStateSubscription != null)
-            return; // Already subscribed
+        
+        switch (state)
+        {
+            case MediaPlayerState.Playing:
 
-        _playerStateSubscription = PlayBackService.PlayerState
-            .DistinctUntilChanged()
-            .Subscribe(state =>
-            {
                 TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
                 if (TemporarilyPickedSong is not null)
                 {
@@ -403,47 +479,49 @@ public partial class HomePageVM : ObservableObject
                         }
 
                     }
-
-                    PickedSong = TemporarilyPickedSong;
-                    SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
-                    switch (state)
-                    {
-                        case MediaPlayerState.Playing:
-
-                            AllSyncLyrics = null;
-                            splittedLyricsLines = null;
-
-                            IsPlaying = true;
-                            CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-                            if (CurrentPage == PageEnum.FullStatsPage)
-                            {
-                                ShowGeneralTopXSongs();
-                                //ShowSingleSongStats(PickedSong);
-                            }
-                            CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
-                            break;
-                        case MediaPlayerState.Paused:
-                            IsPlaying = false;
-                            break;
-                        case MediaPlayerState.Stopped:
-                            //PickedSong = "Stopped";
-                            break;
-                        case MediaPlayerState.LoadingSongs:
-                            LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
-                            break;
-                        case MediaPlayerState.ShowPlayBtn:
-                            IsPlaying = false;
-                            break;
-                        case MediaPlayerState.ShowPauseBtn:
-                            IsPlaying = true;
-                            break;
-                        default:
-                            break;
-                    }
                 }
-            });
+                PickedSong = TemporarilyPickedSong;
+                SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+                AllSyncLyrics = null;
+                splittedLyricsLines = null;
 
-    }
+                IsPlaying = true;
+                CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
+
+                CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
+                LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
+                break;
+            case MediaPlayerState.Paused:
+                IsPlaying = false;
+                break;
+            case MediaPlayerState.Stopped:
+                //PickedSong = "Stopped";
+                break;
+            case MediaPlayerState.LoadingSongs:
+                LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
+                break;
+            case MediaPlayerState.ShowPauseBtn:
+                IsPlaying = true;
+                break;
+            case MediaPlayerState.ShowPlayBtn:
+                IsPlaying = false;
+                break;
+            case MediaPlayerState.RefreshStats:
+                if (CurrentPage == PageEnum.FullStatsPage)
+                {
+
+                    TemporarilyPickedSong.DatesPlayed = TemporarilyPickedSong.DatesPlayed
+                    .OrderByDescending(date => date).ToList();
+                    ShowGeneralTopXSongs();
+                    //ShowSingleSongStats(PickedSong);
+                }
+                break;
+            default:
+                break;
+        }
+
+        
+    }        
 
 
     public void Dispose()
@@ -469,6 +547,7 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.CurrentPosition.Subscribe(async position =>
         {
+            
             CurrentPositionInSeconds = position.CurrentTimeInSeconds;
             CurrentPositionPercentage = position.TimeElapsed;
             if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
@@ -854,7 +933,7 @@ public partial class HomePageVM : ObservableObject
     void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
-        var filePath = PickedSong.FilePath; // SelectedSong.FilePath
+        var filePath = ContextMenuSong.FilePath; // SelectedSong.FilePath
         var directoryPath = Path.GetDirectoryName(filePath);
 
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
@@ -875,27 +954,26 @@ public partial class HomePageVM : ObservableObject
     {
         SelectedPlaylistToOpenBtmSheet = pl;
     }
-    [RelayCommand]
-    void SetPickedSong(SongsModelView song)
+
+    [ObservableProperty]
+    SongsModelView contextMenuSong;
+    public void SetContextMenuSong(SongsModelView song)
     {
-        PickedSong = song;
+        ContextMenuSong = song;
     }
 
     [RelayCommand]
     async Task DeleteFile(SongsModelView song)
     {
-        if (song == PickedSong)
-        {
-            PickedSong = DisplayedSongs.First();
-        }
+        
         try
         {
-            if (File.Exists(PickedSong.FilePath))
+            if (File.Exists(ContextMenuSong.FilePath))
             {
                 bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
                 if (result is true)
                 {
-                    FileSystem.DeleteFile(PickedSong.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+                    FileSystem.DeleteFile(ContextMenuSong.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
 
                     DisplayedSongs.Remove(song);
                     SongsMgtService.DeleteSongFromDB(song.Id);

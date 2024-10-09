@@ -141,6 +141,7 @@ public partial class SongsModelView : ObservableObject
 
     [ObservableProperty]
     string? coverImagePath;
+
     public DateTimeOffset DateAdded { get; set; }
     public DateTimeOffset LastPlayed { get; set; }
     public ObjectId? UserID { get; set; }

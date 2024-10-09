@@ -16,14 +16,6 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-
-            <Style TargetType="ImageButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="BorderColor" Value="Transparent"/>
-                <Setter Property="WidthRequest" Value="50"/>
-                <Setter Property="HeightRequest" Value="45"/>
-            </Style>
-
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -32,9 +24,9 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
 
-        <lvc:PieChart HeightRequest="800" Series="{Binding MyPieSeries}" 
-              WidthRequest="800" IsVisible="True"
+        <!--<lvc:PieChart HeightRequest="800" Series="{Binding MyPieSeries}" 
+              WidthRequest="800" IsVisible="False"
     Title="{Binding MyPieSeriesTitle}">
-        </lvc:PieChart>
+        </lvc:PieChart>-->
     </toolkit:DockLayout>
 </ContentPage>

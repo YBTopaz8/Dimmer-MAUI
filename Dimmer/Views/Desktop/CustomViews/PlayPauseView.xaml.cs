@@ -7,6 +7,7 @@ public partial class PlayPauseView : ContentView
 	{
 		InitializeComponent();
         HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        this.BindingContext = HomePageVM;
     }
 
 

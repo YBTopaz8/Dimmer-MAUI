@@ -19,13 +19,7 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-
-            <Style TargetType="ImageButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="BorderColor" Value="Transparent"/>
-                <Setter Property="WidthRequest" Value="50"/>
-                <Setter Property="HeightRequest" Value="45"/>
-            </Style>
+            <converters:DateTimeOffsetToLocalDateConverter x:Key="DateTimeOffsetConverter"/>
 
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -42,9 +36,9 @@
         <Grid toolkit:DockLayout.DockPosition="Left" 
                              WidthRequest="350"
               ColumnDefinitions="*">
-            <CollectionView Header="Top Played Songs" Margin="5,0"
-                            SelectionMode="Single" VerticalScrollBarVisibility="Never"
-                            ItemsSource="{Binding TopTenPlayedSongs}">
+            <CollectionView Header="Top Played Songs" Margin="5,0" SelectionChanged="SongsPlayed_SelectionChanged" x:Name="SongsPlayed"
+                            SelectionMode="Single" SelectedItem="{Binding SongPickedForStats}"
+                            ItemsSource="{Binding TopTenPlayedSongs}" VerticalScrollBarVisibility="Always">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" 
                        ItemSpacing="3"/>
@@ -106,9 +100,9 @@
                     </FlexLayout>
 
 
-                <!--<CollectionView ItemsSource="{Binding SongDatePlayCounts}" WidthRequest="400" 
-                                HorizontalOptions="Center"
-                                SelectionMode="Single" IsVisible="False">
+                <CollectionView ItemsSource="{Binding SongPickedForStats.DatesPlayed}" WidthRequest="400" 
+                                HorizontalOptions="Center" HeightRequest="400"
+                                SelectionMode="Single" IsVisible="True">
                     <CollectionView.Header>
                         <FlexLayout JustifyContent="SpaceBetween">
                             <Label Text="Day" FontAttributes="Bold"/>
@@ -122,12 +116,12 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:DatePlayCount">
                             <FlexLayout JustifyContent="SpaceBetween" Padding="10" Margin="10">
-                                <Label Text="{Binding DatePlayed}"/>
-                                <Label Text="{Binding Count}"/>
+                                <Label Text="{Binding ., Converter={StaticResource DateTimeOffsetConverter}}"/>
+                                
                             </FlexLayout>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
-                </CollectionView>-->
+                </CollectionView>
 
                 <!--<lvc:PieChart HeightRequest="450" Series="{Binding MyPieSeries}" 
                               WidthRequest="700" IsVisible="True"
