@@ -10,11 +10,13 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #if WINDOWS
         MainPage = new AppShell();
+        
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
-
+        
     }
+
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {

@@ -87,6 +87,8 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         {
             AttachedPage?.ContentFrame?.GestureRecognizers.Add(closeGestureRecognizer);
         }
+        IsPresented = true;
+        IsPresentedChanged?.Invoke(this, true);
         Shell.SetNavBarIsVisible(this.AttachedPage, false);
         Shell.SetTabBarIsVisible(this.AttachedPage, false);
         DeviceDisplay.Current.KeepScreenOn = true;
@@ -98,6 +100,8 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         {
             AttachedPage?.ContentFrame?.GestureRecognizers.Remove(closeGestureRecognizer);
         }
+        IsPresented = false;
+        IsPresentedChanged?.Invoke(this, false);
         Shell.SetNavBarIsVisible(this.AttachedPage, false);
         Shell.SetTabBarIsVisible(this.AttachedPage, true);
 

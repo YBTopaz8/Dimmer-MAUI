@@ -4,14 +4,16 @@ using Plainer.Maui.Controls;
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : UraniumContentPage
-{    
+{
+    NowPlayingBtmSheet btmSheet {  get; set; }
     public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         SongsColView.Loaded += SongsColView_Loaded;
-        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
 
         Shell.SetNavBarIsVisible(this, true                                                                                                                                                                                                                    );
         Shell.SetTabBarIsVisible(this, true);
@@ -140,5 +142,14 @@ public partial class HomePageM : UraniumContentPage
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
         SettingsBtmSheet.IsPresented = !SettingsBtmSheet.IsPresented;
+    }
+    protected override bool OnBackButtonPressed()
+    {
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
+        return base.OnBackButtonPressed();
     }
 }

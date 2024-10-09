@@ -16,16 +16,12 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
         
         //Shell.SetTabBarIsVisible(this, false);
         //this.PropertyChanged += NowPlayingBtmSheet_PropertyChanged;
+        
     }
 
     
 
     HomePageVM homePageVM { get; set; }
-
-    private async void SwipedToDismiss_Swiped(object sender, SwipedEventArgs e)
-    {
-        this.IsPresented = false;
-    }
 
     private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {

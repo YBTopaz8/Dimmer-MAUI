@@ -50,6 +50,6 @@ public partial class MediaPlaybackControlsView : ContentView
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
-        myPage.Opacity = 0.4;
+        myPage.Opacity = 0.5;
     }
 }

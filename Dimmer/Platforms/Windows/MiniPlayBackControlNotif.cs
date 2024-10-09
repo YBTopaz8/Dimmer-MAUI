@@ -20,7 +20,7 @@ public static class MiniPlayBackControlNotif
             {
                 var secondWindow = new Window(miniPlayerView);
                 var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
-
+                
                 secondWindow.Title = "MP";
                 secondWindow.MaximumHeight = 150;
                 secondWindow.MinimumHeight = 150;

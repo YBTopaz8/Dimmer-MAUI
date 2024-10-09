@@ -15,9 +15,90 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof (SingleSongStatsPageD));
 
 #if WINDOWS
-        //InitializeSharpHook();
+        this.Loaded += AppShell_Loaded;
+
+        this.Unloaded -= AppShell_Loaded;
 #endif
+        
     }
+#if WINDOWS
+    private void AppShell_Loaded(object? sender, EventArgs e)
+    {
+        var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+
+        if (nativeElement != null)
+        {
+            nativeElement.PointerPressed += OnGlobalPointerPressed;
+        }
+    }
+
+    private async void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+        var properties = e.GetCurrentPoint(nativeElement).Properties;
+
+        //if (properties.IsLeftButtonPressed)
+        //{
+        //    // Handle left-click
+        //    Debug.WriteLine("Left mouse button clicked globally.");
+        //}
+        //else if (properties.IsMiddleButtonPressed)
+        //{
+        //    // Handle middle-click
+        //    Debug.WriteLine("Middle mouse button clicked globally.");
+        //}
+        if (properties.IsXButton1Pressed)
+        {
+            // Handle mouse button 4
+            var currentPage = Current.CurrentPage;
+
+            var targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
+
+            if (targetPages.Contains(currentPage.GetType()))
+            {
+                
+                shelltabbar.CurrentItem = homeTab;
+                //return true;
+            }
+
+
+            if (currentPage.GetType() != typeof(HomeD))
+            {
+
+                if (currentPage.GetType() == typeof(PlaylistsPageD))
+                {
+                    var homePageInstance = IPlatformApplication.Current.Services.GetService<HomeD>();
+
+
+                    // Clear the existing navigation stack
+                    List<ShellItem>? navigationStack = Current.Items.ToList();
+                    var s = Current.CurrentItem;
+
+                    await Current.GoToAsync(nameof(HomeD));
+
+                    return;
+                }
+                await Current.GoToAsync("..");
+            }
+        }
+
+
+        //else if (properties.IsXButton2Pressed)
+        //{
+        //    // Handle mouse button 5
+        //    Debug.WriteLine("Mouse button 5 clicked globally.");
+        //}
+        //else if (properties.IsRightButtonPressed)
+        //{
+        //    Debug.WriteLine("Clicked");
+
+        //}
+
+        //args.Handled = true; // Stop propagation if needed
+
+
+    }
+#endif
 
     /* If/When I decide to put back sharphook
 #if WINDOWS

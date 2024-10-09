@@ -1,3 +1,4 @@
+
 namespace Dimmer_MAUI;
 
 public partial class AppShellMobile : Shell
@@ -16,15 +17,28 @@ public partial class AppShellMobile : Shell
 		Routing.RegisterRoute(nameof(ArtistsPageM), typeof(ArtistsPageM));		
 		Routing.RegisterRoute(nameof(SpecificAlbumPage), typeof(SpecificAlbumPage));
 		Routing.RegisterRoute(nameof(AlbumPageM), typeof(AlbumPageM));
+        this.Navigating += OnNavigating;
+    }
+
+    private void OnNavigating(object? sender, ShellNavigatingEventArgs e)
+    {
+        //throw new NotImplementedException();
     }
 
     protected override bool OnBackButtonPressed()
     {
-        var bmtSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        if (bmtSheet.IsPresented)
+        var currentPage = Current.CurrentPage;
+       
+        var targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
+
+        if (targetPages.Contains(currentPage.GetType()))
         {
-            bmtSheet.IsPresented = false;
-			return true;
+            shelltabbar.CurrentItem = homeTab;
+            
+        }
+        if (currentPage.GetType() == typeof(HomePageM))
+        {
+            return true;
         }
         return base.OnBackButtonPressed();
 

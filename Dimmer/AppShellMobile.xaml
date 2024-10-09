@@ -14,9 +14,9 @@
              FlyoutBackgroundColor="Black"
              Shell.FlyoutBehavior="Disabled">
 
-  
-    <TabBar>
-        <Tab Title="Home">
+
+    <TabBar x:Name="shelltabbar">
+        <Tab Title="Home" x:Name="homeTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"/>
             </Tab.Icon>
@@ -24,8 +24,8 @@
    ContentTemplate="{DataTemplate viewsM:HomePageM}"
    Route="HomeM"/>
         </Tab>
-        
-        <Tab Title="Album" >
+
+        <Tab Title="Album" x:Name="albumTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Album}"/>
 
@@ -33,7 +33,7 @@
             <ShellContent ContentTemplate="{DataTemplate viewsM:AlbumsM}" Route="FullStatsPageM"/>
 
         </Tab>
-        <Tab Title="Stats">
+        <Tab Title="Stats" x:Name="statsTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Show_chart}"/>
             </Tab.Icon>
@@ -42,7 +42,7 @@
        ContentTemplate="{DataTemplate viewsM:TopStatsPageM}"
        Route="AlbumM"/>
         </Tab>
-        <Tab Title="Playlists">
+        <Tab Title="Playlists" x:Name="playlistsTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
             </Tab.Icon>

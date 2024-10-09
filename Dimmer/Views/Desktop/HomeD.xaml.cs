@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
@@ -11,7 +13,6 @@ public partial class HomeD : UraniumContentPage
         MediaPlayBackCW.BindingContext = homePageVM;
         
     }
-
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()
     {
@@ -113,10 +114,9 @@ public partial class HomeD : UraniumContentPage
 
     private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
-        
+
 #if WINDOWS
-        
-        
+
 #endif
     }
 
