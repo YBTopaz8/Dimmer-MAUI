@@ -41,46 +41,42 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     
-    <toolkit:DockLayout x:Name="tkDL" Margin="5,0">
-        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
-        
-        <Grid ColumnDefinitions="*" toolkit:DockLayout.DockPosition="Top"
-                RowDefinitions="*"
+    
+    <Grid ColumnDefinitions="*" RowDefinitions="*"
                 RowSpacing="2">
-            <CollectionView  Grid.Row="1" EmptyView="No Albums..."
-                                 VerticalOptions="Start" 
-                                ItemsSource="{Binding AllAlbums}">
+        <CollectionView  Grid.Row="1" EmptyView="No Albums..."
+                                VerticalOptions="Start" 
+                            ItemsSource="{Binding AllAlbums}">
 
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical"
-                                       Span="4"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:AlbumModelView">
-                        <Border Stroke="Transparent" HorizontalOptions="Center">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical"
+                                    Span="4"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AlbumModelView">
+                    <Border Stroke="Transparent" HorizontalOptions="Center">
 
-                            <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
-                                <VerticalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
-                                </VerticalStackLayout.GestureRecognizers>
-                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                                    WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
-                                                    BorderWidth="0" CornerRadius="10"/>
+                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                            </VerticalStackLayout.GestureRecognizers>
+                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
+                                                WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
+                                                BorderWidth="0" CornerRadius="10"/>
 
-                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                                        Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
-
-
-                            </VerticalStackLayout>
-
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </Grid>
+                            <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
+                                    Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
 
 
-    </toolkit:DockLayout>
+                        </VerticalStackLayout>
+
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+
 
 </uranium:UraniumContentPage>
 

@@ -30,7 +30,7 @@
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Album}"/>
 
             </Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate viewsM:AlbumsM}" Route="FullStatsPageM"/>
+            <ShellContent ContentTemplate="{DataTemplate viewsM:AlbumsM}"/>
 
         </Tab>
         <Tab Title="Stats" x:Name="statsTab">

@@ -69,7 +69,12 @@
             <BoxView/>
             <Label Text="Share*"/>
             <BoxView/>
-            <Label Text="Delete from Device*"/>
+            <Label Text="Delete from Device" BackgroundColor="Transparent">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" Command="{Binding DeleteFileCommand}" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"/>
+                </Label.GestureRecognizers>
+            </Label>
+            
         </VerticalStackLayout>
 
         <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="False" Spacing="10"

@@ -1,12 +1,16 @@
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class PlaylistsPageM : ContentPage
+public partial class PlaylistsPageM : UraniumContentPage
 {
-	public PlaylistsPageM(HomePageVM homePageVM)
+    NowPlayingBtmSheet btmSheet { get; set; }
+    public PlaylistsPageM(HomePageVM homePageVM)
     {
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
+
     }
     public HomePageVM HomePageVM { get; }
 
@@ -20,7 +24,15 @@ public partial class PlaylistsPageM : ContentPage
     {
         base.OnDisappearing();        
     }
-   
-  
+
+    protected override bool OnBackButtonPressed()
+    {
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
+        return base.OnBackButtonPressed();
+    }
 
 }

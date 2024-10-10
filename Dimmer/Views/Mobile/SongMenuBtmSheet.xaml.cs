@@ -66,4 +66,9 @@ public partial class SongMenuBtmSheet : BottomSheet
         await this.DismissAsync();
         HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
     }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        await this.DismissAsync(true);
+    }
 }

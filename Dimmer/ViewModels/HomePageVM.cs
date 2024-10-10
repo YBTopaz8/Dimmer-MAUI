@@ -425,6 +425,7 @@ public partial class HomePageVM : ObservableObject
     {
 #if ANDROID
         SongMenuBtmSheet btmSheet = new(this, song);
+        ContextMenuSong = song;
         SelectedSongToOpenBtmSheet = song;
         await btmSheet.ShowAsync();
 #endif
@@ -971,38 +972,17 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task DeleteFile(SongsModelView song)
     {
-        
-        try
+        if (await PlatSpecificUtils.DeleteSongFile(song))
         {
-            if (File.Exists(ContextMenuSong.FilePath))
-            {
-                bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
-                if (result is true)
-                {
-                    FileSystem.DeleteFile(ContextMenuSong.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+            DisplayedSongs.Remove(song);
+            SongsMgtService.DeleteSongFromDB(song.Id);
+        }
+#if ANDROID
 
-                    DisplayedSongs.Remove(song);
-                    SongsMgtService.DeleteSongFromDB(song.Id);
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Not Deleted");
-            }
-        }
-        catch (UnauthorizedAccessException e)
-        {
-            Debug.WriteLine("Unauthorized to delete file: " + e.Message);
-        }
-        catch (IOException e)
-        {
-            Debug.WriteLine("An IO exception occurred: " + e.Message);
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine("An error occurred: " + e.Message);
-        }
+#endif
     }
+
+    
 
     [RelayCommand]
     void BringAppToFront()

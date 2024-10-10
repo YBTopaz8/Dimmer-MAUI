@@ -2,13 +2,18 @@ using Dimmer_MAUI.Views.Mobile.CustomViewsM;
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class TopStatsPageM : ContentPage
+public partial class TopStatsPageM : UraniumContentPage
 {
-	public TopStatsPageM(HomePageVM homePageVM)
+    NowPlayingBtmSheet btmSheet { get; set; }
+    public TopStatsPageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
         HomePageVM = homePageVM;
+
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
+
     }
     public HomePageVM HomePageVM { get; }
 
@@ -44,5 +49,13 @@ public partial class TopStatsPageM : ContentPage
         
     }
 
-
+    protected override bool OnBackButtonPressed()
+    {
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
+        return base.OnBackButtonPressed();
+    }
 }

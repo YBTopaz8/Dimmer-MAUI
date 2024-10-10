@@ -207,7 +207,7 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Image}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <ImageButton Command="{Binding NavToNowPlayingPageCommand}" Clicked="ShowLyricsPage_Clicked">
+                        <ImageButton Clicked="ShowLyricsPage_Clicked">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                             </ImageButton.Source>
