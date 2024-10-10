@@ -28,12 +28,20 @@ public partial class FullStatsD : ContentPage
         HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
 
     }
+
+    private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SongsPlayed.IsLoaded)
+        {
+            SongsPlayed.ScrollTo(HomePageVM.SongPickedForStats, ScrollToPosition.Start, animate: true);
+        }
+    }
 }
-    //private void Calendar_SelectedDatesChanged(object sender, ValueChangedEventArgs<Collection<DateTime>> e)
-    //{
-    //    if (ToggleCalendar.IsChecked)
-    //    {
-    //        var send = (Xceed.Maui.Toolkit.Calendar)sender;
-    //        HomePageVM.ShowTopTenSongsForSpecificDayCommand.Execute(send.SelectedDate);
-    //    }
-    //}
+//private void Calendar_SelectedDatesChanged(object sender, ValueChangedEventArgs<Collection<DateTime>> e)
+//{
+//    if (ToggleCalendar.IsChecked)
+//    {
+//        var send = (Xceed.Maui.Toolkit.Calendar)sender;
+//        HomePageVM.ShowTopTenSongsForSpecificDayCommand.Execute(send.SelectedDate);
+//    }
+//}

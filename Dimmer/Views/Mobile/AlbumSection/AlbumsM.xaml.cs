@@ -2,12 +2,16 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class AlbumsM : UraniumContentPage
 {
-	public AlbumsM(HomePageVM homePageVM)
+    NowPlayingBtmSheet btmSheet { get; set; }
+    public AlbumsM(HomePageVM homePageVM)
     {
         InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
         HomePageVM.GetAllArtistsCommand.Execute(null);
+
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
     }
 
     public HomePageVM HomePageVM { get; }
@@ -40,5 +44,14 @@ public partial class AlbumsM : UraniumContentPage
     private void ToolbarItem_Clicked(object sender, EventArgs e)
     {
 
+    }
+    protected override bool OnBackButtonPressed()
+    {
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
+        return base.OnBackButtonPressed();
     }
 }

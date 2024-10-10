@@ -45,7 +45,7 @@
             ColumnDefinitions="*" Margin="10,0" RowSpacing="10"
           RowDefinitions="auto,auto,auto"
         >
-            <HorizontalStackLayout HorizontalOptions="FillAndExpand" Grid.Row="0"
+            <HorizontalStackLayout HorizontalOptions="Fill" Grid.Row="0"
                                Spacing="5">
                 <toolkit:AvatarView ImageSource="{Binding SelectedAlbumOnArtistPage.AlbumImagePath}" 
                                 BorderWidth="0" HeightRequest="180" WidthRequest="180"/>
@@ -80,12 +80,12 @@
             </HorizontalStackLayout>
 
             <Grid ColumnDefinitions="*,*" Grid.Row="1"
-             HorizontalOptions="FillAndExpand"
+             HorizontalOptions="Fill"
            ColumnSpacing="10">
 
         <Button Grid.Column="0" 
           Text="Play" TextColor="White"
-          HorizontalOptions="FillAndExpand"
+          HorizontalOptions="Fill"
           VerticalOptions="Center"
           BackgroundColor="DarkSlateBlue"
           BorderColor="DarkSlateBlue"
@@ -93,7 +93,7 @@
           CornerRadius="5"/>
 
         <Button Grid.Column="1" Text="Shuffle" 
-                HorizontalOptions="FillAndExpand" VerticalOptions="Center" 
+                HorizontalOptions="Fill" VerticalOptions="Center" 
                 BorderColor="DarkSlateBlue" BorderWidth="2"
       BackgroundColor="Transparent" TextColor="White"
       CornerRadius="5"/>

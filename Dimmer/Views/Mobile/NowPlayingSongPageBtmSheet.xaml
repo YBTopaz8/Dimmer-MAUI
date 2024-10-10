@@ -12,7 +12,7 @@
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM" 
             x:Name="myPage"
-             BackgroundColor="Black">
+             BackgroundColor="Red">
 
     <the49:BottomSheet.Detents>
         <the49:FullscreenDetent />
@@ -102,7 +102,7 @@
 
             </VerticalStackLayout>
             
-            <Grid HorizontalOptions="FillAndExpand" VerticalOptions="Start" ColumnSpacing="20"
+            <Grid HorizontalOptions="Fill" VerticalOptions="Start" ColumnSpacing="20"
                   BackgroundColor="Transparent" Margin="5,0">
                 <Grid.Resources>
                     <ResourceDictionary>

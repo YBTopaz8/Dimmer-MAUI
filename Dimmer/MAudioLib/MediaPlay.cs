@@ -1,10 +1,11 @@
 ﻿namespace Dimmer_MAUI.MAudioLib;
 public class MediaPlay
 {
+    public ObjectId SongId {  get; set; }
     public string Name { get; set; }
     public string Author { get; set; }
     public string URL { get; set; }
-    public Stream Stream { get; set; }
+    public Stream? Stream { get; set; }
     public string ImagePath { get; set; }
     /// <summary>
     /// Get/Set Album Cover in Byte[] to put on Notification 

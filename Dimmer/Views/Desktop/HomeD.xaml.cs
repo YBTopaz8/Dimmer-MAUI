@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
@@ -11,7 +13,6 @@ public partial class HomeD : UraniumContentPage
         MediaPlayBackCW.BindingContext = homePageVM;
         
     }
-
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()
     {
@@ -111,4 +112,18 @@ public partial class HomeD : UraniumContentPage
         await HomePageVM.NavigateToArtistsPage(song);
     }
 
+    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+    {
+
+#if WINDOWS
+
+#endif
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (Grid)sender;
+        var song = send.BindingContext! as SongsModelView;
+        HomePageVM.SetContextMenuSong(song);
+    }
 }

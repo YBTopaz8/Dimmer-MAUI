@@ -45,7 +45,7 @@ public partial class SongMenuBtmSheet : BottomSheet
 
     private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
+        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
         await NewPlaylistName.EntryView.HideKeyboardAsync();
         await this.DismissAsync();
     }
@@ -65,5 +65,10 @@ public partial class SongMenuBtmSheet : BottomSheet
     {
         await this.DismissAsync();
         HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
+    }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        await this.DismissAsync(true);
     }
 }

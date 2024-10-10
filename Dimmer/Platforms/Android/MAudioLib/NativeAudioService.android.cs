@@ -2,13 +2,17 @@
 using Android.Media;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
 using System.Diagnostics;
+using System.ComponentModel;
+using static Android.Icu.Text.Transliterator;
+using Java.Lang;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
-public class NativeAudioService : INativeAudioService
+public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 {
     static NativeAudioService current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
+    HomePageVM ViewModel { get; set; }
     IAudioActivity instance;
     double volume = 1;
     double balance = 0;
@@ -33,14 +37,25 @@ public class NativeAudioService : INativeAudioService
         }
     }
 
+    private bool isPlaying;
     public bool IsPlaying
     {
-        get
-        {
-            return mediaPlayer?.IsPlaying ?? false;
-        }
+        get => isPlaying;
         
-
+        set
+        {
+            if (isPlaying != value)
+            {
+                isPlaying = value;
+                IsPlayingChanged?.Invoke(this, value);
+                OnPropertyChanged(nameof(IsPlaying));
+            }
+            
+        }
+    }
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public double Duration
@@ -58,10 +73,17 @@ public class NativeAudioService : INativeAudioService
     {
         get
         {
-            // Return the current position in seconds (convert from milliseconds)
-            return mediaPlayer?.CurrentPosition / 1000.0 ?? _currentPosInMs / 1000.0;
+            try
+            {
+                // Return the current position in seconds if available
+                return mediaPlayer?.CurrentPosition / 1000.0 ?? _currentPosInMs / 1000.0;
+            }
+            catch (IllegalStateException ex)
+            {
+                // If mediaPlayer is in an invalid state, return 0 or a fallback value
+                return 0.0;
+            }
         }
-
     }
 
     public double Volume
@@ -81,25 +103,42 @@ public class NativeAudioService : INativeAudioService
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
     public event EventHandler NotificationTapped;
-    public void InitializeAsync(string audioURI)
-    {
-        Task.Run(() => InitializeAsync(new MediaPlay() { URL = audioURI }));
-    }
+    public event PropertyChangedEventHandler? PropertyChanged;
 
+    
     public Task PauseAsync()
     {
-        if (IsPlaying)
-        {
-            return instance.Binder.GetMediaPlayerService().Pause();
-        }
-
+        
+        instance.Binder.GetMediaPlayerService().Pause();
+        
+        IsPlaying = false;
+        ViewModel.SetPlayerState(MediaPlayerState.Playing);
+        ViewModel.SetPlayerState(MediaPlayerState.ShowPlayBtn);
         return Task.CompletedTask;
     }
 
-    public async Task PlayAsync(double position = 0, bool IsFromUser = false)
+    public async Task PlayAsync(bool IsFromPreviousOrNext = false)
     {
-        var posInMs = (int)(position * CurrentMedia.DurationInMs);
-        await instance.Binder.GetMediaPlayerService().Play((int)posInMs);
+        int posInMs = (int)ViewModel.CurrentPositionInSeconds * 1000;
+        if(ViewModel.TemporarilyPickedSong is not null)
+        {
+            if (CurrentMedia.SongId != ViewModel.TemporarilyPickedSong.Id)
+            {
+                posInMs = 0;
+            }
+            if (IsFromPreviousOrNext)
+            {
+                posInMs = 0;
+            }
+            await instance.Binder.GetMediaPlayerService().Play(posInMs);
+        }
+        else
+        {
+            await instance.Binder.GetMediaPlayerService().Play();
+        }
+        IsPlaying = true;
+        ViewModel.SetPlayerState(MediaPlayerState.Playing);
+        ViewModel.SetPlayerState(MediaPlayerState.ShowPauseBtn);
     }
 
     Task SetMuted(bool value)
@@ -114,35 +153,27 @@ public class NativeAudioService : INativeAudioService
     Task SetVolume(double volume, double balance)
     {
 
-        mediaPlayer?.SetVolume((float)1, (float)1);
+        //mediaPlayer?.SetVolume((float)1, (float)1);
 
-        Stream streamType = Stream.Music;
-        if (instance == null)
-        {
-            var activity = CrossCurrentActivity.Current;
-            instance = activity.Activity as IAudioActivity;
-        }
-        var aManager = instance.Binder.GetMediaPlayerService().ExposeAudioManager();
+        //Stream streamType = Stream.Music;
+        //if (instance == null)
+        //{
+        //    var activity = CrossCurrentActivity.Current;
+        //    instance = activity.Activity as IAudioActivity;
+        //}
+        //var aManager = instance.Binder.GetMediaPlayerService().ExposeAudioManager();
 
-        volume = Math.Max(0, Math.Min(15, volume));
-        int scaledVolume = (int)Math.Round(volume);
-        aManager.SetStreamVolume(streamType, scaledVolume, VolumeNotificationFlags.RemoveSoundAndVibrate);
+        //volume = Math.Max(0, Math.Min(15, volume));
+        //int scaledVolume = (int)Math.Round(volume);
+        //aManager.SetStreamVolume(streamType, scaledVolume, VolumeNotificationFlags.RemoveSoundAndVibrate);
 
-        //volume = Math.Clamp(volume, 0, 1);
-        //balance = Math.Clamp(balance, -1, 1);
-
-        //// Using the "constant power pan rule." See: http://www.rs-met.com/documents/tutorials/PanRules.pdf
-        //var left = Math.Cos((Math.PI * (balance + 1)) / 4) * volume;
-        //var right = Math.Sin((Math.PI * (balance + 1)) / 4) * volume;
-
-        //mediaPlayer?.SetVolume((float)left, (float)right);
         return Task.CompletedTask;
     }
 
     public async Task<bool> SetCurrentTime(double position)
     {
         //position = (position) * Duration;
-        var posInMs = (int)(position * Duration * 1000);
+        var posInMs = (int)(position * CurrentMedia.DurationInMs);
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
@@ -159,50 +190,75 @@ public class NativeAudioService : INativeAudioService
         return Task.CompletedTask;
     }
 
-    public async Task InitializeAsync(MediaPlay media)
+    public async Task InitializeAsync(SongsModelView media, byte[] ImageBytes)
     {
-        CurrentMedia = media; 
-        if (instance == null)
+        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        CurrentMedia = new();
+        if (CurrentMedia is not null)
         {
-            var activity = CrossCurrentActivity.Current;
-            instance = activity.Activity as IAudioActivity;
-        }
-        else
-        {
-            instance.Binder.GetMediaPlayerService().isCurrentEpisode = false;
-            instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
-        }
-        instance.Binder.GetMediaPlayerService().mediaPlay = media;
-        if (instance.Binder.GetMediaPlayerService().mediaPlayer == null)
-        {
-            instance.Binder.GetMediaPlayerService().DoInitialInitialization();
-        }
-        if (instance.Binder.GetMediaPlayerService().mediaPlayer == null)
-        {
-            Debug.WriteLine("Let me know");
-        }
-        instance.Binder.GetMediaPlayerService().IsPlayingChanged += IsPlayingChanged;
-        instance.Binder.GetMediaPlayerService().TaskPlayEnded += PlayEnded;
-        instance.Binder.GetMediaPlayerService().TaskPlayNext += PlayNext;
-        instance.Binder.GetMediaPlayerService().TaskPlayPrevious += PlayPrevious;
-        this.instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool isPlaying) =>
-        {
-            Task.Run(async () => {
-                if (isPlaying)
+            if (media is not null)
+            {
+                CurrentMedia = new MediaPlay()
                 {
-                    await this.PlayAsync();
-                    await this.SetCurrentTime(CurrentPosition);
-                }
-                else
-                {
-                    await this.PauseAsync();
-                }
-            });
-            IsPlayingChanged?.Invoke(this, isPlaying);
-        };
-        //if(media.Image!=null) instance.Binder.GetMediaPlayerService().Cover= await GetImageBitmapFromUrl(media.Image);
-        //else instance.Binder.GetMediaPlayerService().Cover = null;
-        
+                    SongId = media.Id,
+                    Name = media.Title,
+                    Author = media!.ArtistName!,
+                    URL = media.FilePath,
+                    ImagePath = media.CoverImagePath,
+                    DurationInMs = (long)(media.DurationInSeconds * 1000),
+                };
+            }
+
+            if (instance == null)
+            {
+                var activity = CrossCurrentActivity.Current;
+                instance = activity.Activity as IAudioActivity;
+            }
+            else
+            {
+                instance.Binder.GetMediaPlayerService().isCurrentEpisode = false;
+                instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
+            }
+
+            var mediaPlayerService = instance.Binder.GetMediaPlayerService();
+            mediaPlayerService.mediaPlay = CurrentMedia;
+
+            if (mediaPlayerService.mediaPlayer == null)
+            {
+                mediaPlayerService.DoInitialInitialization();
+            }
+
+            // Unsubscribe before subscribing to prevent duplicate handlers
+            mediaPlayerService.IsPlayingChanged -= IsPlayingChanged;
+            mediaPlayerService.TaskPlayEnded -= PlayEnded;
+            mediaPlayerService.TaskPlayNext -= PlayNext;
+            mediaPlayerService.TaskPlayPrevious -= PlayPrevious;
+
+            // Subscribe to events
+            mediaPlayerService.IsPlayingChanged += IsPlayingChanged;
+            mediaPlayerService.TaskPlayEnded += PlayEnded;
+            mediaPlayerService.TaskPlayNext += PlayNext;
+            mediaPlayerService.TaskPlayPrevious += PlayPrevious;
+
+            mediaPlayerService.PlayingChanged -= OnPlayingChanged; // Unsubscribe if previously subscribed
+            mediaPlayerService.PlayingChanged += OnPlayingChanged;
+        }
+    }
+    private void OnPlayingChanged(object sender, bool isPlaying)
+    {
+        Task.Run(async () =>
+        {
+            if (isPlaying)
+            {
+                await this.PlayAsync();
+                await this.SetCurrentTime(CurrentPosition);
+            }
+            else
+            {
+                await this.PauseAsync();
+            }
+        });
+        IsPlayingChanged?.Invoke(this, isPlaying);
     }
 
 }

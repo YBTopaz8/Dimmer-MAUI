@@ -203,8 +203,9 @@
                             </ResourceDictionary>
                         </Grid.Resources>
                         <Grid.GestureRecognizers>
-                            <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedSongCommand, Source={x:Reference myPage}}" 
-                                                    PointerEnteredCommandParameter="{Binding .}"/>
+                            <!--<PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedSongCommand, Source={x:Reference myPage}}" 
+                                                    PointerEnteredCommandParameter="{Binding .}" PointerPressed="PointerGestureRecognizer_PointerPressed"/>-->
+                            <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" PointerEntered="PointerGestureRecognizer_PointerEntered"/>
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
@@ -227,7 +228,7 @@
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="Selected"/>
-                                    
+
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
@@ -236,9 +237,6 @@
 
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-
-                        <BoxView HeightRequest="1" BackgroundColor="#212121" 
-                                 Grid.ColumnSpan="9" Grid.Row="1"/>
 
                         <HorizontalStackLayout Grid.Column="0" Spacing="10" >
 

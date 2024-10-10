@@ -1,6 +1,8 @@
 ﻿using Microsoft.Windows.AppLifecycle;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
+using Windows.System;
+using Windows.UI.Core;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -28,11 +30,13 @@ public partial class App : MauiWinUIApplication
             return;
         }
         mainInstance.Activated += MainInstance_Activated;
-
         this.InitializeComponent();
-    }
 
+       
+    }
     
+    
+
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
             HandleActivated(e);
@@ -51,6 +55,7 @@ public partial class App : MauiWinUIApplication
             HandleActivated(activatedArgs);
 
         }while (activatedArgs.Kind == ExtendedActivationKind.File && paths?.Length < 0);
+
     }
 
     string[]? paths = Array.Empty<string>();
@@ -96,5 +101,6 @@ public partial class App : MauiWinUIApplication
         home!.LoadLocalSongFromOutSideApp(paths!);
 
     }
+    
 }
 

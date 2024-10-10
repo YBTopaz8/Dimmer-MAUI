@@ -5,11 +5,14 @@ public enum MediaPlayerState
     Playing,
     Paused,
     Stopped,
+    Ended,
     LyricsLoad,
     CoverImageDownload,
     LoadingSongs,
     ShowPlayBtn,
     ShowPauseBtn,
+    RefreshStats,
+
 }
 public class PlaybackInfo
 {

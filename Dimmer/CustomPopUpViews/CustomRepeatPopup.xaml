@@ -17,7 +17,7 @@
             <Label x:Name="labelForSong" FontSize="18" HorizontalOptions="Center" />
             
             <Picker x:Name="RepeatPicker" Title="Repeat" HorizontalTextAlignment="Center"
-                    HorizontalOptions="FillAndExpand">
+                    HorizontalOptions="Fill">
                 <Picker.ItemsSource>
                     <x:Array Type="{x:Type x:Int32}">
                         <x:Int32>0</x:Int32>

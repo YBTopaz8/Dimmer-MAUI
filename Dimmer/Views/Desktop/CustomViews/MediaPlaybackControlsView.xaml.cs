@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MediaPlaybackControlsView : ContentView
@@ -8,7 +10,20 @@ public partial class MediaPlaybackControlsView : ContentView
 		InitializeComponent();
 		vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 		this.BindingContext = vm;
+        //vm.PropertyChanged += OnPropertyChanged;
 	}
+
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName==nameof(vm.IsPlaying))
+        {
+            bool isPlaying = vm.IsPlaying;
+            if (isPlaying)
+            {
+                
+            }
+        }
+    }
 
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
@@ -28,10 +43,13 @@ public partial class MediaPlaybackControlsView : ContentView
         _isThrottling = false;
     }
 
-
-
-    private void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
+        myPage.Opacity = 1;
+    }
 
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        myPage.Opacity = 0.5;
     }
 }

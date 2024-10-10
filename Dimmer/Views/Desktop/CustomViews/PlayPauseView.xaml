@@ -25,7 +25,7 @@
 
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        <StackLayout>
+        <StackLayout BackgroundColor="Transparent">
             <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
                          Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
                          HeightRequest="50" WidthRequest="50">

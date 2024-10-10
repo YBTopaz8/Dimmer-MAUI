@@ -47,7 +47,7 @@ public class AppSettingsService : IAppSettingsService
                 LastPlayedSongId = songID.ToString();
             }
         }
-        public static object? GetLastPlayedSong()
+        public static ObjectId? GetLastPlayedSong()
         {
             return LastPlayedSongId is null ? null : new ObjectId(LastPlayedSongId);
         }

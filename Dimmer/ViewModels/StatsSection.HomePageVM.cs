@@ -13,16 +13,25 @@ public partial class HomePageVM
         // Get today's date
         var today = DateTime.Today;
         // Get the date 7 days ago
-        var lastWeek = today.AddDays(-6);
         TopTenPlayedSongs = DisplayedSongs
-            .Select(s => new SingleSongStatistics
-            {
-                Song = s,
-                PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
-            })
-            .OrderByDescending(s => s.PlayCount)
-            .Take(20)
-            .ToObservableCollection();
+    .Select(s => new SingleSongStatistics
+    {
+        Song = s,
+        PlayCount = s.DatesPlayed.Count()  // Count all dates without a range
+    })
+    .OrderByDescending(s => s.PlayCount)
+    
+    .ToObservableCollection();
+
+        //TopTenPlayedSongs = DisplayedSongs
+        //    .Select(s => new SingleSongStatistics
+        //    {
+        //        Song = s,
+        //        PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
+        //    })
+        //    .OrderByDescending(s => s.PlayCount)
+        //    .Take(20)
+        //    .ToObservableCollection();
         if (IsPlaying && CurrentQueue != 2)
         {
             ShowSingleSongStats(TemporarilyPickedSong);
@@ -84,7 +93,7 @@ public partial class HomePageVM
         }
 
         SongPickedForStats = song;
-
+        
         if (song.DatesPlayed != null && song.DatesPlayed.Count > 0)
         {
 
@@ -103,8 +112,11 @@ public partial class HomePageVM
 
             MostPlayedDay = "Never Played Yet";
         }
-
-
+        if (SongPickedForStats.DatesPlayed is not null)
+        {
+            NumberOfTimesPlayed = SongPickedForStats.DatesPlayed.Count;
+        }
+        return;
         PlotLineSeries(song);
     }
     [ObservableProperty]

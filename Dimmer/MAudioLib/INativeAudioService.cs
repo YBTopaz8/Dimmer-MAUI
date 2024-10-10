@@ -2,9 +2,9 @@
 public interface INativeAudioService
 {
     public static INativeAudioService Current;
-    void InitializeAsync(string audioURI);
-    Task InitializeAsync(MediaPlay media);
-    Task PlayAsync(double position = 0, bool IsFromUser = false);
+    
+    Task InitializeAsync(SongsModelView? media = null, byte[]? ImageBytes=null);
+    Task PlayAsync(bool IsFromPreviousOrNext = false);
 
     Task PauseAsync();
     ///<Summary>

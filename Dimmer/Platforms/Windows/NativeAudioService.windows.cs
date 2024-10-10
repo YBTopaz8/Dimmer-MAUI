@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
@@ -10,8 +12,9 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 {
     static NativeAudioService current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
+    HomePageVM ViewModel { get; set; }
     MediaPlayer mediaPlayer;
-
+    MediaPlay? CurrentMedia {  get; set; }
     private bool isPlaying;
     public bool IsPlaying
     {
@@ -30,17 +33,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
-    //public bool IsPlaying
-    //{
-    //    get
-    //    {
-    //        return mediaPlayer != null
-    //    && mediaPlayer.CurrentState == MediaPlayerState.Playing;
-    //    }
-    //}
 
     public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
     public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
@@ -71,7 +64,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     public void InitializeAsync(string audioURI)
     {
-        Task.Run(() => InitializeAsync(new MediaPlay() { URL = audioURI }));
+        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();        
     }
 
     public Task PauseAsync()
@@ -82,12 +75,22 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public Task PlayAsync(double position = 0, bool IsFromUser = false)
+    public Task PlayAsync( bool IsFromPreviousOrNext = false)
     {
-        position = position * Duration;
-        if (mediaPlayer != null && IsFromUser)
+        double position = 0;
+        if (CurrentMedia.SongId != ViewModel.TemporarilyPickedSong.Id)
         {
+            position = 0;
             mediaPlayer.Position = TimeSpan.FromSeconds(position);
+        }
+        if (IsFromPreviousOrNext)
+        {
+            position = 0;
+            mediaPlayer.Position = TimeSpan.FromSeconds(position);
+        }
+       
+        if (mediaPlayer != null)
+        {
             mediaPlayer.Play();
             IsPlaying = true;
             IsPlayingChanged.Invoke(this, true);
@@ -113,50 +116,122 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     }
     private MediaPlaybackItem MediaPlaybackItem(MediaPlay media)
     {
-        var mediaItem = new MediaPlaybackItem(media.Stream == null ? MediaSource.CreateFromUri(new Uri(media.URL)) : MediaSource.CreateFromStream(media.Stream?.AsRandomAccessStream(), string.Empty));
-        var props = mediaItem.GetDisplayProperties();
-
-        props.Type = MediaPlaybackType.Music;
-
-        if (media.Name != null)
-            props.MusicProperties.Title = media.Name;
-        if (media.Author != null)
-            props.MusicProperties.Artist = media.Author;
-        if (media.ImageBytes != null)
+        try
         {
-            props.Thumbnail = ConvertToRandomAccessStreamReference(media.ImageBytes); // ConvertToRandomAccessStreamReference(media.ImageBytes);
-            //props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(media.Image));
-        }
+            if (media == null || media.Stream == null)
+                return null;
 
-        mediaItem.ApplyDisplayProperties(props);
-        return mediaItem;
+            // Copy the byte stream to an InMemoryRandomAccessStream
+            var randomAccessStream = new InMemoryRandomAccessStream();
+            using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
+            {
+                var buffer = new byte[media.Stream.Length];
+                media.Stream.Read(buffer, 0, buffer.Length);
+                writer.WriteBytes(buffer);
+                writer.StoreAsync().GetResults();
+            }
+
+            // Create MediaSource from the InMemoryRandomAccessStream
+            var mediaSource = MediaSource.CreateFromStream(randomAccessStream, string.Empty);
+            var mediaItem = new MediaPlaybackItem(mediaSource);
+
+            // Set properties for the media item
+            var props = mediaItem.GetDisplayProperties();
+            props.Type = MediaPlaybackType.Music;
+            if (!string.IsNullOrEmpty(media.Name))
+                props.MusicProperties.Title = media.Name;
+            if (!string.IsNullOrEmpty(media.Author))
+                props.MusicProperties.Artist = media.Author;
+
+            // Set the thumbnail if available
+            if (media.ImageBytes != null)
+            {
+                var thumbnailStream = new InMemoryRandomAccessStream();
+                using (var writer = new DataWriter(thumbnailStream.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(media.ImageBytes);
+                    writer.StoreAsync().GetResults();
+                }
+                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(thumbnailStream);
+            }
+
+            mediaItem.ApplyDisplayProperties(props);
+            return mediaItem;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException.Message}, stack {ex.StackTrace}, source {ex.Source}");
+            return null;
+        }
     }
 
     private RandomAccessStreamReference ConvertToRandomAccessStreamReference(byte[] imageData)
     {
-        using var stream = new MemoryStream(imageData);
-        var randomAccessStream = new InMemoryRandomAccessStream();
-        var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0));
-        writer.WriteBytes(imageData);
-        writer.StoreAsync().GetResults();
-        return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
-    }
-
-    public async Task InitializeAsync(MediaPlay media)
-    {
         try
         {
+            // Create a new InMemoryRandomAccessStream
+            var randomAccessStream = new InMemoryRandomAccessStream();
+
+            // Use DataWriter to write the byte array to the stream
+            using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
+            {
+                writer.WriteBytes(imageData);
+                writer.StoreAsync().GetResults();
+                writer.DetachStream();  // Detach to ensure it remains open for RandomAccessStreamReference
+            }
+
+            // Return a RandomAccessStreamReference from the InMemoryRandomAccessStream
+            return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException.Message}, stack {ex.StackTrace}, source {ex.Source}");
+            throw;
+        }
+    }
+
+    public async Task InitializeAsync(SongsModelView? media, byte[]? ImageBytes)
+    {
+        CurrentMedia?.Stream?.Dispose();
+        if (media is not null)
+        {
+            // Directly use the file path to create a URI for local files
+            using var fileStreamm = File.OpenRead(media.FilePath);
+            var memStream = new MemoryStream();
+            await fileStreamm.CopyToAsync(memStream);
+            memStream.Position = 0;
+            CurrentMedia = new MediaPlay()
+            {
+                SongId = media.Id,
+                Name = media.Title,
+                Author = media!.ArtistName!,
+                Stream = memStream,
+                ImageBytes = ImageBytes,
+                DurationInMs = (long)(media.DurationInSeconds * 1000),
+            };
+
+        }
+        try
+        {
+            ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
+            var curMedia = MediaPlaybackItem(CurrentMedia);
+            if (curMedia == null)
+                return;
             if (mediaPlayer == null)
             {
                 mediaPlayer = new MediaPlayer
                 {
-                    Source = MediaPlaybackItem(media),
+                    Source = curMedia,
                     AudioCategory = MediaPlayerAudioCategory.Media
                 };
 
                 mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
                 mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
                 mediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                mediaPlayer.CommandManager.AutoRepeatModeBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                mediaPlayer.CommandManager.PositionBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                mediaPlayer.CommandManager.RateBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                mediaPlayer.CommandManager.RewindBehavior.EnablingRule = MediaCommandEnablingRule.Always;
 
                 mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
                 mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
@@ -170,7 +245,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             else
             {
                 await PauseAsync();
-                mediaPlayer.Source = MediaPlaybackItem(media);
+                mediaPlayer.Source = curMedia;
             }
         }
         catch (Exception ex)
@@ -188,7 +263,6 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     }
     private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
     {
-
         PlayNext?.Invoke(sender, EventArgs.Empty);
     }
     private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)

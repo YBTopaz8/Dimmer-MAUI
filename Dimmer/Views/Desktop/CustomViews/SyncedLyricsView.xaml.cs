@@ -17,9 +17,12 @@ public partial class SyncedLyricsView : ContentView
     {
         try
         {
-            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+            if (CanScroll)
             {
-                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
+                if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+                {
+                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
+                }
             }
 
         }
@@ -29,9 +32,26 @@ public partial class SyncedLyricsView : ContentView
         }
     }
 
+    HomePageVM ViewModel { get; set; }
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
+        if (ViewModel is null)
+        {
+            ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        }
         var bor = (Border)sender;
         var lyr = (LyricPhraseModel)bor.BindingContext;
+        ViewModel.SeekSongPosition(lyr);
+    }
+
+    bool CanScroll = true;
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        CanScroll = false;
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        CanScroll = true;
     }
 }

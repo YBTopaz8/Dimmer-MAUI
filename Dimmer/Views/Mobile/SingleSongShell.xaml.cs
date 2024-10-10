@@ -4,11 +4,13 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SingleSongShell : UraniumContentPage
 {
-	public SingleSongShell(HomePageVM homePageVM)
+    NowPlayingBtmSheet btmSheet { get; set; }
+    public SingleSongShell(HomePageVM homePageVM)
 	{
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
         Shell.SetTabBarIsVisible(this, false);
         Shell.SetNavBarIsVisible(this, false);
@@ -65,5 +67,15 @@ public partial class SingleSongShell : UraniumContentPage
     private void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
     {
 
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
+        return base.OnBackButtonPressed();
     }
 }

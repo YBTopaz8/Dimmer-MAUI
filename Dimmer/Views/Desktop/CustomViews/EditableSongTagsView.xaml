@@ -30,12 +30,14 @@
             <!--toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
                                 HeightRequest="150" WidthRequest="150" BorderWidth="0"
                                 CornerRadius="25" />-->
-
-            <material:TextField Title="Title" Text="{Binding TemporarilyPickedSong.Title}" />
-            <material:TextField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-            <material:TextField Title="Album Name" Text="{Binding TemporarilyPickedSong.AlbumName}" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-            <material:TextField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"/>
-            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="300" >
+            
+            <material:EditorField Title="Title" Text="{Binding TemporarilyPickedSong.Title}"/>
+            <material:EditorField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" 
+                                />
+            <material:EditorField Title="Album Name" Text="{Binding TemporarilyPickedSong.AlbumName}" />
+            <material:EditorField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" 
+                                />
+            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="400" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LyricPhraseModel">
                         <Label Text="{Binding Text}"/>
@@ -54,8 +56,8 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
                     
-        <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" x:Name="SyncingLyricView"
-                        IsVisible="{Binding IsOnLyricsSyncMode}" Grid.Row="3">
+        <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" 
+                        x:Name="SyncingLyricView">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <HorizontalStackLayout HorizontalOptions="Center">

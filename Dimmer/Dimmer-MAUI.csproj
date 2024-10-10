@@ -46,6 +46,8 @@
 		<GenerateTestArtifacts>True</GenerateTestArtifacts>
 		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 		<UserSecretsId>fc4b6d9f-3108-465e-ab29-9806b92af346</UserSecretsId>
+
+		<WindowsSdkPackageVersion>10.0.19041.41</WindowsSdkPackageVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
@@ -136,24 +138,24 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.0-rc2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.80" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.80" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.91" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.91" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
-		<PackageReference Include="Realm" Version="12.4.0" />
+		<PackageReference Include="Realm" Version="20.0.0" />
 		<PackageReference Include="SkiaSharp" Version="2.88.8" />
 		<PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
-		<PackageReference Include="UraniumUI" Version="2.9.1" />
-		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
-		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
-		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
-		<PackageReference Include="z440.atl.core" Version="6.1.0" />
+		<PackageReference Include="UraniumUI" Version="2.10.2" />
+		<PackageReference Include="UraniumUI.Blurs" Version="2.10.2" />
+		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.10.2" />
+		<PackageReference Include="UraniumUI.Material" Version="2.10.2" />
+		<PackageReference Include="z440.atl.core" Version="6.5.0" />
 	</ItemGroup>
 
 	<ItemGroup>

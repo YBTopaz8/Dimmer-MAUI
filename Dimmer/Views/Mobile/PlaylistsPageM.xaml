@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.PlaylistsPageM"
              Title="Playlists"
              BackgroundColor="Black"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -19,11 +20,8 @@
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
         <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
     </ContentPage.Resources>
-    <toolkit:DockLayout Margin="5,0">
-
-        <CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
-
-        
+    <Grid Margin="5,0">
+       
         <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView" toolkit:DockLayout.DockPosition="Top">
             <CollectionView.EmptyView>
                 <Label Text="No Playlists Yet...😄" HorizontalOptions="Center"/>
@@ -63,5 +61,5 @@
         </CollectionView>
 
        
-    </toolkit:DockLayout>
-</ContentPage>
+    </Grid>
+</uranium:UraniumContentPage>

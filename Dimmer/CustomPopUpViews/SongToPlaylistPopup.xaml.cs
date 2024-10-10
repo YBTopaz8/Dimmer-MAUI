@@ -37,7 +37,7 @@ public partial class SongToPlaylistPopup : Popup
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); //TODO ADD TOAST NOTIFICATION SAYING SONG ADDED
+        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
         this.Close();
     }
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)

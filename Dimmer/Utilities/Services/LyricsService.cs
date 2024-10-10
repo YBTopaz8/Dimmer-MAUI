@@ -68,6 +68,7 @@ public class LyricsService : ILyricsService
         });
     }
 
+
     #region Manage Loadings and Initializations
     public async void LoadLyrics(SongsModelView song)
     {

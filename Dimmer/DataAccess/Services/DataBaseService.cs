@@ -18,8 +18,7 @@ public class DataBaseService : IDataBaseService
         }
 
         string filePath = Path.Combine(dbPath, "DimmerDB.realm");
-     
-
+       
         var config = new RealmConfiguration(filePath)
         {
             SchemaVersion = 3, // Increment schema version for each migration

@@ -11,26 +11,26 @@
     Shell.TabBarBackgroundColor="#1f1f1f"    
     >
 
-    <FlyoutItem FlyoutDisplayOptions="AsSingleItem">
-        <Tab Title="Home" Shell.TabBarIsVisible="True">
+    <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar">
+        <Tab Title="Home" Shell.TabBarIsVisible="True" x:Name="homeTab">
 
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:HomeD}"
                 Route="MainPageD" />
         </Tab>
-        
-        <Tab Title="Artists">
+
+        <Tab Title="Artists" x:Name="albumTab">
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
-        
-        <Tab Title="Playlists" Shell.TabBarIsVisible="True">
+
+        <Tab Title="Playlists" Shell.TabBarIsVisible="True" x:Name="playlistsTab">
 
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
                 Route="PlaylistsD"/>
             
         </Tab>
-        <Tab Title="Stats">
+        <Tab Title="Stats" x:Name="statsTab">
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
                 Route="StatsD"/>
         </Tab>
