@@ -10,8 +10,8 @@ public partial class SingleSongShell : UraniumContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+        //btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
         Shell.SetTabBarIsVisible(this, false);
         Shell.SetNavBarIsVisible(this, false);
     }

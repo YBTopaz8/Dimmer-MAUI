@@ -86,6 +86,7 @@
         <CollectionView toolkit:DockLayout.DockPosition="Left"
                         ItemsSource="{Binding AllArtists}" x:Name="AllArtistsColView"
                         EmptyView="No Artists Existing..." SelectionMode="Single" 
+                        SelectionChanged="AllArtistsColView_SelectionChanged"
                          SelectedItem="{Binding SelectedArtistOnArtistPage}"
                         WidthRequest="200" Margin="10,0">
             <CollectionView.ItemsLayout>

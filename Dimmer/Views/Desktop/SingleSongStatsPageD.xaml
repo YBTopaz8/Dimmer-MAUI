@@ -23,10 +23,10 @@
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
-
-        <!--<lvc:PieChart HeightRequest="800" Series="{Binding MyPieSeries}" 
+        <Label Text="Test"/>
+        <lvc:PieChart HeightRequest="800" Series="{Binding MyPieSeries}" 
               WidthRequest="800" IsVisible="False"
     Title="{Binding MyPieSeriesTitle}">
-        </lvc:PieChart>-->
+        </lvc:PieChart>
     </toolkit:DockLayout>
 </ContentPage>

@@ -12,7 +12,7 @@
     >
 
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar">
-        <Tab Title="Home" Shell.TabBarIsVisible="True" x:Name="homeTab">
+        <Tab Title="Home" x:Name="homeTab">
 
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:HomeD}"
@@ -23,7 +23,7 @@
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
 
-        <Tab Title="Playlists" Shell.TabBarIsVisible="True" x:Name="playlistsTab">
+        <Tab Title="Playlists" x:Name="playlistsTab">
 
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"

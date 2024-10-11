@@ -13,11 +13,17 @@ public partial class ArtistsPageD : ContentPage
         AllArtistsColView.Loaded += AllArtistsColView_Loaded;
     }
 
+
     private void AllArtistsColView_Loaded(object? sender, EventArgs e)
     {
         if (AllArtistsColView.IsLoaded)
         {
-            AllArtistsColView.ScrollTo(AllArtistsColView.SelectedItem, null, ScrollToPosition.Center, false);
+            if (HomePageVM.SelectedArtistOnArtistPage is null)
+            {
+                HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
+            }
+            AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+            AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
         }
     }
     public HomePageVM HomePageVM { get; }
@@ -26,10 +32,10 @@ public partial class ArtistsPageD : ContentPage
     {
         base.OnAppearing();
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
-        AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
         HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
-        AllArtistsColView.ScrollTo(AllArtistsColView.SelectedItem, null, ScrollToPosition.Center, false);
+        AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+        AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
 
     }
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
@@ -69,6 +75,15 @@ public partial class ArtistsPageD : ContentPage
         if (AlbumSongsCV.IsLoaded)
         {
             AlbumSongsCV.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.MakeVisible);
+        }
+    }
+
+    private void AllArtistsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        
+        if (AllAlbumsColView.IsLoaded)
+        {
+            AllAlbumsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, position: ScrollToPosition.Center, animate: false);
         }
     }
 }

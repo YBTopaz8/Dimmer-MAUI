@@ -5,6 +5,14 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : UraniumContentPage
 {
+    public HomePageM()
+    {
+        InitializeComponent();
+    }
+}
+
+
+/*
     NowPlayingBtmSheet btmSheet {  get; set; }
     public HomePageM(HomePageVM homePageVM)
     {
@@ -12,8 +20,8 @@ public partial class HomePageM : UraniumContentPage
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         SongsColView.Loaded += SongsColView_Loaded;
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(btmSheet);
+        //btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        //this.Attachments.Add(btmSheet);
 
         Shell.SetNavBarIsVisible(this, true                                                                                                                                                                                                                    );
         Shell.SetTabBarIsVisible(this, true);
@@ -153,3 +161,4 @@ public partial class HomePageM : UraniumContentPage
         return base.OnBackButtonPressed();
     }
 }
+*/

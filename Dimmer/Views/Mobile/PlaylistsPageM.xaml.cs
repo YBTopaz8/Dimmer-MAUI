@@ -8,8 +8,8 @@ public partial class PlaylistsPageM : UraniumContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(btmSheet);
+        //btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        //this.Attachments.Add(btmSheet);
 
     }
     public HomePageVM HomePageVM { get; }

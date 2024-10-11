@@ -20,7 +20,10 @@
             Shell.TabBarIsVisible="True"
             >
 
-    <uranium:UraniumContentPage.Resources>
+</uranium:UraniumContentPage>
+    
+    <!--
+<uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
@@ -197,4 +200,4 @@
     </uranium:UraniumContentPage.Attachments>
     
     
-</uranium:UraniumContentPage>
+</uranium:UraniumContentPage> -->

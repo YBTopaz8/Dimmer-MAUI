@@ -8,10 +8,15 @@ public partial class MediaPlaybackControlsView : ContentView
 	public MediaPlaybackControlsView()
 	{
 		InitializeComponent();
-		vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-		this.BindingContext = vm;
         //vm.PropertyChanged += OnPropertyChanged;
-	}
+        this.Loaded += MediaPlaybackControlsView_Loaded;
+    }
+
+    private void MediaPlaybackControlsView_Loaded(object? sender, EventArgs e)
+    {
+        vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        BindingContext = vm;
+    }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

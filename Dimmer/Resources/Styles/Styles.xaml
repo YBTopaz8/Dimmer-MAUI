@@ -146,26 +146,6 @@
         <Setter Property="HeightRequest" Value="44"/>
         <Setter Property="BackgroundColor" Value="Transparent"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
-        <Setter Property="VisualStateManager.VisualStateGroups">
-            <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" />
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity" Value="0.5" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="PointerOver">
-
-                        <VisualState.Setters>
-                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                            <!--<Setter Property="sto" Value="DarkSlateBlue"/>-->
-                        </VisualState.Setters>
-                    </VisualState>
-
-                </VisualStateGroup>
-            </VisualStateGroupList>
-        </Setter>
     </Style>
 
     <Style TargetType="Label">

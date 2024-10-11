@@ -28,11 +28,12 @@ public partial class AppShellMobile : Shell
     protected override bool OnBackButtonPressed()
     {
         var currentPage = Current.CurrentPage;
-       
+
         var targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
 
         if (targetPages.Contains(currentPage.GetType()))
         {
+            
             shelltabbar.CurrentItem = homeTab;
             return true;
         }

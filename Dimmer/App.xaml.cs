@@ -18,11 +18,13 @@ public partial class App : Application
     }
 
 
-    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    private async void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 
+        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        await home.ExitingApp();
         LogException(e.Exception);
     }
     public Window win;
