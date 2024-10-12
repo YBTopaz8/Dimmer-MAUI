@@ -20,7 +20,7 @@
             Shell.TabBarIsVisible="True"
             >
 
-    <uranium:UraniumContentPage.Resources>
+<uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
@@ -32,6 +32,8 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
+    
+    
     <toolkit:DockLayout Margin="5,0">
 
         <VerticalStackLayout VerticalOptions="Center" toolkit:DockLayout.DockPosition="Top">
@@ -184,8 +186,8 @@
     <uranium:UraniumContentPage.Attachments>
 
         <material:BottomSheetView x:Name="SettingsBtmSheet">
-            
-            <VerticalStackLayout Margin="0,0" HeightRequest="200" BackgroundColor="Black">
+
+            <VerticalStackLayout Margin="0,0" HeightRequest="200" BackgroundColor="Black" Spacing="10">
                 <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
                 <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
@@ -195,6 +197,6 @@
         </material:BottomSheetView>
 
     </uranium:UraniumContentPage.Attachments>
-    
-    
+
+
 </uranium:UraniumContentPage>

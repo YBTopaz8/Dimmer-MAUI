@@ -19,14 +19,13 @@ public partial class HomeD : UraniumContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
     }
-    private async void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         //var send = (CollectionView)sender;
         //send.BackgroundColor = Color.Parse("Red");
         if (SongsColView.IsLoaded)
         {
-            await Task.Delay(1000);
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Start, animate: false);
         }
 
         //This crashes the app :(
@@ -85,7 +84,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
             SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
         }
     }

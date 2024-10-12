@@ -14,23 +14,6 @@
             Shell.BackgroundColor="#151C1C"
             BackgroundColor="#151C1C"
              x:Name="myPage">
- 
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,Auto">
-             
-            <Label Text="Albums" HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center" FontAttributes="Bold" 
-                   FontSize="20" Grid.Column="0"/>
-             
-            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                          Grid.Column="1">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
-                </ImageButton.Source>
-            </ImageButton>
-             
-        </Grid>
-    </Shell.TitleView>
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -42,8 +25,22 @@
     </ContentPage.Resources>
     
     
-    <Grid ColumnDefinitions="*" RowDefinitions="*"
+    <Grid ColumnDefinitions="*" RowDefinitions="Auto,*"
                 RowSpacing="2">
+        <Grid ColumnDefinitions="*,Auto" Grid.Row="0" HeightRequest="40">
+
+            <Label Text="Albums" HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center" FontAttributes="Bold" 
+           FontSize="20" Grid.Column="0"/>
+
+            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                  Grid.Column="1">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+        </Grid>
         <CollectionView  Grid.Row="1" EmptyView="No Albums..."
                                 VerticalOptions="Start" 
                             ItemsSource="{Binding AllAlbums}">

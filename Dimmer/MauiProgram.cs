@@ -6,7 +6,8 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseSkiaSharp(true)
+           
+            //.UseSkiaSharp(true)
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIBlurs()
@@ -20,12 +21,12 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddMaterialIconFonts();
             });
-        
+
 #if WINDOWS || Debug
 		builder.Logging.AddDebug();
 #endif
 
-#if WINDOWS        
+#if WINDOWS
         builder.ConfigureLifecycleEvents(events =>
         {
             events.AddWindows(wndLifeCycleBuilder =>
@@ -92,9 +93,8 @@ public static class MauiProgram
         //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
-        //builder.Services.AddSingleton<NowPlayingSongPageBtmSheet>();
         builder.Services.AddTransient<NowPlayingBtmSheet>(); //uranium
-        builder.Services.AddTransient<SongMenuBtmSheet>();
+        builder.Services.AddSingleton<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
         builder.Services.AddSingleton<IDataBaseService, DataBaseService>();
@@ -103,14 +103,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlaylistManagementService, PlayListManagementService>();
         builder.Services.AddSingleton<IArtistsManagementService, ArtistsManagementService>();
 
-        /* Registering the Utilities services */
+        ///* Registering the Utilities services */
         builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
 
         /* Registering the ViewModels */
         builder.Services.AddSingleton<HomePageVM>();
-        
-        
+
+
         /* Registering the Desktop Views */
         builder.Services.AddSingleton<HomeD>();
         builder.Services.AddSingleton<NowPlayingD>();

@@ -5,7 +5,8 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : UraniumContentPage
 {
-    NowPlayingBtmSheet btmSheet {  get; set; }
+
+    NowPlayingBtmSheet btmSheet { get; set; }
     public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
@@ -15,10 +16,6 @@ public partial class HomePageM : UraniumContentPage
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         this.Attachments.Add(btmSheet);
 
-        Shell.SetNavBarIsVisible(this, true                                                                                                                                                                                                                    );
-        Shell.SetTabBarIsVisible(this, true);
-
-        SettingsBtmSheet.Header.HeightRequest = 0;
     }
 
     private void SongsColView_Loaded(object? sender, EventArgs e)
@@ -37,20 +34,25 @@ public partial class HomePageM : UraniumContentPage
             SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
         }
 #if ANDROID
-        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
+            PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
+
+            Shell.SetNavBarIsVisible(this, false);
+            Shell.SetTabBarIsVisible(this, true);
+
+            SettingsBtmSheet.Header.HeightRequest = 0;
 #endif
     }
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
-        
+
         //var image = await btmcontrols.CaptureAsync();
         //var savePath = Path.Combine("/storage/emulated/0/Documents", "test.png");
         //using Stream fileStream = File.OpenWrite(savePath);
         //await image.CopyToAsync(fileStream, ScreenshotFormat.Png);
 
     }
-   
-    
+
+
     DateTime lastKeyStroke;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -70,7 +72,7 @@ public partial class HomePageM : UraniumContentPage
                 HomePageVM.SearchSongCommand.Execute(string.Empty);
                 SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
             }
-        }        
+        }
     }
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
@@ -79,7 +81,7 @@ public partial class HomePageM : UraniumContentPage
         {
             HideSearchView_Clicked(sender, e);
         }
-        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position:ScrollToPosition.Center, animate: false);
+        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
 
     //HomePageVM.LoadSongCoverImage();
@@ -115,7 +117,7 @@ public partial class HomePageM : UraniumContentPage
         NormalTitleView.IsVisible = true;
         TitleSearchView.IsVisible = false;
         SearchSongSB.Unfocus();
-         searchSongTextField = SearchSongSB.Content as EntryView;
+        searchSongTextField = SearchSongSB.Content as EntryView;
         _ = await searchSongTextField!.HideKeyboardAsync();
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
@@ -150,6 +152,6 @@ public partial class HomePageM : UraniumContentPage
             btmSheet.IsPresented = false;
             return true;
         }
-        return base.OnBackButtonPressed();
+        return true;
     }
 }

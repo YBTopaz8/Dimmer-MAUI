@@ -40,7 +40,6 @@
     
     <toolkit:DockLayout>
 
-        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
         <Grid toolkit:DockLayout.DockPosition="Top" 
             ColumnDefinitions="*" Margin="10,0" RowSpacing="10"
           RowDefinitions="auto,auto,auto"

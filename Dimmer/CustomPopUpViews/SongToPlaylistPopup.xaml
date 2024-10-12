@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              x:DataType="vm:HomePageVM" 
-             x:Name="myPage" Color="Transparent"
+             x:Name="myPage" Color="Transparent" CanBeDismissedByTappingOutsideOfPopup="False"
              x:Class="Dimmer_MAUI.CustomPopUpViews.SongToPlaylistPopup">
     <mct:Popup.Resources>
         <ResourceDictionary>
@@ -65,6 +65,7 @@
                 </ListView>
                 
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10" VerticalOptions="End">
+                    
                     <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
                  TextColor="Red"/>
                     <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>

@@ -20,7 +20,7 @@
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"/>
             </Tab.Icon>
-            <ShellContent Title="Home"
+            <ShellContent 
    ContentTemplate="{DataTemplate viewsM:HomePageM}"
    Route="HomeM"/>
         </Tab>

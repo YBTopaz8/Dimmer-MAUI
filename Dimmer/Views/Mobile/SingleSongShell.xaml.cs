@@ -4,16 +4,16 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SingleSongShell : UraniumContentPage
 {
-    NowPlayingBtmSheet btmSheet { get; set; }
+    NowPlayingBtmSheet? btmSheet { get; set; }
     public SingleSongShell(HomePageVM homePageVM)
 	{
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
+
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
-        Shell.SetTabBarIsVisible(this, false);
-        Shell.SetNavBarIsVisible(this, false);
+
     }
 
     public HomePageVM HomePageVM { get; }
@@ -29,6 +29,10 @@ public partial class SingleSongShell : UraniumContentPage
         {
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
+
+
+        Shell.SetTabBarIsVisible(this, false);
+        Shell.SetNavBarIsVisible(this, false);
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
@@ -71,11 +75,14 @@ public partial class SingleSongShell : UraniumContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        if (btmSheet.IsPresented)
+        if(btmSheet is not null)
         {
-            btmSheet.IsPresented = false;
-            return true;
-        }
+            if (btmSheet.IsPresented)
+            {
+                btmSheet.IsPresented = false;
+                return true;
+            }
+        }        
         return base.OnBackButtonPressed();
     }
 }

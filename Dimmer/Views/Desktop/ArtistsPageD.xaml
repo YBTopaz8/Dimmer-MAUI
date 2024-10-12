@@ -83,18 +83,22 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <CollectionView toolkit:DockLayout.DockPosition="Left"
-                        ItemsSource="{Binding AllArtists}" x:Name="AllArtistsColView"
-                        EmptyView="No Artists Existing..." SelectionMode="Single" 
-                         SelectedItem="{Binding SelectedArtistOnArtistPage}"
-                        WidthRequest="200" Margin="10,0">
+
+        <CollectionView toolkit:DockLayout.DockPosition="Left" 
+                    x:Name="AllArtistsColView"
+                    EmptyView="No Artists Existing..." SelectionMode="Single" 
+                    SelectionChanged="AllArtistsColView_SelectionChanged"
+                        SelectedItem="{Binding SelectedArtistOnArtistPage}"
+                    WidthRequest="200" Margin="10,0"
+                    ItemsSource="{Binding AllArtists}" >
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" 
-                                   ItemSpacing="4"/>
+                                ItemSpacing="4"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:AlbumModelView">
-                    <Border StrokeShape="RoundRectangle 5">
+                <DataTemplate x:DataType="models:ArtistModelView">
+                    <Border Padding="5,5" Margin="5,5" StrokeShape="RoundRectangle 10"
+                            StrokeThickness="0.4">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
@@ -113,14 +117,40 @@
                         </VisualStateManager.VisualStateGroups>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer 
-                                Tapped="ArtistFromArtistPage_Tapped"/>
+        Tapped="ArtistFromArtistPage_Tapped"/>
                         </Border.GestureRecognizers>
-                        <Label Text="{Binding Name}" Padding="5,5" Margin="5,5"/>
-                            
+                        <Label Text="{Binding Name}"/>
                     </Border>
-                </DataTemplate>
+                    <!--<Border StrokeShape="RoundRectangle 5">
+
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal" />
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateManager.VisualStateGroups>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer 
+                            Tapped="ArtistFromArtistPage_Tapped"/>
+                    </Border.GestureRecognizers>
+                    
+
+                </Border>-->
+            </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+    
 
 
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None" x:Name="AlbumSongsCV"

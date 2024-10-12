@@ -92,7 +92,7 @@
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Border.GestureRecognizers>
 
-                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0" BackgroundColor="Transparent">
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" FontSize="18"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" 

@@ -3,7 +3,6 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
-
 namespace Dimmer_MAUI;
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 
@@ -33,9 +32,9 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
         Window.SetStatusBarColor(Android.Graphics.Color.Black);
         Window.SetNavigationBarColor(Android.Graphics.Color.Black);
-        //Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));
+        ////Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
-        
+
         NotificationHelper.CreateNotificationChannel(Platform.AppContext);
         if (mediaPlayerServiceConnection is null)
         {

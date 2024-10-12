@@ -2,7 +2,7 @@
 
 public partial class App : Application
 {
-    public App(INativeAudioService audioService)
+    public App()
     {
         InitializeComponent();
 
@@ -18,11 +18,13 @@ public partial class App : Application
     }
 
 
-    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    private async void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 
+        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        await home.ExitingApp();
         LogException(e.Exception);
     }
     public Window win;
@@ -33,11 +35,15 @@ public partial class App : Application
         win.MinimumWidth = 1200;
         win.Height = 900;
         win.Width = 1200;
+#if DEBUG
 
-        win.Title = "Dimmer v0.0.5";
+        win.Title = "Dimmer v0.0.5-debug";
+#endif
 
+#if RELEASE
+        win.Title = "Dimmer v0.0.5-release";
+#endif
         return win;
-
     }
 
     private static readonly object _logLock = new object();
@@ -54,8 +60,13 @@ public partial class App : Application
                 Directory.CreateDirectory(directoryPath);
             }
 
+
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
 
+
+#if ANDROID
+            filePath = "/storage/emulated/0/Documents/crashlog.txt";
+#endif
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing
@@ -96,8 +107,9 @@ public partial class App : Application
         base.CloseWindow(window);
     }
 
-    protected async override void OnSleep()
+    protected override void OnStart()
     {
+        base.OnStart();
 
     }
 }

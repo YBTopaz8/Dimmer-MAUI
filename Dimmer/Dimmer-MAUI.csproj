@@ -140,21 +140,17 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
-		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.0-rc2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.91" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.91" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
 		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="Realm" Version="20.0.0" />
-		<PackageReference Include="SkiaSharp" Version="2.88.8" />
-		<PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
 		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
-		<PackageReference Include="UraniumUI" Version="2.10.2" />
-		<PackageReference Include="UraniumUI.Blurs" Version="2.10.2" />
-		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.10.2" />
-		<PackageReference Include="UraniumUI.Material" Version="2.10.2" />
+		<PackageReference Include="UraniumUI" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
 		<PackageReference Include="z440.atl.core" Version="6.5.0" />
 	</ItemGroup>
 
@@ -243,9 +239,6 @@
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\PlaylistMenuBtmSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -273,9 +266,8 @@
 	  <Compile Update="Views\Mobile\TopStatsPageM.xaml.cs">
 	    <DependentUpon>TopStatsPageM.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml.cs">
-	    <DependentUpon>NowPlayingSongPageBtmSheet.xaml</DependentUpon>
-	  </Compile>
 	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionDimmerMAUIHideInfoBar="True" /></VisualStudio></ProjectExtensions>
 
 </Project>

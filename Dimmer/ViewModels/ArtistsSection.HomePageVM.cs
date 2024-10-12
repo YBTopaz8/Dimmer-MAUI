@@ -69,9 +69,9 @@ public partial class HomePageVM
             if (AllArtists.Count > 0)
             {
 #if WINDOWS
-     SelectedArtistOnArtistPage = AllArtists.FirstOrDefault()!;
+     SelectedArtistOnArtistPage =  AllArtists.FirstOrDefault()!;
                 SelectedArtistId = SelectedArtistOnArtistPage.Id;
-                GetAllArtistsAlbum(SelectedArtistId);
+                GetAllArtistsAlbum(SelectedArtistId, TemporarilyPickedSong);
 #elif ANDROID
 
 #endif
@@ -88,7 +88,7 @@ public partial class HomePageVM
         }
         else
         {
-            (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(artistOrSongId);
+            (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
             SelectedArtistOnArtistPage = AllArtists.First(x => x.Id == SelectedArtistId);
         }
 

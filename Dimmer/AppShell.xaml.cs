@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI;
 
 public partial class AppShell : Shell
 {
@@ -34,54 +36,35 @@ public partial class AppShell : Shell
 
     private async void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
-        var properties = e.GetCurrentPoint(nativeElement).Properties;
-
-        //if (properties.IsLeftButtonPressed)
-        //{
-        //    // Handle left-click
-        //    Debug.WriteLine("Left mouse button clicked globally.");
-        //}
-        //else if (properties.IsMiddleButtonPressed)
-        //{
-        //    // Handle middle-click
-        //    Debug.WriteLine("Middle mouse button clicked globally.");
-        //}
-        if (properties.IsXButton1Pressed)
+        try
         {
-            // Handle mouse button 4
-            var currentPage = Current.CurrentPage;
+            var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+            var properties = e.GetCurrentPoint(nativeElement).Properties;
 
-            var targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
 
-            if (targetPages.Contains(currentPage.GetType()))
+            if (properties.IsXButton1Pressed)
             {
-                
-                shelltabbar.CurrentItem = homeTab;
-                //return true;
-            }
+                // Handle mouse button 4
+                var currentPage = Current.CurrentPage;
 
+                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsD) };
 
-            if (currentPage.GetType() != typeof(HomeD))
-            {
-
-                if (currentPage.GetType() == typeof(PlaylistsPageD))
+                if (targetPages.Contains(currentPage.GetType()))
                 {
-                    var homePageInstance = IPlatformApplication.Current.Services.GetService<HomeD>();
 
-
-                    // Clear the existing navigation stack
-                    List<ShellItem>? navigationStack = Current.Items.ToList();
-                    var s = Current.CurrentItem;
-
-                    await Current.GoToAsync(nameof(HomeD));
-
+                    shelltabbar.CurrentItem = homeTab;
                     return;
                 }
-                await Current.GoToAsync("..");
-            }
-        }
 
+                await Current.GoToAsync("..");
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Navigation Exception "+ex.Message);
+        }
 
         //else if (properties.IsXButton2Pressed)
         //{
