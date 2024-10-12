@@ -11,8 +11,8 @@ public partial class TopStatsPageM : UraniumContentPage
         this.BindingContext = homePageVM;
         HomePageVM = homePageVM;
 
-        //btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        //this.Attachments.Add(btmSheet);
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
 
     }
     public HomePageVM HomePageVM { get; }

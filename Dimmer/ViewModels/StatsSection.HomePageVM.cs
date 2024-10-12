@@ -85,8 +85,8 @@ public partial class HomePageVM
     void ShowSingleSongStats(SongsModelView? song)
     {
         IsChartVisible = false;
-        MyPieSeries = null;
-        MyPieSeriesTitle = null;
+        //MyPieSeries = null;
+        //MyPieSeriesTitle = null;
         if (song == null)
         {
             return;
@@ -104,7 +104,7 @@ public partial class HomePageVM
 
 
             MostPlayedDay = mostPlayedDay.Key.ToString();
-            PlotPieSeries(song);
+            //PlotPieSeries(song);
         }
         else
         {
@@ -117,46 +117,46 @@ public partial class HomePageVM
             NumberOfTimesPlayed = SongPickedForStats.DatesPlayed.Count;
         }
         return;
-        PlotLineSeries(song);
+        //PlotLineSeries(song);
     }
     [ObservableProperty]
     ObservableCollection<DateTimeOffset> dialyWalkThrough;
-    private void PlotPieSeries(SongsModelView? song)
-    {
-        IsChartVisible = true;
-        var today = DateTime.Today;
-        var lastWeek = today.AddDays(-6);
-        int[] dayOfWeekCountsArray;
-        List<string> dayNamesList;
-        AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
+    //private void PlotPieSeries(SongsModelView? song)
+    //{
+    //    IsChartVisible = true;
+    //    var today = DateTime.Today;
+    //    var lastWeek = today.AddDays(-6);
+    //    int[] dayOfWeekCountsArray;
+    //    List<string> dayNamesList;
+    //    AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
-        int _index = 0;
+    //    int _index = 0;
 
-        MyPieSeries = dayOfWeekCountsArray.AsPieSeries((value, series) =>
-        {
-            // Get the name of the day
-            var dayName = dayNamesList[_index++];
-            series.Name = dayName;
-            var dayOfWeek = Enum.Parse<DayOfWeek>(dayName);
-            series.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Middle;
-            series.Fill = new SolidColorPaint(GetColorForDay(dayOfWeek));
+    //    MyPieSeries = dayOfWeekCountsArray.AsPieSeries((value, series) =>
+    //    {
+    //        // Get the name of the day
+    //        var dayName = dayNamesList[_index++];
+    //        series.Name = dayName;
+    //        var dayOfWeek = Enum.Parse<DayOfWeek>(dayName);
+    //        series.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Middle;
+    //        series.Fill = new SolidColorPaint(GetColorForDay(dayOfWeek));
 
-            series.DataLabelsSize = 14;
-            series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
-            series.DataLabelsFormatter = point =>
-                series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
-            series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}";
+    //        series.DataLabelsSize = 14;
+    //        series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
+    //        series.DataLabelsFormatter = point =>
+    //            series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
+    //        series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}";
 
-        });
+    //    });
 
-        MyPieSeriesTitle = new LabelVisual
-        {
-            Text = $"From {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
-            TextSize = 15,
-            Padding = new LiveChartsCore.Drawing.Padding(15),
-            Paint = new SolidColorPaint(SKColors.White)
-        };
-    }
+    //    MyPieSeriesTitle = new LabelVisual
+    //    {
+    //        Text = $"From {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
+    //        TextSize = 15,
+    //        Padding = new LiveChartsCore.Drawing.Padding(15),
+    //        Paint = new SolidColorPaint(SKColors.White)
+    //    };
+    //}
 
     private void AllLoadingsBeforePlotting(
     SongsModelView? song,
@@ -206,44 +206,44 @@ public partial class HomePageVM
         AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
         return;
-        var lines = new LineSeries<int>
-        {
-            Values = dayOfWeekCountsArray,
-            YToolTipLabelFormatter = (linePoint) =>
-            {
-                return $"Played {linePoint.Coordinate.PrimaryValue} times";
-            },
-            Stroke = new SolidColorPaint(SKColors.DarkSlateBlue) { StrokeThickness = 2 },
+        //var lines = new LineSeries<int>
+        //{
+        //    Values = dayOfWeekCountsArray,
+        //    YToolTipLabelFormatter = (linePoint) =>
+        //    {
+        //        return $"Played {linePoint.Coordinate.PrimaryValue} times";
+        //    },
+        //    Stroke = new SolidColorPaint(SKColors.DarkSlateBlue) { StrokeThickness = 2 },
 
-            Fill = null
-        };
+        //    Fill = null
+        //};
 
-        MySeries = new ISeries[]
-        {
-        lines
-        };
+        //MySeries = new ISeries[]
+        //{
+        //lines
+        //};
 
-        var orderedDaysOfWeek = new List<DayOfWeek>
-        {
-            DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
-            DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
-        };
+        //var orderedDaysOfWeek = new List<DayOfWeek>
+        //{
+        //    DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
+        //    DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+        //};
 
-        XAxes =
-        [
-        new Axis
-        {
-            Labels = orderedDaysOfWeek.Select(day => day.ToString()).ToArray()
-        }
-        ];
+        //XAxes =
+        //[
+        //new Axis
+        //{
+        //    Labels = orderedDaysOfWeek.Select(day => day.ToString()).ToArray()
+        //}
+        //];
 
-        MyPieSeriesTitle = new LabelVisual
-        {
-            Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
-            TextSize = 25,
-            Padding = new LiveChartsCore.Drawing.Padding(15),
-            Paint = new SolidColorPaint(SKColors.White)
-        };
+        //MyPieSeriesTitle = new LabelVisual
+        //{
+        //    Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
+        //    TextSize = 25,
+        //    Padding = new LiveChartsCore.Drawing.Padding(15),
+        //    Paint = new SolidColorPaint(SKColors.White)
+        //};
     }
 
     [RelayCommand]
@@ -258,51 +258,52 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    ISeries[] mySeries;
-    [ObservableProperty]
-    IEnumerable<ISeries> myPieSeries;
-    [ObservableProperty]
     ObservableCollection<DatePlayCount> songDatePlayCounts;
-    [ObservableProperty]
-    Axis[] xAxes =
-    { new Axis
-        {
-            Name = "Days of the Week",
-            Labels = new string[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
-            MinLimit = 0,  // Start at 0 plays
-        }
-    };
 
-    [ObservableProperty]
-    Axis[] yAxes =
-    {
-        new Axis
-        {
-            CrosshairSnapEnabled = true,
-            Name = "Times Played",
-            //Labeler = value => value.ToString("N"),
-             
-             MinStep = 1,
-             MinLimit = 0,
-            LabelsPaint = new SolidColorPaint(SKColors.White, 3),
-        }
-    };
-    private SKColor GetColorForDay(DayOfWeek dayOfWeek)
-    {
-        return dayOfWeek switch
-        {
-            DayOfWeek.Monday => SKColor.Parse("#AEDFF7"),    // Soft Light Blue
-            DayOfWeek.Tuesday => SKColor.Parse("#A8E6CF"),   // Soft Mint Green
-            DayOfWeek.Wednesday => SKColor.Parse("#D3E4CD"), // Soft Pale Green
-            DayOfWeek.Thursday => SKColor.Parse("#FFD3B6"),  // Soft Peach
-            DayOfWeek.Friday => SKColor.Parse("#FFAAA5"),    // Soft Coral
-            DayOfWeek.Saturday => SKColor.Parse("#FF8B94"),  // Soft Pink
-            DayOfWeek.Sunday => SKColor.Parse("#B5EAD7"),    // Soft Teal
-            _ => SKColors.Gray // Default color
-        };
-    }
-    [ObservableProperty]
-    LabelVisual myPieSeriesTitle;
+    //    [ObservableProperty]
+    //    ISeries[] mySeries;
+    //    [ObservableProperty]
+    //    IEnumerable<ISeries> myPieSeries;
+    //    [ObservableProperty]
+    //    Axis[] xAxes =
+    //    { new Axis
+    //        {
+    //            Name = "Days of the Week",
+    //            Labels = new string[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
+    //            MinLimit = 0,  // Start at 0 plays
+    //        }
+    //    };
+
+    //    [ObservableProperty]
+    //    Axis[] yAxes =
+    //    {
+    //        new Axis
+    //        {
+    //            CrosshairSnapEnabled = true,
+    //            Name = "Times Played",
+    //            //Labeler = value => value.ToString("N"),
+
+    //             MinStep = 1,
+    //             MinLimit = 0,
+    //            LabelsPaint = new SolidColorPaint(SKColors.White, 3),
+    //        }
+    //    };
+    //    private SKColor GetColorForDay(DayOfWeek dayOfWeek)
+    //    {
+    //        return dayOfWeek switch
+    //        {
+    //            DayOfWeek.Monday => SKColor.Parse("#AEDFF7"),    // Soft Light Blue
+    //            DayOfWeek.Tuesday => SKColor.Parse("#A8E6CF"),   // Soft Mint Green
+    //            DayOfWeek.Wednesday => SKColor.Parse("#D3E4CD"), // Soft Pale Green
+    //            DayOfWeek.Thursday => SKColor.Parse("#FFD3B6"),  // Soft Peach
+    //            DayOfWeek.Friday => SKColor.Parse("#FFAAA5"),    // Soft Coral
+    //            DayOfWeek.Saturday => SKColor.Parse("#FF8B94"),  // Soft Pink
+    //            DayOfWeek.Sunday => SKColor.Parse("#B5EAD7"),    // Soft Teal
+    //            _ => SKColors.Gray // Default color
+    //        };
+    //    }
+    //    [ObservableProperty]
+    //    LabelVisual myPieSeriesTitle;
 
 
 }

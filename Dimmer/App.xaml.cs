@@ -2,7 +2,7 @@
 
 public partial class App : Application
 {
-    public App(INativeAudioService audioService)
+    public App()
     {
         InitializeComponent();
 
@@ -56,8 +56,13 @@ public partial class App : Application
                 Directory.CreateDirectory(directoryPath);
             }
 
+
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
 
+
+#if ANDROID
+            filePath = "/storage/emulated/0/Documents/crashlog.txt";
+#endif
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing
@@ -98,8 +103,9 @@ public partial class App : Application
         base.CloseWindow(window);
     }
 
-    protected async override void OnSleep()
+    protected override void OnStart()
     {
+        base.OnStart();
 
     }
 }

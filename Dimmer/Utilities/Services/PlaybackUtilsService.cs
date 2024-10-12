@@ -114,12 +114,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
     private int repeatCountMax;
-    int comCount = 0;
-    private bool isCooldownActive = false; // To prevent rapid re-triggering
 
     private async void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        Debug.WriteLine(ObservableCurrentlyPlayingSong.Title+" !!!Ended so.. "+comCount++);
+        
      
         if (_positionTimer != null)
         {
@@ -129,7 +127,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer = null;
         }
        
-        Debug.WriteLine("Ended in pbutils Serv");
 
         if (CurrentRepeatMode == 2) // Repeat the same song
         {
@@ -667,7 +664,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ViewModel.SetPlayerState(MediaPlayerState.Playing);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
             ViewModel.SetPlayerState(MediaPlayerState.RefreshStats);
-            Debug.WriteLine("call A on return " + callA++);
+            
             return true;
         }
         catch (Exception ex)
@@ -692,8 +689,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 #endif
         }
     }
-    int callA;
-    int callB;
     public async Task<bool> PauseResumeSongAsync(double lastPositionPercentage)
     {
 
@@ -764,7 +759,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     Stack<int> shuffleHistory = new();
     bool IsTrueShuffleEnabled = false;
-    int calltime;
+    
     public async Task<bool> PlayNextSongAsync()
     {
         if (audioService.CurrentPosition <= 30)
@@ -793,7 +788,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return false;
 
         UpdateCurrentSongIndex(currentList, isNext: true);
-        Debug.WriteLine("call times "+calltime);
+        
         return await PlaySongAsync(currentList[_currentSongIndex], CurrentQueue, currentList: currentList, IsFromPreviousOrNext: true);
     }
     public async Task<bool> PlayPreviousSongAsync()
@@ -940,7 +935,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
    
 
-    private async void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
+    private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         bugCount++;
         double currentPositionInSeconds = audioService.CurrentPosition;

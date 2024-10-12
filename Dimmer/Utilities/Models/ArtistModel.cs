@@ -25,9 +25,9 @@
         public ObjectId Id { get; set;}
 
         [ObservableProperty]
-        public string name;
+        string name;
         [ObservableProperty]
-        public string? imagePath;
+        string? imagePath;
 
         public ArtistModelView()
         {

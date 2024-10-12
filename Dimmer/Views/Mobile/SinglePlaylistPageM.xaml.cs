@@ -1,12 +1,15 @@
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class SinglePlaylistPageM : ContentPage
+public partial class SinglePlaylistPageM : UraniumContentPage
 {
-	public SinglePlaylistPageM(HomePageVM playlistsPageVM, HomePageVM homePageVM)
+    NowPlayingBtmSheet btmSheet { get; set; }
+    public SinglePlaylistPageM(HomePageVM playlistsPageVM, HomePageVM homePageVM)
 	{
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = playlistsPageVM;
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
     }
 
     public HomePageVM HomePageVM { get; }

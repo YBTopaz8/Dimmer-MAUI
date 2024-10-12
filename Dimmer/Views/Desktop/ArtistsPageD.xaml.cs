@@ -80,7 +80,7 @@ public partial class ArtistsPageD : ContentPage
 
     private void AllArtistsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        
+
         if (AllAlbumsColView.IsLoaded)
         {
             AllAlbumsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, position: ScrollToPosition.Center, animate: false);
