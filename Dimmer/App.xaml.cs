@@ -35,11 +35,15 @@ public partial class App : Application
         win.MinimumWidth = 1200;
         win.Height = 900;
         win.Width = 1200;
+#if DEBUG
 
-        win.Title = "Dimmer v0.0.5";
+        win.Title = "Dimmer v0.0.5-debug";
+#endif
 
+#if RELEASE
+        win.Title = "Dimmer v0.0.5-release";
+#endif
         return win;
-
     }
 
     private static readonly object _logLock = new object();

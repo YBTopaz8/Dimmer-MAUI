@@ -2,11 +2,15 @@
 
 public partial class SpecificAlbumPage : UraniumContentPage
 {
+    NowPlayingBtmSheet? btmSheet { get; set; }
     public SpecificAlbumPage(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
         HomePageVM = homePageVM;
+
+        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        this.Attachments.Add(btmSheet);
     }
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()

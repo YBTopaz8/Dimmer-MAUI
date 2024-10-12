@@ -239,9 +239,6 @@
 	  <MauiXaml Update="Views\Mobile\HomePageM.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\PlaylistMenuBtmSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -268,9 +265,6 @@
 	  </Compile>
 	  <Compile Update="Views\Mobile\TopStatsPageM.xaml.cs">
 	    <DependentUpon>TopStatsPageM.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\Mobile\NowPlayingSongPageBtmSheet.xaml.cs">
-	    <DependentUpon>NowPlayingSongPageBtmSheet.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
