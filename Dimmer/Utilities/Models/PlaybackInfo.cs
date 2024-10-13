@@ -16,6 +16,6 @@ public enum MediaPlayerState
 }
 public class PlaybackInfo
 {
-    public double TimeElapsed { get; set; } = 0;
-    public double CurrentTimeInSeconds { get; set; } = 0;
+    public double CurrentPercentagePlayed { get; set; }
+    public double CurrentTimeInSeconds { get; set; }
 }

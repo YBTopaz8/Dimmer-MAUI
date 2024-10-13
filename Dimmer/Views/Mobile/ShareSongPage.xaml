@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             x:DataType="vm:HomePageVM" 
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             Shell.NavBarIsVisible="False"
+             x:Name="myPage" >
+    <toolkit:DockLayout HorizontalOptions="Center"
+                        Margin="20" BackgroundColor="Transparent">
+
+   
+        <Button x:Name="ShareButton" Margin="20" TextColor="White"
+            Text="Share to Stories"
+            FontSize="16" WidthRequest="150"
+            toolkit:DockLayout.DockPosition="Bottom"
+            
+            Clicked="OnShareButtonClicked"/>
+
+        <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent"
+                             WidthRequest="300">
+            <Label Text="Dimmer"/>
+            <!-- Album Cover -->
+            <toolkit:AvatarView x:Name="AlbumCover"
+                CornerRadius="20" BorderWidth="0"
+                ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                HeightRequest="300"
+                WidthRequest="300"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Stroke="Black">
+                <toolkit:AvatarView.Shadow>
+                    <Shadow Brush="Black"
+                            Offset="20,30"
+                            Radius="60"
+                            />
+                </toolkit:AvatarView.Shadow>
+            </toolkit:AvatarView>
+
+            <!-- Song Title -->
+            <Label x:Name="SongTitle"
+           FontSize="28"
+           FontAttributes="Bold"
+           Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+           TextColor="White"
+           HorizontalOptions="Center"
+           />
+            <Label Text="by" TextColor="White"
+HorizontalOptions="Center"/>
+            <!-- Artist Name -->
+            <Label x:Name="ArtistName"
+           FontSize="20"
+           TextColor="White"
+           HorizontalOptions="Center"
+           Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
+           VerticalOptions="Start"
+           />
+
+            <ActivityIndicator IsVisible="False" IsRunning="False"
+                               x:Name="SharingActIndic"/>
+        </VerticalStackLayout>
+            
+    </toolkit:DockLayout>
+</ContentPage>

@@ -62,11 +62,7 @@ public partial class App : Application
 
 
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
-
-
-#if ANDROID
-            filePath = "/storage/emulated/0/Documents/crashlog.txt";
-#endif
+            
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing

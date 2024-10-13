@@ -20,8 +20,10 @@ public partial class AppShell : Shell
         this.Loaded += AppShell_Loaded;
 
         this.Unloaded -= AppShell_Loaded;
-#endif
+
         
+#endif
+
     }
 #if WINDOWS
     private void AppShell_Loaded(object? sender, EventArgs e)

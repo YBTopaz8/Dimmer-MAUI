@@ -2,10 +2,13 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class SyncedLyricsView : ContentView
 {
+    HomePageVM vm { get; set; } 
     public string UnSyncLyrics { get; set; }
     public SyncedLyricsView()
     {
         InitializeComponent();
+        vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        this.BindingContext = vm;
     }
 
     public void ScrollToLyric()
@@ -21,7 +24,7 @@ public partial class SyncedLyricsView : ContentView
             {
                 if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
                 {
-                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Start, false);
+                    LyricsColView.ScrollTo(vm.TemporarilyPickedSong, null, ScrollToPosition.Center, true);// LyricsColView.SelectedItem, null, ScrollToPosition.Start, true);
                 }
             }
 

@@ -109,6 +109,9 @@
     <MauiXaml Update="Views\Mobile\CustomViewsM\SongStatView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\Mobile\ShareSongPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Mobile\TopStatsPageM.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -146,6 +146,7 @@
         <Setter Property="HeightRequest" Value="44"/>
         <Setter Property="BackgroundColor" Value="Transparent"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
+        
     </Style>
 
     <Style TargetType="Label">

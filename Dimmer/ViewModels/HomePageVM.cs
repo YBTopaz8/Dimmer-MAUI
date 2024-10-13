@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-
-using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
@@ -18,6 +14,10 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     ObservableCollection<SongsModelView> displayedSongs;
+
+    [ObservableProperty]
+    ObservableCollection<SongsModelView> prevCurrNextSongsCollection;
+
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
     int totalNumberOfSongs;
@@ -136,6 +136,13 @@ public partial class HomePageVM : ObservableObject
                                 //ShowSingleSongStats(PickedSong);
                             }
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
+
+                            PrevCurrNextSongsCollection = 
+    [
+                                    PlayBackService.PreviouslyPlayingSong,
+                                    PlayBackService.CurrentlyPlayingSong,
+                                    PlayBackService.NextPlayingSong,
+                                ];
                             break;
                         case MediaPlayerState.Paused:
                             IsPlaying = false;
@@ -172,8 +179,8 @@ public partial class HomePageVM : ObservableObject
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
-        SongPickedForStats = SelectedSongToOpenBtmSheet;
-        ShowSingleSongStats(SongPickedForStats);
+        SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
+        ShowSingleSongStats(SongPickedForStats.Song);
 
         var currentPage = Shell.Current.CurrentPage;
 
@@ -300,9 +307,8 @@ public partial class HomePageVM : ObservableObject
     }
 
     public async Task PauseResumeSong()
-    {
-        
-        await PlayBackService.PauseResumeSongAsync(CurrentPositionPercentage);
+    {        
+        await PlayBackService.PauseResumeSongAsync(CurrentPositionInSeconds);
     }
 
 
@@ -346,13 +352,13 @@ public partial class HomePageVM : ObservableObject
     {
         if (lryPhrase is not null)
         {
-            var s = lryPhrase.TimeStampMs / 1000;
-            CurrentPositionPercentage = s / TemporarilyPickedSong.DurationInSeconds;
-            PlayBackService.SetSongPosition(CurrentPositionPercentage);
+            
+            CurrentPositionInSeconds = lryPhrase.TimeStampMs * 0.001;
+            PlayBackService.SetSongPosition(CurrentPositionInSeconds);
             return;
         }
         CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
-        PlayBackService.SetSongPosition(CurrentPositionPercentage);
+        PlayBackService.SetSongPosition(CurrentPositionInSeconds);
     }
 
     [RelayCommand]
@@ -452,8 +458,11 @@ public partial class HomePageVM : ObservableObject
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
             TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.Id == lastID);
+
         }
-        
+
+        SongPickedForStats ??= new SingleSongStatistics();
+        SongPickedForStats.Song = TemporarilyPickedSong;
     }
 
     #region Subscriptions to Services
@@ -555,17 +564,21 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.CurrentPosition.Subscribe(async position =>
         {
-            
-            CurrentPositionInSeconds = position.CurrentTimeInSeconds;
-            CurrentPositionPercentage = position.TimeElapsed;
-            if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
+            if (position.CurrentPercentagePlayed != 0)
             {
-                await PauseResumeSong();
-                MainThread.BeginInvokeOnMainThread(async () =>
+                CurrentPositionInSeconds = position.CurrentTimeInSeconds;
+                CurrentPositionPercentage = position.CurrentPercentagePlayed;
+                if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
                 {
-                    await SaveLyricsToLrcAfterSyncing();
-                });
+                    await PauseResumeSong();
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await SaveLyricsToLrcAfterSyncing();
+                    });
+                }
             }
+            
+            
         });
     }
 
@@ -599,7 +612,12 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs?.Clear();
             DisplayedSongs = songs;
             TotalNumberOfSongs = songs.Count;
-
+            PrevCurrNextSongsCollection =
+            [
+                PlayBackService.PreviouslyPlayingSong,
+                PlayBackService.CurrentlyPlayingSong,
+                PlayBackService.NextPlayingSong,
+            ];
             //ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
@@ -866,7 +884,12 @@ public partial class HomePageVM : ObservableObject
             case 1:
                 break;
             case 2:
+                SongPickedForStats ??= new SingleSongStatistics();
+                SongPickedForStats.Song = TemporarilyPickedSong;
+
                 OpenEditableSongsTagsView();
+                CurrentPage = PageEnum.FullStatsPage;
+                ShowSingleSongStats(SelectedSongToOpenBtmSheet);
                 break;
             default:
                 break;
@@ -982,7 +1005,11 @@ public partial class HomePageVM : ObservableObject
 #endif
     }
 
-    
+    [RelayCommand]
+    async Task NavigateToShareStoryPage()
+    {
+        await Shell.Current.GoToAsync(nameof(ShareSongPage));
+    }
 
     [RelayCommand]
     void BringAppToFront()

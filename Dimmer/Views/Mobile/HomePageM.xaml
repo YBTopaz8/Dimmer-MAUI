@@ -189,9 +189,9 @@
 
             <VerticalStackLayout Margin="0,0" HeightRequest="200" BackgroundColor="Black" Spacing="10">
                 <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
-                <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
+                <Button Text="Get Songs From Folders" Command="{Binding LoadSongsFromFoldersCommand}"/>
                 <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-                <ListView ItemsSource="{Binding FolderPaths}"/>
+                
             </VerticalStackLayout>
 
         </material:BottomSheetView>

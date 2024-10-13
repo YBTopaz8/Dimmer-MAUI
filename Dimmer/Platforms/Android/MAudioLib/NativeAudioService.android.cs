@@ -170,16 +170,16 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public async Task<bool> SetCurrentTime(double position)
+    public async Task<bool> SetCurrentTime(double positionInSec)
     {
-        //position = (position) * Duration;
-        var posInMs = (int)(position * CurrentMedia.DurationInMs);
+        var positionInMSec = (int)positionInSec * 1000;
+        
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
             return false;
         }
-        await instance.Binder.GetMediaPlayerService().Seek(posInMs);
+        await instance.Binder.GetMediaPlayerService().Seek(positionInMSec);
         return true;
 
     }

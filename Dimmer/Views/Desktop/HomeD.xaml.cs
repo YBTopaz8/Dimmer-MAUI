@@ -18,20 +18,12 @@ public partial class HomeD : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
-    }
-    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        //var send = (CollectionView)sender;
-        //send.BackgroundColor = Color.Parse("Red");
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Start, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: false);
         }
-
-        //This crashes the app :(
     }
-
-
+  
     DateTime lastKeyStroke;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -82,11 +74,6 @@ public partial class HomeD : UraniumContentPage
     }
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-        if (SongsColView.IsLoaded)
-        {
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
-            SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
-        }
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
@@ -124,5 +111,15 @@ public partial class HomeD : UraniumContentPage
         var send = (Grid)sender;
         var song = send.BindingContext! as SongsModelView;
         HomePageVM.SetContextMenuSong(song);
+    }
+
+    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SongsColView.IsLoaded)
+        {
+            
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
+        }
+
     }
 }

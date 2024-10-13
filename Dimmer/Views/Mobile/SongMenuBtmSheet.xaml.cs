@@ -15,13 +15,7 @@ public partial class SongMenuBtmSheet : BottomSheet
         homePageVM.SelectedSongToOpenBtmSheet = selectedSong!;
         HomePageVM = homePageVM;
     }
-    
-    private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)
-    {
-        FirstPageBtmSheet.IsVisible = false;        
-        CreateNewPlayListPageBtmSheet.IsVisible = false;
-        AddSongToPlayListPageBtmSheet.IsVisible = true;
-    }
+   
     private void ShowPlaylistCreationBtmPage_Clicked(object sender, EventArgs e)
     {
         FirstPageBtmSheet.IsVisible = false;
@@ -43,32 +37,58 @@ public partial class SongMenuBtmSheet : BottomSheet
         AddSongToPlayListPageBtmSheet.IsVisible = true;
     }
 
-    private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
-        await NewPlaylistName.EntryView.HideKeyboardAsync();
-        await this.DismissAsync();
-    }
-
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)
     {
         this.DismissAsync();
     }
 
-    private async void OpenNavPlayingSongPage_Tapped(object sender, TappedEventArgs e)
+    private async void GoToAlbum_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.NavToNowPlayingPageCommand.Execute(null);
-        await this.DismissAsync();
+        await HomePageVM.NavigateToSpecificAlbumPageFromBtmSheet(HomePageVM.SelectedSongToOpenBtmSheet);
+        await this.DismissAsync(true);
     }
 
-    private async void SetPlayRepeat_Tapped(object sender, TappedEventArgs e)
+    private async void GoToArtist_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.NavigateToArtistsPage(HomePageVM.SelectedSongToOpenBtmSheet);
+        await this.DismissAsync(true);
+    }
+
+    private async void SetPlayRepeat_Clicked(object sender, EventArgs e)
     {
         await this.DismissAsync();
         HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
     }
 
-    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private async void ShareSong_Clicked(object sender, EventArgs e)
     {
+        HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
         await this.DismissAsync(true);
+    }
+
+    private void DltSongFromDevice_Clicked(object sender, EventArgs e)
+    {
+        this.DismissAsync(true);
+        HomePageVM.DeleteFileCommand.Execute(null);
+    }
+
+    private async void ExploreSong_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.NavToNowPlayingPageCommand.Execute(null);
+        await this.DismissAsync();
+    }
+
+    private async void AddToPlaylist_Clicked(object sender, EventArgs e)
+    {
+        FirstPageBtmSheet.IsVisible = false;
+        CreateNewPlayListPageBtmSheet.IsVisible = false;
+        AddSongToPlayListPageBtmSheet.IsVisible = true;
+    }
+
+    private async void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        await NewPlaylistName.EntryView.HideKeyboardAsync();
+        await this.DismissAsync();
     }
 }

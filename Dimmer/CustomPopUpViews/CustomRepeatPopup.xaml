@@ -29,7 +29,10 @@
                     </x:Array>
                 </Picker.ItemsSource>
             </Picker>
-            <Button Text="Apply" Clicked="Button_Clicked" HorizontalOptions="Center" />
+            <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
+                <Button Text="Apply" Clicked="ApplyButton_Clicked" />
+                <Button BackgroundColor="#861B2D" Text="Cancel" Clicked="CloseButton_Clicked"/>
+            </HorizontalStackLayout>
         </VerticalStackLayout>
     </Border>
     

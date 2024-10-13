@@ -36,7 +36,7 @@
     <toolkit:DockLayout>
 
 
-        <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
+        <material:TabView TabPlacement="{OnPlatform WinUI=Top, Android=Bottom}" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
                           SelectedTabChanged="TabV_SelectedTabChanged" >
             <material:TabView.GestureRecognizers>
                 <SwipeGestureRecognizer Direction="Left" Swiped="SwipeGestureRecognizer_Swiped"/>

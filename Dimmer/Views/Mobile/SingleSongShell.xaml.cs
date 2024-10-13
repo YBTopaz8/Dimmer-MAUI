@@ -20,8 +20,6 @@ public partial class SingleSongShell : UraniumContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
 
         DeviceDisplay.Current.KeepScreenOn = true;
         TabV.SelectedTab = TabV.Items[0];
@@ -51,9 +49,12 @@ public partial class SingleSongShell : UraniumContentPage
         if (e!= null && e.Title == "Stats")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(2);
+            HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+
         }
-        
-        
+
+
         if (e!= null && e.Title == "Fetch Lyrics")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(2);

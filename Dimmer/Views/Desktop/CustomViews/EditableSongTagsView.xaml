@@ -23,14 +23,14 @@
         <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
         x:Name="StartSyncingBtn" Grid.Row="1"
         Margin="0,10" IsVisible="{Binding TemporarilyPickedSong.HasLyrics, Converter={x:StaticResource BoolToInverse}}"/>
-        
+
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
                              Spacing="10" Margin="10,0" Grid.Row="0">
 
             <!--toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
                                 HeightRequest="150" WidthRequest="150" BorderWidth="0"
                                 CornerRadius="25" />-->
-            
+
             <material:EditorField Title="Title" Text="{Binding TemporarilyPickedSong.Title}"/>
             <material:EditorField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" 
                                 />
@@ -45,7 +45,6 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </VerticalStackLayout>
-        
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" Grid.Row="2"
                         IsVisible="{Binding IsOnLyricsSyncMode}">

@@ -125,6 +125,16 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                 break;
 
             case GestureStatus.Running:
+                // Only allow panning if IsPresented is false
+                if (IsPresented)
+                {
+                    // If the bottom sheet is fully presented, prevent further upward movement
+                    if (e.TotalY < 0) // Prevent upward movement when already presented
+                    {
+                        return;
+                    }
+                }
+
                 if (Math.Abs(e.TotalY) > Math.Abs(e.TotalX) && !isVerticalPan)
                 {
                     isVerticalPan = true; // Mark this as a vertical pan
@@ -135,6 +145,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                     Body.IsVisible = true;
                     var isApple = DeviceInfo.Current.Platform == DevicePlatform.iOS || DeviceInfo.Current.Platform == DevicePlatform.MacCatalyst;
 
+                    // Only update TranslationY if panning is allowed
                     var y = TranslationY + (isApple ? e.TotalY * .05 : e.TotalY);
 
                     this.TranslationY = y;
@@ -143,23 +154,24 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
-                var openThresholdHeight = this.Height * 0.10;  
-                var closeThresholdHeight = this.Height * 0.10; 
+                var openThresholdHeight = this.Height * 0.10;
+                var closeThresholdHeight = this.Height * 0.10;
 
-                if (isVerticalPan) 
+                if (isVerticalPan)
                 {
                     if (IsPresented)
                     {
-                        if (this.TranslationY > closeThresholdHeight) 
+                        if (this.TranslationY > closeThresholdHeight)
                         {
-                            IsPresented = false;                            
+                            IsPresented = false;
                         }
+
                     }
                     else
                     {
-                        
-                        IsPresented = true;  
-                          
+
+                        IsPresented = true;
+
                     }
                 }
 
@@ -168,8 +180,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
     }
 
+
     // Align and switch headers (HeaderWhenClosed)
-   private void AlignBottomSheet(bool animate = true)
+    private void AlignBottomSheet(bool animate = true)
    {
         double y;
         double heightRequest;

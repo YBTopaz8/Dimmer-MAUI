@@ -5,11 +5,12 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-            x:DataType="vm:HomePageVM"
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             x:Name="myPage"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False">
@@ -23,42 +24,20 @@
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
 
             <MenuFlyout x:Key="LyricsContentMenu">
-                <MenuFlyoutItem Text="Show Synced Lyrics" Command="{Binding SwitchViewNowPlayingPageCommand}">
-                    <MenuFlyoutItem.CommandParameter>
-                        <x:Int32>0</x:Int32>
-                    </MenuFlyoutItem.CommandParameter>
-                </MenuFlyoutItem>
-                <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Fetch Lyrics Results" Command="{Binding SwitchViewNowPlayingPageCommand}">
-                    <MenuFlyoutItem.CommandParameter>
-                        <x:Int32>1</x:Int32>
-                    </MenuFlyoutItem.CommandParameter>
-                </MenuFlyoutItem>
-                <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Song Details" Command="{Binding SwitchViewNowPlayingPageCommand}">
-                    <MenuFlyoutItem.CommandParameter>
-                        <x:Int32>2</x:Int32>
-                    </MenuFlyoutItem.CommandParameter>
-                </MenuFlyoutItem>
-                <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Edit Song Details" Command="{Binding SwitchViewNowPlayingPageCommand}">
-                    <MenuFlyoutItem.CommandParameter>
-                        <x:Int32>3</x:Int32>
-                    </MenuFlyoutItem.CommandParameter>
-                </MenuFlyoutItem>
+              
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
-                <MenuFlyoutItem Text="Show Stats"/>
+                
             </MenuFlyout>
 
 
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout x:Name="dockPan">
-
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
+
         <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
               x:Name="NowPlayingGrid">
             <Grid.Effects>
@@ -82,19 +61,65 @@
                     </Image>
 
                 </VerticalStackLayout>
-           
-                <cw:SyncedLyricsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}" x:Name="SyncLyrView"
-                                        />
-                <cw:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" 
-                    />
-                <cw:SongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}"
-                    />
-                <cw:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=3}"
-                    x:Name="EditableSongsTagsV" />
 
-                
+                <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" 
+                   SelectedTabChanged="TabV_SelectedTabChanged" >
+                    <!--<material:TabView.GestureRecognizers>
+                <SwipeGestureRecognizer Direction="Left" Swiped="SwipeGestureRecognizer_Swiped"/>
+            </material:TabView.GestureRecognizers>-->
+                    <material:TabView.TabHeaderItemTemplate>
+                        <DataTemplate>
+                            <Button Margin="2,0" Text="{Binding Title}" Command="{Binding Command}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                        <Setter Property="TextColor" Value="White" />
+
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#111111" />
+                                        <Setter Property="TextColor" Value="Gray" />
+
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </DataTemplate>
+                    </material:TabView.TabHeaderItemTemplate>
+                    <material:TabItem Title="Lyrics" x:Name="Lyr">
+                        <material:TabItem.ContentTemplate>
+                            <DataTemplate>
+                                <cw:SyncedLyricsView />
+                            </DataTemplate>
+                        </material:TabItem.ContentTemplate>
+                    </material:TabItem>
+
+
+                    <material:TabItem Title="Edit Tags">
+                        <material:TabItem.ContentTemplate>
+                            <DataTemplate>
+                                <cw:EditableSongTagsView />
+                            </DataTemplate>
+                        </material:TabItem.ContentTemplate>
+                    </material:TabItem>
+
+                    <material:TabItem Title="Stats">
+                        <material:TabItem.ContentTemplate>
+                            <DataTemplate>
+                                <cv:SongStatView/>
+                            </DataTemplate>
+                        </material:TabItem.ContentTemplate>
+                    </material:TabItem>
+
+                    <material:TabItem Title="Fetch Lyrics">
+                        <material:TabItem.ContentTemplate>
+                            <DataTemplate>
+                                <cw:FetchLyricsResultsView />
+                            </DataTemplate>
+                        </material:TabItem.ContentTemplate>
+                    </material:TabItem>
+                </material:TabView>
+            
             </toolkit:DockLayout>
-
         </Grid>
 
     </toolkit:DockLayout>

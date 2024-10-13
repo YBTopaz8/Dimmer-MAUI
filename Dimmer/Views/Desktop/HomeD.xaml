@@ -132,6 +132,7 @@
                                 <MenuFlyoutItem Text="Set Play Repeat Count" 
                                                  Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
                                 </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Text="View File Explorer" 
                                                 Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
@@ -139,16 +140,24 @@
                                                              Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Remove from Device"
+                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
+                                                             Key="Delete"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+
                                 <MenuFlyoutSeparator />
 
-                                <MenuFlyoutItem Text="Edit">
+                                <MenuFlyoutItem Text="Edit*">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl" 
                                                              Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
-                                <MenuFlyoutItem Text="Information">
+                                <MenuFlyoutItem Text="Information*">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl" 
                                                              Key="I"/>
@@ -157,22 +166,13 @@
                                 
                                 <MenuFlyoutSeparator/>
                                 
-                                <MenuFlyoutItem Text="Remove">
+                                <!--<MenuFlyoutItem Text="Remove">
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="None" 
                                                              Key="Delete"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
+                                </MenuFlyoutItem>-->
                                 
-                                <MenuFlyoutItem Text="Remove from Device"
-                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                                                             Key="Delete"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
-                                
-                                <MenuFlyoutSeparator/>
                                 
                                 <MenuFlyoutSubItem Text="Artist">
                                     <MenuFlyoutItem Text="Show Artist Songs" x:Name="ShowArtistSongs"

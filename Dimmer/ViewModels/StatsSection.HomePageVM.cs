@@ -74,7 +74,7 @@ public partial class HomePageVM
     };
 
     [ObservableProperty]
-    SongsModelView songPickedForStats;
+    SingleSongStatistics songPickedForStats;
     [ObservableProperty]
     int numberOfTimesPlayed;
     [ObservableProperty]
@@ -92,7 +92,8 @@ public partial class HomePageVM
             return;
         }
 
-        SongPickedForStats = song;
+        SongPickedForStats ??= new SingleSongStatistics();
+        SongPickedForStats.Song = song;
         
         if (song.DatesPlayed != null && song.DatesPlayed.Count > 0)
         {
@@ -112,9 +113,9 @@ public partial class HomePageVM
 
             MostPlayedDay = "Never Played Yet";
         }
-        if (SongPickedForStats.DatesPlayed is not null)
+        if (SongPickedForStats.Song.DatesPlayed is not null)
         {
-            NumberOfTimesPlayed = SongPickedForStats.DatesPlayed.Count;
+            NumberOfTimesPlayed = SongPickedForStats.Song.DatesPlayed.Count;
         }
         return;
         //PlotLineSeries(song);
@@ -249,7 +250,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task NavigateToSingleSongStatsPage(SongsModelView song)
     {
-        SongPickedForStats = song;
+        SongPickedForStats.Song = song;
 #if ANDROID
         //await Shell.Current.GoToAsync(nameof(SingleSongStatsPageM));
 #elif WINDOWS
@@ -308,13 +309,17 @@ public partial class HomePageVM
 
 }
 
-public class SingleSongStatistics
+public partial class SingleSongStatistics: ObservableObject
 {
-    public SongsModelView Song { get; set; }
-    public int PlayCount { get; set; }
+    [ObservableProperty]
+    SongsModelView? song;
+    [ObservableProperty]
+    int playCount;
 }
-public class DatePlayCount
+public partial class DatePlayCount: ObservableObject
 {
-    public string DatePlayed { get; set; }
-    public int Count { get; set; }
+    [ObservableProperty]
+    string? datePlayed;
+    [ObservableProperty]
+    int count;
 }

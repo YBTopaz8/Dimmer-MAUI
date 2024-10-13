@@ -70,6 +70,7 @@
     </containerr:NowPlayingBtmSheetContainer.HeaderWhenClosed>
 
     <toolkit:DockLayout>
+        
         <Grid Padding="10,0" toolkit:DockLayout.DockPosition="Bottom" 
               RowSpacing="10">
             <VerticalStackLayout Spacing="25" VerticalOptions="End"
@@ -96,6 +97,7 @@
                 <VerticalStackLayout>
                     <VerticalStackLayout.GestureRecognizers>
                         <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
+                        
                     </VerticalStackLayout.GestureRecognizers>
                     <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
                            FontAttributes="Bold" FontSize="20"/>
@@ -219,11 +221,21 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <ImageButton>
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
+                        <cm:ContextMenuContainer>
+                            <cm:ContextMenuContainer.MenuItems >
+                                <cm:ContextMenuItem Text="Share" Command="{Binding NavigateToShareStoryPageCommand}"/>
+                                <cm:ContextMenuItem Text="Delete"/>
+                            </cm:ContextMenuContainer.MenuItems>
+
+                            <cm:ContextMenuContainer.Content>
+                                <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+
+                            </cm:ContextMenuContainer.Content>
+                        </cm:ContextMenuContainer>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
@@ -233,14 +245,15 @@
 
         <Border StrokeShape="RoundRectangle 18" 
          StrokeThickness="0" x:Name="lyricsCover">
-            <Grid x:Name="TopGrid">
-                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                                    HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
-                                    WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"
-                                    Opacity="0.45" Padding="10,60" BorderColor="Transparent"
-                                    CornerRadius="50"/>
-
-                <!--Synced lyics Col View-->
+            <Border.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"/>
+            </Border.GestureRecognizers>
+            <Grid x:Name="TopGrid" Margin="10">
+                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" BorderWidth="0" 
+                                CornerRadius="20" HeightRequest="{Binding Height, Source={x:Reference TopGrid}}" 
+                                WidthRequest="{Binding Width, Source={x:Reference TopGrid}}" 
+                                Opacity="0.5" x:Name="currentSongAvatarView">
+                </toolkit:AvatarView>
 
                 <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center" 
                 HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>

@@ -15,7 +15,8 @@ public static class PlatSpecificUtils
         {
             if (File.Exists(song.FilePath))
             {
-                bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
+                bool result = await Shell.Current.DisplayAlert("Delete Song", $"Are you sure you want to Delete " +
+                    $"{song.Title} by {song.ArtistName} from your Device?", "Yes", "No");
                 if (result is true)
                 {
                     FileSystem.DeleteFile(song.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);

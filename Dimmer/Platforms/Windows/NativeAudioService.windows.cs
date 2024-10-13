@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
+using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -78,6 +77,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public Task PlayAsync( bool IsFromPreviousOrNext = false)
     {
         double position = 0;
+        
         if (CurrentMedia.SongId != ViewModel.TemporarilyPickedSong.Id)
         {
             position = 0;
@@ -99,14 +99,14 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public Task<bool> SetCurrentTime(double value)
+    public Task<bool> SetCurrentTime(double positionInSec)
     {
-        value = value * Duration;
+        
         if (mediaPlayer == null)
         {
             return Task.FromResult(false);
         }
-        mediaPlayer.Position = TimeSpan.FromSeconds(value);
+        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
         return Task.FromResult(true);
     }
     public Task DisposeAsync()
