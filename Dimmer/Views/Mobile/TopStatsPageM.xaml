@@ -27,13 +27,13 @@
                 
                     <FlexLayout JustifyContent="SpaceBetween" HeightRequest="150">
                         <VerticalStackLayout>
-                            <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="18"/>
-                        <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="18"/>
+                            <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="18"/>
+                        <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="18"/>
                         <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="18"/>
                         <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="18"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout>
-                            <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}" 
+                        <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
                                                 HeightRequest="110" WidthRequest="110" 
                                                 Text="S" BorderWidth="0" CornerRadius="12"/>
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" 

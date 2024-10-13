@@ -24,6 +24,11 @@ public partial class HomePageVM
     [ObservableProperty]
     ArtistModelView selectedArtistOnArtistPage;
 
+    public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongsModelView song)
+    {
+        (var songsArtistId, var songsAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
+        await NavigateToSpecificAlbumPage(songsAlbumId);
+    }
     [RelayCommand]
     async Task NavigateToSpecificAlbumPage(ObjectId selectedAlbumId)
     {

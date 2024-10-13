@@ -9,7 +9,6 @@
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"
              >
@@ -77,30 +76,30 @@
                     StrokeShape="RoundRectangle 15">
             <VerticalStackLayout Spacing="5">
 
-                    <FlexLayout JustifyContent="SpaceBetween" >
+                <FlexLayout JustifyContent="SpaceBetween" >
 
-                        <VerticalStackLayout VerticalOptions="Center">
-                            <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="20"/>
-                            <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
-                            <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="20"/>
-                            <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="20"/>
-                        </VerticalStackLayout>
-                        <VerticalStackLayout>
-                            <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.CoverImagePath}"
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="20"/>
+                        <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="20"/>
+                        <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="20"/>
+                        <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="20"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout>
+                        <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}"
                             HeightRequest="190"
                             WidthRequest="190" CornerRadius="10"
                             Text="S" BorderWidth="0"/>
                         <ImageButton WidthRequest="25" HeightRequest="25"
-             Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding SongPickedForStats}">
+             Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding SongPickedForStats.Song}">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Bar_chart}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>
-                    </FlexLayout>
+                </FlexLayout>
 
 
-                <CollectionView ItemsSource="{Binding SongPickedForStats.DatesPlayed}" WidthRequest="400" 
+                <CollectionView ItemsSource="{Binding SongPickedForStats.Song.DatesPlayed}" WidthRequest="400" 
                                 HorizontalOptions="Center" HeightRequest="400"
                                 SelectionMode="Single" IsVisible="True">
                     <CollectionView.Header>
@@ -115,21 +114,16 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:DatePlayCount">
-                            <FlexLayout JustifyContent="SpaceBetween" Padding="10" Margin="10">
+                            <FlexLayout JustifyContent="SpaceBetween" Padding="10" Margin="10" >
                                 <Label Text="{Binding ., Converter={StaticResource DateTimeOffsetConverter}}"/>
-                                
+
                             </FlexLayout>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
 
-                <!--<lvc:PieChart HeightRequest="450" Series="{Binding MyPieSeries}" 
-                              WidthRequest="700" IsVisible="True"
-                    Title="{Binding MyPieSeriesTitle}">
-                </lvc:PieChart>-->
             </VerticalStackLayout>
-                
-        </Border>
 
+        </Border>
     </toolkit:DockLayout>
 </ContentPage>

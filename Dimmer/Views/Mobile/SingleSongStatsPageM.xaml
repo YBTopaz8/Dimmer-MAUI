@@ -10,7 +10,7 @@
              xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             x:DataType="vm:HomePageVM"
              x:Name="myPage"
-             Title="{Binding SongPickedForStats.Title}">
+             Title="{Binding SongPickedForStats.Song.Title}">
     <toolkit:DockLayout BackgroundColor="#171919" Margin="5,0">
 
         <CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
@@ -32,11 +32,11 @@
                             </DataTemplate>
                         </cards:CoverFlowView.ItemTemplate>
                 </cards:CoverFlowView>-->
-                    <Label Text="{Binding SongPickedForStats.Title, StringFormat='Title: {0}'}" FontSize="16"/>
-                    <Label Text="{Binding SongPickedForStats.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
-                    <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
-                    <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
-                </VerticalStackLayout>            
+                <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"/>
+                <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
+                <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
+                <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
+            </VerticalStackLayout>
         </Border>
         
         
