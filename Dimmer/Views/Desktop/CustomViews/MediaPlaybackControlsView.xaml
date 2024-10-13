@@ -18,26 +18,49 @@
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+            <Style TargetType="Border">
+                <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
+                <Setter Property="HeightRequest" Value="50"/>
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup Name="CommonStates">
+                            <VisualState Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout  HeightRequest="130">
+    <VerticalStackLayout  HeightRequest="130" BackgroundColor="Transparent">
         <!--<VerticalStackLayout.Effects>
             <uranium:BlurEffect AccentOpacity="0.1" AccentColor="DarkSlateBlue"/>
         </VerticalStackLayout.Effects>-->
-        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+        <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}"
                 MinimumTrackColor="DarkSlateBlue" x:Name="slid"
                 DragCompleted="Slider_DragCompleted" Margin="3,0">
-            
+
         </Slider>
-        
-        <Grid ColumnSpacing="25">
+
+        <Grid ColumnSpacing="25" BackgroundColor="Transparent">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="230"/>
             </Grid.ColumnDefinitions>
-            <HorizontalStackLayout Grid.Column="0" Spacing="5" >
+            <HorizontalStackLayout Grid.Column="0" Spacing="5" BackgroundColor="Transparent">
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}"/>
                 </HorizontalStackLayout.GestureRecognizers>
@@ -63,57 +86,66 @@
                 </ImageButton>-->
             </HorizontalStackLayout>
 
-            <HorizontalStackLayout Spacing="15" Grid.Column="1" 
+            <HorizontalStackLayout Spacing="15" Grid.Column="1" BackgroundColor="Transparent"
                                HorizontalOptions="Center">
-                
-                <ImageButton Command="{Binding ToggleRepeatModeCommand}">
-                    <ImageButton.CommandParameter>
-                        <x:Boolean>True</x:Boolean>
-                    </ImageButton.CommandParameter>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                <Border>
+                    <ImageButton Command="{Binding ToggleRepeatModeCommand}">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
 
-                <ImageButton Command="{Binding PlayPreviousSongCommand}"
-                ToolTipProperties.Text="Play Previous">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                <Border >
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}"
+                    ToolTipProperties.Text="Play Previous">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                </Border>
 
                 <cw:PlayPauseView x:Name="PlayPauseV" />
 
-                <ImageButton Command="{Binding PlayNextSongCommand}">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-                
-                <ImageButton Command="{Binding ToggleShuffleStateCommand}">
-                    <ImageButton.CommandParameter>
-                        <x:Boolean>True</x:Boolean>
-                    </ImageButton.CommandParameter>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                <Border>
+                    <ImageButton Command="{Binding PlayNextSongCommand}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
 
+                <Border>
+                    <ImageButton Command="{Binding ToggleShuffleStateCommand}">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
             </HorizontalStackLayout>
 
-            <VerticalStackLayout Grid.Column="2" Margin="10,0">
-                <HorizontalStackLayout HorizontalOptions="End" Spacing="2">
+            <VerticalStackLayout Grid.Column="2" Margin="10,0" BackgroundColor="Transparent">
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="2" BackgroundColor="Transparent">
                     <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
                     <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
                        Opacity="0.6"/>
                 </HorizontalStackLayout>
 
-                <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
-                             HorizontalOptions="End">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Nights_stay}"/>
-                    </ImageButton.Source> 
-                </ImageButton>
+                <Border WidthRequest="45" HorizontalOptions="End" BackgroundColor="Transparent">
+                    <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
+                                 HorizontalOptions="End">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
             </VerticalStackLayout>
         </Grid>
     </VerticalStackLayout>

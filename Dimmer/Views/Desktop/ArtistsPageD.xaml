@@ -97,8 +97,8 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
-                    <Border Padding="5,5" Margin="5,5" StrokeShape="RoundRectangle 10"
-                            StrokeThickness="0.4">
+                    <Border Padding="15,5" Margin="5,5" StrokeShape="RoundRectangle 20"
+                            StrokeThickness="0.4" HorizontalOptions="Center">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
