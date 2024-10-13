@@ -1,9 +1,4 @@
 ﻿using Microsoft.VisualBasic.FileIO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
@@ -15,7 +10,8 @@ public static class PlatSpecificUtils
         {
             if (File.Exists(song.FilePath))
             {
-                bool result = await Shell.Current.DisplayAlert("Delete File", "Are you sure you want to delete this file?", "Yes", "No");
+                bool result = await Shell.Current.DisplayAlert("Delete Song", $"Are you sure you want to Delete " +
+                                   $"{song.Title} by {song.ArtistName} from your Device?", "Yes", "No");
                 if (result is true)
                 {
                     FileSystem.DeleteFile(song.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);

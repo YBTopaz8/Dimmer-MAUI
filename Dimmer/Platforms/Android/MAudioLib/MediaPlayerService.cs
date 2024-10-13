@@ -5,12 +5,10 @@ using Android.Net;
 using Android.Net.Wifi;
 using Android.OS;
 using Android.Media.Session;
-using AndroidNet = Android.Net;
 using Android.Graphics;
 using Activity = Android.App.Activity;
 using Application = Android.App.Application;
 using Android.Content.PM;
-using System.Diagnostics;
 using Uri = Android.Net.Uri;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;

@@ -1,9 +1,6 @@
-﻿using Stream = Android.Media.Stream;
-using Android.Media;
+﻿using Android.Media;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
-using System.Diagnostics;
 using System.ComponentModel;
-using static Android.Icu.Text.Transliterator;
 using Java.Lang;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;

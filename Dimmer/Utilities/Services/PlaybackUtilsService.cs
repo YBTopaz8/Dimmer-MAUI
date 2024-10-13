@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI.Utilities.Services;
+﻿namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 

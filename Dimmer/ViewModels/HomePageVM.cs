@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-
-using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]

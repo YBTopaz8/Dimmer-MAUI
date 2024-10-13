@@ -1,7 +1,4 @@
 using Dimmer_MAUI.Views.Mobile.CustomViewsM;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using UraniumUI.Material.Attachments;
 
 namespace Dimmer_MAUI.Views.Mobile;
 

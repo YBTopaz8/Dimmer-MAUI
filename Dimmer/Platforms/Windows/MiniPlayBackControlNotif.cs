@@ -41,7 +41,7 @@ public static class MiniPlayBackControlNotif
     public static void BringAppToFront()
     {
         //var mainWindow = Application.Current?.Windows[]FirstOrDefault(window => window.Page is AppShell);
-        var mainWindow = Application.Current!.Windows[0]! as Window;
+        var mainWindow = Application.Current!.Windows[0]!;
         if (mainWindow.Handler is not null)
         {
             var pv = mainWindow.Handler.PlatformView;

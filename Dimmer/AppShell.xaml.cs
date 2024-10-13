@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 
 public partial class AppShell : Shell
 {
