@@ -133,6 +133,9 @@
     <MauiXaml Update="Views\Mobile\SongMenuBtmSheet.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\ShareSongPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
   </ItemGroup>
   <ItemGroup>
     <None Update="App.xaml">

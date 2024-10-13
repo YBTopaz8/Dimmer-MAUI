@@ -10,7 +10,7 @@
             x:Name="myPage" 
             Color="Transparent"
              x:Class="Dimmer_MAUI.CustomPopUpViews.SleepTimerSelectionPopup">
-    <Border WidthRequest="300" BackgroundColor="Black"
+    <Border WidthRequest="350" BackgroundColor="Black"
             HeightRequest="160" 
             Stroke="Transparent"
             StrokeShape="RoundRectangle 10">

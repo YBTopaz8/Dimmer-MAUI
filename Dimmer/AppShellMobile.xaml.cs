@@ -1,4 +1,6 @@
 
+
+
 namespace Dimmer_MAUI;
 
 public partial class AppShellMobile : Shell
@@ -17,6 +19,8 @@ public partial class AppShellMobile : Shell
         Routing.RegisterRoute(nameof(ArtistsPageM), typeof(ArtistsPageM));
         Routing.RegisterRoute(nameof(SpecificAlbumPage), typeof(SpecificAlbumPage));
         Routing.RegisterRoute(nameof(AlbumPageM), typeof(AlbumPageM));
+        Routing.RegisterRoute(nameof(ShareSongPage), typeof(ShareSongPage));
+
         //this.Navigating += OnNavigating;
     }
 

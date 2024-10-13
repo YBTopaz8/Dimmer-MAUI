@@ -6,8 +6,6 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-           
-            //.UseSkiaSharp(true)
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIBlurs()
@@ -131,6 +129,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<AlbumsM>();
         builder.Services.AddSingleton<SpecificAlbumPage>();
         builder.Services.AddSingleton<AlbumPageM>();
+        builder.Services.AddSingleton<ShareSongPage>();
 
         return builder.Build();
     }

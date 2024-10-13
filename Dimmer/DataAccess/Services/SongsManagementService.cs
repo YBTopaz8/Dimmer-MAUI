@@ -89,8 +89,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     int count = 0;
     public bool UpdateSongDetails(SongsModelView songsModelView)
     {
-        Debug.WriteLine("I was called "+ count++ +" times");
-        return true;
         try
         {
             MainThread.BeginInvokeOnMainThread(() =>

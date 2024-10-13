@@ -11,13 +11,18 @@ public partial class CustomRepeatPopup : Popup
 		labelForSong.Text = "Set Repeat Count for " + song.Title;
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
+    
+    private void ApplyButton_Clicked(object sender, EventArgs e)
     {
-		this.CloseAsync(RepeatPicker.SelectedIndex);
+        this.CloseAsync(RepeatPicker.SelectedIndex);
     }
 
     protected override Task OnClosed(object? result, bool wasDismissedByTappingOutsideOfPopup, CancellationToken token = default)
     {
         return base.OnClosed(result, wasDismissedByTappingOutsideOfPopup, token);
+    }
+    private void CloseButton_Clicked(object sender, EventArgs e)
+    {
+        this.CloseAsync(0);
     }
 }
