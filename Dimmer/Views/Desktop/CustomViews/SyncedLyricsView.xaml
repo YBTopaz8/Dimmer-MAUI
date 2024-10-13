@@ -35,11 +35,14 @@
                     <Border Stroke="Transparent" Margin="5,0" >
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal"/>                                       
-
-                                <VisualState Name="Selected">
+                                <VisualState Name="Normal">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="Transparent"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="#99483D8B"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>

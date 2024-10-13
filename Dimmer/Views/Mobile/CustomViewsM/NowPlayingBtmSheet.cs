@@ -9,9 +9,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
     public AttachmentPosition AttachmentPosition => AttachmentPosition.Front;
 
     public View Body { get; set; }
-    
+
     public View? HeaderWhenClosed { get; set; }
-    
+
 
     private TapGestureRecognizer closeGestureRecognizer = new();
     public void OnAttached(UraniumContentPage page)
@@ -55,9 +55,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         var tapGestureRecognizer = new TapGestureRecognizer();
         tapGestureRecognizer.Tapped += HeaderWhenClosedTapGestureRecognizer_Tapped; //(s, e) => IsPresented = !IsPresented;
         HeaderWhenClosed.GestureRecognizers.Add(tapGestureRecognizer);
-        
+
         closeGestureRecognizer.Tapped += (s, e) => IsPresented = false; // Removed tap-to-close on the border
-        
+
     }
 
 
@@ -125,6 +125,16 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                 break;
 
             case GestureStatus.Running:
+                // Only allow panning if IsPresented is false
+                if (IsPresented)
+                {
+                    // If the bottom sheet is fully presented, prevent further upward movement
+                    if (e.TotalY < 0) // Prevent upward movement when already presented
+                    {
+                        return;
+                    }
+                }
+
                 if (Math.Abs(e.TotalY) > Math.Abs(e.TotalX) && !isVerticalPan)
                 {
                     isVerticalPan = true; // Mark this as a vertical pan
@@ -135,6 +145,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                     Body.IsVisible = true;
                     var isApple = DeviceInfo.Current.Platform == DevicePlatform.iOS || DeviceInfo.Current.Platform == DevicePlatform.MacCatalyst;
 
+                    // Only update TranslationY if panning is allowed
                     var y = TranslationY + (isApple ? e.TotalY * .05 : e.TotalY);
 
                     this.TranslationY = y;
@@ -143,23 +154,24 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
-                var openThresholdHeight = this.Height * 0.10;  
-                var closeThresholdHeight = this.Height * 0.10; 
+                var openThresholdHeight = this.Height * 0.10;
+                var closeThresholdHeight = this.Height * 0.10;
 
-                if (isVerticalPan) 
+                if (isVerticalPan)
                 {
                     if (IsPresented)
                     {
-                        if (this.TranslationY > closeThresholdHeight) 
+                        if (this.TranslationY > closeThresholdHeight)
                         {
-                            IsPresented = false;                            
+                            IsPresented = false;
                         }
+
                     }
                     else
                     {
-                        
-                        IsPresented = true;  
-                          
+
+                        IsPresented = true;
+
                     }
                 }
 
@@ -168,9 +180,10 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
     }
 
+
     // Align and switch headers (HeaderWhenClosed)
-   private void AlignBottomSheet(bool animate = true)
-   {
+    private void AlignBottomSheet(bool animate = true)
+    {
         double y;
         double heightRequest;
 
@@ -193,7 +206,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
             this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
         }
         UpdateDisabledStateOfPage();
-   }
+    }
 
     // Disabling the rest of the page if needed
     protected void UpdateDisabledStateOfPage()
@@ -212,9 +225,11 @@ public partial class NowPlayingBtmSheetContainer
 {
     // Event to notify when IsPresented has changed
     public event EventHandler<bool> IsPresentedChanged;
-    public bool IsPresented {
+    public bool IsPresented
+    {
         get => (bool)GetValue(IsPresentedProperty);
-        set {
+        set
+        {
             SetValue(IsPresentedProperty, value);
             OnIsPresentedChanged(value);
         }
@@ -229,10 +244,10 @@ public partial class NowPlayingBtmSheetContainer
 
     public static readonly BindableProperty IsPresentedProperty =
         BindableProperty.Create(
-            nameof(IsPresented), 
-            typeof(bool), 
-            typeof(NowPlayingBtmSheetContainer), 
-            defaultValue: false, 
+            nameof(IsPresented),
+            typeof(bool),
+            typeof(NowPlayingBtmSheetContainer),
+            defaultValue: false,
             defaultBindingMode: BindingMode.TwoWay,
             propertyChanged: (bo, ov, nv) =>
             {

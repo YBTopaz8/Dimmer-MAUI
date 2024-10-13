@@ -47,7 +47,7 @@
         <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
                    x:Name="SearchSongSB">
-            
+
         </SearchBar>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
@@ -55,22 +55,22 @@
                 <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
-            <HorizontalStackLayout Spacing="10">
-                <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
-                    
-                <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
-                    </ImageButton.Source>                        
-                </ImageButton>
-                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
+                <HorizontalStackLayout Spacing="10">
+                    <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
+
+                    <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
                              Grid.Column="1">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-            </HorizontalStackLayout>
-                
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>
+
             </FlexLayout>
         </VerticalStackLayout>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0" Spacing="5"
@@ -82,9 +82,9 @@
             <Button Text="Click here to Select folder to scan (You can do so multiple times for multiple folders)" Command="{Binding SelectSongFromFolderCommand}"/>
             <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-            
+
         </VerticalStackLayout>
-        
+
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200" />
@@ -132,6 +132,7 @@
                                 <MenuFlyoutItem Text="Set Play Repeat Count" 
                                                  Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
                                 </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Text="View File Explorer" 
                                                 Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
@@ -139,31 +140,6 @@
                                                              Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutSeparator />
-
-                                <MenuFlyoutItem Text="Edit">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl" 
-                                                             Key="E"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
-
-                                <MenuFlyoutItem Text="Information">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl" 
-                                                             Key="I"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
-                                
-                                <MenuFlyoutSeparator/>
-                                
-                                <MenuFlyoutItem Text="Remove">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="None" 
-                                                             Key="Delete"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>
-                                
                                 <MenuFlyoutItem Text="Remove from Device"
                                                 Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
                                     <MenuFlyoutItem.KeyboardAccelerators>
@@ -171,16 +147,40 @@
                                                              Key="Delete"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
-                                
+
+                                <MenuFlyoutSeparator />
+
+                                <MenuFlyoutItem Text="Edit*">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl" 
+                                                             Key="E"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+
+                                <MenuFlyoutItem Text="Information*">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Ctrl" 
+                                                             Key="I"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>
+
                                 <MenuFlyoutSeparator/>
-                                
+
+                                <!--<MenuFlyoutItem Text="Remove">
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="None" 
+                                                             Key="Delete"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
+                                </MenuFlyoutItem>-->
+
+
                                 <MenuFlyoutSubItem Text="Artist">
                                     <MenuFlyoutItem Text="Show Artist Songs" x:Name="ShowArtistSongs"
                                                     Clicked="ShowArtistSongs_Clicked"/>
                                     <MenuFlyoutItem Text="Play Artist Songs"/>
-                                    
+
                                 </MenuFlyoutSubItem>
-                                                                
+
                                 <MenuFlyoutSeparator/>
 
                                 <MenuFlyoutItem Text="Add To Playlist"
@@ -190,7 +190,7 @@
                                                              Key="P"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
-                                
+
                             </MenuFlyout>
                         </FlyoutBase.ContextFlyout>
                         <Grid.Resources>
@@ -198,7 +198,7 @@
                                 <Style TargetType="Label">
                                     <Setter Property="HorizontalTextAlignment" Value="Center"/>
                                     <Setter Property="VerticalTextAlignment" Value="Center"/>
-                                    
+
                                 </Style>
                             </ResourceDictionary>
                         </Grid.Resources>
@@ -243,13 +243,13 @@
                             <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
                                        HorizontalOptions="Start"
                                        ToolTipProperties.Text="{Binding Title}"/>
-                            
+
                             <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" VerticalOptions="Center">
-                                    <Image.Source>
-                                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
-                                    </Image.Source>
-                                </Image>
-                            
+                                <Image.Source>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
+                                </Image.Source>
+                            </Image>
+
                         </HorizontalStackLayout>
 
                         <Label Text="{Binding ArtistName}" Grid.Column="1"
@@ -288,7 +288,7 @@
 
     </toolkit:DockLayout>
 
-                             <!--Putting an image here will crash app
+    <!--Putting an image here will crash app
     <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/> -->
 
 

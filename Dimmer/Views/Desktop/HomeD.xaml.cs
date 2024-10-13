@@ -19,14 +19,11 @@ public partial class HomeD : UraniumContentPage
     }
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        //var send = (CollectionView)sender;
-        //send.BackgroundColor = Color.Parse("Red");
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Start, animate: false);
-        }
 
-        //This crashes the app :(
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
+        }
     }
 
 
