@@ -71,4 +71,10 @@ public partial class SongMenuBtmSheet : BottomSheet
     {
         await this.DismissAsync(true);
     }
+
+    private async void ShareSong_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
+        await this.DismissAsync(true);
+    }
 }

@@ -26,6 +26,9 @@
             </Style>
             <Style TargetType="Button">
                 <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="HeightRequest" Value="40"/>
             </Style>
         </ResourceDictionary>
     </the49:BottomSheet.Resources>
@@ -67,7 +70,8 @@
             <BoxView/>
             <Label Text="Tag Editor*"/>
             <BoxView/>
-            <Label Text="Share*"/>
+            <Button Text="Share" x:Name="ShareSong"
+                    Clicked="ShareSong_Clicked" />
             <BoxView/>
             <Label Text="Delete from Device" BackgroundColor="Transparent">
                 <Label.GestureRecognizers>
