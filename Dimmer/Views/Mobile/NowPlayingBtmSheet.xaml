@@ -219,11 +219,19 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <ImageButton>
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
+                        <cm:ContextMenuContainer>
+                            <cm:ContextMenuContainer.MenuItems >
+                                <cm:ContextMenuItem Text="Share" Command="{Binding NavigateToShareStoryPageCommand}"/>
+                                <cm:ContextMenuItem Text="Delete"/>
+                            </cm:ContextMenuContainer.MenuItems>
+                            <cm:ContextMenuContainer.Content>
+                                <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+                            </cm:ContextMenuContainer.Content>
+                        </cm:ContextMenuContainer>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
