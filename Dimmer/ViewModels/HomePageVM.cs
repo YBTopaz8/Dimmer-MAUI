@@ -1000,9 +1000,6 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs.Remove(song);
             SongsMgtService.DeleteSongFromDB(song.Id);
         }
-#if ANDROID
-
-#endif
     }
 
     [RelayCommand]

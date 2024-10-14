@@ -6,8 +6,8 @@ public partial class SingleSongShell : UraniumContentPage
 {
     NowPlayingBtmSheet? btmSheet { get; set; }
     public SingleSongShell(HomePageVM homePageVM)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
 
@@ -20,8 +20,6 @@ public partial class SingleSongShell : UraniumContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
 
         DeviceDisplay.Current.KeepScreenOn = true;
         TabV.SelectedTab = TabV.Items[0];
@@ -38,7 +36,7 @@ public partial class SingleSongShell : UraniumContentPage
     private void TabV_SelectedTabChanged(object sender, TabItem e)
     {
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        if (e!= null &&  e.Title == "Lyrics")
+        if (e != null && e.Title == "Lyrics")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(0);
         }
@@ -48,17 +46,20 @@ public partial class SingleSongShell : UraniumContentPage
             vm.SwitchViewNowPlayingPageCommand.Execute(1);
         }
 
-        if (e!= null && e.Title == "Stats")
+        if (e != null && e.Title == "Stats")
+        {
+            vm.SwitchViewNowPlayingPageCommand.Execute(2);
+            HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+
+        }
+
+
+        if (e != null && e.Title == "Fetch Lyrics")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(2);
         }
-        
-        
-        if (e!= null && e.Title == "Fetch Lyrics")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(2);
-        }
-        
+
     }
 
     protected override void OnDisappearing()
@@ -75,14 +76,14 @@ public partial class SingleSongShell : UraniumContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        if(btmSheet is not null)
+        if (btmSheet is not null)
         {
             if (btmSheet.IsPresented)
             {
                 btmSheet.IsPresented = false;
                 return true;
             }
-        }        
+        }
         return base.OnBackButtonPressed();
     }
 }

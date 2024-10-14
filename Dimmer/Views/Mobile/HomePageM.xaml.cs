@@ -45,11 +45,6 @@ public partial class HomePageM : UraniumContentPage
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
 
-        //var image = await btmcontrols.CaptureAsync();
-        //var savePath = Path.Combine("/storage/emulated/0/Documents", "test.png");
-        //using Stream fileStream = File.OpenWrite(savePath);
-        //await image.CopyToAsync(fileStream, ScreenshotFormat.Png);
-
     }
 
 
