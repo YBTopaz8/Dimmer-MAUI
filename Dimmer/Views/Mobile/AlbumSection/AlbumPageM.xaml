@@ -53,13 +53,13 @@
                 <Label Text="{Binding AllArtistsAlbums.Count, StringFormat='{0} albums'}"
    FontAttributes="Bold"/>
             </FlexLayout>
-            <CollectionView  Grid.Row="1"
+            <CollectionView  Grid.Row="1" 
                 HeightRequest="150" toolkit:DockLayout.DockPosition="Top"
             SelectionMode="Single" VerticalOptions="Start" x:Name="AllAlbumsColView"
             ItemsSource="{Binding AllArtistsAlbums}">
 
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Horizontal" />
+                    <GridItemsLayout Orientation="Horizontal"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:AlbumModelView">
@@ -70,11 +70,12 @@
                                     <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
                                 </VerticalStackLayout.GestureRecognizers>
                                 <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
+                                WidthRequest="140" HeightRequest="110"
                                 BorderWidth="0" CornerRadius="10"/>
 
-                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                    Padding="10,5" LineBreakMode="WordWrap" MaximumWidthRequest="120" />
+                                <Label Text="{Binding Name}" FontSize="14" 
+                                       HorizontalTextAlignment="Center" Padding="10,5" 
+                                       LineBreakMode="WordWrap" MaximumWidthRequest="150"/>
 
 
                             </VerticalStackLayout>

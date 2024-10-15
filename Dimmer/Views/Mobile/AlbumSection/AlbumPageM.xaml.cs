@@ -39,7 +39,7 @@ public partial class AlbumPageM : UraniumContentPage
         //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         //AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
+        HomePageVM.GetAllAlbumsCommand.Execute(null);
         base.OnAppearing();
         
     }

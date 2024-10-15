@@ -51,9 +51,10 @@
                     </ImageButton.Source>
                 </ImageButton>
 
-                <ImageButton Clicked="ImageButton_Clicked" Grid.Column="1">
+                <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" Grid.Column="1"
+                              HeightRequest="30">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Size="20" Glyph="{x:Static m:MaterialRound.Settings}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </Grid>
@@ -77,9 +78,9 @@
                     </ImageButton.Source>
                 </ImageButton>
 
-                <ImageButton Clicked="ImageButton_Clicked" Grid.Column="2">
+                <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" Grid.Column="2" HeightRequest="30">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Size="20" Glyph="{x:Static m:MaterialRound.Settings}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </Grid>
@@ -183,20 +184,6 @@
 
 
     </toolkit:DockLayout>
-    <uranium:UraniumContentPage.Attachments>
-
-        <material:BottomSheetView x:Name="SettingsBtmSheet">
-
-            <VerticalStackLayout Margin="0,0" HeightRequest="200" BackgroundColor="Black" Spacing="10">
-                <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" toolkit:DockLayout.DockPosition="Top" />
-                <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
-                <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-                <ListView ItemsSource="{Binding FolderPaths}"/>
-            </VerticalStackLayout>
-
-        </material:BottomSheetView>
-
-    </uranium:UraniumContentPage.Attachments>
 
 
 </uranium:UraniumContentPage>

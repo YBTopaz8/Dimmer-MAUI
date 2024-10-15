@@ -116,12 +116,12 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     public async Task PlayAsync(bool IsFromPreviousOrNext = false)
     {
-        int posInMs = (int)ViewModel.CurrentPositionInSeconds * 1000;
+        int posInMs = 0;
         if(ViewModel.TemporarilyPickedSong is not null)
         {
-            if (CurrentMedia.SongId != ViewModel.TemporarilyPickedSong.Id)
+            if (CurrentMedia.SongId == ViewModel.TemporarilyPickedSong.Id)
             {
-                posInMs = 0;
+                posInMs = (int)ViewModel.CurrentPositionInSeconds * 1000;
             }
             if (IsFromPreviousOrNext)
             {

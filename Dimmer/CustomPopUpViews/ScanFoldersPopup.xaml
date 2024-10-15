@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
+             x:Class="Dimmer_MAUI.CustomPopUpViews.ScanFoldersPopup"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" Color="Transparent"
+           CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <Border Padding="20,10,20,0" HeightRequest="350" BackgroundColor="#1E1E1E" 
+                         x:DataType="vm:HomePageVM" StrokeShape="RoundRectangle 20"
+                        StrokeThickness="0">
+        <VerticalStackLayout Spacing="5" BackgroundColor="Transparent">
+            
+        <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" />
+        <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
+        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+        
+        <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="180">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}"/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="Close" BackgroundColor="#861B2D" Clicked="Button_Clicked"/>
+
+        </VerticalStackLayout>
+    </Border>
+
+</mct:Popup>

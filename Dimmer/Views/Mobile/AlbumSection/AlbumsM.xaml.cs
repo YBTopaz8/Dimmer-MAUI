@@ -8,7 +8,6 @@ public partial class AlbumsM : UraniumContentPage
         InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         this.Attachments.Add(btmSheet);
@@ -39,6 +38,7 @@ public partial class AlbumsM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+        HomePageVM.GetAllArtistsCommand.Execute(null);
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)

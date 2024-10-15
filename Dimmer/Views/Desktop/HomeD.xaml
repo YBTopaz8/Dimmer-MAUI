@@ -121,7 +121,7 @@
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
         <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
                         toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
-                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged"
+                        x:Name="SongsColView" 
                         Loaded="SongsColView_Loaded"
                         >
             <CollectionView.ItemTemplate>

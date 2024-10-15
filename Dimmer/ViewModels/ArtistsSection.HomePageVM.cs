@@ -2,6 +2,7 @@
 
 public partial class HomePageVM
 {
+
     [ObservableProperty]
     ObservableCollection<ArtistModelView> allArtists;
     [ObservableProperty]
@@ -64,7 +65,6 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
-        //AllArtists?.Clear();
         if (AllArtists?.Count != PlayBackService.GetAllArtists().Count)
         {
             AllArtists = PlayBackService

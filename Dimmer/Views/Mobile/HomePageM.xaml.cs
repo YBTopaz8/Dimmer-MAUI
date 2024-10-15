@@ -35,12 +35,18 @@ public partial class HomePageM : UraniumContentPage
         }
 #if ANDROID
             PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
-
-            Shell.SetNavBarIsVisible(this, false);
-            Shell.SetTabBarIsVisible(this, true);
-
-            SettingsBtmSheet.Header.HeightRequest = 0;
+        Shell.SetNavBarIsVisible(this, false);
+        Shell.SetTabBarIsVisible(this, true);
 #endif
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+        }
     }
     private void SaveViewButton_Clicked(object sender, EventArgs e)
     { //to capture views into a png , will be useful later for saving
@@ -141,9 +147,9 @@ public partial class HomePageM : UraniumContentPage
         }
     }
 
-    private void ImageButton_Clicked(object sender, EventArgs e)
+    private async void ShowFolderSelectorImgBtn_Clicked(object sender, EventArgs e)
     {
-        SettingsBtmSheet.IsPresented = !SettingsBtmSheet.IsPresented;
+        await Shell.Current.ShowPopupAsync(new ScanFoldersPopup(HomePageVM));
     }
     protected override bool OnBackButtonPressed()
     {

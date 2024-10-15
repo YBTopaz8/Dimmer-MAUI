@@ -138,7 +138,7 @@
                        Opacity="0.6"/>
                 </HorizontalStackLayout>
 
-                <Border WidthRequest="45" HorizontalOptions="End" BackgroundColor="Transparent">
+                <Border HorizontalOptions="End" BackgroundColor="Transparent">
                     <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
                                  HorizontalOptions="End">
                         <ImageButton.Source>

@@ -10,6 +10,8 @@ using Activity = Android.App.Activity;
 using Application = Android.App.Application;
 using Android.Content.PM;
 using Uri = Android.Net.Uri;
+using Java.Lang;
+using Exception = System.Exception;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -50,8 +52,9 @@ public class MediaPlayerService : Service,
     public bool isCurrentEpisode = true;
 
     private readonly Handler PlayingHandler;
+    Handler _inactivityHandler;
     private readonly Java.Lang.Runnable PlayingHandlerRunnable;
-
+    Runnable _inactivityRunnable;
     private ComponentName remoteComponentName;
 
     public PlaybackStateCode MediaPlayerState
@@ -101,6 +104,7 @@ public class MediaPlayerService : Service,
     public MediaPlayerService()
     {
         PlayingHandler = new Handler(Looper.MainLooper);
+        _inactivityHandler = new Handler(Looper.MainLooper);
 
         // Create a runnable, restarting itself if the status still is "playing"
         PlayingHandlerRunnable = new Java.Lang.Runnable(() =>
@@ -110,7 +114,13 @@ public class MediaPlayerService : Service,
             if (MediaPlayerState == PlaybackStateCode.Playing)
             {
                 PlayingHandler.PostDelayed(PlayingHandlerRunnable, 1000);
+                _inactivityHandler.RemoveCallbacks(_inactivityRunnable); // Reset inactivity timer
             }
+        });
+
+        _inactivityRunnable = new Java.Lang.Runnable(() =>
+        {
+            MainAct?.Finish();
         });
 
         // On Status changed to PLAYING, start raising the Playing event
@@ -119,6 +129,11 @@ public class MediaPlayerService : Service,
             if (MediaPlayerState == PlaybackStateCode.Playing)
             {
                 PlayingHandler.PostDelayed(PlayingHandlerRunnable, 0);
+            }
+            else if (MediaPlayerState == PlaybackStateCode.Stopped || MediaPlayerState == PlaybackStateCode.Paused)
+            {
+                // Start the inactivity timer only if not playing
+                _inactivityHandler.PostDelayed(_inactivityRunnable, (long)TimeSpan.FromMinutes(10).TotalMilliseconds);
             }
         };
     }
@@ -228,25 +243,20 @@ public class MediaPlayerService : Service,
         mediaPlayer.SetOnCompletionListener(this);
 
     }
-
-
-    int comCount = 0;
-    public async void OnCompletion(MediaPlayer mp)
-    {
-        comCount++;
-        Console.WriteLine(DateTime.Now.ToString() + " completed " + comCount + " times OnComp " + mediaPlay.Name);
-        IsPlayingChanged?.Invoke(this, false);
-        TaskPlayEnded?.Invoke(this, EventArgs.Empty);
-        //await PlayNext();
-
-    }
-
+    
     public bool OnError(MediaPlayer mp, MediaError what, int extra)
     {
         UpdatePlaybackState(PlaybackStateCode.Error);
-        Console.WriteLine(DateTime.Now.ToString() + "Step 8 ERROR on " + mediaPlay.Name + " What is "+what);
+        Console.WriteLine(DateTime.Now.ToString() + "Step 8 ERROR on " + mediaPlay.Name + " What is " + what);
         Task.Run(() => Play());
         return true;
+    }
+
+    public async void OnCompletion(MediaPlayer mp)
+    {
+        IsPlayingChanged?.Invoke(this, false);
+        TaskPlayEnded?.Invoke(this, EventArgs.Empty);
+        UpdatePlaybackState(PlaybackStateCode.Stopped);
     }
 
     public void OnPrepared(MediaPlayer mp)
@@ -590,7 +600,7 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionSkipToNext |
                     PlaybackState.ActionSkipToPrevious |
                     PlaybackState.ActionStop |
-                    PlaybackState.ActionSeekTo | PlaybackState.ActionSetRating
+                    PlaybackState.ActionSeekTo 
                 )
                 .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
 

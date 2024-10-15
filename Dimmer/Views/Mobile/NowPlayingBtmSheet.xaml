@@ -187,9 +187,10 @@
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,10">
 
-                    <ImageButton Command="{Binding ShowSleepTimerPopupCommand}">
+                    <ImageButton Command="{Binding ShowSleepTimerPopupCommand}" >
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Nights_stay}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Timer}"
+                                             />
                         </ImageButton.Source>
                     </ImageButton>
 

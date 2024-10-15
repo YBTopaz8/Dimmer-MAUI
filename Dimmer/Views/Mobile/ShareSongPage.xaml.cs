@@ -9,11 +9,11 @@ public partial class ShareSongPage : ContentPage
     }
     SongsModelView currentsong;
     HomePageVM vm { get; set; }
-
+    LinearGradientBrush bgBrush { get; set; }
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        Shell.SetTabBarIsVisible(this, false);
+        
         string? str = vm.SelectedSongToOpenBtmSheet.CoverImagePath;
         currentsong = vm.SelectedSongToOpenBtmSheet;
         // Open a file stream
@@ -29,7 +29,7 @@ public partial class ShareSongPage : ContentPage
             var middleColor = colors[1].WithLuminosity(0.5f);  // Adjust for mid-tone
             // Black color at the bottom
             var bottomColor = Colors.Black;
-            myPage.Background = new LinearGradientBrush
+            bgBrush = new LinearGradientBrush
             {
                 StartPoint = new Point(0.5, 0),
                 EndPoint = new Point(0.5, 1),
@@ -40,12 +40,18 @@ public partial class ShareSongPage : ContentPage
                     new GradientStop { Color = bottomColor, Offset = 1.0f }
                 }
             };
+            myPage.Background = bgBrush;
         }
         else
         {
             myPage.BackgroundImageSource = str;
         }
 #endif
+    }
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        Shell.SetTabBarIsVisible(this, true);
     }
 
     private async void OnShareButtonClicked(object sender, EventArgs e)
@@ -54,7 +60,7 @@ public partial class ShareSongPage : ContentPage
         SharingActIndic.IsVisible = true;
         SharingActIndic.IsRunning = true;
         ShareButton.IsVisible = false;
-        myPage.IsEnabled = false;
+        //myPage.IsEnabled = false;
         var screenshot = await myPage.CaptureAsync();
         if (screenshot != null)
         {
@@ -79,6 +85,38 @@ public partial class ShareSongPage : ContentPage
         ShareButton.IsVisible = true;
         SharingActIndic.IsVisible = false;
         SharingActIndic.IsRunning = false;
-        myPage.IsEnabled = true;
+        //myPage.IsEnabled = true;
+    }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        SharingActIndic.IsVisible = true;
+        SharingActIndic.IsRunning = true;
+        ShareButton.IsVisible = false;
+        //myPage.IsEnabled = false;
+        var screenshot = await myPage.CaptureAsync();
+        if (screenshot != null)
+        {
+
+            var directoryPath = Path.Combine("/storage/emulated/0/Documents", "Dimmer");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            var savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png");
+            using Stream fileStream = File.OpenWrite(savePath);
+            await screenshot.CopyToAsync(fileStream, ScreenshotFormat.Png);
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = $"Currently Listening To {currentsong.Title} by {currentsong.ArtistName} on Dimmer",
+                File = new ShareFile(savePath)
+            });
+
+
+        }
+        // Re-show the Share button
+        ShareButton.IsVisible = true;
+        SharingActIndic.IsVisible = false;
+        SharingActIndic.IsRunning = false;
     }
 }

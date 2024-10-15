@@ -65,7 +65,7 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person_3}"/>
                             </Image.Source>
                         </Image>
-                        <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" VerticalTextAlignment="Center"/>
+                        <Label Text="{Binding SelectedArtistOnArtistPage.Name}" VerticalTextAlignment="Center"/>
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Spacing="5">
                         <Image>
