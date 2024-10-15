@@ -65,7 +65,6 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
-        //AllArtists?.Clear();
         if (AllArtists?.Count != PlayBackService.GetAllArtists().Count)
         {
             AllArtists = PlayBackService
