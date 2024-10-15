@@ -30,7 +30,6 @@ public partial class SingleSongShell : UraniumContentPage
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
 
-
         Shell.SetTabBarIsVisible(this, false);
         Shell.SetNavBarIsVisible(this, false);
     }
@@ -68,11 +67,6 @@ public partial class SingleSongShell : UraniumContentPage
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
-    private void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
-    {
-
-    }
-
     protected override bool OnBackButtonPressed()
     {
         if(btmSheet is not null)
@@ -85,4 +79,5 @@ public partial class SingleSongShell : UraniumContentPage
         }        
         return base.OnBackButtonPressed();
     }
+
 }

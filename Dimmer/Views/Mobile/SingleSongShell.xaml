@@ -33,14 +33,9 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-    <toolkit:DockLayout>
-
-
+    <toolkit:DockLayout >
         <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
-                          SelectedTabChanged="TabV_SelectedTabChanged" >
-            <material:TabView.GestureRecognizers>
-                <SwipeGestureRecognizer Direction="Left" Swiped="SwipeGestureRecognizer_Swiped"/>
-            </material:TabView.GestureRecognizers>
+                          SelectedTabChanged="TabV_SelectedTabChanged">
             <material:TabView.TabHeaderItemTemplate>
                 <DataTemplate>
                     <Button Margin="2,0" Text="{Binding Title}" Command="{Binding Command}">
@@ -62,7 +57,7 @@
             <material:TabItem Title="Lyrics" x:Name="Lyr">
                 <material:TabItem.ContentTemplate>
                     <DataTemplate>
-                        <cv:SyncedLyricsView />
+                        <cv:SyncedLyricsView/>
                     </DataTemplate>
                 </material:TabItem.ContentTemplate>
             </material:TabItem>

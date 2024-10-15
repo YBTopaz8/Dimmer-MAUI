@@ -61,7 +61,6 @@
             <BoxView/>
             <Button Text="Go to Artist" x:Name="GoToArtist" 
                     Clicked="GoToArtist_Clicked"/>
-
             <BoxView/>
             <Label Text="Tag Editor*"/>
             <BoxView/>

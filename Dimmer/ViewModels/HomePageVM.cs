@@ -238,25 +238,38 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     private async Task LoadSongsFromFolders()
     {
-        IsLoadingSongs = true;
-        if (FolderPaths is null)
+        try
         {
-            await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+
+            DeviceDisplay.Current.KeepScreenOn = true;
+            IsLoadingSongs = true;
+            if (FolderPaths is null)
+            {
+                await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+                IsLoadingSongs = false;
+                return;
+            }
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            if (loadSongsResult)
+            {
+                DisplayedSongs?.Clear();
+                DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
+                Debug.WriteLine("Songs Loaded Successfully");
+            }
+            else
+            {
+                Debug.WriteLine("No Songs Found");
+            }
             IsLoadingSongs = false;
-            return;
         }
-        bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
-        if (loadSongsResult)
+        catch (Exception ex)
         {
-            DisplayedSongs?.Clear();
-            DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-            Debug.WriteLine("Songs Loaded Successfully");
+            await Shell.Current.DisplayAlert("Error During Scanning",ex.Message, "Ok");
         }
-        else
+        finally
         {
-            Debug.WriteLine("No Songs Found");
+            DeviceDisplay.Current.KeepScreenOn = false;
         }
-        IsLoadingSongs = false;
     }
 
     public PageEnum CurrentPage;

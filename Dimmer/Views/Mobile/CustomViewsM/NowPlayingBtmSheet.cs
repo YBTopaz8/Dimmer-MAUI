@@ -89,8 +89,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
         IsPresented = true;
         IsPresentedChanged?.Invoke(this, true);
-        Shell.SetNavBarIsVisible(this.AttachedPage, false);
-        Shell.SetTabBarIsVisible(this.AttachedPage, false);
         DeviceDisplay.Current.KeepScreenOn = true;
     }
 
@@ -102,8 +100,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
         IsPresented = false;
         IsPresentedChanged?.Invoke(this, false);
-        Shell.SetNavBarIsVisible(this.AttachedPage, false);
-        Shell.SetTabBarIsVisible(this.AttachedPage, true);
 
         DeviceDisplay.Current.KeepScreenOn = false;
     }
@@ -163,15 +159,17 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                     {
                         if (this.TranslationY > closeThresholdHeight)
                         {
+                            Shell.SetNavBarIsVisible(this.AttachedPage, false);
+                            Shell.SetTabBarIsVisible(this.AttachedPage, true);
                             IsPresented = false;
                         }
 
                     }
                     else
                     {
-
+                        Shell.SetNavBarIsVisible(this.AttachedPage, false);
+                        Shell.SetTabBarIsVisible(this.AttachedPage, false);
                         IsPresented = true;
-
                     }
                 }
 

@@ -2,6 +2,7 @@
 
 public partial class HomePageVM
 {
+
     [ObservableProperty]
     ObservableCollection<ArtistModelView> allArtists;
     [ObservableProperty]

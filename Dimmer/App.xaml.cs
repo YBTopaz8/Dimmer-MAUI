@@ -1,10 +1,20 @@
-﻿namespace Dimmer_MAUI;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI;
 
 public partial class App : Application
 {
     public App()
     {
-        InitializeComponent();
+        try
+        {
+
+            InitializeComponent();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
@@ -37,11 +47,11 @@ public partial class App : Application
         win.Width = 1200;
 #if DEBUG
 
-        win.Title = "Dimmer v0.0.5-debug";
+        win.Title = "Dimmer v0.0.6-debug";
 #endif
 
 #if RELEASE
-        win.Title = "Dimmer v0.0.5-release";
+        win.Title = "Dimmer v0.0.6-release";
 #endif
         return win;
     }

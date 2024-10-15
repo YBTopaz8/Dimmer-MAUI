@@ -46,8 +46,7 @@
                             ItemsSource="{Binding AllAlbums}">
 
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical"
-                                    Span="4"/>
+                <GridItemsLayout Orientation="Horizontal"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">

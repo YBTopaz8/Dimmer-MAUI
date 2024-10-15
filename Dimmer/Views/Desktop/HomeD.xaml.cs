@@ -17,15 +17,6 @@ public partial class HomeD : UraniumContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
     }
-    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (SongsColView.IsLoaded)
-        {
-
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
-        }
-    }
-
 
     DateTime lastKeyStroke;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)

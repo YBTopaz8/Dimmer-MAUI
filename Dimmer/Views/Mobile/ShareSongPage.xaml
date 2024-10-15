@@ -4,23 +4,36 @@
              x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM" 
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"                          
+
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Shell.NavBarIsVisible="False"
              x:Name="myPage" >
     <toolkit:DockLayout HorizontalOptions="Center"
-                        Margin="20" BackgroundColor="Transparent">
+                        Margin="20">
 
 
         <Button x:Name="ShareButton" Margin="20" TextColor="White"
             Text="Share to Stories"
             FontSize="16" WidthRequest="150"
             toolkit:DockLayout.DockPosition="Bottom"
-            
             Clicked="OnShareButtonClicked"/>
 
-        <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent"
+        <VerticalStackLayout VerticalOptions="Center" x:Name="StoryContent"
                              WidthRequest="300">
-            <Label Text="Dimmer"/>
+            <!--<VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+            </VerticalStackLayout.GestureRecognizers>-->
+            
+            <HorizontalStackLayout VerticalOptions="End">
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Dimmer" VerticalOptions="Center" FontSize="22"
+                       FontAttributes="Bold"/>
+            </HorizontalStackLayout>
             <!-- Album Cover -->
             <toolkit:AvatarView x:Name="AlbumCover"
                 CornerRadius="20" BorderWidth="0"
@@ -30,12 +43,12 @@
                 VerticalOptions="Center"
                 HorizontalOptions="Center"
                 Stroke="Black">
-                <toolkit:AvatarView.Shadow>
+                <!--<toolkit:AvatarView.Shadow>
                     <Shadow Brush="Black"
                             Offset="20,30"
                             Radius="60"
                             />
-                </toolkit:AvatarView.Shadow>
+                </toolkit:AvatarView.Shadow>-->
             </toolkit:AvatarView>
 
             <!-- Song Title -->

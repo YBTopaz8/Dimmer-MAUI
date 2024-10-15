@@ -554,10 +554,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     }
                 }
             }
-            else
-            {
-                ObservableCurrentlyPlayingSong = lastPlayedSong;
-            }
 
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
 
@@ -576,12 +572,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
 
             // Now, play the audio after initialization has completed
-            await audioService.PlayAsync(IsFromPreviousOrNext);
+            
 
             if (positionInSec > 0)
             {
+                await audioService.PlayAsync(IsFromPreviousOrNext);
                 currentPositionInSec = positionInSec;
                 await audioService.SetCurrentTime(currentPositionInSec);
+            }
+            else
+            {
+                await audioService.PlayAsync(true);
             }
             _positionTimer.Start();
 
@@ -879,7 +880,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         if (ObservableCurrentlyPlayingSong.IsPlaying)
         {
-            await PlaySongAsync(positionInSec: positionInSec);
+            await PlaySongAsync(ObservableCurrentlyPlayingSong, positionInSec: positionInSec);
         }
 
     }
