@@ -58,7 +58,7 @@
                 <HorizontalStackLayout Spacing="10">
                     <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
 
-                    <ImageButton Clicked="Button_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                    <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
                         </ImageButton.Source>
@@ -87,13 +87,13 @@
 
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="90" />
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="30" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="180" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -109,20 +109,20 @@
             </Grid.Resources>
             <Label Text="Song Title" Grid.Column="0" HorizontalOptions="Start"/>
             <Label Text="Artist" Grid.Column="1" />
-            <Label Text="Has Lyrics?" Grid.Column="2" 
+            <Label Text="" Grid.Column="2" 
                             HeightRequest="30" ToolTipProperties.Text="Has Lyrics?"/>
             <Label Text="Love" Grid.Column="3" />
             <Label Text="Album" Grid.Column="4" />
             <Label Text="Genre" Grid.Column="5"/>
             <Label Text="Duration" Grid.Column="6" />
             <Label Text="Bitrate" Grid.Column="7" />
-            <Label Text="File Format" Grid.Column="8"/>
+            <Label Text="Format" Grid.Column="8"/>
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectedItem="{Binding PickedSong, Mode=TwoWay}" 
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" 
                         toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
-                        x:Name="SongsColView" 
-                        Loaded="SongsColView_Loaded"
+                        x:Name="SongsColView" SelectedItem="{Binding PickedSong}"
+                        SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
@@ -205,17 +205,18 @@
                         <Grid.GestureRecognizers>
                             <!--<PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedSongCommand, Source={x:Reference myPage}}" 
                                                     PointerEnteredCommandParameter="{Binding .}" PointerPressed="PointerGestureRecognizer_PointerPressed"/>-->
-                            <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" PointerEntered="PointerGestureRecognizer_PointerEntered"/>
+                            <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"
+                                                      PointerExited="PointerGestureRecognizer_PointerExited"/>
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200" />
-                            <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="180" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="70" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
@@ -238,19 +239,20 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <HorizontalStackLayout Grid.Column="0" Spacing="10" >
+                        <VerticalStackLayout Grid.Column="0" Spacing="10" >
 
                             <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
                                        HorizontalOptions="Start"
                                        ToolTipProperties.Text="{Binding Title}"/>
 
-                            <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" VerticalOptions="Center">
+                            <Image IsVisible="{Binding IsPlaying}" HeightRequest="20" HorizontalOptions="Start">
                                 <Image.Source>
-                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" Color="DarkSlateBlue"/>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" 
+                                                     Color="DarkSlateBlue" />
                                 </Image.Source>
                             </Image>
 
-                        </HorizontalStackLayout>
+                        </VerticalStackLayout>
 
                         <Label Text="{Binding ArtistName}" Grid.Column="1"
                                LineBreakMode="WordWrap"

@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
@@ -105,19 +107,20 @@ public partial class HomePageVM : ObservableObject
                 if (TemporarilyPickedSong is not null)
                 {
 
-                    if (DisplayedSongs is not null)
-                    {
-                        if (TemporarilyPickedSong is not null)
-                        {
-                            var songIndex = DisplayedSongs.IndexOf(DisplayedSongs.First(x => x.Id == TemporarilyPickedSong.Id));
+                    //if (DisplayedSongs is not null)
+                    //{
+                    //    var songToPlay= DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id);
 
-                            if (songIndex != -1)
-                            {
-                                DisplayedSongs[songIndex] = TemporarilyPickedSong;
-                            }
-                        }
-
-                    }
+                    //    if (songToPlay is not null)
+                    //    {
+                    //        var songIndex = DisplayedSongs.IndexOf(songToPlay);
+                    //        if (songIndex != -1)
+                    //        {
+                    //            DisplayedSongs[songIndex] = TemporarilyPickedSong;
+                    //        }
+                    //    }
+                     
+                    //} WHY does this exist??
 
                     PickedSong = TemporarilyPickedSong;
                     SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
@@ -487,29 +490,27 @@ public partial class HomePageVM : ObservableObject
     MediaPlayerState CurrentPlayerState;
     public void SetPlayerState(MediaPlayerState? state)
     {
-
         switch (state)
         {
             case MediaPlayerState.Playing:
 
                 TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-                if (TemporarilyPickedSong is not null)
-                {
+                //if (DisplayedSongs is not null)
+                //{
+                //    if (TemporarilyPickedSong is not null)
+                //    {
+                //        var songToPlay= DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id);
+                //        if (songToPlay is not null)
+                //        {
+                //            var songIndex = DisplayedSongs.IndexOf(songToPlay);
+                //            if (songIndex != -1)
+                //            {
+                //                DisplayedSongs[songIndex] = TemporarilyPickedSong;
+                //            }
+                //        }
+                //    }
 
-                    if (DisplayedSongs is not null)
-                    {
-                        if (TemporarilyPickedSong is not null)
-                        {
-                            var songIndex = DisplayedSongs.IndexOf(DisplayedSongs.First(x => x.Id == TemporarilyPickedSong.Id));
-
-                            if (songIndex != -1)
-                            {
-                                DisplayedSongs[songIndex] = TemporarilyPickedSong;
-                            }
-                        }
-
-                    }
-                }
+                //}
                 PickedSong = TemporarilyPickedSong;
                 SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
                 AllSyncLyrics = null;
@@ -1008,14 +1009,12 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task DeleteFile(SongsModelView song)
     {
-        if (await PlatSpecificUtils.DeleteSongFile(song))
+        if (!await PlatSpecificUtils.DeleteSongFile(song))
         {
-            DisplayedSongs.Remove(song);
-            SongsMgtService.DeleteSongFromDB(song.Id);
+            return;
         }
-#if ANDROID
-
-#endif
+        DisplayedSongs.Remove(song);
+        await SongsMgtService.DeleteSongFromDB(song.Id);
     }
 
     [RelayCommand]

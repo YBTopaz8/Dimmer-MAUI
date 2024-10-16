@@ -70,7 +70,7 @@
                             </Border.GestureRecognizers>
 
                             <Label Text="{Binding Name}"
-                                   Padding="10,5" Margin="5,5"/>
+                                   Padding="10,5" Margin="0,5"/>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

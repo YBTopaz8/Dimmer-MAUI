@@ -27,7 +27,7 @@
         <ToolbarItem Text="Test 1"/>
     </ContentPage.ToolbarItems>
     
-    <toolkit:DockLayout Margin="5,0">
+    <toolkit:DockLayout >
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>

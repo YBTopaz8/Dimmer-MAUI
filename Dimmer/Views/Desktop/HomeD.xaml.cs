@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
@@ -9,8 +11,10 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         MediaPlayBackCW.BindingContext = homePageVM;
-        
     }
+
+    int countt;
+
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()
     {
@@ -44,7 +48,7 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
+    private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
         try
         {
@@ -66,11 +70,13 @@ public partial class HomeD : UraniumContentPage
         HomePageVM.SwitchViewNowPlayingPageCommand.Execute(0);
         HomePageVM.IsOnLyricsSyncMode = false;
     }
+    int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
+        Debug.WriteLine("refreshes " + coon++);
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Start, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
             SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
         }
     }
@@ -97,18 +103,26 @@ public partial class HomeD : UraniumContentPage
         await HomePageVM.NavigateToArtistsPage(song);
     }
 
-    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
-    {
 
-#if WINDOWS
-
-#endif
-    }
-
+    bool isPointerEntered;
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (Grid)sender;
         var song = send.BindingContext! as SongsModelView;
         HomePageVM.SetContextMenuSong(song);
+        isPointerEntered = true;
+    }
+
+    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SongsColView.IsLoaded && !isPointerEntered)
+        {
+            SongsColView.ScrollTo(HomePageVM.PickedSong, null, ScrollToPosition.Center, animate: false);
+        }
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        isPointerEntered = false;
     }
 }

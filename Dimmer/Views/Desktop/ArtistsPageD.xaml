@@ -45,7 +45,8 @@
                         HeightRequest="170" x:Name="AllAlbumsColView"
                          ItemsLayout="HorizontalList" SelectedItem="{Binding SelectedAlbumOnArtistPage}"
                          SelectionMode="Single" VerticalOptions="Start"
-                         ItemsSource="{Binding AllArtistsAlbums}">
+                         ItemsSource="{Binding AllArtistsAlbums}"
+                        EmptyView="No Albums...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center">
@@ -97,7 +98,7 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
-                    <Border Padding="15,5" Margin="5,5" StrokeShape="RoundRectangle 20"
+                    <Border Padding="15,5" Margin="5,5" StrokeShape="RoundRectangle 10"
                             StrokeThickness="0.4" HorizontalOptions="Center">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">

@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -23,6 +25,9 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
 
+            var songId = AllSongs.FirstOrDefault(x => x.Id.ToString() == "66d75d7c67442a548875e7da");
+            Debug.WriteLine(songId.DatesPlayed.Count);
+            
             //var exp = new CsvExporter();
 
             //string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "SongssDataExport.txt");
@@ -97,23 +102,57 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
                     if (existingSong != null)
                     {
-                        existingSong = new SongsModel(songsModelView);
+                        // Update fields directly on the existing song object
+                        existingSong.Title = songsModelView.Title;
+                        existingSong.ArtistName = songsModelView.ArtistName;
+                        existingSong.AlbumName = songsModelView.AlbumName;
+                        existingSong.DurationInSeconds = songsModelView.DurationInSeconds;
+                        existingSong.ReleaseYear = songsModelView.ReleaseYear;
                         existingSong.IsPlaying = false;
+
+                        // Only update DatesPlayed with the differences
+                        var datesToRemove = existingSong.DatesPlayed.Except(songsModelView.DatesPlayed).ToList();
+                        var datesToAdd = songsModelView.DatesPlayed.Except(existingSong.DatesPlayed).ToList();
+
+                        foreach (var date in datesToRemove)
+                        {
+                            existingSong.DatesPlayed.Remove(date);
+                        }
+
+                        foreach (var date in datesToAdd)
+                        {
+                            existingSong.DatesPlayed.Add(date);
+                        }
+
+                        // Repeat for DatesSkipped
+                        var skippedToRemove = existingSong.DatesSkipped.Except(songsModelView.DatesSkipped).ToList();
+                        var skippedToAdd = songsModelView.DatesSkipped.Except(existingSong.DatesSkipped).ToList();
+
+                        foreach (var date in skippedToRemove)
+                        {
+                            existingSong.DatesSkipped.Remove(date);
+                        }
+
+                        foreach (var date in skippedToAdd)
+                        {
+                            existingSong.DatesSkipped.Add(date);
+                        }
                     }
                     else
                     {
-                        Debug.WriteLine("didn't found song");
+                        Debug.WriteLine("Song not found; adding new song.");
                         var newSong = new SongsModel(songsModelView)
                         {
                             IsPlaying = false
                         };
                         db.Add(newSong, update: true);
-                        Debug.WriteLine($"existing song datesplayedCount {existingSong.DatesPlayed.Count}");
-                        Debug.WriteLine($"existing song DatesSkipped {existingSong.DatesSkipped.Count}");
                     }
+
+                    Debug.WriteLine($"Song datesplayedCount: {existingSong?.DatesPlayed.Count}");
+                    Debug.WriteLine($"Song DatesSkipped: {existingSong?.DatesSkipped.Count}");
                 });
             });
-            
+
             return true;
         }
         catch (Exception ex)
@@ -122,6 +161,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             return false;
         }
     }
+
 
     public async Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artistss)
     {
@@ -303,11 +343,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public bool DeleteSongFromDB(ObjectId songID)
+    public async Task<bool> DeleteSongFromDB(ObjectId songID)
     {
         try
         {
-            db.Write(() =>
+            await db.WriteAsync(() =>
             {
                 var existingSong = db.Find<SongsModel>(songID);
                 if (existingSong != null)

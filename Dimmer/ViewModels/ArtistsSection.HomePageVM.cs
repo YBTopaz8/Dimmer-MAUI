@@ -94,7 +94,7 @@ public partial class HomePageVM
         else
         {
             (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
-            SelectedArtistOnArtistPage = AllArtists.First(x => x.Id == SelectedArtistId);
+            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == SelectedArtistId);
         }
 
         if (AllArtists?.Count < 1)

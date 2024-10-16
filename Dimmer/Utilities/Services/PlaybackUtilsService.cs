@@ -490,7 +490,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         }
         _tertiaryQueueSubject.OnNext(allSongs);
-        await PlaySongAsync(allSongs[0], 2);
+        await PlaySongAsync(allSongs[0], 2, _tertiaryQueueSubject.Value);
 
         return true;
     }
@@ -540,7 +540,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 if (!File.Exists(song.FilePath))
                 {
-                    SongsMgtService.DeleteSongFromDB(song.Id);
+                    await SongsMgtService.DeleteSongFromDB(song.Id);
                     _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
                 }
                 song.IsPlaying = true;
@@ -610,7 +610,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 _currentPositionSubject.OnNext(new());
             }
 #if WINDOWS
-            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+            //MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
 #endif
         }
     }
@@ -690,7 +690,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ObservableCurrentlyPlayingSong.IsPlaying = false;
             _playerStateSubject.OnNext(MediaPlayerState.Paused);  // Update state to paused
             ViewModel.SetPlayerState(MediaPlayerState.Paused);
-            _positionTimer.Stop();
+
+            _positionTimer?.Stop();
         }
         else
         {

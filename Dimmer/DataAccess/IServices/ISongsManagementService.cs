@@ -20,7 +20,7 @@ public interface ISongsManagementService
     void UpdateAlbum(AlbumModelView album);
     public int GetSongsCountFromAlbumID(ObjectId albumID);
 
-    public bool DeleteSongFromDB(ObjectId songID);
+    public Task<bool> DeleteSongFromDB(ObjectId songID);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);
     //public Task<SongsModel> FindSongsByGenre(string searchText);

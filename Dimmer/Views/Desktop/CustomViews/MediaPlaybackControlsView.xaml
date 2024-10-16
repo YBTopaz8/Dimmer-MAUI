@@ -66,7 +66,7 @@
                 </HorizontalStackLayout.GestureRecognizers>
                 <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                 WidthRequest="95" HeightRequest="95" Margin="2,0,0,0"
-                                    BorderWidth="0" CornerRadius="15">
+                                    BorderWidth="0" CornerRadius="8">
                 </toolkit:AvatarView>
 
                 <VerticalStackLayout VerticalOptions="Center" >
