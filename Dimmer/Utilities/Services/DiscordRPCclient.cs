@@ -20,12 +20,12 @@ public class DiscordRPCclient : IDiscordRPC
         }
     }
 
-    private void DiscordRpcClient_OnPresenceUpdate(object sender, global::DiscordRPC.Message.PresenceMessage args)
+    private void DiscordRpcClient_OnPresenceUpdate(object sender, DiscordRPC.Message.PresenceMessage args)
     {
         Debug.WriteLine($"Update Presence Name = {args.Name}, Title = {args.Presence.Details}");
     }
 
-    private void DiscordRpcClient_OnReady(object sender, global::DiscordRPC.Message.ReadyMessage args)
+    private void DiscordRpcClient_OnReady(object sender, DiscordRPC.Message.ReadyMessage args)
     {
         Debug.WriteLine($"RPC is ready and connected to {args.User.Username}");
     }

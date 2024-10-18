@@ -127,17 +127,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Resources\Images\high_volume_d.svg" />
-	  <None Remove="Resources\Images\low_volume_d.svg" />
-	  <None Remove="Resources\Images\msc.jpg" />
-	  <None Remove="Resources\Images\musical.svg" />
-	  <None Remove="Resources\Images\pause_d.svg" />
-	  <None Remove="Resources\Images\play_d.svg" />
-	  <None Remove="Resources\Images\skip_backwards_d.svg" />
-	  <None Remove="Resources\Images\skip_forward_d.svg" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
