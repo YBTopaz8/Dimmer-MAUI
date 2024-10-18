@@ -973,7 +973,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    void OpenSongFolder() //SongsModel SelectedSong)
+    static void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
         var filePath = SelectedSongToOpenBtmSheet.FilePath; // SelectedSong.FilePath
@@ -1011,6 +1011,7 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
+        await PlayNextSong();
         DisplayedSongs.Remove(song);
         await SongsMgtService.DeleteSongFromDB(song.Id);
     }
