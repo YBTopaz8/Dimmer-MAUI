@@ -9,29 +9,29 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowGeneralTopXSongs()
     {
-        Debug.WriteLine("Calledtrrt");
         // Get today's date
         var today = DateTime.Today;
+        var lastWeek = today.AddDays(-7); // Get the date 7 days ago (last week)
+
         // Get the date 7 days ago
-        TopTenPlayedSongs = DisplayedSongs
-    .Select(s => new SingleSongStatistics
-    {
-        Song = s,
-        PlayCount = s.DatesPlayed.Count()  // Count all dates without a range
-    })
-    .OrderByDescending(s => s.PlayCount)
-
-    .ToObservableCollection();
-
         //TopTenPlayedSongs = DisplayedSongs
-        //    .Select(s => new SingleSongStatistics
-        //    {
-        //        Song = s,
-        //        PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
-        //    })
-        //    .OrderByDescending(s => s.PlayCount)
-        //    .Take(20)
-        //    .ToObservableCollection();
+        //.Select(s => new SingleSongStatistics
+        //{
+        //    Song = s,
+        //    PlayCount = s.DatesPlayed.Count()  // Count all dates without a range
+        //})
+        //.OrderByDescending(s => s.PlayCount)
+        //.ToObservableCollection();
+
+        TopTenPlayedSongs = DisplayedSongs
+            .Select(s => new SingleSongStatistics
+            {
+                Song = s,
+                PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
+            })
+            .OrderByDescending(s => s.PlayCount)
+            .Take(20)
+            .ToObservableCollection();
         if (IsPlaying && CurrentQueue != 2)
         {
             ShowSingleSongStats(TemporarilyPickedSong);

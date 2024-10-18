@@ -16,7 +16,7 @@
 
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:HomeD}"
-                Route="MainPageD" />
+                Route="HomePageD" />
         </Tab>
 
         <Tab Title="Artists" x:Name="albumTab">

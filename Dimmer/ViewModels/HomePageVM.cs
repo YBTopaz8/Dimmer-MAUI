@@ -447,7 +447,6 @@ public partial class HomePageVM : ObservableObject
     {
 #if ANDROID
         SongMenuBtmSheet btmSheet = new(this, song);
-        ContextMenuSong = song;
         SelectedSongToOpenBtmSheet = song;
         await btmSheet.ShowAsync();
 #endif
@@ -977,7 +976,7 @@ public partial class HomePageVM : ObservableObject
     void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
-        var filePath = ContextMenuSong.FilePath; // SelectedSong.FilePath
+        var filePath = SelectedSongToOpenBtmSheet.FilePath; // SelectedSong.FilePath
         var directoryPath = Path.GetDirectoryName(filePath);
 
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
@@ -999,11 +998,9 @@ public partial class HomePageVM : ObservableObject
         SelectedPlaylistToOpenBtmSheet = pl;
     }
 
-    [ObservableProperty]
-    SongsModelView contextMenuSong;
     public void SetContextMenuSong(SongsModelView? song)
     {
-        ContextMenuSong = song;
+        SelectedSongToOpenBtmSheet = song;
     }
 
     [RelayCommand]
