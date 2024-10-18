@@ -10,7 +10,6 @@ using Activity = Android.App.Activity;
 using Application = Android.App.Application;
 using Android.Content.PM;
 using Uri = Android.Net.Uri;
-using Java.Lang;
 using Exception = System.Exception;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
@@ -43,6 +42,7 @@ public class MediaPlayerService : Service,
     public event BufferingEventHandler Buffering;
     public event PlayingChangedEventHandler PlayingChanged;
     public event EventHandler<bool> IsPlayingChanged;
+    public event EventHandler<long> IsSeekedFromNotificationBar;
     public event EventHandler TaskPlayEnded;
     public event EventHandler TaskPlayNext;
     public event EventHandler TaskPlayPrevious;
@@ -52,9 +52,8 @@ public class MediaPlayerService : Service,
     public bool isCurrentEpisode = true;
 
     private readonly Handler PlayingHandler;
-    Handler _inactivityHandler;
     private readonly Java.Lang.Runnable PlayingHandlerRunnable;
-    Runnable _inactivityRunnable;
+
     private ComponentName remoteComponentName;
 
     public PlaybackStateCode MediaPlayerState
@@ -104,7 +103,6 @@ public class MediaPlayerService : Service,
     public MediaPlayerService()
     {
         PlayingHandler = new Handler(Looper.MainLooper);
-        _inactivityHandler = new Handler(Looper.MainLooper);
 
         // Create a runnable, restarting itself if the status still is "playing"
         PlayingHandlerRunnable = new Java.Lang.Runnable(() =>
@@ -114,13 +112,7 @@ public class MediaPlayerService : Service,
             if (MediaPlayerState == PlaybackStateCode.Playing)
             {
                 PlayingHandler.PostDelayed(PlayingHandlerRunnable, 1000);
-                _inactivityHandler.RemoveCallbacks(_inactivityRunnable); // Reset inactivity timer
             }
-        });
-
-        _inactivityRunnable = new Java.Lang.Runnable(() =>
-        {
-            MainAct?.Finish();
         });
 
         // On Status changed to PLAYING, start raising the Playing event
@@ -130,14 +122,8 @@ public class MediaPlayerService : Service,
             {
                 PlayingHandler.PostDelayed(PlayingHandlerRunnable, 0);
             }
-            else if (MediaPlayerState == PlaybackStateCode.Stopped || MediaPlayerState == PlaybackStateCode.Paused)
-            {
-                // Start the inactivity timer only if not playing
-                _inactivityHandler.PostDelayed(_inactivityRunnable, (long)TimeSpan.FromMinutes(10).TotalMilliseconds);
-            }
         };
     }
-
     protected virtual void OnStatusChanged(EventArgs e)
     {
         StatusChanged?.Invoke(this, e);
@@ -475,8 +461,9 @@ public class MediaPlayerService : Service,
     {
         await Task.Run(() =>
         {
-            Console.WriteLine("From Seek Seeking to " + position);
+            positionInMs = position;
             mediaPlayer?.SeekTo(position);
+            IsSeekedFromNotificationBar?.Invoke(this, position);
             UpdatePlaybackState(MediaPlayerState, position);
         });
     }
@@ -540,7 +527,6 @@ public class MediaPlayerService : Service,
 
             if (mediaPlayer.IsPlaying)
                 mediaPlayer.Pause();
-
             UpdatePlaybackState(PlaybackStateCode.Paused);
         });
     }
@@ -561,7 +547,7 @@ public class MediaPlayerService : Service,
             mediaPlayer.Reset();
             NotificationHelper.StopNotification(Platform.AppContext!);
             StopForeground(true);
-            ReleaseWifiLock();
+            
             UnregisterMediaSessionCompat();
         });
     }
@@ -646,7 +632,7 @@ public class MediaPlayerService : Service,
             .PutString(MediaMetadata.MetadataKeyAlbum, metaRetriever.ExtractMetadata(MetadataKey.Album))
             .PutString(MediaMetadata.MetadataKeyArtist, mediaPlay.Author ?? metaRetriever.ExtractMetadata(MetadataKey.Artist))
             .PutString(MediaMetadata.MetadataKeyTitle, mediaPlay.Name ?? metaRetriever.ExtractMetadata(MetadataKey.Title))
-            .PutRating("Rate", Rating.NewHeartRating(false))
+            .PutRating("Rate", Rating.NewHeartRating(true))
             .PutLong(MediaMetadata.MetadataKeyDuration, mediaPlay.DurationInMs);
             // using this metaRetriever.ExtractMetadata(MetadataKey.Duration))  doesn't work
         }
@@ -655,7 +641,7 @@ public class MediaPlayerService : Service,
             builder.PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
                    .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
                    .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle))
-                   .PutRating("Rate", Rating.NewHeartRating(false))
+                   .PutRating("Rate", Rating.NewHeartRating(true))
                    .PutLong(MediaMetadata.MetadataKeyDuration, mediaSession.Controller.Metadata.GetLong(MediaMetadata.MetadataKeyDuration));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover);
@@ -702,30 +688,6 @@ public class MediaPlayerService : Service,
 
     }
 
-    /// <summary>
-    /// Lock the wifi so we can still stream under lock screen
-    /// </summary>
-    private void AquireWifiLock()
-    {
-        if (wifiLock == null)
-        {
-            wifiLock = wifiManager.CreateWifiLock(WifiMode.Full, "xamarin_wifi_lock");
-        }
-        wifiLock.Acquire();
-    }
-
-    /// <summary>
-    /// This will release the wifi lock if it is no longer needed
-    /// </summary>
-    private void ReleaseWifiLock()
-    {
-        if (wifiLock == null)
-            return;
-
-        wifiLock.Release();
-        wifiLock = null;
-    }
-
     private void UnregisterMediaSessionCompat()
     {
         try
@@ -769,7 +731,7 @@ public class MediaPlayerService : Service,
 
             NotificationHelper.StopNotification(Platform.AppContext);
             StopForeground(true);
-            ReleaseWifiLock();
+            
             UnregisterMediaSessionCompat();
         }
     }

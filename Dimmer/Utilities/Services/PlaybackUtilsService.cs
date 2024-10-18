@@ -78,7 +78,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.PlayEnded += AudioService_PlayEnded;
-
+        audioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
         LoadSongsWithSorting();
 
         LoadLastPlayedSong();
@@ -88,6 +88,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         AllPlaylists = PlaylistManagementService.AllPlaylists.ToObservableCollection();
         AllArtists = ArtistsMgtService.AllArtists.ToObservableCollection();
         CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
+    }
+
+    private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
+    {
+
+        currentPositionInSec = e/1000;
     }
 
 
@@ -614,6 +620,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
         }
+        else
+        {
+            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value.FirstOrDefault();
+            if (ObservableCurrentlyPlayingSong is null)
+            {
+                await Shell.Current.DisplayAlert("Error when trying to play song", "No songs loaded yet, Please load songs and try again!", "OK");
+            }
+        }
         if (repeatMode == 4)
         {
             CurrentRepeatCount = 1;
@@ -965,9 +979,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         currentPositionInSec = positionInSec;
 
-        if (ObservableCurrentlyPlayingSong.IsPlaying)
+        if (audioService.IsPlaying)
         {
-            await PlaySongAsync(ObservableCurrentlyPlayingSong, positionInSec: positionInSec);
+            await audioService.SetCurrentTime(positionInSec);
         }
 
     }
