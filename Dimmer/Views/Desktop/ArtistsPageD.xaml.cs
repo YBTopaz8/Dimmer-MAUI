@@ -13,7 +13,6 @@ public partial class ArtistsPageD : ContentPage
         AllArtistsColView.Loaded += AllArtistsColView_Loaded;
     }
 
-
     private void AllArtistsColView_Loaded(object? sender, EventArgs e)
     {
         if (AllArtistsColView.IsLoaded)
@@ -33,7 +32,6 @@ public partial class ArtistsPageD : ContentPage
         base.OnAppearing();
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        //HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
 

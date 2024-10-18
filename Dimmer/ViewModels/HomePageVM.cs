@@ -469,6 +469,7 @@ public partial class HomePageVM : ObservableObject
         if (TemporarilyPickedSong is not null)
         {
             PickedSong = TemporarilyPickedSong;
+            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
         }
@@ -979,7 +980,15 @@ public partial class HomePageVM : ObservableObject
     void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
-        var filePath = SelectedSongToOpenBtmSheet.FilePath; // SelectedSong.FilePath
+        string filePath = string.Empty;
+        if (CurrentPage == PageEnum.NowPlayingPage)
+        {
+            filePath = PickedSong.FilePath;
+        }
+        else
+        {
+            filePath = SelectedSongToOpenBtmSheet.FilePath;
+        }
         var directoryPath = Path.GetDirectoryName(filePath);
 
         if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))

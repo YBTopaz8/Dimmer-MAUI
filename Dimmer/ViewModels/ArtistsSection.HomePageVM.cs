@@ -47,6 +47,7 @@ public partial class HomePageVM
     }
     public async Task NavigateToArtistsPage(SongsModelView song)
     {
+        PickedSong = song;
         GetAllArtistsAlbum(song.Id, song);
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));

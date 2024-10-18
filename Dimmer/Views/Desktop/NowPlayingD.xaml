@@ -24,10 +24,8 @@
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
 
             <MenuFlyout x:Key="LyricsContentMenu">
-
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
-
             </MenuFlyout>
 
 
