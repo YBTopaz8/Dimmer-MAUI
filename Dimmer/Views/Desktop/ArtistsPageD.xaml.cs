@@ -86,4 +86,9 @@ public partial class ArtistsPageD : ContentPage
             AllAlbumsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, position: ScrollToPosition.Center, animate: false);
         }
     }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+
+    }
 }

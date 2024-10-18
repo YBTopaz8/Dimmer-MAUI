@@ -24,14 +24,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-
-            var songId = AllSongs.FirstOrDefault(x => x.Id.ToString() == "66d75d7c67442a548875e7da");
-            Debug.WriteLine(songId.DatesPlayed.Count);
-            
             //var exp = new CsvExporter();
 
             //string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "SongssDataExport.txt");
             //exp.ExportSongsToCsv(realmSongs, dataPath);
+            Debug.WriteLine(AllSongs.Count);
         }
         catch (Exception ex)
         {
@@ -44,6 +41,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
+        Debug.WriteLine(AllSongs.Count);
     }
     public async Task<bool> AddSongAsync(SongsModel song)
     {
@@ -60,7 +58,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             throw new Exception("Failed while inserting Song " + ex.Message);
         }
     }
-
     public bool AddSongBatchAsync(IEnumerable<SongsModelView> songs)
     {
         try

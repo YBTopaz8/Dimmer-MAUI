@@ -76,11 +76,8 @@ public partial class HomePageVM
 #if WINDOWS
      SelectedArtistOnArtistPage =  AllArtists.FirstOrDefault()!;
                 SelectedArtistId = SelectedArtistOnArtistPage.Id;
-                GetAllArtistsAlbum(SelectedArtistId, TemporarilyPickedSong);
-#elif ANDROID
-
+                GetAllArtistsAlbum(SelectedArtistId, TemporarilyPickedSong);   
 #endif
-
             }
         }
     }

@@ -1001,7 +1001,7 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     SongsModelView contextMenuSong;
-    public void SetContextMenuSong(SongsModelView song)
+    public void SetContextMenuSong(SongsModelView? song)
     {
         ContextMenuSong = song;
     }
@@ -1009,6 +1009,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task DeleteFile(SongsModelView song)
     {
+        song ??= SelectedSongToOpenBtmSheet;
         if (!await PlatSpecificUtils.DeleteSongFile(song))
         {
             return;

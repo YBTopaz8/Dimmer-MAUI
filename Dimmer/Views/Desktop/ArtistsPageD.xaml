@@ -30,8 +30,7 @@
                                 Clicked="MenuFlyoutItem_Clicked"/>
                 
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
-            </MenuFlyout>
-            
+            </MenuFlyout>            
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout>
@@ -192,6 +191,7 @@
                         </VisualStateManager.VisualStateGroups>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="2"/>
+                            <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
                         </Border.GestureRecognizers>
                         <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                             <VerticalStackLayout>
