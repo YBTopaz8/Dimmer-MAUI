@@ -973,7 +973,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    static void OpenSongFolder() //SongsModel SelectedSong)
+    void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
         var filePath = SelectedSongToOpenBtmSheet.FilePath; // SelectedSong.FilePath
