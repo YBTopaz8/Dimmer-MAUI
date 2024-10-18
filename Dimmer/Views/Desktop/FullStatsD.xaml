@@ -103,10 +103,9 @@
                                 HorizontalOptions="Center" HeightRequest="400"
                                 SelectionMode="Single" IsVisible="True">
                     <CollectionView.Header>
-                        <FlexLayout JustifyContent="SpaceBetween">
-                            <Label Text="Day" FontAttributes="Bold"/>
-                            <Label Text="Play Count" FontAttributes="Bold"/>
-                        </FlexLayout>
+                        
+                    <Label Text="Day" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            
                     </CollectionView.Header>
 
                     <CollectionView.ItemsLayout>
@@ -114,10 +113,11 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:DatePlayCount">
-                            <FlexLayout JustifyContent="SpaceBetween" Padding="10" Margin="10" >
-                                <Label Text="{Binding ., Converter={StaticResource DateTimeOffsetConverter}}"/>
-
-                            </FlexLayout>
+                            <Border Padding="10" Margin="10" >
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding ., Converter={StaticResource DateTimeOffsetConverter}}"/>
+                                </VerticalStackLayout>
+                            </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>

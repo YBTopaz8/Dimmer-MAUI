@@ -43,22 +43,23 @@ public partial class HomePageVM : ObservableObject
     bool isShuffleOn;
     [ObservableProperty]
     int currentRepeatMode;
+    [ObservableProperty]
+    bool isDRPCEnabled;
     IFolderPicker folderPicker { get; }
     IFileSaver FileSaver { get; }
-
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
+    public IDiscordRPC DiscordRPC { get; }
 
     [ObservableProperty]
     string unSyncedLyrics;
     [ObservableProperty]
     string localFilePath;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService)
-
-
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService,
+                      IDiscordRPC discordRPC)
     {
         this.folderPicker = folderPickerService;
         FileSaver = fileSaver;
@@ -66,6 +67,7 @@ public partial class HomePageVM : ObservableObject
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
         ArtistMgtService = artistMgtService;
+        DiscordRPC = discordRPC;
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
         SubscribeToPlayerStateChanges();
@@ -87,6 +89,7 @@ public partial class HomePageVM : ObservableObject
         ToggleRepeatMode();
 
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
+        IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
@@ -973,7 +976,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    static void OpenSongFolder() //SongsModel SelectedSong)
+    void OpenSongFolder() //SongsModel SelectedSong)
     {
 #if WINDOWS
         var filePath = SelectedSongToOpenBtmSheet.FilePath; // SelectedSong.FilePath
@@ -1011,7 +1014,10 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        await PlayNextSong();
+        if (IsPlaying)
+        {
+            await PlayNextSong();
+        }
         DisplayedSongs.Remove(song);
         await SongsMgtService.DeleteSongFromDB(song.Id);
     }
@@ -1084,6 +1090,21 @@ public partial class HomePageVM : ObservableObject
         {
             AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
+        }
+    }
+
+    [RelayCommand]
+    void ToggleDiscordRPC(bool isChecked)
+    {
+        if (isChecked)
+        {
+            AppSettingsService.DiscordRPCPreference.ToggleDiscordRPC(isChecked);
+            DiscordRPC.Initialize();
+            if (IsPlaying)
+            {
+                DiscordRPC.UpdatePresence(TemporarilyPickedSong,
+                    TimeSpan.FromSeconds(TemporarilyPickedSong.DurationInSeconds), TimeSpan.FromSeconds(CurrentPositionInSeconds));
+            }
         }
     }
 }

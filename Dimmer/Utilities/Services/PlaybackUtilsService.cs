@@ -41,7 +41,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public IPlaylistManagementService PlaylistManagementService { get; }
     public IArtistsManagementService ArtistsMgtService { get; }
     IPlaylistManagementService PlaylistMgtService { get; }
-
+    public IDiscordRPC DiscordRPC { get; }
     [ObservableProperty]
     ObservableCollection<PlaylistModelView> allPlaylists;
     [ObservableProperty]
@@ -66,13 +66,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     SortingEnum CurrentSorting;
     public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistManagementService,
-        IArtistsManagementService artistsMgtService)
+        IArtistsManagementService artistsMgtService, IDiscordRPC discordRPC)
     {
         this.SongsMgtService = SongsMgtService;
         StatsMgtService = statsMgtService;
         PlaylistManagementService = playlistManagementService;
         ArtistsMgtService = artistsMgtService;
         audioService = AudioService;
+        DiscordRPC = discordRPC;
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
@@ -705,6 +706,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
+                DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
+                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
+                TimeSpan.Zero);
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
@@ -983,6 +987,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             await audioService.SetCurrentTime(positionInSec);
         }
+
+        DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
+                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
+                TimeSpan.FromSeconds(positionInSec));
 
     }
     public void ChangeVolume(double newPercentageValue)

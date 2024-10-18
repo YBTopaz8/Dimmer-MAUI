@@ -25,7 +25,6 @@
 
             <MenuFlyout x:Key="LyricsContentMenu">
 
-                <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
 

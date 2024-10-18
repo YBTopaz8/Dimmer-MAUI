@@ -52,11 +52,9 @@ public static class MauiProgram
                                     "Cancel");
                                 if (result)
                                 {
+                                    var dRPC = IPlatformApplication.Current.Services.GetService<IDiscordRPC>();
+                                    dRPC.ShutDown();
                                     Application.Current.CloseWindow(win);
-                                }
-                                else
-                                {
-                                    await homeVM.PauseResumeSong();
                                 }
                             }
                         }
@@ -104,6 +102,7 @@ public static class MauiProgram
         /* Registering the Utilities services */
         builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
+        builder.Services.AddSingleton<IDiscordRPC, Utilities.Services.DiscordRPCclient>();
 
         /* Registering the ViewModels */
         builder.Services.AddSingleton<HomePageVM>();
