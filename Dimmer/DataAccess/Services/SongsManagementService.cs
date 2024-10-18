@@ -320,17 +320,17 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         try
         {
             // Query the database for the AlbumArtistSongLink using the songId
-            var link = db.All<AlbumArtistSongLink>()
+            var links = db.All<AlbumArtistSongLink>()
                          .Where(link => link.SongId == songId)
-                         .FirstOrDefault();
+                         .ToList();
 
-            // Check if the link was found to avoid null reference
-            if (link == null)
+            
+            if (links.Count == 0)
             {
-                return (ObjectId.Empty, ObjectId.Empty);
+                return (ObjectId.Empty, ObjectId.Empty); 
             }
+            var link = links.FirstOrDefault(); 
 
-            // Return both artistID and albumID as a tuple
             return (link.ArtistId, link.AlbumId);
         }
         catch (Exception ex)

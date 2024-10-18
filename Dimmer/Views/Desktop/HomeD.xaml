@@ -20,6 +20,7 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <Style TargetType="Label">
                 <Setter Property="HorizontalOptions" Value="Center"/>
                 <Setter Property="HorizontalTextAlignment" Value="Center"/>
@@ -51,7 +52,7 @@
         </SearchBar>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
-            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,0,0">
+            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,10,0">
                 <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
 
@@ -69,6 +70,8 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                         </ImageButton.Source>
                     </ImageButton>
+                    <material:CheckBox Text="Toggle Discord RPC" CheckChangedCommand="{Binding ToggleDiscordRPCCommand}" IsChecked="{Binding IsDRPCEnabled}"
+                                       x:Name="ToggleDiscordRPC" CommandParameter="{Binding IsChecked,Source={x:Reference ToggleDiscordRPC}}"/>
                 </HorizontalStackLayout>
 
             </FlexLayout>
@@ -272,14 +275,18 @@
                         </ImageButton>
                         <Label Text="{Binding AlbumName}" Grid.Column="4" LineBreakMode="HeadTruncation"
                                ToolTipProperties.Text="{Binding AlbumName}"/>
+                        
                         <Label Text="{Binding GenreName}" Grid.Column="5" LineBreakMode="HeadTruncation"
                                ToolTipProperties.Text="{Binding GenreName}"/>
+                        
                         <Label Grid.Column="6"
                                Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                        
                         <Label Text="{Binding BitRate, StringFormat='{0} kbps'}" 
                                Grid.Column="7"
-                               ToolTipProperties.Text="{Binding BitRate, StringFormat='{0} kbps'}" />
+                               ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
+                        
                         <Label Text="{Binding FileFormat}" Grid.Column="8"
                                ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
 

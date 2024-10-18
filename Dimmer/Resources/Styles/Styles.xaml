@@ -144,6 +144,8 @@
         <Setter Property="BorderWidth" Value="0"/>
         <Setter Property="CornerRadius" Value="15"/>
         <Setter Property="HeightRequest" Value="44"/>
+        <Setter Property="WidthRequest" Value="48"/>
+        
         <Setter Property="BackgroundColor" Value="Transparent"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
     </Style>

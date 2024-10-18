@@ -244,5 +244,25 @@ public class AppSettingsService : IAppSettingsService
             return true;
         }
     }
+    public static class DiscordRPCPreference
+    {
+        const bool isDiscordRPCEnabled = false;
+        public static bool IsDiscordRPCEnabled
+        {
+            get => Preferences.Default.Get(nameof(IsDiscordRPCEnabled), isDiscordRPCEnabled);
+            set
+            {
+                Preferences.Default.Set(nameof(IsDiscordRPCEnabled), value);
+            }
+        }
 
+        public static void ToggleDiscordRPC(bool isEnabled)
+        {
+            IsDiscordRPCEnabled = isEnabled;
+        }
+        public static bool GetDiscordRPC()
+        {
+            return IsDiscordRPCEnabled;
+        }
+    }
 }

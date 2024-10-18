@@ -32,8 +32,8 @@ public partial class App : Application
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 
-        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        await home.ExitingApp();
+        //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        //await home.ExitingApp();
         LogException(e.Exception);
     }
     public Window win;
@@ -46,11 +46,11 @@ public partial class App : Application
         win.Width = 1200;
 #if DEBUG
 
-        win.Title = "Dimmer v0.0.6-debug";
+        win.Title = "Dimmer v0.0.7-debug";
 #endif
 
 #if RELEASE
-        win.Title = "Dimmer v0.0.6-release";
+        win.Title = "Dimmer v0.0.7-release";
 #endif
         return win;
     }
