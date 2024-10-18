@@ -922,11 +922,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _positionTimer?.Start();
             _playerStateSubject.OnNext(MediaPlayerState.ShowPauseBtn);  // Update state to playing
+            
         }
         else
         {
             _positionTimer?.Stop();
             _playerStateSubject.OnNext(MediaPlayerState.ShowPlayBtn);
+            DiscordRPC.ClearPresence();
         }
     }
     #endregion
