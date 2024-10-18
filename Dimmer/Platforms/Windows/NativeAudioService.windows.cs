@@ -74,6 +74,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
+    public Task ResumeAsync(double positionInSeconds)
+    {
+        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
+        mediaPlayer.Play();
+        IsPlaying = true;
+        return Task.CompletedTask;
+    }
     public Task PlayAsync(bool IsFromPreviousOrNext = false)
     {
         double position = 0;

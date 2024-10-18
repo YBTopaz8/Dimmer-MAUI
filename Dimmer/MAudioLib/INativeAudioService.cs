@@ -7,6 +7,7 @@ public interface INativeAudioService
     Task PlayAsync(bool IsFromPreviousOrNext = false);
 
     Task PauseAsync();
+    Task ResumeAsync(double positionInSeconds);
     ///<Summary>
     /// Set the current playback position (in seconds).
     ///</Summary>

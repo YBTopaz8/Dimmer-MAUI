@@ -799,7 +799,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
-            await PlaySongAsync(positionInSec: currentPositionInSec);
+            await audioService.ResumeAsync(currentPosition);
+            DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong, 
+                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
+                TimeSpan.FromSeconds(currentPosition));
         }
 
         return true;

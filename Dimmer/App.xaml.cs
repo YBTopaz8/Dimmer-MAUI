@@ -68,8 +68,6 @@ public partial class App : Application
             {
                 Directory.CreateDirectory(directoryPath);
             }
-
-
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 

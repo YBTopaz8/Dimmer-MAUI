@@ -101,14 +101,17 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event EventHandler<long> IsSeekedFromNotificationBar;
 
     public Task PauseAsync()
-    {
-        
-        instance.Binder.GetMediaPlayerService().Pause();
-        
+    {        
+        instance.Binder.GetMediaPlayerService().Pause();        
         IsPlaying = false;
         ViewModel.SetPlayerState(MediaPlayerState.Playing);
         ViewModel.SetPlayerState(MediaPlayerState.ShowPlayBtn);
         return Task.CompletedTask;
+    }
+    public async Task ResumeAsync(double positionInSeconds)
+    {
+        var posInMs = positionInSeconds * 1000;
+        await instance.Binder.GetMediaPlayerService().Seek((int)posInMs);        
     }
 
     public async Task PlayAsync(bool IsFromPreviousOrNext = false)
