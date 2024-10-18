@@ -51,6 +51,7 @@ public partial class AppShell : Shell
                 {
 
                     shelltabbar.CurrentItem = homeTab;
+                    await Current.Navigation.PopAsync();
                     return;
                 }
 

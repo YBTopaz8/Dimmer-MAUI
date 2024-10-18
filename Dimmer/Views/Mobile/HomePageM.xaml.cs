@@ -111,7 +111,6 @@ public partial class HomePageM : UraniumContentPage
     EntryView searchSongTextField;
     private async void ShowSearchView_Clicked(object sender, EventArgs e)
     {
-        NormalTitleView.IsVisible = false;
         TitleSearchView.IsVisible = true;
         SearchSongSB.Focus();
         var searchSongTextField = SearchSongSB.Content as EntryView;
@@ -120,7 +119,6 @@ public partial class HomePageM : UraniumContentPage
 
     private async void HideSearchView_Clicked(object sender, EventArgs e)
     {
-        NormalTitleView.IsVisible = true;
         TitleSearchView.IsVisible = false;
         SearchSongSB.Unfocus();
         searchSongTextField = SearchSongSB.Content as EntryView;

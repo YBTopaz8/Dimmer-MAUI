@@ -26,7 +26,7 @@ public partial class AlbumsM : UraniumContentPage
     {
         var t = (VerticalStackLayout)sender;
         var album = t.BindingContext as AlbumModelView;
-        if (previousAlbID == album.Id)
+        if (previousAlbID == album!.Id)
         {
             return;
         }
@@ -38,7 +38,7 @@ public partial class AlbumsM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
+        HomePageVM.GetAllAlbumsCommand.Execute(null);
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)

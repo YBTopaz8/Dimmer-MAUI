@@ -17,7 +17,6 @@
             x:Name="myPage" Shell.TitleColor="Black"
             BackgroundColor="Black"
             Shell.TabBarBackgroundColor="Black"
-            Shell.TabBarIsVisible="True"
             >
 
 <uranium:UraniumContentPage.Resources>
@@ -36,55 +35,53 @@
     
     <toolkit:DockLayout Margin="5,0">
 
-        <VerticalStackLayout VerticalOptions="Center" toolkit:DockLayout.DockPosition="Top">
-            <Grid ColumnDefinitions="*,Auto" IsVisible="True" x:Name="NormalTitleView">
+        <Grid ColumnDefinitions="auto,*,auto" toolkit:DockLayout.DockPosition="Top">
 
-                <Label Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
-                       HorizontalTextAlignment="Start" VerticalTextAlignment="Center" 
-                       FontAttributes="Bold" TextColor="DarkSlateBlue"
-                        FontSize="20" Grid.Column="0"/>
+            <!-- Label at the extreme left -->
+            <Label Grid.Column="0"
+           Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
+           HorizontalTextAlignment="Start"
+           VerticalTextAlignment="Center"
+           FontAttributes="Bold"
+           TextColor="DarkSlateBlue"
+           FontSize="20" />
 
-                <ImageButton Clicked="HideSearchView_Clicked" HeightRequest="30" IsVisible="False"
-                            Grid.Column="1" Command="{Binding OpenSortingPopupCommand}" >
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-
-                <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" Grid.Column="1"
-                              HeightRequest="30">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-            </Grid>
-
-            <Grid ColumnDefinitions="*,auto,auto" IsVisible="False" x:Name="TitleSearchView">
-                <material:TextField Title="Search The Music ..." x:Name="SearchSongSB" 
-                                    ClearButtonVisibility="WhileEditing" TextColor="White" 
-                                    TextChanged="SearchSongSB_TextChanged" Grid.Column="0" />
-
-                <ImageButton Clicked="HideSearchView_Clicked" HeightRequest="30"
-                            Grid.Column="1" >
+            <!-- 2nd Grid to occupy the middle (full remaining space) -->
+            <Grid Grid.Column="1" 
+                  IsVisible="False" ColumnDefinitions="*,Auto"
+                  x:Name="TitleSearchView">
+                <material:TextField Title="Search The Music ..."
+                            x:Name="SearchSongSB" Grid.Column="0"
+                            ClearButtonVisibility="WhileEditing"
+                            TextColor="White"
+                            TextChanged="SearchSongSB_TextChanged"/>
+                <ImageButton Clicked="HideSearchView_Clicked"
+                     HeightRequest="30"
+                     Grid.Column="1">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Close}"/>
                     </ImageButton.Source>
                 </ImageButton>
+            </Grid>
 
-                <ImageButton  HeightRequest="30" Command="{Binding OpenSortingPopupCommand}" 
-                            Grid.Column="2" IsVisible="False">
+            <!-- HorizontalStackLayout at the extreme right -->
+            <HorizontalStackLayout Grid.Column="2" HorizontalOptions="End">
+                <ImageButton HeightRequest="25" Command="{Binding OpenSortingPopupCommand}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
-                <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" Grid.Column="2" HeightRequest="30">
+                <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
+                     HeightRequest="25">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
                     </ImageButton.Source>
                 </ImageButton>
-            </Grid>
-        </VerticalStackLayout>
+            </HorizontalStackLayout>
+
+        </Grid>
+
 
         <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
@@ -159,6 +156,7 @@
             <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" HeightRequest="160">
                 <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"
                                   BackgroundColor="DarkSlateBlue" CornerRadius="20">
+                    
                     <ImageButton.GestureRecognizers>
                         <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
                         <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>

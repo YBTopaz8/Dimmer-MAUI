@@ -33,7 +33,7 @@ public partial class ArtistsPageD : ContentPage
         base.OnAppearing();
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
+        //HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
         AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
 
@@ -85,5 +85,12 @@ public partial class ArtistsPageD : ContentPage
         {
             AllAlbumsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, position: ScrollToPosition.Center, animate: false);
         }
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (Border)sender;
+        var song = send.BindingContext! as SongsModelView;
+        HomePageVM.SetContextMenuSong(song);
     }
 }

@@ -59,6 +59,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event EventHandler PlayNext;
     public event EventHandler PlayPrevious;
     public event PropertyChangedEventHandler PropertyChanged;
+    public event EventHandler<long> IsSeekedFromNotificationBar;
 
     public void InitializeAsync(string audioURI)
     {

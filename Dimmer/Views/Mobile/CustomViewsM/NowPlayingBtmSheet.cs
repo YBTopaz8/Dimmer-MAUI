@@ -100,7 +100,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
         IsPresented = false;
         IsPresentedChanged?.Invoke(this, false);
-
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
@@ -162,14 +161,18 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                             Shell.SetNavBarIsVisible(this.AttachedPage, false);
                             Shell.SetTabBarIsVisible(this.AttachedPage, true);
                             IsPresented = false;
-                        }
 
+                            HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
+                        }
+                        
                     }
                     else
                     {
                         Shell.SetNavBarIsVisible(this.AttachedPage, false);
                         Shell.SetTabBarIsVisible(this.AttachedPage, false);
                         IsPresented = true;
+
+                        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
                     }
                 }
 

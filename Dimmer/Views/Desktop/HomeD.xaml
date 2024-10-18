@@ -87,7 +87,7 @@
 
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="230" />
                 <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="30" />
                 <ColumnDefinition Width="*" />
@@ -210,7 +210,7 @@
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Grid.GestureRecognizers>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="230" />
                             <ColumnDefinition Width="120" />
                             <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="*" />
@@ -239,7 +239,7 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <VerticalStackLayout Grid.Column="0" Spacing="10" >
+                        <HorizontalStackLayout Grid.Column="0" Spacing="10" >
 
                             <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" VerticalOptions="Center"
                                        HorizontalOptions="Start"
@@ -252,7 +252,7 @@
                                 </Image.Source>
                             </Image>
 
-                        </VerticalStackLayout>
+                        </HorizontalStackLayout>
 
                         <Label Text="{Binding ArtistName}" Grid.Column="1"
                                LineBreakMode="WordWrap"

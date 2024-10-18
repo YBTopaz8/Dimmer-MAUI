@@ -78,7 +78,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         audioService.PlayNext += AudioService_PlayNext;
         audioService.IsPlayingChanged += AudioService_PlayingChanged;
         audioService.PlayEnded += AudioService_PlayEnded;
-
+        audioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
         LoadSongsWithSorting();
 
         LoadLastPlayedSong();
@@ -90,6 +90,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     }
 
+    private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
+    {
+
+        currentPositionInSec = e/1000;
+    }
+
 
     #region Setups/Loadings Region
 
@@ -99,186 +105,43 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     HomePageVM ViewModel { get; set; }
     private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?) LoadSongs(List<string> folderPaths)
     {
-        ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        
         try
         {
-            List<string> allFiles = new();
-            foreach (var path in folderPaths.Distinct())
-            {
-                if (path is null)
-                {
-                    continue;
-                }
-                allFiles.AddRange(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
-                                    .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
-                                    .AsParallel()
-                                    .ToList());
-            }
+            var allFiles = GetAllFiles(folderPaths);
 
             if (allFiles.Count == 0)
             {
                 return (null, null, null, null);
             }
 
+            // Fetch existing data from services
             var existingArtists = ArtistsMgtService.AllArtists;
             var existingLinks = ArtistsMgtService.AlbumsArtistsSongLink;
             var existingAlbums = SongsMgtService.AllAlbums;
+            var oldSongs = SongsMgtService.AllSongs ?? new List<SongsModelView>();
 
-            var oldSongs = SongsMgtService.AllSongs is null ? new List<SongsModelView>() : SongsMgtService.AllSongs;
-            var allSongs = new List<SongsModelView>();
-            var artistDict = new Dictionary<string, ArtistModelView>(StringComparer.OrdinalIgnoreCase);
-            var albumDict = new Dictionary<string, AlbumModelView>();
+            // Initialize collections and dictionaries
             var newArtists = new List<ArtistModelView>();
             var newAlbums = new List<AlbumModelView>();
             var newLinks = new List<AlbumArtistSongLink>();
-            int totalFiles = allFiles.Count;
-            int processedFiles = 0;
+            var allSongs = new List<SongsModelView>();
+            var artistDict = new Dictionary<string, ArtistModelView>(StringComparer.OrdinalIgnoreCase);
+            var albumDict = new Dictionary<string, AlbumModelView>();
 
-            int skipCounter = 0;
+            int processedFiles = 0;
+            int totalFiles = allFiles.Count;
 
             foreach (var file in allFiles)
             {
-                FileInfo fileInfo = new(file);
-                if (fileInfo.Length < 1000)
+                if (IsValidFile(file))
                 {
-                    skipCounter++;
-                    continue;
-                }
-
-                Track track = new(file);
-
-                // Process the title
-                string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
-
-                var albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
-
-                AlbumModelView album = null;
-
-                if (!string.IsNullOrEmpty(albumName))
-                {
-                    if (!albumDict.TryGetValue(albumName, out album))
+                    var songData = ProcessFile(file, existingAlbums.ToList(), albumDict, newAlbums, 
+                        oldSongs.ToList(), newArtists, artistDict, 
+                        newLinks, existingLinks.ToList(), existingArtists.ToList());
+                    if (songData != null)
                     {
-                        album = new AlbumModelView
-                        {
-                            Id = ObjectId.GenerateNewId(),
-                            Name = albumName,
-                            AlbumImagePath = null // Default value, will be updated later
-                        };
-                        albumDict[albumName] = album;
-
-                        // Check if the album already exists in the database
-                        if (!existingAlbums.Any(a => a.Name == albumName))
-                        {
-                            newAlbums.Add(album);
-                        }
-                    }
-                }
-
-                // Initialize a HashSet to store unique artist names
-                var artistNamesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                // Split and process the main artist names from the track
-                var artistNames = track.Artist?
-                    .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
-                    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(artist => artist.Trim())
-                    .ToList();
-
-                // Split and process the album artist names, if any
-                var otherArtists = track.AlbumArtist?
-                    .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
-                    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(artist => artist.Trim())
-                    .ToList();
-
-                if (otherArtists != null)
-                {
-                    foreach (var oName in otherArtists)
-                    {
-                        if (!artistNames!.Contains(oName))
-                        {
-                            artistNames.Add(oName);
-                        }
-                    }
-                }
-
-                string mainArtistName = string.Join(", ", artistNames);
-
-                var song = new SongsModelView
-                {
-                    Title = title,
-                    AlbumName = albumName,
-                    ArtistName = mainArtistName,
-                    ReleaseYear = track.Year,
-                    SampleRate = track.SampleRate,
-                    FilePath = track.Path,
-                    DurationInSeconds = track.Duration,
-                    BitRate = track.Bitrate,
-                    FileSize = fileInfo.Length,
-                    TrackNumber = track.TrackNumber,
-                    FileFormat = Path.GetExtension(file).TrimStart('.'),
-                    HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    DateAdded = fileInfo.CreationTime
-                };
-
-                // Handle cover image
-                string? mimeType = track.EmbeddedPictures?.FirstOrDefault()?.MimeType;
-                if (mimeType == "image/jpg" || mimeType == "image/jpeg" || mimeType == "image/png")
-                {
-                    song.CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData);
-                }
-                if (string.IsNullOrEmpty(song.CoverImagePath))
-                {
-                    song.CoverImagePath = GetCoverImagePath(track.Path);
-                }
-
-                if (!string.IsNullOrEmpty(albumName))
-                {
-                    album.AlbumImagePath = song.CoverImagePath; // Update the album image path
-                }
-
-                // Check if the song already exists for the current artist
-                if (oldSongs.Any(s => s.Title == title && s.DurationInSeconds == track.Duration))
-                {
-                    Debug.WriteLine("Skipping existing song for artist: " + song.ArtistName);
-                    continue;
-                }
-
-                allSongs.Add(song);
-
-                foreach (var artistName in artistNames)
-                {
-                    // Check if the artist already exists in the dictionary or database
-                    if (!artistDict.TryGetValue(artistName, out var artist))
-                    {
-                        artist = existingArtists.FirstOrDefault(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
-                        if (artist == null)
-                        {
-                            artist = new ArtistModelView
-                            {
-                                Id = ObjectId.GenerateNewId(),
-                                Name = artistName,
-                                ImagePath = null
-                            };
-                            newArtists.Add(artist);
-                        }
-                        artistDict[artistName] = artist;
-                    }
-
-                    // Create links for each artist
-                    if (!string.IsNullOrEmpty(albumName) && album != null)
-                    {
-                        var newLink = new AlbumArtistSongLink
-                        {
-                            ArtistId = artist.Id,
-                            AlbumId = album.Id,
-                            SongId = song.Id
-                        };
-
-                        if (!existingLinks.Any(l => l.ArtistId == artist.Id && l.AlbumId == album.Id && l.SongId == song.Id))
-                        {
-                            newLinks.Add(newLink);
-                        }
+                        allSongs.Add(songData);
                     }
                 }
 
@@ -299,40 +162,269 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
+    private List<string> GetAllFiles(List<string> folderPaths)
+    {
+        List<string> allFiles = new();
+
+        foreach (var path in folderPaths.Distinct())
+        {
+            if (path is null)
+            {
+                continue;
+            }
+            allFiles.AddRange(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                                .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
+                                .AsParallel()
+                                .ToList());
+        }
+
+        return allFiles;
+    }
+    private bool IsValidFile(string file)
+    {
+        FileInfo fileInfo = new(file);
+        return fileInfo.Length > 1000;
+    }
+
+    private SongsModelView? ProcessFile(
+    string file,
+    List<AlbumModelView> existingAlbums,
+    Dictionary<string, AlbumModelView> albumDict,
+    List<AlbumModelView> newAlbums,
+    List<SongsModelView> oldSongs,
+    List<ArtistModelView> newArtists,
+    Dictionary<string, ArtistModelView> artistDict,
+    List<AlbumArtistSongLink> newLinks,
+    List<AlbumArtistSongLink> existingLinks,
+    List<ArtistModelView> existingArtists)
+    {
+        Track track = new(file);
+
+        // Process title and album
+        string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
+        string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
+        AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
+
+        // Extract artist names
+        var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
+        string mainArtistName = string.Join(", ", artistNames);
+
+        var song = CreateSongModel(track, title, albumName, mainArtistName, file);
+
+        if (!string.IsNullOrEmpty(albumName))
+        {
+            album.AlbumImagePath = song.CoverImagePath;
+        }
+
+        // Check if song already exists
+        if (oldSongs.Any(s => s.Title == title && s.DurationInSeconds == track.Duration))
+        {
+            Debug.WriteLine("Skipping existing song for artist: " + song.ArtistName);
+            return null;
+        }
+
+        // Process artists and links
+        foreach (var artistName in artistNames)
+        {
+            var artist = GetOrCreateArtist(artistName, artistDict, newArtists, existingArtists);
+            CreateLinks(artist, album, song, newLinks, existingLinks);
+        }
+
+        return song;
+    }
+    private List<string> GetArtistNames(string? artist, string? albumArtist)
+    {
+        var artistNamesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // Split and process the main artist names
+        if (!string.IsNullOrEmpty(artist))
+        {
+            var artistNames = artist
+                .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
+                .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(a => a.Trim());
+
+            foreach (var name in artistNames)
+            {
+                artistNamesSet.Add(name);
+            }
+        }
+
+        // Split and process the album artist names, if any
+        if (!string.IsNullOrEmpty(albumArtist))
+        {
+            var albumArtists = albumArtist
+                .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
+                .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(a => a.Trim());
+
+            foreach (var name in albumArtists)
+            {
+                artistNamesSet.Add(name);  // Add to the set to ensure uniqueness
+            }
+        }
+
+        // Return the artist names as a list
+        return artistNamesSet.ToList();
+    }
+
+
+    private AlbumModelView GetOrCreateAlbum(
+    string albumName,
+    List<AlbumModelView> existingAlbums,
+    Dictionary<string, AlbumModelView> albumDict,
+    List<AlbumModelView> newAlbums)
+    {
+        if (string.IsNullOrEmpty(albumName))
+        {
+            return null;
+        }
+
+        if (!albumDict.TryGetValue(albumName, out var album))
+        {
+            album = new AlbumModelView
+            {
+                Id = ObjectId.GenerateNewId(),
+                Name = albumName,
+                AlbumImagePath = null // Default value, will be updated later
+            };
+            albumDict[albumName] = album;
+
+            // Check if the album already exists in the database
+            if (!existingAlbums.Any(a => a.Name == albumName))
+            {
+                newAlbums.Add(album);
+            }
+        }
+
+        return album;
+    }
+
+    private ArtistModelView GetOrCreateArtist(
+        string artistName,
+        Dictionary<string, ArtistModelView> artistDict,
+        List<ArtistModelView> newArtists,
+        List<ArtistModelView> existingArtists)
+    {
+        if (!artistDict.TryGetValue(artistName, out var artist))
+        {
+            artist = existingArtists.FirstOrDefault(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
+            if (artist == null)
+            {
+                artist = new ArtistModelView
+                {
+                    Id = ObjectId.GenerateNewId(),
+                    Name = artistName,
+                    ImagePath = null
+                };
+                newArtists.Add(artist);
+            }
+            artistDict[artistName] = artist;
+        }
+
+        return artist;
+    }
+
+    private void CreateLinks(
+        ArtistModelView artist,
+        AlbumModelView album,
+        SongsModelView song,
+        List<AlbumArtistSongLink> newLinks,
+        List<AlbumArtistSongLink> existingLinks)
+    {
+        if (album != null)
+        {
+            var newLink = new AlbumArtistSongLink
+            {
+                ArtistId = artist.Id,
+                AlbumId = album.Id,
+                SongId = song.Id
+            };
+
+            if (!existingLinks.Any(l => l.ArtistId == artist.Id && l.AlbumId == album.Id && l.SongId == song.Id))
+            {
+                newLinks.Add(newLink);
+            }
+        }
+    }
+
+    private SongsModelView CreateSongModel(
+    Track track,
+    string title,
+    string albumName,
+    string artistName,
+    string filePath)
+    {
+        FileInfo fileInfo = new(filePath);
+
+        var song = new SongsModelView
+        {
+            Title = title,
+            AlbumName = albumName,
+            ArtistName = artistName,
+            ReleaseYear = track.Year,
+            SampleRate = track.SampleRate,
+            FilePath = track.Path,
+            DurationInSeconds = track.Duration,
+            BitRate = track.Bitrate,
+            FileSize = fileInfo.Length,
+            TrackNumber = track.TrackNumber,
+            FileFormat = Path.GetExtension(filePath).TrimStart('.'),
+            HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(filePath.Replace(Path.GetExtension(filePath), ".lrc")),
+            DateAdded = fileInfo.CreationTime,
+            CoverImagePath = GetCoverImagePath(track.Path)
+        };
+
+        return song;
+    }
+
+
 
     public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
     {
         ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        // Fetch existing data from DB
-        ArtistsMgtService.GetArtists();
-        SongsMgtService.GetSongs();
 
-        (var allArtists, var allAlbums, var allLinks, var songs) = await Task.Run(() => LoadSongs(folderPaths));
-        GetReadableFileSize();
-        GetReadableDuration();
-        //if (songs != null && songs.Count != 0)
-        //{
-        //    //save songs to db to songs table
-        //    await SongsMgtService.AddSongBatchAsync(songs!);
-        //}
+        // Load songs from the folders asynchronously
+        (var allArtists, var allAlbums, 
+            var allLinks, var songs) = await Task.Run(() => LoadSongs(folderPaths));
 
-        List<SongsModel> dbSongs = new();
-        if (songs != null)
+        if (songs is null || allArtists is null || allAlbums is null)
         {
-            dbSongs = songs.Select(song => new SongsModel(song)).ToList();
+            await Shell.Current.DisplayAlert("Error during Scan", "No Songs to Scan", "OK");
+            return false;
         }
-        ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbum(allArtists, allAlbums, allLinks, dbSongs);
 
-        var songss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
-        LoadSongsWithSorting(songss);
+        songs = songs.DistinctBy(x => new { x.Title, x.DurationInSeconds, x.AlbumName, x.ArtistName }).ToList();
+
+        allArtists = allArtists.DistinctBy(x => x.Name).ToList();
+
+        allAlbums = allAlbums.DistinctBy(x => x.Name).ToList();
+        allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId }).ToList();
+
+        // Add songs to the database
+        AddSongsToDatabase(allArtists, allAlbums, allLinks, songs);
+
+        // Concat the new songs to the current songs list and load with sorting
+        var allSongss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
+        LoadSongsWithSorting(allSongss);
 
         SongsMgtService.GetSongs();
 
         ObservableLoadingSongsProgress = 100;
-
         ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
         return true;
     }
+
+    private void AddSongsToDatabase(List<ArtistModelView> allArtists, List<AlbumModelView> allAlbums, List<AlbumArtistSongLink> allLinks, List<SongsModelView> songs)
+    {
+        List<SongsModel> dbSongs = songs?.Select(song => new SongsModel(song)).ToList();
+
+        // Add the songs to the respective artists and albums in the database
+        ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbum(allArtists, allAlbums, allLinks, dbSongs);
+    }
+
+
+
     private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
     {
         if (songss == null || songss.Count < 1)
@@ -527,6 +619,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
+        }
+        else
+        {
+            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value.FirstOrDefault();
+            if (ObservableCurrentlyPlayingSong is null)
+            {
+                await Shell.Current.DisplayAlert("Error when trying to play song", "No songs loaded yet, Please load songs and try again!", "OK");
+            }
         }
         if (repeatMode == 4)
         {
@@ -879,9 +979,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         currentPositionInSec = positionInSec;
 
-        if (ObservableCurrentlyPlayingSong.IsPlaying)
+        if (audioService.IsPlaying)
         {
-            await PlaySongAsync(ObservableCurrentlyPlayingSong, positionInSec: positionInSec);
+            await audioService.SetCurrentTime(positionInSec);
         }
 
     }

@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
+
 namespace Dimmer_MAUI;
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 
@@ -59,8 +60,19 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
     protected async override void OnStop()
     {
         base.OnStop();
-        
-        var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        var nativeAudio = IPlatformApplication.Current.Services.GetService<INativeAudioService>();
+        nativeAudio!.IsPlayingChanged += NativeAudio_IsPlayingChanged;
+        //Task.Run(async () => MonitorAppStateAsync(nativeAudio));
+
+        var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>()!;
         await homeVM.ExitingApp();
+    }
+    private async void NativeAudio_IsPlayingChanged(object? sender, bool isPlaying)
+    {
+        if (!isPlaying)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            this.FinishAffinity();
+        }
     }
 }

@@ -14,9 +14,6 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     double volume = 1;
     double balance = 0;
     bool muted = false;
-    //private MediaPlayer mediaPlayer => instance != null &&
-    //    instance.Binder.GetMediaPlayerService() != null ?
-    //    instance.Binder.GetMediaPlayerService().mediaPlayer : null;
     MediaPlay CurrentMedia { get; set; }
     private MediaPlayer mediaPlayer
     {
@@ -101,8 +98,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event EventHandler PlayPrevious;
     public event EventHandler NotificationTapped;
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler<long> IsSeekedFromNotificationBar;
 
-    
     public Task PauseAsync()
     {
         
@@ -167,10 +164,9 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public async Task<bool> SetCurrentTime(double position)
+    public async Task<bool> SetCurrentTime(double positionInSeconds)
     {
-        //position = (position) * Duration;
-        var posInMs = (int)(position * CurrentMedia.DurationInMs);
+        var posInMs = (int)(positionInSeconds * 1000);
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
@@ -239,8 +235,15 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
             mediaPlayerService.PlayingChanged -= OnPlayingChanged; // Unsubscribe if previously subscribed
             mediaPlayerService.PlayingChanged += OnPlayingChanged;
+            mediaPlayerService.IsSeekedFromNotificationBar += MediaPlayerService_IsSeekedFromNotificationBar;
         }
     }
+
+    private void MediaPlayerService_IsSeekedFromNotificationBar(object? sender, long e)
+    {
+        this.IsSeekedFromNotificationBar?.Invoke(this, e);
+    }
+
     private void OnPlayingChanged(object sender, bool isPlaying)
     {
         Task.Run(async () =>

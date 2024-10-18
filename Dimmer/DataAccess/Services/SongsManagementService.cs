@@ -24,14 +24,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-
-            var songId = AllSongs.FirstOrDefault(x => x.Id.ToString() == "66d75d7c67442a548875e7da");
-            Debug.WriteLine(songId.DatesPlayed.Count);
-            
             //var exp = new CsvExporter();
 
             //string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "SongssDataExport.txt");
             //exp.ExportSongsToCsv(realmSongs, dataPath);
+            Debug.WriteLine(AllSongs.Count);
         }
         catch (Exception ex)
         {
@@ -44,6 +41,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
+        Debug.WriteLine(AllSongs.Count);
     }
     public async Task<bool> AddSongAsync(SongsModel song)
     {
@@ -60,7 +58,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             throw new Exception("Failed while inserting Song " + ex.Message);
         }
     }
-
     public bool AddSongBatchAsync(IEnumerable<SongsModelView> songs)
     {
         try
@@ -349,14 +346,47 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         {
             await db.WriteAsync(() =>
             {
+                // Find the song by its ID
                 var existingSong = db.Find<SongsModel>(songID);
                 if (existingSong != null)
                 {
+                    // Step 1: Find all artist links related to this song
+                    var artistSongLinks = db.All<AlbumArtistSongLink>()
+                                            .Where(link => link.SongId == songID)
+                                            .ToList();
+
+                    // Step 2: Get the artist IDs before deleting the links
+                    var artistIDs = artistSongLinks.Select(link => link.ArtistId).ToList();
+
+                    // Step 3: Remove all artist-song links for this song
+                    foreach (var link in artistSongLinks)
+                    {
+                        db.Remove(link);
+                    }
+
+                    // Step 4: Delete the song itself
                     db.Remove(existingSong);
-                }                
+
+                    // Step 5: Check if any of the artists are linked to other songs
+                    foreach (var artistID in artistIDs)
+                    {
+                        bool isArtistLinkedToOtherSongs = db.All<AlbumArtistSongLink>()
+                                                            .Any(link => link.ArtistId == artistID && link.SongId != songID);
+
+                        // If the artist has no other songs, delete the artist
+                        if (!isArtistLinkedToOtherSongs)
+                        {
+                            var artistToDelete = db.Find<ArtistModel>(artistID);
+                            if (artistToDelete != null)
+                            {
+                                db.Remove(artistToDelete);
+                            }
+                        }
+                    }
+                }
             });
 
-            GetSongs();
+            GetSongs(); // Update the list after deletion
             return true;
         }
         catch (Exception ex)
@@ -365,6 +395,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             return false;
         }
     }
+
 }
 public class CsvExporter
 {
