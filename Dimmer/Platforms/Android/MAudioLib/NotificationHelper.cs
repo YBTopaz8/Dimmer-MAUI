@@ -4,7 +4,6 @@ using Android.Graphics;
 using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
-using System.Diagnostics;
 using static Android.App.Notification;
 using static Android.Resource;
 using AndroidMedia = Android.Media;

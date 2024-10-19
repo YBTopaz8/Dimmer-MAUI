@@ -4,7 +4,6 @@ global using CommunityToolkit.Maui.Storage;
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
-global using Dimmer_MAUI.Views;
 global using UraniumUI;
 global using UraniumUI.Pages;
 

@@ -70,6 +70,9 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                         </ImageButton.Source>
                     </ImageButton>
+
+                    <!--<Button Command="{Binding DummyFuncCommand}" Text="Dummy Func!"/>-->
+
                     <material:CheckBox Text="Toggle Discord RPC" CheckChangedCommand="{Binding ToggleDiscordRPCCommand}" IsChecked="{Binding IsDRPCEnabled}"
                                        x:Name="ToggleDiscordRPC" CommandParameter="{Binding IsChecked,Source={x:Reference ToggleDiscordRPC}}"/>
                 </HorizontalStackLayout>

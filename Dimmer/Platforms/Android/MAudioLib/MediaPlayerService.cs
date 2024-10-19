@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Media;
-using Android.Net;
 using Android.Net.Wifi;
 using Android.OS;
 using Android.Media.Session;

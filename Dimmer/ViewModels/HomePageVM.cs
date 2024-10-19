@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
@@ -1115,5 +1113,11 @@ public partial class HomePageVM : ObservableObject
                     TimeSpan.FromSeconds(TemporarilyPickedSong.DurationInSeconds), TimeSpan.FromSeconds(CurrentPositionInSeconds));
             }
         }
+    }
+
+    [RelayCommand]
+    void DummyFunc()
+    {
+        GetAllAlbums();
     }
 }

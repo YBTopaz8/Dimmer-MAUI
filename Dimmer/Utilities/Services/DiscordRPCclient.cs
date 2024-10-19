@@ -60,25 +60,21 @@ public class DiscordRPCclient : IDiscordRPC
         {
             if (song == currentSong)
                 return;
-
+            position = position.Add(TimeSpan.FromSeconds(1));
             _discordRpcClient.SetPresence(new RichPresence()
             {
                 Details = $"Listening to {song.Title}",
                 State = $"by {song.ArtistName} | {song.AlbumName}",
-                //Buttons = new DiscordRPC.Button()
-                
+                Buttons =
+                [
+                    new() { Label = "Try Dimmer !", Url = @"https://github.com/YBTopaz8/Dimmer-MAUI/releases"}
+                ],
                 Timestamps = new Timestamps()
                 {
                     Start = DateTime.UtcNow - position,
                     End = DateTime.UtcNow + (duration - position)
                 },
-                Assets = new Assets()
-                {
-                    LargeImageKey = song.CoverImagePath,
-                    LargeImageText = "Dimmer by Yvan Brunel",
-                    SmallImageKey = song.CoverImagePath,
-                    SmallImageText = "Dimmer by Yvan Brunel (smol)",
-                }
+                
             });
         }
     }

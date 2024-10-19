@@ -7,6 +7,9 @@ public static class MiniPlayBackControlNotif
         try
         {
 
+            var s = DeviceDisplay.Current.MainDisplayInfo.Height;
+            var rr = DeviceDisplay.Current.MainDisplayInfo.Width;
+
             var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
             if (miniPlayerWindow is not null)
             {
@@ -19,7 +22,7 @@ public static class MiniPlayBackControlNotif
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 var secondWindow = new Window(miniPlayerView);
-                var mainScreenBounds = DeviceDisplay.MainDisplayInfo;
+                var mainScreenBounds = DeviceDisplay.Current.MainDisplayInfo;
                 
                 secondWindow.Title = "MP";
                 secondWindow.MaximumHeight = 150;

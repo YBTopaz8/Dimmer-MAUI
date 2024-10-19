@@ -28,7 +28,7 @@
     
     <Grid ColumnDefinitions="*" RowDefinitions="Auto,*"
                 RowSpacing="2">
-        <Grid ColumnDefinitions="*,Auto" Grid.Row="0" HeightRequest="40">
+        <Grid ColumnDefinitions="*,Auto,Auto" Grid.Row="0" HeightRequest="40">
 
             <Label Text="Albums" HorizontalTextAlignment="Center"
            VerticalTextAlignment="Center" FontAttributes="Bold" 
@@ -40,11 +40,18 @@
                     <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                 </ImageButton.Source>
             </ImageButton>
+            <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30"
+                  Grid.Column="2">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Refresh}"/>
+                </ImageButton.Source>
+            </ImageButton>
 
         </Grid>
+        <!--<RefreshView Command="{Binding GetAllAlbumsCommand}" RefreshColor="DarkSlateBlue">-->
         <CollectionView  Grid.Row="1" EmptyView="No Albums..."
-                                VerticalOptions="Start" 
-                            ItemsSource="{Binding AllAlbums}">
+                    VerticalOptions="Start" 
+                ItemsSource="{Binding AllAlbums}">
 
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Horizontal"/>
@@ -58,11 +65,11 @@
                                 <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
                             </VerticalStackLayout.GestureRecognizers>
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                                WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
-                                                BorderWidth="0" CornerRadius="10"/>
+                                    WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
+                                    BorderWidth="0" CornerRadius="10"/>
 
                             <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                                    Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
+                        Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
 
 
                         </VerticalStackLayout>
@@ -71,6 +78,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+        <!--</RefreshView>-->        
     </Grid>
 
 

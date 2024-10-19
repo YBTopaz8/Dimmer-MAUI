@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
