@@ -35,12 +35,14 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 | ------------- |:-------------:|
 | <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| <img src="ScreenShots/Mobile/MainUI_M.png" height=500> |
 | <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUI_M.png" height=500> |
+| <img src="ScreenShots/Desktop/ArtistAlbumPage_D.png" height=500>| <img src="ScreenShots/Mobile/ArtistAlbumPage_M.png" height=500> |
 | <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
-| <img src="ScreenShots/Desktop/StatisPage_D.png" height=500>| <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> <img src="ScreenShots/Mobile/StatisPage_M2.png" height=500>  | 
-| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/SearchResults_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>| coming soon...|
-
+| <img src="ScreenShots/Desktop/StatisPage_D.png" height=500>| <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> | 
+| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>|
+| <img src="ScreenShots/Desktop/LyricsSearchResult2_D.png" height=500>| <img src="ScreenShots/Desktop/LyricsSearchResult2_M.png" height=500>|
+| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>|
+| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheet_M.png" height=500>  |
+| <img src="ScreenShots/Mobile/SinglePlayListPage_M.png" height=500>  |
 ## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
 
