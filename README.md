@@ -11,22 +11,23 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Play/Pause Songs (I knooow..)
 - Show Sync lyrics from either .lrc file or from song's metadata.
 - Lyrics download.
+- Discord Rich Presence For PC
 - More to come such as playlist management, song's editing, statistics etc..
 
 # Requirements
 - A PC running Windows 10 at least.
-- An Android Device running Android 11 at least (API 30).
+- An Android Device running Android 13 at least (API 33).
 - Visual Studio 2019, 2022 or latest (It was built on VS 2022) with MAUI support.
 
 # How To Install on Windows
 - Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
-- Right Click on "install.ps1"
+- Right Click on "install.ps1" and click "Run with PowerShell"
 - Review all on screen instructions and agreed to install certificates and the app.
 - Open the App from Start Menu.
 - Enjoy
   
 # How to install on Android
-- Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
+- Download the release.apk package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
 - Install the app
 - Run.
 
