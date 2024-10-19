@@ -186,7 +186,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public async Task InitializeAsync(SongsModelView media, byte[] ImageBytes)
+    public async Task InitializeAsync(SongsModelView media, byte[]? ImageBytes=null)
     {
         ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
         CurrentMedia = new();
