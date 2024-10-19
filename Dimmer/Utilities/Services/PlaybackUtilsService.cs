@@ -103,7 +103,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
-    HomePageVM ViewModel { get; set; }
+    HomePageVM? ViewModel { get; set; }
     private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?) LoadSongs(List<string> folderPaths)
     {
         
@@ -594,7 +594,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         int repeatMode = 0, int repeatMaxCount = 0,
         bool IsFromPreviousOrNext = false)
     {
-        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         CurrentQueue = currentQueue;
 
         if (_positionTimer != null)
@@ -714,7 +714,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 _currentPositionSubject.OnNext(new());
             }
 #if WINDOWS
-            //MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
 #endif
         }
     }
@@ -776,6 +776,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> PauseResumeSongAsync(double currentPosition)
     {
+        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
         currentPositionInSec = currentPosition;
         if (ObservableCurrentlyPlayingSong is null)
         {
@@ -799,10 +800,22 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
+            if (!File.Exists(ObservableCurrentlyPlayingSong.FilePath))
+            {
+                return false;
+            }
+            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
+            
+            await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
+
+
             await audioService.ResumeAsync(currentPosition);
             DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong, 
                 TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
                 TimeSpan.FromSeconds(currentPosition));
+#if WINDOWS
+            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+#endif
         }
 
         return true;
