@@ -11,22 +11,23 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Play/Pause Songs (I knooow..)
 - Show Sync lyrics from either .lrc file or from song's metadata.
 - Lyrics download.
+- Discord Rich Presence For PC
 - More to come such as playlist management, song's editing, statistics etc..
 
 # Requirements
 - A PC running Windows 10 at least.
-- An Android Device running Android 11 at least (API 30).
+- An Android Device running Android 13 at least (API 33).
 - Visual Studio 2019, 2022 or latest (It was built on VS 2022) with MAUI support.
 
 # How To Install on Windows
 - Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
-- Right Click on "install.ps1"
+- Right Click on "install.ps1" and click "Run with PowerShell"
 - Review all on screen instructions and agreed to install certificates and the app.
 - Open the App from Start Menu.
 - Enjoy
   
 # How to install on Android
-- Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
+- Download the release.apk package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
 - Install the app
 - Run.
 
@@ -35,12 +36,20 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 | ------------- |:-------------:|
 | <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| <img src="ScreenShots/Mobile/MainUI_M.png" height=500> |
 | <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUI_M.png" height=500> |
+| <img src="ScreenShots/Desktop/ArtistAlbumPage_D.png" height=500>| <img src="ScreenShots/Mobile/ArtistAlbumPage_M.png" height=500> |
 | <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
-| <img src="ScreenShots/Desktop/StatisPage_D.png" height=500>| <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> <img src="ScreenShots/Mobile/StatisPage_M2.png" height=500>  | 
-| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/SearchResults_D.png" height=500>| coming soon...|
-| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>| coming soon...|
+| <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult_M.png" height=500>|
+| <img src="ScreenShots/Desktop/LyricsSearchResult2_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult2_M.png" height=500>|
 
+
+|Windows Only|
+|:-------------:|
+| <img src="ScreenShots/Desktop/MainAppAndMiniPlayerPopUp_d.png" height=500>|
+
+|Android Only|
+|:-------------:|
+| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheet_M.png" height=500> | <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> |
+| <img src="ScreenShots/Mobile/SinglePlayListPage_M.png" height=500>  |
 ## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
 
