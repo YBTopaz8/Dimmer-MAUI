@@ -60,7 +60,7 @@ public class DiscordRPCclient : IDiscordRPC
         {
             if (song == currentSong)
                 return;
-            position = position.Add(TimeSpan.FromSeconds(1));
+            position = position.Add(TimeSpan.FromMilliseconds(500));
             _discordRpcClient.SetPresence(new RichPresence()
             {
                 Details = $"Listening to {song.Title}",
