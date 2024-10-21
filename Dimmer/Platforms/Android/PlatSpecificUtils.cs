@@ -1,7 +1,6 @@
 ﻿#if ANDROID
 using Android.Graphics;
 using Google.Android.Material.Color.Utilities;
-using System.Diagnostics;
 using Color = Microsoft.Maui.Graphics.Color;
 #endif
 

@@ -544,8 +544,7 @@ public class MediaPlayerService : Service,
             UpdatePlaybackState(PlaybackStateCode.Stopped);
             mediaPlayer.Reset();
             NotificationHelper.StopNotification(Platform.AppContext!);
-            StopForeground(true);
-            
+            StopForeground(StopForegroundFlags.Detach);
             UnregisterMediaSessionCompat();
         });
     }
@@ -727,7 +726,8 @@ public class MediaPlayerService : Service,
             mediaPlayer = null;
 
             NotificationHelper.StopNotification(Platform.AppContext);
-            StopForeground(true);
+            StopForeground(StopForegroundFlags.Detach);
+            
             
             UnregisterMediaSessionCompat();
         }
@@ -821,6 +821,7 @@ public class MediaPlayerService : Service,
             base.OnCustomAction(action, extras);
         }
     }
+
 }
 
 public class MediaPlayerServiceBinder : Binder

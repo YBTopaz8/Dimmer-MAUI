@@ -91,4 +91,9 @@ public partial class SongMenuBtmSheet : BottomSheet
         await NewPlaylistName.EntryView.HideKeyboardAsync();
         await this.DismissAsync();
     }
+
+    private async void DismissThis_Tapped(object sender, EventArgs e)
+    {
+        await this.DismissAsync();
+    }
 }

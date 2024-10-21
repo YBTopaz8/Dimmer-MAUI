@@ -162,7 +162,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                             Shell.SetTabBarIsVisible(this.AttachedPage, true);
                             IsPresented = false;
 
-                            HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
                         }
                         
                     }
@@ -172,7 +171,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                         Shell.SetTabBarIsVisible(this.AttachedPage, false);
                         IsPresented = true;
 
-                        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
                     }
                 }
 
@@ -206,6 +204,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
             OnClosed();
             this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
         }
+        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
         UpdateDisabledStateOfPage();
     }
 

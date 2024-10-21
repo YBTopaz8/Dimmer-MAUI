@@ -61,8 +61,8 @@
                 <DataTemplate x:DataType="models:AlbumModelView">
                     <Border StrokeThickness="0" Stroke="Transparent" 
                     HorizontalOptions="Center" VerticalOptions="Center"
-                    StrokeShape="RoundRectangle 20"
-                    Padding="10" Margin="10">
+                    StrokeShape="RoundRectangle 10"
+                     Margin="10">
 
                         <!-- Apply shadow to mimic elevation -->
                         <Border.Shadow>
@@ -80,7 +80,7 @@
                                         HorizontalOptions="Center" VerticalOptions="Center" />
 
                             <!-- Album Name -->
-                            <Label Text="{Binding Name}" FontSize="14" 
+                            <Label Text="{Binding Name}" FontSize="12" 
                            HorizontalTextAlignment="Center" 
                            LineBreakMode="TailTruncation"
                            TextColor="White"

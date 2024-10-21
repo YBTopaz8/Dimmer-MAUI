@@ -15,8 +15,7 @@
         Stroke="Transparent" 
         WidthRequest="500" HeightRequest="{OnPlatform WinUI=450, Android=450}"
         BackgroundColor="Black"
-        Margin="5"
-        Padding="10">
+        Margin="5" Padding="10">
         <Grid BackgroundColor="Transparent" Padding="10"
           RowDefinitions="30,Auto,50">
             <VerticalStackLayout HorizontalOptions="Center" 

@@ -40,16 +40,16 @@
             <Grid.Effects>
                 <uranium:BlurEffect AccentOpacity="0.7"/>
             </Grid.Effects>
-            <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Opacity="0.05"
+            <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.05"
                    Aspect="AspectFill"/>
             <toolkit:DockLayout Margin="50">
                 <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
                                      WidthRequest="250" >
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                    <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                             WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
-                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}"
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
                            FontSize="13" TextColor="Grey"/>
-                    <Label Text="{Binding TemporarilyPickedSong.Title}"
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
                            FontSize="16"/>
 
                     <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
@@ -84,7 +84,7 @@
                         </ImageButton>
                     </HorizontalStackLayout>
 
-                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
+                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
                         <Image.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
                         </Image.Source>
@@ -92,7 +92,7 @@
                 </VerticalStackLayout>
 
                 <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" 
-                   SelectedTabChanged="TabV_SelectedTabChanged" >
+                   SelectedTabChanged="TabV_SelectedTabChanged" SelectedTab="{Binding BindingContext.CurrentViewIndex,Source={x:Reference myPage}}">
                     <!--<material:TabView.GestureRecognizers>
                 <SwipeGestureRecognizer Direction="Left" Swiped="SwipeGestureRecognizer_Swiped"/>
             </material:TabView.GestureRecognizers>-->
@@ -118,15 +118,6 @@
                         <material:TabItem.ContentTemplate>
                             <DataTemplate>
                                 <cw:SyncedLyricsView />
-                            </DataTemplate>
-                        </material:TabItem.ContentTemplate>
-                    </material:TabItem>
-
-
-                    <material:TabItem Title="Edit Tags">
-                        <material:TabItem.ContentTemplate>
-                            <DataTemplate>
-                                <cw:EditableSongTagsView />
                             </DataTemplate>
                         </material:TabItem.ContentTemplate>
                     </material:TabItem>

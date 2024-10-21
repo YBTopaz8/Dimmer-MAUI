@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -141,7 +134,7 @@ public partial class HomePageVM
     
 
     [RelayCommand]
-    async Task DeleteFile(SongsModelView song)
+    async Task DeleteFile(SongsModelView? song)
     {
 
         switch (CanMultiDeleteItems)
@@ -220,6 +213,19 @@ public partial class HomePageVM
         }
 #endif
     }
+
+    [RelayCommand]
+    async Task OpenViewSongDetailsPopup()
+    {
+        await Shell.Current.ShowPopupAsync(new ViewSongMetadataPopupView(this));
+    }
+
+    [RelayCommand]
+    async Task OpenEditSongPopup(SongsModelView? song)
+    {
+        await Shell.Current.ShowPopupAsync(new EditSongPopup(this));
+    }
+
 
 #if WINDOWS
     public AppWindowPresenter AppWinPresenter { get; set; }

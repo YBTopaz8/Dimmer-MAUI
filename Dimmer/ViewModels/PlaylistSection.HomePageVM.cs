@@ -61,6 +61,7 @@ public partial class HomePageVM
             PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
+            HapticFeedback.Perform(HapticFeedbackType.Click);
             await toast.Show(cts.Token);
         }
         else

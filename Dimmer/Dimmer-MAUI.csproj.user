@@ -55,6 +55,12 @@
     <MauiXaml Update="CustomPopUpViews\ViewLyricsPopUp.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\ViewSongMetadataPopupView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\EditSongPopup.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Desktop\CustomViews\EditableSongTagsView.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

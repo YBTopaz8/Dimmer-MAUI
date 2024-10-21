@@ -178,6 +178,12 @@
 	  <MauiXaml Update="CustomPopUpViews\ViewLyricsPopUp.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\ViewSongMetadataPopupView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CustomPopUpViews\EditSongPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\CustomViews\EditableSongTagsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
