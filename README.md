@@ -40,6 +40,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 | <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
 | <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult_M.png" height=500>|
 | <img src="ScreenShots/Desktop/LyricsSearchResult2_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult2_M.png" height=500>|
+| <img src="ScreenShots/Desktop/DiscordRPC_D.jpeg" height=500>| <img src="ScreenShots/Mobile/DiscordRPC_M.jpg" height=500>|
 
 
 |Windows Only|
