@@ -29,7 +29,7 @@
 
         <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
             SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
-            Grid.Column="0" EmptyView="No Syncronized Lyrics Found...">
+            Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:LyricPhraseModel">
                     <Border Stroke="Transparent" Margin="5,0" >

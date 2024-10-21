@@ -1,7 +1,4 @@
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Dispatching;
 using Plainer.Maui.Controls;
-using System.Diagnostics;
 using UraniumUI.Views;
 
 

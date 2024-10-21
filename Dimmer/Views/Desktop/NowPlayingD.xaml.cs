@@ -20,11 +20,10 @@ public partial class NowPlayingD : ContentPage
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
         TabV.SelectedTab = TabV.Items[0];
-        if (HomePageVM.AllSyncLyrics?.Length > 0)
+        if (HomePageVM.CurrentViewIndex == 1)
         {
-            Array.Clear(HomePageVM.AllSyncLyrics);
+            TabV.SelectedTab = TabV.Items[1];
         }
-
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
@@ -33,11 +32,6 @@ public partial class NowPlayingD : ContentPage
         if (e != null && e.Title == "Lyrics")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(0);
-        }
-
-        if (e != null && e.Title == "Edit Tags")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(1);
         }
 
         if (e != null && e.Title == "Stats")

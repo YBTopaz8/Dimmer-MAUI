@@ -22,21 +22,24 @@
         
         <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
         x:Name="StartSyncingBtn" Grid.Row="1"
-        Margin="0,10" IsVisible="{Binding TemporarilyPickedSong.HasLyrics, Converter={x:StaticResource BoolToInverse}}"/>
+        Margin="0,10" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasLyrics, Converter={x:StaticResource BoolToInverse}}"/>
         
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
                              Spacing="10" Margin="10,0" Grid.Row="0">
 
-            <!--toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                                HeightRequest="150" WidthRequest="150" BorderWidth="0"
-                                CornerRadius="25" />-->
+           <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                HeightRequest="250" WidthRequest="250" BorderWidth="0"
+                                CornerRadius="25" IsVisible="{OnPlatform Android=true, WinUI=false}"/>
             
-            <material:EditorField Title="Title" Text="{Binding TemporarilyPickedSong.Title}"/>
-            <material:EditorField Title="Artist Name" Text="{Binding TemporarilyPickedSong.ArtistName}" 
+            <material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                                 />
-            <material:EditorField Title="Album Name" Text="{Binding TemporarilyPickedSong.AlbumName}" />
-            <material:EditorField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" 
+            <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
+            <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
+                        
+            <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
                                 />
+            <Button Text="Save Metadata" Command="{Binding UpdateSongToDBCommand }" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"/>
             <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="400" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LyricPhraseModel">

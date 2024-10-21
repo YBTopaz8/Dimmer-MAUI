@@ -179,11 +179,19 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    async Task NavToNowPlayingPage()
+    async Task NavToNowPlayingPage(SongsModelView? song)
     {
+
+        if (song != null)
+        {
+            SelectedSongToOpenBtmSheet = song;
+            SynchronizedLyrics?.Clear();
+            CurrentViewIndex = 1;
+        }
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(NowPlayingD));
 #elif ANDROID
+
         SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
         ShowSingleSongStats(SongPickedForStats.Song);
 
@@ -470,7 +478,18 @@ public partial class HomePageVM : ObservableObject
         TotalSongsSize = PlayBackService.TotalSongsSizes;
     }
 
-
+    [RelayCommand]
+    async Task UpdateSongToDB(SongsModelView song)
+    {
+        var res = await Shell.Current.DisplayAlert("Confirm Action", "Confirm Update?", "Yes", "Cancel");
+        if (res)
+        {
+            if(SongsMgtService.UpdateSongDetails(song))
+            {
+                await Shell.Current.DisplayAlert("Sucess !", "Song Updated!", "Ok");
+            }    
+        }
+    }
     public void LoadSongCoverImage()
     {
 
@@ -896,7 +915,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
     {
-        CurrentViewIndex = viewIndex;
+        
         switch (viewIndex)
         {
             case 0:

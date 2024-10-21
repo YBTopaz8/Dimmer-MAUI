@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.CustomPopUpViews.ViewSongMetadataPopupView"
+            xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            x:DataType="vm:HomePageVM" 
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
+            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
+            Color="Transparent">
+    <mct:Popup.Resources>
+        <ResourceDictionary>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:DateTimeOffsetToLocalDateConverter x:Key="DateTimeOffsetConverter"/>
+
+            <Style TargetType="Label">
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+            
+            <Style TargetType="Image">
+                <Setter Property="WidthRequest" Value="15"/>
+                <Setter Property="HeightRequest" Value="15"/>
+            </Style>
+
+            <Style TargetType="ImageButton">
+                <Setter Property="WidthRequest" Value="{OnPlatform Android=35}"/>
+                <Setter Property="HeightRequest" Value="{OnPlatform Android=35}"/>
+            </Style>
+
+            <Style TargetType="HorizontalStackLayout">
+                <Setter Property="Spacing" Value="5"/>
+            </Style>
+        </ResourceDictionary>
+    </mct:Popup.Resources>
+    <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
+            Stroke="Transparent" 
+            WidthRequest="500" HeightRequest="520"
+            BackgroundColor="Black" Margin="5" Padding="20">
+        <VerticalStackLayout Spacing="5">
+            <HorizontalStackLayout>
+                <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource Color="DarkSlateBlue"
+                            FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Music_note }"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Information" FontSize="26"/>
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout>
+                <Label Text="Song Details" FontSize="25" Margin="0,0,0,8"
+                       TextColor="DarkSlateBlue" HorizontalOptions="Start"/>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Title}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Title" WidthRequest="100"/>
+                    <Label Text="{Binding  SelectedSongToOpenBtmSheet.Title}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Artist" WidthRequest="100"/>
+                    <Label Text="{Binding  SelectedSongToOpenBtmSheet.ArtistName}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Album}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Album" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Style}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Genre" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.GenreName}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound"
+                                             Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Date_range}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Release Year" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound"
+                         Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Numbers}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Track Number" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.TrackNumber}"/>
+                    <Image HeightRequest="10">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound"
+                         Glyph="{x:Static m:MaterialRound.Content_copy}"/>
+                        </Image.Source>
+                    </Image>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout>
+                <Label Text="File Details" FontSize="25" 
+                       TextColor="DarkSlateBlue" HorizontalOptions="Start"/>
+                <!--<HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Short_text}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Name" WidthRequest="100"/>
+                    <Label Text="{Binding FilePath}"/>
+                </HorizontalStackLayout>-->
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Directions}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Path" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath}"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Format_size}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Size" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FileSize, Converter={StaticResource FileSizeConverter}}"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Update}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Date Added" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DateAdded, Converter={StaticResource DateTimeOffsetConverter}}"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout>
+                <Label Text="Audio Details" FontSize="25" TextColor="DarkSlateBlue"/>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Duration" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="File Format" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FileFormat}"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Percent}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Sample Rate" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.SampleRate}"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Rate_review}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="BitRate" WidthRequest="100"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.BitRate, StringFormat='{0} kbps'}"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" ColumnSpacing="5">
+
+                <ImageButton Clicked="SearchSongOn_Clicked" 
+                                HorizontalOptions="Start" Grid.Column="0">
+                    <ImageButton.CommandParameter>
+                        <x:Int32>1</x:Int32>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FileImageSource File="youtube.png"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton Clicked="SearchSongOn_Clicked" 
+                                HorizontalOptions="Start" Grid.Column="1">
+                    <ImageButton.CommandParameter>
+                        <x:Int32>2</x:Int32>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FileImageSource File="spotify.png"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton Clicked="SearchSongOn_Clicked" 
+                                HorizontalOptions="Start" Grid.Column="2">
+                    <ImageButton.CommandParameter>
+                        <x:Int32>0</x:Int32>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FileImageSource File="google.png"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton Clicked="ShareSongToStoryButton_Clicked" IsVisible="{OnPlatform WinUI=false, Android=true}"
+                             Grid.Column="3">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <Button Text="OK" Clicked="Button_Clicked" Grid.Column="5"
+                        />
+            </Grid>
+        </VerticalStackLayout>
+        
+    </Border>
+</mct:Popup>

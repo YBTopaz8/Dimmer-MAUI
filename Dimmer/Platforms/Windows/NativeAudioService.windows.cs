@@ -1,11 +1,8 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Speech.Synthesis;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
-using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 

@@ -185,26 +185,25 @@
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Folder_open}"/>
                                     </MenuFlyoutItem.IconImageSource>
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                     Key="E"/>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutItem Text="Remove from Device" IsDestructive="True"
-        Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" 
-        CommandParameter="{Binding .}">
+                                <MenuFlyoutItem Text="Remove from Device" IsDestructive="True" 
+                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}"  
+                                                CommandParameter="{Binding .}">
                                     <MenuFlyoutItem.IconImageSource>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever }"/>
                                     </MenuFlyoutItem.IconImageSource>
 
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                     Key="Delete"/>
+                                        <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="Delete"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
                                 <MenuFlyoutSeparator />
 
-                                <MenuFlyoutItem Text="Edit*">
+                                <MenuFlyoutItem Text="Edit" CommandParameter="{Binding .}"
+                                                Command="{Binding BindingContext.OpenEditSongPopupCommand,Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.IconImageSource>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}"/>
                                     </MenuFlyoutItem.IconImageSource>
@@ -214,7 +213,8 @@
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
-                                <MenuFlyoutItem Text="Information*">
+                                <MenuFlyoutItem Text="Information" Command="{Binding BindingContext.OpenViewSongDetailsPopupCommand
+                                    ,Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.IconImageSource>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}"/>
                                     </MenuFlyoutItem.IconImageSource>

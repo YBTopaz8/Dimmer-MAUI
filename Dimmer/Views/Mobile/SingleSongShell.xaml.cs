@@ -22,10 +22,15 @@ public partial class SingleSongShell : UraniumContentPage
         HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
 
         DeviceDisplay.Current.KeepScreenOn = true;
-        TabV.SelectedTab = TabV.Items[0];
+        
         if (HomePageVM.AllSyncLyrics?.Length > 0)
         {
             Array.Clear(HomePageVM.AllSyncLyrics);
+        }
+        TabV.SelectedTab = TabV.Items[0];
+        if (HomePageVM.CurrentViewIndex == 1)
+        {
+            TabV.SelectedTab = TabV.Items[1];
         }
 
         Shell.SetTabBarIsVisible(this, false);

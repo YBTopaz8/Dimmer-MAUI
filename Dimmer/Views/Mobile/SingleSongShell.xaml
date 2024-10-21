@@ -61,15 +61,6 @@
                     </DataTemplate>
                 </material:TabItem.ContentTemplate>
             </material:TabItem>
-
-
-            <material:TabItem Title="Edit Tags">
-                <material:TabItem.ContentTemplate>
-                    <DataTemplate>
-                        <cv:EditableSongTagsView />
-                    </DataTemplate>
-                </material:TabItem.ContentTemplate>
-            </material:TabItem>
             
             <material:TabItem Title="Stats">
                 <material:TabItem.ContentTemplate>

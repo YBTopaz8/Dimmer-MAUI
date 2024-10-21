@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualBasic.FileIO;
-using System.Diagnostics;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
