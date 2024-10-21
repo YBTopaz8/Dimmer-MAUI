@@ -214,8 +214,7 @@
                                     </MenuFlyoutItem.IconImageSource>
 
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl" 
-                     Key="E"/>
+                                        <KeyboardAccelerator Modifiers="Ctrl" Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
@@ -224,8 +223,7 @@
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}"/>
                                     </MenuFlyoutItem.IconImageSource>
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl" 
-                     Key="I"/>
+                                        <KeyboardAccelerator Modifiers="Ctrl" Key="I"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
@@ -235,7 +233,7 @@
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}"/>
                                     </MenuFlyoutSubItem.IconImageSource>
                                     <MenuFlyoutItem Text="Show Artist Songs" 
-            Command="{Binding BindingContext.NavigateToArtistsPageCommand,Source={x:Reference myPage}}">
+                                                    Command="{Binding BindingContext.NavigateToArtistsPageCommand,Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
                                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.View_list}"/>
                                         </MenuFlyoutItem.IconImageSource>
