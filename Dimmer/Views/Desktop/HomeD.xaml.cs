@@ -134,8 +134,6 @@ public partial class HomeD : UraniumContentPage
                 SongsColView.SelectionMode = SelectionMode.Multiple;
                 NormalMiniUtilBar.IsVisible = false;
                 MultiSelectUtilBar.IsVisible = true;
-                
-
                 HomePageVM.EnableContextMenuItems = false;
 
                 Debug.WriteLine("Now Multi Select");
@@ -156,13 +154,6 @@ public partial class HomeD : UraniumContentPage
                 break;
         }
         currentSelectionMode = SongsColView.SelectionMode;        
-    }
-
-
-    Grid mainGrid { get; set; }
-    private void GridOfItems_Loaded(object sender, EventArgs e)
-    {
-        mainGrid = sender as Grid;
     }
 
     private void CancelMultiSelect_Clicked(object sender, EventArgs e)

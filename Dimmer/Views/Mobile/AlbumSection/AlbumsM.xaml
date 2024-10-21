@@ -54,31 +54,44 @@
                 ItemsSource="{Binding AllAlbums}">
 
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Horizontal"/>
+                <GridItemsLayout Orientation="Vertical"
+                                 Span="4"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
-                    <Border Stroke="Transparent" HorizontalOptions="Center">
+                    <Border StrokeThickness="0" Stroke="Transparent" 
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                    StrokeShape="RoundRectangle 20"
+                    Padding="10" Margin="10">
 
-                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
-                            <VerticalStackLayout.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
-                            </VerticalStackLayout.GestureRecognizers>
-                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                    WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
-                                    BorderWidth="0" CornerRadius="10"/>
+                        <!-- Apply shadow to mimic elevation -->
+                        <Border.Shadow>
+                            <Shadow Brush="DarkSlateBlue" Opacity="0.5" Offset="10,20" />
+                        </Border.Shadow>
 
-                            <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                        Padding="10,5" LineBreakMode="CharacterWrap" MaximumWidthRequest="120" />
+                        <!-- Inner layout for image and text -->
+                        <VerticalStackLayout Spacing="10" VerticalOptions="CenterAndExpand" 
+                                             HorizontalOptions="Center">
 
+                            <!-- Album Image with rounded corners -->
+                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
+                                        WidthRequest="100" HeightRequest="100"
+                                        CornerRadius="10" 
+                                        HorizontalOptions="Center" VerticalOptions="Center" />
 
+                            <!-- Album Name -->
+                            <Label Text="{Binding Name}" FontSize="14" 
+                           HorizontalTextAlignment="Center" 
+                           LineBreakMode="TailTruncation"
+                           TextColor="White"
+                           MaxLines="2" />
                         </VerticalStackLayout>
 
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <!--</RefreshView>-->        
+         
     </Grid>
 
 

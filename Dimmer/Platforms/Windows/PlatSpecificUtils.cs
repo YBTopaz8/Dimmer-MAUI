@@ -5,7 +5,7 @@ using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 namespace Dimmer_MAUI.Platforms.Windows;
 public static class PlatSpecificUtils
 {
-    public static async Task<bool> DeleteSongFile(SongsModelView song)
+    public static bool DeleteSongFile(SongsModelView song)
     {
         try
         {

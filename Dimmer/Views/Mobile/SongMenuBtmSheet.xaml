@@ -42,34 +42,107 @@
                    RadiusX="15" Margin="0,10"/>
         <VerticalStackLayout x:Name="FirstPageBtmSheet" Spacing="10" Margin="5">
 
-            <Button Text="Set Play Repeat Count" x:Name="SetPlayRepeat"
-                    Clicked="SetPlayRepeat_Clicked"/>
+            <!-- Set Play Repeat Count Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Set Play Repeat Count" Grid.Column="1"
+            x:Name="SetPlayRepeat" Clicked="SetPlayRepeat_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
             <BoxView/>
 
-            <Button Text="Add to Playlist" x:Name="AddToPlaylist"
-                    Clicked="AddToPlaylist_Clicked">
-            </Button>
+            <!-- Add to Playlist Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Playlist_add}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Add to Playlist" Grid.Column="1"
+            x:Name="AddToPlaylist" Clicked="AddToPlaylist_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
             <BoxView/>
-            <Button Text="View Song Lyrics" x:Name="ExploreSong"
-                    Clicked="ExploreSong_Clicked">
-            </Button>
-            <BoxView/>
-            <Label Text="Song Details*"/>
-            <BoxView/>
-            <Button Text="Go to Album" 
-                    x:Name="GoToAlbum" Clicked="GoToAlbum_Clicked"/>
-            <BoxView/>
-            <Button Text="Go to Artist" x:Name="GoToArtist" 
-                    Clicked="GoToArtist_Clicked"/>
-            <BoxView/>
-            <Label Text="Tag Editor*"/>
-            <BoxView/>
-            <Button Text="Share" x:Name="ShareSong"
-                    Clicked="ShareSong_Clicked" />
 
+            <!-- View Song Lyrics Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Text_snippet}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="View Song Lyrics" Grid.Column="1"
+            x:Name="ExploreSong" Clicked="ExploreSong_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
             <BoxView/>
-            <Button Text="Delete from Device" x:Name="DltSongFromDevice" 
-                    Clicked="DltSongFromDevice_Clicked"/>
+
+            <!-- Go to Artist Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Go to Album" Grid.Column="1"
+            x:Name="GoToAlbum" Clicked="GoToAlbum_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
+            <BoxView/>
+            <!-- Go to Artist Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Go to Artist" Grid.Column="1"
+            x:Name="GoToArtist" Clicked="GoToArtist_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
+            <BoxView/>
+
+            <!-- Tag Editor Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Tag Editor" Grid.Column="1"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
+            <BoxView/>
+
+            <!-- Share Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Share" Grid.Column="1"
+            x:Name="ShareSong" Clicked="ShareSong_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
+            <BoxView/>
+
+            <!-- Delete from Device Grid -->
+            <Grid ColumnDefinitions="40,*" WidthRequest="300" HorizontalOptions="Start">
+                <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever}" />
+                    </Image.Source>
+                </Image>
+                <Button Text="Delete from Device" Grid.Column="1"
+            x:Name="DltSongFromDevice" Clicked="DltSongFromDevice_Clicked"
+            HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+            </Grid>
+            <BoxView/>
 
         </VerticalStackLayout>
 

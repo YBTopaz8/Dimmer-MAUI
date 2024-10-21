@@ -153,7 +153,7 @@ public class LyricsService : ILyricsService
         }
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath);
         string lrcExtension = ".lrc";
-        string txtExtension = ".txt";
+        //string txtExtension = ".txt";
         string lrcFilePath;
 
         if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))

@@ -20,7 +20,7 @@ public partial class MediaPlaybackControlsViewM : ContentView
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
-    private async void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
+    private void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
     {
 
         //await NowPlayingBtmSheet.ShowAsync();

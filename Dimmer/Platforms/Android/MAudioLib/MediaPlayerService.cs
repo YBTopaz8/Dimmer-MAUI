@@ -285,7 +285,6 @@ public class MediaPlayerService : Service,
         }
     }
 
-    private int buffered = 0;
 
     private Bitmap? cover;
 
@@ -611,8 +610,7 @@ public class MediaPlayerService : Service,
         var s = Application.Context;
         var notif = NotificationHelper.StartNotification(s, mediaController.Metadata!, mediaSession,
             Cover, MediaPlayerState == PlaybackStateCode.Playing);
-
-        StartForeground(1000, notif);
+        StartForeground(1000, notif); //or this?
     }
 
     /// <summary>

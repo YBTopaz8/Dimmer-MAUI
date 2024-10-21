@@ -51,12 +51,44 @@
                            FontSize="13" TextColor="Grey"/>
                     <Label Text="{Binding TemporarilyPickedSong.Title}"
                            FontSize="16"/>
-                    <Image WidthRequest="20" HorizontalOptions="Start" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
+
+                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                   HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>1</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="youtube.png"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                     HeightRequest="25">
+                            <ImageButton.CommandParameter>
+                                <x:Int32>2</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="spotify.png" />
+                            </ImageButton.Source>
+                        </ImageButton>
+
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                    HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>0</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="google.png"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+
+                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding TemporarilyPickedSong.HasSyncedLyrics}">
                         <Image.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Check}" Color="DarkSlateBlue"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
                         </Image.Source>
                     </Image>
-
                 </VerticalStackLayout>
 
                 <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" 

@@ -179,7 +179,7 @@ public partial class HomePageVM
                 
                 if(res)
                 {
-                    await PlatSpecificUtils.DeleteSongFile(song);
+                    PlatSpecificUtils.DeleteSongFile(song);
                     if (song == TemporarilyPickedSong)
                     {
                         await PlayNextSong();
@@ -238,6 +238,10 @@ public partial class HomePageVM
     [RelayCommand]
     async Task CntxtMenuSearch(int param)
     {
+        if (CurrentPage == PageEnum.NowPlayingPage)
+        {
+            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+        }
         switch (param)
         {
             case 0:

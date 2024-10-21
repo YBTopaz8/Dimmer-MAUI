@@ -8,7 +8,7 @@ using Color = Microsoft.Maui.Graphics.Color;
 namespace Dimmer_MAUI.Platforms.Android;
 public static class PlatSpecificUtils
 {
-    public static async Task<bool> DeleteSongFile(SongsModelView song)
+    public static bool DeleteSongFile(SongsModelView song)
     {
         try
         {

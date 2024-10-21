@@ -60,10 +60,7 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllAlbums()
     {
-        if (AllAlbums?.Count != PlayBackService.GetAllAlbums().Count)
-        {
-            AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
-        }
+        AllAlbums = PlayBackService.GetAllAlbums();
     }
     [RelayCommand]
     void GetAllArtists()

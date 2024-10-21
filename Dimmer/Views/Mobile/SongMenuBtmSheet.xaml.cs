@@ -78,7 +78,7 @@ public partial class SongMenuBtmSheet : BottomSheet
         await this.DismissAsync();
     }
 
-    private async void AddToPlaylist_Clicked(object sender, EventArgs e)
+    private void AddToPlaylist_Clicked(object sender, EventArgs e)
     {
         FirstPageBtmSheet.IsVisible = false;
         CreateNewPlayListPageBtmSheet.IsVisible = false;

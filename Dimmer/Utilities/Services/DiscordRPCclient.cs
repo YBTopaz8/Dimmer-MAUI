@@ -71,14 +71,12 @@ public class DiscordRPCclient : IDiscordRPC
                 },
                 Assets = new Assets()
                 {
-                    LargeImageText = $"{song.Title}",
-                    LargeImageKey = "image6_2"
+                    LargeImageText = $"{song.Title} by {song.ArtistName}",
+                    LargeImageKey = "musical_notes",
+                    SmallImageKey = "jack-o-lantern",
+                    SmallImageText = "Boo 👻! Happy Halloween !"
                 }
-               ,
-                Party = new Party()
-                {
-                    
-                }
+               
             });
         }
     }

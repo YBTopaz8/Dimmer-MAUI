@@ -443,17 +443,26 @@ public partial class HomePageVM : ObservableObject
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
 
-
-    [RelayCommand]
-    async Task OpenNowPlayingBtmSheet(SongsModelView song)// = null)
+    bool isSongBtmSheetShown;
+    SongMenuBtmSheet songsBtmSheet;
+    public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
     {
 #if ANDROID
-        SongMenuBtmSheet btmSheet = new(this, song);
-        SelectedSongToOpenBtmSheet = song;
-        await btmSheet.ShowAsync();
+        if (!isSongBtmSheetShown)
+        {
+            songsBtmSheet = new SongMenuBtmSheet(this, song);
+            SelectedSongToOpenBtmSheet = song;
+            await songsBtmSheet.ShowAsync();
+            songsBtmSheet.Dismissed += SongsBtmSheet_Dismissed;
+            isSongBtmSheetShown = true;
+        }
 #endif
     }
 
+    private void SongsBtmSheet_Dismissed(object? sender, DismissOrigin e)
+    {
+        isSongBtmSheetShown = false;
+    }
 
     void ReloadSizeAndDuration()
     {

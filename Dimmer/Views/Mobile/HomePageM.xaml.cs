@@ -1,4 +1,8 @@
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 using Plainer.Maui.Controls;
+using System.Diagnostics;
+using UraniumUI.Views;
 
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -48,17 +52,6 @@ public partial class HomePageM : UraniumContentPage
             btmSheet.IsPresented = false;
         }
     }
-    private void SaveViewButton_Clicked(object sender, EventArgs e)
-    { //to capture views into a png , will be useful later for saving
-
-        //var image = await btmcontrols.CaptureAsync();
-        //var savePath = Path.Combine("/storage/emulated/0/Documents", "test.png");
-        //using Stream fileStream = File.OpenWrite(savePath);
-        //await image.CopyToAsync(fileStream, ScreenshotFormat.Png);
-
-    }
-
-
     DateTime lastKeyStroke;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -95,8 +88,6 @@ public partial class HomePageM : UraniumContentPage
         SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
     }
 
-    //HomePageVM.LoadSongCoverImage();
-
     private void SpecificSong_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 0;
@@ -107,6 +98,11 @@ public partial class HomePageM : UraniumContentPage
 
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if(currentSelectionMode == SelectionMode.Multiple)
+        {
+            HomePageVM.HandleMultiSelect(SongsColView, e);
+            return;
+        }
         if (SongsColView.IsLoaded)
         {
             SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
@@ -162,5 +158,116 @@ public partial class HomePageM : UraniumContentPage
             return true;
         }
         return true;
+    }
+
+    private void CancelMultiSelect_Clicked(object sender, EventArgs e)
+    {
+        ToggleMultiSelect_Clicked(sender, e);
+    }
+
+    SelectionMode currentSelectionMode;
+    public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
+    {
+        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
+
+        if (sender is StatefulContentView send)
+        {
+            SongsColView.SelectedItems.Add(send.CommandParameter);
+        }
+        switch (SongsColView.SelectionMode)
+        {
+            case SelectionMode.None:
+            case SelectionMode.Single:
+                SongsColView.SelectionMode = SelectionMode.Multiple;
+                NormalMiniUtilFABs.IsVisible = false;
+                MultiSelectMiniUtilFABs.IsVisible = true;
+                HomePageVM.EnableContextMenuItems = false;
+
+                Debug.WriteLine("Now Multi Select");
+                break;
+            case SelectionMode.Multiple:
+                SongsColView.SelectionMode = SelectionMode.Single;
+                SongsColView.SelectedItems.Clear();
+                HomePageVM.HandleMultiSelect(SongsColView);
+                NormalMiniUtilFABs.IsVisible = true;
+                MultiSelectMiniUtilFABs.IsVisible = false;
+                HomePageVM.EnableContextMenuItems = true;
+                Debug.WriteLine("Back To None");
+                break;
+            default:
+                break;
+            
+        }
+        currentSelectionMode = SongsColView.SelectionMode;
+    }
+
+    private DateTime _lastTapTime = DateTime.MinValue;
+    private const int DoubleTapTime = 300; // in milliseconds
+    private const int LongPressTime = 500; // in milliseconds
+    private bool _isDoubleTap = false;
+    private bool _isLongPress = false;
+    private void StatefulContentView_Tapped(object sender, EventArgs e)
+    {
+        var send = (StatefulContentView)sender!;
+        switch (currentSelectionMode)
+        {
+            case SelectionMode.None:
+            case SelectionMode.Single:
+                HomePageVM.OpenSingleSongOptionsBtmSheet((SongsModelView)send.CommandParameter);
+                break;
+            case SelectionMode.Multiple:
+                
+
+                break;
+            default:
+                break;
+        }
+
+        //var currentTime = DateTime.Now;
+        //var timeSinceLastTap = (currentTime - _lastTapTime).TotalMilliseconds;
+
+        //// Double tap detection
+        //if (timeSinceLastTap < DoubleTapTime)
+        //{
+        //    _isDoubleTap = true;
+        //    Debug.WriteLine("Double tap detected at: " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
+        //}
+        
+
+        //_lastTapTime = currentTime;
+    }
+
+    private void StatefulContentView_LongPressed(object sender, EventArgs e)
+    {
+        ToggleMultiSelect_Clicked(sender, e);
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        if (SongsColView.SelectionMode != SelectionMode.Multiple)
+        {
+
+            HomePageVM.CurrentQueue = 0;
+            var t = (HorizontalStackLayout)sender;
+            var song = t.BindingContext as SongsModelView;
+            HomePageVM.PlaySongCommand.Execute(song);
+        }
+        else
+        {
+            var send = (HorizontalStackLayout)sender;
+            var song = (SongsModelView)send.BindingContext;
+
+            if (SongsColView.SelectedItems.Contains(song))
+            {
+                SongsColView.SelectedItems.Remove(song);
+                Debug.WriteLine($"Removed: {song.Title}");
+            }
+            else
+            {
+                SongsColView.SelectedItems.Add(song);
+                Debug.WriteLine($"Added: {song.Title}");
+            }
+
+        }
     }
 }

@@ -87,9 +87,9 @@
 
         <Grid>
             <CollectionView
-                ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" SelectionChanged="SongsColView_SelectionChanged"
-                VerticalScrollBarVisibility="Always" SelectedItem="{Binding PickedSong}"                            
-                x:Name="SongsColView">
+                ItemsSource="{Binding DisplayedSongs}" SelectionMode="None" 
+                SelectionChanged="SongsColView_SelectionChanged"
+                VerticalScrollBarVisibility="Always" x:Name="SongsColView">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout>
                         <Label Text="No Songs Found..... 💔" HorizontalOptions="Center" FontSize="30"/>
@@ -99,23 +99,13 @@
                 <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <FlexLayout JustifyContent="SpaceBetween" Margin="0,3">
-
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup Name="CommonStates">
-                                    <VisualState Name="Normal"></VisualState>
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="#99483D8B"></Setter>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-
-                            <FlexLayout.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="SpecificSong_Tapped" />
-                            </FlexLayout.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                                        
+                            <HorizontalStackLayout Grid.Column="0"
+                                Spacing="5">
+                                <HorizontalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                                </HorizontalStackLayout.GestureRecognizers>
                                 <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
                                         CornerRadius="10" BorderWidth="0"/>
                                 <VerticalStackLayout>
@@ -124,36 +114,38 @@
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
 
-                            <HorizontalStackLayout>
-                                <HorizontalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer 
-                                 Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
-                                 CommandParameter="{Binding .}"/>
-                                </HorizontalStackLayout.GestureRecognizers>
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
-                                    <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
-                                    <Image IsVisible="{Binding HasLyrics}" HeightRequest="10" HorizontalOptions="End">
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
-                                        </Image.Source>
-                                    </Image>
-                                </VerticalStackLayout>
-                                <ImageButton BackgroundColor="Transparent" 
-                                 WidthRequest="20" HorizontalOptions="Center"
-                                 Command="{Binding BindingContext.OpenNowPlayingBtmSheetCommand, Source={x:Reference myPage}}"
-                                 CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
-                                    </ImageButton.Source>
-                                </ImageButton>
-                            </HorizontalStackLayout>
-
-                        </FlexLayout>
+                            <uranium:StatefulContentView Grid.Column="1"
+                                                         LongPressed="StatefulContentView_LongPressed"
+                                                         
+                                                         Tapped="StatefulContentView_Tapped"
+                                                         CommandParameter="{Binding .}"
+                                                         x:Name="SingleSongStateFullContent">                                
+                                <HorizontalStackLayout>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                        <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
+                                        <Image IsVisible="{Binding HasLyrics}" HeightRequest="10" HorizontalOptions="End">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                            </Image.Source>
+                                        </Image>
+                                    </VerticalStackLayout>
+                                    <ImageButton BackgroundColor="Transparent" 
+                                     WidthRequest="20" HorizontalOptions="Center"
+                                     Command="{Binding BindingContext.OpenSingleSongOptionsBtmSheetCommand, Source={x:Reference myPage}}"
+                                     CommandParameter="{Binding .}">
+                                        <ImageButton.Source>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+                                </HorizontalStackLayout>
+                            </uranium:StatefulContentView>
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" HeightRequest="160">
+            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" 
+                                 HeightRequest="160" x:Name="NormalMiniUtilFABs">
                 <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"
                                   BackgroundColor="DarkSlateBlue" CornerRadius="20">
                     
@@ -177,6 +169,30 @@
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Center_focus_strong}"/>
                     </ImageButton.Source>
                 </ImageButton>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="3" VerticalOptions="End" IsVisible="False"
+                     HeightRequest="180" x:Name="MultiSelectMiniUtilFABs">
+                <ImageButton WidthRequest="45" Clicked="CancelMultiSelect_Clicked"
+                             HorizontalOptions="End">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Size="45" Glyph="{x:Static m:MaterialRound.Arrow_back}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
+                             HorizontalOptions="End" WidthRequest="45">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Size="45"
+                                         Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
+                    </ImageButton.Source>
+                    <ImageButton.CommandParameter>
+                        <x:Int32>0</x:Int32>
+                    </ImageButton.CommandParameter>
+                </ImageButton>
+
+                <Label Text="{Binding MultiSelectText}" FontSize="12" VerticalTextAlignment="End"
+    FontAttributes="Bold" TextColor="DarkSlateBlue" HorizontalTextAlignment="Center"/>
             </VerticalStackLayout>
         </Grid>
 
