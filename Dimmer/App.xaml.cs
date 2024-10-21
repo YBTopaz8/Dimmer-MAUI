@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI;
 
 public partial class App : Application
 {
@@ -12,7 +14,7 @@ public partial class App : Application
         {
             Debug.WriteLine(ex.Message);
         }
-
+        
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 #if WINDOWS
@@ -30,8 +32,8 @@ public partial class App : Application
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 
-        //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //await home.ExitingApp();
+        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        await home.ExitingApp();
         LogException(e.Exception);
     }
     public Window win;
@@ -85,20 +87,20 @@ public partial class App : Application
                     }
                     catch (IOException ioEx) when (retries > 0)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Failed to log, retrying... ({ioEx.Message})");
-                        System.Threading.Thread.Sleep(delay); // Wait and retry
+                        Debug.WriteLine($"Failed to log, retrying... ({ioEx.Message})");
+                        Thread.Sleep(delay); // Wait and retry
                     }
                 }
 
                 if (!success)
                 {
-                    System.Diagnostics.Debug.WriteLine("Failed to log exception after multiple attempts.");
+                    Debug.WriteLine("Failed to log exception after multiple attempts.");
                 }
             }
         }
         catch (Exception loggingEx)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to log exception: {loggingEx}");
+            Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
 
@@ -107,9 +109,10 @@ public partial class App : Application
         base.CloseWindow(window);
     }
 
-    protected override void OnStart()
-    {
-        base.OnStart();
+}
 
-    }
+public enum AppState
+{
+    OnForeGround,
+    OnBackGround
 }

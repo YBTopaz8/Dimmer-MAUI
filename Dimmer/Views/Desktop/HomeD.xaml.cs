@@ -16,6 +16,7 @@ public partial class HomeD : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
+        HomePageVM.AssignCV(SongsColView);
     }
 
     DateTime lastKeyStroke;
@@ -60,12 +61,6 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
-    {
-        base.OnNavigatedFrom(args);
-        HomePageVM.SwitchViewNowPlayingPageCommand.Execute(0);
-        HomePageVM.IsOnLyricsSyncMode = false;
-    }
     int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
@@ -157,5 +152,14 @@ public partial class HomeD : UraniumContentPage
     private void CancelMultiSelect_Clicked(object sender, EventArgs e)
     {
         ToggleMultiSelect_Clicked(sender, e);
+    }
+
+    protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
+    {
+        base.OnNavigatingFrom(args);
+        if (!isPointerEntered)
+        {
+            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        }
     }
 }

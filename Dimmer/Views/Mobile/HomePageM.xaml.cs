@@ -30,10 +30,7 @@ public partial class HomePageM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
-        if (SongsColView.IsLoaded)
-        {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
-        }
+        HomePageVM.AssignCV(SongsColView);
 #if ANDROID
             PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
         Shell.SetNavBarIsVisible(this, false);

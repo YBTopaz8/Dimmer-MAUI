@@ -5,8 +5,10 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
     IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0,
-        ObservableCollection<SongsModelView>? SecQueueSongs = null, double lastPosition = 0, int repeatMode = 0, int repeatMaxCount = 0, bool IsFromPreviousOrNext = false); //to play song
+    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null, 
+        double lastPosition = 0, int repeatMode = 0, 
+        int repeatMaxCount = 0, 
+        bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
     Task<bool> PlayNextSongAsync(); //to play next song
     Task<bool> PlayPreviousSongAsync(); //to play previous song
     Task<bool> StopSongAsync(); //to stop song
@@ -49,7 +51,7 @@ public interface IPlaybackUtilsService
     void RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
     void RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName);
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
-    void GetSongsFromPlaylistID(ObjectId playlistID);
+    List<SongsModelView> GetSongsFromPlaylistID(ObjectId playlistID);
     bool DeletePlaylistThroughID(ObjectId playlistID);
     string SelectedPlaylistName { get; }
 

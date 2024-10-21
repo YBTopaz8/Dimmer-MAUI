@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Graphics;
 using Android.Media;
 using Android.OS;
+using Android.Widget;
 using AndroidX.Core.App;
 using static Android.App.Notification;
 using static Android.Resource;
@@ -93,7 +94,8 @@ public static class NotificationHelper
             //builder.AddAction(GenerateActionCompat(context, Drawable.ButtonStar, "Fav", MediaPlayerService.ActionNext));
 
             //style.SetShowActionsInCompactView(0, 1, 2, 3, 4);
-
+            
+            
             if (largeIcon is not null)
             {
                 builder.SetLargeIcon(largeIcon);

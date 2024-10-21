@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Reactive.Linq;
+
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -666,11 +668,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public async Task<bool> PlaySongAsync(SongsModelView? song = null, int currentQueue = 0,
         ObservableCollection<SongsModelView>? currentList = null, double positionInSec = 0,
         int repeatMode = 0, int repeatMaxCount = 0,
-        bool IsFromPreviousOrNext = false)
+        bool IsFromPreviousOrNext = false, AppState CurrentAppStatee = AppState.OnForeGround)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         CurrentQueue = currentQueue;
-
+        if (CurrentAppState != CurrentAppStatee)
+        {
+            CurrentAppState = CurrentAppStatee;
+        }
         if (_positionTimer != null)
         {
             _positionTimer.Stop();
@@ -802,11 +807,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 _currentPositionSubject.OnNext(new());
             }
 #if WINDOWS
-            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+            if (CurrentAppState == AppState.OnBackGround)
+            {
+                MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+            }            
 #endif
         }
     }
 
+
+    public AppState CurrentAppState = AppState.OnForeGround;
     //private void GetPrevAndNextSongs(bool IsNext = false, bool IsPrevious = false)
     //{
 
@@ -1364,14 +1374,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //TODO: DO THIS
     }
 
-    public void GetSongsFromPlaylistID(ObjectId playlistID)
+    public List<SongsModelView> GetSongsFromPlaylistID(ObjectId playlistID)
     {
         try
         {
             var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
             var songsIdsFromPL = new HashSet<ObjectId>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.Id));
             var songsFromPlaylist = SongsMgtService.AllSongs;
-            ObservableCollection<SongsModelView> songsinpl = new();
+            List<SongsModelView> songsinpl = new();
             songsinpl?.Clear();
             foreach (var song in songsFromPlaylist)
             {
@@ -1381,12 +1391,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 }
             }
             SelectedPlaylistName = specificPlaylist.Name;
-            _secondaryQueueSubject.OnNext(songsinpl);
-
+            
+            if (songsinpl is null)
+            {
+                return Enumerable.Empty<SongsModelView>().ToList();
+            }
+            _secondaryQueueSubject.OnNext(songsinpl.ToObservableCollection());
+            return songsinpl;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error getting songs from playlist: {ex.Message}");
+            return Enumerable.Empty<SongsModelView>().ToList();
         }
 
     }

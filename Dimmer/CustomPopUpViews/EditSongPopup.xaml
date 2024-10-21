@@ -24,15 +24,15 @@
     </mct:Popup.Resources>
     <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
             Stroke="Transparent" 
-            WidthRequest="450" HeightRequest="650"
+            WidthRequest="450" HeightRequest="{OnPlatform WinUI=670, Android=550}"
             BackgroundColor="Black" Margin="5" Padding="20">
 
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
                       Spacing="10" Margin="10,0" Grid.Row="0">
 
-            <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
-                         HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}" BorderWidth="0"
-                         CornerRadius="25" />
+            <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                         HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}"
+                   />
 
             <material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
             <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 

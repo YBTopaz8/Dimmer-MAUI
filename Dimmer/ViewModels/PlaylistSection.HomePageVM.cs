@@ -26,7 +26,8 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
-        PlayBackService.GetSongsFromPlaylistID(PlaylistID);
+        DisplayedSongsFromPlaylist?.Clear();
+        DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
         //PlayListService.GetSongsFromPlaylistID
         
         SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;

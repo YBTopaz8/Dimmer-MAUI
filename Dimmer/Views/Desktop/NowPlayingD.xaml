@@ -44,7 +44,7 @@
                    Aspect="AspectFill"/>
             <toolkit:DockLayout Margin="50">
                 <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
-                                     WidthRequest="250" >
+                                     WidthRequest="250" Spacing="10">
                     <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                             WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
                     <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
@@ -122,18 +122,20 @@
                         </material:TabItem.ContentTemplate>
                     </material:TabItem>
 
-                    <material:TabItem Title="Stats">
-                        <material:TabItem.ContentTemplate>
-                            <DataTemplate>
-                                <cv:SongStatView/>
-                            </DataTemplate>
-                        </material:TabItem.ContentTemplate>
-                    </material:TabItem>
 
                     <material:TabItem Title="Fetch Lyrics">
                         <material:TabItem.ContentTemplate>
                             <DataTemplate>
                                 <cw:FetchLyricsResultsView />
+                            </DataTemplate>
+                        </material:TabItem.ContentTemplate>
+                    </material:TabItem>
+
+
+                    <material:TabItem Title="Stats">
+                        <material:TabItem.ContentTemplate>
+                            <DataTemplate>
+                                <cv:SongStatView/>
                             </DataTemplate>
                         </material:TabItem.ContentTemplate>
                     </material:TabItem>

@@ -184,7 +184,7 @@ public class AppSettingsService : IAppSettingsService
             default:
                 break;
         }
-        AppSettingsService.SortingModePreference.SetSortingPref(mode);
+        SortingModePreference.SetSortingPref(mode);
         return colToSort;
     }
     public static class MusicFoldersPreference
