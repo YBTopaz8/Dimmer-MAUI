@@ -12,6 +12,7 @@ public interface ISongsManagementService
     void Dispose();
 
     IList<AlbumModelView> AllAlbums { get; set; }
+    IList<GenreModelView> AllGenres { get; set; }
     void GetAlbums();
     (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
@@ -21,6 +22,7 @@ public interface ISongsManagementService
     public int GetSongsCountFromAlbumID(ObjectId albumID);
 
     public Task<bool> DeleteSongFromDB(ObjectId songID);
+    public Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongsModelView> songs);
     //public Task<SongsModel> FindSongsByArtist(string searchText);
     //public Task<SongsModel> FindSongsByAlbum(string searchText);
     //public Task<SongsModel> FindSongsByGenre(string searchText);

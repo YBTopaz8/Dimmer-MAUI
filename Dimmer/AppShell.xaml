@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
+    xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
     Shell.FlyoutBehavior="Disabled"
     FlyoutBackgroundColor="Blue"
     Shell.NavBarIsVisible="False"
@@ -13,24 +14,35 @@
 
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar">
         <Tab Title="Home" x:Name="homeTab">
-
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Music_note}"/>
+            </Tab.Icon>
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:HomeD}"
-                Route="HomePageD" />
+                Route="HomePageD">
+            </ShellContent>
         </Tab>
 
         <Tab Title="Artists" x:Name="albumTab">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.People}"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
 
         <Tab Title="Playlists" x:Name="playlistsTab">
-
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Queue_music}"/>
+            </Tab.Icon>
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
                 Route="PlaylistsD"/>
             
         </Tab>
         <Tab Title="Stats" x:Name="statsTab">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Show_chart}"/>
+            </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
                 Route="StatsD"/>
         </Tab>

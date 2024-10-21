@@ -7,7 +7,9 @@ public interface IArtistsManagementService
     void GetArtists();
 
     IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
-    bool AddSongToArtistWithArtistIDAndAlbum(List<ArtistModelView> artistModel, List<AlbumModelView> albumModel, List<AlbumArtistSongLink> links, List<SongsModel> songs);
+    bool AddSongToArtistWithArtistIDAndAlbumAndGenre(List<ArtistModelView> artistModel, List<AlbumModelView> albumModel,
+        List<AlbumArtistSongLink> links, List<SongsModel> songs,
+        List<GenreModelView> genreModels, List<AlbumArtistGenreSongLink> genreLinks);
     bool UpdateArtist(ArtistModelView artistModel);    
     bool DeleteArtist(ObjectId artistID);
 }

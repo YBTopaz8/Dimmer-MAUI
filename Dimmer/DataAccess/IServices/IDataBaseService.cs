@@ -1,6 +1,6 @@
 ﻿namespace Dimmer_MAUI.DataAccess.IServices;
 public interface IDataBaseService
 {
-    Realm GetRealm();
+    RealmConfiguration GetRealm();
     void DeleteDB();
 }

@@ -99,23 +99,22 @@
                 </FlexLayout>
 
 
-                <CollectionView ItemsSource="{Binding SongPickedForStats.Song.DatesPlayed}" WidthRequest="400" 
+                <CollectionView ItemsSource="{Binding SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted}" WidthRequest="400" 
                                 HorizontalOptions="Center" HeightRequest="400"
                                 SelectionMode="Single" IsVisible="True">
                     <CollectionView.Header>
-                        
-                    <Label Text="Day" FontAttributes="Bold" HorizontalOptions="Center"/>
-                            
+
+                        <Label Text="Day" FontAttributes="Bold" HorizontalOptions="Center"/>
                     </CollectionView.Header>
 
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout ItemSpacing="5" Orientation="Vertical"/>
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="vm:DatePlayCount">
+                        <DataTemplate x:DataType="models:PlayDateAndIsPlayCompletedModel">
                             <Border Padding="10" Margin="10" >
                                 <VerticalStackLayout>
-                                    <Label Text="{Binding ., Converter={StaticResource DateTimeOffsetConverter}}"/>
+                                    <Label Text="{Binding DatePlayed, Converter={StaticResource DateTimeOffsetConverter}}"/>
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>

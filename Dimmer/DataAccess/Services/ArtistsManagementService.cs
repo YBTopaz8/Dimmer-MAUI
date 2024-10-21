@@ -14,13 +14,7 @@ public class ArtistsManagementService : IArtistsManagementService
     {
         DataBaseService = dataBaseService;
         SongsManagementService = songsManagementService;
-        OpenDB();
         GetArtists();
-    }
-    Realm OpenDB()
-    {
-        db = DataBaseService.GetRealm();
-        return db;
     }
     
     public bool DeleteArtist(ObjectId artistID)
@@ -32,6 +26,7 @@ public class ArtistsManagementService : IArtistsManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var realmArtists = db.All<ArtistModel>().ToList();
             AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)));
             AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
@@ -52,6 +47,7 @@ public class ArtistsManagementService : IArtistsManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var specificArtist = AllArtists.FirstOrDefault(x => x.Id == artistID);
             if (specificArtist is not null)
             {
@@ -75,6 +71,7 @@ public class ArtistsManagementService : IArtistsManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var artist = db.Find<ArtistModel>(artistModel.Id);
             if (artist is not null)
             {
@@ -95,10 +92,18 @@ public class ArtistsManagementService : IArtistsManagementService
 
     private static List<ArtistModel> globalArtists = new List<ArtistModel>();
 
-    public bool AddSongToArtistWithArtistIDAndAlbum(List<ArtistModelView> artistModels, List<AlbumModelView> albumModels, List<AlbumArtistSongLink> links, List<SongsModel> songs)
+    public bool AddSongToArtistWithArtistIDAndAlbumAndGenre(
+      List<ArtistModelView> artistModels,
+      List<AlbumModelView> albumModels,
+      List<AlbumArtistSongLink> links,
+      List<SongsModel> songs,
+      List<GenreModelView> genreModels, // New parameter to handle genres
+      List<AlbumArtistGenreSongLink> genreLinks) // New parameter to handle genre links
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            // Insert new songs
             db.Write(() =>
             {
                 foreach (var song in songs)
@@ -107,6 +112,7 @@ public class ArtistsManagementService : IArtistsManagementService
                     Debug.WriteLine("Added Song " + song.Title);
                 }
             });
+
             // Insert new artists
             db.Write(() =>
             {
@@ -129,7 +135,7 @@ public class ArtistsManagementService : IArtistsManagementService
                 }
             });
 
-            //Insert new albums
+            // Insert new albums
             db.Write(() =>
             {
                 foreach (var albumModel in albumModels)
@@ -150,7 +156,6 @@ public class ArtistsManagementService : IArtistsManagementService
                         existingAlbum.Name = albumModel.Name;
                         Debug.WriteLine($"Album {albumModel.Id} updated.");
                     }
-                    
                 }
             });
 
@@ -160,11 +165,8 @@ public class ArtistsManagementService : IArtistsManagementService
                 foreach (var link in links)
                 {
                     var allLinks = db.All<AlbumArtistSongLink>().ToList();
-                    AlbumArtistSongLink existingLink = new();
-                    if (allLinks is not null || allLinks?.Count > 0)
-                    {
-                        existingLink = allLinks.FirstOrDefault(l => l.ArtistId == link.ArtistId && l.SongId == link.SongId && l.AlbumId == link.AlbumId);
-                    }
+                    AlbumArtistSongLink existingLink = allLinks.FirstOrDefault(l => l.ArtistId == link.ArtistId && l.SongId == link.SongId && l.AlbumId == link.AlbumId);
+
                     if (existingLink == null)
                     {
                         db.Add(new AlbumArtistSongLink
@@ -173,11 +175,64 @@ public class ArtistsManagementService : IArtistsManagementService
                             SongId = link.SongId,
                             AlbumId = link.AlbumId
                         });
-                        Debug.WriteLine("Added Link");
+                        Debug.WriteLine("Added Album-Artist-Song Link");
                     }
                     else
                     {
                         Debug.WriteLine($"Link {link.ArtistId}-{link.SongId}-{link.AlbumId} already exists.");
+                    }
+                }
+            });
+
+            // Insert new genres
+            db.Write(() =>
+            {
+                foreach (var genreModel in genreModels)
+                {
+                    var existingGenre = db.Find<GenreModel>(genreModel.Id);
+                    if (existingGenre == null)
+                    {
+                        db.Add(new GenreModel
+                        {
+                            Id = genreModel.Id,
+                            Name = genreModel.Name
+                        });
+                        Debug.WriteLine("Added Genre " + genreModel.Name);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Genre {genreModel.Id} already exists.");
+                    }
+                }
+            });
+            // Insert new genre links (Genre-Song relationships)
+            db.Write(() =>
+            {
+                foreach (var genreLink in genreLinks)
+                {
+                    // Ensure the collection isn't empty and handle nulls safely
+                    var existingGenreLinks = db.All<AlbumArtistGenreSongLink>()
+                        .Where(l => l.GenreId == genreLink.GenreId && l.SongId == genreLink.SongId)
+                        .ToList();
+                    if (existingGenreLinks.Count > 0)
+                    {
+                        var existingGenreLink = existingGenreLinks.FirstOrDefault();
+
+                        if (existingGenreLink == null)
+                        {
+                            db.Add(new AlbumArtistGenreSongLink
+                            {
+                                GenreId = genreLink.GenreId,
+                                SongId = genreLink.SongId,
+                                ArtistId = genreLink.ArtistId,
+                                AlbumId = genreLink.AlbumId
+                            });
+                            Debug.WriteLine("Added Genre-Song Link");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Genre-Song Link {genreLink.GenreId}-{genreLink.SongId} already exists.");
+                        }
                     }
                 }
             });
@@ -191,11 +246,10 @@ public class ArtistsManagementService : IArtistsManagementService
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Exception when adding to artist, song, and album: {ex.Message}");
+            Debug.WriteLine($"Exception when adding to artist, song, album, or genre: {ex.Message}");
             return false;
         }
     }
-
 
 
 

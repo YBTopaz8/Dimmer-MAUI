@@ -5,6 +5,7 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:CustomFonts="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.Fonts"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -17,6 +18,7 @@
 
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
+            
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
@@ -25,6 +27,8 @@
                 <Setter Property="HorizontalOptions" Value="Center"/>
                 <Setter Property="HorizontalTextAlignment" Value="Center"/>
             </Style>
+
+            
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
@@ -44,17 +48,24 @@
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
+        <HorizontalStackLayout HorizontalOptions="End"  toolkit:DockLayout.DockPosition="Top" Spacing="10">
+            <material:CheckBox Text="Toggle Stick To Top" LabelPosition="Before" x:Name="stickToTopChkbx"
+                               CheckChangedCommand="{Binding ToggleStickToTopCommand}"
+                               CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
 
-        <SearchBar HorizontalOptions="End" WidthRequest="200" toolkit:DockLayout.DockPosition="Top"
+
+            <SearchBar WidthRequest="200" 
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
-                   x:Name="SearchSongSB">
+                   x:Name="SearchSongSB"/>
 
-        </SearchBar>
+        </HorizontalStackLayout>
+
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
-            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="10,0,10,0">
+            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+                        Margin="10,0,10,0" x:Name="NormalMiniUtilBar">
                 <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
-            FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+            FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
                 <HorizontalStackLayout Spacing="10">
                     <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
@@ -72,9 +83,36 @@
                     </ImageButton>
 
                     <!--<Button Command="{Binding DummyFuncCommand}" Text="Dummy Func!"/>-->
-
+                    
                     <material:CheckBox Text="Toggle Discord RPC" CheckChangedCommand="{Binding ToggleDiscordRPCCommand}" IsChecked="{Binding IsDRPCEnabled}"
                                        x:Name="ToggleDiscordRPC" CommandParameter="{Binding IsChecked,Source={x:Reference ToggleDiscordRPC}}"/>
+                </HorizontalStackLayout>
+
+            </FlexLayout>
+            
+            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+                        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" IsVisible="False">
+                <HorizontalStackLayout>
+                    <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Size="30" Glyph="{x:Static m:MaterialRound.Arrow_back}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
+                        FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+                </HorizontalStackLayout>
+                
+
+                <HorizontalStackLayout Spacing="10">
+
+                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding CanMultiDeleteItems}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
+                        </ImageButton.Source>
+                        <ImageButton.CommandParameter>
+                            <x:Int32>0</x:Int32>
+                        </ImageButton.CommandParameter>
+                    </ImageButton>
                 </HorizontalStackLayout>
 
             </FlexLayout>
@@ -90,7 +128,6 @@
             <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
 
         </VerticalStackLayout>
-
         <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="230" />
@@ -125,75 +162,130 @@
             <Label Text="Format" Grid.Column="8"/>
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" 
-                        toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
-                        x:Name="SongsColView" SelectedItem="{Binding PickedSong}"
-                        SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded"
-                        >
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
+                        x:Name="SongsColView" SelectedItem="{Binding PickedSong}" SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
-                    <Grid ColumnSpacing="25" Padding="8" x:Name="GridOfItems" BackgroundColor="Transparent">
+                    <Grid ColumnSpacing="25" Padding="8" x:Name="GridOfItems" BackgroundColor="Transparent"
+                          Loaded="GridOfItems_Loaded" >
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
+                                <MenuFlyoutItem Text="Toggle MultiSelection" Clicked="ToggleMultiSelect_Clicked">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Select_all}"/>
+                                    </MenuFlyoutItem.IconImageSource>
+                                </MenuFlyoutItem>
+
                                 <MenuFlyoutItem Text="Set Play Repeat Count" 
-                                                 Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
+         Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
+                                    </MenuFlyoutItem.IconImageSource>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem Text="View File Explorer" 
-                                                Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
+        Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Folder_open}"/>
+                                    </MenuFlyoutItem.IconImageSource>
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                                                             Key="E"/>
+                     Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutItem Text="Remove from Device"
-                                                Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
+                                <MenuFlyoutItem Text="Remove from Device" IsDestructive="True"
+        Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}" 
+        CommandParameter="{Binding .}">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever }"/>
+                                    </MenuFlyoutItem.IconImageSource>
+
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl,Shift" 
-                                                             Key="Delete"/>
+                     Key="Delete"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
                                 <MenuFlyoutSeparator />
 
                                 <MenuFlyoutItem Text="Edit*">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}"/>
+                                    </MenuFlyoutItem.IconImageSource>
+
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl" 
-                                                             Key="E"/>
+                     Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
                                 <MenuFlyoutItem Text="Information*">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}"/>
+                                    </MenuFlyoutItem.IconImageSource>
                                     <MenuFlyoutItem.KeyboardAccelerators>
                                         <KeyboardAccelerator Modifiers="Ctrl" 
-                                                             Key="I"/>
+                     Key="I"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
                                 <MenuFlyoutSeparator/>
-
-                                <!--<MenuFlyoutItem Text="Remove">
-                                    <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="None" 
-                                                             Key="Delete"/>
-                                    </MenuFlyoutItem.KeyboardAccelerators>
-                                </MenuFlyoutItem>-->
-
-
                                 <MenuFlyoutSubItem Text="Artist">
-                                    <MenuFlyoutItem Text="Show Artist Songs" x:Name="ShowArtistSongs"
-                                                    Clicked="ShowArtistSongs_Clicked"/>
-                                    <MenuFlyoutItem Text="Play Artist Songs"/>
+                                    <MenuFlyoutSubItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}"/>
+                                    </MenuFlyoutSubItem.IconImageSource>
+                                    <MenuFlyoutItem Text="Show Artist Songs" 
+            Command="{Binding BindingContext.NavigateToArtistsPageCommand,Source={x:Reference myPage}}">
+                                        <MenuFlyoutItem.IconImageSource>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.View_list}"/>
+                                        </MenuFlyoutItem.IconImageSource>
+                                    </MenuFlyoutItem>
+                                    <!--<MenuFlyoutItem Text="Play Artist Songs"/>-->
 
                                 </MenuFlyoutSubItem>
 
                                 <MenuFlyoutSeparator/>
 
+                                <MenuFlyoutSubItem Text="Search Song On...">
+                                    <MenuFlyoutSubItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
+                                    </MenuFlyoutSubItem.IconImageSource>
+
+                                    <MenuFlyoutItem Text="Google" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                                    IconImageSource="google.png" >
+                                        <MenuFlyoutItem.CommandParameter>
+                                            <x:Int32>0</x:Int32>
+                                        </MenuFlyoutItem.CommandParameter>                                        
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="YouTube" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                                    >
+                                        <MenuFlyoutItem.IconImageSource>
+                                            <FileImageSource File="youtube.png"/>
+                                        </MenuFlyoutItem.IconImageSource>
+                                        <MenuFlyoutItem.CommandParameter>
+                                            <x:Int32>1</x:Int32>
+                                        </MenuFlyoutItem.CommandParameter>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="Spotify" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                                    >
+                                        <MenuFlyoutItem.IconImageSource>
+                                            <FileImageSource File="spotify.png"/>
+                                        </MenuFlyoutItem.IconImageSource>
+                                        <MenuFlyoutItem.CommandParameter>
+                                            <x:Int32>2</x:Int32>
+                                        </MenuFlyoutItem.CommandParameter>
+                                    </MenuFlyoutItem>
+                                </MenuFlyoutSubItem>
+                                
+                                <MenuFlyoutSeparator/>
+
                                 <MenuFlyoutItem Text="Add To Playlist"
-                                                Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
+        Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
+                                    <MenuFlyoutItem.IconImageSource>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Playlist_add}"/>
+                                    </MenuFlyoutItem.IconImageSource>
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Ctrl" 
-                                                             Key="P"/>
+                                        <KeyboardAccelerator Modifiers="Ctrl" Key="P"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 

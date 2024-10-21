@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Speech.Synthesis;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
+using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -117,6 +120,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         mediaPlayer?.Dispose();
         return Task.CompletedTask;
     }
+
+
     private MediaPlaybackItem MediaPlaybackItem(MediaPlay media)
     {
         try
@@ -157,7 +162,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
                 }
                 props.Thumbnail = RandomAccessStreamReference.CreateFromStream(thumbnailStream);
             }
-
+            mediaItem.AutoLoadedDisplayProperties = AutoLoadedDisplayPropertyKind.Music;
+            
             mediaItem.ApplyDisplayProperties(props);
             return mediaItem;
         }
@@ -165,31 +171,6 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         {
             Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException.Message}, stack {ex.StackTrace}, source {ex.Source}");
             return null;
-        }
-    }
-
-    private RandomAccessStreamReference ConvertToRandomAccessStreamReference(byte[] imageData)
-    {
-        try
-        {
-            // Create a new InMemoryRandomAccessStream
-            var randomAccessStream = new InMemoryRandomAccessStream();
-
-            // Use DataWriter to write the byte array to the stream
-            using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
-            {
-                writer.WriteBytes(imageData);
-                writer.StoreAsync().GetResults();
-                writer.DetachStream();  // Detach to ensure it remains open for RandomAccessStreamReference
-            }
-
-            // Return a RandomAccessStreamReference from the InMemoryRandomAccessStream
-            return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException.Message}, stack {ex.StackTrace}, source {ex.Source}");
-            throw;
         }
     }
 
@@ -222,20 +203,19 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
                 return;
             if (mediaPlayer == null)
             {
-                mediaPlayer = new MediaPlayer
+
+                mediaPlayer = new MediaPlayer()
                 {
                     Source = curMedia,
-                    AudioCategory = MediaPlayerAudioCategory.Media
+                    AudioCategory = MediaPlayerAudioCategory.Media,
                 };
+
+                
 
                 mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
                 mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
                 mediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.AutoRepeatModeBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.PositionBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.RateBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.RewindBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-
+                
                 mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
                 mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
 

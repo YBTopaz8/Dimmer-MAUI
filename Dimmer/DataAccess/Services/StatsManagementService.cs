@@ -5,12 +5,6 @@ public class StatsManagementService : IStatsManagementService
     public StatsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
-        OpenDB();
-    }
-    Realm OpenDB()
-    {
-        db = DataBaseService.GetRealm();
-        return db;
     }
     public IDataBaseService DataBaseService { get; }
 
@@ -38,7 +32,6 @@ public class StatsManagementService : IStatsManagementService
     {
         try
         {
-            OpenDB();
             var song = db.Find<SongsModel>(songID);
 
             if (song is null)
@@ -53,7 +46,7 @@ public class StatsManagementService : IStatsManagementService
             {
                 await db.WriteAsync(() =>
                 {
-                    song.LastPlayed = DateTime.Now;
+                    //song.LastPlayed = DateTime.Now;
                 });
             }
         }

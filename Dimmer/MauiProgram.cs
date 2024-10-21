@@ -17,7 +17,9 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
                 fonts.AddMaterialIconFonts();
+                fonts.AddFontAwesomeIconFonts();
             });
 
 #if WINDOWS || Debug
@@ -31,20 +33,23 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnWindowCreated(async window =>
                 {
+                    var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
                     WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                     AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
 
+                    homeVM.AppWinPresenter = winuiAppWindow.Presenter;
                     winuiAppWindow.Closing += async (s, e) =>
                     {
                         e.Cancel = true;
-                        var allWins = Application.Current.Windows.ToList<Microsoft.Maui.Controls.Window>();
+                        var allWins = Application.Current.Windows.ToList<Window>();
                         foreach (var win in allWins)
                         {
                             if (win.Title != "MyWin")
                             {
-                                var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
                                 await homeVM.ExitingApp();
+
                                 bool result = await win.Page.DisplayAlert(
                                     "Confirm Action",
                                     "You sure want to close app?",
@@ -62,15 +67,13 @@ public static class MauiProgram
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")
                     {
+                        //window.SetTitleBar()
                         if (winuiAppWindow.Presenter is OverlappedPresenter p)
                         {
                             p.IsResizable = false;
                             p.IsAlwaysOnTop = true;
                             p.SetBorderAndTitleBar(false, false); // Remove title bar and border
                         }
-                    }
-                    else
-                    {                        
                     }
                 });
             });

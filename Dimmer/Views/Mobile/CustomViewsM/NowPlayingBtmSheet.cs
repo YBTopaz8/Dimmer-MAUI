@@ -120,16 +120,16 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                 break;
 
             case GestureStatus.Running:
-                // Only allow panning if IsPresented is false
-                if (IsPresented)
+                // If the bottom sheet is fully closed, prevent further downward movement
+                if (!IsPresented && e.TotalY > 0) // Prevent downward movement when already closed
                 {
-                    // If the bottom sheet is fully presented, prevent further upward movement
-                    if (e.TotalY < 0) // Prevent upward movement when already presented
-                    {
-                        return;
-                    }
+                    return;
                 }
 
+                if (IsPresented && e.TotalY < 0) // Prevent upward movement when already open
+                {
+                    return;
+                }
                 if (Math.Abs(e.TotalY) > Math.Abs(e.TotalX) && !isVerticalPan)
                 {
                     isVerticalPan = true; // Mark this as a vertical pan

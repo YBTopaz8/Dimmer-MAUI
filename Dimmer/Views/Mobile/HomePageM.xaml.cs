@@ -76,7 +76,12 @@ public partial class HomePageM : UraniumContentPage
             else
             {
                 HomePageVM.SearchSongCommand.Execute(string.Empty);
-                SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
+                
+                await Task.Delay(500);
+                if (SongsColView.IsLoaded)
+                {
+                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: false);
+                }
             }
         }
     }

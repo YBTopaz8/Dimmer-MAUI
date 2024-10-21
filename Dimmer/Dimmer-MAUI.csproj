@@ -127,6 +127,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Fonts\FA6Brands-Regular-400.otf" />
+	  <None Remove="Resources\Images\github.svg" />
+	  <None Remove="Resources\Images\google.svg" />
+	  <None Remove="Resources\Images\spotify.svg" />
+	  <None Remove="Resources\Images\youtube.svg" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
@@ -139,6 +147,7 @@
 		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
 		<PackageReference Include="UraniumUI" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
+		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialIcons" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
 		<PackageReference Include="z440.atl.core" Version="6.5.0" />

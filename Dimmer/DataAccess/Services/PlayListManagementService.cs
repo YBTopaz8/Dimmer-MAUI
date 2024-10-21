@@ -8,20 +8,15 @@ public class PlayListManagementService : IPlaylistManagementService
     public PlayListManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
-        OpenDB();
         GetPlaylists();
     }
 
-    Realm OpenDB()
-    {
-        db = DataBaseService.GetRealm();
-        return db;
-    }
 
     public void GetPlaylists()
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var realmPlayLists = db.All<PlaylistModel>().ToList();
             AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
@@ -37,6 +32,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             // Get the playlist
             var specificPlaylist = AllPlaylists
                 .FirstOrDefault(x => x.Id == playlistID);
@@ -66,6 +62,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
                 var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
@@ -111,6 +108,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             ObjectId plID = ObjectId.Empty;
 
             db.Write(() =>
@@ -180,6 +178,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
                 var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Name == playlistName);
@@ -217,6 +216,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
                 var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
@@ -257,6 +257,7 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
             db.Write(() =>
             {
@@ -278,6 +279,8 @@ public class PlayListManagementService : IPlaylistManagementService
     public bool RenamePlaylist(ObjectId playlistID, string newPlaylistName)
     {
         var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        
         if (specificPlaylist is null)
         {
             //await Shell.Current.DisplayAlert("Error While Renaming", "No Such Playlist Exists", "OK");

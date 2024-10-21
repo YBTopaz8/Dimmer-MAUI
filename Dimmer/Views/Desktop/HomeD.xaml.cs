@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
@@ -10,8 +12,6 @@ public partial class HomeD : UraniumContentPage
 
         MediaPlayBackCW.BindingContext = homePageVM;
     }
-
-    int countt;
 
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()
@@ -40,7 +40,7 @@ public partial class HomeD : UraniumContentPage
                 await Task.Delay(500);
                 if (SongsColView.IsLoaded)
                 {
-                    SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Start, animate: true);
+                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: true);
                 }
             }
         }
@@ -54,7 +54,7 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -94,12 +94,6 @@ public partial class HomeD : UraniumContentPage
         SearchSongSB.Focus();
     }
 
-    private async void ShowArtistSongs_Clicked(object sender, EventArgs e)
-    {
-        await HomePageVM.NavigateToArtistsPage(HomePageVM.SelectedSongToOpenBtmSheet);
-    }
-
-
     bool isPointerEntered;
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
@@ -115,10 +109,64 @@ public partial class HomeD : UraniumContentPage
         {
             SongsColView.ScrollTo(HomePageVM.PickedSong, null, ScrollToPosition.Center, animate: false);
         }
+        else
+        {            
+            if(currentSelectionMode == SelectionMode.Multiple)
+            {
+                HomePageVM.HandleMultiSelect(SongsColView, e);
+            }
+        }
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
         isPointerEntered = false;
+    }
+
+
+
+    SelectionMode currentSelectionMode;
+   public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
+   {
+        switch (SongsColView.SelectionMode)
+        {
+            case SelectionMode.None:
+                SongsColView.SelectionMode = SelectionMode.Multiple;
+                NormalMiniUtilBar.IsVisible = false;
+                MultiSelectUtilBar.IsVisible = true;
+                
+
+                HomePageVM.EnableContextMenuItems = false;
+
+                Debug.WriteLine("Now Multi Select");
+                break;
+            case SelectionMode.Single:
+                break;
+            case SelectionMode.Multiple:
+                SongsColView.SelectionMode = SelectionMode.None;
+                
+                SongsColView.SelectedItems.Clear();
+                HomePageVM.HandleMultiSelect(SongsColView);
+                NormalMiniUtilBar.IsVisible = true;
+                MultiSelectUtilBar.IsVisible = false;
+                HomePageVM.EnableContextMenuItems = true;
+                Debug.WriteLine("Back To None");
+                break;
+            default:
+                break;
+        }
+        currentSelectionMode = SongsColView.SelectionMode;        
+    }
+
+
+    Grid mainGrid { get; set; }
+    private void GridOfItems_Loaded(object sender, EventArgs e)
+    {
+        mainGrid = sender as Grid;
+    }
+
+    private void CancelMultiSelect_Clicked(object sender, EventArgs e)
+    {
+        ToggleMultiSelect_Clicked(sender, e);
     }
 }

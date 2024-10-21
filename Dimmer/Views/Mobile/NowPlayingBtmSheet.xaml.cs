@@ -48,7 +48,7 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
             return;
         }
         homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
-        await homePageVM.NavigateToArtistsPage(homePageVM.SelectedSongToOpenBtmSheet);
+        await homePageVM.NavigateToArtistsPage();
         this.IsPresented = false;
 
     }

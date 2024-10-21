@@ -1,6 +1,7 @@
 ﻿namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
+    
     [ObservableProperty]
     SongsModelView pickedSong; // I use this a lot with the collection view, mostly to scroll
 
@@ -542,8 +543,8 @@ public partial class HomePageVM : ObservableObject
                 if (CurrentPage == PageEnum.FullStatsPage)
                 {
 
-                    TemporarilyPickedSong.DatesPlayed = TemporarilyPickedSong.DatesPlayed
-                    .OrderByDescending(date => date).ToList();
+                    //TemporarilyPickedSong.DatesPlayed = TemporarilyPickedSong.DatesPlayed
+                    //.OrderByDescending(date => date).ToList();
                     ShowGeneralTopXSongs();
                     //ShowSingleSongStats(PickedSong);
                 }
@@ -951,6 +952,8 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task OpenRepeatSetterPopup()
     {
+        if (!EnableContextMenuItems)
+            return;
 #if ANDROID
         PickedSong = SelectedSongToOpenBtmSheet;
 #endif
@@ -974,33 +977,7 @@ public partial class HomePageVM : ObservableObject
         PrepareLyricsSync();
     }
 
-    [RelayCommand]
-    void OpenSongFolder() //SongsModel SelectedSong)
-    {
-#if WINDOWS
-        string filePath = string.Empty;
-        if (CurrentPage == PageEnum.NowPlayingPage)
-        {
-            filePath = PickedSong.FilePath;
-        }
-        else
-        {
-            filePath = SelectedSongToOpenBtmSheet.FilePath;
-        }
-        var directoryPath = Path.GetDirectoryName(filePath);
-
-        if (!string.IsNullOrEmpty(directoryPath) && Directory.Exists(directoryPath))
-        {
-            // Open File Explorer and select the file
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "explorer.exe",
-                Arguments = $"/select,\"{filePath}\"",
-                UseShellExecute = true
-            });
-        }
-#endif
-    }
+    
 
     [RelayCommand]
     void SetPickedPlaylist(PlaylistModelView pl)
@@ -1013,21 +990,7 @@ public partial class HomePageVM : ObservableObject
         SelectedSongToOpenBtmSheet = song;
     }
 
-    [RelayCommand]
-    async Task DeleteFile(SongsModelView song)
-    {
-        song ??= SelectedSongToOpenBtmSheet;
-        if (!await PlatSpecificUtils.DeleteSongFile(song))
-        {
-            return;
-        }
-        if (IsPlaying)
-        {
-            await PlayNextSong();
-        }
-        DisplayedSongs.Remove(song);
-        await SongsMgtService.DeleteSongFromDB(song.Id);
-    }
+    
 
     [RelayCommand]
     async Task NavigateToShareStoryPage()
@@ -1035,89 +998,5 @@ public partial class HomePageVM : ObservableObject
         await Shell.Current.GoToAsync(nameof(ShareSongPage));
     }
 
-    [RelayCommand]
-    void BringAppToFront()
-    {
-#if WINDOWS
-        MiniPlayBackControlNotif.BringAppToFront();
-#endif
-    }
-
-
-    [RelayCommand]
-    async Task ShowSleepTimerPopup()
-    {
-        await Shell.Current.ShowPopupAsync(new SleepTimerSelectionPopup(this));
-    }
-    private CancellationTokenSource? _sleepTimerCancellationTokenSource;
-
-    [RelayCommand]
-    async Task StartSleepTimer(double value)
-    {
-        // Convert value to milliseconds (e.g., value in minutes * 60 * 1000)
-        var valueInMilliseconds = value * 60 * 1000;
-
-        // Cancel any existing timer
-        _sleepTimerCancellationTokenSource?.Cancel();
-
-        // Create a new CancellationTokenSource
-        _sleepTimerCancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _sleepTimerCancellationTokenSource.Token;
-
-        try
-        {
-            string min = value < 2 ? "Minute" : "Minutes";
-            var toast = Toast.Make($"Started ! Song will pause after {value}{min}}}");
-            await toast.Show(cts.Token);
-
-            await Task.Delay((int)valueInMilliseconds, cancellationToken);
-
-            // If the delay completed without cancellation, pause the song
-            if (!cancellationToken.IsCancellationRequested && IsPlaying)
-            {
-                await PauseResumeSong();
-            }
-        }
-        catch (TaskCanceledException ex)
-        {
-            // Handle the cancellation (if needed but i'm not sure I will ngl but still)
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-    public async Task ExitingApp()
-    {
-#if WINDOWS
-        if (IsPlaying)
-        {
-            await this.PauseResumeSong();
-        }
-#endif
-        if (TemporarilyPickedSong is not null)
-        {
-            AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
-            AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
-        }
-    }
-
-    [RelayCommand]
-    void ToggleDiscordRPC(bool isChecked)
-    {
-        if (isChecked)
-        {
-            AppSettingsService.DiscordRPCPreference.ToggleDiscordRPC(isChecked);
-            DiscordRPC.Initialize();
-            if (IsPlaying)
-            {
-                DiscordRPC.UpdatePresence(TemporarilyPickedSong,
-                    TimeSpan.FromSeconds(TemporarilyPickedSong.DurationInSeconds), TimeSpan.FromSeconds(CurrentPositionInSeconds));
-            }
-        }
-    }
-
-    [RelayCommand]
-    void DummyFunc()
-    {
-        GetAllAlbums();
-    }
+    
 }

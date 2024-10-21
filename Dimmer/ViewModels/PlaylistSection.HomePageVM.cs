@@ -117,6 +117,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task AddToPlaylist()
     {
+        if(!EnableContextMenuItems) return;
         if (DisplayedPlaylists is null)
         {
             RefreshPlaylists();

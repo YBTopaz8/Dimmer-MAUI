@@ -50,7 +50,7 @@ public partial class SongMenuBtmSheet : BottomSheet
 
     private async void GoToArtist_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavigateToArtistsPage(HomePageVM.SelectedSongToOpenBtmSheet);
+        await HomePageVM.NavigateToArtistsPage();
         await this.DismissAsync(true);
     }
 

@@ -17,8 +17,8 @@
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
+            <converters:CollectionSizeToVisibility x:Key="ColSizeToVis"/>
 
-            
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -34,7 +34,8 @@
                             EmptyView="No Playlists Existing..." SelectionMode="Single" SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
                 <CollectionView.Header>
                     <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
-                           HorizontalOptions="Center"/>
+                           HorizontalOptions="Center" 
+                           IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeToVis}}"/>
                 </CollectionView.Header>
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical"

@@ -1,5 +1,3 @@
-
-
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SingleSongShell : UraniumContentPage

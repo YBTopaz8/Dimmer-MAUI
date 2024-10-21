@@ -127,19 +127,6 @@ public class LyricsService : ILyricsService
         }
     }
 
-    private static string LoadUnsyncedLyrics(string songPath)
-    {
-        var UnSyncedLyrics = new Track(songPath).Lyrics.UnsynchronizedLyrics;
-        if (UnSyncedLyrics is not null)
-        {
-            return UnSyncedLyrics;
-        }
-        else
-        {
-            return "No Lyrics Found";
-        }
-    }
-
     List<LyricPhraseModel>? sortedLyrics;
     private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null, IList<LyricPhraseModel>? syncedLyrics = null)
     {
@@ -386,23 +373,6 @@ public class LyricsService : ILyricsService
         {
             client.Dispose();
         }
-    }
-
-    async Task<Content[]> SearchLyricsByTitleOnlyToLrc(SongsModelView song, HttpClient client)
-    {
-        // Construct the URL with query parameters
-        string artistName = Uri.EscapeDataString(song.ArtistName);
-        string trackName = Uri.EscapeDataString(song.Title);
-        string url = $"https://lrclib.net/api/search?track_name={trackName}&artist_name{artistName}";
-
-        // Send the GET request
-        HttpResponseMessage response = await client.GetAsync(url);
-        response.EnsureSuccessStatusCode(); // Throw if not a success code
-
-        // Read the response content
-        string content = await response.Content.ReadAsStringAsync();
-
-        return JsonSerializer.Deserialize<Content[]>(content);
     }
 
     async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongsModelView song, HttpClient client, List<string>? manualSearchFields = null)

@@ -1,46 +1,47 @@
 ﻿
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
-{      
+{
     public static void ShowUpdateMiniView(SongsModelView song)
     {
         try
         {
-
-            var s = DeviceDisplay.Current.MainDisplayInfo.Height;
-            var rr = DeviceDisplay.Current.MainDisplayInfo.Width;
-
-            var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
-            if (miniPlayerWindow is not null)
-            {
-                miniPlayerWindow.Update(song.Title, song.ArtistName, song.CoverImagePath);
-                return;
-            }
-            var miniPlayerView = new MiniControlNotificationView(song.Title, song.ArtistName, song.CoverImagePath);
-
-            // Ensure this is on the main thread
+            // Ensure everything that manipulates the UI is on the main thread
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                var secondWindow = new Window(miniPlayerView);
+                // Query main display info inside the main thread block
                 var mainScreenBounds = DeviceDisplay.Current.MainDisplayInfo;
-                
-                secondWindow.Title = "MP";
-                secondWindow.MaximumHeight = 150;
-                secondWindow.MinimumHeight = 150;
-                secondWindow.MaximumWidth = 400;
-                secondWindow.MinimumWidth = 400;
-                secondWindow.X = mainScreenBounds.Width - 400;
-                secondWindow.Y = 0;
+                var miniPlayerWindow = Application.Current?.Windows.FirstOrDefault(window => window.Page is MiniControlNotificationView)?.Page as MiniControlNotificationView;
+
+                if (miniPlayerWindow is not null)
+                {
+                    // Update the mini player if it's already open
+                    miniPlayerWindow.Update(song.Title, song.ArtistName, song.CoverImagePath);
+                    return;
+                }
+
+                // Create and show the new mini player window
+                var miniPlayerView = new MiniControlNotificationView(song.Title, song.ArtistName, song.CoverImagePath);
+                var secondWindow = new Window(miniPlayerView)
+                {
+                    Title = "MP",
+                    MaximumHeight = 150,
+                    MinimumHeight = 150,
+                    MaximumWidth = 400,
+                    MinimumWidth = 400,
+                    X = mainScreenBounds.Width - 400,
+                    Y = 0
+                };
 
                 Application.Current?.OpenWindow(secondWindow);
             });
-
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
         }
     }
+
     public static void BringAppToFront()
     {
         //var mainWindow = Application.Current?.Windows[]FirstOrDefault(window => window.Page is AppShell);

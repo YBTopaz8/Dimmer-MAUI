@@ -1,6 +1,7 @@
 ﻿#if ANDROID
 using Android.Graphics;
 using Google.Android.Material.Color.Utilities;
+using System.Diagnostics;
 using Color = Microsoft.Maui.Graphics.Color;
 #endif
 
@@ -9,19 +10,40 @@ public static class PlatSpecificUtils
 {
     public static async Task<bool> DeleteSongFile(SongsModelView song)
     {
-        if (File.Exists(song.FilePath))
+        try
         {
-            bool result = await Shell.Current.DisplayAlert("Delete File", $"Are you sure you want to Delete Song: {song.Title} by {song.ArtistName}?", "Yes", "No");
-            if (result is true)
+            if (File.Exists(song.FilePath))
             {
                 File.Delete(song.FilePath);
-
-                return true;
             }
+            return true;
         }
-        return false;
+        catch (Exception ex)
+        {
+            Debug.WriteLine("An error occurred: " + ex.Message);
+            return false;
+        }
     }
-
+    public static async Task<bool> MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    {
+        try
+        {
+            
+            foreach (var song in songs)
+            {
+                if (File.Exists(song.FilePath))
+                {
+                    File.Delete(song.FilePath);                    
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("An error occurred: " + ex.Message);
+            return false;
+        }
+    }
     public static async Task<Color[]> GetDominantColorsAsync(Stream imageStream)
     {
 #if ANDROID
@@ -56,4 +78,9 @@ public static class PlatSpecificUtils
         return [startColor, endColor];
     }
 
+
+    public static void ToggleWindowAlwaysOnTop(bool bof, nint nativeWindowHandle = 0)
+    {
+        Debug.WriteLine("Nothing"); ;
+    }
 }

@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI;
+﻿using Microsoft.Maui.Platform;
+using System.Diagnostics;
+
+namespace Dimmer_MAUI;
 
 public partial class AppShell : Shell
 {
@@ -14,24 +17,31 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(FullStatsD), typeof (FullStatsD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof (SingleSongStatsPageD));
 
+
+
 #if WINDOWS
         this.Loaded += AppShell_Loaded;
 
         this.Unloaded -= AppShell_Loaded;
+
+
 #endif
-        
+
     }
 #if WINDOWS
     private void AppShell_Loaded(object? sender, EventArgs e)
     {
         var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
-
+        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         if (nativeElement != null)
         {
             nativeElement.PointerPressed += OnGlobalPointerPressed;
+            //nativeElement.KeyDown += NativeElement_KeyDown; just experimenting
         }
     }
 
+    public HomePageVM HomePageVM { get; set; }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
     private async void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         try
@@ -39,8 +49,7 @@ public partial class AppShell : Shell
             var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
             var properties = e.GetCurrentPoint(nativeElement).Properties;
 
-
-            if (properties.IsXButton1Pressed)
+            if (properties != null && properties.IsXButton1Pressed)
             {
                 // Handle mouse button 4
                 var currentPage = Current.CurrentPage;
@@ -54,9 +63,7 @@ public partial class AppShell : Shell
                     await Current.Navigation.PopAsync();
                     return;
                 }
-
                 await Current.GoToAsync("..");
-
             }
 
         }

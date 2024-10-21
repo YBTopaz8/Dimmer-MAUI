@@ -35,13 +35,13 @@ public partial class SyncedLyricsView : ContentView
     HomePageVM ViewModel { get; set; }
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        if (ViewModel is null)
+        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        if (ViewModel != null && ViewModel.IsPlaying)
         {
-            ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+            var bor = (Border)sender;
+            var lyr = (LyricPhraseModel)bor.BindingContext;
+            ViewModel.SeekSongPosition(lyr);
         }
-        var bor = (Border)sender;
-        var lyr = (LyricPhraseModel)bor.BindingContext;
-        ViewModel.SeekSongPosition(lyr);
     }
 
     bool CanScroll = true;

@@ -45,10 +45,12 @@ public partial class HomePageVM
         ShowSpecificArtistsSongsWithAlbumId(selectedAlbumId);
         await Shell.Current.GoToAsync(nameof(SpecificAlbumPage));
     }
-    public async Task NavigateToArtistsPage(SongsModelView song)
+    [RelayCommand]
+    public async Task NavigateToArtistsPage()
     {
-        PickedSong = song;
-        GetAllArtistsAlbum(song.Id, song);
+        if(!EnableContextMenuItems) return;
+        
+        GetAllArtistsAlbum(SelectedSongToOpenBtmSheet.Id, SelectedSongToOpenBtmSheet);
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));
 #elif ANDROID
@@ -128,7 +130,7 @@ public partial class HomePageVM
     {
         AllArtistsAlbumSongs?.Clear();
         AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID(albumId);
-        SelectedSongToOpenBtmSheet = AllArtistsAlbumSongs.FirstOrDefault()!;
+        PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
 
     [RelayCommand]

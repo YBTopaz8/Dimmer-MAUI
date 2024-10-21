@@ -40,11 +40,6 @@
                                         <Setter Property="BackgroundColor" Value="Transparent"/>
                                     </VisualState.Setters>
                                 </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="#99483D8B"/>
-                                    </VisualState.Setters>
-                                </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         

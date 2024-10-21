@@ -20,11 +20,6 @@ public class DiscordRPCclient : IDiscordRPC
         }
     }
 
-    private void DiscordRpcClient_OnPresenceUpdate(object sender, DiscordRPC.Message.PresenceMessage args)
-    {
-        Debug.WriteLine($"Update Presence Name = {args.Name}, Title = {args.Presence.Details}");
-    }
-
     private void DiscordRpcClient_OnReady(object sender, DiscordRPC.Message.ReadyMessage args)
     {
         Debug.WriteLine($"RPC is ready and connected to {args.User.Username}");
@@ -67,14 +62,23 @@ public class DiscordRPCclient : IDiscordRPC
                 State = $"by {song.ArtistName} | {song.AlbumName}",
                 Buttons =
                 [
-                    new() { Label = "Try Dimmer !", Url = @"https://github.com/YBTopaz8/Dimmer-MAUI/releases"}
+                    new() { Label = "Try Dimmer !", Url = @"https://github.com/YBTopaz8/Dimmer-MAUI?tab=readme-ov-file#requirements"}
                 ],
                 Timestamps = new Timestamps()
                 {
                     Start = DateTime.UtcNow - position,
                     End = DateTime.UtcNow + (duration - position)
                 },
-                
+                Assets = new Assets()
+                {
+                    LargeImageText = $"{song.Title}",
+                    LargeImageKey = "image6_2"
+                }
+               ,
+                Party = new Party()
+                {
+                    
+                }
             });
         }
     }

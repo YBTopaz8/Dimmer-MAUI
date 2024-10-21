@@ -44,11 +44,11 @@ public partial class App : Application
         win.Width = 1200;
 #if DEBUG
 
-        win.Title = "Dimmer v0.0.7-debug";
+        win.Title = "Dimmer v0.0.8-debug";
 #endif
 
 #if RELEASE
-        win.Title = "Dimmer v0.0.7-release";
+        win.Title = "Dimmer v0.0.8-release";
 #endif
         return win;
     }

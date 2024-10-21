@@ -1,4 +1,5 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -6,11 +7,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     public IList<SongsModelView> AllSongs { get; set; }
     public IList<AlbumModelView> AllAlbums { get; set; }
+    public IList<GenreModelView> AllGenres { get; set; }
     public IDataBaseService DataBaseService { get; }
     public SongsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
-        db = DataBaseService.GetRealm();
         GetSongs();
     }
 
@@ -19,6 +20,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
@@ -36,6 +38,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     }
     public void GetAlbums()
     {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
@@ -45,6 +48,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             return await db.WriteAsync(() =>
             {
                 db.Add(song);
@@ -60,6 +64,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var songsToAdd = songs
                 .Where(song => !AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
                 .Select(song => new SongsModel(song))
@@ -84,70 +89,22 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    int count = 0;
     public bool UpdateSongDetails(SongsModelView songsModelView)
     {
         try
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            
+            db.Write(() =>
             {
-                db.Write(() =>
+                var existingSong = db.Find<SongsModel>(songsModelView.Id);
+                var newSong = new SongsModel(songsModelView)
                 {
-                    var existingSong = db.Find<SongsModel>(songsModelView.Id);
-
-                    if (existingSong != null)
-                    {
-                        // Update fields directly on the existing song object
-                        existingSong.Title = songsModelView.Title;
-                        existingSong.ArtistName = songsModelView.ArtistName;
-                        existingSong.AlbumName = songsModelView.AlbumName;
-                        existingSong.DurationInSeconds = songsModelView.DurationInSeconds;
-                        existingSong.ReleaseYear = songsModelView.ReleaseYear;
-                        existingSong.IsPlaying = false;
-
-                        // Only update DatesPlayed with the differences
-                        var datesToRemove = existingSong.DatesPlayed.Except(songsModelView.DatesPlayed).ToList();
-                        var datesToAdd = songsModelView.DatesPlayed.Except(existingSong.DatesPlayed).ToList();
-
-                        foreach (var date in datesToRemove)
-                        {
-                            existingSong.DatesPlayed.Remove(date);
-                        }
-
-                        foreach (var date in datesToAdd)
-                        {
-                            existingSong.DatesPlayed.Add(date);
-                        }
-
-                        // Repeat for DatesSkipped
-                        var skippedToRemove = existingSong.DatesSkipped.Except(songsModelView.DatesSkipped).ToList();
-                        var skippedToAdd = songsModelView.DatesSkipped.Except(existingSong.DatesSkipped).ToList();
-
-                        foreach (var date in skippedToRemove)
-                        {
-                            existingSong.DatesSkipped.Remove(date);
-                        }
-
-                        foreach (var date in skippedToAdd)
-                        {
-                            existingSong.DatesSkipped.Add(date);
-                        }
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Song not found; adding new song.");
-                        var newSong = new SongsModel(songsModelView)
-                        {
-                            IsPlaying = false
-                        };
-                        db.Add(newSong, update: true);
-                    }
-
-                    Debug.WriteLine($"Song datesplayedCount: {existingSong?.DatesPlayed.Count}");
-                    Debug.WriteLine($"Song DatesSkipped: {existingSong?.DatesSkipped.Count}");
-                });
+                    IsPlaying = false
+                };
+                db.Add(newSong, update: true);
             });
-
+    
             return true;
         }
         catch (Exception ex)
@@ -162,6 +119,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var artists = new List<ArtistModel>();
             artists.AddRange(artistss.Select(art => new ArtistModel(art)));
 
@@ -188,7 +146,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-            
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var songLinks = db
                 .All<AlbumArtistSongLink>() 
                 .Where(link => link.AlbumId == albumID) 
@@ -209,7 +167,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
-
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             var songLinks = db
                 .All<AlbumArtistSongLink>()
                 .Where(link => link.ArtistId == artistID)
@@ -229,6 +187,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             // Get the count of songs linked to the specific album
             var songCount = db
                 .All<AlbumArtistSongLink>()
@@ -247,6 +206,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             List<AlbumArtistSongLink>? songLinks = new();
             if (fromSong)
             {
@@ -288,6 +248,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
                 var existingAlbum = db.Find<AlbumModel>(album.Id);
@@ -317,6 +278,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             // Query the database for the AlbumArtistSongLink using the songId
             var links = db.All<AlbumArtistSongLink>()
                          .Where(link => link.SongId == songId)
@@ -342,42 +304,127 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             await db.WriteAsync(() =>
             {
-                // Find the song by its ID
                 var existingSong = db.Find<SongsModel>(songID);
                 if (existingSong != null)
                 {
-                    // Step 1: Find all artist links related to this song
                     var artistSongLinks = db.All<AlbumArtistSongLink>()
                                             .Where(link => link.SongId == songID)
                                             .ToList();
 
-                    // Step 2: Get the artist IDs before deleting the links
                     var artistIDs = artistSongLinks.Select(link => link.ArtistId).ToList();
+                    var albumIDs = artistSongLinks.Select(link => link.AlbumId).ToList();
 
-                    // Step 3: Remove all artist-song links for this song
                     foreach (var link in artistSongLinks)
                     {
                         db.Remove(link);
                     }
-
-                    // Step 4: Delete the song itself
                     db.Remove(existingSong);
 
-                    // Step 5: Check if any of the artists are linked to other songs
                     foreach (var artistID in artistIDs)
                     {
                         bool isArtistLinkedToOtherSongs = db.All<AlbumArtistSongLink>()
                                                             .Any(link => link.ArtistId == artistID && link.SongId != songID);
-
-                        // If the artist has no other songs, delete the artist
                         if (!isArtistLinkedToOtherSongs)
                         {
                             var artistToDelete = db.Find<ArtistModel>(artistID);
                             if (artistToDelete != null)
                             {
                                 db.Remove(artistToDelete);
+                            }
+                        }
+                    }
+
+                    foreach (var albumID in albumIDs)
+                    {
+                        bool isAlbumLinkedToOtherSongs = db.All<AlbumArtistSongLink>()
+                                                          .Any(link => link.AlbumId == albumID && link.SongId != songID);
+                        if (!isAlbumLinkedToOtherSongs)
+                        {
+                            var albumToDelete = db.Find<AlbumModel>(albumID);
+                            if (albumToDelete != null)
+                            {
+                                db.Remove(albumToDelete);
+                            }
+                        }
+                    }
+                }
+            });
+
+            GetSongs(); // Update the list after deletion
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return false;
+        }
+    }
+
+
+    public async Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongsModelView> songs)
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            // Use a write transaction to handle multiple deletions
+            await db.WriteAsync(() =>
+            {
+                foreach (var song in songs)
+                {
+                    var songID = song.Id;
+                    var existingSong = db.Find<SongsModel>(songID);
+                    if (existingSong != null)
+                    {
+                        // Find all links related to the song
+                        var artistSongLinks = db.All<AlbumArtistSongLink>()
+                                                .Where(link => link.SongId == songID)
+                                                .ToList();
+
+                        // Collect artist IDs to check if they are linked to other songs later
+                        var artistIDs = artistSongLinks.Select(link => link.ArtistId).ToList();
+
+                        // Collect album IDs to check if they are linked to other songs later
+                        var albumIDs = artistSongLinks.Select(link => link.AlbumId).ToList();
+
+                        // Remove all links related to the song
+                        foreach (var link in artistSongLinks)
+                        {
+                            db.Remove(link);
+                        }
+
+                        // Remove the song itself
+                        db.Remove(existingSong);
+
+                        // Check if any artist is no longer linked to any other song, and remove them if necessary
+                        foreach (var artistID in artistIDs)
+                        {
+                            bool isArtistLinkedToOtherSongs = db.All<AlbumArtistSongLink>()
+                                                                .Any(link => link.ArtistId == artistID && link.SongId != songID);
+                            if (!isArtistLinkedToOtherSongs)
+                            {
+                                var artistToDelete = db.Find<ArtistModel>(artistID);
+                                if (artistToDelete != null)
+                                {
+                                    db.Remove(artistToDelete);
+                                }
+                            }
+                        }
+
+                        // Check if any album is no longer linked to any other song, and remove them if necessary
+                        foreach (var albumID in albumIDs)
+                        {
+                            bool isAlbumLinkedToOtherSongs = db.All<AlbumArtistSongLink>()
+                                                              .Any(link => link.AlbumId == albumID && link.SongId != songID);
+                            if (!isAlbumLinkedToOtherSongs)
+                            {
+                                var albumToDelete = db.Find<AlbumModel>(albumID);
+                                if (albumToDelete != null)
+                                {
+                                    db.Remove(albumToDelete);
+                                }
                             }
                         }
                     }
@@ -429,17 +476,17 @@ public class CsvExporter
                 // Create a list to hold all action dates with their corresponding action
                 var actionEntries = new List<(int Action, DateTimeOffset ActionDate)>();
 
-                // Add DatesPlayed as Action = 1
-                foreach (var datePlayed in song.DatesPlayed)
-                {
-                    actionEntries.Add((1, datePlayed));
-                }
+                //// Add DatesPlayed as Action = 1
+                //foreach (var datePlayed in song.DatesPlayed)
+                //{
+                //    actionEntries.Add((1, datePlayed));
+                //}
 
-                // Add DatesSkipped as Action = 0
-                foreach (var dateSkipped in song.DatesSkipped)
-                {
-                    actionEntries.Add((0, dateSkipped));
-                }
+                //// Add DatesSkipped as Action = 0
+                //foreach (var dateSkipped in song.DatesSkipped)
+                //{
+                //    actionEntries.Add((0, dateSkipped));
+                //}
 
                 // Only proceed if there are any action entries
                 if (actionEntries.Any())

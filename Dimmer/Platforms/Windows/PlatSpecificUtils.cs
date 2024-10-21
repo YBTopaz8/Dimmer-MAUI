@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic.FileIO;
+using System.Diagnostics;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
@@ -10,16 +11,10 @@ public static class PlatSpecificUtils
         {
             if (File.Exists(song.FilePath))
             {
-                bool result = await Shell.Current.DisplayAlert("Delete Song", $"Are you sure you want to Delete " +
-                                   $"{song.Title} by {song.ArtistName} from your Device?", "Yes", "No");
-                if (result is true)
-                {
                     FileSystem.DeleteFile(song.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
 
-                    return true;
-                }
             }
-            return false;
+            return true;
         }
         catch (UnauthorizedAccessException e)
         {
@@ -35,6 +30,60 @@ public static class PlatSpecificUtils
         {
             Debug.WriteLine("An error occurred: " + e.Message);
             return false;
+        }
+    }
+
+    public static async Task<bool> MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    {
+        try
+        {
+            foreach (var song in songs)
+            {
+                if (File.Exists(song.FilePath))
+                {
+                    FileSystem.DeleteFile(song.FilePath, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+                }
+            }
+            
+            return true;
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Debug.WriteLine("Unauthorized to delete file: " + e.Message);
+            return false;
+        }
+        catch (IOException e)
+        {
+            Debug.WriteLine("An IO exception occurred: " + e.Message);
+            return false;
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine("An error occurred: " + e.Message);
+            return false;
+        }
+    }
+       
+    // Method to set the window on top
+    public static void ToggleWindowAlwaysOnTop(bool topMost, AppWindowPresenter appPresenter)
+    {
+        try
+        {
+
+            var OverLappedPres = appPresenter as OverlappedPresenter;
+            if (topMost)
+            {
+
+                OverLappedPres!.IsAlwaysOnTop = true;
+            }
+            else
+            {
+                OverLappedPres!.IsAlwaysOnTop = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"{ex.Message}");
         }
     }
 }
