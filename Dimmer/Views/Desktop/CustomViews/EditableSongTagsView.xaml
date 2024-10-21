@@ -37,6 +37,7 @@
             <material:EditorField Title="Album Name" Text="{Binding TemporarilyPickedSong.AlbumName}" />
             <material:EditorField Title="Release Year" Text="{Binding TemporarilyPickedSong.ReleaseYear }" 
                                 />
+            <Button Text="Save Metadata" />
             <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="400" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LyricPhraseModel">

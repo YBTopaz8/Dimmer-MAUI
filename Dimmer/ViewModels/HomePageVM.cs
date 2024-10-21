@@ -897,6 +897,9 @@ public partial class HomePageVM : ObservableObject
 
     }
 
+
+
+
     [RelayCommand]
     async Task OpenSortingPopup()
     {
