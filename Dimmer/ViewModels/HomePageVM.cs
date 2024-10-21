@@ -56,6 +56,9 @@ public partial class HomePageVM : ObservableObject
     string unSyncedLyrics;
     [ObservableProperty]
     string localFilePath;
+
+    public AppState CurrentAppState = AppState.OnForeGround;
+
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService,
                       IDiscordRPC discordRPC)
@@ -96,6 +99,11 @@ public partial class HomePageVM : ObservableObject
 
     }
 
+    CollectionView? PageCV { get; set; }
+    public void AssignCV(CollectionView cv)
+    {
+        PageCV = cv;
+    }
     void SubscribeToPlayerStateChanges()
     {
         if (_playerStateSubscription != null)
@@ -129,7 +137,7 @@ public partial class HomePageVM : ObservableObject
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
-
+                           
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
 
@@ -184,8 +192,18 @@ public partial class HomePageVM : ObservableObject
 
         if (song != null)
         {
-            SelectedSongToOpenBtmSheet = song;
-            SynchronizedLyrics?.Clear();
+            SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
+            if (song == TemporarilyPickedSong)
+            {
+                SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+            }
+            else
+            {
+                SynchronizedLyrics?.Clear();
+                SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
+                SelectedSongToOpenBtmSheet = song;
+            }
+            
             CurrentViewIndex = 1;
         }
 #if WINDOWS

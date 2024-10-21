@@ -30,7 +30,7 @@ public partial class App : MauiWinUIApplication
         mainInstance.Activated += MainInstance_Activated;
         this.InitializeComponent();
 
-       
+        
     }
     
     
@@ -99,6 +99,8 @@ public partial class App : MauiWinUIApplication
         home!.LoadLocalSongFromOutSideApp(paths!);
 
     }
+
+    
     
 }
 

@@ -30,6 +30,7 @@ public class LyricsService : ILyricsService
         _currentLyricSubject.OnNext(new LyricPhraseModel() { Text = ""});
     }
     MediaPlayerState pState;
+    
     private void SubscribeToPlayerStateChanges()
     {
         PlayBackService.PlayerState.Subscribe(async state =>
@@ -179,6 +180,42 @@ public class LyricsService : ILyricsService
         }
 
         return sortedLyrics.ToList();//lyricPhrases;
+    }
+    public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null)
+    {
+       
+        List<LyricPhraseModel> lyrr = new();
+
+        IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
+
+        if (lyrics is not null && lyrics!.Count != 0)
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToObservableCollection();
+        }
+        string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath);
+        string lrcExtension = ".lrc";
+        //string txtExtension = ".txt";
+        string lrcFilePath;
+
+        if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToObservableCollection();
+        }
+        else
+        {
+            
+            lrcFilePath = Path.ChangeExtension(songPath, lrcExtension);
+            string[] lines = File.ReadAllLines(lrcFilePath);
+            lyrr = StringToLyricPhraseModel(lines);
+
+            if (lyrr.Count > 1)
+            {
+                lyrr.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
+                //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
+            }
+        }
+
+        return lyrr.ToObservableCollection();//lyricPhrases;
     }
 
     List<LyricPhraseModel> songSyncLyrics;

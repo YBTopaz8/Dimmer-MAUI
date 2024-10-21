@@ -1,7 +1,7 @@
 ﻿namespace Dimmer_MAUI.Platforms.Android.CurrentActivity;
 public class CrossCurrentActivity
 {
-    static Lazy<ICurrentActivity> implementation = new Lazy<ICurrentActivity>(() => CreateCurrentActivity(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
+    static Lazy<ICurrentActivity> implementation = new Lazy<ICurrentActivity>(() => CreateCurrentActivity(), LazyThreadSafetyMode.PublicationOnly);
 
     /// <summary>
     /// Current settings to use

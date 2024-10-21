@@ -85,7 +85,7 @@
         </FlexLayout>
 
         <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectedItem="{Binding PickedSong}"
-                        SelectionMode="Single" x:Name="SongsColView" EmptyView="No Playlist Selected...">
+                        SelectionMode="Single" x:Name="SongsColView" EmptyView="No Songs To Display...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center">

@@ -78,8 +78,9 @@
 
                             <HorizontalStackLayout>
 
-                                <Button Text="Plain Lyrics" HorizontalOptions="Center"  Clicked="ViewLyricsBtn_Clicked"
-                                    IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+                                <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                                        Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
+                                        IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
                                     />
 
 

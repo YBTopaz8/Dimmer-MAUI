@@ -36,43 +36,54 @@ public static class MauiProgram
                     var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
-                    WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
-                    AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
-
-                    homeVM.AppWinPresenter = winuiAppWindow.Presenter;
-                    winuiAppWindow.Closing += async (s, e) =>
+                    if (nativeWindowHandle != IntPtr.Zero)
                     {
-                        e.Cancel = true;
-                        var allWins = Application.Current.Windows.ToList<Window>();
-                        foreach (var win in allWins)
+                        
+                        WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
+                        AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
+
+                        if(winuiAppWindow.Title != "MP")
                         {
-                            if (win.Title != "MyWin")
+                            homeVM.AppWinPresenter = winuiAppWindow.Presenter;
+                        
+                            winuiAppWindow.Closing += async (s, e) =>
                             {
-                                await homeVM.ExitingApp();
-
-                                bool result = await win.Page.DisplayAlert(
-                                    "Confirm Action",
-                                    "You sure want to close app?",
-                                    "Yes",
-                                    "Cancel");
-                                if (result)
+                                
+                                e.Cancel = true;
+                                var allWins = Application.Current.Windows.ToList<Window>();
+                                foreach (var win in allWins)
                                 {
-                                    var dRPC = IPlatformApplication.Current.Services.GetService<IDiscordRPC>();
-                                    dRPC.ShutDown();
-                                    Application.Current.CloseWindow(win);
+                                    if (win.Title != "MyWin")
+                                    {
+                                        await homeVM.ExitingApp();
+
+                                        bool result = await win.Page.DisplayAlert(
+                                            "Confirm Action",
+                                            "You sure want to close app?",
+                                            "Yes",
+                                            "Cancel");
+                                        if (result)
+                                        {
+                                            var dRPC = IPlatformApplication.Current.Services.GetService<IDiscordRPC>();
+                                            dRPC.ShutDown();
+                                            Application.Current.CloseWindow(win);
+                                        }
+                                    }
                                 }
-                            }
+                            };
                         }
-                    };
-                    // Check if this is the mini player window by checking its title or other identifying property
-                    if (window.Title == "MP")
-                    {
-                        //window.SetTitleBar()
-                        if (winuiAppWindow.Presenter is OverlappedPresenter p)
+                        // Check if this is the mini player window by checking its title or other identifying property
+                        if (window.Title == "MP")
                         {
-                            p.IsResizable = false;
-                            p.IsAlwaysOnTop = true;
-                            p.SetBorderAndTitleBar(false, false); // Remove title bar and border
+                            //window.SetTitleBar()
+                            if (winuiAppWindow.Presenter is OverlappedPresenter p)
+                            {
+                                p.IsResizable = false;
+                                p.IsAlwaysOnTop = true;
+                                p.SetBorderAndTitleBar(false, false); // Remove title bar and border
+                                p.IsAlwaysOnTop = true;
+                            }
+                            window.Activate();
                         }
                     }
                 });

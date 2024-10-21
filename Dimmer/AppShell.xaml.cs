@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI;
 
 public partial class AppShell : Shell
 {
@@ -14,21 +16,51 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(FullStatsD), typeof (FullStatsD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof (SingleSongStatsPageD));
 
-
-
 #if WINDOWS
         this.Loaded += AppShell_Loaded;
 
         this.Unloaded -= AppShell_Loaded;
 
-
+        this.Focused += AppShell_Focused;
+        this.Unfocused += AppShell_Unfocused;
 #endif
 
     }
+
+    private void AppShell_Focused(object? sender, FocusEventArgs e)
+    {
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        var vmm = IPlatformApplication.Current.Services.GetService<PlaybackUtilsService>();
+        if (vm != null)
+        {
+            vm.CurrentAppState = AppState.OnForeGround;
+        }
+        if (vmm != null)
+        {
+            vmm.CurrentAppState = AppState.OnForeGround;
+        }
+    }
+
+    private void AppShell_Unfocused(object? sender, FocusEventArgs e)
+    {
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        var vmm = IPlatformApplication.Current.Services.GetService<PlaybackUtilsService>();
+        if (vm != null)
+        {
+            vm.CurrentAppState = AppState.OnBackGround;
+        }
+        if (vmm != null)
+        {
+            vmm.CurrentAppState = AppState.OnBackGround;
+        }
+    }
+
 #if WINDOWS
     private void AppShell_Loaded(object? sender, EventArgs e)
     {
+        
         var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+        
         HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         if (nativeElement != null)
         {
@@ -43,6 +75,7 @@ public partial class AppShell : Shell
     {
         try
         {
+            
             var nativeElement = this.Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
             var properties = e.GetCurrentPoint(nativeElement).Properties;
 
@@ -87,14 +120,14 @@ public partial class AppShell : Shell
 #endif
 
 
-    protected override void OnNavigated(ShellNavigatedEventArgs args)
-    {
-        base.OnNavigated(args);
-        //if (args.Current.Location.OriginalString.Contains("MainPageD")) USE THIS TO DO SOMETHING WHEN USER CLICKS BTN
-        //{
-        //    HandleHomeButtonClicked();
-        //}
-    }
+    //protected override void OnNavigated(ShellNavigatedEventArgs args)
+    //{
+    //    base.OnNavigated(args);
+    //    //if (args.Current.Location.OriginalString.Contains("MainPageD")) USE THIS TO DO SOMETHING WHEN USER CLICKS BTN
+    //    //{
+    //    //    HandleHomeButtonClicked();
+    //    //}
+    //}
 
         
 }

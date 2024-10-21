@@ -20,10 +20,6 @@ public partial class NowPlayingD : ContentPage
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
         TabV.SelectedTab = TabV.Items[0];
-        if (HomePageVM.CurrentViewIndex == 1)
-        {
-            TabV.SelectedTab = TabV.Items[1];
-        }
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)

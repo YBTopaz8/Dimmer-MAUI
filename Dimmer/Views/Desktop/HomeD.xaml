@@ -335,7 +335,7 @@
                                 <Label Text="{Binding Title}" LineBreakMode="HeadTruncation"                                        
                                        ToolTipProperties.Text="{Binding Title}"/>
 
-                                <Image WidthRequest="13" Grid.Column="2" 
+                                <Image WidthRequest="13" Grid.Column="2" VerticalOptions="End"
                                        IsVisible="{Binding HasLyrics}">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
