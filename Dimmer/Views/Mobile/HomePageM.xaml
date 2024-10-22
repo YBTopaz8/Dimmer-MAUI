@@ -173,26 +173,34 @@
 
             <VerticalStackLayout Spacing="3" VerticalOptions="End" IsVisible="False"
                      HeightRequest="180" x:Name="MultiSelectMiniUtilFABs">
-                <ImageButton WidthRequest="45" Clicked="CancelMultiSelect_Clicked"
-                             HorizontalOptions="End">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Size="45" Glyph="{x:Static m:MaterialRound.Arrow_back}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-
-                <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
-                             HorizontalOptions="End" WidthRequest="45">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Size="45"
-                                         Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
-                    </ImageButton.Source>
-                    <ImageButton.CommandParameter>
-                        <x:Int32>0</x:Int32>
-                    </ImageButton.CommandParameter>
-                </ImageButton>
-
-                <Label Text="{Binding MultiSelectText}" FontSize="12" VerticalTextAlignment="End"
-    FontAttributes="Bold" TextColor="DarkSlateBlue" HorizontalTextAlignment="Center"/>
+                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" 
+                        HorizontalOptions="End" VerticalOptions="End"
+                        StrokeThickness="0">
+                    <ImageButton Clicked="CancelMultiSelect_Clicked" 
+                                 >
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Size="45" Glyph="{x:Static m:MaterialRound.Arrow_back}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
+                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" HorizontalOptions="End" 
+                        VerticalOptions="End" StrokeThickness="0">
+                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
+                             >
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Size="45"
+                                             Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
+                            </ImageButton.Source>
+                        <ImageButton.CommandParameter>
+                            <x:Int32>0</x:Int32>
+                        </ImageButton.CommandParameter>
+                    </ImageButton>
+                </Border>
+                <HorizontalStackLayout VerticalOptions="End" HorizontalOptions="Center">
+                    <Label Text="{Binding MultiSelectText}" FontSize="16"
+                           FontAttributes="Bold" TextColor="DarkSlateBlue" />
+                </HorizontalStackLayout>
+                
             </VerticalStackLayout>
         </Grid>
 

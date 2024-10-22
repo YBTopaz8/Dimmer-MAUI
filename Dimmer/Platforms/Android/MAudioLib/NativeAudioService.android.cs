@@ -111,7 +111,10 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public async Task ResumeAsync(double positionInSeconds)
     {
         var posInMs = positionInSeconds * 1000;
-        await instance.Binder.GetMediaPlayerService().Seek((int)posInMs);        
+        
+        await instance.Binder.GetMediaPlayerService().Play();
+        await instance.Binder.GetMediaPlayerService().Seek((int)posInMs);    
+        
     }
 
     public async Task PlayAsync(bool IsFromPreviousOrNext = false)

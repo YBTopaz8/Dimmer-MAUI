@@ -10,10 +10,15 @@ public partial class PlayPauseView : ContentView
         this.BindingContext = HomePageVM;
     }
 
-
-    private async void PlayPauseImgBtn_Clicked(object sender, EventArgs e)
+    private async void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.PauseResumeSong();
+        await HomePageVM.PauseSong();
+        
+    }
+
+    private async void playImgBtn_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.ResumeSong();
     }
 
 }

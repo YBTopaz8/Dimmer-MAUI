@@ -280,7 +280,7 @@ public partial class HomePageVM : ObservableObject
                 IsLoadingSongs = false;
                 return;
             }
-            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolderAsync(FolderPaths.ToList());
             if (loadSongsResult)
             {
                 DisplayedSongs?.Clear();
@@ -350,11 +350,18 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    public async Task PauseResumeSong()
+    [RelayCommand]
+    public async Task PauseSong()
+    {
+        await PlayBackService.PauseResumeSongAsync(CurrentPositionInSeconds, true);
+    }
+    
+    [RelayCommand]
+    public async Task ResumeSong()
     {
         await PlayBackService.PauseResumeSongAsync(CurrentPositionInSeconds);
     }
-
+    
 
     [RelayCommand]
     async Task StopSong()
@@ -632,7 +639,7 @@ public partial class HomePageVM : ObservableObject
                 CurrentPositionPercentage = position.CurrentPercentagePlayed;
                 if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
                 {
-                    await PauseResumeSong();
+                    await PauseSong();
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
                         await SaveLyricsToLrcAfterSyncing();

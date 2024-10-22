@@ -12,7 +12,7 @@ public interface IPlaybackUtilsService
     Task<bool> PlayNextSongAsync(); //to play next song
     Task<bool> PlayPreviousSongAsync(); //to play previous song
     Task<bool> StopSongAsync(); //to stop song
-    Task<bool> PauseResumeSongAsync(double lastPosition); //to pause/resume song
+    Task<bool> PauseResumeSongAsync(double lastPosition, bool isPause=false); //to pause/resume song
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     void RemoveSongFromQueue(SongsModelView song); //to remove song from queue
     void AddSongToQueue(SongsModelView song); //to add song to queue
@@ -28,7 +28,7 @@ public interface IPlaybackUtilsService
     int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
     Task SetSongPosition(double positionInSec); // to set position from slider
-    Task<bool> LoadSongsFromFolder(List<string> folderPath);//to load songs from folder
+    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
     void ChangeVolume(double newVolumeValue);
     void SearchSong(string songTitleOrArtistName); //to search song with title
     void DecreaseVolume();

@@ -48,14 +48,21 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
             return;
         }
         homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
-        await homePageVM.NavigateToArtistsPage();
+        await homePageVM.NavigateToArtistsPage(0);
         this.IsPresented = false;
 
     }
 
-    private async void PlayPauseImgBtn_Clicked(object sender, EventArgs e)
+    private async void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
-        await homePageVM.PauseResumeSong();
+        await homePageVM.PauseSong();
+        
+    }
+
+    private async void playImgBtn_Clicked(object sender, EventArgs e)
+    {
+        await homePageVM.ResumeSong();
+        
     }
 
     private void Slider_DragCompleted(object sender, EventArgs e)

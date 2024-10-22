@@ -5,7 +5,7 @@
     <ActiveDebugFramework>net8.0-windows10.0.19041.0</ActiveDebugFramework>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <DefaultDevice>pixel_5_-_api_34</DefaultDevice>
+    <DefaultDevice>pixel_5_-_api_34_1</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
     <_LastSelectedProfileId>MSIX-win10-x86.pubxml</_LastSelectedProfileId>

@@ -2,7 +2,7 @@
 <uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.PlaylistsPageM"
-             Title="Playlists"
+             
              BackgroundColor="Black"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
@@ -14,14 +14,21 @@
              xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
-             >
-    <ContentPage.Resources>
-        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-    </ContentPage.Resources>
-    <Grid Margin="5,0">
-       
+             Shell.NavBarIsVisible="False">
+    <uranium:UraniumContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </uranium:UraniumContentPage.Resources>
+    
+    <toolkit:DockLayout Margin="5,0">
+        <Label Text="Playlists" toolkit:DockLayout.DockPosition="Top" FontSize="24"
+               TextColor="DarkSlateBlue"/>
         <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView" toolkit:DockLayout.DockPosition="Top">
             <CollectionView.EmptyView>
                 <Label Text="No Playlists Yet...😄" HorizontalOptions="Center"/>
@@ -61,5 +68,5 @@
         </CollectionView>
 
        
-    </Grid>
+    </toolkit:DockLayout>
 </uranium:UraniumContentPage>

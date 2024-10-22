@@ -32,8 +32,8 @@ public partial class App : Application
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 
-        var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        await home.ExitingApp();
+        //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        //await home.ExitingApp();
         LogException(e.Exception);
     }
     public Window win;

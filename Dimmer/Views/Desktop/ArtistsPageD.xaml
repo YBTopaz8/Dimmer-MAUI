@@ -101,18 +101,20 @@
                             StrokeThickness="0.4" HorizontalOptions="Center">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal" />
+                                
+                                <VisualState x:Name="Normal" >
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="#111111"/>
+                                        <Setter Property="Stroke" Value="#111111"/>
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                         <Setter Property="Stroke" Value="DarkSlateBlue"/>
                                     </VisualState.Setters>
                                 </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                    </VisualState.Setters>
-                                </VisualState>
+                                
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <Border.GestureRecognizers>

@@ -14,32 +14,33 @@
              Shell.BackgroundColor="#151C1C"
              BackgroundColor="#151C1C"
               x:Name="myPage">
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,Auto">
-            <!-- Centered Title -->
-            <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center" FontAttributes="Bold" 
-                   FontSize="20" Grid.Column="0"/>
-            <!-- Right-aligned albums count -->
-            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                          Grid.Column="1">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
-                </ImageButton.Source>
-            </ImageButton>
-            <!-- Adjust margin to give some spacing from the right -->
-        </Grid>
-    </Shell.TitleView>
     
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
     
     <toolkit:DockLayout>
-
+        <Grid ColumnDefinitions="*,Auto" toolkit:DockLayout.DockPosition="Top">
+            <!-- Centered Title -->
+            <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center" FontAttributes="Bold" 
+           FontSize="20" Grid.Column="0"/>
+            <!-- Right-aligned albums count -->
+            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                  Grid.Column="1">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                </ImageButton.Source>
+            </ImageButton>
+            <!-- Adjust margin to give some spacing from the right -->
+        </Grid>
+        
         <Grid toolkit:DockLayout.DockPosition="Top" 
             ColumnDefinitions="*" Margin="10,0" RowSpacing="10"
           RowDefinitions="auto,auto,auto"

@@ -8,6 +8,7 @@
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
              x:DataType="vm:HomePageVM"
              BackgroundColor="Black" 
              x:Name="myBtmPage">
@@ -97,8 +98,8 @@
                 </Grid>
             </uranium:StatefulContentView>
 
-            <uranium:StatefulContentView TappedCommand="{Binding NavigateToArtistsPageCommand}" Tapped="DismissThis_Tapped"
-                                         CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
+            <uranium:StatefulContentView Tapped="DismissThis_Tapped"
+                                         >
                 <Grid ColumnDefinitions="40,*" WidthRequest="320" HorizontalOptions="Start">
                     <Image Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center">
                         <Image.Source>
@@ -111,7 +112,7 @@
             </uranium:StatefulContentView>
 
 
-            <uranium:StatefulContentView TappedCommand="{Binding OpenEditSongPopupCommand}" Tapped="DismissThis_Tapped"
+            <uranium:StatefulContentView TappedCommand="{Binding OpenEditSongPopupCommand}" Tapped="StatefulContentView_Tapped"
                                          CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
 
                 <Grid ColumnDefinitions="40,*" WidthRequest="320" HorizontalOptions="Start">

@@ -140,6 +140,10 @@ public class LyricsService : ILyricsService
         }
         List<LyricPhraseModel> lyrr = new();
 
+        if (!File.Exists(songPath))
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToList();
+        }
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
         if (lyrics is not null && lyrics!.Count != 0)

@@ -46,11 +46,16 @@ public partial class HomePageVM
         ShowSpecificArtistsSongsWithAlbumId(selectedAlbumId);
         await Shell.Current.GoToAsync(nameof(SpecificAlbumPage));
     }
+   
     [RelayCommand]
-    public async Task NavigateToArtistsPage()
+    public async Task NavigateToArtistsPage(int callerID) //0 if called by else, 1 if called by homeD
     {
-        if(!EnableContextMenuItems) return;
-        
+
+        if (callerID == 0)
+        {
+            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+        }
+       
         GetAllArtistsAlbum(SelectedSongToOpenBtmSheet.Id, SelectedSongToOpenBtmSheet);
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));

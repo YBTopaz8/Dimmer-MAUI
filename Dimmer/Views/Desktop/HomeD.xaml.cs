@@ -1,3 +1,5 @@
+using Dimmer_MAUI.Utilities.OtherUtils;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class HomeD : UraniumContentPage
@@ -47,6 +49,7 @@ public partial class HomeD : UraniumContentPage
 
     private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
+        //var s = SongsColView.SelectedItem;
         try
         {
             if (HomePageVM.PickedSong is null)
@@ -72,11 +75,11 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private async void DoubleTapToPlay_Tapped(object sender, TappedEventArgs e)
     {
-        
+        var t = (View)sender;
         HomePageVM.CurrentQueue = 0;
-        var t = (Grid)sender;
+        
         var song = t.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
         
@@ -87,15 +90,7 @@ public partial class HomeD : UraniumContentPage
         SearchSongSB.Focus();
     }
 
-    bool isPointerEntered;
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
-    {
-        var send = (Grid)sender;
-        var song = send.BindingContext! as SongsModelView;
-        HomePageVM.SetContextMenuSong(song);
-        isPointerEntered = true;
-    }
-
+    
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (SongsColView.IsLoaded && !isPointerEntered)
@@ -111,10 +106,6 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
-    {
-        isPointerEntered = false;
-    }
 
 
 
@@ -161,5 +152,39 @@ public partial class HomeD : UraniumContentPage
         {
             HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         }
+    }
+
+    private async void MenuFlyoutItem_Clicked_1(object sender, EventArgs e)
+    {
+        await HomePageVM.NavigateToArtistsPage(1);
+    }
+
+    bool isPointerEntered;
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        
+
+        var song = send.BindingContext! as SongsModelView;
+        isPointerEntered = true;
+
+        HomePageVM.SetContextMenuSong(song);
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        isPointerEntered = false;
+    }
+    private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.AnimateHighlightPointerPressed(e);
+    }
+
+    private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.AnimateHighlightPointerReleased(e);
     }
 }

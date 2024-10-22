@@ -1,4 +1,6 @@
-﻿using System.Reactive.Linq;
+﻿using System;
+using System.Diagnostics;
+using System.Reactive.Linq;
 
 namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
@@ -104,13 +106,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
     HomePageVM? ViewModel { get; set; }
-    private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?, 
-        List<GenreModelView>?, List<AlbumArtistGenreSongLink>?) LoadSongs(List<string> folderPaths)
+    private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongsModelView>?,
+    List<GenreModelView>?, List<AlbumArtistGenreSongLink>?) LoadSongsAsync(List<string> folderPaths, IProgress<int> progress)
     {
         try
         {
             var allFiles = GetAllFiles(folderPaths);
-
+            Debug.WriteLine("Got All Files");
             if (allFiles.Count == 0)
             {
                 return (null, null, null, null, null, null);
@@ -153,13 +155,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 }
 
                 processedFiles++;
-                if (processedFiles == 50)
+                if (processedFiles % 10 == 0) // Report progress every 10 files
                 {
-                    _nowPlayingSubject.OnNext(allSongs.ToObservableCollection());
+                    int percentComplete = processedFiles * 100 / totalFiles;
+                    progress.Report(percentComplete);
                 }
-                ObservableLoadingSongsProgress = processedFiles * 100 / totalFiles;
             }
-
+            Debug.WriteLine("All Processed");
             ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
 
             return (newArtists, newAlbums, newLinks, allSongs.ToList(), newGenres, genreLinks); // Return genreLinks
@@ -218,13 +220,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
         
         AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
-
+        Debug.WriteLine("Got Or Created Album");
         // Extract artist names
         var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
         string mainArtistName = string.Join(", ", artistNames);
-
+        Debug.WriteLine("Got Artist");
         var song = CreateSongModel(track, title, albumName, mainArtistName, file);
-
+        Debug.WriteLine("Got Song");
         if (!string.IsNullOrEmpty(albumName))
         {
             album.AlbumImagePath = song.CoverImagePath;
@@ -233,6 +235,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         // Check if song already exists
         if (oldSongs.Any(s => s.Title == title && s.DurationInSeconds == track.Duration))
         {
+            
             Debug.WriteLine("Skipping existing song for artist: " + song.ArtistName);
             return null;
         }
@@ -241,6 +244,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         foreach (var artistName in artistNames)
         {
             var artist = GetOrCreateArtist(artistName, artistDict, newArtists, existingArtists);
+            
             CreateLinks(artist, album, song, newLinks, existingLinks); // Create the artist-song link
         }
 
@@ -459,14 +463,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
 
-    public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
+    public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)
     {
         isLoadingSongs=true;
         ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 
-        // Load songs from the folders asynchronously
-        (var allArtists, var allAlbums, var allLinks, var songs
-            , var allGenres, var genreLinks) = await Task.Run(() => LoadSongs(folderPaths));
+        // Create a progress reporter
+        var progress = new Progress<int>(percent =>
+        {
+            ObservableLoadingSongsProgress = percent;  // Update UI with the current progress
+        });
+        Debug.WriteLine($"Percentage {ObservableLoadingSongsProgress}");
+        // Load songs from folders asynchronously without blocking the UI
+        (var allArtists, var allAlbums, var allLinks, var songs, var allGenres, var genreLinks) =
+            await Task.Run(() => LoadSongsAsync(folderPaths, progress));
 
         if (songs is null || allArtists is null || allAlbums is null || allGenres is null || genreLinks is null)
         {
@@ -537,24 +547,62 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         GetPrevAndNextSongs();
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
     }
-    static string? GetCoverImagePath(string filePath)
+
+    public static ObservableCollection<SongsModelView> CheckCoverImage(ObservableCollection<SongsModelView> col) 
     {
-
-        string fileNameWithoutExtension = Path.GetFileName(filePath);
-        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
-        // Ensure the directory exists
-        if (!Directory.Exists(folderPath))
+        foreach (var item in col)
         {
-            Directory.CreateDirectory(folderPath);
+            item.CoverImagePath = GetCoverImagePath(item.FilePath);
+
         }
-        string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-            .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-            .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-            .ToArray();
+        
 
-        if (imageFiles.Length > 0)
+        return col;
+    }
+    public static string? GetCoverImagePath(string filePath)
+    {
+        var LoadTrack = new Track(filePath);
+        byte[]? coverImage = null;
+
+        if (LoadTrack.EmbeddedPictures?.Count > 0)
         {
-            return imageFiles[0];
+            string? mimeType = LoadTrack.EmbeddedPictures?.FirstOrDefault()?.MimeType;
+            if (mimeType == "image/jpg" || mimeType == "image/jpeg" || mimeType == "image/png")
+            {
+                coverImage = LoadTrack.EmbeddedPictures?.FirstOrDefault()?.PictureData;
+            }
+        }
+
+        if(coverImage is not null)
+        {
+            return LyricsService.SaveOrGetCoverImageToFilePath(filePath, coverImage);
+        }
+
+        if (coverImage is null || coverImage.Length < 1)
+        {
+            string fileNameWithoutExtension = Path.GetFileName(filePath);
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+            // Ensure the directory exists
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+
+            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
+                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
+                .ToArray();
+
+            if (imageFiles.Length > 0)
+            {                
+                return imageFiles.ToString();
+            }
+        }
+
+        if (coverImage is null)
+        {
+            return null;
         }
 
         return null;
@@ -719,13 +767,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         try
         {
+
+            if (!File.Exists(song?.FilePath))
+            {
+                await SongsMgtService.DeleteSongFromDB(song.Id);
+                _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
+                return false;
+            }
             if (song != null)
             {
-                if (!File.Exists(song.FilePath))
-                {
-                    await SongsMgtService.DeleteSongFromDB(song.Id);
-                    _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
-                }
                 song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
                 if (currentList == null)
@@ -908,22 +958,23 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
 
-    public async Task<bool> PauseResumeSongAsync(double currentPosition)
+    public async Task<bool> PauseResumeSongAsync(double currentPosition, bool isPause=false)
     {
         ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
         currentPositionInSec = currentPosition;
-        if (ObservableCurrentlyPlayingSong is null)
-        {
-            await PlaySongAsync();
-            return true;
-        }
-        if (currentPositionInSec == 0 && !audioService.IsPlaying)
-        {
-            await PlaySongAsync(ObservableCurrentlyPlayingSong);
+        //if (ObservableCurrentlyPlayingSong is null)
+        //{
+        //    await PlaySongAsync();
+        //    return true;
+        //}
+        //if (currentPositionInSec == 0 && !audioService.IsPlaying)
+        //{
+        //    await PlaySongAsync(ObservableCurrentlyPlayingSong);
 
-            return true;
-        }
-        if (audioService.IsPlaying)
+        //    return true;
+        //}
+        //if (audioService.IsPlaying)
+        if (isPause)
         {
             await audioService.PauseAsync();
             ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -931,6 +982,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ViewModel.SetPlayerState(MediaPlayerState.Paused);
 
             _positionTimer?.Stop();
+            DiscordRPC.ClearPresence();
         }
         else
         {
@@ -939,9 +991,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 return false;
             }
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
-            
-            await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
 
+            ObservableCurrentlyPlayingSong.IsPlaying = false;
+            _playerStateSubject.OnNext(MediaPlayerState.Playing);
+            ViewModel.SetPlayerState(MediaPlayerState.Playing);
+
+            _positionTimer?.Start();
 
             await audioService.ResumeAsync(currentPosition);
             DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong, 
@@ -1549,7 +1604,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     public async Task MultiDeleteSongFromHomePage(ObservableCollection<SongsModelView> songs)
     {
-        await SongsMgtService.MultiDeleteSongFromDB(songs);
-        
+        await SongsMgtService.MultiDeleteSongFromDB(songs);        
     }
 }

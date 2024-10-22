@@ -23,7 +23,7 @@ public partial class SongMenuBtmSheet : BottomSheet
         CreateNewPlayListPageBtmSheet.IsVisible = true;
     }
 
-    private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
+private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
     {
         FirstPageBtmSheet.IsVisible = true;
         CreateNewPlayListPageBtmSheet.IsVisible = false;
@@ -37,46 +37,42 @@ public partial class SongMenuBtmSheet : BottomSheet
         AddSongToPlayListPageBtmSheet.IsVisible = true;
     }
 
-    private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)
-    {
-        this.DismissAsync();
-    }
 
-    private async void GoToAlbum_Clicked(object sender, EventArgs e)
-    {
-        await HomePageVM.NavigateToSpecificAlbumPageFromBtmSheet(HomePageVM.SelectedSongToOpenBtmSheet);
-        await this.DismissAsync(true);
-    }
+    //private async void GoToAlbum_Clicked(object sender, EventArgs e)
+    //{
+    //    await HomePageVM.NavigateToSpecificAlbumPageFromBtmSheet(HomePageVM.SelectedSongToOpenBtmSheet);
+    //    await this.DismissAsync(true);
+    //}
 
-    private async void GoToArtist_Clicked(object sender, EventArgs e)
-    {
-        await HomePageVM.NavigateToArtistsPage();
-        await this.DismissAsync(true);
-    }
+    //private async void GoToArtist_Clicked(object sender, EventArgs e)
+    //{
+    //    await HomePageVM.NavigateToArtistsPage(1);
+    //    await this.DismissAsync(true);
+    //}
 
-    private async void SetPlayRepeat_Clicked(object sender, EventArgs e)
-    {
-        await this.DismissAsync();
-        HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
-    }
+    //private async void SetPlayRepeat_Clicked(object sender, EventArgs e)
+    //{
+    //    await this.DismissAsync();
+    //    HomePageVM.OpenRepeatSetterPopupCommand.Execute(null);
+    //}
 
-    private async void ShareSong_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
-        await this.DismissAsync(true);
-    }
+    //private async void ShareSong_Clicked(object sender, EventArgs e)
+    //{
+    //    HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
+    //    await this.DismissAsync(true);
+    //}
 
-    private void DltSongFromDevice_Clicked(object sender, EventArgs e)
-    {
-        this.DismissAsync(true);
-        HomePageVM.DeleteFileCommand.Execute(null);
-    }
+    //private void DltSongFromDevice_Clicked(object sender, EventArgs e)
+    //{
+    //    this.DismissAsync(true);
+    //    HomePageVM.DeleteFileCommand.Execute(null);
+    //}
 
-    private async void ExploreSong_Clicked(object sender, EventArgs e)
-    {
-        HomePageVM.NavToNowPlayingPageCommand.Execute(null);
-        await this.DismissAsync();
-    }
+    //private async void ExploreSong_Clicked(object sender, EventArgs e)
+    //{
+    //    HomePageVM.NavToNowPlayingPageCommand.Execute(null);
+    //    await this.DismissAsync();
+    //}
 
     private void AddToPlaylist_Clicked(object sender, EventArgs e)
     {
@@ -94,6 +90,19 @@ public partial class SongMenuBtmSheet : BottomSheet
 
     private async void DismissThis_Tapped(object sender, EventArgs e)
     {
+        await HomePageVM.NavigateToArtistsPage(1);
         await this.DismissAsync();
+    }
+
+    private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)
+    {
+        this.DismissAsync();
+    }
+
+    private void StatefulContentView_Tapped(object sender, EventArgs e)
+    {
+        this.DismissAsync();
+
+
     }
 }

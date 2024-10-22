@@ -34,7 +34,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         {
             throw new Exception(ex.Message);
         }
-
     }
     public void GetAlbums()
     {
@@ -60,11 +59,13 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             throw new Exception("Failed while inserting Song " + ex.Message);
         }
     }
+
     public bool AddSongBatchAsync(IEnumerable<SongsModelView> songs)
     {
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
+
             var songsToAdd = songs
                 .Where(song => !AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
                 .Select(song => new SongsModel(song))
@@ -98,6 +99,11 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             db.Write(() =>
             {
                 var existingSong = db.Find<SongsModel>(songsModelView.Id);
+                if (existingSong is not null)
+                {
+                    db.Add(existingSong, update: true);
+                    return;
+                }
                 var newSong = new SongsModel(songsModelView)
                 {
                     IsPlaying = false

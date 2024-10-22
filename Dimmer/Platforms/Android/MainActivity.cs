@@ -34,7 +34,7 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
 #if RELEASE
         Window.SetStatusBarColor(Android.Graphics.Color.Black);
 #elif DEBUG
-        Window.SetStatusBarColor(Android.Graphics.Color.Red);
+        Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
 #endif
         Window.SetNavigationBarColor(Android.Graphics.Color.Black);
         ////Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));

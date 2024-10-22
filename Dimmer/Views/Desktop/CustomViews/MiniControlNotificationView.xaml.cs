@@ -21,11 +21,6 @@ public partial class MiniControlNotificationView : ContentPage
         ImagePathh.Source = imagePath;
     }
 
-    private async void PlayPauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        await vm.PauseResumeSong();   
-        ResetTimer();
-    }
     private void CloseImgBtn_Clicked(object sender, EventArgs e)
     {
         CloseWindow();
@@ -78,6 +73,18 @@ public partial class MiniControlNotificationView : ContentPage
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
+        ResetTimer();
+    }
+
+    private async void pauseImgBtn_Clicked(object sender, EventArgs e)
+    {
+        await vm.PauseSong();
+        ResetTimer();
+    }
+
+    private async void playImgBtn_Clicked(object sender, EventArgs e)
+    {
+        await vm.ResumeSong();
         ResetTimer();
     }
 }

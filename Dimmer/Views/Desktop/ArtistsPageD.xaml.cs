@@ -17,7 +17,7 @@ public partial class ArtistsPageD : ContentPage
     {
         if (AllArtistsColView.IsLoaded)
         {
-            if (HomePageVM.SelectedArtistOnArtistPage is null)
+            if (HomePageVM.SelectedArtistOnArtistPage is null && HomePageVM.TemporarilyPickedSong is not null)
             {
                 HomePageVM.GetAllArtistsAlbum(HomePageVM.TemporarilyPickedSong.Id, HomePageVM.TemporarilyPickedSong);
             }

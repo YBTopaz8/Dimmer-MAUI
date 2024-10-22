@@ -91,7 +91,7 @@ public partial class HomePageVM
             // If the delay completed without cancellation, pause the song
             if (!cancellationToken.IsCancellationRequested && IsPlaying)
             {
-                await PauseResumeSong();
+                await PauseSong();
             }
         }
         catch (TaskCanceledException ex)
@@ -106,7 +106,7 @@ public partial class HomePageVM
 #if WINDOWS
         if (IsPlaying)
         {
-            await this.PauseResumeSong();
+            await this.PauseSong();
         }
 #endif
         if (TemporarilyPickedSong is not null)
@@ -360,4 +360,11 @@ public partial class HomePageVM
         }
     }
     #endregion
+
+    [RelayCommand]
+    void ReloadCoverImage()
+    {
+        DisplayedSongs= PlaybackUtilsService.CheckCoverImage(DisplayedSongs);
+        SongsMgtService.AddSongBatchAsync(DisplayedSongs);
+    }
 }

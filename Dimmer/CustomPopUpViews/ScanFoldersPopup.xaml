@@ -14,17 +14,18 @@
         <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" />
         <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
         <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
-        
-        <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="180">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Label Text="{Binding .}"/>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <Grid>
+                <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Label Text="{Binding .}"/>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>           
 
         <Button Text="Close" BackgroundColor="#861B2D" Clicked="Button_Clicked"/>
-
+            <Button Text="ReloadCovers" Command="{Binding ReloadCoverImageCommand}"/>
         </VerticalStackLayout>
     </Border>
 

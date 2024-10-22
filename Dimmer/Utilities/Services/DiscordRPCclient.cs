@@ -56,6 +56,9 @@ public class DiscordRPCclient : IDiscordRPC
             if (song == currentSong)
                 return;
             position = position.Add(TimeSpan.FromMilliseconds(500));
+            var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
+            var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
+            
             _discordRpcClient.SetPresence(new RichPresence()
             {
                 Details = $"Listening to {song.Title}",

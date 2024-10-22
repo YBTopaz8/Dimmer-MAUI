@@ -17,6 +17,13 @@
              Shell.BackgroundColor="#171919"
              Title="Top Played Songs">
     <!--xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"-->
+    <uranium:UraniumContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
+        </ResourceDictionary>
+    </uranium:UraniumContentPage.Resources>
     <toolkit:DockLayout Margin="3,0">
         
         <Grid RowDefinitions="Auto,*">

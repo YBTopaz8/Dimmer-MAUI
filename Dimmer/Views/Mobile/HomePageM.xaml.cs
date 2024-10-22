@@ -151,6 +151,16 @@ public partial class HomePageM : UraniumContentPage
             btmSheet.IsPresented = false;
             return true;
         }
+        if (SongsColView.SelectionMode == SelectionMode.Multiple)
+        {
+            SongsColView.SelectionMode = SelectionMode.Single;
+            SongsColView.SelectedItems.Clear();
+            HomePageVM.HandleMultiSelect(SongsColView);
+            NormalMiniUtilFABs.IsVisible = true;
+            MultiSelectMiniUtilFABs.IsVisible = false;
+            HomePageVM.EnableContextMenuItems = true;
+            Debug.WriteLine("Back To None");
+        }
         return true;
     }
 
@@ -210,7 +220,16 @@ public partial class HomePageM : UraniumContentPage
                 HomePageVM.OpenSingleSongOptionsBtmSheet((SongsModelView)send.CommandParameter);
                 break;
             case SelectionMode.Multiple:
-                
+                var song = (SongsModelView)send.CommandParameter;
+
+                if (SongsColView.SelectedItems.Contains(song))
+                {
+                    SongsColView.SelectedItems.Remove(song);
+                }
+                else
+                {
+                    SongsColView.SelectedItems.Add(song);
+                }
 
                 break;
             default:
@@ -264,4 +283,6 @@ public partial class HomePageM : UraniumContentPage
 
         }
     }
+
+    
 }

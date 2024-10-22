@@ -142,7 +142,7 @@
                     <StackLayout VerticalOptions="Center" x:Name="PpView" Grid.Column="2">
 
                         <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-                                    Clicked="PlayPauseImgBtn_Clicked" x:Name="playImgBtn" 
+                                    Clicked="playImgBtn_Clicked" x:Name="playImgBtn" 
                                      HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
@@ -152,7 +152,7 @@
                         </ImageButton>
 
                         <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-                                     x:Name="pauseImgBtn" Clicked="PlayPauseImgBtn_Clicked"
+                                     x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked"
                                      HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
