@@ -43,6 +43,9 @@ public class DiscordRPCclient : IDiscordRPC
 
     public void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position)
     {
+#if ANDROID 
+return;
+#endif
         if (!AppSettingsService.DiscordRPCPreference.GetDiscordRPC())
         {
             return;

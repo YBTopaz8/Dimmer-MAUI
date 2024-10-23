@@ -19,7 +19,7 @@
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="HorizontalOptions" Value="Center"/>
-                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontSize" Value="22"/>
                 <Setter Property="TextColor" Value="White"/>
             </Style>
             <Style TargetType="BoxView">
@@ -40,8 +40,7 @@
             <Label Text="-" />
             <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" FontSize="20"/>
         </HorizontalStackLayout>
-        <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
-                   RadiusX="15" Margin="0,10"/>
+        <Rectangle Fill="DarkSlateBlue" HeightRequest="5" RadiusX="15" Margin="0,10"/>
         <VerticalStackLayout x:Name="FirstPageBtmSheet" Spacing="10" Margin="5">
             <VerticalStackLayout.Resources>
                 <ResourceDictionary>
@@ -51,11 +50,17 @@
                     <Style TargetType="VerticalStackLayout">
                         <Setter Property="HorizontalOptions" Value="Center"/>
                     </Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="HorizontalOptions" Value="Center"/>
+                    </Style>
+                    <Style TargetType="ImageButton">
+                        <Setter Property="HeightRequest" Value="40"/>
+                    </Style>
                 </ResourceDictionary>
             </VerticalStackLayout.Resources>
             <uranium:StatefulContentView TappedCommand="{Binding OpenRepeatSetterPopupCommand}">
                 <Grid ColumnDefinitions="40,*" WidthRequest="320" >
-                    <Image Grid.Column="0" HorizontalOptions="Start" >
+                    <Image Grid.Column="0" >
                         <Image.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}" />
                         </Image.Source>
@@ -100,7 +105,7 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Album}" />
                         </Image.Source>
                     </Image>
-                    <Label Text="Go to Album" Grid.Column="1" HorizontalOptions="Center" 
+                    <Label Text="Go to Album" Grid.Column="1" 
                 x:Name="GoToAlbum" />
                 </Grid>
             </uranium:StatefulContentView>
@@ -123,7 +128,7 @@
                                          CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
 
                 <Grid ColumnDefinitions="40,*" WidthRequest="320" >
-                    <Image Grid.Column="0" HorizontalOptions="Start">
+                    <Image Grid.Column="0" >
                         <Image.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}" />
                         </Image.Source>
