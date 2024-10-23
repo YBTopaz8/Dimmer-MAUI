@@ -19,6 +19,8 @@ public partial class HomeD : UraniumContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
+
+
     }
 
     DateTime lastKeyStroke;

@@ -14,6 +14,7 @@ public class DiscordRPCclient : IDiscordRPC
         {
             _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
             _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
+            
             //_discordRpcClient.OnPresenceUpdate += DiscordRpcClient_OnPresenceUpdate;
             _discordRpcClient.Initialize();
             _isInitialized = true;
@@ -43,9 +44,9 @@ public class DiscordRPCclient : IDiscordRPC
 
     public void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position)
     {
-#if ANDROID 
-return;
-#endif
+//#if ANDROID 
+//return;
+//#endif
         if (!AppSettingsService.DiscordRPCPreference.GetDiscordRPC())
         {
             return;
@@ -61,6 +62,7 @@ return;
             position = position.Add(TimeSpan.FromMilliseconds(500));
             var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
             var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
+            
             
             _discordRpcClient.SetPresence(new RichPresence()
             {

@@ -167,10 +167,18 @@
         </Grid>
         <BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>
         <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
-                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded">
+                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded"
+                        Margin="5,0">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsPlaying}" Value="True">
+                                <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                <Setter Property="StrokeThickness" Value="0.6"/>                                
+                            </DataTrigger>
+                        </Border.Triggers>
+                        
                         <Border.GestureRecognizers>
                             <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
                                                       PointerExited="PointerGestureRecognizer_PointerExited"
@@ -353,16 +361,6 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                                         </Image.Source>
                                     </Image>
 
-                                    <toolkit:AvatarView IsVisible="{Binding IsPlaying}" HeightRequest="23"
-                                            WidthRequest="23" CornerRadius="10" 
-                                            BorderWidth="0"
-                                            BackgroundColor="Transparent">
-
-                                        <toolkit:AvatarView.ImageSource>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Equalizer}" 
-                                             Color="DarkSlateBlue" />
-                                        </toolkit:AvatarView.ImageSource>
-                                    </toolkit:AvatarView>
 
                                 </HorizontalStackLayout>
 

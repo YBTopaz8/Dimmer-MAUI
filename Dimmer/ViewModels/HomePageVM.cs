@@ -117,7 +117,7 @@ public partial class HomePageVM : ObservableObject
                 TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
                 if (TemporarilyPickedSong is not null)
                 {
-
+                    
                     //if (DisplayedSongs is not null)
                     //{
                     //    var songToPlay= DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id);
@@ -138,9 +138,13 @@ public partial class HomePageVM : ObservableObject
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
-                           
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                            });
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
+                            TemporarilyPickedSong.IsPlaying = true;
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
