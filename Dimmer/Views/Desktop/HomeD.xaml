@@ -36,6 +36,12 @@
 
 
     <toolkit:DockLayout BackgroundColor="#1F1F1F">
+        <toolkit:DockLayout.GestureRecognizers>
+            <DropGestureRecognizer AllowDrop="True" DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave" 
+                           Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
+
         <FlyoutBase.ContextFlyout>
             <MenuFlyout>
                 <MenuFlyoutItem Text="Find Song"
@@ -54,8 +60,7 @@
             <material:CheckBox Text="Toggle Stick To Top" LabelPosition="Before" x:Name="stickToTopChkbx"
                                CheckChangedCommand="{Binding ToggleStickToTopCommand}"
                                CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
-
-
+            
             <SearchBar WidthRequest="200" 
                    Placeholder="Search Your Music..." TextChanged="SearchSongSB_TextChanged"
                    x:Name="SearchSongSB"/>

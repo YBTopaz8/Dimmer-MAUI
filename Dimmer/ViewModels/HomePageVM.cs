@@ -97,6 +97,7 @@ public partial class HomePageVM : ObservableObject
         GetAllAlbums();
         RefreshPlaylists();
 
+
     }
 
     CollectionView? PageCV { get; set; }
@@ -181,7 +182,7 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    public async void LoadLocalSongFromOutSideApp(string[] filePath)
+    public async void LoadLocalSongFromOutSideApp(List<string> filePath)
     {
         CurrentQueue = 2;
         await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);

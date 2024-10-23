@@ -16,6 +16,18 @@ public static class CustomAnimsExtensions
         await element.ScaleTo(1.0, 80, Easing.CubicOut);
         
     }
+
+    public static async Task DimmOut(this View element)//, EventArgs e)
+    {
+        await element.FadeTo(0.85, 80, Easing.CubicIn);
+    }
+    public static async Task DimmIn(this View element)//, EventArgs e)
+    {
+        await element.FadeTo(1.0, 80, Easing.CubicOut);
+        
+    }
+
+    
     //public static async Task AnimateHighlightPointerEntered(this View element, EventArgs e)
     //{
     //    element.Margin = new Thickness(40, 0, 0, 0);
