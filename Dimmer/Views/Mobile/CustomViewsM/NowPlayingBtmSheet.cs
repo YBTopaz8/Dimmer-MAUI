@@ -204,7 +204,10 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
             OnClosed();
             this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
         }
-        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
+        if (shouldVibrate)
+        {
+            HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
+        }
         UpdateDisabledStateOfPage();
     }
 
