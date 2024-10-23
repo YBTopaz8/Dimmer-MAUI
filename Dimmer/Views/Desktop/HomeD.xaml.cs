@@ -187,4 +187,78 @@ public partial class HomeD : UraniumContentPage
         var send = (View)sender;
         await send.AnimateHighlightPointerReleased(e);
     }
+
+    List<string> supportedFilePaths;
+    bool isAboutToDropFiles = false;
+    private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
+    {
+        //e.AcceptedOperation = DataPackageOperation.Copy;
+        if(!isAboutToDropFiles)
+        {
+            isAboutToDropFiles=true;
+            SongsColView.Opacity = 0.7;
+            
+#if WINDOWS
+            var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
+            var dragUI = WindowsEventArgs.DragUIOverride;
+            dragUI.IsGlyphVisible = false;
+            dragUI.Caption = "Drop to Play!";
+
+            var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
+            bool validFiles = true;
+
+            supportedFilePaths = new List<string>();
+
+            if (items.Count > 0)
+            {
+                foreach (var item in items)
+                {
+                    if (item is Windows.Storage.StorageFile file)
+                    {
+                        /// Check file extension
+                        string fileExtension = file.FileType.ToLower();
+                        if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                            fileExtension != ".wav" && fileExtension != ".m4a")
+                        {
+                            validFiles = false;
+                            if (validFiles)
+                            {
+                                e.AcceptedOperation = DataPackageOperation.Copy;
+                            }
+                            else
+                            {
+                                e.AcceptedOperation = DataPackageOperation.None;
+                                dragUI.IsGlyphVisible = true;
+                                dragUI.Caption = "Files Not Supported";
+                                break;  // If any invalid file is found, break the loop
+                            }
+                            
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"File is {item.Path}");
+                            supportedFilePaths.Add(item.Path.ToLower());
+                        }
+                    }
+                }
+
+            }
+#endif
+        }
+    }
+
+    private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
+    {
+        isAboutToDropFiles = false;
+        SongsColView.Opacity = 1;
+        
+    }
+
+    private void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        isAboutToDropFiles = false;
+        SongsColView.Opacity = 1;
+
+        HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
+    }
 }

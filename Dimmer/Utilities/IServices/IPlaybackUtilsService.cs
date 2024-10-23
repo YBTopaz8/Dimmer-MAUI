@@ -38,7 +38,7 @@ public interface IPlaybackUtilsService
     void UpdateSongToFavoritesPlayList(SongsModelView song);
     int CurrentQueue { get; set; }
     void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1);
-    Task<bool> PlaySelectedSongsOutsideAppAsync(string[] filePaths);
+    Task<bool> PlaySelectedSongsOutsideAppAsync(List<string> filePaths);
 
     Task DeleteSongFromHomePage(ObjectId songId);
     Task MultiDeleteSongFromHomePage(ObservableCollection<SongsModelView> songs);
