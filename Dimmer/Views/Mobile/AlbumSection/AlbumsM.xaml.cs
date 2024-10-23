@@ -17,14 +17,14 @@ public partial class AlbumsM : UraniumContentPage
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
-        var s = (Border)sender;
+        var s = (View)sender;
         var song = s.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
     }
     ObjectId previousAlbID = ObjectId.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
-        var t = (VerticalStackLayout)sender;
+        var t = (View)sender;
         var album = t.BindingContext as AlbumModelView;
         if (previousAlbID == album!.Id)
         {

@@ -1,3 +1,4 @@
+using Dimmer_MAUI.Utilities.OtherUtils;
 using Plainer.Maui.Controls;
 using UraniumUI.Views;
 
@@ -283,6 +284,34 @@ public partial class HomePageM : UraniumContentPage
 
         }
     }
-
     
+
+    private void StatefulContentView_Pressed(object sender, EventArgs e)
+    {
+        if (SongsColView.SelectionMode != SelectionMode.Multiple)
+        {
+
+            HomePageVM.CurrentQueue = 0;
+            var t = (View)sender;
+            var song = t.BindingContext as SongsModelView;
+            HomePageVM.PlaySongCommand.Execute(song);
+        }
+        else
+        {
+            var send = (View)sender;
+            var song = (SongsModelView)send.BindingContext;
+
+            if (SongsColView.SelectedItems.Contains(song))
+            {
+                SongsColView.SelectedItems.Remove(song);
+                Debug.WriteLine($"Removed: {song.Title}");
+            }
+            else
+            {
+                SongsColView.SelectedItems.Add(song);
+                Debug.WriteLine($"Added: {song.Title}");
+            }
+
+        }
+    }
 }

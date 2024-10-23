@@ -99,27 +99,29 @@
                 <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
+                        
+
                         <Grid ColumnDefinitions="*,Auto" Margin="0,3">
-                                                        
-                            <HorizontalStackLayout Grid.Column="0"
-                                Spacing="5">
-                                <HorizontalStackLayout.GestureRecognizers>
+
+                                <HorizontalStackLayout Grid.Column="0" Spacing="5">
+                                    <HorizontalStackLayout.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
                                 </HorizontalStackLayout.GestureRecognizers>
-                                <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
-                                        CornerRadius="10" BorderWidth="0"/>
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="18" LineBreakMode="TailTruncation" />
-                                    <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
-                                </VerticalStackLayout>
-                            </HorizontalStackLayout>
+                                    <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
+        CornerRadius="10" BorderWidth="0"/>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Title}" FontSize="18" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
+                                    </VerticalStackLayout>
+                                </HorizontalStackLayout>
+                            
 
                             <uranium:StatefulContentView Grid.Column="1"
-                                                         LongPressed="StatefulContentView_LongPressed"
+                                                        LongPressed="StatefulContentView_LongPressed"
                                                          
-                                                         Tapped="StatefulContentView_Tapped"
-                                                         CommandParameter="{Binding .}"
-                                                         x:Name="SingleSongStateFullContent">                                
+                                                        Tapped="StatefulContentView_Tapped"
+                                                        CommandParameter="{Binding .}"
+                                                        x:Name="SingleSongStateFullContent">
                                 <HorizontalStackLayout>
                                     <VerticalStackLayout>
                                         <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
@@ -131,9 +133,9 @@
                                         </Image>
                                     </VerticalStackLayout>
                                     <ImageButton BackgroundColor="Transparent" 
-                                     WidthRequest="20" HorizontalOptions="Center"
-                                     Command="{Binding BindingContext.OpenSingleSongOptionsBtmSheetCommand, Source={x:Reference myPage}}"
-                                     CommandParameter="{Binding .}">
+                                    WidthRequest="20" HorizontalOptions="Center"
+                                    Command="{Binding BindingContext.OpenSingleSongOptionsBtmSheetCommand, Source={x:Reference myPage}}"
+                                    CommandParameter="{Binding .}">
                                         <ImageButton.Source>
                                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
                                         </ImageButton.Source>
@@ -141,9 +143,11 @@
                                 </HorizontalStackLayout>
                             </uranium:StatefulContentView>
                         </Grid>
+
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+            
             <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" 
                                  HeightRequest="160" x:Name="NormalMiniUtilFABs">
                 <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"

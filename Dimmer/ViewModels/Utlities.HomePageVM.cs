@@ -217,6 +217,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task OpenViewSongDetailsPopup()
     {
+        
         await Shell.Current.ShowPopupAsync(new ViewSongMetadataPopupView(this));
     }
 

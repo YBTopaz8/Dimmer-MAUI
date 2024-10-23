@@ -8,7 +8,7 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             x:DataType="vm:HomePageVM" 
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
-            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
+            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="True"
             Color="Transparent">
     <mct:Popup.Resources>
         <ResourceDictionary>
@@ -20,6 +20,7 @@
             <Style TargetType="Label">
                 <Setter Property="FontSize" Value="16"/>
                 <Setter Property="VerticalTextAlignment" Value="Center"/>
+                <Setter Property="TextColor" Value="White"/>
             </Style>
             
             <Style TargetType="Image">
@@ -40,7 +41,7 @@
     </mct:Popup.Resources>
     <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
             Stroke="Transparent" 
-            WidthRequest="500" HeightRequest="{OnPlatform WinUI=650, Android=400}"
+            WidthRequest="350" HeightRequest="{OnPlatform WinUI=650, Android=650}"
             BackgroundColor="Black" Margin="5" Padding="20">
         <VerticalStackLayout Spacing="5">
             <HorizontalStackLayout>
@@ -175,7 +176,8 @@
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
                         </Image.Source>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                    <Label 
+                        Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>
@@ -188,10 +190,10 @@
                 <HorizontalStackLayout>
                     <Image>
                         <Image.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Percent}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Track_changes}"/>
                         </Image.Source>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.SampleRate}"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.SampleRate, StringFormat='{0} Hz'}"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>

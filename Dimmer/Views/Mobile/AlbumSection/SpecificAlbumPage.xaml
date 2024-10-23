@@ -13,6 +13,8 @@
               x:DataType="vm:HomePageVM"
              Shell.BackgroundColor="#151C1C"
              BackgroundColor="#151C1C"
+             Shell.NavBarIsVisible="False"
+
               x:Name="myPage">
     
     <uranium:UraniumContentPage.Resources>
@@ -25,8 +27,8 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
     
-    <toolkit:DockLayout>
-        <Grid ColumnDefinitions="*,Auto" toolkit:DockLayout.DockPosition="Top">
+    <toolkit:DockLayout >
+        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center" toolkit:DockLayout.DockPosition="Top">
             <!-- Centered Title -->
             <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
            VerticalTextAlignment="Center" FontAttributes="Bold" 

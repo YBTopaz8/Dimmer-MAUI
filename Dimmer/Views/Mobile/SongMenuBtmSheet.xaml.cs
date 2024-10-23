@@ -90,7 +90,9 @@ private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
 
     private async void DismissThis_Tapped(object sender, EventArgs e)
     {
-        await HomePageVM.NavigateToArtistsPage(1);
+        //var send = sender as View;
+        //var song = send.BindingContext as SongsModelView;
+        //await HomePageVM.NavigateToSpecificAlbumPageFromBtmSheet(song);
         await this.DismissAsync();
     }
 
@@ -99,10 +101,10 @@ private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
         this.DismissAsync();
     }
 
-    private void StatefulContentView_Tapped(object sender, EventArgs e)
+    private async void GoToArtistAndDismiss_Tapped(object sender, EventArgs e)
     {
-        this.DismissAsync();
-
-
+        await this.DismissAsync();
+        await HomePageVM.NavigateToArtistsPage(1);
     }
+
 }

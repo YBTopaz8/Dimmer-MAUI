@@ -109,7 +109,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
     {
         // Set the sheet to open and hide the closed header
         IsPresented = true;
-        AlignBottomSheet(true);
+        AlignBottomSheet(shouldVibrate: true); // Align the sheet after the gesture is completed or canceled
     }
     private void PanGestureRecognizer_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
@@ -174,14 +174,14 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                     }
                 }
 
-                AlignBottomSheet(); // Align the sheet after the gesture is completed or canceled
+                AlignBottomSheet(shouldVibrate:true); // Align the sheet after the gesture is completed or canceled
                 break;
         }
     }
 
 
     // Align and switch headers (HeaderWhenClosed)
-    private void AlignBottomSheet(bool animate = true)
+    private void AlignBottomSheet(bool animate = true, bool shouldVibrate=false)
     {
         double y;
         double heightRequest;

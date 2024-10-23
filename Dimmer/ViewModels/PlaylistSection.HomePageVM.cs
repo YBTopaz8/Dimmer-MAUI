@@ -56,6 +56,10 @@ public partial class HomePageVM
     [RelayCommand]
     async Task AddSongToFavorites(SongsModelView song)
     {
+        if (song is null)
+        {
+            return;
+        }
         PlayBackService.UpdateSongToFavoritesPlayList(song);
         if (!song.IsFavorite)
         {

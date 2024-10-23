@@ -140,7 +140,7 @@ public partial class HomePageVM : ObservableObject
                            
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
-
+                            PickedSong.IsPlaying = true;
                             IsPlaying = true;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             if (CurrentPage == PageEnum.FullStatsPage)
@@ -158,6 +158,7 @@ public partial class HomePageVM : ObservableObject
                                 ];
                             break;
                         case MediaPlayerState.Paused:
+                            PickedSong.IsPlaying = false;
                             IsPlaying = false;
                             break;
                         case MediaPlayerState.Stopped:

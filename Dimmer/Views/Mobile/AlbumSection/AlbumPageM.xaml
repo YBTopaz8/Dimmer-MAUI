@@ -13,24 +13,9 @@
              x:DataType="vm:HomePageVM"
             Shell.BackgroundColor="#151C1C"
             BackgroundColor="#151C1C"
+            Shell.NavBarIsVisible="False"
              x:Name="myPage">
    
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-            
-            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center" FontAttributes="Bold" 
-                   FontSize="20" Grid.Column="0"/>
-            
-            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                          Grid.Column="1">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
-                </ImageButton.Source>
-            </ImageButton>
-            
-        </Grid>
-    </Shell.TitleView>
 
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
@@ -45,6 +30,22 @@
     </uranium:UraniumContentPage.Resources>
 
     <toolkit:DockLayout x:Name="tkDL" Margin="5,0">
+
+        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center" toolkit:DockLayout.DockPosition="Top">
+
+                <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center" FontAttributes="Bold" 
+           FontSize="20" Grid.Column="0"/>
+
+                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                  Grid.Column="1">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+            </Grid>
+        
         <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Transparent"
                                        ZIndex="1"/>
 
@@ -130,7 +131,7 @@
                 </CollectionView.Header>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent">
+                        <Border Stroke="Transparent" Padding="2,2">
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" >

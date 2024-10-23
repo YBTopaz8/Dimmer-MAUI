@@ -14,7 +14,10 @@
 
     <ContentView.Resources>
         <ResourceDictionary>
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>            
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <Style TargetType="material:EditorField">
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
         </ResourceDictionary>
     </ContentView.Resources>
     <Grid x:Name="ContentVSL"
@@ -35,6 +38,7 @@
             <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                                 />
             <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
+            
             <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
                         
             <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 

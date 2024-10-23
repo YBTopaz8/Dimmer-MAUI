@@ -28,6 +28,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongsModelView? song)
     {
+        SelectedSongToOpenBtmSheet = song;
         (var songsArtistId, var songsAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
         await NavigateToSpecificAlbumPage(songsAlbumId);
     }

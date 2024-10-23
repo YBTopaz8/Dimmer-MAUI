@@ -24,7 +24,7 @@
     </mct:Popup.Resources>
     <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
             Stroke="Transparent" 
-            WidthRequest="450" HeightRequest="{OnPlatform WinUI=670, Android=550}"
+            WidthRequest="450" HeightRequest="{OnPlatform WinUI=670, Android=600}"
             BackgroundColor="Black" Margin="5" Padding="20">
 
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
