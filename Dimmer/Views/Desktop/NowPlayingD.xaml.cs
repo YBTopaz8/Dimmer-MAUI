@@ -19,7 +19,7 @@ public partial class NowPlayingD : ContentPage
         {
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
-        TabV.SelectedTab = TabV.Items[0];
+        //TabV.SelectedTab = TabV.Items[0];
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
@@ -32,7 +32,7 @@ public partial class NowPlayingD : ContentPage
 
         if (e != null && e.Title == "Stats")
         {
-            vm.SwitchViewNowPlayingPageCommand.Execute(2);
+            vm.SwitchViewNowPlayingPageCommand.Execute(1);
 
         }
 

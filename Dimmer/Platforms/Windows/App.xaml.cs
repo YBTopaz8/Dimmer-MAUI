@@ -96,7 +96,7 @@ public partial class App : MauiWinUIApplication
             return;
         
         var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        home!.LoadLocalSongFromOutSideApp(paths!);
+        home!.LoadLocalSongFromOutSideApp(paths.ToList()!);
 
     }
 
