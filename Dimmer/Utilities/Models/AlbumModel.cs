@@ -48,7 +48,8 @@
         string totalDuration;
         [ObservableProperty]
         string? albumImagePath;
-
+        [ObservableProperty]
+        bool isCurrentlySelected = false;
         public AlbumModelView(AlbumModel model)
         {
             Id = model.Id;

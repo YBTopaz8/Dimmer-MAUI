@@ -56,9 +56,11 @@ public partial class ArtistsPageD : ContentPage
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
-        var t = (Border)sender;
-        var album = t.BindingContext as AlbumModelView;
-        HomePageVM.ShowSpecificArtistsSongsWithAlbumIdCommand.Execute(album.Id);
+        var send = (View)sender;
+
+        var curSel = send.BindingContext as AlbumModelView;
+        
+        HomePageVM.ShowSpecificArtistsSongsWithAlbumIdCommand.Execute(curSel.Id);
     }
 
     private void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
@@ -76,14 +78,7 @@ public partial class ArtistsPageD : ContentPage
         }
     }
 
-    private void AllArtistsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-
-        if (AllAlbumsColView.IsLoaded)
-        {
-            AllAlbumsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, position: ScrollToPosition.Center, animate: false);
-        }
-    }
+    
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {

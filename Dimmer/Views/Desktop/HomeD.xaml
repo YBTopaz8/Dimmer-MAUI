@@ -139,7 +139,7 @@
         </VerticalStackLayout>
 
         
-        <Grid Padding="10" ColumnSpacing="5" 
+        <Grid Padding="10" ColumnSpacing="10" 
               toolkit:DockLayout.DockPosition="Top"
               Margin="5,0">
 
@@ -209,11 +209,6 @@
                                     <VisualState.Setters>
                                         <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                         <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -334,7 +329,7 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                             </MenuFlyout>
                         </FlyoutBase.ContextFlyout>
 
-                        <Grid Padding="10" ColumnSpacing="5">
+                        <Grid Padding="10" ColumnSpacing="10">
                             
                             <Grid.Resources>
                                 <ResourceDictionary>

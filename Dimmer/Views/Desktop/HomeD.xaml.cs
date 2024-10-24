@@ -87,7 +87,7 @@ public partial class HomeD : UraniumContentPage
                 await Task.Delay(500);
                 if (SongsColView.IsLoaded)
                 {
-                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: true);
+                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: true);
                 }
             }
         }
@@ -141,7 +141,7 @@ public partial class HomeD : UraniumContentPage
     {
         if (SongsColView.IsLoaded && !isPointerEntered)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, null, ScrollToPosition.Center, animate: false);
+            //SongsColView.ScrollTo(HomePageVM.PickedSong, null, ScrollToPosition.Center, animate: false);
         }
         else
         {            

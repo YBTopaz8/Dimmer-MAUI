@@ -128,6 +128,7 @@ public partial class HomePageVM : ObservableObject
                     {
                         case MediaPlayerState.Playing:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+                            PickedSong.IsCurrentPlayingHighlight = true;
                             MainThread.BeginInvokeOnMainThread(() =>
                             {
                                 if (IsShuffleOn)
@@ -162,6 +163,7 @@ public partial class HomePageVM : ObservableObject
                             break;
                         case MediaPlayerState.Paused:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+                            PickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
                             break;

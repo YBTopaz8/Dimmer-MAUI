@@ -76,6 +76,10 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
+        if (SelectedArtistOnArtistPage != null)
+            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+        if (SelectedAlbumOnArtistPage != null)
+            SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
         if (AllArtists?.Count != PlayBackService.GetAllArtists().Count)
         {
             AllArtists = PlayBackService
@@ -85,9 +89,12 @@ public partial class HomePageVM
             if (AllArtists.Count > 0)
             {
 #if WINDOWS
-     SelectedArtistOnArtistPage =  AllArtists.FirstOrDefault()!;
-                SelectedArtistId = SelectedArtistOnArtistPage.Id;
-                GetAllArtistsAlbum(SelectedArtistId, TemporarilyPickedSong);   
+                if(SelectedArtistOnArtistPage is not null)
+                {
+                    SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+                    SelectedArtistId = SelectedArtistOnArtistPage.Id;
+                    GetAllArtistsAlbum(SelectedArtistId, TemporarilyPickedSong);
+                }
 #endif
             }
         }
@@ -95,6 +102,15 @@ public partial class HomePageVM
 
     public void GetAllArtistsAlbum(ObjectId artistOrSongId, SongsModelView? song = null)
     {
+        if(SelectedAlbumOnArtistPage is not null)
+        {
+            SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
+        }
+        if(SelectedArtistOnArtistPage is not null)
+        {
+            AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage!.Id).IsCurrentlySelected = false;
+            SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+        }
         if (song is null)
         {
             SelectedArtistId = artistOrSongId;
@@ -103,6 +119,7 @@ public partial class HomePageVM
         {
             (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
             SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == SelectedArtistId);
+            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         }
 
         if (AllArtists?.Count < 1)
@@ -122,21 +139,32 @@ public partial class HomePageVM
         if (AllArtistsAlbums.Count > 0)
         {
             if (song is null)
-            {
+            {                
                 SelectedAlbumOnArtistPage = AllArtistsAlbums.First();
-                SelectedArtistAlbumId = AllArtistsAlbums.First().Id;
+                SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
+                SelectedArtistOnArtistPage = AllArtists.First(x=>x.Id == artistOrSongId);
             }
             else
             {
                 SelectedAlbumOnArtistPage = AllArtistsAlbums.First();
+                
             }
+            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
             ShowSpecificArtistsSongs();
         }
     }
     [RelayCommand]
     void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
+        if (SelectedAlbumOnArtistPage is not null)
+            AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage.Id).IsCurrentlySelected = false;
+
         SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(albumId);
+        SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+        SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
+        SelectedAlbumOnArtistPage = AllAlbums.First(x => x.Id == albumId);
+        SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
+        AllArtistsAlbums.First(x=>x.Id==albumId).IsCurrentlySelected = true;
         AllArtistsAlbumSongs?.Clear();
         AllArtistsAlbumSongs = PlayBackService.GetAllArtistsAlbumSongsAlbumID(albumId);
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;

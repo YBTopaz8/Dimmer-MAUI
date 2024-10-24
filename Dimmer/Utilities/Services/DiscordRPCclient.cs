@@ -10,11 +10,13 @@ public class DiscordRPCclient : IDiscordRPC
     SongsModelView currentSong;
     public void Initialize()
     {
+#if ANDROID
+return;
+#endif
         if (!_isInitialized)
         {
             _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
             _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
-            
             //_discordRpcClient.OnPresenceUpdate += DiscordRpcClient_OnPresenceUpdate;
             _discordRpcClient.Initialize();
             _isInitialized = true;
@@ -44,7 +46,31 @@ public class DiscordRPCclient : IDiscordRPC
 
     public void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position)
     {
-#if ANDROID 
+        if (song == currentSong)
+            return;
+
+        var Presence = new RichPresence()
+        {
+            Details = $"Listening to {song.Title}",
+            State = $"by {song.ArtistName} | {song.AlbumName}",
+            Buttons =
+                [
+                    new() { Label = "Try Dimmer !", Url = @"https://github.com/YBTopaz8/Dimmer-MAUI?tab=readme-ov-file#requirements"}
+                ],
+            Timestamps = new Timestamps()
+            {
+                Start = DateTime.UtcNow - position,
+                End = DateTime.UtcNow + (duration - position)
+            },
+            Assets = new Assets()
+            {
+                LargeImageText = $"{song.Title} by {song.ArtistName}",
+                LargeImageKey = "musical_notes",
+                SmallImageKey = "jack-o-lantern",
+                SmallImageText = "Boo 👻! Happy Halloween !"
+            }
+        };
+#if ANDROID
 return;
 #endif
         if (!AppSettingsService.DiscordRPCPreference.GetDiscordRPC())
@@ -54,38 +80,18 @@ return;
         else
         {
             this.Initialize();
-        }
-        if (_isInitialized)
-        {
-            if (song == currentSong)
-                return;
             position = position.Add(TimeSpan.FromMilliseconds(500));
             var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
             var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
-            
-            
-            _discordRpcClient.SetPresence(new RichPresence()
-            {
-                Details = $"Listening to {song.Title}",
-                State = $"by {song.ArtistName} | {song.AlbumName}",
-                Buttons =
-                [
-                    new() { Label = "Try Dimmer !", Url = @"https://github.com/YBTopaz8/Dimmer-MAUI?tab=readme-ov-file#requirements"}
-                ],
-                Timestamps = new Timestamps()
-                {
-                    Start = DateTime.UtcNow - position,
-                    End = DateTime.UtcNow + (duration - position)
-                },
-                Assets = new Assets()
-                {
-                    LargeImageText = $"{song.Title} by {song.ArtistName}",
-                    LargeImageKey = "musical_notes",
-                    SmallImageKey = "jack-o-lantern",
-                    SmallImageText = "Boo 👻! Happy Halloween !"
-                }
-               
-            });
+            _discordRpcClient.SetPresence(Presence);
+        }
+        if (_isInitialized)
+        {
+            _discordRpcClient.UpdateState(Presence.State);
+            _discordRpcClient.UpdateDetails(Presence.Details);
+            _discordRpcClient.UpdateStartTime((DateTime)Presence.Timestamps.Start);
+            _discordRpcClient.UpdateEndTime((DateTime)Presence.Timestamps.End);
+            _discordRpcClient.UpdateLargeAsset(Presence.Assets.LargeImageKey, Presence.Assets.LargeImageText);
         }
     }
 }

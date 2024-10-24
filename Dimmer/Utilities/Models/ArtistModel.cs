@@ -28,7 +28,8 @@
         string name;
         [ObservableProperty]
         string? imagePath;
-
+        [ObservableProperty]
+        bool isCurrentlySelected = false;
         public ArtistModelView()
         {
         }
