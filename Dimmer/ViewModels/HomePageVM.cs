@@ -89,15 +89,13 @@ public partial class HomePageVM : ObservableObject
         IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
-
+        TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
         IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
-
-
     }
 
     CollectionView? PageCV { get; set; }
@@ -114,14 +112,15 @@ public partial class HomePageVM : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(state =>
             {
-                TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                
                 if (TemporarilyPickedSong is not null)
                 {
 
-
-                    //} WHY does this exist??
+                    TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                    TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                        //} WHY does this exist??
                     if (PickedSong is not null)
-                        PickedSong.IsPlaying = false;
+                    PickedSong.IsPlaying = false;
 
                     PickedSong = TemporarilyPickedSong;
                     SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
@@ -162,6 +161,7 @@ public partial class HomePageVM : ObservableObject
                                 ];
                             break;
                         case MediaPlayerState.Paused:
+                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
                             break;

@@ -26,8 +26,9 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <Style TargetType="Label">
-                <Setter Property="HorizontalOptions" Value="Center"/>
+                <Setter Property="HorizontalOptions" Value="Start"/>
                 <Setter Property="HorizontalTextAlignment" Value="Center"/>
+                <Setter Property="LineBreakMode" Value="TailTruncation"/>
             </Style>
 
             
@@ -35,10 +36,10 @@
     </uranium:UraniumContentPage.Resources>
 
 
-    <toolkit:DockLayout BackgroundColor="#1F1F1F">
+    <toolkit:DockLayout BackgroundColor="#1F1F1F" x:Name="mainDock">
         <toolkit:DockLayout.GestureRecognizers>
-            <DropGestureRecognizer AllowDrop="True" DragOver="DropGestureRecognizer_DragOver"
-                           DragLeave="DropGestureRecognizer_DragLeave" 
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave"
                            Drop="DropGestureRecognizer_Drop"/>
         </toolkit:DockLayout.GestureRecognizers>
 
@@ -57,7 +58,7 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
         <HorizontalStackLayout HorizontalOptions="End"  toolkit:DockLayout.DockPosition="Top" Spacing="10">
-            <Button Text="reloadColView" Clicked="Button_Clicked"/>
+            
             <material:CheckBox Text="Toggle Stick To Top" LabelPosition="Before" x:Name="stickToTopChkbx"
                                CheckChangedCommand="{Binding ToggleStickToTopCommand}"
                                CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
@@ -138,10 +139,12 @@
         </VerticalStackLayout>
 
         
-        <Grid ColumnSpacing="25" Padding="10" toolkit:DockLayout.DockPosition="Top">
+        <Grid Padding="10" ColumnSpacing="5" 
+              toolkit:DockLayout.DockPosition="Top"
+              Margin="5,0">
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="270" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -156,22 +159,23 @@
                         <Setter Property="TextColor" Value="#575757"/>
                         <Setter Property="FontAttributes" Value="Bold"/>
                         <Setter Property="FontSize" Value="16"/>
-                        <Setter Property="HorizontalOptions" Value="Start"/>
                     </Style>
                 </ResourceDictionary>
             </Grid.Resources>
-            <Label Text="Song Title" Grid.Column="0" HorizontalOptions="Center"/>
-            <Label Text="Artist" Grid.Column="1"  HorizontalOptions="Center"/>
-            <Label Text="" LineBreakMode="TailTruncation" Grid.Column="2" />
-            <Label Text="Album" Grid.Column="3"  LineBreakMode="TailTruncation" HorizontalOptions="Center" />
-            <Label Text="Genre"  LineBreakMode="TailTruncation" Grid.Column="4" HorizontalOptions="Center"/>
-            <Label Text="Duration" LineBreakMode="TailTruncation" Grid.Column="5" HorizontalOptions="Center" />
-            <Label Text="Bitrate" Grid.Column="6" LineBreakMode="TailTruncation" HorizontalOptions="Center" />
-            <Label Text="Format" Grid.Column="7" LineBreakMode="TailTruncation" HorizontalOptions="Center"/>
+            <Label Text="Song Title" Grid.Column="0" />
+            <Label Text="Artist" Grid.Column="1" />
+            <Label Text=""  Grid.Column="2" />
+            <Label Text="Album" Grid.Column="3"/>
+            <Label Text="Genre"   Grid.Column="4" />
+            <Label Text="Duration"  Grid.Column="5" />
+            <Label Text="Bitrate" Grid.Column="6"  />
+            <Label Text="Format" Grid.Column="7"/>
         </Grid>
         <!--<BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>-->
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  VerticalScrollBarVisibility="Default"
-                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" Loaded="SongsColView_Loaded"
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
+                        VerticalScrollBarVisibility="Default"
+                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
+                        Loaded="SongsColView_Loaded"
                         Margin="5,0" >
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical"/>
@@ -180,11 +184,11 @@
                 <DataTemplate x:DataType="models:SongsModelView">
                     <Border Stroke="Transparent">
                         <Border.Triggers>
-                            <DataTrigger TargetType="Border" Binding="{Binding IsPlaying}" Value="True">
+                            <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                 <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                <Setter Property="StrokeThickness" Value="0.6"/>                                
+                                <Setter Property="StrokeThickness" Value="0.8"/>                                
                             </DataTrigger>
-                            <DataTrigger TargetType="Border" Binding="{Binding IsPlaying}" Value="False">
+                            <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                 <Setter Property="Stroke" Value="Transparent"/>
                                 <Setter Property="StrokeThickness" Value="1"/>
                             </DataTrigger>
@@ -335,14 +339,13 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                             <Grid.Resources>
                                 <ResourceDictionary>
                                     <Style TargetType="Label">
-                                        <Setter Property="HorizontalOptions" Value="Center"/>
+                                        
                                         <Setter Property="VerticalOptions" Value="Center"/>
-                                        <Setter Property="LineBreakMode" Value="TailTruncation"/>
                                     </Style>
                                 </ResourceDictionary>
                             </Grid.Resources>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="270" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -360,10 +363,10 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                                             >
                             <HorizontalStackLayout Spacing="10" >
 
-                                <Label Text="{Binding Title}" LineBreakMode="HeadTruncation"                                        
-                        ToolTipProperties.Text="{Binding Title}"/>
+                                    <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" 
+                        ToolTipProperties.Text="{Binding Title}" Grid.Column="1"/>
 
-                                <Image WidthRequest="13" Grid.Column="2" VerticalOptions="Center"
+                                <Image WidthRequest="13" VerticalOptions="Center"
                         IsVisible="{Binding HasLyrics}">
                                     <Image.Source>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
@@ -375,34 +378,38 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
 
                         </VerticalStackLayout>
 
-                        <Label Text="{Binding ArtistName}" Grid.Column="1"
+                            <Label Text="{Binding ArtistName}" Grid.Column="1" 
                 ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                <ImageButton Grid.Column="2" WidthRequest="13"
-                             Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
-                             VerticalOptions="End" HorizontalOptions="Center"
-                             CommandParameter="{Binding .}" BackgroundColor="Transparent"
-                             >
+                            <uranium:StatefulContentView Grid.Column="2" x:Name="FavImagStatView"
+                                                         Hovered="FavImagStatView_HoveredAndExited"
+                                                         HoverExited="FavImagStatView_HoveredAndExited">
+                                <ImageButton 
+                                             Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
+                                             VerticalOptions="End" CommandParameter="{Binding .}" >
                                     <ImageButton.Source>
                                         <FontImageSource Size="25" 
-                                         FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
+            FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
+                            </uranium:StatefulContentView>
+                                
                                 <Label Text="{Binding AlbumName}" Grid.Column="3"
+                                       
                        ToolTipProperties.Text="{Binding AlbumName}"/>
 
                                 <Label Text="{Binding GenreName}" Grid.Column="4" 
                        ToolTipProperties.Text="{Binding GenreName}"/>
 
-                            <Label Grid.Column="5" HorizontalOptions="Center" 
+                            <Label Grid.Column="5"  
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-                            <Label Grid.Column="6" HorizontalOptions="Center" 
+                            <Label Grid.Column="6"  
                        Text="{Binding BitRate, StringFormat='{0} kbps'}"                                
                        ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
 
-                            <Label Text="{Binding FileFormat}" Grid.Column="7"  HorizontalOptions="Center" 
+                            <Label Text="{Binding FileFormat}" Grid.Column="7"
                        ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
                             
                         </Grid>

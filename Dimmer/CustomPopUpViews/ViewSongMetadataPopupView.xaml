@@ -8,7 +8,7 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             x:DataType="vm:HomePageVM" 
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
-            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="True"
+            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
             Color="Transparent">
     <mct:Popup.Resources>
         <ResourceDictionary>
@@ -24,8 +24,8 @@
             </Style>
             
             <Style TargetType="Image">
-                <Setter Property="WidthRequest" Value="{OnPlatform WinUI=20, Android=17}"/>
-                <Setter Property="HeightRequest" Value="{OnPlatform WinUI=20, Android=17}"/>
+                <Setter Property="WidthRequest" Value="{OnPlatform WinUI=25, Android=17}"/>
+                <Setter Property="HeightRequest" Value="{OnPlatform WinUI=25, Android=17}"/>
                 <Setter Property="Margin" Value="5"/>
             </Style>
 
@@ -41,7 +41,7 @@
     </mct:Popup.Resources>
     <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
             Stroke="Transparent" 
-            WidthRequest="350" HeightRequest="{OnPlatform WinUI=650, Android=650}"
+            WidthRequest="{OnPlatform WinUI=700, Android=350}" HeightRequest="{OnPlatform WinUI=720, Android=650}"
             BackgroundColor="Black" Margin="5" Padding="20">
         <VerticalStackLayout Spacing="5">
             <HorizontalStackLayout>

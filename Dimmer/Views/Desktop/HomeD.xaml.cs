@@ -1,4 +1,5 @@
 using Dimmer_MAUI.Utilities.OtherUtils;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -20,19 +21,50 @@ public partial class HomeD : UraniumContentPage
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
 
-        this.SizeChanged += HomeD_SizeChanged;
+
+#if WINDOWS
+        var currentMauiwindow = this.Window.Handler.PlatformView as MauiWinUIWindow;
+        currentMauiwindow.SizeChanged += CurrentMauiwindow_SizeChanged;
+#endif
     }
 
-    private async void HomeD_SizeChanged(object? sender, EventArgs e)
+#if WINDOWS
+    private CancellationTokenSource _resizeDebounceCts;
+
+    private void CurrentMauiwindow_SizeChanged(object sender, Microsoft.UI.Xaml.WindowSizeChangedEventArgs args)
     {
-        await Task.Delay(1500);
-        this.InitializeComponent();
+        
+        _resizeDebounceCts?.Cancel();
+        _resizeDebounceCts = new CancellationTokenSource();
+
+        DebounceResize(_resizeDebounceCts.Token);
     }
+
+    private async void DebounceResize(CancellationToken token)
+    {
+        try
+        {
+            SongsColView.ItemsSource = null;
+            await Task.Delay(20, token);
+
+            SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
+        }
+        catch (TaskCanceledException ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+
+#endif
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        this.SizeChanged -= HomeD_SizeChanged;
+#if WINDOWS
+        var currentMauiwindow = this.Window.Handler.PlatformView as MauiWinUIWindow;
+        currentMauiwindow.SizeChanged -= CurrentMauiwindow_SizeChanged;
+#endif
     }
 
     DateTime lastKeyStroke;
@@ -177,8 +209,6 @@ public partial class HomeD : UraniumContentPage
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        
-
         var song = send.BindingContext! as SongsModelView;
         isPointerEntered = true;
 
@@ -193,19 +223,20 @@ public partial class HomeD : UraniumContentPage
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.AnimateHighlightPointerPressed(e);
+        await send.AnimateHighlightPointerPressed();
     }
 
     private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.AnimateHighlightPointerReleased(e);
+        await send.AnimateHighlightPointerReleased();
     }
 
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
+        
         //e.AcceptedOperation = DataPackageOperation.Copy;
         if(!isAboutToDropFiles)
         {
@@ -215,12 +246,10 @@ public partial class HomeD : UraniumContentPage
 #if WINDOWS
             var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
             var dragUI = WindowsEventArgs.DragUIOverride;
-            dragUI.IsGlyphVisible = false;
-            dragUI.Caption = "Drop to Play!";
+            
 
             var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
-            bool validFiles = true;
-
+            e.AcceptedOperation = DataPackageOperation.None;
             supportedFilePaths = new List<string>();
 
             if (items.Count > 0)
@@ -234,22 +263,16 @@ public partial class HomeD : UraniumContentPage
                         if (fileExtension != ".mp3" && fileExtension != ".flac" &&
                             fileExtension != ".wav" && fileExtension != ".m4a")
                         {
-                            validFiles = false;
-                            if (validFiles)
-                            {
-                                e.AcceptedOperation = DataPackageOperation.Copy;
-                            }
-                            else
-                            {
-                                e.AcceptedOperation = DataPackageOperation.None;
-                                dragUI.IsGlyphVisible = true;
-                                dragUI.Caption = "Files Not Supported";
-                                break;  // If any invalid file is found, break the loop
-                            }
-                            
+                            e.AcceptedOperation = DataPackageOperation.None;
+                            dragUI.IsGlyphVisible = true;
+                            dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
+                            return;
+                            //break;  // If any invalid file is found, break the loop
                         }
                         else
                         {
+                            dragUI.IsGlyphVisible = false;
+                            dragUI.Caption = "Drop to Play!";
                             Debug.WriteLine($"File is {item.Path}");
                             supportedFilePaths.Add(item.Path.ToLower());
                         }
@@ -264,19 +287,41 @@ public partial class HomeD : UraniumContentPage
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
         isAboutToDropFiles = false;
+        
         SongsColView.Opacity = 1;        
     }
 
-    private void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
         isAboutToDropFiles = false;
         SongsColView.Opacity = 1;
-
-        HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var colView = (View)SongsColView;
+        if (supportedFilePaths.Count > 0)
+        {
+            await colView.AnimateRippleBounce();
+            HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        }
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
+
+    private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
-        this.InitializeComponent();
+        var send = (View)sender;
+        var song = send.BindingContext! as SongsModelView;
+        if (song is null)
+            return;
+        if (song.IsFavorite)
+        {
+            song.IsFavorite = false;
+        }
+        else
+        {
+            song.IsFavorite = true;
+        }
+    }
+
+    private void FavImagStatView_HoverExited(object sender, EventArgs e)
+    {
+
     }
 }

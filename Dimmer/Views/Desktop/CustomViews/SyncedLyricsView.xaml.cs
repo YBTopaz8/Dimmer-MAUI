@@ -15,21 +15,21 @@ public partial class SyncedLyricsView : ContentView
 
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        //try
-        //{
-        //    if (CanScroll)
-        //    {
-        //        if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
-        //        {
-        //            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-        //        }
-        //    }
+        try
+        {
+            if (CanScroll)
+            {
+                if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+                {
+                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                }
+            }
 
-        //}
-        //catch (Exception ex)
-        //{
-        //    Debug.WriteLine(ex.Message);
-        //}
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     HomePageVM ViewModel { get; set; }

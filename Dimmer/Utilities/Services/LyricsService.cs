@@ -312,7 +312,7 @@ public class LyricsService : ILyricsService
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
-        int offsetValue = 1050;
+        int offsetValue = 1250;
         var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
 
         if (highlightedLyric == null)
