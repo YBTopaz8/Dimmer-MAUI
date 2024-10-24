@@ -117,30 +117,29 @@ public partial class HomePageVM : ObservableObject
                 TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
                 if (TemporarilyPickedSong is not null)
                 {
-                    
-                    //if (DisplayedSongs is not null)
-                    //{
-                    //    var songToPlay= DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id);
 
-                    //    if (songToPlay is not null)
-                    //    {
-                    //        var songIndex = DisplayedSongs.IndexOf(songToPlay);
-                    //        if (songIndex != -1)
-                    //        {
-                    //            DisplayedSongs[songIndex] = TemporarilyPickedSong;
-                    //        }
-                    //    }
-                     
+
                     //} WHY does this exist??
+                    if (PickedSong is not null)
+                        PickedSong.IsPlaying = false;
 
                     PickedSong = TemporarilyPickedSong;
                     SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
+                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             MainThread.BeginInvokeOnMainThread(() =>
                             {
-                                PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                                if (IsShuffleOn)
+                                {
+                                    PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                                }
+                                else
+                                {
+                                    PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                                }
+                                
                             });
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
@@ -378,6 +377,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
+        TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         await PlayBackService.PlayNextSongAsync();

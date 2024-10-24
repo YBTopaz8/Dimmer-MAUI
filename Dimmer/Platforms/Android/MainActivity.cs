@@ -60,19 +60,9 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
     protected async override void OnStop()
     {
         base.OnStop();
-        var nativeAudio = IPlatformApplication.Current.Services.GetService<INativeAudioService>();
-        nativeAudio!.IsPlayingChanged += NativeAudio_IsPlayingChanged;
         //Task.Run(async () => MonitorAppStateAsync(nativeAudio));
 
         var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>()!;
         await homeVM.ExitingApp();
-    }
-    private async void NativeAudio_IsPlayingChanged(object? sender, bool isPlaying)
-    {
-        if (!isPlaying)
-        {
-            await Task.Delay(TimeSpan.FromMinutes(5));
-            this.FinishAffinity();
-        }
     }
 }

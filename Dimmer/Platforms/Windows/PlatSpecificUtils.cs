@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic.FileIO;
+using Foundation= Windows.Foundation;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
@@ -85,4 +86,5 @@ public static class PlatSpecificUtils
             Debug.WriteLine($"{ex.Message}");
         }
     }
+
 }

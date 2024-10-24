@@ -16,6 +16,10 @@ public interface ISongsManagementService
     void GetAlbums();
     (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
+    ArtistModelView GetArtistFromAlbumId(ObjectId albumId);
+    ArtistModelView GetArtistFromSongId(ObjectId songId);
+    SongsModelView GetSongFromAlbumId(ObjectId albumId);
+    SongsModelView GetSongFromArtistId(ObjectId artistId);
     IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID);
     IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
     void UpdateAlbum(AlbumModelView album);

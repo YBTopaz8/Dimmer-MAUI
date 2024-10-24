@@ -915,146 +915,161 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         try
         {
-            // Ensure the playlist is not empty
+            //// Ensure the playlist is not empty
             if (nowPlayingShuffledOrNot == null || nowPlayingShuffledOrNot.Count < 1)
             {
                 _currentSongIndex = _nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong);
-                return;
+                //return;
             }
 
-            // Handle the case where there's only one song in the list
-            if (nowPlayingShuffledOrNot.Count == 1)
-            {
-                _currentSongIndex = 0;
-                UpdateObservableProperties();
-                return;
-            }
+            //// Handle the case where there's only one song in the list
+            //if (nowPlayingShuffledOrNot.Count == 1)
+            //{
+            //    _currentSongIndex = 0;
+            //    UpdateObservableProperties();
+            //    return;
+            //}
             // Next song requested
             if (IsNext)
             {
-                // Save the current song index into history if shuffle is off
-                if (IsShuffleOn)
+
+                if (isTrueShuffle)
                 {
+                    Random random = new Random();
+                    int newPosition = _currentSongIndex; // Initialize with current position
 
-                    if (!isTrueShuffle) //these are ok btw, just inverse them for prod
+                    while (newPosition == currentPosition && nowPlayingShuffledOrNot.Count > 1)
                     {
-                        // Sequential mode: Go to the next song in the list
-                        previousIndex = _currentSongIndex;
-                        _currentSongIndex = (_currentSongIndex < nowPlayingShuffledOrNot.Count - 1) ? _currentSongIndex + 1 : 0;
-                        if (playedSongHistory.Count >= historyLimit)  // Limit history size to 'historyLimit'
-                        {
-                            playedSongHistory.RemoveAt(0);  // Remove the oldest entry
-                        }
-                        if (!playedSongHistory.Contains(_currentSongIndex))
-                        {
-                            playedSongHistory.Add(_currentSongIndex);
-                        }
-                    }
-                    else
-                    {
-                        _currentSongIndex = nowPlayingShuffledOrNot.IndexOf(ObservableCurrentlyPlayingSong);
-                        // Shuffle mode: Pick a random next song, avoid recent repeats
-                        previousIndex = _currentSongIndex;
-
-                        int newIndex;
-
-                        List<int> recentSongs = playedSongHistory.TakeLast(5).ToList();  // Avoid last 5 songs
-                        do
-                        {
-                            newIndex = random.Next(nowPlayingShuffledOrNot.Count);
-                        } while (newIndex == _currentSongIndex || recentSongs.Contains(newIndex));  // Ensure no repeats
-                        if (playedSongHistory.Count > 0)
-                        {
-                            previousIndex = _currentSongIndex;
-                        }
-                        _currentSongIndex = newIndex;
-                        if (!playedSongHistory.Contains(_currentSongIndex))
-                        {
-                            playedSongHistory.Add(_currentSongIndex);
-                        }
+                        newPosition = random.Next(0, nowPlayingShuffledOrNot.Count);
                     }
 
+                    // Now newPosition is a random number different from currentPosition
+                    _currentSongIndex = newPosition;
                 }
-                else
+                else //if()
                 {
-                    previousIndex = _currentSongIndex;
                     _currentSongIndex++;
-                    if (!playedSongHistory.Contains(_currentSongIndex))
-                    {
-                        playedSongHistory.Add(_currentSongIndex);
-                    }
                 }
+                #region might delete
+                //// Save the current song index into history if shuffle is off
+                //if (IsShuffleOn)
+                //{
 
-                UpdateObservableProperties();
+                //    if (!isTrueShuffle) //these are ok btw, just inverse them for prod
+                //    {
+                //        // Sequential mode: Go to the next song in the list
+                //        previousIndex = _currentSongIndex;
+                //        _currentSongIndex = (_currentSongIndex < nowPlayingShuffledOrNot.Count - 1) ? _currentSongIndex + 1 : 0;
+                //        if (playedSongHistory.Count >= historyLimit)  // Limit history size to 'historyLimit'
+                //        {
+                //            playedSongHistory.RemoveAt(0);  // Remove the oldest entry
+                //        }
+                //        if (!playedSongHistory.Contains(_currentSongIndex))
+                //        {
+                //            playedSongHistory.Add(_currentSongIndex);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        _currentSongIndex = nowPlayingShuffledOrNot.IndexOf(ObservableCurrentlyPlayingSong);
+                //        // Shuffle mode: Pick a random next song, avoid recent repeats
+                //        previousIndex = _currentSongIndex;
+
+                //        int newIndex;
+
+                //        List<int> recentSongs = playedSongHistory.TakeLast(5).ToList();  // Avoid last 5 songs
+                //        do
+                //        {
+                //            newIndex = random.Next(nowPlayingShuffledOrNot.Count);
+                //        } while (newIndex == _currentSongIndex || recentSongs.Contains(newIndex));  // Ensure no repeats
+                //        if (playedSongHistory.Count > 0)
+                //        {
+                //            previousIndex = _currentSongIndex;
+                //        }
+                //        _currentSongIndex = newIndex;
+                //        if (!playedSongHistory.Contains(_currentSongIndex))
+                //        {
+                //            playedSongHistory.Add(_currentSongIndex);
+                //        }
+                //    }
+
+                //}
+                //else
+                //{
+                //    previousIndex = _currentSongIndex;
+                //    _currentSongIndex++;
+                //    if (!playedSongHistory.Contains(_currentSongIndex))
+                //    {
+                //        playedSongHistory.Add(_currentSongIndex);
+                //    }
+                //}
+
+                //UpdateObservableProperties();
+                #endregion
             }
 
             // Previous song requested
             else if (IsPrevious)
             {
-                if (!IsShuffleOn)
-                {
+                _currentSongIndex--;
+                #region Might also delete
+                //if (!IsShuffleOn)
+                //{
 
-                    if (playedSongHistory.Count > 0)
-                    {
-                        if (_currentSongIndex == playedSongHistory[^1])
-                        {
-                            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);
-                        }
-                        if (playedSongHistory.Count != 0)
-                        {
-                            _currentSongIndex = playedSongHistory[^1];
-                        }
-                    }
-                    if (playedSongHistory.Count < 1)
-                        _currentSongIndex = nowPlayingShuffledOrNot.IndexOf(ObservableCurrentlyPlayingSong) - 1;
-                }
-                else
-                {
-                    if (isTrueShuffle)
-                    {
-                        // Shuffle mode: Backtrack through the history if available
-                        if (playedSongHistory.Count > 1)  // Ensure there's a history to go back to
-                        {
-                            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);  // Remove current song from history
-                            _currentSongIndex = playedSongHistory[^1];  // Set to last played song
-                            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);  // Remove from history
-                        }
-                        else
-                        {
-                            // If no history, pick a random song
-                            _currentSongIndex = random.Next(nowPlayingShuffledOrNot.Count);
-                        }
-                    }
-                    else
-                    {
-                        if (playedSongHistory.Count > 0)
-                        {
-                            if (_currentSongIndex == playedSongHistory[^1])
-                            {
-                                playedSongHistory.RemoveAt(playedSongHistory.Count - 1);
-                            }
-                            if (playedSongHistory.Count != 0)
-                            {
-                                _currentSongIndex = playedSongHistory[^1];
-                            }
-                        }
-                        if (playedSongHistory.Count < 1)
-                            _currentSongIndex--;
-                    }
-                }
-                // Update observable properties for current/previous songs
+                //    if (playedSongHistory.Count > 0)
+                //    {
+                //        if (_currentSongIndex == playedSongHistory[^1])
+                //        {
+                //            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);
+                //        }
+                //        if (playedSongHistory.Count != 0)
+                //        {
+                //            _currentSongIndex = playedSongHistory[^1];
+                //        }
+                //    }
+                //    if (playedSongHistory.Count < 1)
+                //        _currentSongIndex = nowPlayingShuffledOrNot.IndexOf(ObservableCurrentlyPlayingSong) - 1;
+                //}
+                //else
+                //{
+                //    if (isTrueShuffle)
+                //    {
+                //        // Shuffle mode: Backtrack through the history if available
+                //        if (playedSongHistory.Count > 1)  // Ensure there's a history to go back to
+                //        {
+                //            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);  // Remove current song from history
+                //            _currentSongIndex = playedSongHistory[^1];  // Set to last played song
+                //            playedSongHistory.RemoveAt(playedSongHistory.Count - 1);  // Remove from history
+                //        }
+                //        else
+                //        {
+                //            // If no history, pick a random song
+                //            _currentSongIndex = random.Next(nowPlayingShuffledOrNot.Count);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        if (playedSongHistory.Count > 0)
+                //        {
+                //            if (_currentSongIndex == playedSongHistory[^1])
+                //            {
+                //                playedSongHistory.RemoveAt(playedSongHistory.Count - 1);
+                //            }
+                //            if (playedSongHistory.Count != 0)
+                //            {
+                //                _currentSongIndex = playedSongHistory[^1];
+                //            }
+                //        }
+                //        if (playedSongHistory.Count < 1)
+                //            _currentSongIndex--;
+                //    }
+                //}
+                // Update observable properties for current/previous songs 
+                #endregion
             }
-
-            UpdateObservableProperties();
-            // Safeguard against index out-of-bounds if playlist changes dynamically
-            if (_currentSongIndex >= nowPlayingShuffledOrNot.Count)
-            {
-                _currentSongIndex = nowPlayingShuffledOrNot.Count - 1;
-            }
-            else if (_currentSongIndex < 0)
-            {
-                _currentSongIndex = 0;
-            }
+            ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNot[_currentSongIndex];
+            //UpdateObservableProperties();
+           
         }
         catch (Exception e)
         {
@@ -1069,13 +1084,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     private void UpdateObservableProperties()
     {
-        ObservablePreviouslyPlayingSong = ObservableCurrentlyPlayingSong;
-
         ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNot[_currentSongIndex];
-
-        // Check next song index, wrap around if necessary
-        int nextIndex = (_currentSongIndex < nowPlayingShuffledOrNot.Count - 1) ? _currentSongIndex + 1 : 0;
-        ObservableNextPlayingSong = nowPlayingShuffledOrNot[nextIndex];
     }
 
 
@@ -1192,6 +1201,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer.Dispose();
             _positionTimer = null;
         }
+        _currentPositionSubject.OnNext(new());
 
         if (ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted != null && ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted.Count > 0)
         {
@@ -1267,6 +1277,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #endregion
     public async Task<bool> PlayNextSongAsync()
     {
+        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         if (CurrentRepeatMode == 0)
         {
             await PlaySongAsync(currentQueue: CurrentQueue, IsFromPreviousOrNext: true);
@@ -1651,7 +1662,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public ObservableCollection<SongsModelView> GetallArtistsSongsByAlbumID(ObjectId albumID)
+    public ObservableCollection<SongsModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID)
     {
         try
         {

@@ -1,6 +1,8 @@
 ﻿#if ANDROID
 using Android.Graphics;
+using AndroidX.RecyclerView.Widget;
 using Google.Android.Material.Color.Utilities;
+using Microsoft.Maui.Controls;
 using Color = Microsoft.Maui.Graphics.Color;
 #endif
 
@@ -81,5 +83,25 @@ public static class PlatSpecificUtils
     public static void ToggleWindowAlwaysOnTop(bool bof, nint nativeWindowHandle = 0)
     {
         Debug.WriteLine("Nothing"); ;
+    }
+
+    public static bool IsItemVisible (this CollectionView colView, object item)
+    {
+        var platformCollectionView = colView.Handler.PlatformView as RecyclerView;
+
+        if (platformCollectionView == null)
+            return false;
+
+        var layoutManager = platformCollectionView.GetLayoutManager() as LinearLayoutManager;
+        if (layoutManager == null)
+            return false;
+
+        var index = (colView.ItemsSource as System.Collections.IList).IndexOf(item);
+
+        // Check if the item is within the visible range
+        int firstVisibleItemPosition = layoutManager.FindFirstVisibleItemPosition();
+        int lastVisibleItemPosition = layoutManager.FindLastVisibleItemPosition();
+
+        return index >= firstVisibleItemPosition && index <= lastVisibleItemPosition;
     }
 }

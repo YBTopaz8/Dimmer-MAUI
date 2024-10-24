@@ -369,7 +369,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-
     public async Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongsModelView> songs)
     {
         try
@@ -444,6 +443,169 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         {
             Debug.WriteLine(ex.Message);
             return false;
+        }
+    }
+
+    public ArtistModelView GetArtistFromAlbumId(ObjectId albumId)
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            var artistIdList = db.All<AlbumArtistSongLink>()
+                .Where(link => link.AlbumId == albumId)
+                .ToList();
+            if (artistIdList == null)
+                return null;
+            var artistId = artistIdList.FirstOrDefault()!.ArtistId;
+            
+            //if (artistId == null)
+            //{
+            //    Debug.WriteLine($"Artist for album ID {albumId} not found.");
+            //    return null;
+            //}
+
+            var artist = db.All<ArtistModel>()
+                .Where(a => a.Id == artistId)
+                .ToList()
+                .FirstOrDefault();  // Fetch the artist based on artistId
+
+            if (artist == null)
+            {
+                Debug.WriteLine($"Artist with ID {artistId} not found.");
+                return null;
+            }
+
+            return new ArtistModelView(artist);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting artist from album ID: {ex.Message}");
+            return null;
+        }
+    }
+
+    public ArtistModelView GetArtistFromSongId(ObjectId songId)
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+
+            var songLinks = db
+                .All<AlbumArtistSongLink>()
+                .Where(link => link.SongId == songId)
+                .ToList();
+
+            var artistId = songLinks
+                .Select(link => link.ArtistId)
+                .Distinct()
+                .FirstOrDefault();  // Get the first (unique) artist ID linked to this song
+
+            if (artistId == null)
+            {
+                Debug.WriteLine($"Artist for song ID {songId} not found.");
+                return null;
+            }
+
+            var artist = db.All<ArtistModel>()
+                .Where(a => a.Id == artistId)
+                .ToList()
+                .FirstOrDefault();  // Fetch the artist based on artistId
+
+            if (artist == null)
+            {
+                Debug.WriteLine($"Artist with ID {artistId} not found.");
+                return null;
+            }
+
+            return new ArtistModelView(artist);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting artist from song ID: {ex.Message}");
+            return null;
+        }
+    }
+    public SongsModelView GetSongFromAlbumId(ObjectId albumId)
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+
+            var songLinks = db
+                .All<AlbumArtistSongLink>()
+                .Where(link => link.AlbumId == albumId)
+                .ToList();
+
+            var songId = songLinks
+                .Select(link => link.SongId)
+                .Distinct()
+                .FirstOrDefault();  // Get the first (unique) song ID linked to this album
+
+            if (songId == null)
+            {
+                Debug.WriteLine($"Song for album ID {albumId} not found.");
+                return null;
+            }
+
+            var song = db.All<SongsModel>()
+                .Where(s => s.Id == songId)
+                .ToList()
+                .FirstOrDefault();  // Fetch the song based on songId
+
+            if (song == null)
+            {
+                Debug.WriteLine($"Song with ID {songId} not found.");
+                return null;
+            }
+
+            return new SongsModelView(song);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting song from album ID: {ex.Message}");
+            return null;
+        }
+    }
+
+    public SongsModelView GetSongFromArtistId(ObjectId artistId)
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+
+            var songLinks = db
+                .All<AlbumArtistSongLink>()
+                .Where(link => link.ArtistId == artistId)
+                .ToList();
+
+            var songId = songLinks
+                .Select(link => link.SongId)
+                .Distinct()
+                .FirstOrDefault();  // Get the first (unique) song ID linked to this artist
+
+            if (songId == null)
+            {
+                Debug.WriteLine($"Song for artist ID {artistId} not found.");
+                return null;
+            }
+
+            var song = db.All<SongsModel>()
+                .Where(s => s.Id == songId)
+                .ToList()
+                .FirstOrDefault();  // Fetch the song based on songId
+
+            if (song == null)
+            {
+                Debug.WriteLine($"Song with ID {songId} not found.");
+                return null;
+            }
+
+            return new SongsModelView(song);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting song from artist ID: {ex.Message}");
+            return null;
         }
     }
 

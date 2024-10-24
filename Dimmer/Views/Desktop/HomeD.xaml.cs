@@ -20,7 +20,19 @@ public partial class HomeD : UraniumContentPage
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
 
+        this.SizeChanged += HomeD_SizeChanged;
+    }
 
+    private async void HomeD_SizeChanged(object? sender, EventArgs e)
+    {
+        await Task.Delay(1500);
+        this.InitializeComponent();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        this.SizeChanged -= HomeD_SizeChanged;
     }
 
     DateTime lastKeyStroke;
@@ -252,8 +264,7 @@ public partial class HomeD : UraniumContentPage
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
         isAboutToDropFiles = false;
-        SongsColView.Opacity = 1;
-        
+        SongsColView.Opacity = 1;        
     }
 
     private void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
@@ -262,5 +273,10 @@ public partial class HomeD : UraniumContentPage
         SongsColView.Opacity = 1;
 
         HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        this.InitializeComponent();
     }
 }

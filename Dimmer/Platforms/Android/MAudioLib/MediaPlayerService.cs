@@ -14,7 +14,7 @@ using Exception = System.Exception;
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 [Service(Enabled = true, Exported = true, ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo })]
+[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionSetRating })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener, MediaPlayer.IOnCompletionListener,
    MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener
@@ -27,6 +27,7 @@ public class MediaPlayerService : Service,
     public const string ActionNext = "com.xamarin.action.NEXT";
     public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
     public const string ActionSeekTo = "com.xamarin.action.ActionSeekTo";
+    public const string ActionSetRating = "com.xamarin.ActionSetRating";
 
     public MediaPlayer mediaPlayer;
     private AudioManager audioManager;
@@ -101,6 +102,7 @@ public class MediaPlayerService : Service,
     }
     public MediaPlayerService()
     {
+        IsFavorite = Rating.NewHeartRating(false);
         PlayingHandler = new Handler(Looper.MainLooper);
 
         // Create a runnable, restarting itself if the status still is "playing"
@@ -260,6 +262,8 @@ public class MediaPlayerService : Service,
         Console.WriteLine(DateTime.Now.ToString() + "Step 9 Prepared "+mediaPlay.Name);
     }
 
+    public Rating? IsFavorite { get; set; } = Rating.NewHeartRating(false);
+        
     public int Position
     {
         get
@@ -583,7 +587,8 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionSkipToNext |
                     PlaybackState.ActionSkipToPrevious |
                     PlaybackState.ActionStop |
-                    PlaybackState.ActionSeekTo 
+                    PlaybackState.ActionSeekTo |
+                    PlaybackState.ActionSetRating
                 )
                 .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
 
@@ -607,9 +612,13 @@ public class MediaPlayerService : Service,
         if (mediaSession == null)
             return;
         var s = Application.Context;
-        var notif = NotificationHelper.StartNotification(s, mediaController.Metadata!, mediaSession,
-            Cover, MediaPlayerState == PlaybackStateCode.Playing);
-        StartForeground(1000, notif); //or this?
+        var notif = NotificationHelper
+            .StartNotification(s, mediaController.Metadata!, 
+            mediaSession, Cover, 
+            MediaPlayerState == PlaybackStateCode.Playing);
+        notif.TickerText = new Java.Lang.String($"Now Playing {mediaPlay.Name}");
+
+        StartForeground(id: 1000, notif); //or this?
     }
 
     /// <summary>
@@ -628,7 +637,7 @@ public class MediaPlayerService : Service,
             .PutString(MediaMetadata.MetadataKeyAlbum, metaRetriever.ExtractMetadata(MetadataKey.Album))
             .PutString(MediaMetadata.MetadataKeyArtist, mediaPlay.Author ?? metaRetriever.ExtractMetadata(MetadataKey.Artist))
             .PutString(MediaMetadata.MetadataKeyTitle, mediaPlay.Name ?? metaRetriever.ExtractMetadata(MetadataKey.Title))
-            .PutRating("Rate", Rating.NewHeartRating(true))
+            .PutRating( MediaMetadata.MetadataKeyRating, Rating.NewHeartRating(true))
             .PutLong(MediaMetadata.MetadataKeyDuration, mediaPlay.DurationInMs);
             // using this metaRetriever.ExtractMetadata(MetadataKey.Duration))  doesn't work
         }
@@ -637,7 +646,7 @@ public class MediaPlayerService : Service,
             builder.PutString(MediaMetadata.MetadataKeyAlbum, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyAlbum))
                    .PutString(MediaMetadata.MetadataKeyArtist, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyArtist))
                    .PutString(MediaMetadata.MetadataKeyTitle, mediaSession.Controller.Metadata.GetString(MediaMetadata.MetadataKeyTitle))
-                   .PutRating("Rate", Rating.NewHeartRating(true))
+                   .PutRating(MediaMetadata.MetadataKeyRating, Rating.NewHeartRating(true))
                    .PutLong(MediaMetadata.MetadataKeyDuration, mediaSession.Controller.Metadata.GetLong(MediaMetadata.MetadataKeyDuration));
         }
         builder.PutBitmap(MediaMetadata.MetadataKeyAlbumArt, Cover);
@@ -677,6 +686,9 @@ public class MediaPlayerService : Service,
                 break;
             case ActionSeekTo:
                 mediaController.GetTransportControls().SeekTo(Position);
+                break;
+            case ActionSetRating:
+                mediaController.GetTransportControls().SetRating(IsFavorite);
                 break;
             default:
                 break;
@@ -751,11 +763,13 @@ public class MediaPlayerService : Service,
             case AudioFocus.Loss:
                 //We have lost focus stop!
                 await Pause();
+                IsPlayingChanged?.Invoke(this, false);
                 //await Stop();
                 break;
             case AudioFocus.LossTransient:
                 //We have lost focus for a short time, but likely to resume so pause
                 await Pause();
+                IsPlayingChanged?.Invoke(this, false);
                 break;
             case AudioFocus.LossTransientCanDuck:
                 //We have lost focus but should till play at a muted 10% volume
@@ -772,7 +786,6 @@ public class MediaPlayerService : Service,
         {
             mediaPlayerService = service;
         }
-
 
         bool isPlaying = true;
         public override void OnPause()
@@ -813,13 +826,14 @@ public class MediaPlayerService : Service,
         {
             await mediaPlayerService.GetMediaPlayerService().Seek((int)pos);
             Console.WriteLine("From OnSeek Seeking to " + pos);
-            base.OnSeekTo(pos);
+            //base.OnSeekTo(pos);
         }
 
-        public override void OnCustomAction(string action, Bundle extras)
+        public override void OnSetRating(Rating rating)
         {
-            base.OnCustomAction(action, extras);
+            base.OnSetRating(rating);
         }
+        
     }
 
 }

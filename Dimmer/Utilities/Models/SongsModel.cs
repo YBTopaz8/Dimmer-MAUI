@@ -202,6 +202,9 @@ public partial class SongsModelView : ObservableObject
     string? unSyncLyrics;
     [ObservableProperty]
     bool isPlaying;
+
+    [ObservableProperty]
+    bool isCurrentPlayingHighlight;
     [ObservableProperty]
     bool isFavorite;
     [ObservableProperty]

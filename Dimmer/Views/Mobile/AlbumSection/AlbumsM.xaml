@@ -59,35 +59,36 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
-                    <Border StrokeThickness="0" Stroke="Transparent" 
-                    HorizontalOptions="Center" VerticalOptions="Center"
-                    StrokeShape="RoundRectangle 10"
-                     Margin="10">
+                    <uranium:StatefulContentView TappedCommand="{Binding BindingContext.NavigateToSpecificAlbumPageCommand,
+                                                Source={x:Reference myPage} }"
+                                                 CommandParameter="{Binding Id}">
+                        <Border StrokeThickness="0" Stroke="Transparent"  
+                                HorizontalOptions="Center" VerticalOptions="Center"
+                                StrokeShape="RoundRectangle 5"
+                                Margin="10">
 
-                        <!-- Apply shadow to mimic elevation -->
-                        <Border.Shadow>
-                            <Shadow Brush="DarkSlateBlue" Opacity="0.5" Offset="10,20" />
-                        </Border.Shadow>
 
-                        <!-- Inner layout for image and text -->
-                        <VerticalStackLayout Spacing="10" VerticalOptions="CenterAndExpand" 
-                                             HorizontalOptions="Center">
+                            <!-- Inner layout for image and text -->
+                            <VerticalStackLayout Spacing="10" VerticalOptions="CenterAndExpand" 
+                         HorizontalOptions="Center">
 
-                            <!-- Album Image with rounded corners -->
-                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
-                                        WidthRequest="100" HeightRequest="100"
-                                        CornerRadius="10" 
-                                        HorizontalOptions="Center" VerticalOptions="Center" />
+                                <!-- Album Image with rounded corners -->
+                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
+                    WidthRequest="100" HeightRequest="100"
+                    CornerRadius="10" BorderWidth="0"
+                    HorizontalOptions="Center" VerticalOptions="Center" />
 
-                            <!-- Album Name -->
-                            <Label Text="{Binding Name}" FontSize="12" 
-                           HorizontalTextAlignment="Center" 
-                           LineBreakMode="TailTruncation"
-                           TextColor="White"
-                           MaxLines="2" />
-                        </VerticalStackLayout>
+                                <!-- Album Name -->
+                                <Label Text="{Binding Name}" FontSize="12" 
+       HorizontalTextAlignment="Center" 
+       LineBreakMode="TailTruncation"
+       TextColor="White"
+       MaxLines="2" />
+                            </VerticalStackLayout>
 
-                    </Border>
+                        </Border>
+                    </uranium:StatefulContentView>
+                    
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

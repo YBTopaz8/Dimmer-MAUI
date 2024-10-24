@@ -47,7 +47,7 @@
            FontSize="20" />
 
             <!-- 2nd Grid to occupy the middle (full remaining space) -->
-            <Grid Grid.Column="1" 
+            <Grid Grid.Column="1" Margin="2"
                   IsVisible="False" ColumnDefinitions="*,Auto"
                   x:Name="TitleSearchView">
                 <material:TextField Title="Search The Music ..."
@@ -66,14 +66,14 @@
 
             <!-- HorizontalStackLayout at the extreme right -->
             <HorizontalStackLayout Grid.Column="2" HorizontalOptions="End">
-                <ImageButton HeightRequest="25" Command="{Binding OpenSortingPopupCommand}">
+                <ImageButton HeightRequest="35" Command="{Binding OpenSortingPopupCommand}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
                 <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
-                     HeightRequest="25">
+                     HeightRequest="35">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Settings}"/>
                     </ImageButton.Source>

@@ -66,13 +66,12 @@ public static class NotificationHelper
                 : PendingIntentFlags.UpdateCurrent;
 
             var pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
-            //var pendingIntent = PendingIntent.GetActivity(
-            //    context,
-            //    0,
-            //    new Intent(context, typeof(Activity)),
-            //    PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable);
+            
+            
+
+
             int pendingIntentId = 0;
-            //PendingIntent pendingIntent = PendingIntent.GetActivity(Platform.AppContext, )
+            
             MediaMetadata currentTrack = mediaMetadata;
 
             MediaStyle style = new MediaStyle();
@@ -85,7 +84,7 @@ public static class NotificationHelper
                .SetSmallIcon(Drawable.IcMediaPlay)
                .SetContentIntent(pendingIntent)
                .SetShowWhen(false)
-               
+               //.SetTicker($"Now Playing {currentTrack.GetString(MediaMetadata.MetadataKeyTitle)}")
                .SetOngoing(isPlaying).SetVisibility(NotificationVisibility.Public);
             //builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));
             //AddPlayPauseActionCompat(builder, context, isPlaying);
@@ -99,7 +98,8 @@ public static class NotificationHelper
             {
                 builder.SetLargeIcon(largeIcon);
             }
-            return builder.Build();
+            var notif = builder.Build();
+            return notif;
         }
         catch (Exception ex)
         {

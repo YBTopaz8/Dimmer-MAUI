@@ -28,10 +28,14 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongsModelView? song)
     {
+
         SelectedSongToOpenBtmSheet = song;
         (var songsArtistId, var songsAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
         await NavigateToSpecificAlbumPage(songsAlbumId);
+
     }
+
+    
     [RelayCommand]
     async Task NavigateToSpecificAlbumPage(ObjectId selectedAlbumId)
     {
@@ -132,8 +136,9 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
+        SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(albumId);
         AllArtistsAlbumSongs?.Clear();
-        AllArtistsAlbumSongs = PlayBackService.GetallArtistsSongsByAlbumID(albumId);
+        AllArtistsAlbumSongs = PlayBackService.GetAllArtistsAlbumSongsAlbumID(albumId);
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
 
