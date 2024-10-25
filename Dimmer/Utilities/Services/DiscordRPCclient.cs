@@ -1,4 +1,5 @@
 ﻿using DiscordRPC;
+using System.Diagnostics;
 
 
 namespace Dimmer_MAUI.Utilities.Services;
@@ -16,11 +17,29 @@ return;
         if (!_isInitialized)
         {
             _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
+            _discordRpcClient.OnConnectionFailed += _discordRpcClient_OnConnectionFailed;
+            _discordRpcClient.OnError += _discordRpcClient_OnError;
+            
             _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
             //_discordRpcClient.OnPresenceUpdate += DiscordRpcClient_OnPresenceUpdate;
             _discordRpcClient.Initialize();
             _isInitialized = true;
         }
+    }
+
+    private void _discordRpcClient_OnError(object sender, DiscordRPC.Message.ErrorMessage args)
+    {
+        Debug.WriteLine("RPC On Error!!!");
+    }
+
+    private void _discordRpcClient_OnConnectionFailed(object sender, DiscordRPC.Message.ConnectionFailedMessage args)
+    {
+        Debug.WriteLine("RPC Con Failed!!!");
+        this.ShutDown();
+        _discordRpcClient.OnConnectionFailed -= _discordRpcClient_OnConnectionFailed;
+        _discordRpcClient.OnError -= _discordRpcClient_OnError;
+
+        _discordRpcClient.OnReady -= DiscordRpcClient_OnReady;
     }
 
     private void DiscordRpcClient_OnReady(object sender, DiscordRPC.Message.ReadyMessage args)
