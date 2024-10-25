@@ -16,7 +16,10 @@ public partial class HomePageVM
     [ObservableProperty]
     SongsModelView selectedSongToOpenBtmSheet;
     PlaylistMenuBtmSheet btmSheet { get; set; }
-    public int CurrentQueue=0;
+
+
+    
+
 
     public void RefreshPlaylists()
     {

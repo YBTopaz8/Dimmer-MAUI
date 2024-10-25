@@ -3,6 +3,7 @@ public interface IPlaybackUtilsService
 {
 
     IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
+    IObservable<ObservableCollection<SongsModelView>> BackEndShufflableSongsQueue { get; } 
     IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
     Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null, 

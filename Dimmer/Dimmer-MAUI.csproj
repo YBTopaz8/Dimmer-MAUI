@@ -215,10 +215,10 @@
 	  <MauiXaml Update="Views\Desktop\HomeD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Desktop\NowPlayingD.xaml">
+	  <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
+	  <MauiXaml Update="Views\Desktop\SingleSongShellD.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
@@ -278,6 +278,10 @@
 	  <Compile Update="Views\Mobile\TopStatsPageM.xaml.cs">
 	    <DependentUpon>TopStatsPageM.xaml</DependentUpon>
 	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Utilities\OtherUtils\CustomControl\" />
 	</ItemGroup>
 
 	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionDimmerMAUIHideInfoBar="True" /></VisualStudio></ProjectExtensions>

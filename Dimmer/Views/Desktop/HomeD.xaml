@@ -7,7 +7,7 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:CustomFonts="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.Fonts"             
              xmlns:sys="clr-namespace:System;assembly=netstandard"
-
+             
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -176,7 +176,7 @@
                         VerticalScrollBarVisibility="Default"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
                         Loaded="SongsColView_Loaded"
-                        Margin="5,0">
+                        Margin="5,0" EmptyView="Nothing ...">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical"/>
             </CollectionView.ItemsLayout>

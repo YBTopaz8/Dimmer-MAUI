@@ -91,10 +91,10 @@
     <MauiXaml Update="Views\Desktop\HomeD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\Desktop\NowPlayingD.xaml">
+    <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
+    <MauiXaml Update="Views\Desktop\SingleSongShellD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">

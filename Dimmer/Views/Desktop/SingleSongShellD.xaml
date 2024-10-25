@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.SingleSongShellD"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"             
+            x:Name="myPage"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+
+            <MenuFlyout x:Key="LyricsContentMenu">
+                <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
+                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
+            </MenuFlyout>
+
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+
+    <VerticalStackLayout>
+
+        
+        <VerticalStackLayout x:DataType="vm:HomePageVM">
+           
+            
+        </VerticalStackLayout>
+
+        <!--swipeView:SwipeCardView WidthRequest="300" HeightRequest="300" 
+                          TopItem="{Binding TemporarilyPickedSong}"
+                         IsEnabled="True" StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                       x:Name="FocusCaro" ItemsSource="{Binding BackEndQ}" 
+                          Swiped="FocusCaro_Swiped">
+            <swipeView:SwipeCardView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongsModelView">
+                    <Image HeightRequest="300" WidthRequest="300"
+ Source="{Binding CoverImagePath}">
+                    </Image>
+                </DataTemplate>
+            </swipeView:SwipeCardView.ItemTemplate>
+            </swipeView:SwipeCardView> -->
+
+    </VerticalStackLayout>
+</ContentPage>

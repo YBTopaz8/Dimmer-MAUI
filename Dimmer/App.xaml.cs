@@ -21,12 +21,16 @@ public partial class App : Application
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
-        
+        rpcClient = IPlatformApplication.Current.Services.GetRequiredService<IDiscordRPC>();
     }
-
+    IDiscordRPC rpcClient { get; set; }
 
     private async void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
+        if (e.Exception.Source == "System.IO.Pipes")
+        {
+            rpcClient.ShutDown();
+        }
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
 

@@ -7,23 +7,42 @@ namespace Dimmer_MAUI.Utilities.Services;
 public class DiscordRPCclient : IDiscordRPC
 {
     private DiscordRpcClient _discordRpcClient;
-    private bool _isInitialized = false;
+    bool isConnectionEstablished = false;   
     SongsModelView currentSong;
-    public void Initialize()
+
+    public DiscordRPCclient()
+    {
+        _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
+        _discordRpcClient.OnConnectionFailed += _discordRpcClient_OnConnectionFailed;
+        _discordRpcClient.OnError += _discordRpcClient_OnError;
+
+        _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
+        
+    }
+    public bool Initialize()
     {
 #if ANDROID
-return;
+return false;
 #endif
-        if (!_isInitialized)
+
+        try
         {
-            _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
-            _discordRpcClient.OnConnectionFailed += _discordRpcClient_OnConnectionFailed;
-            _discordRpcClient.OnError += _discordRpcClient_OnError;
+            if (!_discordRpcClient.IsInitialized)
+            {
+                _discordRpcClient.Initialize();
+                if (!_discordRpcClient.IsInitialized)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            return false;
             
-            _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
-            //_discordRpcClient.OnPresenceUpdate += DiscordRpcClient_OnPresenceUpdate;
-            _discordRpcClient.Initialize();
-            _isInitialized = true;
         }
     }
 
@@ -34,12 +53,7 @@ return;
 
     private void _discordRpcClient_OnConnectionFailed(object sender, DiscordRPC.Message.ConnectionFailedMessage args)
     {
-        Debug.WriteLine("RPC Con Failed!!!");
         this.ShutDown();
-        _discordRpcClient.OnConnectionFailed -= _discordRpcClient_OnConnectionFailed;
-        _discordRpcClient.OnError -= _discordRpcClient_OnError;
-
-        _discordRpcClient.OnReady -= DiscordRpcClient_OnReady;
     }
 
     private void DiscordRpcClient_OnReady(object sender, DiscordRPC.Message.ReadyMessage args)
@@ -49,7 +63,7 @@ return;
 
     public void ClearPresence()
     {
-        if (_isInitialized)
+        if (_discordRpcClient.IsInitialized)
         {
             _discordRpcClient.ClearPresence();
         }
@@ -57,8 +71,16 @@ return;
 
     public void ShutDown()
     {
-        if (_isInitialized)
+        if (_discordRpcClient.IsInitialized)
         {
+            isConnectionEstablished = false;
+
+            _discordRpcClient.Deinitialize();
+            _discordRpcClient.OnConnectionFailed -= _discordRpcClient_OnConnectionFailed;
+            _discordRpcClient.OnError -= _discordRpcClient_OnError;
+
+            _discordRpcClient.OnReady -= DiscordRpcClient_OnReady;
+
             _discordRpcClient.Dispose();
         }
     }
@@ -98,13 +120,15 @@ return;
         }
         else
         {
+            if (_discordRpcClient.IsDisposed)
+                return;
             this.Initialize();
             position = position.Add(TimeSpan.FromMilliseconds(500));
             var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
             var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
             _discordRpcClient.SetPresence(Presence);
         }
-        if (_isInitialized)
+        if (_discordRpcClient.IsInitialized)
         {
             _discordRpcClient.UpdateState(Presence.State);
             _discordRpcClient.UpdateDetails(Presence.Details);

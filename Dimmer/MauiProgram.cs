@@ -126,7 +126,7 @@ public static class MauiProgram
 
         /* Registering the Desktop Views */
         builder.Services.AddSingleton<HomeD>();
-        builder.Services.AddSingleton<NowPlayingD>();
+        builder.Services.AddSingleton<SingleSongShellD>();
         builder.Services.AddSingleton<PlaylistsPageD>();
         builder.Services.AddSingleton<ArtistsPageD>();
         builder.Services.AddSingleton<FullStatsD>();

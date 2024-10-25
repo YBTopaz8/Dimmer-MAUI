@@ -188,17 +188,22 @@ public class PlayListManagementService : IPlaylistManagementService
                     //Shell.Current.DisplayAlert("Error", "Playlist not found", "OK");
                     //return false;
                 }
-                var existingLink = db.All<PlaylistSongLink>()
-                    .FirstOrDefault(link => link.PlaylistId == specificPlaylist.Id && link.SongId == song.Id);
-
-                if (existingLink is not null)
+                var existingLinkList = db.All<PlaylistSongLink>()
+                .Where(link => link.PlaylistId == specificPlaylist.Id && link.SongId == song.Id)
+                .ToList();
+                    
+                if (existingLinkList is not null)
                 {
-                    db.Remove(existingLink);
-                }
+                    var existingLink = existingLinkList.First();
+                    if (existingLink is not null)
+                    {
+                        db.Remove(existingLink);
+                    }
 
-                specificPlaylist.TotalDuration -= song.DurationInSeconds;
-                specificPlaylist.TotalSize -= song.FileSize;
-                specificPlaylist.TotalSongsCount -= 1;
+                    specificPlaylist.TotalDuration -= song.DurationInSeconds;
+                    specificPlaylist.TotalSize -= song.FileSize;
+                    specificPlaylist.TotalSongsCount -= 1;
+                }
             });
             //GetPlayLists();
             return true;

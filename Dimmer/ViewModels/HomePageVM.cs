@@ -59,6 +59,8 @@ public partial class HomePageVM : ObservableObject
 
     public AppState CurrentAppState = AppState.OnForeGround;
 
+    [ObservableProperty]
+    int currentQueue = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService,
                       IDiscordRPC discordRPC)
@@ -76,6 +78,7 @@ public partial class HomePageVM : ObservableObject
         SubscribetoDisplayedSongsChanges();
         SubscribeToCurrentSongPosition();
         SubscribeToPlaylistChanges();
+        SubscribeToBackEndQChanges();
 
         //Subscriptions to LyricsServices
         SubscribeToSyncedLyricsChanges();
@@ -96,6 +99,7 @@ public partial class HomePageVM : ObservableObject
         GetAllAlbums();
         RefreshPlaylists();
     }
+
 
     CollectionView? PageCV { get; set; }
     public void AssignCV(CollectionView cv)
@@ -216,7 +220,7 @@ public partial class HomePageVM : ObservableObject
             CurrentViewIndex = 1;
         }
 #if WINDOWS
-        await Shell.Current.GoToAsync(nameof(NowPlayingD));
+        await Shell.Current.GoToAsync(nameof(SingleSongShellD));
 #elif ANDROID
 
         SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
@@ -692,15 +696,20 @@ public partial class HomePageVM : ObservableObject
             DisplayedSongs?.Clear();
             DisplayedSongs = songs;
             TotalNumberOfSongs = songs.Count;
-            PrevCurrNextSongsCollection =
-            [
-                PlayBackService.PreviouslyPlayingSong,
-                PlayBackService.CurrentlyPlayingSong,
-                PlayBackService.NextPlayingSong,
-            ];
+            
             //ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
+    }
+    private void SubscribeToBackEndQChanges()
+    {
+        PlayBackService.BackEndShufflableSongsQueue.Subscribe(songs =>
+        {
+            BackEndQ ??= [];
+            BackEndQ?.Clear();
+            BackEndQ = songs;
+
+        });
     }
 
     private void SubscribeToSyncedLyricsChanges()
@@ -1062,5 +1071,7 @@ public partial class HomePageVM : ObservableObject
         await Shell.Current.GoToAsync(nameof(ShareSongPage));
     }
 
-    
+    [ObservableProperty]
+    ObservableCollection<SongsModelView> backEndQ;
+   
 }

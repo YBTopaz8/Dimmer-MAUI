@@ -1,13 +1,15 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
-public partial class NowPlayingD : ContentPage
+public partial class SingleSongShellD : ContentPage
 {
-    public NowPlayingD(HomePageVM homePageVM)
+    public SingleSongShellD(HomePageVM homePageVM)
     {
         InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        MediaPlayBackCW.BindingContext = homePageVM;
+        //MediaPlayBackCW.BindingContext = homePageVM;
 
     }
     public HomePageVM HomePageVM { get; }
@@ -20,6 +22,10 @@ public partial class NowPlayingD : ContentPage
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
         //TabV.SelectedTab = TabV.Items[0];
+
+        Task.Delay(3000);
+
+        //FocusCaro.ItemsSource = HomePageVM.BackEndQ;
     }
 
     private void TabV_SelectedTabChanged(object sender, TabItem e)
@@ -29,7 +35,7 @@ public partial class NowPlayingD : ContentPage
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(0);
         }
-        
+
         if (e != null && e.Title == "Stats")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(1);
@@ -55,4 +61,14 @@ public partial class NowPlayingD : ContentPage
     {
 
     }
+
+    //private void FocusCaro_Swiped(object sender, Utilities.OtherUtils.CustomControl.SwipeCardsView.Core.SwipedCardEventArgs e)
+    //{
+        
+    //    var ee = FocusCaro.TopItem as SongsModelView;
+    //    Debug.WriteLine(ee.Title + " tess");
+    //    var send = (View)sender;
+    //    var song = send.BindingContext as SongsModelView;
+    //    Debug.WriteLine(song.Title);
+    //}
 }

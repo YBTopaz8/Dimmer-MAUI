@@ -45,7 +45,7 @@ public partial class HomeD : UraniumContentPage
         try
         {
             SongsColView.ItemsSource = null;
-            await Task.Delay(50, token);
+            await Task.Delay(100, token);
 
             SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
         }
@@ -87,6 +87,11 @@ public partial class HomeD : UraniumContentPage
                 await Task.Delay(500);
                 if (SongsColView.IsLoaded)
                 {
+                    var ee = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+                    if (ee.Count < 1)
+                    {
+                        SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
+                    }
                     SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: true);
                 }
             }
