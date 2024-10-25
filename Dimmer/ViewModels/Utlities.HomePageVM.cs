@@ -11,17 +11,18 @@ public partial class HomePageVM
     string multiSelectText;
 
     [ObservableProperty]
-    bool canMultiDeleteItems;
+    bool isMultiSelectOn;
     public void HandleMultiSelect(CollectionView sender, SelectionChangedEventArgs? e=null)
     {
         MultiSelectSongs = sender.SelectedItems.Cast<SongsModelView>().ToObservableCollection();
         if (MultiSelectSongs.Count >= 1)
         {
-            CanMultiDeleteItems = true;
+            IsMultiSelectOn = true;
+            
         }
         else
         {
-            CanMultiDeleteItems = false;
+            IsMultiSelectOn = false;
         }
         MultiSelectText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")}/{DisplayedSongs.Count} Selected";
         Debug.WriteLine(MultiSelectSongs.Count);
@@ -137,7 +138,7 @@ public partial class HomePageVM
     async Task DeleteFile(SongsModelView? song)
     {
 
-        switch (CanMultiDeleteItems)
+        switch (IsMultiSelectOn)
         {
             case true:
                 bool result = await Shell.Current.DisplayAlert("Delete Song", $"Are you sure you want to Delete Selections " +

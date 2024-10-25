@@ -42,27 +42,27 @@
             <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="True" Spacing="10"
                       Margin="20,5">
                 <Label Text="Choose A Playlist"/>
-                <ListView x:Name="PlaylistsCV" HeightRequest="150" 
+                <CollectionView x:Name="PlaylistsCV" HeightRequest="150" 
                           VerticalScrollBarVisibility="Always">
-                    <ListView.ItemTemplate>
+                    <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <ViewCell>                                
-                                <Border Margin="0,10" StrokeThickness="0.8"
-                                     Stroke="Transparent" Padding="0,5"
-                                    StrokeShape="RoundRectangle, 8">
+                                                     
+                            <Border Margin="0,10" StrokeThickness="0.8"
+                                    Stroke="Transparent" Padding="0,5"
+                                StrokeShape="RoundRectangle, 8">
                                                                         
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer 
-                                            Tapped="CloseBtmSheet_Tapped"
-                                            Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
-                                            CommandParameter="{Binding .}"/>
-                                    </Border.GestureRecognizers>
-                                    <Label Text="{Binding .}" FontSize="25" TextColor="White"/>
-                                </Border>
-                            </ViewCell>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Tapped="CloseBtmSheet_Tapped"
+                                        Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
+                                        CommandParameter="{Binding .}"/>
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding .}" FontSize="25" TextColor="White"/>
+                            </Border>
+                            
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
                 
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10" VerticalOptions="End">
                     

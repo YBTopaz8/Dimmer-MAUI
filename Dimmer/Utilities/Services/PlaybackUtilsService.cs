@@ -1253,6 +1253,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return true;
         }
 
+        nowPlayingShuffledOrNot = _nowPlayingSubject.Value;
         GetPrevAndNextSongs(IsNext: true);
         return await PlaySongAsync(ObservableCurrentlyPlayingSong, CurrentQueue, IsFromPreviousOrNext: true);
     }

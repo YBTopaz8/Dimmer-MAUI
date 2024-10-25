@@ -56,6 +56,7 @@ public partial class App : Application
     private static readonly object _logLock = new object();
     private void LogException(Exception ex)
     {
+        
         try
         {
             // Define the directory path

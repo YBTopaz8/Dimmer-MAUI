@@ -45,7 +45,7 @@ public partial class HomeD : UraniumContentPage
         try
         {
             SongsColView.ItemsSource = null;
-            await Task.Delay(20, token);
+            await Task.Delay(50, token);
 
             SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
         }
@@ -220,17 +220,51 @@ public partial class HomeD : UraniumContentPage
         var send = (View)sender;
         isPointerEntered = false;
     }
+    private bool isPressed = false;  // Track whether the button is pressed
+    private bool isAnimating = false;  // Track if an animation is running
+
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.AnimateHighlightPointerPressed();
+
+        if (!isPressed && !isAnimating)
+        {
+            isPressed = true;
+
+            // Start the pressed animation
+            await AnimateHighlightPointerPressed(send);
+
+            isPressed = false;
+        }
     }
 
     private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        await send.AnimateHighlightPointerReleased();
+
+        if (!isAnimating)
+        {
+            isAnimating = true;
+
+            // Make sure to run the release animation only after the press animation is done
+            await AnimateHighlightPointerReleased(send);
+
+            isAnimating = false;
+        }
     }
+
+    public static async Task AnimateHighlightPointerPressed(View element)
+    {
+        // Run the scale-down animation
+        await element.ScaleTo(0.95, 80, Easing.CubicIn);
+    }
+
+    public static async Task AnimateHighlightPointerReleased(View element)
+    {
+        // Run the scale-up animation
+        await element.ScaleTo(1.0, 80, Easing.CubicOut);
+    }
+
 
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;

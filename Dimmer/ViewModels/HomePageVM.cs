@@ -115,30 +115,39 @@ public partial class HomePageVM : ObservableObject
                 
                 if (TemporarilyPickedSong is not null)
                 {
-
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-                    TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-                        //} WHY does this exist??
-                    if (PickedSong is not null)
-                    PickedSong.IsPlaying = false;
 
-                    PickedSong = TemporarilyPickedSong;
-                    SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
+
+                            if (PlayBackService.CurrentlyPlayingSong is null)
+                                break;
+
+                            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                            
+                            if (PickedSong is not null)
+                                PickedSong.IsPlaying = false;
+
+                            PickedSong = TemporarilyPickedSong;
+                            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong.IsCurrentPlayingHighlight = true;
                             MainThread.BeginInvokeOnMainThread(() =>
                             {
-                                if (IsShuffleOn)
+                                if (!IsMultiSelectOn)
                                 {
-                                    PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                                    if (IsShuffleOn)
+                                    {
+                                        PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                                    }
+                                    else
+                                    {
+                                        PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                                    }
                                 }
-                                else
-                                {
-                                    PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
-                                }
+                                
                                 
                             });
                             AllSyncLyrics = null;
@@ -154,16 +163,10 @@ public partial class HomePageVM : ObservableObject
                             }
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                             
-                            PrevCurrNextSongsCollection =
-    [
-                                    PlayBackService.PreviouslyPlayingSong,
-                                    PlayBackService.CurrentlyPlayingSong,
-                                    PlayBackService.NextPlayingSong,
-                                ];
                             break;
                         case MediaPlayerState.Paused:
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-                            PickedSong.IsCurrentPlayingHighlight = true;
+                            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                            PickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
                             break;

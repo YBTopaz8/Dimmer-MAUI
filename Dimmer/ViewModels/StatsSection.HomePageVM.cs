@@ -103,7 +103,7 @@ public partial class HomePageVM
         {
             // Filter only fully played entries (where WasPlayCompleted is true)
             var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted
-                .Where(entry => entry.WasPlayCompleted == true) // Only take entries with WasPlayCompleted == true
+                 // Only take entries with WasPlayCompleted == true                
                 .GroupBy(entry => entry.DatePlayed.DayOfWeek)
                 .OrderByDescending(group => group.Count())
                 .FirstOrDefault();
@@ -129,7 +129,7 @@ public partial class HomePageVM
         {
             // Count only fully played entries
             NumberOfTimesPlayed = SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted
-                .Count(entry => entry.WasPlayCompleted == true);
+                .Count();
         }
         else
         {

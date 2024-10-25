@@ -37,7 +37,7 @@
               ColumnDefinitions="*">
             <CollectionView Header="Top Played Songs" Margin="5,0" SelectionChanged="SongsPlayed_SelectionChanged" x:Name="SongsPlayed"
                             SelectionMode="Single" SelectedItem="{Binding SongPickedForStats}"
-                            ItemsSource="{Binding TopTenPlayedSongs}" VerticalScrollBarVisibility="Always">
+                            ItemsSource="{Binding TopTenPlayedSongs}" VerticalScrollBarVisibility="Default">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" 
                        ItemSpacing="3"/>

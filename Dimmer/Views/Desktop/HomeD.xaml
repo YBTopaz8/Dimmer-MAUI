@@ -114,7 +114,7 @@
 
                 <HorizontalStackLayout Spacing="10">
 
-                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding CanMultiDeleteItems}">
+                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding IsMultiSelectOn}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
                         </ImageButton.Source>
@@ -144,7 +144,7 @@
               Margin="5,0">
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="270" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -176,13 +176,13 @@
                         VerticalScrollBarVisibility="Default"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
                         Loaded="SongsColView_Loaded"
-                        Margin="5,0" >
+                        Margin="5,0">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongsModelView">
-                    <Border Stroke="Transparent">
+                    <Border Stroke="Transparent" Padding="10,0">
                         <Border.Triggers>
                             <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                 <Setter Property="Stroke" Value="DarkSlateBlue"/>
@@ -204,6 +204,11 @@
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
+                                <VisualState x:Name="Selected" />
+                                <!--<VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Red"/>
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                </VisualState.Setters>-->
 
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
@@ -221,15 +226,13 @@
                                     </MenuFlyoutItem.IconImageSource>
                                 </MenuFlyoutItem>
 
-                                <MenuFlyoutItem Text="Set Play Repeat Count" 
- Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
+                                <MenuFlyoutItem Text="Set Play Repeat Count" Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.IconImageSource>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
                                     </MenuFlyoutItem.IconImageSource>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
-                                <MenuFlyoutItem Text="View File Explorer" 
-Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
+                                <MenuFlyoutItem Text="View File Explorer" Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                     <MenuFlyoutItem.IconImageSource>
                                         <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Folder_open}"/>
                                     </MenuFlyoutItem.IconImageSource>
@@ -340,7 +343,7 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                                 </ResourceDictionary>
                             </Grid.Resources>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="270" />
+                                <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -384,7 +387,7 @@ Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPa
                                              VerticalOptions="End" CommandParameter="{Binding .}" >
                                     <ImageButton.Source>
                                         <FontImageSource Size="25" 
-            FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                                         FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                             </uranium:StatefulContentView>

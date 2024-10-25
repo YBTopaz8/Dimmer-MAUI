@@ -162,8 +162,7 @@
                         </Border.Triggers>
 
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer 
-        Tapped="ArtistFromArtistPage_Tapped"/>
+                            <TapGestureRecognizer Tapped="ArtistFromArtistPage_Tapped"/>
                         </Border.GestureRecognizers>
                         <Label Text="{Binding Name}"/>
                     </Border>
@@ -200,8 +199,7 @@
 
 
         <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None" x:Name="AlbumSongsCV"
-        ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}" SelectionChanged="AlbumSongsCV_SelectionChanged"
-            EmptyView="No Songs to display, Please Select an Album...">
+        ItemsSource="{Binding AllArtistsAlbumSongs}" EmptyView="No Songs to display, Please Select an Album...">
             <CollectionView.Header>
                 <FlexLayout JustifyContent="SpaceBetween">
                     <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
@@ -228,11 +226,6 @@
                                         <Setter Property="Stroke" Value="DarkSlateBlue"/>
                                     </VisualState.Setters>
                                 </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                    </VisualState.Setters>
-                                </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         
@@ -247,6 +240,8 @@
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
                                 <Setter Property="Stroke" Value="Transparent" />
+                                <Setter Property="StrokeThickness" Value="1"/>
+
                             </DataTrigger>
                         </Border.Triggers>
                         
