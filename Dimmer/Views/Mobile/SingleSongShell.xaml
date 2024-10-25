@@ -9,9 +9,9 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
-             
-             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
-             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"          
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:Name="myPage"
              >
 
@@ -34,54 +34,42 @@
     </uranium:UraniumContentPage.Resources>
 
     <toolkit:DockLayout >
-        <material:TabView TabPlacement="Top" ColumnSpacing="10" x:Name="TabV" BackgroundColor="#0C0E0D"
-                          SelectedTabChanged="TabV_SelectedTabChanged">
-            <material:TabView.TabHeaderItemTemplate>
-                <DataTemplate>
-                    <Button Margin="2,0" Text="{Binding Title}" Command="{Binding Command}">
-                        <Button.Triggers>
-                            <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
-                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                <Setter Property="TextColor" Value="White" />
-                                
-                            </DataTrigger>
-                            <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="False">
-                                <Setter Property="BackgroundColor" Value="#111111" />
-                                <Setter Property="TextColor" Value="Gray" />
-                                
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
-                </DataTemplate>
-            </material:TabView.TabHeaderItemTemplate>
-            <material:TabItem Title="Lyrics" x:Name="Lyr">
-                <material:TabItem.ContentTemplate>
-                    <DataTemplate>
-                        <cv:SyncedLyricsView/>
-                    </DataTemplate>
-                </material:TabItem.ContentTemplate>
-            </material:TabItem>
-            
-            <material:TabItem Title="Stats">
-                <material:TabItem.ContentTemplate>
-                    <DataTemplate>
-                        <cw:SongStatView/>
-                    </DataTemplate>
-                </material:TabItem.ContentTemplate>
-            </material:TabItem>
+        <SyncCtrls:SfTabView x:Name="TabV" 
+                 TabBarHeight="75"
+                 IndicatorPlacement="Bottom"
+                 EnableSwiping="True"                                 
+                 SelectionChanged="tabView_SelectionChanged">
 
-            <material:TabItem Title="Fetch Lyrics">
-                <material:TabItem.ContentTemplate>
-                    <DataTemplate>
-                        <cv:FetchLyricsResultsView />
-                    </DataTemplate>
-                </material:TabItem.ContentTemplate>
-            </material:TabItem>
-        </material:TabView>
+            <SyncCtrls:SfTabView.Items>
 
-        <!--<cv:FetchLyricsResultsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}" />
-        <cv:EditableSongTagsView IsVisible="{Binding CurrentViewIndex, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=2}" />
-        -->
-                
+                <SyncCtrls:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
+                    <SyncCtrls:SfTabItem.ImageSource>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                    </SyncCtrls:SfTabItem.ImageSource>
+                    <SyncCtrls:SfTabItem.Content>
+                        <cw:SyncedLyricsView />
+                    </SyncCtrls:SfTabItem.Content>
+                </SyncCtrls:SfTabItem>
+
+                <SyncCtrls:SfTabItem Header="Fetch Lyrics">
+                    <SyncCtrls:SfTabItem.ImageSource>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                    </SyncCtrls:SfTabItem.ImageSource>
+                    <SyncCtrls:SfTabItem.Content>
+                        <cw:FetchLyricsResultsView />
+                    </SyncCtrls:SfTabItem.Content>
+                </SyncCtrls:SfTabItem>
+
+                <SyncCtrls:SfTabItem Header="Stats">
+                    <SyncCtrls:SfTabItem.ImageSource>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                    </SyncCtrls:SfTabItem.ImageSource>
+                    <SyncCtrls:SfTabItem.Content>
+                        <cv:SongStatView/>
+                    </SyncCtrls:SfTabItem.Content>
+                </SyncCtrls:SfTabItem>
+
+            </SyncCtrls:SfTabView.Items>
+        </SyncCtrls:SfTabView>
     </toolkit:DockLayout>
 </uranium:UraniumContentPage>

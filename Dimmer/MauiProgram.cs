@@ -1,4 +1,5 @@
-﻿namespace Dimmer_MAUI;
+﻿using Syncfusion.Maui.Toolkit.Hosting;
+namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -11,6 +12,7 @@ public static class MauiProgram
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .UseBottomSheet()
+            .ConfigureSyncfusionToolkit()
             .ConfigureContextMenuContainer()
             
             .ConfigureFonts(fonts =>

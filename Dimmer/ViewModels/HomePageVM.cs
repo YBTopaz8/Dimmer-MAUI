@@ -89,7 +89,6 @@ public partial class HomePageVM : ObservableObject
         IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
-        TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
         IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
@@ -531,6 +530,7 @@ public partial class HomePageVM : ObservableObject
 
         if (TemporarilyPickedSong is not null)
         {
+            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
             PickedSong = TemporarilyPickedSong;
             SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();

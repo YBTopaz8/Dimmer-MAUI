@@ -29,7 +29,7 @@ public partial class NowPlayingD : ContentPage
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(0);
         }
-
+        
         if (e != null && e.Title == "Stats")
         {
             vm.SwitchViewNowPlayingPageCommand.Execute(1);
@@ -46,9 +46,13 @@ public partial class NowPlayingD : ContentPage
 
     protected override void OnDisappearing()
     {
-        TabV.SelectedTab = TabV.Items[0];
+        //TabV.SelectedTab = TabV.Items[0];
 
         base.OnDisappearing();
     }
 
+    private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+
+    }
 }

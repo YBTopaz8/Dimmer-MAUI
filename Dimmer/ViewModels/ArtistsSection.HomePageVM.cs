@@ -156,8 +156,18 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowSpecificArtistsSongsWithAlbumId(ObjectId albumId)
     {
-        if (SelectedAlbumOnArtistPage is not null)
-            AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage.Id).IsCurrentlySelected = false;
+        if (AllArtistsAlbums is null)
+        {
+            SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(albumId);
+            if(SelectedArtistOnArtistPage != null)
+                AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistOnArtistPage.Id).ToObservableCollection();
+
+        }
+        if (AllArtistsAlbums is not null)
+        {
+            if (SelectedAlbumOnArtistPage is not null)
+                AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage.Id).IsCurrentlySelected = false;
+        }
 
         SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(albumId);
         SelectedArtistOnArtistPage.IsCurrentlySelected = true;

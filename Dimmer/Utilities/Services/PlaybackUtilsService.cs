@@ -1031,6 +1031,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 // Update observable properties for current/previous songs 
                 #endregion
             }
+            if(_currentSongIndex < 0)
+            {
+                _currentSongIndex = nowPlayingShuffledOrNot.Count - 1;
+            }
+            else if(_currentSongIndex >= nowPlayingShuffledOrNot.Count)
+            {
+                _currentSongIndex = 0;
+            }
             if (_currentSongIndex < 0 || _currentSongIndex >= nowPlayingShuffledOrNot.Count)
             {
                 _currentSongIndex = 0;

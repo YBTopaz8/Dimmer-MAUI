@@ -50,6 +50,9 @@ global using Dimmer_MAUI.Platforms.Android.MAudioLib;
 #endif
 
 
+//global using Syncfusion.Maui.Toolkit.Hosting;
+
+
 global using System.Globalization;
 global using System.Reactive.Linq;
 global using System.Reactive.Subjects;

@@ -27,10 +27,11 @@ public partial class SingleSongShell : UraniumContentPage
         {
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
-        TabV.SelectedTab = TabV.Items[0];
+
+        TabV.SelectedIndex = 0;
         if (HomePageVM.CurrentViewIndex == 1)
         {
-            TabV.SelectedTab = TabV.Items[1];
+            TabV.SelectedIndex = 1;
         }
 
         Shell.SetTabBarIsVisible(this, false);
@@ -66,7 +67,7 @@ public partial class SingleSongShell : UraniumContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        TabV.SelectedTab = TabV.Items[0];
+        //TabV.SelectedIndex = 0;
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
@@ -83,4 +84,8 @@ public partial class SingleSongShell : UraniumContentPage
         return base.OnBackButtonPressed();
     }
 
+    private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+
+    }
 }
