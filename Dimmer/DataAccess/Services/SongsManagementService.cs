@@ -24,11 +24,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-            //var exp = new CsvExporter();
-
-            //string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD", "SongssDataExport.txt");
-            //exp.ExportSongsToCsv(realmSongs, dataPath);
-            Debug.WriteLine(AllSongs.Count);
+          
         }
         catch (Exception ex)
         {

@@ -1,5 +1,5 @@
-﻿using DiscordRPC;
-using System.Diagnostics;
+﻿using Dimmer_MAUI.Utilities.OtherUtils;
+using DiscordRPC;
 
 
 namespace Dimmer_MAUI.Utilities.Services;

@@ -23,6 +23,8 @@ global using Dimmer_MAUI.MAudioLib;
 global using CommunityToolkit.Maui.Core.Platform;
 global using The49.Maui.BottomSheet;
 
+global using Dimmer_MAUI.Utilities.OtherUtils;
+global using System.ComponentModel;
 //global using SkiaSharp;
 //global using LiveChartsCore;
 //global using LiveChartsCore.SkiaSharpView;

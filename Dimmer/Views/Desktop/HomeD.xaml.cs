@@ -1,5 +1,4 @@
 using Dimmer_MAUI.Utilities.OtherUtils;
-using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -237,8 +236,8 @@ public partial class HomeD : UraniumContentPage
             isPressed = true;
 
             // Start the pressed animation
-            await AnimateHighlightPointerPressed(send);
-
+            await send.AnimateHighlightPointerPressed();
+            
             isPressed = false;
         }
     }
@@ -251,25 +250,11 @@ public partial class HomeD : UraniumContentPage
         {
             isAnimating = true;
 
-            // Make sure to run the release animation only after the press animation is done
-            await AnimateHighlightPointerReleased(send);
-
+            await send.AnimateHighlightPointerReleased();
+            
             isAnimating = false;
         }
     }
-
-    public static async Task AnimateHighlightPointerPressed(View element)
-    {
-        // Run the scale-down animation
-        await element.ScaleTo(0.95, 80, Easing.CubicIn);
-    }
-
-    public static async Task AnimateHighlightPointerReleased(View element)
-    {
-        // Run the scale-up animation
-        await element.ScaleTo(1.0, 80, Easing.CubicOut);
-    }
-
 
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
@@ -363,4 +348,6 @@ public partial class HomeD : UraniumContentPage
     {
 
     }
+
+
 }

@@ -112,7 +112,8 @@
                 <cw:PlayPauseView x:Name="PlayPauseV" />
 
                 <Border>
-                    <ImageButton Command="{Binding PlayNextSongCommand}">
+                    <ImageButton Command="{Binding PlayNextSongCommand}"
+                                 ToolTipProperties.Text="Play Next" >
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                         </ImageButton.Source>

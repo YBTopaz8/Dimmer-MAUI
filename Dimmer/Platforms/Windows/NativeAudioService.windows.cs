@@ -80,7 +80,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     {
         double position = 0;
 
-        if (CurrentMedia.SongId != ViewModel.TemporarilyPickedSong.Id)
+        if (CurrentMedia.SongId != ObjectId.Empty)
         {
             position = 0;
             mediaPlayer.Position = TimeSpan.FromSeconds(position);

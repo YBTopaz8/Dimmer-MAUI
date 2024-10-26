@@ -422,6 +422,8 @@ public partial class HomePageVM : ObservableObject
             PlayBackService.SetSongPosition(CurrentPositionInSeconds);
             return;
         }
+        if (TemporarilyPickedSong is null)
+            return;
         CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
         PlayBackService.SetSongPosition(CurrentPositionInSeconds);
     }
@@ -1003,11 +1005,14 @@ public partial class HomePageVM : ObservableObject
             if (CurrentPage == PageEnum.MainPage)
             {
                 DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs, CurrentSortingOption);
+                PageCV.ItemsSource = null;
+                PageCV.ItemsSource = DisplayedSongs;
+
             }
             else if (CurrentPage == PageEnum.AllAlbumsPage)
             {
                 AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
-
+                
             }
             else if (CurrentPage == PageEnum.SpecificAlbumPage)
             {
