@@ -179,7 +179,7 @@ public partial class HomePageVM
                         await PlayNextSong();
                     }
                     DisplayedSongs.Remove(song);
-                    await PlayBackService.DeleteSongFromHomePage(song.Id);
+                    await PlayBackService.DeleteSongFromHomePage(song);
                 }
                 break;
 

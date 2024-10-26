@@ -40,6 +40,11 @@
                                         <Setter Property="BackgroundColor" Value="Transparent"/>
                                     </VisualState.Setters>
                                 </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         
@@ -49,7 +54,11 @@
 
                         <Label Text="{Binding Text}" Margin="0,5" 
                                HorizontalTextAlignment="Center" 
-                               FontSize="19" />
+                               FontSize="19" >
+                            <Label.Triggers>
+                                
+                            </Label.Triggers>
+                        </Label>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

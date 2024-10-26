@@ -17,9 +17,15 @@ public partial class FullStatsD : ContentPage
         HomePageVM.ShowGeneralTopXSongsCommand.Execute(null);
     }
 
-    private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
+
+    private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var send = (FlexLayout)sender;
+        
+    }
+
+    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
         var song = send.BindingContext as SingleSongStatistics;
         if (song is null)
         {
@@ -27,14 +33,6 @@ public partial class FullStatsD : ContentPage
         }
         HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
 
-    }
-
-    private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (SongsPlayed.IsLoaded)
-        {
-            SongsPlayed.ScrollTo(HomePageVM.SongPickedForStats, ScrollToPosition.Start, animate: true);
-        }
     }
 }
 //private void Calendar_SelectedDatesChanged(object sender, ValueChangedEventArgs<Collection<DateTime>> e)

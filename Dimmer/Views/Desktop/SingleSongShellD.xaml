@@ -7,7 +7,7 @@
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
-            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
@@ -33,28 +33,182 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
+    <Grid>
+        <Grid.GestureRecognizers>
+            <PointerGestureRecognizer x:Name="FocusModePointerRec" PointerEntered="FocusModePointerRec_PointerEntered"
+              PointerExited="FocusModePointerRec_PointerExited"/>
+        </Grid.GestureRecognizers>
+        <Grid.Effects>
+            <uranium:BlurEffect AccentOpacity="0.5"/>
+        </Grid.Effects>
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.06"
+                Aspect="AspectFill"/>
+        <toolkit:DockLayout BackgroundColor="Transparent" x:Name="NormalNowPlayingUI" >
 
-    <VerticalStackLayout>
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                    x:Name="MediaPlayBackCW" IsVisible="True"/>
 
-        
-        <VerticalStackLayout x:DataType="vm:HomePageVM">
-           
-            
-        </VerticalStackLayout>
+        <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
+                toolkit:DockLayout.DockPosition="Top" BackgroundColor="Transparent"
+                x:Name="NowPlayingGrid" IsVisible="True">
+            <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
+                <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
+                                    WidthRequest="250" Spacing="10">
+                    <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                        WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
+                        FontSize="13" TextColor="Grey"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                        FontSize="16"/>
 
-        <!--swipeView:SwipeCardView WidthRequest="300" HeightRequest="300" 
-                          TopItem="{Binding TemporarilyPickedSong}"
-                         IsEnabled="True" StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                       x:Name="FocusCaro" ItemsSource="{Binding BackEndQ}" 
-                          Swiped="FocusCaro_Swiped">
-            <swipeView:SwipeCardView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongsModelView">
-                    <Image HeightRequest="300" WidthRequest="300"
- Source="{Binding CoverImagePath}">
+                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>1</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="youtube.png"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                    HeightRequest="25">
+                            <ImageButton.CommandParameter>
+                                <x:Int32>2</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="spotify.png" />
+                            </ImageButton.Source>
+                        </ImageButton>
+
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>0</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="google.png"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+
+                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
+                        </Image.Source>
                     </Image>
-                </DataTemplate>
-            </swipeView:SwipeCardView.ItemTemplate>
-            </swipeView:SwipeCardView> -->
+                    
+                    
+                    <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                                 Clicked="ToggleFocusModeClicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
+                        </ImageButton.Source>
+                    </ImageButton>
 
-    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <SyncCtrls:SfTabView x:Name="TabV" 
+                                TabBarHeight="75"
+                                IndicatorPlacement="Top"
+                                EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
+                                SelectionChanged="tabView_SelectionChanged">
+
+                    <SyncCtrls:SfTabView.Items>
+
+                        <SyncCtrls:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
+                            <SyncCtrls:SfTabItem.ImageSource>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                            </SyncCtrls:SfTabItem.ImageSource>
+                            <SyncCtrls:SfTabItem.Content>
+                                <cw:SyncedLyricsView />
+                            </SyncCtrls:SfTabItem.Content>
+                        </SyncCtrls:SfTabItem>
+
+                        <SyncCtrls:SfTabItem Header="Fetch Lyrics">
+                            <SyncCtrls:SfTabItem.ImageSource>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                            </SyncCtrls:SfTabItem.ImageSource>
+                            <SyncCtrls:SfTabItem.Content>
+                                <cw:FetchLyricsResultsView />
+                            </SyncCtrls:SfTabItem.Content>
+                        </SyncCtrls:SfTabItem>
+
+                        <SyncCtrls:SfTabItem Header="Stats">
+                            <SyncCtrls:SfTabItem.ImageSource>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                            </SyncCtrls:SfTabItem.ImageSource>
+                            <SyncCtrls:SfTabItem.Content>
+                                <cv:SongStatView/>
+                            </SyncCtrls:SfTabItem.Content>
+                        </SyncCtrls:SfTabItem>
+
+                    </SyncCtrls:SfTabView.Items>
+
+                </SyncCtrls:SfTabView>
+            </toolkit:DockLayout>
+
+           
+        </Grid>
+       
+    </toolkit:DockLayout>
+        <toolkit:DockLayout x:Name="FocusModeUI" x:DataType="vm:HomePageVM"  IsVisible="False">
+
+            <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
+                             ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">
+                <ImageButton.GestureRecognizers>
+                    <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" 
+                                                  PointerReleased="PointerGestureRecognizer_PointerReleased"/>
+                </ImageButton.GestureRecognizers>
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+            <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
+                             x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" 
+                            VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
+
+                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                                HeightRequest="600" WidthRequest="600" StrokeThickness="0">
+                    <toolkit:AvatarView.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
+                    </toolkit:AvatarView.GestureRecognizers>
+                </toolkit:AvatarView>
+                <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+                            MinimumTrackColor="DarkSlateBlue" x:Name="slid" 
+                            DragCompleted="Slider_DragCompleted" Margin="3,0">
+
+                </Slider>
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="2" 
+                               BackgroundColor="Transparent">
+                    <Label Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                    <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, StringFormat='/ {0}', Converter={StaticResource DurationConverter}}"
+                   Opacity="0.6" FontSize="18"/>
+                </HorizontalStackLayout>
+                <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+FontSize="36" HorizontalOptions="Center" FontAttributes="Bold"/>
+
+                <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
+FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
+
+
+
+                <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                             Clicked="ToggleFocusModeClicked">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </VerticalStackLayout>
+        </toolkit:DockLayout>
+
+    </Grid>
 </ContentPage>

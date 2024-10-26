@@ -66,13 +66,16 @@ public partial class SingleSongShell : UraniumContentPage
 
     protected override void OnDisappearing()
     {
+        Shell.SetNavBarIsVisible(this, false);
+        Shell.SetTabBarIsVisible(this, true);
         base.OnDisappearing();
-        //TabV.SelectedIndex = 0;
+        
         DeviceDisplay.Current.KeepScreenOn = false;
     }
 
     protected override bool OnBackButtonPressed()
     {
+        
         if(btmSheet is not null)
         {
             if (btmSheet.IsPresented)

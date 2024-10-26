@@ -2,7 +2,6 @@
 using Android.Graphics;
 using AndroidX.RecyclerView.Widget;
 using Google.Android.Material.Color.Utilities;
-using Microsoft.Maui.Controls;
 using Color = Microsoft.Maui.Graphics.Color;
 #endif
 

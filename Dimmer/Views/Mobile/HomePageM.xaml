@@ -99,14 +99,24 @@
                 <CollectionView.ItemTemplate>
 
                     <DataTemplate x:DataType="models:SongsModelView">
-                        
 
-                        <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                        <Border Stroke="Transparent" Padding="10,0">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    <Setter Property="StrokeThickness" Value="0.8"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Grid ColumnDefinitions="*,Auto" Margin="0,3">
 
                                 <HorizontalStackLayout Grid.Column="0" Spacing="5">
                                     <HorizontalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
-                                </HorizontalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                                    </HorizontalStackLayout.GestureRecognizers>
                                     <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"
         CornerRadius="10" BorderWidth="0"/>
                                     <VerticalStackLayout>
@@ -114,35 +124,37 @@
                                         <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                                     </VerticalStackLayout>
                                 </HorizontalStackLayout>
-                            
 
-                            <uranium:StatefulContentView Grid.Column="1"
+
+                                <uranium:StatefulContentView Grid.Column="1"
                                                         LongPressed="StatefulContentView_LongPressed"
                                                          
                                                         Tapped="StatefulContentView_Tapped"
                                                         CommandParameter="{Binding .}"
                                                         x:Name="SingleSongStateFullContent">
-                                <HorizontalStackLayout>
-                                    <VerticalStackLayout>
-                                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
-                                        <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
-                                        <Image IsVisible="{Binding HasLyrics}" HeightRequest="10" HorizontalOptions="End">
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
-                                            </Image.Source>
-                                        </Image>
-                                    </VerticalStackLayout>
-                                    <ImageButton BackgroundColor="Transparent" 
+                                    <HorizontalStackLayout>
+                                        <VerticalStackLayout>
+                                            <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                            <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
+                                            <Image IsVisible="{Binding HasLyrics}" HeightRequest="10" HorizontalOptions="End">
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
+                                                </Image.Source>
+                                            </Image>
+                                        </VerticalStackLayout>
+                                        <ImageButton BackgroundColor="Transparent" 
                                     WidthRequest="20" HorizontalOptions="Center"
                                     Command="{Binding BindingContext.OpenSingleSongOptionsBtmSheetCommand, Source={x:Reference myPage}}"
                                     CommandParameter="{Binding .}">
-                                        <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                </HorizontalStackLayout>
-                            </uranium:StatefulContentView>
-                        </Grid>
+                                            <ImageButton.Source>
+                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                            </ImageButton.Source>
+                                        </ImageButton>
+                                    </HorizontalStackLayout>
+                                </uranium:StatefulContentView>
+                            </Grid>
+
+                        </Border>
 
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

@@ -41,18 +41,44 @@ public static class CustomAnimsExtensions
         }
     }
 
+    public static async Task AnimateFocusModePointerEnter(this View element)
+    {
+        // Animate scale-up to 1.2 and opacity to 1 with a smooth transition
+        await Task.WhenAll(
+            element.ScaleTo(1, 250, Easing.CubicInOut),
+            element.FadeTo(1.0, 250, Easing.CubicInOut)
+        );
+    }
 
-    //public static async Task AnimateHighlightPointerEntered(this View element, EventArgs e)
-    //{
-    //    element.Margin = new Thickness(40, 0, 0, 0);
-    //    await element.ScaleTo(1.05, 150, Easing.CubicIn);        
-    //}
+    
+    public static async Task AnimateFocusModePointerExited(this View element, double endOpacity = 0.7,double endScale = 0.7)
+    {
+        // Animate scale-down to 0.8 and opacity to 0.7 with a smooth transition
+        await Task.WhenAll(
+            element.ScaleTo(endScale, 250, Easing.CubicInOut),
+            element.FadeTo(endOpacity, 250, Easing.CubicInOut)
+        );
+    }
 
-    //public static async Task AnimateHighlightPointerExited(this View element, EventArgs e)
-    //{
-    //    element.Margin = new Thickness(0, 0, 0, 0);
-    //    await element.ScaleTo(1.0, 150, Easing.CubicOut);     
-    //}
+    // Extension method to fade out and slide back a view
+    public static async Task AnimateFadeOutBack(this View element)
+    {
+        await Task.WhenAll(
+            element.FadeTo(0, 250, Easing.CubicInOut), // Fade out
+            element.TranslateTo(0, 50, 250, Easing.CubicInOut) // Slide back by 50 units on Y-axis
+        );
+        element.IsVisible = false; // Hide the view after animation
+    }
 
-
+    // Extension method to fade in and slide forward a view
+    public static async Task AnimateFadeInFront(this View element)
+    {
+        element.IsVisible = true; // Show the view before animation
+        element.Opacity = 0; // Ensure the view is initially transparent
+        element.TranslationY = 50; // Start with the view slightly back
+        await Task.WhenAll(
+            element.FadeTo(1, 250, Easing.CubicInOut), // Fade in
+            element.TranslateTo(0, 0, 250, Easing.CubicInOut) // Slide forward to original position
+        );
+    }
 }

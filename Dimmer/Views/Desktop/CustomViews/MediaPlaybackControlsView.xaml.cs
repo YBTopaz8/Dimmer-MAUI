@@ -1,4 +1,4 @@
-using System.ComponentModel;
+
 
 namespace Dimmer_MAUI.Views.CustomViews;
 
@@ -40,21 +40,20 @@ public partial class MediaPlaybackControlsView : ContentView
 
         _isThrottling = true;
 
-        // Call your method
         vm.SeekSongPosition();
 
-        // Add a delay to prevent firing again in a short time window
+        
         await Task.Delay(throttleDelay);
         _isThrottling = false;
     }
 
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    private async void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
-        myPage.Opacity = 1;
+        await this.AnimateFocusModePointerEnter();
     }
 
-    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    private async void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
-        myPage.Opacity = 0.5;
+        await this.AnimateFocusModePointerExited(endScale:1);
     }
 }

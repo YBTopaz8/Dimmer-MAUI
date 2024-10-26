@@ -80,10 +80,10 @@
 
                                 <!-- Album Name -->
                                 <Label Text="{Binding Name}" FontSize="12" 
-       HorizontalTextAlignment="Center" 
-       LineBreakMode="TailTruncation"
-       TextColor="White"
-       MaxLines="2" />
+                                       HorizontalTextAlignment="Center" 
+                                       LineBreakMode="TailTruncation"
+                                       TextColor="White"
+                                       MaxLines="2" />
                             </VerticalStackLayout>
 
                         </Border>

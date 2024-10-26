@@ -119,6 +119,10 @@ public partial class HomePageVM
         {
             (SelectedArtistId, SelectedArtistAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
             SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == SelectedArtistId);
+            if (SelectedArtistOnArtistPage is null)
+            {
+                return;
+            }
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         }
 

@@ -158,19 +158,12 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                     {
                         if (this.TranslationY > closeThresholdHeight)
                         {
-                            Shell.SetNavBarIsVisible(this.AttachedPage, false);
-                            Shell.SetTabBarIsVisible(this.AttachedPage, true);
                             IsPresented = false;
-
-                        }
-                        
+                        }                        
                     }
                     else
                     {
-                        Shell.SetNavBarIsVisible(this.AttachedPage, false);
-                        Shell.SetTabBarIsVisible(this.AttachedPage, false);
                         IsPresented = true;
-
                     }
                 }
 
@@ -195,6 +188,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
             this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
             Body.HeightRequest = AttachedPage.Height;
             this.HeightRequest = AttachedPage.Height;
+
+            Shell.SetNavBarIsVisible(this.AttachedPage, false);
+            Shell.SetTabBarIsVisible(this.AttachedPage, false);
         }
         else
         {
@@ -203,6 +199,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
             y = this.Height - 65; // Align the bottom sheet to be at the bottom
             OnClosed();
             this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
+
+            Shell.SetNavBarIsVisible(this.AttachedPage, false);
+            Shell.SetTabBarIsVisible(this.AttachedPage, true);
         }
         if (shouldVibrate)
         {
