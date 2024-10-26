@@ -101,7 +101,7 @@
                     
                     
                     <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                 Clicked="ImageButton_Clicked">
+                                 Clicked="ToggleFocusModeClicked">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
                         </ImageButton.Source>
