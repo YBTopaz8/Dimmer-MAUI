@@ -69,7 +69,7 @@
         </VerticalStackLayout>
     </containerr:NowPlayingBtmSheetContainer.HeaderWhenClosed>
 
-    <toolkit:DockLayout>
+    <toolkit:DockLayout VerticalSpacing="10">
         <Grid Padding="10,0" toolkit:DockLayout.DockPosition="Bottom" 
               RowSpacing="10">
             <VerticalStackLayout Spacing="25" VerticalOptions="End"
@@ -122,7 +122,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <ImageButton Grid.Column="0" 
+                    <ImageButton Grid.Column="0" WidthRequest="55" HeightRequest="55" 
                           Command="{Binding ToggleRepeatModeCommand}">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
@@ -132,7 +132,7 @@
                         </ImageButton.Source>
                     </ImageButton>
                     <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
-                          >
+                                 WidthRequest="70" HeightRequest="70" >
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"
                                       Color="#B8B8B8"/>
@@ -163,13 +163,14 @@
 
                     </StackLayout>
 
-                    <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" >
+                    <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"
                                       Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}">
+                    <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
+                                 WidthRequest="55" HeightRequest="55" >
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
@@ -194,11 +195,12 @@
                         </ImageButton.Source>
                     </ImageButton>
 
-                    <HorizontalStackLayout Spacing="15">
+                    <HorizontalStackLayout Spacing="10">
                         <HorizontalStackLayout.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="ImageButton">
-                                    <Setter Property="WidthRequest" Value="32"/>
+                                    <Setter Property="WidthRequest" Value="30"/>
+                                    <Setter Property="Padding" Value="-2"/>
                                 </Style>
                             </ResourceDictionary>
                         </HorizontalStackLayout.Resources>
@@ -213,11 +215,13 @@
                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Lyrics}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <ImageButton HeightRequest="40" BackgroundColor="Transparent"
+                        <ImageButton BackgroundColor="Transparent" 
                               Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
                      CommandParameter="{Binding TemporarilyPickedSong}">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                <FontImageSource FontFamily="MaterialRound" 
+                                                 Size="40"
+                                                 Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <cm:ContextMenuContainer>
@@ -226,9 +230,13 @@
                                 <cm:ContextMenuItem Text="Delete"/>
                             </cm:ContextMenuContainer.MenuItems>
                             <cm:ContextMenuContainer.Content>
-                                <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
+                                <ImageButton BackgroundColor="Transparent" 
+                                             Padding="-8"
+                                             WidthRequest="30" HorizontalOptions="Center">
                                     <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                        <FontImageSource FontFamily="MaterialRound" 
+                                                         Size="40"
+                                                         Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                             </cm:ContextMenuContainer.Content>
@@ -240,14 +248,16 @@
         </Grid>
 
 
-        <Border StrokeShape="RoundRectangle 18" 
+        <Border StrokeShape="RoundRectangle 18" Margin="8,2"
          StrokeThickness="0" x:Name="lyricsCover">
-            <Grid x:Name="TopGrid">
-                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+            <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                </Grid.GestureRecognizers>
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                     HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
                                     WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"
-                                    Opacity="0.45" Padding="10,60" BorderColor="Transparent"
-                                    CornerRadius="50"/>
+                                    Opacity="0.45" Aspect="AspectFill"/>
 
                 <!--Synced lyics Col View-->
 

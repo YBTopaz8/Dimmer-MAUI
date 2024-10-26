@@ -31,8 +31,8 @@
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>
-
-        <Grid toolkit:DockLayout.DockPosition="Left" 
+        <Label Text="Reworking..."/>
+        <!--<Grid toolkit:DockLayout.DockPosition="Left" 
                              WidthRequest="350"
               ColumnDefinitions="*">
             <CollectionView Header="Top Played Songs" Margin="5,0" SelectionChanged="SongsPlayed_SelectionChanged" x:Name="SongsPlayed"
@@ -44,16 +44,11 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:SingleSongStatistics">
-                        <FlexLayout JustifyContent="SpaceBetween" Padding="10">
-                            <FlyoutBase.ContextFlyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Text="Play Song" 
-                                                    Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding Song}"/>
-                                </MenuFlyout>
-                            </FlyoutBase.ContextFlyout>
-                            <FlexLayout.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="ShowSongStats_Tapped"/>
-                            </FlexLayout.GestureRecognizers>
+                        <Grid ColumnDefinitions="*">
+                            <Grid.GestureRecognizers>
+                                <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed"/>
+                                <TapGestureRecognizer NumberOfTapsRequired="2" Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding Song}"/>
+                            </Grid.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5">
                                 <toolkit:AvatarView ImageSource="{Binding Song.CoverImagePath}" BorderWidth="0"
                                                     WidthRequest="50" HeightRequest="50"/>
@@ -64,19 +59,21 @@
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
 
-                            <Label Text="{Binding PlayCount}" VerticalOptions="Center"/>
-                        </FlexLayout>
+                            <Label Text="{Binding PlayCount}" VerticalOptions="Center" HorizontalOptions="End"/>
+                        </Grid>
+
+                        
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </Grid>
+        </Grid>-->
 
-        <Border Padding="10" 
+        <!--<Border Padding="10" 
                     Stroke="DarkSlateBlue"
                     StrokeShape="RoundRectangle 15">
-            <VerticalStackLayout Spacing="5">
+            <VerticalStackLayout Spacing="5" IsVisible="False">
 
-                <FlexLayout JustifyContent="SpaceBetween" >
+                <Grid ColumnDefinitions="*">
 
                     <VerticalStackLayout VerticalOptions="Center">
                         <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="20"/>
@@ -84,7 +81,7 @@
                         <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="20"/>
                         <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="20"/>
                     </VerticalStackLayout>
-                    <VerticalStackLayout>
+                    <VerticalStackLayout HorizontalOptions="End">
                         <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}"
                             HeightRequest="190"
                             WidthRequest="190" CornerRadius="10"
@@ -96,17 +93,17 @@
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>
-                </FlexLayout>
+                </Grid>
 
                 <Grid>                  
                     <CollectionView ItemsSource="{Binding SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted}" WidthRequest="400" 
                                     HorizontalOptions="Center" HeightRequest="400"
                                     SelectionMode="Single" IsVisible="True">
                         <CollectionView.Header>
-                            <FlexLayout JustifyContent="SpaceBetween">                            
+                            <Grid ColumnDefinitions="*">                            
                                 <Label Text="Day" FontAttributes="Bold" HorizontalOptions="Center"/>
                                 <Label Text="Was Played Completely" FontAttributes="Bold" HorizontalOptions="Center"/>
-                            </FlexLayout>
+                            </Grid>
                         </CollectionView.Header>
 
                         <CollectionView.ItemsLayout>
@@ -115,10 +112,10 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:PlayDateAndIsPlayCompletedModelView">
                                 <Border Padding="10" Margin="10" >
-                                    <FlexLayout JustifyContent="SpaceBetween">
+                                    <Grid ColumnDefinitions="*">
                                         <Label Text="{Binding DatePlayed, Converter={StaticResource DateTimeOffsetConverter}}"/>
                                         <Label Text="{Binding WasPlayCompleted}"/>
-                                    </FlexLayout>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -126,6 +123,6 @@
                 </Grid>
             </VerticalStackLayout>
 
-        </Border>
+        </Border>-->
     </toolkit:DockLayout>
 </ContentPage>

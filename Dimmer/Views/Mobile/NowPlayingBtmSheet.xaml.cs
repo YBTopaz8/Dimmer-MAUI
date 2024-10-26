@@ -28,18 +28,6 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
         this.IsPresented = false;
     }
 
-  
-    //private void CoverFlowView_ItemSwiped(CardsView view, PanCardView.EventArgs.ItemSwipedEventArgs args)
-    //{
-    //    if (args.Direction == PanCardView.Enums.ItemSwipeDirection.Right)
-    //    {
-    //        HomePageVM.PlayPreviousSongCommand.Execute(null);
-    //    }
-    //    else
-    //    {
-    //        HomePageVM.PlayNextSongCommand.Execute(null);
-    //    }
-    //}
 
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
@@ -68,5 +56,10 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
     private void Slider_DragCompleted(object sender, EventArgs e)
     {
         homePageVM.SeekSongPosition();
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        ShowLyricsPage_Clicked(sender, e);
     }
 }
