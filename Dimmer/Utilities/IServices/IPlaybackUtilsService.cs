@@ -31,7 +31,7 @@ public interface IPlaybackUtilsService
     Task SetSongPosition(double positionInSec); // to set position from slider
     Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
     void ChangeVolume(double newVolumeValue);
-    void SearchSong(string songTitleOrArtistName); //to search song with title
+    void SearchSong(string songTitleOrArtistName,List<string>? selectedFilters, int Rating); //to search song with title
     void DecreaseVolume();
     void IncreaseVolume();
     void ToggleShuffle(bool isShuffleOn);

@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reactive.Linq;
-
-namespace Dimmer_MAUI.Utilities.Services;
+﻿namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -517,7 +514,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
 
-    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null)
+    private void LoadSongsWithSorting(ObservableCollection<SongsModelView>? songss = null, bool isFromSearch = false)
     {
         if (songss == null || songss.Count < 1)
         {
@@ -525,6 +522,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
         var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
+                
         _nowPlayingSubject.OnNext(sortedSongs);
         ToggleShuffle(IsShuffleOn);
     }
@@ -831,7 +829,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 await audioService.PlayAsync(true);
             }
             _positionTimer.Start();
-            ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted ??= new();
+            ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted ??= new ObservableCollection<PlayDateAndIsPlayCompletedModelView>();
             ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted.Add(new PlayDateAndIsPlayCompletedModelView
             {
                 DatePlayed = DateTimeOffset.Now,
@@ -1479,37 +1477,51 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     Dictionary<string, string> normalizationCache = new();
     List<SongsModelView> SearchedSongsList;
-    public void SearchSong(string songTitleOrArtistName)
+
+    public void SearchSong(string songTitleOrArtistName, List<string>? selectedFilters, int Rating)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(songTitleOrArtistName))
+            if (string.IsNullOrWhiteSpace(songTitleOrArtistName) && selectedFilters?.Count == 0)
             {
                 ResetSearch();
                 return;
             }
 
             // Normalize the search term
-            string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName).ToLowerInvariant();
+            string normalizedSearchTerm = NormalizeAndCache(songTitleOrArtistName ?? string.Empty).ToLowerInvariant();
 
             // Clear the search result list
             SearchedSongsList?.Clear();
 
-            // Perform the search with proper normalization and comparison
-            SearchedSongsList = SongsMgtService.AllSongs
-            .Where(s => NormalizeAndCache(s.Title).ToLowerInvariant().Contains(normalizedSearchTerm)
-                        || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
-                        || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
-            .ToList();
+            // Step 1: Start with all songs and apply the rating filter
+            var filteredSongs = SongsMgtService.AllSongs
+                .Where(s => s.Rating >= Rating);
 
-            LoadSongsWithSorting(SearchedSongsList.ToObservableCollection());
+            // Step 2: Apply additional filters from selectedFilters if any
+            if (selectedFilters?.Count > 0)
+            {
+                filteredSongs = filteredSongs.Where(s => selectedFilters.Contains("Artist")
+                                                        || selectedFilters.Contains("Album")
+                                                        || selectedFilters.Contains("Genre"));
+            }
 
+            // Step 3: Perform the search with normalization and comparison on the filtered list
+            SearchedSongsList = filteredSongs
+                .Where(s => NormalizeAndCache(s.Title).ToLowerInvariant().Contains(normalizedSearchTerm)
+                            || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
+                            || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
+                .ToList();
+
+            // Step 4: Load the results with sorting
+            LoadSongsWithSorting(SearchedSongsList.ToObservableCollection(), true);
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
         }
     }
+
 
     private string NormalizeAndCache(string text)
     {
@@ -1546,8 +1558,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         SearchedSongsList?.Clear();
         LoadSongsWithSorting();
-
     }
+
 
     #endregion
 

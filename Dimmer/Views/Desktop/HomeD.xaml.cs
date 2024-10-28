@@ -1,4 +1,6 @@
-using Dimmer_MAUI.Utilities.OtherUtils;
+using Syncfusion.Maui.Toolkit.Chips;
+using System.Diagnostics;
+using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -11,6 +13,7 @@ public partial class HomeD : UraniumContentPage
         this.BindingContext = homePageVM;
 
         MediaPlayBackCW.BindingContext = homePageVM;
+
     }
 
     public HomePageVM HomePageVM { get; }
@@ -30,9 +33,8 @@ public partial class HomeD : UraniumContentPage
 #if WINDOWS
     private CancellationTokenSource _resizeDebounceCts;
 
-    private void CurrentMauiwindow_SizeChanged(object sender, Microsoft.UI.Xaml.WindowSizeChangedEventArgs args)
+    private async void CurrentMauiwindow_SizeChanged(object sender, Microsoft.UI.Xaml.WindowSizeChangedEventArgs args)
     {
-        
         _resizeDebounceCts?.Cancel();
         _resizeDebounceCts = new CancellationTokenSource();
 
@@ -66,36 +68,7 @@ public partial class HomeD : UraniumContentPage
 #endif
     }
 
-    DateTime lastKeyStroke;
-    private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        lastKeyStroke = DateTime.Now;
-        var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(750);
-        if (thisKeyStroke == lastKeyStroke)
-        {
-            var searchText = e.NewTextValue;
-            if (searchText.Length >= 2)
-            {
-                HomePageVM.SearchSongCommand.Execute(searchText);
-            }
-            else
-            {
-                HomePageVM.SearchSongCommand.Execute(string.Empty);
-
-                await Task.Delay(500);
-                if (SongsColView.IsLoaded)
-                {
-                    var ee = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
-                    if (ee.Count < 1)
-                    {
-                        SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
-                    }
-                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Center, animate: true);
-                }
-            }
-        }
-    }
+    
 
     private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
@@ -106,7 +79,7 @@ public partial class HomeD : UraniumContentPage
             {
                 HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             }
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -229,6 +202,8 @@ public partial class HomeD : UraniumContentPage
 
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
+        if (inRatingMode)
+            return;
         var send = (View)sender;
 
         if (!isPressed && !isAnimating)
@@ -244,6 +219,8 @@ public partial class HomeD : UraniumContentPage
 
     private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
     {
+        if(inRatingMode)
+            return;
         var send = (View)sender;
 
         if (!isAnimating)
@@ -348,6 +325,71 @@ public partial class HomeD : UraniumContentPage
     {
 
     }
+    bool inRatingMode;
 
+
+    private void ratingViewD_PointerEntered_1(object sender, PointerEventArgs e)
+    {
+        inRatingMode = true;
+    }
+
+    private void ratingViewD_PointerExited_1(object sender, PointerEventArgs e)
+    {
+        inRatingMode = false;
+
+    }
+    DateTime lastKeyStroke;
+
+    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+        
+        var send = (View)sender;
+
+        SearchFiltersHSL.IsVisible = true;
+        MainBody.IsVisible = false;
+        
+    }
+
+
+    private void SearchBarPointer_PointerExited(object sender, PointerEventArgs e)
+    {
+
+    }
+    List<string> filterFilters;
+    private async void SfChipGroup_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+        var send = (SfChipGroup)sender;
+
+
+        var itemm = send.SelectedItem as System.Collections.IList;
+        var stringList = (itemm?.OfType<string>()).ToList() ?? new List<string>();
+        filterFilters?.Clear();
+        filterFilters = stringList;
+        if (stringList.Contains("Rating"))
+        {
+            await ratingFilter.AnimateFadeInFront();
+        }
+        else
+        {
+            await ratingFilter.AnimateFadeOutBack();
+        }
+    }
+
+
+    private void SfChipGroup_SelectionChanged_1(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void search_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.SearchSong(filterFilters);
+    }
+
+    private void CloseFiltersImgBtn_Clicked(object sender, EventArgs e)
+    {
+        SearchFiltersHSL.IsVisible = false;
+        MainBody.IsVisible = true;  
+    }
 
 }

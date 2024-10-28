@@ -10,8 +10,8 @@
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
-             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"             
+             xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"   
+             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
             x:Name="myPage"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False">
@@ -23,7 +23,8 @@
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
-
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
             <MenuFlyout x:Key="LyricsContentMenu">
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
@@ -48,112 +49,454 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                     x:Name="MediaPlayBackCW" IsVisible="True"/>
 
-        <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
+            <Grid FlyoutBase.ContextFlyout="{StaticResource LyricsContentMenu}" 
                 toolkit:DockLayout.DockPosition="Top" BackgroundColor="Transparent"
                 x:Name="NowPlayingGrid" IsVisible="True">
-            <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
-                <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
-                                    WidthRequest="250" Spacing="10">
-                    <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                <Grid.GestureRecognizers>
+                    <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" PointerExited="PointerGestureRecognizer_PointerExited"/>
+                </Grid.GestureRecognizers>
+                <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
+                    <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
+                                    WidthRequest="250" Spacing="10" >
+                        <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
+                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
                         FontSize="13" TextColor="Grey"/>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                        <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
                         FontSize="16"/>
 
-                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                 HeightRequest="25" >
-                            <ImageButton.CommandParameter>
-                                <x:Int32>1</x:Int32>
-                            </ImageButton.CommandParameter>
-                            <ImageButton.Source>
-                                <FileImageSource File="youtube.png"/>
-                            </ImageButton.Source>
-                        </ImageButton>
+                                <ImageButton.CommandParameter>
+                                    <x:Int32>1</x:Int32>
+                                </ImageButton.CommandParameter>
+                                <ImageButton.Source>
+                                    <FileImageSource File="youtube.png"/>
+                                </ImageButton.Source>
+                            </ImageButton>
 
-                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                     HeightRequest="25">
-                            <ImageButton.CommandParameter>
-                                <x:Int32>2</x:Int32>
-                            </ImageButton.CommandParameter>
-                            <ImageButton.Source>
-                                <FileImageSource File="spotify.png" />
-                            </ImageButton.Source>
-                        </ImageButton>
+                                <ImageButton.CommandParameter>
+                                    <x:Int32>2</x:Int32>
+                                </ImageButton.CommandParameter>
+                                <ImageButton.Source>
+                                    <FileImageSource File="spotify.png" />
+                                </ImageButton.Source>
+                            </ImageButton>
 
-                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                 HeightRequest="25" >
-                            <ImageButton.CommandParameter>
-                                <x:Int32>0</x:Int32>
-                            </ImageButton.CommandParameter>
+                                <ImageButton.CommandParameter>
+                                    <x:Int32>0</x:Int32>
+                                </ImageButton.CommandParameter>
+                                <ImageButton.Source>
+                                    <FileImageSource File="google.png"/>
+                                </ImageButton.Source>
+                            </ImageButton>
+                        </HorizontalStackLayout>
+
+                        <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
+                            </Image.Source>
+                        </Image>
+
+
+                        <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                                 Clicked="ToggleFocusModeClicked">
                             <ImageButton.Source>
-                                <FileImageSource File="google.png"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
                             </ImageButton.Source>
                         </ImageButton>
-                    </HorizontalStackLayout>
 
-                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
-                        <Image.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
-                        </Image.Source>
-                    </Image>
-                    
-                    
-                    <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                 Clicked="ToggleFocusModeClicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                        <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
+                                                   HorizontalOptions="Center" Command="{Binding RateSongCommand}"
+                                                   CommandParameter="{Binding .}" 
+                                                   AllowRating="True" 
+                                                   StrokeColor="DarkSlateBlue" 
+                                                   Maximum="5" Fill="DarkSlateBlue"
+                                                   >
+                            <ratingsView:RatingControl.GestureRecognizers>
+                            </ratingsView:RatingControl.GestureRecognizers>
+                        </ratingsView:RatingControl>
 
-                </VerticalStackLayout>
+                        
+                    </VerticalStackLayout>
 
-                <SyncCtrls:SfTabView x:Name="TabV" 
-                                TabBarHeight="75"
-                                IndicatorPlacement="Top"
-                                EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
-                                SelectionChanged="tabView_SelectionChanged">
+                    <chart:SfTabView x:Name="TabV"
+                        TabBarHeight="65"
+                        IndicatorPlacement="Top" SelectedIndex="{Binding CurrentViewIndex }"
+                        EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
+                        SelectionChanged="tabView_SelectionChanged"
+                        IsClippedToBounds="True">
 
-                    <SyncCtrls:SfTabView.Items>
+                        <chart:SfTabView.Items>
 
-                        <SyncCtrls:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
-                            <SyncCtrls:SfTabItem.ImageSource>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
-                            </SyncCtrls:SfTabItem.ImageSource>
-                            <SyncCtrls:SfTabItem.Content>
-                                <cw:SyncedLyricsView />
-                            </SyncCtrls:SfTabItem.Content>
-                        </SyncCtrls:SfTabItem>
+                            <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
+                                    <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
+                                  RowDefinitions="*" ColumnDefinitions="*">
+                                        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+   IsVisible="{OnPlatform WinUI=false, Android=True}" Grid.Column="0" Aspect="Center"/>
 
-                        <SyncCtrls:SfTabItem Header="Fetch Lyrics">
-                            <SyncCtrls:SfTabItem.ImageSource>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
-                            </SyncCtrls:SfTabItem.ImageSource>
-                            <SyncCtrls:SfTabItem.Content>
-                                <cw:FetchLyricsResultsView />
-                            </SyncCtrls:SfTabItem.Content>
-                        </SyncCtrls:SfTabItem>
 
-                        <SyncCtrls:SfTabItem Header="Stats">
-                            <SyncCtrls:SfTabItem.ImageSource>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
-                            </SyncCtrls:SfTabItem.ImageSource>
-                            <SyncCtrls:SfTabItem.Content>
-                                <cv:SongStatView/>
-                            </SyncCtrls:SfTabItem.Content>
-                        </SyncCtrls:SfTabItem>
+                                        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
+Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                    <Border Stroke="Transparent" Margin="5,0" >
+                                                        <VisualStateManager.VisualStateGroups>
+                                                            <VisualStateGroup Name="CommonStates">
+                                                                <VisualState Name="Normal">
+                                                                    <VisualState.Setters>
+                                                                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                                <VisualState Name="Selected">
+                                                                    <VisualState.Setters>
+                                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                            </VisualStateGroup>
+                                                        </VisualStateManager.VisualStateGroups>
 
-                    </SyncCtrls:SfTabView.Items>
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                                        </Border.GestureRecognizers>
 
-                </SyncCtrls:SfTabView>
-            </toolkit:DockLayout>
+                                                        <Label Text="{Binding Text}" Margin="0,5" 
+                                                       HorizontalTextAlignment="Center" 
+                                                       FontSize="19" >
+                                                            <Label.Triggers>
 
-           
-        </Grid>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </Grid>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
+
+                            <chart:SfTabItem Header="Fetch Lyrics">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
+                                    <Grid Margin="5,5" RowDefinitions="Auto, *">
+                                        <Grid.Resources>
+                                            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                                            <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+
+                                        </Grid.Resources>
+                                        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
+                   Margin="5" HorizontalOptions="Center">
+                                            <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
+                                                    Clicked="SearchLyricsOnLyrLib_Clicked">
+                                                <Button.CommandParameter>
+                                                    <x:Boolean>True</x:Boolean>
+                                                </Button.CommandParameter>
+                                            </Button>
+
+
+                                            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                                                    IsVisible="False">
+                                                <Button.CommandParameter>
+                                                    <x:Boolean>True</x:Boolean>
+                                                </Button.CommandParameter>
+                                            </Button>
+
+                                        </HorizontalStackLayout>
+                                        <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
+                                                        x:DataType="vm:HomePageVM">
+                                            <CollectionView.EmptyView>
+                                                <ContentView>
+                                                    <VerticalStackLayout HorizontalOptions="Center" x:Name="emptyV">
+
+
+                                                        <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                                               HeightRequest="0" WidthRequest="0" />
+                                                        <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+                                                               IsVisible="False" IsAnimationPlaying="False"/>
+
+                                                        <Label Text="Service is Unavailable, try again !" 
+                                                               x:Name="NoLyricsFoundMsg" IsVisible="False"
+                                                               />
+                                                    </VerticalStackLayout>
+
+                                                </ContentView>
+                                            </CollectionView.EmptyView>
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:Content">
+
+                                                    <Border Stroke="DarkSlateBlue" 
+                StrokeShape="RoundRectangle, 10"
+                Padding="10" Margin="0,5">
+                                                        <VerticalStackLayout>
+
+                                                            <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                                                            <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+
+                                                            <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+
+                                                            <HorizontalStackLayout>
+
+                                                                <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
+                            IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+                        />
+
+
+                                                                <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                        IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                                                            </HorizontalStackLayout>
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </Grid>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
+
+                            <chart:SfTabItem Header="Stats">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
+                                    <Grid RowDefinitions="Auto,*" Margin="8,5">
+                                        <Grid RowDefinitions="Auto,*" Grid.Row="0">
+
+                                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
+                                                    <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"/>
+                                                    <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
+                                                    <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
+                                                    <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
+                                                </VerticalStackLayout>
+                                            
+                                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                                    <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
+                                                                        IsVisible="{OnPlatform WinUI=false}" 
+                                                                        HeightRequest="120" WidthRequest="130" Text="S"
+                                                                        BorderWidth="0" CornerRadius="10"/>
+                                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                                                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong" 
+                                                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
+                                                                     CommandParameter="{Binding TemporarilyPickedSong}">
+                                                            <ImageButton.Source>
+                                                                <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                                            </ImageButton.Source>
+                                                        </ImageButton>
+
+                                                    </HorizontalStackLayout>
+
+                                                </VerticalStackLayout>
+                                        </Grid>
+
+                                        <Grid RowDefinitions="Auto,*" Grid.Row="1">
+                                            <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center"
+                                                                   Spacing="10">
+
+                                                <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"                                                                              
+                                                                              StrokeThickness="1" BackgroundColor="#111111" WidthRequest="400"
+                                                                          Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}"
+                                                    ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
+                                                    <chart:SfSegmentedControl.TextStyle>
+                                                        <chart:SegmentTextStyle TextColor="White"/>
+                                                    </chart:SfSegmentedControl.TextStyle>
+                                                </chart:SfSegmentedControl>
+
+                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                                    <DatePicker  x:Name="dailyDateFilter" 
+                                                                               />
+                                                    <material:CheckBox LabelPosition="After" Text="View Chart"
+                                                                       
+                                                    CheckChanged="ShowHideChart_CheckChanged"/>
+                                                </HorizontalStackLayout>
+                                            </HorizontalStackLayout>
+                                            <CollectionView x:Name="DailyStats"
+                                                Grid.Row="1" ItemsSource="{Binding SongPickedForStats.DailyStats.PlayDates}" 
+                                                            
+                                                                HorizontalOptions="Center" SelectionMode="Single" IsVisible="True"
+                                                            EmptyView="No Data...">
+                                                    <CollectionView.Header>
+                                                        <Grid ColumnDefinitions="*,*" Padding="10,5">
+
+                                                            <Label Text="Day" FontAttributes="Bold" Grid.Column="0"
+                                                                   HorizontalOptions="Start"/>
+
+                                                        
+                                                            <Label Text="Was Played Completely" Grid.Column="1"
+                                                                   FontAttributes="Bold" HorizontalOptions="End"/>
+                                                        </Grid>
+                                                    </CollectionView.Header>
+
+                                                    <CollectionView.ItemsLayout>
+                                                        <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
+                                                    </CollectionView.ItemsLayout>
+                                                    <CollectionView.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:PlayDateAndIsPlayCompletedModelView">
+                                                            <Border Padding="10" Margin="10" x:Name="BorderOfDailyStat">
+                                                            <Border.Triggers>
+                                                                <DataTrigger TargetType="Border" Binding="{Binding WasPlayCompleted}" Value="True">
+                                                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                                                    <Setter Property="StrokeThickness" Value="0.8"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger TargetType="Border" Binding="{Binding WasPlayCompleted}" Value="False">
+                                                                    <Setter Property="Stroke" Value="Gray"/>
+                                                                    <Setter Property="StrokeThickness" Value="1"/>
+                                                                </DataTrigger>
+                                                            </Border.Triggers>
+                                                            <Grid ColumnDefinitions="*">
+                                                                    <Label Grid.Column="0" 
+                                                                           Text="{Binding DatePlayed, Converter={StaticResource DateTimeToTimeConverter}}"/>
+                                                                    <Label Grid.Column="1" HorizontalOptions="End" 
+                                                                           Text="{Binding WasPlayCompleted}"/>
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </CollectionView.ItemTemplate>
+                                                </CollectionView>
+                                            <VerticalStackLayout Grid.Row="1" HorizontalOptions="Center"
+                                                                 x:Name="dailyStatChart"
+                                                                 IsVisible="False">
+                                                
+                                                <chart:SfCircularChart>
+                                                    <chart:SfCircularChart.Resources>                                                        
+                                                            <DataTemplate x:Key="template1">
+                                                                <HorizontalStackLayout  VerticalOptions="Fill" Spacing="0" Padding="0" Margin="0">
+                                                                    <Label Text="{Binding Item.LabelForNumberOfCompletedPlays}" VerticalTextAlignment="Center" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="14" Margin="2,0,2,0" />
+                                                                    <Label Text="{Binding Item.TheCount,StringFormat=' :  {0}'}" VerticalTextAlignment="Center" HorizontalOptions="End" FontAttributes="Bold" Margin="0,0,2,0" FontSize="14" />
+                                                                </HorizontalStackLayout>
+                                                            </DataTemplate>
+                                                    </chart:SfCircularChart.Resources>
+                                                    <chart:SfCircularChart.Series>
+                                                        
+                                                        <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
+                                                                         XBindingPath="LabelForNumberOfCompletedPlays"
+                                                                         YBindingPath="TheCount"
+                                                                         ShowDataLabels="True"
+                                                                         StrokeWidth="5"
+                                                                         EnableAnimation="True"
+                                                                         EnableTooltip="True"
+                                                                         
+                                                                         TooltipTemplate="{StaticResource template1}">
+                                                        </chart:PieSeries>
+                                                    </chart:SfCircularChart.Series>
+                                                </chart:SfCircularChart>
+                                            </VerticalStackLayout>
+                                            
+                                            <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.WeeklyStats}"
+                                                            x:Name="WeeklyStats"
+                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
+                                                <CollectionView.Header>
+                                                    <Grid ColumnDefinitions="*,*" Padding="10,5">
+
+                                                        <Label Text="Day" FontAttributes="Bold" Grid.Column="0"
+                    HorizontalOptions="Start"/>
+                                                        <Label Text="Play Count" Grid.Column="1"
+                    FontAttributes="Bold" HorizontalOptions="End"/>
+                                                    </Grid>
+                                                </CollectionView.Header>
+
+                                                <CollectionView.ItemsLayout>
+                                                    <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
+                                                </CollectionView.ItemsLayout>
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:WeeklyStats">
+                                                        <Border Padding="10" Margin="10" >
+                                                            <Grid ColumnDefinitions="*">
+                                                                <Label Grid.Column="0" 
+                                                                        Text="{Binding Week}"/>
+                                                                <Label Grid.Column="1" HorizontalOptions="End"
+                                                                        Text="{Binding Count}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+
+                                            <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.MonthlyStats}"
+                                                            x:Name="MonthlyStats"
+                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
+                                                <CollectionView.Header>
+                                                    <Grid ColumnDefinitions="*,*" Padding="10,5">
+
+                                                        <Label Text="Month" FontAttributes="Bold" Grid.Column="0"
+                    HorizontalOptions="Start"/>
+                                                        <Label Text="Play Count" Grid.Column="1"
+                    FontAttributes="Bold" HorizontalOptions="End"/>
+                                                    </Grid>
+                                                </CollectionView.Header>
+
+                                                <CollectionView.ItemsLayout>
+                                                    <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
+                                                </CollectionView.ItemsLayout>
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:MonthlyStats">
+                                                        <Border Padding="10" Margin="10" >
+                                                            <Grid ColumnDefinitions="*">
+                                                                <Label Grid.Column="0"  Text="{Binding Month}"/>
+                                                                <Label Grid.Column="1" HorizontalOptions="End" Text="{Binding Count}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                                
+                                            <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.YearlyStats}"
+                                                            x:Name="YearlyStats"
+                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
+                                                <CollectionView.Header>
+                                                    <Grid ColumnDefinitions="*,*" Padding="10,5">
+
+                                                        <Label Text="Year" FontAttributes="Bold" Grid.Column="0"
+                                                               HorizontalOptions="Start"/>
+                                                        <Label Text="Play Count" Grid.Column="1" 
+                                                               FontAttributes="Bold" HorizontalOptions="End"/>
+                                                    </Grid>
+                                                </CollectionView.Header>
+
+                                                <CollectionView.ItemsLayout>
+                                                    <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
+                                                </CollectionView.ItemsLayout>
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:YearlyStats">
+                                                        <Border Padding="10" Margin="10" >
+                                                            <Grid ColumnDefinitions="*">
+                                                                <Label Grid.Column="0"
+                        Text="{Binding Month}"/>
+                                                                <Label Grid.Column="1" HorizontalOptions="End"
+                        Text="{Binding Count}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+
+                                        </Grid>
+                                    </Grid>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
+
+                        </chart:SfTabView.Items>
+
+                    </chart:SfTabView>
+                </toolkit:DockLayout>
+
+    </Grid>
        
     </toolkit:DockLayout>
-        <toolkit:DockLayout x:Name="FocusModeUI" x:DataType="vm:HomePageVM"  IsVisible="False">
+        <toolkit:DockLayout x:Name="FocusModeUI" IsVisible="False">
 
             <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
                              ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">

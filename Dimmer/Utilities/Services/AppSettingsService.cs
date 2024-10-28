@@ -181,6 +181,30 @@ public class AppSettingsService : IAppSettingsService
             case SortingEnum.YearDesc:
                 colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
                 break;
+            case SortingEnum.NumberOfTimesPlayedAsc:
+                colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
+                break;
+
+            case SortingEnum.NumberOfTimesPlayedDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
+                break;
+
+            case SortingEnum.NumberOfTimesPlayedCompletelyAsc:
+                colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
+                break;
+
+            case SortingEnum.NumberOfTimesPlayedCompletelyDesc:
+                colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
+                break;
+                
+            case SortingEnum.RatingAsc:
+                colToSort = colToSort.OrderBy(x => x.Rating).ToObservableCollection();
+                break;
+
+            case SortingEnum.RatingDesc:
+                colToSort = colToSort.OrderByDescending(x => x.Rating).ToObservableCollection();
+                break;
+
             default:
                 break;
         }

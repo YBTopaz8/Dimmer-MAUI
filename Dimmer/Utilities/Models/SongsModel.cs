@@ -183,7 +183,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     double? sampleRate;
     [ObservableProperty]
-    int rating;
+    int rating = 0;
     
     [ObservableProperty]
     bool hasLyrics;
@@ -242,6 +242,12 @@ public enum SortingEnum
     YearDesc,
     PlayCountAsc,
     PlayCountDesc,
+    NumberOfTimesPlayedAsc,
+    NumberOfTimesPlayedDesc,
+    NumberOfTimesPlayedCompletelyAsc,
+    NumberOfTimesPlayedCompletelyDesc,
     RatingAsc,
     RatingDesc,
+    
+
 }

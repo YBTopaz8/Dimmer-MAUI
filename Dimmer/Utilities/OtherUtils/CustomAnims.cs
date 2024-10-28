@@ -41,11 +41,11 @@ public static class CustomAnimsExtensions
         }
     }
 
-    public static async Task AnimateFocusModePointerEnter(this View element)
+    public static async Task AnimateFocusModePointerEnter(this View element, double endOpacity = 1, double endScale = 1)
     {
         // Animate scale-up to 1.2 and opacity to 1 with a smooth transition
         await Task.WhenAll(
-            element.ScaleTo(1, 250, Easing.CubicInOut),
+            element.ScaleTo(endScale, 250, Easing.CubicInOut),
             element.FadeTo(1.0, 250, Easing.CubicInOut)
         );
     }
@@ -81,4 +81,29 @@ public static class CustomAnimsExtensions
             element.TranslateTo(0, 0, 250, Easing.CubicInOut) // Slide forward to original position
         );
     }
+
+    public static async Task AnimateSlideDown(this View element, double heightToSlide)
+    {
+        await element.TranslateTo(0, heightToSlide, 250, Easing.CubicInOut);
+        element.HeightRequest = element.Height - heightToSlide;
+    }
+
+    public static async Task AnimateSlideUp(this View element, double heightToSlide)
+    {
+        await element.TranslateTo(0, 0, 250, Easing.CubicInOut);
+        element.HeightRequest = element.Height + heightToSlide;
+    }
+
+    // Helper method to animate HeightRequest smoothly
+    private static async Task AnimateHeightRequest(this View element, double targetHeight, uint duration)
+    {
+        var initialHeight = element.Height;
+        var heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight);
+
+        heightAnimation.Commit(element, "HeightRequestAnimation", length: duration, easing: Easing.CubicInOut);
+        await Task.Delay((int)duration); // Wait for the animation to complete
+    }
+
+
+
 }

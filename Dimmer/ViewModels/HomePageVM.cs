@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
+using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     
@@ -76,6 +79,7 @@ public partial class HomePageVM : ObservableObject
 
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
+        
         SubscribeToCurrentSongPosition();
         SubscribeToPlaylistChanges();
         SubscribeToBackEndQChanges();
@@ -98,6 +102,43 @@ public partial class HomePageVM : ObservableObject
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+    }
+
+    void DoRefreshDependingOnPage()
+    {
+        switch (CurrentPage)
+        {
+            case PageEnum.MainPage:
+                break;
+            case PageEnum.NowPlayingPage:
+                switch (CurrentViewIndex)
+                {
+                    case 0:
+                        break;
+                        
+                    case 1:
+                        IsFetching = false;
+                        break;
+                        
+                    case 2:
+                        RefreshStatView();
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case PageEnum.PlaylistsPage:
+                break;
+            case PageEnum.FullStatsPage:
+                ShowGeneralTopXSongs();
+                break;
+            case PageEnum.AllAlbumsPage:
+                break;
+            case PageEnum.SpecificAlbumPage:
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -141,6 +182,7 @@ public partial class HomePageVM : ObservableObject
                             {
                                 if (!IsMultiSelectOn)
                                 {
+                                    
                                     if (IsShuffleOn)
                                     {
                                         PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
@@ -159,11 +201,8 @@ public partial class HomePageVM : ObservableObject
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-                            if (CurrentPage == PageEnum.FullStatsPage)
-                            {
-                                ShowGeneralTopXSongs();
-                                //ShowSingleSongStats(PickedSong);
-                            }
+                            DoRefreshDependingOnPage();
+                            
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                             
                             break;
@@ -217,7 +256,7 @@ public partial class HomePageVM : ObservableObject
                 SelectedSongToOpenBtmSheet = song;
             }
             
-            CurrentViewIndex = 1;
+            CurrentViewIndex = 0;
         }
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(SingleSongShellD));
@@ -485,13 +524,20 @@ public partial class HomePageVM : ObservableObject
         }
     }
     #endregion
-    [RelayCommand]
-    void SearchSong(string songText)
+    [ObservableProperty]
+    ObservableCollection<string> searchFilters = new([ "Artist", "Album","Genre", "Rating"]);
+    [ObservableProperty]
+    int achievement=0;
+    
+    [ObservableProperty]
+    string searchText;
+    
+    public void SearchSong(List<string> SelectedFilters)
     {
-        PlayBackService.SearchSong(songText);
+        PlayBackService.SearchSong(SearchText, SelectedFilters, Achievement);
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
-
+    
     bool isSongBtmSheetShown;
     SongMenuBtmSheet songsBtmSheet;
     public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
@@ -740,18 +786,19 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     bool isFetchSuccessful = true;
     [ObservableProperty]
-    bool isFetching;
-    [RelayCommand]
-    async Task FetchLyrics(bool fromUI = false)
+    bool isFetching = false;
+    
+    public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-        IsFetching = true;
+        
         if (fromUI || SynchronizedLyrics?.Count < 1)
         {
             AllSyncLyrics = Array.Empty<Content>();
             (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);
         }
-        IsFetching = false;
-        return;
+        
+        await Task.Delay(1000);
+        return IsFetchSuccessful;
     }
 
     [RelayCommand]
@@ -1078,5 +1125,14 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     ObservableCollection<SongsModelView> backEndQ;
-   
+
+    [RelayCommand]
+    public void RateSong(Rating obj)
+    {
+        if (obj is not null)
+        {
+            TemporarilyPickedSong.Rating = (int)obj.Value;
+            SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
+        }
+    }
 }

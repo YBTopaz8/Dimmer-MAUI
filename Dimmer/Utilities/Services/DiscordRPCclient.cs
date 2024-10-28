@@ -1,5 +1,4 @@
-﻿using Dimmer_MAUI.Utilities.OtherUtils;
-using DiscordRPC;
+﻿using DiscordRPC;
 
 
 namespace Dimmer_MAUI.Utilities.Services;

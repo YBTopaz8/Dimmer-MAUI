@@ -1,6 +1,5 @@
 ﻿using Android.Media;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
-using System.ComponentModel;
 using Java.Lang;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;

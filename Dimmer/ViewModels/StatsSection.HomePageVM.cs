@@ -1,4 +1,8 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿
+using System;
+using System.Linq;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -9,19 +13,6 @@ public partial class HomePageVM
     [RelayCommand]
     void ShowGeneralTopXSongs()
     {
-        // Get today's date
-        var today = DateTime.Today;
-        var lastWeek = today.AddDays(-7); // Get the date 7 days ago (last week)
-
-        // Get the date 7 days ago
-        //TopTenPlayedSongs = DisplayedSongs
-        //.Select(s => new SingleSongStatistics
-        //{
-        //    Song = s,
-        //    PlayCount = s.DatesPlayed.Count()  // Count all dates without a range
-        //})
-        //.OrderByDescending(s => s.PlayCount)
-        //.ToObservableCollection();
 
         TopTenPlayedSongs = DisplayedSongs
             .Select(s => new SingleSongStatistics
@@ -44,7 +35,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    void ShowTopTenSongsForSpecificDay(DateTime? selectedDay)
+    void ShowTopTenSongsForSpecificDay(DateTimeOffset? selectedDay)
     {
         if (selectedDay == null)
         {
@@ -92,196 +83,148 @@ public partial class HomePageVM
     {
         IsChartVisible = false;
         if (song == null)
-        {
             return;
-        }
 
+        // Initialize or reset the SongPickedForStats with the selected song
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = song;
 
-        if (song.DatesPlayedAndWasPlayCompleted != null && song.DatesPlayedAndWasPlayCompleted.Count > 0)
-        {
-            // Filter only fully played entries (where WasPlayCompleted is true)
-            var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted
-                 // Only take entries with WasPlayCompleted == true                
-                .GroupBy(entry => entry.DatePlayed.DayOfWeek)
-                .OrderByDescending(group => group.Count())
-                .FirstOrDefault();
+        // Initialize daily, weekly, monthly, and yearly stats directly
+        LoadDailyStats(song);
+        
+        UpdateMostPlayedDay(song);
+        UpdateNumberOfTimesPlayed(song);
 
-            if (mostPlayedDay != null)
-            {
-                MostPlayedDay = mostPlayedDay.Key.ToString();
-                // PlotPieSeries(song); // Assuming you want to plot something
-            }
-            else
-            {
-                MostPlayedDay = "Never Played Yet";
-                IsChartVisible = false;
-            }
-        }
-        else
-        {
-            IsChartVisible = false;
-            MostPlayedDay = "Never Played Yet";
-        }
+    }
 
-        if (SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted is not null)
+    public void LoadWeeklyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate=null)
+    {
+        startDate ??= DateTimeOffset.UtcNow.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date;
+        SongPickedForStats.WeeklyStats = new ObservableCollection<WeeklyStats>();
+        // Loop through each week in the specified range
+        var currentStartDate = startDate.Value;
+        while (currentStartDate <= endDate.Value.Date)
         {
-            // Count only fully played entries
-            NumberOfTimesPlayed = SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted
-                .Count();
-        }
-        else
-        {
-            NumberOfTimesPlayed = 0;
-        }
+            var weekEndDate = currentStartDate.AddDays(6); // Define the end date of the current week
 
-        return;
+            // Create and add each weekly stat entry
+            SongPickedForStats.WeeklyStats.Add(new WeeklyStats(song, currentStartDate, weekEndDate));
+
+            // Move to the next week
+            currentStartDate = currentStartDate.AddDays(7);
+        }
+    }
+
+
+    public void LoadDailyStats(SongsModelView song, DateTimeOffset? specificDate = null)
+    {
+        specificDate ??= DateTimeOffset.UtcNow.Date;
+
+        SongPickedForStats.DailyStats = new DailyStats(song, specificDate.Value.Date);
+    }
+
+    public void LoadMonthlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    {
+        
+        startDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero);
+        endDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
+                        .AddMonths(1).AddDays(-1); // End of the current month
+
+        SongPickedForStats.MonthlyStats = new ObservableCollection<MonthlyStats>();
+
+        
+        var currentMonth = new DateTimeOffset(startDate.Value.Year, startDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
+        var lastMonth = new DateTimeOffset(endDate.Value.Year, endDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
+
+        while (currentMonth <= lastMonth)
+        {
+            
+            var monthEndDate = currentMonth.AddMonths(1).AddDays(-1);
+
+            
+            SongPickedForStats.MonthlyStats.Add(new MonthlyStats(song, currentMonth, monthEndDate));
+
+            
+            currentMonth = currentMonth.AddMonths(1);
+        }
+    }
+
+
+    public void LoadYearlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    {
+        
+        startDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        endDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
+
+        SongPickedForStats.YearlyStats = new ObservableCollection<YearlyStats>();
+
+        
+        var currentYear = new DateTimeOffset(startDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var lastYear = new DateTimeOffset(endDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        while (currentYear <= lastYear)
+        {
+            
+            var yearEndDate = new DateTimeOffset(currentYear.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
+
+            // Create and add each yearly stat entry
+            SongPickedForStats.YearlyStats.Add(new YearlyStats(song, currentYear, yearEndDate));
+
+            // Move to the start of the next year
+            currentYear = currentYear.AddYears(1);
+        }
+    }
+
+    private void UpdateMostPlayedDay(SongsModelView song)
+    {
+        var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted?
+            .Where(entry => entry.WasPlayCompleted)
+            .GroupBy(entry => entry.DatePlayed.DayOfWeek)
+            .OrderByDescending(group => group.Count())
+            .FirstOrDefault();
+
+        MostPlayedDay = mostPlayedDay?.Key.ToString() ?? "Never Played Yet";
+    }
+
+    private void UpdateNumberOfTimesPlayed(SongsModelView song)
+    {
+        NumberOfTimesPlayed = song.DatesPlayedAndWasPlayCompleted?
+            .Count() ?? 0;
     }
 
     [ObservableProperty]
-    ObservableCollection<DateTimeOffset> dialyWalkThrough;
-    //private void PlotPieSeries(SongsModelView? song)
-    //{
-    //    IsChartVisible = true;
-    //    var today = DateTime.Today;
-    //    var lastWeek = today.AddDays(-6);
-    //    int[] dayOfWeekCountsArray;
-    //    List<string> dayNamesList;
-    //    AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
-
-    //    int _index = 0;
-
-    //    MyPieSeries = dayOfWeekCountsArray.AsPieSeries((value, series) =>
-    //    {
-    //        // Get the name of the day
-    //        var dayName = dayNamesList[_index++];
-    //        series.Name = dayName;
-    //        var dayOfWeek = Enum.Parse<DayOfWeek>(dayName);
-    //        series.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Middle;
-    //        series.Fill = new SolidColorPaint(GetColorForDay(dayOfWeek));
-
-    //        series.DataLabelsSize = 14;
-    //        series.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
-    //        series.DataLabelsFormatter = point =>
-    //            series.Name + ": " + point.Coordinate.PrimaryValue + ((point.Coordinate.PrimaryValue > 1) ? " Plays" : " Play");
-    //        series.ToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue}";
-
-    //    });
-
-    //    MyPieSeriesTitle = new LabelVisual
-    //    {
-    //        Text = $"From {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
-    //        TextSize = 15,
-    //        Padding = new LiveChartsCore.Drawing.Padding(15),
-    //        Paint = new SolidColorPaint(SKColors.White)
-    //    };
-    //}
-
-    private void AllLoadingsBeforePlotting(
-      SongsModelView? song,
-      DateTime today,
-      DateTime lastWeek,
-      out int[] dayOfWeekCountsArray,
-      out List<string> dayNamesList)
+    int currentNowPlayingStatsViewIndex=0;
+    void RefreshStatView()
     {
-        today = DateTime.Today;
-        lastWeek = today.AddDays(-7);
 
-        // Filter by the last week and only take entries with `true` (fully played)
-        var filteredDates = song.DatesPlayedAndWasPlayCompleted
-            .Where(entry => entry.WasPlayCompleted == true && entry.DatePlayed.Date >= lastWeek && entry.DatePlayed.Date <= today)
-            .Select(entry => entry.DatePlayed)
-            .ToList();
+        UpdateMostPlayedDay(SongPickedForStats.Song);
+        UpdateNumberOfTimesPlayed(SongPickedForStats.Song);
 
-        // Group by DayOfWeek and count
-        var filteredDayCounts = filteredDates
-            .GroupBy(date => date.DayOfWeek)
-            .ToDictionary(g => g.Key, g => g.Count());
-
-        // Create a list of DatePlayCount objects
-        var datePlayCounts = filteredDayCounts.Select(d => new DatePlayCount
+        switch (CurrentNowPlayingStatsViewIndex)
         {
-            DatePlayed = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(d.Key),
-            Count = d.Value
-        }).ToList();
-
-        SongDatePlayCounts = new ObservableCollection<DatePlayCount>(datePlayCounts);
-
-        // Fill the output arrays for day of week counts and day names
-        dayOfWeekCountsArray = filteredDayCounts
-            .Select(kvp => kvp.Value)
-            .ToArray();
-
-        dayNamesList = filteredDayCounts
-            .Select(kvp => kvp.Key.ToString())
-            .ToList();
-
-        // Total number of times the song was played during the week
-        NumberOfTimesPlayed = filteredDayCounts.Values.Sum();
-
-        // Find the most played day
-        var mostPlayedDay = filteredDayCounts.OrderByDescending(kvp => kvp.Value).FirstOrDefault();
-        if (mostPlayedDay.Key != null)
-        {
-            MostPlayedDay = mostPlayedDay.Key.ToString();
-        }
-        else
-        {
-            MostPlayedDay = "None";
+            case 0:
+                LoadDailyStats(SelectedSongToOpenBtmSheet);
+                break;
+            case 1:
+                LoadWeeklyStats(SelectedSongToOpenBtmSheet);
+                break;
+            case 2:
+                LoadMonthlyStats(SelectedSongToOpenBtmSheet);
+                break;
+            case 3:
+                LoadYearlyStats(SelectedSongToOpenBtmSheet);
+                break;
+            default:
+                break;
         }
     }
 
 
 
-    private void PlotLineSeries(SongsModelView? song)
-    {
-        var today = DateTime.Today;
-        var lastWeek = today.AddDays(-6);
-        int[] dayOfWeekCountsArray;
-        List<string> dayNamesList;
-        AllLoadingsBeforePlotting(song, today, lastWeek, out dayOfWeekCountsArray, out dayNamesList);
 
-        return;
-        //var lines = new LineSeries<int>
-        //{
-        //    Values = dayOfWeekCountsArray,
-        //    YToolTipLabelFormatter = (linePoint) =>
-        //    {
-        //        return $"Played {linePoint.Coordinate.PrimaryValue} times";
-        //    },
-        //    Stroke = new SolidColorPaint(SKColors.DarkSlateBlue) { StrokeThickness = 2 },
 
-        //    Fill = null
-        //};
-
-        //MySeries = new ISeries[]
-        //{
-        //lines
-        //};
-
-        //var orderedDaysOfWeek = new List<DayOfWeek>
-        //{
-        //    DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
-        //    DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
-        //};
-
-        //XAxes =
-        //[
-        //new Axis
-        //{
-        //    Labels = orderedDaysOfWeek.Select(day => day.ToString()).ToArray()
-        //}
-        //];
-
-        //MyPieSeriesTitle = new LabelVisual
-        //{
-        //    Text = $"{song.Title} Play count from {lastWeek.ToShortDateString()} to {today.ToShortDateString()}",
-        //    TextSize = 25,
-        //    Padding = new LiveChartsCore.Drawing.Padding(15),
-        //    Paint = new SolidColorPaint(SKColors.White)
-        //};
-    }
+    
 
     [RelayCommand]
     async Task NavigateToSingleSongStatsPage(SongsModelView song)
@@ -293,55 +236,8 @@ public partial class HomePageVM
         await Shell.Current.GoToAsync(nameof(SingleSongStatsPageD));
 #endif
     }
-
     [ObservableProperty]
-    ObservableCollection<DatePlayCount> songDatePlayCounts;
-
-    //    [ObservableProperty]
-    //    ISeries[] mySeries;
-    //    [ObservableProperty]
-    //    IEnumerable<ISeries> myPieSeries;
-    //    [ObservableProperty]
-    //    Axis[] xAxes =
-    //    { new Axis
-    //        {
-    //            Name = "Days of the Week",
-    //            Labels = new string[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
-    //            MinLimit = 0,  // Start at 0 plays
-    //        }
-    //    };
-
-    //    [ObservableProperty]
-    //    Axis[] yAxes =
-    //    {
-    //        new Axis
-    //        {
-    //            CrosshairSnapEnabled = true,
-    //            Name = "Times Played",
-    //            //Labeler = value => value.ToString("N"),
-
-    //             MinStep = 1,
-    //             MinLimit = 0,
-    //            LabelsPaint = new SolidColorPaint(SKColors.White, 3),
-    //        }
-    //    };
-    //    private SKColor GetColorForDay(DayOfWeek dayOfWeek)
-    //    {
-    //        return dayOfWeek switch
-    //        {
-    //            DayOfWeek.Monday => SKColor.Parse("#AEDFF7"),    // Soft Light Blue
-    //            DayOfWeek.Tuesday => SKColor.Parse("#A8E6CF"),   // Soft Mint Green
-    //            DayOfWeek.Wednesday => SKColor.Parse("#D3E4CD"), // Soft Pale Green
-    //            DayOfWeek.Thursday => SKColor.Parse("#FFD3B6"),  // Soft Peach
-    //            DayOfWeek.Friday => SKColor.Parse("#FFAAA5"),    // Soft Coral
-    //            DayOfWeek.Saturday => SKColor.Parse("#FF8B94"),  // Soft Pink
-    //            DayOfWeek.Sunday => SKColor.Parse("#B5EAD7"),    // Soft Teal
-    //            _ => SKColors.Gray // Default color
-    //        };
-    //    }
-    //    [ObservableProperty]
-    //    LabelVisual myPieSeriesTitle;
-
+    ObservableCollection<string> statsFilters = new ObservableCollection<string>{"Daily","Weekly", "Monthly", "Yearly"};
 
 }
 
@@ -350,12 +246,170 @@ public partial class SingleSongStatistics : ObservableObject
     [ObservableProperty]
     SongsModelView? song;
     [ObservableProperty]
+    ObservableCollection<WeeklyStats> weeklyStats;
+    [ObservableProperty]
+    DailyStats dailyStats;
+    [ObservableProperty]
+    ObservableCollection<MonthlyStats> monthlyStats;
+    [ObservableProperty]
+    ObservableCollection<YearlyStats> yearlyStats;
+    [ObservableProperty]
     int playCount;
 }
-public partial class DatePlayCount : ObservableObject
+
+public partial class YearlyStats : ObservableObject
 {
     [ObservableProperty]
-    string? datePlayed;
+    MonthlyStats? monthlies;
+
+    [ObservableProperty]
+    string month;
+
     [ObservableProperty]
     int count;
+
+    [ObservableProperty]
+    double totalPlayTime;
+
+    public YearlyStats(SongsModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    {
+
+        startDate ??= DateTimeOffset.UtcNow.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date;
+        var yearlyPlays = model.DatesPlayedAndWasPlayCompleted?
+            .Where(entry => entry.DatePlayed.Date >= startDate && entry.DatePlayed.Date <= endDate)
+            .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+
+        Month = startDate.Value.Year.ToString();
+        Count = yearlyPlays.Count;
+        TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
+    }
+
 }
+
+
+public partial class MonthlyStats : ObservableObject
+{
+    [ObservableProperty]
+    WeeklyStats? weeklies;
+
+    [ObservableProperty]
+    string month;
+
+    [ObservableProperty]
+    int count;
+
+    [ObservableProperty]
+    double totalPlayTime;
+
+    public MonthlyStats(SongsModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    {
+        startDate ??= DateTimeOffset.UtcNow.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date;
+        {
+            var monthlyPlays = model.DatesPlayedAndWasPlayCompleted?
+                .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
+                .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+
+            Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(startDate.Value.Month);
+            Count = monthlyPlays.Count;
+            TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
+        }
+    }
+
+}
+public partial class DailyStats : ObservableObject
+{
+    [ObservableProperty]
+    ObservableCollection<PlayDateAndIsPlayCompletedModelView>? playDates;
+
+    [ObservableProperty]
+    double totalPlayTime;
+
+    [ObservableProperty]
+    ObservableCollection<DataForChart> colforStats;
+
+    public DailyStats(SongsModelView model, DateTimeOffset? specificDate = null)
+    {
+        specificDate ??= DateTimeOffset.UtcNow.Date;
+
+        // Filter play dates for the specific date
+        PlayDates = new ObservableCollection<PlayDateAndIsPlayCompletedModelView>(
+            model.DatesPlayedAndWasPlayCompleted?
+                .Where(entry => entry.DatePlayed.Date == specificDate.Value.Date) ??
+                Enumerable.Empty<PlayDateAndIsPlayCompletedModelView>()
+        );
+
+        // Calculate total play time in minutes
+        TotalPlayTime = PlayDates.Count * model.DurationInSeconds / 60;
+
+        // Initialize ColforStats collection
+        ColforStats = new ObservableCollection<DataForChart>();
+
+        // Populate ColforStats initially
+        RefreshColforStats();
+    }
+
+    public void RefreshColforStats()
+    {
+        // Clear any existing items
+        ColforStats.Clear();
+
+        // Count completed and incomplete plays
+        int completedCount = PlayDates.Count(entry => entry.WasPlayCompleted);
+        int incompleteCount = PlayDates.Count(entry => !entry.WasPlayCompleted);
+        // Add data for completed plays
+        ColforStats.Add(new DataForChart
+        {
+            LabelForNumberOfCompletedPlays = $"Completed Plays",
+            TheCount = completedCount
+        });
+
+        // Add data for incomplete plays
+        ColforStats.Add(new DataForChart
+        {
+            LabelForNumberOfCompletedPlays = $"Incomplete Plays",
+            TheCount = incompleteCount
+        });
+        
+    }
+
+    
+}
+
+public class DataForChart
+{
+    public string LabelForNumberOfCompletedPlays { get; set; } // Label, e.g., "Completed Plays" or "Incomplete Plays"
+    public int TheCount { get; set; }                          // Count of plays
+}
+public partial class WeeklyStats : ObservableObject
+{
+    [ObservableProperty]
+    DateTimeOffset? datePlayed;
+
+    [ObservableProperty]
+    string week;
+
+    [ObservableProperty]
+    int count;
+
+    [ObservableProperty]
+    double totalPlayTime;
+
+    public WeeklyStats(SongsModelView model, DateTimeOffset? startDate=null, DateTimeOffset? endDate = null)
+    {
+        startDate ??= DateTimeOffset.UtcNow.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date;
+        var weeklyPlays = model.DatesPlayedAndWasPlayCompleted?
+            .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
+            .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+
+        DatePlayed = startDate;
+        Week = $"Week of {startDate:MMMM dd}";
+        Count = weeklyPlays.Count;
+        TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
+    }
+
+}
+
+

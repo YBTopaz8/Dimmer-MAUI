@@ -46,32 +46,7 @@ public partial class HomePageM : UraniumContentPage
             btmSheet.IsPresented = false;
         }
     }
-    DateTime lastKeyStroke;
-    private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        lastKeyStroke = DateTime.Now;
-        var thisKeyStroke = lastKeyStroke;
-        await Task.Delay(750);
-        if (thisKeyStroke == lastKeyStroke)
-        {
-            var searchText = e.NewTextValue;
-            if (searchText.Length >= 2)
-            {
-                HomePageVM.SearchSongCommand.Execute(searchText);
-                HomePageVM.TemporarilyPickedSong = HomePageVM.PickedSong;
-            }
-            else
-            {
-                HomePageVM.SearchSongCommand.Execute(string.Empty);
-                
-                await Task.Delay(500);
-                if (SongsColView.IsLoaded)
-                {
-                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: false);
-                }
-            }
-        }
-    }
+    
 
     private void SearchFAB_Clicked(object sender, EventArgs e)
     {
@@ -311,6 +286,33 @@ public partial class HomePageM : UraniumContentPage
                 Debug.WriteLine($"Added: {song.Title}");
             }
 
+        }
+    }
+
+    DateTime lastKeyStroke;
+    private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        lastKeyStroke = DateTime.Now;
+        var thisKeyStroke = lastKeyStroke;
+        await Task.Delay(750);
+        if (thisKeyStroke == lastKeyStroke)
+        {
+            var searchText = e.NewTextValue;
+            if (searchText.Length >= 2)
+            {
+                //HomePageVM.SearchSongCommand.Execute(searchText); //TODO: FIX THIS
+                HomePageVM.TemporarilyPickedSong = HomePageVM.PickedSong;
+            }
+            else
+            {
+                //HomePageVM.SearchSongCommand.Execute(string.Empty);
+
+                await Task.Delay(500);
+                if (SongsColView.IsLoaded)
+                {
+                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: false);
+                }
+            }
         }
     }
 }

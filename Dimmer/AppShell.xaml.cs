@@ -1,5 +1,7 @@
 ﻿
 #if WINDOWS
+using Dimmer_MAUI.Views.Desktop.CustomViews;
+using Microsoft.Maui.Platform;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 #endif
@@ -39,6 +41,11 @@ public partial class AppShell : Shell
 
         var currentMauiwindow = Current.Window.Handler.PlatformView as MauiWinUIWindow;
 
+        //currentMauiwindow.ExtendsContentIntoTitleBar=true;
+        
+        //AppWindowTitleBar? ss = currentMauiwindow.AppWindow.TitleBar;
+        //currentMauiwindow.AppWindow = IPlatformApplication.Current.Services.GetServices<CustomTitleBar>();
+       
         // If the content itself has child elements, ensure AllowDrop is set on them
 
         //currentMauiwindow.Content.DragEnter += Content_DragEnter;

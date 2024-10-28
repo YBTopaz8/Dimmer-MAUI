@@ -23,17 +23,7 @@ public partial class FullStatsD : ContentPage
         
     }
 
-    private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
-    {
-        var send = (View)sender;
-        var song = send.BindingContext as SingleSongStatistics;
-        if (song is null)
-        {
-            return;
-        }
-        HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
-
-    }
+  
 }
 //private void Calendar_SelectedDatesChanged(object sender, ValueChangedEventArgs<Collection<DateTime>> e)
 //{

@@ -62,24 +62,7 @@
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-        </CollectionView>
-
-        <!--<ScrollView Grid.Column="0" IsVisible="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}, ConverterParameter='UnSync'}">
-            <Label Text="{Binding TemporarilyPickedSong, Converter={x:StaticResource EmptyStringToMsg}}" 
-                HorizontalTextAlignment="Center" Padding="10" x:Name="UnSyncLyrView" 
-                LineBreakMode="WordWrap"/>
-
-        </ScrollView>-->
-
-
-        <!--<ScrollView MaximumHeightRequest="1200" MinimumHeightRequest="760" x:Name="scrollv">-->
-            
-        
-        <!--</ScrollView>-->
-
-        <!--<Label IsVisible="{Binding IsFetchSuccessful}"
-               Text="No Lyrics 💔"/>-->
-        
+        </CollectionView>        
     </Grid>
     
 </ContentView>

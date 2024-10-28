@@ -280,7 +280,7 @@ public class LyricsService : ILyricsService
         }
 
         StopLyricIndexUpdateTimer();
-        var sampleTime = 1000;
+        var sampleTime = 780;
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
             .Sample(TimeSpan.FromMilliseconds(sampleTime))
             .Subscribe(position =>

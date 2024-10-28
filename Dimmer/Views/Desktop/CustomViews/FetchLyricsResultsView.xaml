@@ -18,9 +18,9 @@
     </ContentView.Resources>
     <Grid Margin="5,5" 
           RowDefinitions="Auto, *">
-        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
+        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50" x:DataType="vm:HomePageVM"
                                Margin="5" HorizontalOptions="Center">
-            <Button Text="Search on LrcLib API" Command="{Binding FetchLyricsCommand}"
+            <Button Text="Search on LrcLib API" 
                     >
                 <Button.CommandParameter>
                     <x:Boolean>True</x:Boolean>
@@ -34,23 +34,6 @@
             </Button>
 
         </HorizontalStackLayout>
-
-        <!--<VerticalStackLayout Spacing="5" >
-            <material:CheckBox IsChecked="{Binding UseManualSearch}" Text="Use Manual Search" IsVisible="False"
-                           x:Name="ToggleManualSearchViewChkBox" />
-        
-            <VerticalStackLayout Spacing="10" IsVisible="{Binding IsChecked, Source={x:Reference ToggleManualSearchViewChkBox}}" 
-                                 >
-                <material:TextField Text="{Binding TemporarilyPickedSong.Title}" Title="Song Title"/>
-                <material:TextField Text="{Binding TemporarilyPickedSong.ArtistName}" Title="Artist Name"/>
-                <material:TextField Text="{Binding TemporarilyPickedSong.AlbumName}" Title="Album Name"/>
-                <Button Text="Manual Search" Command="{Binding UseManualLyricsSearchCommand}"/>
-
-            </VerticalStackLayout>
-        </VerticalStackLayout>-->
-
-        
-        
         <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1" 
                         >
             <CollectionView.EmptyView>
@@ -93,8 +76,6 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
-
     </Grid>
 
 </ContentView>

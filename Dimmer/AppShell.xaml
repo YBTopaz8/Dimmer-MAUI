@@ -8,7 +8,7 @@
     xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
     Shell.FlyoutBehavior="Disabled"
     FlyoutBackgroundColor="Blue"
-    Shell.NavBarIsVisible="False"
+    Shell.NavBarIsVisible="False" 
     Shell.TabBarBackgroundColor="#1f1f1f"    
     >
 

@@ -43,7 +43,13 @@
                 <material:RadioButton Text="Duration - Ascending" />
                 <material:RadioButton Text="Duration - Descending" />
                 <material:RadioButton Text="Year - Ascending" />
-                <material:RadioButton Text="Year - Descending" /> 
+                <material:RadioButton Text="Year - Descending" />
+                <material:RadioButton Text="Number Of Times Played - Ascending" />
+                <material:RadioButton Text="Number Of Times Played - Descending" />
+                <material:RadioButton Text="Number Of Times Played Completely- Ascending" />
+                <material:RadioButton Text="Number Of Times Played Completely- Descending" />
+                <material:RadioButton Text="Rating - Ascending" />
+                <material:RadioButton Text="Rating - Descending" />
             </material:RadioButtonGroupView>
 
             <HorizontalStackLayout HorizontalOptions="End"

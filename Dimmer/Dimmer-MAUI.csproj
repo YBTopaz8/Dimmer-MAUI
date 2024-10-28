@@ -185,6 +185,9 @@
 	  <MauiXaml Update="CustomPopUpViews\EditSongPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Desktop\CustomViews\CustomTitleBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Desktop\CustomViews\EditableSongTagsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -278,10 +281,6 @@
 	  <Compile Update="Views\Mobile\TopStatsPageM.xaml.cs">
 	    <DependentUpon>TopStatsPageM.xaml</DependentUpon>
 	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Utilities\OtherUtils\CustomControl\" />
 	</ItemGroup>
 
 	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionDimmerMAUIHideInfoBar="True" /></VisualStudio></ProjectExtensions>

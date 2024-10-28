@@ -73,7 +73,6 @@ public static class PlatSpecificUtils
             var OverLappedPres = appPresenter as OverlappedPresenter;
             if (topMost)
             {
-
                 OverLappedPres!.IsAlwaysOnTop = true;
             }
             else

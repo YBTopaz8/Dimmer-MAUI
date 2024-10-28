@@ -251,9 +251,7 @@
         <Border StrokeShape="RoundRectangle 18" Margin="8,2"
          StrokeThickness="0" x:Name="lyricsCover">
             <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
-                </Grid.GestureRecognizers>
+                
                 <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                     HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
                                     WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"
@@ -262,7 +260,11 @@
                 <!--Synced lyics Col View-->
 
                 <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center" 
-                HorizontalTextAlignment="Center" FontSize="25" Margin="5,0"/>
+                HorizontalTextAlignment="Center" FontSize="32" Margin="5,0">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                    </Label.GestureRecognizers>
+                </Label>
             </Grid>
 
         </Border>

@@ -7,6 +7,7 @@ public partial class SongStatView : ContentView
         InitializeComponent();
         HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         BindingContext = HomePageVM;
+        
     }
     public HomePageVM HomePageVM { get; }
 

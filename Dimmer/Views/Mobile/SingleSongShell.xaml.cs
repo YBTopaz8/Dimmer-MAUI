@@ -38,31 +38,6 @@ public partial class SingleSongShell : UraniumContentPage
         Shell.SetNavBarIsVisible(this, false);
     }
 
-    private void TabV_SelectedTabChanged(object sender, TabItem e)
-    {
-        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        if (e!= null &&  e.Title == "Lyrics")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(0);
-        }
-
-        if (e != null && e.Title == "Edit Tags")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(1);
-        }
-
-        if (e!= null && e.Title == "Stats")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(2);
-        }
-        
-        
-        if (e!= null && e.Title == "Fetch Lyrics")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(2);
-        }
-        
-    }
 
     protected override void OnDisappearing()
     {

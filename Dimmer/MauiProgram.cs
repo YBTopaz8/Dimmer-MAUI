@@ -1,4 +1,5 @@
-﻿using Syncfusion.Maui.Toolkit.Hosting;
+﻿using Dimmer_MAUI.Views.Desktop.CustomViews;
+using Syncfusion.Maui.Toolkit.Hosting;
 namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
@@ -47,7 +48,13 @@ public static class MauiProgram
                         if(winuiAppWindow.Title != "MP")
                         {
                             homeVM.AppWinPresenter = winuiAppWindow.Presenter;
-                        
+                            var OLP = winuiAppWindow.Presenter as OverlappedPresenter;
+                            
+
+                            //winuiAppWindow.Title = new CustomTitleBar(homeVM);
+                            
+
+                            //OLP.SetBorderAndTitleBar(false, false);
                             winuiAppWindow.Closing += async (s, e) =>
                             {
                                 
@@ -81,7 +88,6 @@ public static class MauiProgram
                             if (winuiAppWindow.Presenter is OverlappedPresenter p)
                             {
                                 p.IsResizable = false;
-                                p.IsAlwaysOnTop = true;
                                 p.SetBorderAndTitleBar(false, false); // Remove title bar and border
                                 p.IsAlwaysOnTop = true;
                             }
@@ -100,7 +106,6 @@ public static class MauiProgram
 
         builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
 #endif
-
         builder.Services.AddSingleton(FolderPicker.Default);
         //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);

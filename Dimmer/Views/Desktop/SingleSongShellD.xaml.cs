@@ -1,4 +1,4 @@
-using Dimmer_MAUI.Utilities.OtherUtils;
+
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -21,45 +21,39 @@ public partial class SingleSongShellD : ContentPage
         {
             Array.Clear(HomePageVM.AllSyncLyrics);
         }
-        //TabV.SelectedTab = TabV.Items[0];
-
-        Task.Delay(3000);
-
-        //FocusCaro.ItemsSource = HomePageVM.BackEndQ;
-    }
-
-    private void TabV_SelectedTabChanged(object sender, TabItem e)
-    {
-        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        if (e != null && e.Title == "Lyrics")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(0);
-        }
-
-        if (e != null && e.Title == "Stats")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(1);
-
-        }
-
-
-        if (e != null && e.Title == "Fetch Lyrics")
-        {
-            vm.SwitchViewNowPlayingPageCommand.Execute(2);
-        }
-
+        HomePageVM.CurrentViewIndex = 0;
     }
 
     protected override void OnDisappearing()
     {
-        //TabV.SelectedTab = TabV.Items[0];
-
         base.OnDisappearing();
+        HomePageVM.CurrentViewIndex = 0;
+        emptyV.IsVisible = false;
     }
 
     private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
-
+        switch (e.NewIndex)
+        {
+            case 0:
+                break;
+            case 1:
+                emptyV.IsVisible = false;                
+                if (HomePageVM.AllSyncLyrics is not null )
+                {
+                    HomePageVM.AllSyncLyrics = Array.Empty<Content>();
+                }
+                break;
+            case 2:
+                break;
+            default:
+                Lookgif.IsVisible = false;
+                break;
+        }
+        if (e.NewIndex == 2)
+        {
+            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+        }
     }
 
     private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -72,7 +66,7 @@ public partial class SingleSongShellD : ContentPage
 
     }
 
-    
+
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
@@ -117,7 +111,7 @@ public partial class SingleSongShellD : ContentPage
             await Task.WhenAll(
             FocusModeUI.AnimateFadeOutBack(),
             NormalNowPlayingUI.AnimateFadeInFront()
-            
+
             );
 
             isOnFocusMode = false;
@@ -131,8 +125,8 @@ public partial class SingleSongShellD : ContentPage
         }
     }
 
-    
-     
+
+
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
@@ -194,4 +188,147 @@ public partial class SingleSongShellD : ContentPage
     }
 
 
+    private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        try
+        {
+            if (CanScroll)
+            {
+                if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+                {
+                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
+    {
+        if (HomePageVM.IsPlaying)
+        {
+            var bor = (Border)sender;
+            var lyr = (LyricPhraseModel)bor.BindingContext;
+            HomePageVM.SeekSongPosition(lyr);
+        }
+    }
+
+    bool CanScroll = true;
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        CanScroll = false;
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        CanScroll = true;
+    }
+
+
+    private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var title = send.Text;
+        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Services.Models.Content;
+        if (title == "Synced Lyrics")
+        {
+
+            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, false);
+        }
+        else
+        if (title == "Plain Lyrics")
+        {
+
+            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, true);
+        }
+    }
+
+    bool inRatingMode = false;
+
+    private void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
+    {
+        var newSelection = e.NewIndex;
+        switch (newSelection)
+        {
+            case 0:
+                DailyStats.IsVisible = true;
+                WeeklyStats.IsVisible = false;
+                HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+                MonthlyStats.IsVisible = false;
+                YearlyStats.IsVisible = false;
+                break;
+            case 1:
+                DailyStats.IsVisible = false;
+                WeeklyStats.IsVisible = true;
+                MonthlyStats.IsVisible = false;
+                YearlyStats.IsVisible = false;
+                HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+
+                break;
+            case 2:
+                DailyStats.IsVisible = false;
+                WeeklyStats.IsVisible = false;
+                MonthlyStats.IsVisible = true;
+                YearlyStats.IsVisible = false;
+                HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+                break;
+            case 3:
+                DailyStats.IsVisible = false;
+                WeeklyStats.IsVisible = false;
+                MonthlyStats.IsVisible = false;
+                YearlyStats.IsVisible = true;
+                HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    private async void ShowHideChart_CheckChanged(object sender, EventArgs e)
+    {
+        var send = (UraniumUI.Material.Controls.CheckBox)sender;
+
+        var checkState = send.IsChecked;
+        switch (checkState)
+        {
+            case true:
+                await Task.WhenAll(DailyStats.AnimateFadeOutBack(),
+                dailyStatChart.AnimateFadeInFront());
+                break;
+            case false:
+                await Task.WhenAll(DailyStats.AnimateFadeInFront(),
+                dailyStatChart.AnimateFadeOutBack());
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    {
+        emptyV.IsVisible = true;
+        await Task.WhenAll(Lookgif.AnimateFadeInFront(), fetchFailed.AnimateFadeOutBack(),
+NoLyricsFoundMsg.AnimateFadeOutBack());
+
+        Lookgif.HeightRequest = 100;
+        Lookgif.WidthRequest = 100;
+        Lookgif.IsAnimationPlaying = true;
+        await HomePageVM.FetchLyrics(true);
+        Lookgif.HeightRequest = 0;
+        Lookgif.WidthRequest = 0;
+        await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
+NoLyricsFoundMsg.AnimateFadeInFront());
+        fetchFailed.IsAnimationPlaying = true;
+        Lookgif.IsAnimationPlaying = false;
+        await Task.Delay(3000);
+        fetchFailed.IsAnimationPlaying = false;
+        fetchFailed.IsVisible = false;
+        emptyV.IsVisible = false;
+    }
 }
