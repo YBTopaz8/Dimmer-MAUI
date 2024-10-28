@@ -178,10 +178,10 @@ public partial class SingleSongShellD : ContentPage
 
         // Combine expand and shrink animations into one sequence
         var animationSequence = new Animation
-    {
-        { 0, 0.5, expandAnimation },   // Embiggen in the first half
-        { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
-    };
+        {
+            { 0, 0.5, expandAnimation },   // Embiggen in the first half
+            { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
+        };
 
         // Run the full animation sequence
         animationSequence.Commit(avatarView, "FocusModeAnimation", length: 500, easing: Easing.Linear);

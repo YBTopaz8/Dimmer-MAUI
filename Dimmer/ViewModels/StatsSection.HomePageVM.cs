@@ -85,11 +85,9 @@ public partial class HomePageVM
         if (song == null)
             return;
 
-        // Initialize or reset the SongPickedForStats with the selected song
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = song;
 
-        // Initialize daily, weekly, monthly, and yearly stats directly
         LoadDailyStats(song);
         
         UpdateMostPlayedDay(song);
@@ -122,6 +120,9 @@ public partial class HomePageVM
         specificDate ??= DateTimeOffset.UtcNow.Date;
 
         SongPickedForStats.DailyStats = new DailyStats(song, specificDate.Value.Date);
+
+        UpdateMostPlayedDay(song);
+        UpdateNumberOfTimesPlayed(song);
     }
 
     public void LoadMonthlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
@@ -179,7 +180,6 @@ public partial class HomePageVM
     private void UpdateMostPlayedDay(SongsModelView song)
     {
         var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted?
-            .Where(entry => entry.WasPlayCompleted)
             .GroupBy(entry => entry.DatePlayed.DayOfWeek)
             .OrderByDescending(group => group.Count())
             .FirstOrDefault();

@@ -122,6 +122,7 @@
                                     <VerticalStackLayout>
                                         <Label Text="{Binding Title}" FontSize="18" LineBreakMode="TailTruncation" />
                                         <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
+                                        <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}"/>
                                     </VerticalStackLayout>
                                 </HorizontalStackLayout>
 

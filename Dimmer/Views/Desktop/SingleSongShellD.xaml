@@ -25,6 +25,7 @@
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
             <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
             <MenuFlyout x:Key="LyricsContentMenu">
                 <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}"/>
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
@@ -307,7 +308,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                    Spacing="10">
 
                                                 <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"                                                                              
-                                                                              StrokeThickness="1" BackgroundColor="#111111" WidthRequest="400"
+                                                                              StrokeThickness="1" BackgroundColor="#111111" 
                                                                           Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}"
                                                     ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
                                                     <chart:SfSegmentedControl.TextStyle>
@@ -360,7 +361,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                     <Label Grid.Column="0" 
                                                                            Text="{Binding DatePlayed, Converter={StaticResource DateTimeToTimeConverter}}"/>
                                                                     <Label Grid.Column="1" HorizontalOptions="End" 
-                                                                           Text="{Binding WasPlayCompleted}"/>
+                                                                           Text="{Binding WasPlayCompleted, Converter={x:StaticResource BoolToYesNo}}"/>
                                                                 </Grid>
                                                             </Border>
                                                         </DataTemplate>

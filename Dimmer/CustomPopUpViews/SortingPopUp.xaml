@@ -5,9 +5,11 @@
              xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"     
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-           CanBeDismissedByTappingOutsideOfPopup="False"
+           CanBeDismissedByTappingOutsideOfPopup="True"
            Color="Transparent">
-    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" MinimumWidthRequest="{OnPlatform Android= 300}"
+    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" 
+            MinimumWidthRequest="{OnPlatform Android= 350}"
+            HeightRequest="{OnPlatform Android=400}"
             BackgroundColor="Transparent">
         <Border.Resources>
             <ResourceDictionary>

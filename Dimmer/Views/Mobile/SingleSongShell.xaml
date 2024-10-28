@@ -23,6 +23,8 @@
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
             <Style TargetType="ImageButton">
                 <Setter Property="BackgroundColor" Value="Transparent"/>
                 <Setter Property="BorderColor" Value="Transparent"/>
