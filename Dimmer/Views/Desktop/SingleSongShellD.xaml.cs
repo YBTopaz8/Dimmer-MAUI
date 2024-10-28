@@ -249,38 +249,47 @@ public partial class SingleSongShellD : ContentPage
 
     bool inRatingMode = false;
 
-    private void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
+    private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
     {
         var newSelection = e.NewIndex;
         switch (newSelection)
         {
             case 0:
-                DailyStats.IsVisible = true;
-                WeeklyStats.IsVisible = false;
+                await Task.WhenAll(
+                DailyStats.AnimateFadeInFront(),
+                WeeklyStats.AnimateFadeOutBack(),
+
+
+                MonthlyStats.AnimateFadeOutBack(),
+                YearlyStats.AnimateFadeOutBack());
                 HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                MonthlyStats.IsVisible = false;
-                YearlyStats.IsVisible = false;
                 break;
             case 1:
-                DailyStats.IsVisible = false;
-                WeeklyStats.IsVisible = true;
-                MonthlyStats.IsVisible = false;
-                YearlyStats.IsVisible = false;
+                await Task.WhenAll(
+               DailyStats.AnimateFadeOutBack(),
+               WeeklyStats.AnimateFadeInFront(),   // Fade in WeeklyStats
+               MonthlyStats.AnimateFadeOutBack(),
+               YearlyStats.AnimateFadeOutBack()
+           );
                 HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
 
                 break;
             case 2:
-                DailyStats.IsVisible = false;
-                WeeklyStats.IsVisible = false;
-                MonthlyStats.IsVisible = true;
-                YearlyStats.IsVisible = false;
+                await Task.WhenAll(
+                DailyStats.AnimateFadeOutBack(),
+                WeeklyStats.AnimateFadeOutBack(),
+                MonthlyStats.AnimateFadeInFront(),  // Fade in MonthlyStats
+                YearlyStats.AnimateFadeOutBack()
+            );
                 HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
                 break;
             case 3:
-                DailyStats.IsVisible = false;
-                WeeklyStats.IsVisible = false;
-                MonthlyStats.IsVisible = false;
-                YearlyStats.IsVisible = true;
+                await Task.WhenAll(
+                DailyStats.AnimateFadeOutBack(),
+                WeeklyStats.AnimateFadeOutBack(),
+                MonthlyStats.AnimateFadeOutBack(),
+                YearlyStats.AnimateFadeInFront()    // Fade in YearlyStats
+            );
                 HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
                 break;
             default:

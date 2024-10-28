@@ -25,12 +25,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-
-            var songg = realmSongs.Find(x => x.Title == "Reaper");
-            Debug.WriteLine($"Realm: {songg.DatesPlayedAndWasPlayCompleted.First().DatePlayed.ToLocalTime()}");
-            var songgs = realmSongs.Find(x => x.Title == "Reaper");
-            Debug.WriteLine($"Normal: {songgs.DatesPlayedAndWasPlayCompleted.First().DatePlayed.Date.ToLocalTime().ToString("h:mm:ss tt")}");
-        }
+}
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
