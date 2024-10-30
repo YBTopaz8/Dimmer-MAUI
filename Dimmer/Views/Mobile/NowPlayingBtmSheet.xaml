@@ -259,7 +259,8 @@
 
                 <!--Synced lyics Col View-->
 
-                <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center" 
+                <Label Text="{Binding CurrentLyricPhrase.Text}"  VerticalTextAlignment="Center"
+                       HeightRequest="130" 
                 HorizontalTextAlignment="Center" FontSize="32" Margin="5,0">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>

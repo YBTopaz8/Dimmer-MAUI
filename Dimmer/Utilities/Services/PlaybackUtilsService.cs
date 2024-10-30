@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -215,7 +217,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     List<AlbumArtistGenreSongLink> genreLinks)
     {
         Track track = new(file);
-
+        Debug.WriteLine($"Track Name {track.Title}");
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
         
@@ -250,29 +252,31 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         // Process genre and links
         var genreName = track.Genre?.Trim();
-        if (!string.IsNullOrEmpty(genreName))
+        if (string.IsNullOrEmpty(genreName))
         {
-            var genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
-
-            // Find the artist-song link to retrieve the ArtistId
-            var artistSongLink = newLinks.FirstOrDefault(l => l.SongId == song.Id);
-
-            if (artistSongLink != null)
-            {
-                var genreLink = new AlbumArtistGenreSongLink
-                {
-                    SongId = song.Id,
-                    ArtistId = artistSongLink.ArtistId, // Use ArtistId from artist-song link
-                    AlbumId = album.Id,
-                    GenreId = genre.Id
-                };
-                genreLinks.Add(genreLink);
-            }
-            else
-            {
-                Debug.WriteLine("Artist-Song link not found for song: " + song.Title);
-            }
+            genreName = "Unknown Genre";
         }
+        var genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
+
+        // Find the artist-song link to retrieve the ArtistId
+        var artistSongLink = newLinks.FirstOrDefault(l => l.SongId == song.Id);
+
+        if (artistSongLink != null)
+        {
+            var genreLink = new AlbumArtistGenreSongLink
+            {
+                SongId = song.Id,
+                ArtistId = artistSongLink.ArtistId, // Use ArtistId from artist-song link
+                AlbumId = album.Id,
+                GenreId = genre.Id
+            };
+            genreLinks.Add(genreLink);
+        }
+        else
+        {
+            Debug.WriteLine("Artist-Song link not found for song: " + song.Title);
+        }
+        
 
         return song;
     }
@@ -354,27 +358,29 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
     private AlbumModelView GetOrCreateAlbum(
-    string albumName,
-    List<AlbumModelView> existingAlbums,
-    Dictionary<string, AlbumModelView> albumDict,
-    List<AlbumModelView> newAlbums)
+      string albumName,
+      List<AlbumModelView> existingAlbums,
+      Dictionary<string, AlbumModelView> albumDict,
+      List<AlbumModelView> newAlbums)
     {
+        // Assign "Unknown Album" if albumName is empty or null
         if (string.IsNullOrEmpty(albumName))
         {
-            return null;
+            albumName = "Unknown Album";
         }
 
+        // Check if album already exists in dictionary
         if (!albumDict.TryGetValue(albumName, out var album))
         {
             album = new AlbumModelView
             {
                 Id = ObjectId.GenerateNewId(),
                 Name = albumName,
-                AlbumImagePath = null // Default value, will be updated later
+                AlbumImagePath = null // Default value, will be updated later if needed
             };
             albumDict[albumName] = album;
 
-            // Check if the album already exists in the database
+            // Check if the album already exists in the database list
             if (!existingAlbums.Any(a => a.Name == albumName))
             {
                 newAlbums.Add(album);
@@ -581,7 +587,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (coverImage is null || coverImage.Length < 1)
         {
             string fileNameWithoutExtension = Path.GetFileName(filePath);
-            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+
+#if ANDROID
+            string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
+#elif WINDOWS
+        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+#endif
+
+      
             // Ensure the directory exists
             if (!Directory.Exists(folderPath))
             {

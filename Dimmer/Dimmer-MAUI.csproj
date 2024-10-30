@@ -39,7 +39,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-		<PackageCertificateThumbprint>E23D2A22DA981747243325229B4FFF699B329FDF</PackageCertificateThumbprint>
+		<PackageCertificateThumbprint>7F847C663C453F0E649D1A39C2AAE33732BFF7E2</PackageCertificateThumbprint>
 		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
 		<AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
 		<AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
@@ -48,6 +48,7 @@
 		<UserSecretsId>fc4b6d9f-3108-465e-ab29-9806b92af346</UserSecretsId>
 
 		<WindowsSdkPackageVersion>10.0.19041.41</WindowsSdkPackageVersion>
+
     
 
   </PropertyGroup>

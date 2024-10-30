@@ -1007,9 +1007,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task FetchSongCoverImage()
     {
-        TemporarilyPickedSong.CoverImagePath = string.Empty;
-
-        await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
+        TemporarilyPickedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
     }
 
     [ObservableProperty]

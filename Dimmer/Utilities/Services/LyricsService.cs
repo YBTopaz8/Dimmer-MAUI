@@ -531,9 +531,10 @@ public class LyricsService : ILyricsService
 
             if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
-                if (!File.Exists(songs.CoverImagePath))
-                {
-                    string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+                if (File.Exists(songs.CoverImagePath))
+                    return songs.CoverImagePath;
+
+                string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
                     if(Path.GetFileName(songs.CoverImagePath) is not null)
                     {
                         string filePath = Path.Combine(folderPath, Path.GetFileName(songs.CoverImagePath));
@@ -545,7 +546,7 @@ public class LyricsService : ILyricsService
                             return filePath;
                         }
                     }       
-                }
+                
                 return songs.CoverImagePath;
             }
             byte[]? ImageBytes = null;
@@ -591,8 +592,11 @@ public class LyricsService : ILyricsService
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
 
         //TODO: SET THIS AS PREFERENCE FOR USERS
+#if ANDROID
+string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
+#elif WINDOWS
         string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-
+#endif
         if (!Directory.Exists(folderPath))
         {
             Directory.CreateDirectory(folderPath);
@@ -629,7 +633,7 @@ public class LyricsService : ILyricsService
         return filePath;
     }
 
-    #endregion
+#endregion
 
 
     public bool WriteLyricsToLyricsFile(string Lyrics, SongsModelView songObj, bool IsSynched)
