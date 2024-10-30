@@ -528,9 +528,24 @@ public class LyricsService : ILyricsService
     {
         try
         {
-       
+
             if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
             {
+                if (!File.Exists(songs.CoverImagePath))
+                {
+                    string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+                    if(Path.GetFileName(songs.CoverImagePath) is not null)
+                    {
+                        string filePath = Path.Combine(folderPath, Path.GetFileName(songs.CoverImagePath));
+                        if (File.Exists(filePath))
+                        {
+                            songs.CoverImagePath = filePath;
+                            SongsManagementService.UpdateSongDetails(songs);
+
+                            return filePath;
+                        }
+                    }       
+                }
                 return songs.CoverImagePath;
             }
             byte[]? ImageBytes = null;
@@ -576,7 +591,7 @@ public class LyricsService : ILyricsService
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
 
         //TODO: SET THIS AS PREFERENCE FOR USERS
-        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
+        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
 
         if (!Directory.Exists(folderPath))
         {

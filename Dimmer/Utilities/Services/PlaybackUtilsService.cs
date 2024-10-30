@@ -942,8 +942,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 }
                 else //if()
                 {
-                    Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
-                    Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
+                    Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index1");
+                    Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index Shuff1");
                     _currentSongIndex++;
                 }
                 #region might delete
@@ -1390,8 +1390,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 break;
         }
 
-        Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
-        Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
+        Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index");
+        Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index Shuff");
         AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
         //GetPrevAndNextSongs();
     }
@@ -1514,6 +1514,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 .ToList();
 
             // Step 4: Load the results with sorting
+            Debug.WriteLine(SearchedSongsList.Count + "Search Count");
             LoadSongsWithSorting(SearchedSongsList.ToObservableCollection(), true);
         }
         catch (Exception ex)

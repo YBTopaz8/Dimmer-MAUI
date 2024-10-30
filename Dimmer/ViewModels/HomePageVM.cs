@@ -154,7 +154,7 @@ public partial class HomePageVM : ObservableObject
 
         _playerStateSubscription = PlayBackService.PlayerState
             .DistinctUntilChanged()
-            .Subscribe(state =>
+            .Subscribe(async state =>
             {
                 
                 if (TemporarilyPickedSong is not null)
@@ -200,10 +200,13 @@ public partial class HomePageVM : ObservableObject
                             TemporarilyPickedSong.IsPlaying = true;
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
+                            
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
                             
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
+                            
+                            await FetchSongCoverImage();
                             
                             break;
                         case MediaPlayerState.Paused:
@@ -597,6 +600,13 @@ public partial class HomePageVM : ObservableObject
 
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
+    }
+
+    partial void OnTemporarilyPickedSongChanging(SongsModelView? oldValue, SongsModelView newValue)
+    {
+        Debug.WriteLine($"old path {oldValue?.CoverImagePath}");
+        Debug.WriteLine($"new path {newValue.CoverImagePath}");
+
     }
 
     #region Subscriptions to Services

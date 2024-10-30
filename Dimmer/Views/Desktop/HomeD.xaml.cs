@@ -340,14 +340,11 @@ public partial class HomeD : UraniumContentPage
     }
     DateTime lastKeyStroke;
 
-    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
         
         var send = (View)sender;
-
-        SearchFiltersHSL.IsVisible = true;
-        MainBody.IsVisible = false;
-        
+        await SearchFiltersHSL.AnimateFadeInFront();      
     }
 
 
@@ -381,15 +378,20 @@ public partial class HomeD : UraniumContentPage
 
     }
 
-    private void search_Clicked(object sender, EventArgs e)
+    private async void Search_Clicked(object sender, EventArgs e)
     {
         HomePageVM.SearchSong(filterFilters);
+        await MainBody.AnimateFadeInFront();
     }
 
-    private void CloseFiltersImgBtn_Clicked(object sender, EventArgs e)
+    private async void CloseFiltersImgBtn_Clicked(object sender, EventArgs e)
     {
-        SearchFiltersHSL.IsVisible = false;
-        MainBody.IsVisible = true;  
+        //SearchFiltersHSL.IsVisible = false;
+        //MainBody.IsVisible = true;
+
+        await SearchFiltersHSL.AnimateFadeOutBack();
+
+        await MainBody.AnimateFadeInFront();
     }
 
 }

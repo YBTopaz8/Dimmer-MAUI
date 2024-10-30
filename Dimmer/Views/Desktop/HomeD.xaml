@@ -75,7 +75,7 @@
                 </Entry>
 
 
-                <Button x:Name="search" Text="Search" Clicked="search_Clicked"/>
+                <Button x:Name="search" Text="Search" Clicked="Search_Clicked"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5"  x:Name="SearchFiltersHSL"
