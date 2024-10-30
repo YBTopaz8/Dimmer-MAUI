@@ -169,14 +169,14 @@
 
             </VerticalStackLayout>
 
-            <Grid Padding="10" ColumnSpacing="10" 
+            <Grid Padding="10" 
               toolkit:DockLayout.DockPosition="Top"
               Margin="5,0">
 
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="280" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="140" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -195,7 +195,7 @@
                     </ResourceDictionary>
                 </Grid.Resources>
                 <Label Text="Song Title" Grid.Column="0" />
-                <Label Text="Artist" Grid.Column="1" />
+                <Label Text="Artist" Grid.Column="1"/>
                 <Label Text="Rating"  Grid.Column="2" HorizontalOptions="Center" Opacity="0.8"/>
                 <Label Text=""  Grid.Column="3" />
                 <Label Text="Album" Grid.Column="4"/>
@@ -210,14 +210,14 @@
                         VerticalScrollBarVisibility="Default" IsVisible="True"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
                         Loaded="SongsColView_Loaded"
-                        Margin="5,0" EmptyView="Nothing ...">
+                        EmptyView="Nothing ...">
                 
                     <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical"/>
+                    <GridItemsLayout Orientation="Vertical" HorizontalItemSpacing="0"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent" Padding="10,0">
+                        <Border Stroke="Transparent" Padding="0,0">
                             <Border.Triggers>
                                 <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                     <Setter Property="Stroke" Value="DarkSlateBlue"/>
@@ -255,6 +255,12 @@
                             </VisualStateManager.VisualStateGroups>
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
+                                    <MenuFlyoutItem Text="Song Overview" Clicked="GoToSongOverviewClicked">
+                                        <MenuFlyoutItem.IconImageSource>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Looks}"/>
+                                        </MenuFlyoutItem.IconImageSource>
+                                    </MenuFlyoutItem>
+
                                     <MenuFlyoutItem Text="Toggle MultiSelection" Clicked="ToggleMultiSelect_Clicked">
                                         <MenuFlyoutItem.IconImageSource>
                                             <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Select_all}"/>
@@ -367,7 +373,7 @@
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
 
-                            <Grid Padding="10" ColumnSpacing="10">
+                            <Grid Padding="2">
 
                                 <Grid.Resources>
                                     <ResourceDictionary>
@@ -378,7 +384,7 @@
                                     </ResourceDictionary>
                                 </Grid.Resources>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="280" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="*" />
@@ -394,14 +400,14 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center"
-                                            >
+                                <VerticalStackLayout Grid.Column="0" 
+                                                     VerticalOptions="Center">
                                     <HorizontalStackLayout Spacing="10" >
 
-                                        <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" 
-                        ToolTipProperties.Text="{Binding Title}" Grid.Column="1"/>
-                                        <Image WidthRequest="13" VerticalOptions="Center"
-                        IsVisible="{Binding HasLyrics}">
+                                        <Label Text="{Binding Title}" ToolTipProperties.Text="{Binding Title}" 
+                                               HorizontalTextAlignment="Start"
+                                               LineBreakMode="TailTruncation"/>
+                                        <Image WidthRequest="13" VerticalOptions="Center" IsVisible="{Binding HasLyrics}">
                                             <Image.Source>
                                                 <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                                             </Image.Source>
@@ -413,9 +419,9 @@
                                 </VerticalStackLayout>
 
                                 <Label Text="{Binding ArtistName}" Grid.Column="1" 
-                ToolTipProperties.Text="{Binding ArtistName}"/>
+                                       ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                <ratingsView:RatingControl Value="{Binding Rating}" HorizontalOptions="Start"
+                                <ratingsView:RatingControl Value="{Binding Rating}" 
                                                        Grid.Column="2" Shape="Star" Fill="Green"
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">

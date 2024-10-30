@@ -25,8 +25,9 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
         await Task.Delay(800);
         this.IsPresented = false;
         homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
-        homePageVM.NavToNowPlayingPageCommand.Execute(null);
         
+        await homePageVM.NavToNowPlayingPage();
+
     }
 
 

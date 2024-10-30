@@ -189,7 +189,8 @@ public partial class SongsModelView : ObservableObject
     bool hasLyrics;
     [ObservableProperty]
     bool hasSyncedLyrics = false;
-
+    [ObservableProperty]
+    bool isInstrumental = false;
     [ObservableProperty]
     string? coverImagePath;
     [ObservableProperty]

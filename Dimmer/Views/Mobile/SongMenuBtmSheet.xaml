@@ -88,8 +88,7 @@
             </uranium:StatefulContentView>
 
 
-            <uranium:StatefulContentView TappedCommand="{Binding NavToNowPlayingPageCommand}" Tapped="DismissThis_Tapped"
-                                         >
+            <uranium:StatefulContentView Tapped="GoToNowPlayingPage_Tapped">
 
                 <Grid ColumnDefinitions="70,*" >
                     <Image Grid.Column="0" >

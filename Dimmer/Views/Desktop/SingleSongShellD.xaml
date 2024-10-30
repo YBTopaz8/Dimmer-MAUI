@@ -58,7 +58,7 @@
                 </Grid.GestureRecognizers>
                 <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
                     <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
-                                    WidthRequest="250" Spacing="10" >
+                                    WidthRequest="250" Spacing="10"  x:DataType="vm:HomePageVM">
                         <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
@@ -142,46 +142,54 @@
                                 <chart:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
                                   RowDefinitions="*" ColumnDefinitions="*">
-                                        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
-   IsVisible="{OnPlatform WinUI=false, Android=True}" Grid.Column="0" Aspect="Center"/>
+                                      
 
+                                        <VerticalStackLayout x:DataType="vm:HomePageVM">
 
-                                        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+                                            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"
+                                                                     IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
+                                                Converter={StaticResource BoolToInverse}}"/>
+
+                                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
+                                                Converter={StaticResource BoolToInverse}}"
+                                                            SelectionChanged="LyricsColView_SelectionChanged" 
 SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
 Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
-                                            <CollectionView.ItemTemplate>
-                                                <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                    <Border Stroke="Transparent" Margin="5,0" >
-                                                        <VisualStateManager.VisualStateGroups>
-                                                            <VisualStateGroup Name="CommonStates">
-                                                                <VisualState Name="Normal">
-                                                                    <VisualState.Setters>
-                                                                        <Setter Property="BackgroundColor" Value="Transparent"/>
-                                                                    </VisualState.Setters>
-                                                                </VisualState>
-                                                                <VisualState Name="Selected">
-                                                                    <VisualState.Setters>
-                                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                                                    </VisualState.Setters>
-                                                                </VisualState>
-                                                            </VisualStateGroup>
-                                                        </VisualStateManager.VisualStateGroups>
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                        <Border Stroke="Transparent" Margin="5,0" >
+                                                            <VisualStateManager.VisualStateGroups>
+                                                                <VisualStateGroup Name="CommonStates">
+                                                                    <VisualState Name="Normal">
+                                                                        <VisualState.Setters>
+                                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                                        </VisualState.Setters>
+                                                                    </VisualState>
+                                                                    <VisualState Name="Selected">
+                                                                        <VisualState.Setters>
+                                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                                        </VisualState.Setters>
+                                                                    </VisualState>
+                                                                </VisualStateGroup>
+                                                            </VisualStateManager.VisualStateGroups>
 
-                                                        <Border.GestureRecognizers>
-                                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                                        </Border.GestureRecognizers>
+                                                            <Border.GestureRecognizers>
+                                                                <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                                            </Border.GestureRecognizers>
 
-                                                        <Label Text="{Binding Text}" Margin="0,5" 
+                                                            <Label Text="{Binding Text}" Margin="0,5" 
                                                        HorizontalTextAlignment="Center" 
                                                        FontSize="19" >
-                                                            <Label.Triggers>
+                                                                <Label.Triggers>
 
-                                                            </Label.Triggers>
-                                                        </Label>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
+                                                                </Label.Triggers>
+                                                            </Label>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                        </VerticalStackLayout>
+                                        
                                     </Grid>
                                 </chart:SfTabItem.Content>
                             </chart:SfTabItem>
@@ -198,7 +206,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                         </Grid.Resources>
                                         <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
-                   Margin="5" HorizontalOptions="Center">
+                   Margin="5" HorizontalOptions="Start">
                                             <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
                                                     Clicked="SearchLyricsOnLyrLib_Clicked">
                                                 <Button.CommandParameter>
@@ -240,7 +248,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                     <Border Stroke="DarkSlateBlue" 
                 StrokeShape="RoundRectangle, 10"
                 Padding="10" Margin="0,5">
-                                                        <VerticalStackLayout>
+                                                        <VerticalStackLayout HorizontalOptions="Start">
 
                                                             <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
@@ -248,10 +256,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                                             <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
 
-                                                            <HorizontalStackLayout>
+                                                            <HorizontalStackLayout IsVisible="{Binding instrumental}">
+                                                                <Label Text="Song is an Intrumental" />
+                                                            </HorizontalStackLayout>
+                                                            
+                                                            <HorizontalStackLayout IsVisible="{Binding instrumental, Converter={StaticResource BoolToInverse}}">
 
                                                                 <Button Text="Plain Lyrics" HorizontalOptions="Center" 
-                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
+                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
                             IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
                         />
 
@@ -285,30 +297,16 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                 </VerticalStackLayout>
                                             
                                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                                    <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
-                                                                        IsVisible="{OnPlatform WinUI=false}" 
-                                                                        HeightRequest="120" WidthRequest="130" Text="S"
-                                                                        BorderWidth="0" CornerRadius="10"/>
-                                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
-                                                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong" 
-                                                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
-                                                                     CommandParameter="{Binding TemporarilyPickedSong}">
-                                                            <ImageButton.Source>
-                                                                <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
-                                                            </ImageButton.Source>
-                                                        </ImageButton>
-
-                                                    </HorizontalStackLayout>
-
+                                                   
                                                 </VerticalStackLayout>
                                         </Grid>
 
-                                        <Grid RowDefinitions="Auto,*" Grid.Row="1">
+                                        <Grid RowDefinitions="Auto,*" Grid.Row="1" >
                                             <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center"
                                                                    Spacing="10">
 
-                                                <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"                                                                              
-                                                                              StrokeThickness="1" BackgroundColor="#111111" 
+                                                <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"
+                                                                              StrokeThickness="1" BackgroundColor="#111111" WidthRequest="{OnPlatform WinUI=400}"
                                                                           Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}"
                                                     ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
                                                     <chart:SfSegmentedControl.TextStyle>
@@ -316,7 +314,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                     </chart:SfSegmentedControl.TextStyle>
                                                 </chart:SfSegmentedControl>
 
-                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="10" HorizontalOptions="End">
                                                     <DatePicker  x:Name="dailyDateFilter" 
                                                                                />
                                                     <material:CheckBox LabelPosition="After" Text="View Chart"

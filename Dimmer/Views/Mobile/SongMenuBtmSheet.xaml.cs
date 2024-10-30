@@ -101,10 +101,19 @@ private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
         this.DismissAsync();
     }
 
+    private async void GoToNowPlayingPage_Tapped(object sender, EventArgs e)
+    {
+        await HomePageVM.NavToNowPlayingPage(HomePageVM.SelectedSongToOpenBtmSheet);
+        await this.DismissAsync();
+    }
     private async void GoToArtistAndDismiss_Tapped(object sender, EventArgs e)
     {
         await this.DismissAsync();
         await HomePageVM.NavigateToArtistsPage(1);
     }
 
+    private void StatefulContentView_Tapped(object sender, EventArgs e)
+    {
+
+    }
 }

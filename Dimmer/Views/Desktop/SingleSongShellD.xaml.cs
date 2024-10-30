@@ -328,7 +328,9 @@ NoLyricsFoundMsg.AnimateFadeOutBack());
         Lookgif.HeightRequest = 100;
         Lookgif.WidthRequest = 100;
         Lookgif.IsAnimationPlaying = true;
+
         await HomePageVM.FetchLyrics(true);
+
         Lookgif.HeightRequest = 0;
         Lookgif.WidthRequest = 0;
         await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),

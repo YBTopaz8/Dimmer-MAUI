@@ -56,4 +56,9 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         await this.AnimateFocusModePointerExited(endScale:1);
     }
+
+    private async void NavToNowPlayingPage_Tapped(object sender, TappedEventArgs e)
+    {
+        await vm.NavToNowPlayingPage(vm.TemporarilyPickedSong);
+    }
 }

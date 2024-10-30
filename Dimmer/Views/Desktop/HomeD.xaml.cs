@@ -171,10 +171,10 @@ public partial class HomeD : UraniumContentPage
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
     {
         base.OnNavigatingFrom(args);
-        if (!isPointerEntered)
-        {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
-        }
+        //if (!isPointerEntered)
+        //{
+        //    HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        //}
     }
 
     private async void MenuFlyoutItem_Clicked_1(object sender, EventArgs e)
@@ -394,4 +394,8 @@ public partial class HomeD : UraniumContentPage
         await MainBody.AnimateFadeInFront();
     }
 
+    private async void GoToSongOverviewClicked(object sender, EventArgs e)
+    {
+        await HomePageVM.NavToNowPlayingPage(HomePageVM.SelectedSongToOpenBtmSheet);
+    }
 }

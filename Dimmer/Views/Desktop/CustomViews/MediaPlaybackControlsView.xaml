@@ -62,9 +62,11 @@
             </Grid.ColumnDefinitions>
             <HorizontalStackLayout Grid.Column="0" Spacing="5" BackgroundColor="Transparent">
                 <HorizontalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavToNowPlayingPageCommand}" CommandParameter="{Binding TemporarilyPickedSong}"/>
+                    <TapGestureRecognizer 
+                        Tapped="NavToNowPlayingPage_Tapped"/>
                 </HorizontalStackLayout.GestureRecognizers>
                 <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                                    Text="{Binding TemporarilyPickedSong.Title}"
                                 WidthRequest="95" HeightRequest="95" Margin="2,0,0,0"
                                     BorderWidth="0" CornerRadius="8">
                 </toolkit:AvatarView>

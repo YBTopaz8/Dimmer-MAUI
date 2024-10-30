@@ -30,15 +30,11 @@ public partial class SingleSongShell : UraniumContentPage
         HomePageVM.CurrentViewIndex = 0;
         emptyV.IsVisible = false;
 
-        Shell.SetTabBarIsVisible(this, false);
-        Shell.SetNavBarIsVisible(this, false);
     }
 
 
     protected override void OnDisappearing()
     {
-        Shell.SetNavBarIsVisible(this, false);
-        Shell.SetTabBarIsVisible(this, true);
         base.OnDisappearing();
         
         DeviceDisplay.Current.KeepScreenOn = false;

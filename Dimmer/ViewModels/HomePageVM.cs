@@ -241,18 +241,14 @@ public partial class HomePageVM : ObservableObject
         await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
-    [RelayCommand]
-    async Task NavToNowPlayingPage(SongsModelView? song)
+    
+    public async Task NavToNowPlayingPage(SongsModelView? song=null)
     {
 
         if (song != null)
         {
             SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
-            if (song == TemporarilyPickedSong)
-            {
-                SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
-            }
-            else
+            if (song != TemporarilyPickedSong)
             {
                 SynchronizedLyrics?.Clear();
                 SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
@@ -277,7 +273,10 @@ public partial class HomePageVM : ObservableObject
 #endif
     }
 
-
+    partial void OnSelectedSongToOpenBtmSheetChanging(SongsModelView? oldValue, SongsModelView newValue)
+    {
+        Debug.WriteLine("Changing");
+    }
     #region Loadings Region
 
     [ObservableProperty]
@@ -778,6 +777,7 @@ public partial class HomePageVM : ObservableObject
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
+
             }
             else
             {
@@ -792,6 +792,15 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
+    string lyricsSearchSongTitle;
+    [ObservableProperty]
+    string lyricsSearchArtistName;
+    [ObservableProperty]
+    string lyricsSearchAlbumName;
+    [ObservableProperty]
+    bool useManualSearch;
+
+    [ObservableProperty]
     Content[] allSyncLyrics;
     [ObservableProperty]
     bool isFetchSuccessful = true;
@@ -800,14 +809,29 @@ public partial class HomePageVM : ObservableObject
     
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
+        LyricsSearchSongTitle ??= TemporarilyPickedSong.Title;
+        LyricsSearchArtistName ??= TemporarilyPickedSong.ArtistName;
+        LyricsSearchAlbumName ??= TemporarilyPickedSong.AlbumName;
+
+        List<string> manualSearchFields =
+        [
+            LyricsSearchAlbumName,
+            LyricsSearchArtistName,
+            LyricsSearchSongTitle,
+        ];
+
+        //if (fromUI || SynchronizedLyrics?.Count < 1)
+        //{
+        AllSyncLyrics = Array.Empty<Content>();
+        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true,manualSearchFields);
         
-        if (fromUI || SynchronizedLyrics?.Count < 1)
-        {
-            AllSyncLyrics = Array.Empty<Content>();
-            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);
-        }
-        
-        await Task.Delay(1000);
+        AllSyncLyrics = result.contentData;
+    
+        IsFetchSuccessful = result.IsSuccessful;
+        LyricsSearchSongTitle = null;
+        LyricsSearchArtistName = null;
+        LyricsSearchAlbumName = null;
+
         return IsFetchSuccessful;
     }
 
@@ -833,29 +857,7 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    [ObservableProperty]
-    string songTitle;
-    [ObservableProperty]
-    string artistName;
-    [ObservableProperty]
-    string albumName;
-    [ObservableProperty]
-    bool useManualSearch;
-    [RelayCommand]
-    async Task UseManualLyricsSearch()
-    {
-        AllSyncLyrics = Array.Empty<Content>();
-        List<string> manualSearchFields = new List<string>();
-        manualSearchFields.Add(SongTitle);
-        manualSearchFields.Add(ArtistName);
-        manualSearchFields.Add(AlbumName);
-
-        (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true, manualSearchFields);
-        if (!IsFetchSuccessful)
-        {
-            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong, true, manualSearchFields);
-        }
-    }
+       
 
     public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
     {
@@ -1139,7 +1141,8 @@ public partial class HomePageVM : ObservableObject
     {
         if (obj is not null)
         {
-            TemporarilyPickedSong.Rating = (int)obj.Value;
+            SelectedSongToOpenBtmSheet.Rating = (int)obj.Value;
+            
             SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
         }
     }

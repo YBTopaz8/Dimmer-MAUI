@@ -376,7 +376,7 @@ public class LyricsService : ILyricsService
     public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.8 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.1.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
         try
         {
@@ -419,18 +419,16 @@ public class LyricsService : ILyricsService
     async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongsModelView song, HttpClient client, List<string>? manualSearchFields = null)
     {
         string url;
-        if (manualSearchFields is null || manualSearchFields.Count < 1)
-        {
-            // Construct the URL with query parameters
-            string artistName = Uri.EscapeDataString(song.ArtistName);
-            string trackName = Uri.EscapeDataString(song.Title);
-            url = $"https://lrclib.net/api/search?artist_name={artistName}&track_name={trackName}";
-        }
-        else
-        {
-            url = $"https://lrclib.net/api/search?artist_name={Uri.EscapeDataString(manualSearchFields[1])}&track_name={Uri.EscapeDataString(manualSearchFields[0])}";
-        }
 
+        // Construct the URL with query parameters
+        string artistName = manualSearchFields[1].Split(',')[0].Trim();
+        artistName = Uri.EscapeDataString(artistName);
+        string trackName = Uri.EscapeDataString(manualSearchFields[2]);
+        
+        
+                 
+        url = $"https://lrclib.net/api/search?artist_name={artistName}&track_name={trackName}";
+        
         // Send the GET request
         HttpResponseMessage response = await client.GetAsync(url);
         response.EnsureSuccessStatusCode(); // Throw if not a success code
@@ -443,9 +441,7 @@ public class LyricsService : ILyricsService
             {
                 return JsonSerializer.Deserialize<Content[]>(content);
             }
-            url = $"https://lrclib.net/api/search?q={Uri.EscapeDataString(manualSearchFields[1])}";
-            response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+          
             // Read the response content
             content = await response.Content.ReadAsStringAsync();
         }
@@ -642,7 +638,11 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
         {            
             return false;
         }
-        songObj.UnSyncLyrics = Lyrics;
+        if (!IsSynched)
+        {
+            songObj.UnSyncLyrics = Lyrics;
+        }
+        songObj.UnSyncLyrics=string.Empty;
         songObj.HasLyrics = !IsSynched;
         songObj.HasSyncedLyrics = IsSynched;
         if (PlayBackService.CurrentQueue != 2)
