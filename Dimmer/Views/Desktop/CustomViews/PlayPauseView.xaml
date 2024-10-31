@@ -24,7 +24,7 @@
                          HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
-                    <FontImageSource Size="50" Glyph="{x:Static m:MaterialRounded.Play_circle_filled}"/>
+                    <FontImageSource Size="50" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -34,7 +34,7 @@
 
                 <ImageButton.Source>
                     <FontImageSource Size="50"
-                     Glyph="{x:Static m:MaterialRounded.Pause_circle_outline}"/>
+                     FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                 </ImageButton.Source>
             </ImageButton>
 

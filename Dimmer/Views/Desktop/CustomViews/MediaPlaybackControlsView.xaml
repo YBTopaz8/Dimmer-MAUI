@@ -83,7 +83,7 @@
                 <!--<ImageButton HeightRequest="40" BackgroundColor="Transparent"
              Command="{Binding AddSongToFavoritesCommand}" CommandParameter="{Binding TemporarilyPickedSong}">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                     </ImageButton.Source>
                 </ImageButton>-->
             </HorizontalStackLayout>
@@ -96,7 +96,7 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{Binding RepeatModeImage}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -105,7 +105,7 @@
                     <ImageButton Command="{Binding PlayPreviousSongCommand}"
                     ToolTipProperties.Text="Play Previous">
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
@@ -117,7 +117,7 @@
                     <ImageButton Command="{Binding PlayNextSongCommand}"
                                  ToolTipProperties.Text="Play Next" >
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -128,7 +128,7 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{Binding ShuffleOnOffImage}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding ShuffleOnOffImage}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -145,7 +145,7 @@
                     <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
                                  HorizontalOptions="End">
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Timer}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>

@@ -24,12 +24,14 @@ public static class MauiProgram
             
             .ConfigureFonts(fonts =>
             {
+                
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
                 fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
             });
+
 
 #if WINDOWS || Debug
 		builder.Logging.AddDebug();
@@ -156,6 +158,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<SpecificAlbumPage>();
         builder.Services.AddSingleton<AlbumPageM>();
         builder.Services.AddSingleton<ShareSongPage>();
+        builder.Services.AddSingleton<NowPlayingPage>();
+
 
         return builder.Build();
     }

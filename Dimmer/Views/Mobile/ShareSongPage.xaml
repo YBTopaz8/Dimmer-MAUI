@@ -28,7 +28,7 @@
             <HorizontalStackLayout VerticalOptions="End">
                 <Image>
                     <Image.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Play_circle_filled}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                     </Image.Source>
                 </Image>
                 <Label Text="Dimmer" VerticalOptions="Center" FontSize="22"

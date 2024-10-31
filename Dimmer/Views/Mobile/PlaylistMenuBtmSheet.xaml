@@ -32,7 +32,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Play_circle_filled}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Play Playlist"/>
@@ -43,7 +43,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Drive_file_rename_outline}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Drive_file_rename_outline}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Rename Playlist"/>
@@ -57,7 +57,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Delete}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Delete Playlist"/>

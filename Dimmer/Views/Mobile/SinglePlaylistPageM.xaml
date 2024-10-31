@@ -70,7 +70,7 @@ x:Name="SongsColView">
                                 <cm:ContextMenuContainer.Content>
                                     <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
                                         <ImageButton.Source>
-                                            <FontImageSource Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
 

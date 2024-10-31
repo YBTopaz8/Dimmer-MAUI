@@ -49,7 +49,7 @@
             <HorizontalStackLayout Spacing="5">
                 <ImageButton Command="{Binding PlayPreviousSongCommand}">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
@@ -57,7 +57,7 @@
                 
                 <ImageButton Command="{Binding PlayNextSongCommand}">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>

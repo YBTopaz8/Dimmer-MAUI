@@ -215,7 +215,7 @@ public partial class HomePageVM : ObservableObject
                             PickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
-                            PlayPauseIcon = MaterialRounded.Pause;
+                            PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
                             //PickedSong = "Stopped";

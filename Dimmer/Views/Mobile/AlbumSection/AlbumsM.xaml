@@ -37,13 +37,13 @@
             <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                   Grid.Column="1">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
                 </ImageButton.Source>
             </ImageButton>
             <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30"
                   Grid.Column="2">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Refresh}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Refresh}"/>
                 </ImageButton.Source>
             </ImageButton>
 

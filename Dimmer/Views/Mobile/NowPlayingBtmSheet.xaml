@@ -53,7 +53,7 @@
                 <HorizontalStackLayout Spacing="5">
                     <ImageButton Command="{Binding PlayPreviousSongCommand}">
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
@@ -64,36 +64,21 @@
                         <dx:RadialProgressBar.GestureRecognizers>
                             <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
                         </dx:RadialProgressBar.GestureRecognizers>
-                        <dx:RadialProgressBar.ContentTemplate>
-                            <DataTemplate x:DataType="vm:HomePageVM">
-                                <VerticalStackLayout BackgroundColor="Transparent">
-                                    <!--<dx:DXImage 
-                                        IsVisible="{Binding IsPlaying, ConverterParameter='playbtn'}">
-                                        <Image.Source>
-                                            <FontImageSource Size="50"
-                             
-                             Glyph="{x:Static m:MaterialRounded.System_update}"/>
-                                        </Image.Source>
-                                    </dx:DXImage>-->
-                                    <dx:DXImage 
-                                        IsVisible="True">
-                                        <!--IsVisible="{Binding IsPlaying, ConverterParameter='pausebtn', Converter={StaticResource BoolToInverse}}">-->
-                                        <Image.Source>
-                                            <FontImageSource Size="50"
-                             Glyph="{x:Static m:MaterialRounded.Play_arrow}"/>
-                                        </Image.Source>
-                                    </dx:DXImage>
-
-
-
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </dx:RadialProgressBar.ContentTemplate>
+                        <dx:RadialProgressBar.Content>
+                            <dx:DXImage >
+                                <Image.Source>
+                                    <FontImageSource Size="50"
+                         FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
+                                </Image.Source>
+                            </dx:DXImage>
+                        </dx:RadialProgressBar.Content>
+                        
                     </dx:RadialProgressBar>
 
                     <ImageButton Command="{Binding PlayNextSongCommand}" IsVisible="True">
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                            
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </HorizontalStackLayout>
@@ -161,13 +146,13 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{Binding RepeatModeImage}" Color="#B8B8B8"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}" Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
                     <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
                                  WidthRequest="70" HeightRequest="70" >
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"
                                       Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
@@ -179,7 +164,7 @@
                                      HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Play_circle_filled}"
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"
                                           Color="DarkSlateBlue"/>
                             </ImageButton.Source>
                         </ImageButton>
@@ -189,7 +174,7 @@
                                      HeightRequest="{OnPlatform Android=90}" WidthRequest="{OnPlatform Android=90}">
 
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Pause_circle_filled}"
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"
                                           Color="DarkSlateBlue"/>
                             </ImageButton.Source>
                         </ImageButton>
@@ -200,7 +185,7 @@
                     
                     <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"
                                       Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
@@ -210,7 +195,7 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{Binding ShuffleOnOffImage}"
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding ShuffleOnOffImage}"
                                       Color="#B8B8B8"/>
                         </ImageButton.Source>
                     </ImageButton>
@@ -225,7 +210,7 @@
 
                     <ImageButton Command="{Binding ShowSleepTimerPopupCommand}" >
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Timer}"
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"
                                              />
                         </ImageButton.Source>
                     </ImageButton>
@@ -242,12 +227,12 @@
 
                         <ImageButton Command="{Binding FetchSongCoverImageCommand}" HeightRequest="40">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Image}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <ImageButton Clicked="ShowLyricsPage_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <ImageButton BackgroundColor="Transparent" 
@@ -256,7 +241,7 @@
                             <ImageButton.Source>
                                 <FontImageSource 
                                                  Size="40"
-                                                 Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                                 FontFamily="MaterialRounded" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <cm:ContextMenuContainer>
@@ -271,7 +256,7 @@
                                     <ImageButton.Source>
                                         <FontImageSource 
                                                          Size="40"
-                                                         Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                                                         FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                             </cm:ContextMenuContainer.Content>

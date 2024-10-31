@@ -100,7 +100,7 @@
 
                         <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
                             <Image.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
                             </Image.Source>
                         </Image>
 
@@ -108,7 +108,7 @@
                         <ImageButton HeightRequest="45" HorizontalOptions="Center"
                                  Clicked="ToggleFocusModeClicked">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
                             </ImageButton.Source>
                         </ImageButton>
 
@@ -137,7 +137,7 @@
 
                             <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource Glyph="{Static m:MaterialRounded.Lyrics}"/>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
@@ -196,7 +196,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                             <chart:SfTabItem Header="Fetch Lyrics">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource Glyph="{Static m:MaterialRounded.Wifi}"/>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid Margin="5,5" RowDefinitions="Auto, *">
@@ -283,7 +283,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                             <chart:SfTabItem Header="Stats">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource Glyph="{Static m:MaterialRounded.Bar_chart}"/>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid RowDefinitions="Auto,*" Margin="8,5">
@@ -504,14 +504,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                   PointerReleased="PointerGestureRecognizer_PointerReleased"/>
                 </ImageButton.GestureRecognizers>
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                 </ImageButton.Source>
             </ImageButton>
 
             <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
                              x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -546,7 +546,7 @@ FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
                 <ImageButton HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleFocusModeClicked">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
                     </ImageButton.Source>
                 </ImageButton>
             </VerticalStackLayout>

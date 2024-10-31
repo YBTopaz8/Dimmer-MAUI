@@ -207,7 +207,7 @@
                     <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
                                  ToolTipProperties.Text="Show All Artist Songs">
                         <ImageButton.Source>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </FlexLayout>
@@ -260,7 +260,7 @@
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                 <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                     <Image.Source>
-                                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
                                     </Image.Source>
                                 </Image>
                             </VerticalStackLayout>

@@ -46,7 +46,7 @@
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" 
                                      Clicked="ShareStatBtn_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Share}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>
@@ -160,7 +160,7 @@
                                 <ImageButton WidthRequest="25" HeightRequest="25" IsVisible="True"
                                              Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding Song}">
                                     <ImageButton.Source>
-                                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                             </VerticalStackLayout>

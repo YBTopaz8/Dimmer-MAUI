@@ -65,7 +65,7 @@
                                  Padding="0" IconPlacement="Right"
                                  x:Name="SingleSongStateFullContent" ButtonType="ToolButton">
                         <dx:DXButton.Icon>
-                            <FontImageSource Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                         </dx:DXButton.Icon>
 
                         <VerticalStackLayout>
@@ -75,7 +75,7 @@
                                          WidthRequest="20" HorizontalOptions="Center"
 >
                                 <Image.Source>
-                                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
                                 </Image.Source>
                             </Image>
                         </VerticalStackLayout>
@@ -89,7 +89,43 @@
         <DataTemplate x:Key="filteringUIFromHomeSongsColView">
             <dx:DXScrollView BackgroundColor="Black">
                 <VerticalStackLayout>
-                    <Label Text="test"/>
+                    <!-- Favorite Filter (Toggle) -->
+                    <dx:FilterCheckItem Text="Favorite" FieldName="IsFavorite"/>
+
+                    <!-- Title Filter (Text Input) -->
+                    <!--<dx:filter FilterTextInputItem FieldName="Title" Placeholder="Search by Title"/>-->
+
+                    <!-- Artist Filter (Picker) -->
+                    <dx:FilterRadioListPickerItem FieldName="ArtistName" ShowValuesOutOfFilter="true">
+                        <dx:FilterRadioListPickerItem.PickerTitleView>
+                            <Label Text="Artist"/>
+                        </dx:FilterRadioListPickerItem.PickerTitleView>
+                    </dx:FilterRadioListPickerItem>
+
+                    <!-- Album Name Filter (Text Input) -->
+
+                    <!-- Genre Filter (Chip Group) -->
+                    <dx:FilterChipGroupItem Text="Genre" FieldName="Genre"/>
+
+                    <!-- Duration Filter (Slider Range) -->
+                    <!--<dx:FilterNumericRangeItem Text="Duration" FieldName="DurationInSeconds" EditorDisplayFormat="N0" 
+                                               Min="0" 
+                                               Max="{Binding DurationInSeconds}"/>-->
+
+                    <!-- Rating Filter (Chip Group for 1 to 5 Stars) -->
+                    <dx:FilterChipGroupItem Text="Rating" FieldName="Rating" AllowDeselect="True" />
+
+                    <!-- Release Year Filter (Chip Group) -->
+                    <dx:FilterChipGroupItem Text="Release Year" FieldName="ReleaseYear"/>
+
+                    <!-- File Format Filter (Chip Group) -->
+                    <dx:FilterChipGroupItem Text="File Format" FieldName="FileFormat"/>
+
+                    <!-- File Size Filter (Slider Range) -->
+                    <!--
+                    <dx:FilterNumericRangeItem Text="File Size" FieldName="FileSize" EditorDisplayFormat="N0" 
+                                               
+                                               Min="1" Max="{Binding MaxFileSize}"/>-->
                 </VerticalStackLayout>
             </dx:DXScrollView>
         </DataTemplate>
@@ -122,23 +158,23 @@
                      HeightRequest="30"
                      Grid.Column="1">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Close}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Close}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </Grid>
 
             <!-- HorizontalStackLayout at the extreme right -->
             <HorizontalStackLayout Grid.Column="2" HorizontalOptions="End">
-                <ImageButton HeightRequest="35" Command="{Binding OpenSortingPopupCommand}">
+                <ImageButton HeightRequest="35" Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
                 <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
                      HeightRequest="35">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Settings}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>
@@ -177,7 +213,7 @@
                         <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
                     </ImageButton.GestureRecognizers>
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Search}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
@@ -189,7 +225,7 @@
                         <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
                     </ImageButton.GestureRecognizers>
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Center_focus_strong}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Center_focus_strong}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </VerticalStackLayout>
@@ -202,7 +238,7 @@
                     <ImageButton Clicked="CancelMultiSelect_Clicked" 
                                  >
                         <ImageButton.Source>
-                            <FontImageSource Size="45" Glyph="{x:Static m:MaterialRounded.Arrow_back}"/>
+                            <FontImageSource Size="45" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_back}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -212,7 +248,7 @@
                              >
                         <ImageButton.Source>
                             <FontImageSource Size="45"
-                                             Glyph="{x:Static m:MaterialRounded.Delete_forever}"/>
+                                             FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever}"/>
                             </ImageButton.Source>
                         <ImageButton.CommandParameter>
                             <x:Int32>0</x:Int32>
@@ -230,13 +266,9 @@
                 
         </Grid>
 
-        <dx:DXPopup x:Name="songsMenuPopup"
-                        IsOpen="False"
-                        AllowScrim="True"  
-                        ScrimColor="DarkSlateBlue"
-                        WidthRequest="100"
-                        CloseOnScrimTap="True"     
-                        VerticalAlignment="Center">
+        <dx:BottomSheet x:Name="songsMenuBtm" AllowedState="HalfExpanded"
+                        AllowDismiss="True"
+                        ShowGrabber="False">
             <VerticalStackLayout>
                 <VerticalStackLayout.Resources>
                     <ResourceDictionary>
@@ -264,53 +296,53 @@ LineBreakMode="TailTruncation" />
                 <dx:DXButton Content="Set Play Repeat Count"
                                  Command="{Binding OpenRepeatSetterPopupCommand}">
                     <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Play_circle_outline}" />
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}" />
                     </dx:DXButton.Icon>
                 </dx:DXButton>
                 <dx:DXButton Content="Add to Playlist**">
                     <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Playlist_add}" />
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Playlist_add}" />
                     </dx:DXButton.Icon>
                 </dx:DXButton>
                 <dx:DXButton Content="Go to Album" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
                                  Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}">
                     <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Album}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Song Info" 
-                                 Command="{Binding OpenViewSongDetailsPopupCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Person}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Share" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding NavigateToShareStoryPageCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Edit}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Delete" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding DeleteFileCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Album}" />
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}" />
                     </dx:DXButton.Icon>
                 </dx:DXButton>
                 <dx:DXButton Content="Go to Artist" 
                                  Command="{Binding NavigateToArtistsPageCommand}">
                     <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Person}" />
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
                     </dx:DXButton.Icon>
                 </dx:DXButton>
-                <dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                <dx:DXButton Content="Song Info" 
+                                 Command="{Binding OpenViewSongDetailsPopupCommand}">
+                    <dx:DXButton.Icon>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
+                    </dx:DXButton.Icon>
+                </dx:DXButton>
+                <dx:DXButton Content="Share" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                                 Command="{Binding NavigateToShareStoryPageCommand}">
+                    <dx:DXButton.Icon>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}" />
+                    </dx:DXButton.Icon>
+                </dx:DXButton>
+                <dx:DXButton Content="Delete" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                                 Command="{Binding DeleteFileCommand}">
+                    <dx:DXButton.Icon>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}" />
+                    </dx:DXButton.Icon>
+                </dx:DXButton>
+                <!--<dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
                                  Command="{Binding OpenEditSongPopupCommand}">
                     <dx:DXButton.Icon>
-                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Edit}" />
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.}" />
                     </dx:DXButton.Icon>
-                </dx:DXButton>
+                </dx:DXButton>-->
             </VerticalStackLayout>
 
-        </dx:DXPopup>
+        </dx:BottomSheet>
     </toolkit:DockLayout>
 
   

@@ -16,7 +16,7 @@
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar">
         <Tab Title="Home" x:Name="homeTab">
             <Tab.Icon>
-                <FontImageSource Glyph="{x:Static m:MaterialRounded.Music_note}"/>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Music_note}"/>
             </Tab.Icon>
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:HomeD}"
@@ -26,14 +26,14 @@
 
         <Tab Title="Artists" x:Name="albumTab">
             <Tab.Icon>
-                <FontImageSource Glyph="{x:Static m:MaterialRounded.Person}"/>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
             </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
 
         <Tab Title="Playlists" x:Name="playlistsTab">
             <Tab.Icon>
-                <FontImageSource Glyph="{x:Static m:MaterialRounded.Queue_music}"/>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Queue_music}"/>
             </Tab.Icon>
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
@@ -42,7 +42,7 @@
         </Tab>
         <Tab Title="Stats" x:Name="statsTab">
             <Tab.Icon>
-                <FontImageSource Glyph="{x:Static m:MaterialRounded.Show_chart}"/>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Show_chart}"/>
             </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
                 Route="StatsD"/>

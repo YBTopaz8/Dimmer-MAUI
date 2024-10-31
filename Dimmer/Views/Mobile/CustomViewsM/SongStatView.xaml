@@ -33,13 +33,13 @@
                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
                             CommandParameter="{Binding TemporarilyPickedSong}">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Favorite_border}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Favorite}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" IsVisible="{OnPlatform WinUI=false}"
                             Clicked="ShareStatBtn_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Share}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </HorizontalStackLayout>

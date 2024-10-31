@@ -54,7 +54,7 @@
                                          WidthRequest="30" HorizontalOptions="Center" 
                                          Command="{Binding BindingContext.OpenPlaylistMenuBtmSheetCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
                                 <ImageButton.Source>
-                                    <FontImageSource Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                                 </ImageButton.Source>
                             </ImageButton>
 

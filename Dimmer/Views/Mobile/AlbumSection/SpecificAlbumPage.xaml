@@ -37,7 +37,7 @@
             <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                   Grid.Column="1">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
                 </ImageButton.Source>
             </ImageButton>
             <!-- Adjust margin to give some spacing from the right -->
@@ -56,7 +56,7 @@
                     <HorizontalStackLayout Spacing="5">
                         <Image>
                             <Image.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Music_note}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Music_note}"/>
                             </Image.Source>
                         </Image>
                         <Label Text="{Binding SelectedAlbumOnArtistPage.NumberOfTracks, StringFormat='{0} Track(s)'}"
@@ -65,7 +65,7 @@
                     <HorizontalStackLayout Spacing="5">
                         <Image>
                             <Image.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Person_3}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person_3}"/>
                             </Image.Source>
                         </Image>
                         <Label Text="{Binding SelectedArtistOnArtistPage.Name}" VerticalTextAlignment="Center"/>
@@ -73,7 +73,7 @@
                     <HorizontalStackLayout Spacing="5">
                         <Image>
                             <Image.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Access_time}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Artist}"/>
                             </Image.Source>
                         </Image>
                         <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" VerticalTextAlignment="Center"/>
@@ -139,7 +139,7 @@
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                         <Image.Source>
-                                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
                                         </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>

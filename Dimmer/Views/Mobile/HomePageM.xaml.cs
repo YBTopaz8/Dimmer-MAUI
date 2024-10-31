@@ -260,11 +260,13 @@ public partial class HomePageM : UraniumContentPage
         }
     }
 
-    private void SingleSongStateFullContent_Clicked(object sender, EventArgs e)
+    private async void SingleSongStateFullContent_Clicked(object sender, EventArgs e)
     {
-        songsMenuPopup.PlacementTarget = (View)this.Content;
-        songsMenuPopup.Placement = DevExpress.Maui.Core.Placement.Bottom;
-        songsMenuPopup.IsOpen = !songsMenuPopup.IsOpen;
+        await Shell.Current.GoToAsync(nameof(NowPlayingPage), true);
+        //songsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.HalfExpanded;
+        //songsMenuPopup.PlacementTarget = (View)this.Content;
+        //songsMenuPopup.Placement = DevExpress.Maui.Core.Placement.Bottom;
+        //songsMenuPopup.IsOpen = !songsMenuPopup.IsOpen;
 
     }
 
@@ -281,6 +283,6 @@ public partial class HomePageM : UraniumContentPage
 
     private void SongsColView_FilteringUIFormShowing(object sender, DevExpress.Maui.Core.FilteringUIFormShowingEventArgs e)
     {
-
+        
     }
 }

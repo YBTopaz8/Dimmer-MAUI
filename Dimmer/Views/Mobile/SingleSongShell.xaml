@@ -49,7 +49,7 @@
 
                 <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource Glyph="{Static m:MaterialRounded.Lyrics}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
@@ -100,7 +100,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                 <chart:SfTabItem Header="Fetch Lyrics">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource Glyph="{Static m:MaterialRounded.Wifi}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid Margin="5,5" RowDefinitions="Auto, *">
@@ -183,7 +183,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                 <chart:SfTabItem Header="Stats">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource Glyph="{Static m:MaterialRounded.Bar_chart}"/>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid RowDefinitions="Auto,*" Margin="8,5" >
@@ -220,7 +220,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                  Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
                                  CommandParameter="{Binding TemporarilyPickedSong}">
                                         <ImageButton.Source>
-                                            <FontImageSource Size="25" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                            <FontImageSource Size="25" FontFamily="MaterialRounded" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
 

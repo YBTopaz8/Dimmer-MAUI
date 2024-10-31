@@ -89,7 +89,7 @@
                         <ImageButton WidthRequest="25" HeightRequest="25"
              Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding SongPickedForStats.Song}">
                             <ImageButton.Source>
-                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>

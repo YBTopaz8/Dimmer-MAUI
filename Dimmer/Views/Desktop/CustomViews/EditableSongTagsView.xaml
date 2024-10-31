@@ -77,13 +77,13 @@
                                 <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
                                                 WidthRequest="20" BackgroundColor="Transparent">
                                     <ImageButton.Source>
-                                        <FontImageSource Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialSharp.Delete}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                                 <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
                                                 WidthRequest="20" BackgroundColor="Transparent">
                                     <ImageButton.Source>
-                                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Timer}"/>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
 
