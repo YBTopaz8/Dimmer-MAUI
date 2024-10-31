@@ -10,18 +10,18 @@ public class BoolToInverseConverter : IValueConverter
         {
             
             case "playbtn":                
-                if (!vm.IsPlaying)
+                if (!vm.TemporarilyPickedSong.IsPlaying)
                 {
-                    return true;
+                    return false;
                 }
                 else
                 {
                     return false;
                 }
             case "pausebtn":
-                if (!vm.IsPlaying)
+                if (!vm.TemporarilyPickedSong.IsPlaying)
                 {
-                    return false;
+                    return true;
                 }
                 else
                 {

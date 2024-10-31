@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.FullStatsD"
-              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -89,7 +89,7 @@
                         <ImageButton WidthRequest="25" HeightRequest="25"
              Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding SongPickedForStats.Song}">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Bar_chart}"/>
+                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>

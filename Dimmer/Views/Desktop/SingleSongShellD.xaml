@@ -6,7 +6,7 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
@@ -100,7 +100,7 @@
 
                         <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
                             <Image.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
+                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
                             </Image.Source>
                         </Image>
 
@@ -108,7 +108,7 @@
                         <ImageButton HeightRequest="45" HorizontalOptions="Center"
                                  Clicked="ToggleFocusModeClicked">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
+                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
                             </ImageButton.Source>
                         </ImageButton>
 
@@ -137,7 +137,7 @@
 
                             <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                                    <FontImageSource Glyph="{Static m:MaterialRounded.Lyrics}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
@@ -196,7 +196,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                             <chart:SfTabItem Header="Fetch Lyrics">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                                    <FontImageSource Glyph="{Static m:MaterialRounded.Wifi}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid Margin="5,5" RowDefinitions="Auto, *">
@@ -283,7 +283,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                             <chart:SfTabItem Header="Stats">
                                 <chart:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                                    <FontImageSource Glyph="{Static m:MaterialRounded.Bar_chart}"/>
                                 </chart:SfTabItem.ImageSource>
                                 <chart:SfTabItem.Content>
                                     <Grid RowDefinitions="Auto,*" Margin="8,5">
@@ -504,14 +504,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                   PointerReleased="PointerGestureRecognizer_PointerReleased"/>
                 </ImageButton.GestureRecognizers>
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                 </ImageButton.Source>
             </ImageButton>
 
             <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
                              x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -546,7 +546,7 @@ FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
                 <ImageButton HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleFocusModeClicked">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
+                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
                     </ImageButton.Source>
                 </ImageButton>
             </VerticalStackLayout>

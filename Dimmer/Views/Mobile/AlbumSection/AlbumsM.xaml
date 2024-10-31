@@ -6,7 +6,7 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
                             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
@@ -37,13 +37,13 @@
             <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                   Grid.Column="1">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
+                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Sort}"/>
                 </ImageButton.Source>
             </ImageButton>
             <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30"
                   Grid.Column="2">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Refresh}"/>
+                    <FontImageSource Glyph="{x:Static m:MaterialRounded.Refresh}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -74,7 +74,7 @@
 
                                 <!-- Album Image with rounded corners -->
                                 <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
-                    WidthRequest="100" HeightRequest="100"
+                    WidthRequest="100" HeightRequest="100" Text="{Binding Name}"
                     CornerRadius="10" BorderWidth="0"
                     HorizontalOptions="Center" VerticalOptions="Center" />
 

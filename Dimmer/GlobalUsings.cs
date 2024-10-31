@@ -11,7 +11,7 @@ global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 
-global using UraniumUI.Icons.MaterialIcons;
+global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Material.Controls;
 
 global using MongoDB.Bson;
@@ -22,6 +22,11 @@ global using Dimmer_MAUI.MAudioLib;
 
 global using CommunityToolkit.Maui.Core.Platform;
 global using The49.Maui.BottomSheet;
+
+global using Syncfusion.Maui.Toolkit.Hosting;
+global using DevExpress.Maui;
+
+
 
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;

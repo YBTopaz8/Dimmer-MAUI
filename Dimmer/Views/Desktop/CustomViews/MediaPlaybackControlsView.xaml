@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.MediaPlaybackControlsView"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"                          
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
@@ -83,7 +83,7 @@
                 <!--<ImageButton HeightRequest="40" BackgroundColor="Transparent"
              Command="{Binding AddSongToFavoritesCommand}" CommandParameter="{Binding TemporarilyPickedSong}">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                        <FontImageSource Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                     </ImageButton.Source>
                 </ImageButton>-->
             </HorizontalStackLayout>
@@ -96,7 +96,7 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
+                            <FontImageSource Glyph="{Binding RepeatModeImage}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -105,7 +105,7 @@
                     <ImageButton Command="{Binding PlayPreviousSongCommand}"
                     ToolTipProperties.Text="Play Previous">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
+                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
@@ -117,7 +117,7 @@
                     <ImageButton Command="{Binding PlayNextSongCommand}"
                                  ToolTipProperties.Text="Play Next" >
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
+                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -128,7 +128,7 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding ShuffleOnOffImage}"/>
+                            <FontImageSource Glyph="{Binding ShuffleOnOffImage}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>
@@ -145,7 +145,7 @@
                     <ImageButton Command="{Binding ShowSleepTimerPopupCommand}"
                                  HorizontalOptions="End">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
+                            <FontImageSource Glyph="{x:Static m:MaterialRounded.Timer}"/>
                         </ImageButton.Source>
                     </ImageButton>
                 </Border>

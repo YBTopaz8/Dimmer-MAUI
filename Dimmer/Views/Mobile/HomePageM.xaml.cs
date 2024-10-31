@@ -20,8 +20,8 @@ public partial class HomePageM : UraniumContentPage
     }
 
     private void SongsColView_Loaded(object? sender, EventArgs e)
-    {
-        SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+    {        
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
     }
 
     public HomePageVM HomePageVM { get; }
@@ -30,7 +30,7 @@ public partial class HomePageM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
-        HomePageVM.AssignCV(SongsColView);
+        //HomePageVM.AssignCV(SongsColView);
 #if ANDROID
             PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
         Shell.SetNavBarIsVisible(this, false);
@@ -54,7 +54,8 @@ public partial class HomePageM : UraniumContentPage
         {
             HideSearchView_Clicked(sender, e);
         }
-        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+        
     }
 
     private void SpecificSong_Tapped(object sender, TappedEventArgs e)
@@ -69,12 +70,14 @@ public partial class HomePageM : UraniumContentPage
     {
         if(currentSelectionMode == SelectionMode.Multiple)
         {
-            HomePageVM.HandleMultiSelect(SongsColView, e);
+            //HomePageVM.HandleMultiSelect(SongsColView, e);
             return;
         }
         if (SongsColView.IsLoaded)
         {
-            SongsColView.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+
+            
         }
     }
 
@@ -93,25 +96,25 @@ public partial class HomePageM : UraniumContentPage
         SearchSongSB.Unfocus();
         searchSongTextField = SearchSongSB.Content as EntryView;
         _ = await searchSongTextField!.HideKeyboardAsync();
-        SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+
+        
     }
 
     private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
     {
         if (SongsColView.IsLoaded)
         {
-            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
-            var lItem = col.First();
-            SongsColView.ScrollTo(lItem, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(0);
         }
     }
     private void SwipeGestureRecognizer_SwipedDown(object sender, SwipedEventArgs e)
     {
         if (SongsColView.IsLoaded)
-        {
+        {            
             var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
             var fItem = col.Last();
-            SongsColView.ScrollTo(fItem, ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(SongsColView.FindItemHandle(fItem), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
         }
     }
 
@@ -128,9 +131,8 @@ public partial class HomePageM : UraniumContentPage
         }
         if (SongsColView.SelectionMode == SelectionMode.Multiple)
         {
-            SongsColView.SelectionMode = SelectionMode.Single;
-            SongsColView.SelectedItems.Clear();
-            HomePageVM.HandleMultiSelect(SongsColView);
+            SongsColView.SelectionMode = SelectionMode.Single;            
+            //HomePageVM.HandleMultiSelect(SongsColView);
             NormalMiniUtilFABs.IsVisible = true;
             MultiSelectMiniUtilFABs.IsVisible = false;
             HomePageVM.EnableContextMenuItems = true;
@@ -151,7 +153,7 @@ public partial class HomePageM : UraniumContentPage
 
         if (sender is StatefulContentView send)
         {
-            SongsColView.SelectedItems.Add(send.CommandParameter);
+            //SongsColView.SelectedItems.Add(send.CommandParameter);
         }
         switch (SongsColView.SelectionMode)
         {
@@ -166,8 +168,7 @@ public partial class HomePageM : UraniumContentPage
                 break;
             case SelectionMode.Multiple:
                 SongsColView.SelectionMode = SelectionMode.Single;
-                SongsColView.SelectedItems.Clear();
-                HomePageVM.HandleMultiSelect(SongsColView);
+                
                 NormalMiniUtilFABs.IsVisible = true;
                 MultiSelectMiniUtilFABs.IsVisible = false;
                 HomePageVM.EnableContextMenuItems = true;
@@ -185,31 +186,7 @@ public partial class HomePageM : UraniumContentPage
     private const int LongPressTime = 500; // in milliseconds
     private bool _isDoubleTap = false;
     private bool _isLongPress = false;
-    private void StatefulContentView_Tapped(object sender, EventArgs e)
-    {
-        var send = (StatefulContentView)sender!;
-        switch (currentSelectionMode)
-        {
-            case SelectionMode.None:
-            case SelectionMode.Single:
-                HomePageVM.OpenSingleSongOptionsBtmSheet((SongsModelView)send.CommandParameter);
-                break;
-            case SelectionMode.Multiple:
-                var song = (SongsModelView)send.CommandParameter;
-
-                if (SongsColView.SelectedItems.Contains(song))
-                {
-                    SongsColView.SelectedItems.Remove(song);
-                }
-                else
-                {
-                    SongsColView.SelectedItems.Add(song);
-                }
-
-                break;
-            default:
-                break;
-        }
+   
 
         //var currentTime = DateTime.Now;
         //var timeSinceLastTap = (currentTime - _lastTapTime).TotalMilliseconds;
@@ -223,7 +200,7 @@ public partial class HomePageM : UraniumContentPage
         
 
         //_lastTapTime = currentTime;
-    }
+    
 
     private void StatefulContentView_LongPressed(object sender, EventArgs e)
     {
@@ -232,31 +209,7 @@ public partial class HomePageM : UraniumContentPage
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        if (SongsColView.SelectionMode != SelectionMode.Multiple)
-        {
 
-            HomePageVM.CurrentQueue = 0;
-            var t = (HorizontalStackLayout)sender;
-            var song = t.BindingContext as SongsModelView;
-            HomePageVM.PlaySongCommand.Execute(song);
-        }
-        else
-        {
-            var send = (HorizontalStackLayout)sender;
-            var song = (SongsModelView)send.BindingContext;
-
-            if (SongsColView.SelectedItems.Contains(song))
-            {
-                SongsColView.SelectedItems.Remove(song);
-                Debug.WriteLine($"Removed: {song.Title}");
-            }
-            else
-            {
-                SongsColView.SelectedItems.Add(song);
-                Debug.WriteLine($"Added: {song.Title}");
-            }
-
-        }
     }
     
 
@@ -274,17 +227,6 @@ public partial class HomePageM : UraniumContentPage
         {
             var send = (View)sender;
             var song = (SongsModelView)send.BindingContext;
-
-            if (SongsColView.SelectedItems.Contains(song))
-            {
-                SongsColView.SelectedItems.Remove(song);
-                Debug.WriteLine($"Removed: {song.Title}");
-            }
-            else
-            {
-                SongsColView.SelectedItems.Add(song);
-                Debug.WriteLine($"Added: {song.Title}");
-            }
 
         }
     }
@@ -310,9 +252,35 @@ public partial class HomePageM : UraniumContentPage
                 await Task.Delay(500);
                 if (SongsColView.IsLoaded)
                 {
-                    SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, ScrollToPosition.Start, animate: false);
+                    SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+
+                    
                 }
             }
         }
+    }
+
+    private void SingleSongStateFullContent_Clicked(object sender, EventArgs e)
+    {
+        songsMenuPopup.PlacementTarget = (View)this.Content;
+        songsMenuPopup.Placement = DevExpress.Maui.Core.Placement.Bottom;
+        songsMenuPopup.IsOpen = !songsMenuPopup.IsOpen;
+
+    }
+
+    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 0;
+        HomePageVM.PlaySongCommand.Execute(e.Item as SongsModelView);
+    }
+
+    private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        SongsColView.SelectionMode = SelectionMode.Multiple;
+    }
+
+    private void SongsColView_FilteringUIFormShowing(object sender, DevExpress.Maui.Core.FilteringUIFormShowingEventArgs e)
+    {
+
     }
 }

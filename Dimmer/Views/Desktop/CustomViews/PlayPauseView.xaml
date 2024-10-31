@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.PlayPauseView"         
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
          xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
          xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
@@ -12,13 +12,19 @@
     </ContentView.Resources>
     <Border VerticalOptions="Center" x:Name="PpView" StrokeShape="RoundRectangle 20"
             Stroke="Transparent">
+      
+          
+        
+        
+        
+        
         <StackLayout BackgroundColor="Transparent">
             <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
                          Clicked="playImgBtn_Clicked" x:Name="playImgBtn" 
                          HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
-                    <FontImageSource Size="50" FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
+                    <FontImageSource Size="50" Glyph="{x:Static m:MaterialRounded.Play_circle_filled}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -27,8 +33,8 @@
                          HeightRequest="50" WidthRequest="50">
 
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRound" Size="50"
-                     Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
+                    <FontImageSource Size="50"
+                     Glyph="{x:Static m:MaterialRounded.Pause_circle_outline}"/>
                 </ImageButton.Source>
             </ImageButton>
 

@@ -1,5 +1,5 @@
 ﻿using Dimmer_MAUI.Views.Desktop.CustomViews;
-using Syncfusion.Maui.Toolkit.Hosting;
+
 namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
@@ -8,6 +8,12 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseDevExpress(useLocalization: false)
+            .UseDevExpressCollectionView()
+            .UseDevExpressControls()
+            .UseDevExpressDataGrid()
+            .UseDevExpressEditors().UseDevExpressGauges()
+
             .UseMauiCommunityToolkit()
             .UseUraniumUI()
             .UseUraniumUIBlurs()
@@ -21,7 +27,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
-                fonts.AddMaterialIconFonts();
+                fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
             });
 
@@ -111,7 +117,7 @@ public static class MauiProgram
         builder.Services.AddSingleton(FileSaver.Default);
 
         builder.Services.AddTransient<NowPlayingBtmSheet>(); //uranium
-        builder.Services.AddSingleton<SongMenuBtmSheet>();
+        //builder.Services.AddSingleton<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
         builder.Services.AddSingleton<IDataBaseService, DataBaseService>();

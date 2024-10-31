@@ -6,7 +6,7 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"        
@@ -49,7 +49,7 @@
 
                 <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                        <FontImageSource Glyph="{Static m:MaterialRounded.Lyrics}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
@@ -100,7 +100,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                 <chart:SfTabItem Header="Fetch Lyrics">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                        <FontImageSource Glyph="{Static m:MaterialRounded.Wifi}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid Margin="5,5" RowDefinitions="Auto, *">
@@ -183,11 +183,11 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                 <chart:SfTabItem Header="Stats">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                        <FontImageSource Glyph="{Static m:MaterialRounded.Bar_chart}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <Grid RowDefinitions="Auto,*" Margin="8,5">
-                            <Grid RowDefinitions="Auto,*,*" Grid.Row="0">
+                        <Grid RowDefinitions="Auto,*" Margin="8,5" >
+                            <Grid RowDefinitions="Auto,*,*" Grid.Row="0" x:DataType="vm:HomePageVM">
 
                                 <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
                                     <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"/>
@@ -198,7 +198,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
                                     <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
-                                                                        IsVisible="{OnPlatform WinUI=false}" 
+                                                                        
                                                                         HeightRequest="120" WidthRequest="130" Text="S"
                                                                         BorderWidth="0" CornerRadius="10"/>
                                     
@@ -209,7 +209,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                     <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
                                                    HorizontalOptions="Center" Command="{Binding RateSongCommand}"
                                                    CommandParameter="{Binding .}" 
-                                                   AllowRating="True" 
+                                                   AllowRating="True" Animate="True" 
                                                    StrokeColor="DarkSlateBlue" 
                                                    Maximum="5" Fill="DarkSlateBlue"
                                                    >
@@ -220,7 +220,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                  Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
                                  CommandParameter="{Binding TemporarilyPickedSong}">
                                         <ImageButton.Source>
-                                            <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                            <FontImageSource Size="25" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
 
@@ -248,7 +248,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                     CheckChanged="ShowHideChart_CheckChanged"/>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
-                                <CollectionView x:Name="DailyStats"
+                                <CollectionView x:Name="DailyStats" x:DataType="vm:HomePageVM"
                                                 Grid.Row="1" ItemsSource="{Binding SongPickedForStats.DailyStats.PlayDates}" 
                                                             
                                                                 HorizontalOptions="Center" SelectionMode="Single" IsVisible="True"
@@ -304,7 +304,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                 </HorizontalStackLayout>
                                             </DataTemplate>
                                         </chart:SfCircularChart.Resources>
-                                        <chart:SfCircularChart.Series>
+                                        <chart:SfCircularChart.Series >
 
                                             <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
                                                                          XBindingPath="LabelForNumberOfCompletedPlays"
@@ -351,7 +351,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                 </CollectionView>
 
                                 <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.MonthlyStats}"
-                                                            x:Name="MonthlyStats"
+                                                            x:Name="MonthlyStats" x:DataType="vm:HomePageVM"
                                                             HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
                                     <CollectionView.Header>
                                         <Grid ColumnDefinitions="*,*" Padding="10,5">
@@ -379,7 +379,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                 </CollectionView>
 
                                 <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.YearlyStats}"
-                                                            x:Name="YearlyStats"
+                                                            x:Name="YearlyStats" x:DataType="vm:HomePageVM"
                                                             HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
                                     <CollectionView.Header>
                                         <Grid ColumnDefinitions="*,*" Padding="10,5">

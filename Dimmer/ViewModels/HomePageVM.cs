@@ -89,7 +89,7 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         LoadSongCoverImage();
-
+        IsPlaying = false;
         //DisplayedPlaylists = PlayBackService.AllPlaylists;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
@@ -200,20 +200,22 @@ public partial class HomePageVM : ObservableObject
                             TemporarilyPickedSong.IsPlaying = true;
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
-                            
+
+                            PlayPauseIcon = MaterialRounded.Pause;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
                             
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                             
                             await FetchSongCoverImage();
-                            
+
                             break;
                         case MediaPlayerState.Paused:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
+                            PlayPauseIcon = MaterialRounded.Pause;
                             break;
                         case MediaPlayerState.Stopped:
                             //PickedSong = "Stopped";
@@ -476,10 +478,10 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    string shuffleOnOffImage = MaterialTwoTone.Shuffle;
+    string shuffleOnOffImage = MaterialRounded.Shuffle;
 
     [ObservableProperty]
-    string repeatModeImage = MaterialTwoTone.Repeat;
+    string repeatModeImage = MaterialRounded.Repeat;
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
@@ -492,14 +494,14 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = MaterialTwoTone.Repeat_on;
+                RepeatModeImage = MaterialRounded.Repeat_on;
                 break;
             case 2:
             case 4:
-                RepeatModeImage = MaterialTwoTone.Repeat_one_on;
+                RepeatModeImage = MaterialRounded.Repeat_one_on;
                 break;
             case 0:
-                RepeatModeImage = MaterialTwoTone.Repeat;
+                RepeatModeImage = MaterialRounded.Repeat;
                 break;
             default:
                 break;
@@ -518,11 +520,11 @@ public partial class HomePageVM : ObservableObject
         }
         if (IsShuffleOn)
         {
-            ShuffleOnOffImage = MaterialTwoTone.Shuffle_on;
+            ShuffleOnOffImage = MaterialRounded.Shuffle_on;
         }
         else
         {
-            ShuffleOnOffImage = MaterialTwoTone.Shuffle;
+            ShuffleOnOffImage = MaterialRounded.Shuffle;
         }
     }
     #endregion
@@ -541,20 +543,20 @@ public partial class HomePageVM : ObservableObject
     }
     
     bool isSongBtmSheetShown;
-    SongMenuBtmSheet songsBtmSheet;
-    public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
-    {
-#if ANDROID
-        if (!isSongBtmSheetShown)
-        {
-            songsBtmSheet = new SongMenuBtmSheet(this, song);
-            SelectedSongToOpenBtmSheet = song;
-            await songsBtmSheet.ShowAsync();
-            songsBtmSheet.Dismissed += SongsBtmSheet_Dismissed;
-            isSongBtmSheetShown = true;
-        }
-#endif
-    }
+    //SongMenuBtmSheet songsBtmSheet;
+//    public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
+//    {
+//#if ANDROID
+//        if (!isSongBtmSheetShown)
+//        {
+//            songsBtmSheet = new SongMenuBtmSheet(this, song);
+//            SelectedSongToOpenBtmSheet = song;
+//            await songsBtmSheet.ShowAsync();
+//            songsBtmSheet.Dismissed += SongsBtmSheet_Dismissed;
+//            isSongBtmSheetShown = true;
+//        }
+//#endif
+//    }
 
     private void SongsBtmSheet_Dismissed(object? sender, DismissOrigin e)
     {
@@ -613,6 +615,8 @@ public partial class HomePageVM : ObservableObject
     private IDisposable _playerStateSubscription;
     [ObservableProperty]
     bool isPlaying = false;
+    [ObservableProperty]
+    string playPauseIcon = MaterialRounded.Play_arrow;
 
     MediaPlayerState CurrentPlayerState;
     public void SetPlayerState(MediaPlayerState? state)
@@ -1141,6 +1145,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (obj is not null)
         {
+
             SelectedSongToOpenBtmSheet.Rating = (int)obj.Value;
             
             SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);

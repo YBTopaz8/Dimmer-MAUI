@@ -8,7 +8,7 @@
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              x:DataType="vm:HomePageVM"
              
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
@@ -46,7 +46,7 @@
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" 
                                      Clicked="ShareStatBtn_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}"/>
+                                <FontImageSource Glyph="{x:Static m:MaterialRounded.Share}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </VerticalStackLayout>
@@ -160,7 +160,7 @@
                                 <ImageButton WidthRequest="25" HeightRequest="25" IsVisible="True"
                                              Command="{Binding BindingContext.NavigateToSingleSongStatsPageCommand, Source={x:Reference myPage} }" CommandParameter="{Binding Song}">
                                     <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Bar_chart}"/>
+                                        <FontImageSource Glyph="{x:Static m:MaterialRounded.Bar_chart}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                             </VerticalStackLayout>

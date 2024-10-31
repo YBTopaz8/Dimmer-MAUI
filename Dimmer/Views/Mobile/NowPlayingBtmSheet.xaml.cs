@@ -64,4 +64,16 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
     {
         ShowLyricsPage_Clicked(sender, e);
     }
+
+    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
+    {
+        if (homePageVM.IsPlaying)
+        {
+            await homePageVM.PauseSong();
+        }
+        else
+        {
+            await homePageVM.ResumeSong();
+        }
+    }
 }

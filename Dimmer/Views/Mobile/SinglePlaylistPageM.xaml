@@ -10,7 +10,7 @@
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             x:DataType="vm:HomePageVM"
              BackgroundColor="Black"
              x:Name="myPage">
@@ -70,7 +70,7 @@ x:Name="SongsColView">
                                 <cm:ContextMenuContainer.Content>
                                     <ImageButton HeightRequest="42" BackgroundColor="Transparent" WidthRequest="30" HorizontalOptions="Center">
                                         <ImageButton.Source>
-                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.More_vert}"/>
+                                            <FontImageSource Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
 

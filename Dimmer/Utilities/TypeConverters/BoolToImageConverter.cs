@@ -3,13 +3,19 @@ public class BoolToImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        if (parameter is string ImageName)
+        {
+            return vm.IsPlaying ? MaterialRounded.Pause : MaterialRounded.Play_arrow;
+        }
+
         if (value is bool MyBoolValue && MyBoolValue is true)
         {
-            return MaterialTwoTone.Favorite;
+            return MaterialRounded.Favorite;
         }
         else
         {
-            return MaterialTwoTone.Favorite_border;
+            return MaterialRounded.Favorite;
         }
     }
 
