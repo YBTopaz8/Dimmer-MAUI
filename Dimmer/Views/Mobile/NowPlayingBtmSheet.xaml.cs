@@ -1,29 +1,30 @@
 using Dimmer_MAUI.Views.Mobile.CustomViewsM;
+using System.Diagnostics;
+using UraniumUI.Extensions;
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
+public partial class NowPlayingBtmSheet : Border
 {
 	public NowPlayingBtmSheet()
 	{
         
-		InitializeComponent();		
-		homePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-		this.BindingContext = homePageVM;
-        
+		InitializeComponent();
+        homePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        this.BindingContext = homePageVM;
+
         //Shell.SetTabBarIsVisible(this, false);
-        //this.PropertyChanged += NowPlayingBtmSheet_PropertyChanged;
-        
+      
     }
 
-    
+
 
     HomePageVM homePageVM { get; set; }
 
     private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {
         await Task.Delay(800);
-        this.IsPresented = false;
+        //this.IsPresented = false;
         homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
         
         await homePageVM.NavToNowPlayingPage();
@@ -39,21 +40,10 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
         }
         homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
         await homePageVM.NavigateToArtistsPage(0);
-        this.IsPresented = false;
+        //this.IsPresented = false;
 
     }
 
-    private async void pauseImgBtn_Clicked(object sender, EventArgs e)
-    {
-        await homePageVM.PauseSong();
-        
-    }
-
-    private async void playImgBtn_Clicked(object sender, EventArgs e)
-    {
-        await homePageVM.ResumeSong();
-        
-    }
 
     private void Slider_DragCompleted(object sender, EventArgs e)
     {
@@ -76,4 +66,5 @@ public partial class NowPlayingBtmSheet : NowPlayingBtmSheetContainer
             await homePageVM.ResumeSong();
         }
     }
+
 }

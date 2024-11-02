@@ -255,9 +255,6 @@
 	  <MauiXaml Update="Views\Mobile\CustomViewsM\SongStatView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Mobile\NowPlayingPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Mobile\ShareSongPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

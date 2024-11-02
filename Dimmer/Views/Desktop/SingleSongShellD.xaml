@@ -10,7 +10,7 @@
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"   
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
             x:Name="myPage"
              Shell.NavBarIsVisible="False"
@@ -126,20 +126,20 @@
                         
                     </VerticalStackLayout>
 
-                    <chart:SfTabView x:Name="TabV"
+                    <syncf:SfTabView x:Name="TabV"
                         TabBarHeight="65"
                         IndicatorPlacement="Top" SelectedIndex="{Binding CurrentViewIndex }"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
                         SelectionChanged="tabView_SelectionChanged"
                         IsClippedToBounds="True">
 
-                        <chart:SfTabView.Items>
+                        <syncf:SfTabView.Items>
 
-                            <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
-                                <chart:SfTabItem.ImageSource>
+                            <syncf:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
+                                <syncf:SfTabItem.ImageSource>
                                     <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
-                                </chart:SfTabItem.ImageSource>
-                                <chart:SfTabItem.Content>
+                                </syncf:SfTabItem.ImageSource>
+                                <syncf:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
                                   RowDefinitions="*" ColumnDefinitions="*">
                                       
@@ -191,14 +191,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                         </VerticalStackLayout>
                                         
                                     </Grid>
-                                </chart:SfTabItem.Content>
-                            </chart:SfTabItem>
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
 
-                            <chart:SfTabItem Header="Fetch Lyrics">
-                                <chart:SfTabItem.ImageSource>
+                            <syncf:SfTabItem Header="Fetch Lyrics">
+                                <syncf:SfTabItem.ImageSource>
                                     <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
-                                </chart:SfTabItem.ImageSource>
-                                <chart:SfTabItem.Content>
+                                </syncf:SfTabItem.ImageSource>
+                                <syncf:SfTabItem.Content>
                                     <Grid Margin="5,5" RowDefinitions="Auto, *">
                                         <Grid.Resources>
                                             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
@@ -278,14 +278,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>
                                     </Grid>
-                                </chart:SfTabItem.Content>
-                            </chart:SfTabItem>
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
 
-                            <chart:SfTabItem Header="Stats">
-                                <chart:SfTabItem.ImageSource>
+                            <syncf:SfTabItem Header="Stats">
+                                <syncf:SfTabItem.ImageSource>
                                     <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
-                                </chart:SfTabItem.ImageSource>
-                                <chart:SfTabItem.Content>
+                                </syncf:SfTabItem.ImageSource>
+                                <syncf:SfTabItem.Content>
                                     <Grid RowDefinitions="Auto,*" Margin="8,5">
                                         <Grid RowDefinitions="Auto,*" Grid.Row="0">
 
@@ -305,19 +305,19 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                             <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center"
                                                                    Spacing="10">
 
-                                                <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"
+                                                <syncf:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"
                                                                               StrokeThickness="1" BackgroundColor="#111111" WidthRequest="{OnPlatform WinUI=400}"
                                                                           Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}"
                                                     ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
-                                                    <chart:SfSegmentedControl.TextStyle>
-                                                        <chart:SegmentTextStyle TextColor="White"/>
-                                                    </chart:SfSegmentedControl.TextStyle>
-                                                </chart:SfSegmentedControl>
+                                                    <syncf:SfSegmentedControl.TextStyle>
+                                                        <syncf:SegmentTextStyle TextColor="White"/>
+                                                    </syncf:SfSegmentedControl.TextStyle>
+                                                </syncf:SfSegmentedControl>
 
                                                 <HorizontalStackLayout Grid.Column="1" Spacing="10" HorizontalOptions="End">
                                                     <DatePicker  x:Name="dailyDateFilter" 
                                                                                />
-                                                    <material:CheckBox LabelPosition="After" Text="View Chart"
+                                                    <material:CheckBox LabelPosition="After" Text="View syncf"
                                                                        
                                                     CheckChanged="ShowHideChart_CheckChanged"/>
                                                 </HorizontalStackLayout>
@@ -369,18 +369,18 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                  x:Name="dailyStatChart"
                                                                  IsVisible="False">
                                                 
-                                                <chart:SfCircularChart>
-                                                    <chart:SfCircularChart.Resources>                                                        
+                                                <syncf:SfCircularChart>
+                                                    <syncf:SfCircularChart.Resources>                                                        
                                                             <DataTemplate x:Key="template1">
                                                                 <HorizontalStackLayout  VerticalOptions="Fill" Spacing="0" Padding="0" Margin="0">
                                                                     <Label Text="{Binding Item.LabelForNumberOfCompletedPlays}" VerticalTextAlignment="Center" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="14" Margin="2,0,2,0" />
                                                                     <Label Text="{Binding Item.TheCount,StringFormat=' :  {0}'}" VerticalTextAlignment="Center" HorizontalOptions="End" FontAttributes="Bold" Margin="0,0,2,0" FontSize="14" />
                                                                 </HorizontalStackLayout>
                                                             </DataTemplate>
-                                                    </chart:SfCircularChart.Resources>
-                                                    <chart:SfCircularChart.Series>
+                                                    </syncf:SfCircularChart.Resources>
+                                                    <syncf:SfCircularChart.Series>
                                                         
-                                                        <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
+                                                        <syncf:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
                                                                          XBindingPath="LabelForNumberOfCompletedPlays"
                                                                          YBindingPath="TheCount"
                                                                          ShowDataLabels="True"
@@ -389,9 +389,9 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                          EnableTooltip="True"
                                                                          
                                                                          TooltipTemplate="{StaticResource template1}">
-                                                        </chart:PieSeries>
-                                                    </chart:SfCircularChart.Series>
-                                                </chart:SfCircularChart>
+                                                        </syncf:PieSeries>
+                                                    </syncf:SfCircularChart.Series>
+                                                </syncf:SfCircularChart>
                                             </VerticalStackLayout>
                                             
                                             <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.WeeklyStats}"
@@ -484,12 +484,12 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                         </Grid>
                                     </Grid>
-                                </chart:SfTabItem.Content>
-                            </chart:SfTabItem>
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
 
-                        </chart:SfTabView.Items>
+                        </syncf:SfTabView.Items>
 
-                    </chart:SfTabView>
+                    </syncf:SfTabView>
                 </toolkit:DockLayout>
 
     </Grid>

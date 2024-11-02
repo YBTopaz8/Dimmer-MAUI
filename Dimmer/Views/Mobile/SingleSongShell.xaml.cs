@@ -10,7 +10,7 @@ public partial class SingleSongShell : UraniumContentPage
         BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+        //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
 
     }
 
@@ -43,14 +43,7 @@ public partial class SingleSongShell : UraniumContentPage
     protected override bool OnBackButtonPressed()
     {
         
-        if(btmSheet is not null)
-        {
-            if (btmSheet.IsPresented)
-            {
-                btmSheet.IsPresented = false;
-                return true;
-            }
-        }        
+                
         return base.OnBackButtonPressed();
     }
 

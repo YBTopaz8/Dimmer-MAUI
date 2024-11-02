@@ -12,7 +12,7 @@ public partial class TopStatsPageM : UraniumContentPage
         HomePageVM = homePageVM;
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(btmSheet);
+        //this.Attachments.Add(btmSheet);
 
     }
     public HomePageVM HomePageVM { get; }
@@ -51,11 +51,7 @@ public partial class TopStatsPageM : UraniumContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        if (btmSheet.IsPresented)
-        {
-            btmSheet.IsPresented = false;
-            return true;
-        }
+      
         return base.OnBackButtonPressed();
     }
 }

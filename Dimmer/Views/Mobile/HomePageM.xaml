@@ -10,6 +10,7 @@
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
@@ -17,8 +18,8 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
             
             x:Name="myPage" Shell.TitleColor="Black"
-            BackgroundColor="Black"
-            Shell.TabBarBackgroundColor="Black"
+            
+            Shell.TabBarBackgroundColor="Red"
             >
 
 <uranium:UraniumContentPage.Resources>
@@ -61,9 +62,9 @@
                     </HorizontalStackLayout>
 
 
-                    <dx:DXButton Grid.Column="1" Clicked="SingleSongStateFullContent_Clicked" 
+                    <dx:DXButton Grid.Column="1" Clicked="SingleSongCxtMenuArea_Clicked" 
                                  Padding="0" IconPlacement="Right"
-                                 x:Name="SingleSongStateFullContent" ButtonType="ToolButton">
+                                 x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton">
                         <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
                         </dx:DXButton.Icon>
@@ -89,82 +90,82 @@
         <DataTemplate x:Key="filteringUIFromHomeSongsColView">
             <dx:DXScrollView BackgroundColor="Black">
                 <VerticalStackLayout>
-                    <!-- Favorite Filter (Toggle) -->
-                    <dx:FilterCheckItem Text="Favorite" FieldName="IsFavorite"/>
+                     <!--Favorite Filter (Toggle)-->
+                    <dx:FilterCheckItem Text="Favorite"  FieldName="IsFavorite"
+                                        TextFontSize="25" AllowIndeterminateInput="False"
+                                        UseRippleEffect="True" ImageWidth="25">
+                        <dx:FilterCheckItem.ImageSource>
+                            <FontImageSource FontFamily="MaterialRounded" 
+                                             Glyph="{x:Static m:MaterialRounded.Favorite}"/>
 
-                    <!-- Title Filter (Text Input) -->
+                        </dx:FilterCheckItem.ImageSource>
+                    </dx:FilterCheckItem>
+
+                    <!--Title Filter (Text Input)--> 
                     <!--<dx:filter FilterTextInputItem FieldName="Title" Placeholder="Search by Title"/>-->
 
-                    <!-- Artist Filter (Picker) -->
-                    <dx:FilterRadioListPickerItem FieldName="ArtistName" ShowValuesOutOfFilter="true">
-                        <dx:FilterRadioListPickerItem.PickerTitleView>
-                            <Label Text="Artist"/>
-                        </dx:FilterRadioListPickerItem.PickerTitleView>
-                    </dx:FilterRadioListPickerItem>
+                     <!--Artist Filter (Picker)-->
+                    <dx:FilterCheckedListPickerItem FieldName="ArtistName" Text="Artist"
+                                                  ShowValuesOutOfFilter="true">
+                        <dx:FilterCheckedListPickerItem.PickerTitleView>
+                            <Label Text="Artist" VerticalOptions="Center"
+                                   FontSize="30"/>
+                        </dx:FilterCheckedListPickerItem.PickerTitleView>
+                    </dx:FilterCheckedListPickerItem>
+                    
+                    <dx:FilterCheckedListPickerItem FieldName="AlbumName" Text="Album"
+                                                  ShowValuesOutOfFilter="true">
+                        <dx:FilterCheckedListPickerItem.PickerTitleView>
+                            <Label Text="Artist" VerticalOptions="Center"
+                                   FontSize="30"/>
+                        </dx:FilterCheckedListPickerItem.PickerTitleView>
+                    </dx:FilterCheckedListPickerItem>
 
-                    <!-- Album Name Filter (Text Input) -->
+                     <!--Album Name Filter (Text Input)--> 
 
-                    <!-- Genre Filter (Chip Group) -->
-                    <dx:FilterChipGroupItem Text="Genre" FieldName="Genre"/>
+                     <!--Genre Filter (Chip Group)--> 
+                    <dx:FilterCheckedListPickerItem Text="Genre" FieldName="Genre"/>
 
-                    <!-- Duration Filter (Slider Range) -->
-                    <!--<dx:FilterNumericRangeItem Text="Duration" FieldName="DurationInSeconds" EditorDisplayFormat="N0" 
+                     <!--Duration Filter (Slider Range)--> 
+                    <dx:FilterNumericRangeItem Text="Duration" FieldName="DurationInSeconds" EditorDisplayFormat="N0" 
                                                Min="0" 
-                                               Max="{Binding DurationInSeconds}"/>-->
+                                               Max="50"/>
 
-                    <!-- Rating Filter (Chip Group for 1 to 5 Stars) -->
+                     <!--Rating Filter (Chip Group for 1 to 5 Stars)--> 
                     <dx:FilterChipGroupItem Text="Rating" FieldName="Rating" AllowDeselect="True" />
 
-                    <!-- Release Year Filter (Chip Group) -->
-                    <dx:FilterChipGroupItem Text="Release Year" FieldName="ReleaseYear"/>
+                     <!--Release Year Filter (Chip Group)--> 
+                    <dx:FilterCheckedChipGroupItem Text="Release Year" FieldName="ReleaseYear"/>
 
-                    <!-- File Format Filter (Chip Group) -->
+                     <!--File Format Filter (Chip Group)--> 
                     <dx:FilterChipGroupItem Text="File Format" FieldName="FileFormat"/>
 
-                    <!-- File Size Filter (Slider Range) -->
-                    <!--
+                     <!--File Size Filter (Slider Range)--> 
+                    
                     <dx:FilterNumericRangeItem Text="File Size" FieldName="FileSize" EditorDisplayFormat="N0" 
                                                
-                                               Min="1" Max="{Binding MaxFileSize}"/>-->
+                                               Min="1" Max="50"/>
                 </VerticalStackLayout>
             </dx:DXScrollView>
         </DataTemplate>
     </uranium:UraniumContentPage.Resources>
+
     
-    
-    <toolkit:DockLayout Margin="5,0">
+            
 
-        <Grid ColumnDefinitions="auto,*,auto" toolkit:DockLayout.DockPosition="Top">
+                <!--Label at the extreme left-->
+                <!--<Label Grid.Column="0"
+        Text="{Binding , Source={x:Reference myPage}, StringFormat='{0} Songs'}"
+        HorizontalTextAlignment="Start"
+        VerticalTextAlignment="Center"
+        FontAttributes="Bold"
+        TextColor="DarkSlateBlue"
+        FontSize="20" />-->
 
-            <!-- Label at the extreme left -->
-            <Label Grid.Column="0"
-           Text="{Binding TotalNumberOfSongs, StringFormat='{0} Songs'}"
-           HorizontalTextAlignment="Start"
-           VerticalTextAlignment="Center"
-           FontAttributes="Bold"
-           TextColor="DarkSlateBlue"
-           FontSize="20" />
-
-            <!-- 2nd Grid to occupy the middle (full remaining space) -->
-            <Grid Grid.Column="1" Margin="2"
-                  IsVisible="False" ColumnDefinitions="*,Auto"
-                  x:Name="TitleSearchView">
-                <material:TextField Title="Search The Music ..."
-                            x:Name="SearchSongSB" Grid.Column="0"
-                            ClearButtonVisibility="WhileEditing"
-                            TextColor="White"
-                            TextChanged="SearchSongSB_TextChanged"/>
-                <ImageButton Clicked="HideSearchView_Clicked"
-                     HeightRequest="30"
-                     Grid.Column="1">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Close}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-            </Grid>
-
-            <!-- HorizontalStackLayout at the extreme right -->
-            <HorizontalStackLayout Grid.Column="2" HorizontalOptions="End">
+    <VerticalStackLayout>
+        
+                <!--HorizontalStackLayout at the extreme right-->
+            <HorizontalStackLayout HorizontalOptions="End" Padding="10" x:Name="TopPart">
                 <ImageButton HeightRequest="35" Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
@@ -172,178 +173,193 @@
                 </ImageButton>
 
                 <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
-                     HeightRequest="35">
+                HeightRequest="35">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>
 
-        </Grid>
 
+            <!--<ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>-->
 
-        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
+        <syncf:SfTabView x:Name="NPTabview"
+                         TabBarHeight="0" EnableSwiping="True"
+                         IsClippedToBounds="True" SelectionChanged="NPTabview_SelectionChanged">
+            <syncf:SfTabView.Items>
+                <syncf:SfTabItem >
+                    <syncf:SfTabItem.Content>
 
-        <Grid>
-            <dx:DXCollectionView
-                x:Name="SongsColView"
-                UseRippleEffect="True"
-                RippleColor="DarkSlateBlue"
-                ItemTemplate="{StaticResource HomePageColViewTemplate}"
-                ItemsSource="{Binding DisplayedSongs}"
-                SelectedItemTemplate="{StaticResource SelectedSongHomePage}"
-                Tap="SongsColView_Tap"
-                LongPress="SongsColView_LongPress"
-                FilteringUITemplate="{StaticResource filteringUIFromHomeSongsColView}"
-                FilteringUIFormShowing="SongsColView_FilteringUIFormShowing"
+                        <Grid>
+
+                            <dx:DXCollectionView
+                                IsScrollBarVisible="False"
+                                            x:Name="SongsColView"
+                                            UseRippleEffect="True"
+                                            RippleColor="DarkSlateBlue"
+                                            ItemTemplate="{StaticResource HomePageColViewTemplate}"
+                                            ItemsSource="{Binding DisplayedSongs}"
+                                            SelectedItemTemplate="{StaticResource SelectedSongHomePage}"
+                                            
+                                            FilteringUITemplate="{StaticResource filteringUIFromHomeSongsColView}"
+                                            
+                    Tap="SongsColView_Tap"
+LongPress="SongsColView_LongPress">
+                            </dx:DXCollectionView>
+
+                            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" 
+                    HeightRequest="215" x:Name="NormalMiniUtilFABs">
+                                <ImageButton  Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}"
+                                      Padding="10"
+                    BackgroundColor="DarkSlateBlue" CornerRadius="20">
+
+                                    <ImageButton.GestureRecognizers>
+                                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                                    </ImageButton.GestureRecognizers>
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+
+                                <ImageButton  BackgroundColor="DarkSlateBlue"  
+    CornerRadius="20" Clicked="SearchFAB_Clicked"
+    Padding="10" >
+                                    <ImageButton.GestureRecognizers>
+                                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
+                                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
+                                    </ImageButton.GestureRecognizers>
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Center_focus_strong}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="3" VerticalOptions="End" IsVisible="False"
+        HeightRequest="180" x:Name="MultiSelectMiniUtilFABs">
+                                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" 
+        HorizontalOptions="End" VerticalOptions="End"
+        StrokeThickness="0">
+                                    <ImageButton Clicked="CancelMultiSelect_Clicked" 
+                    >
+                                        <ImageButton.Source>
+                                            <FontImageSource Size="45" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_back}"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+                                </Border>
+                                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" HorizontalOptions="End" 
+        VerticalOptions="End" StrokeThickness="0">
+                                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
                 >
-                
-                
-            </dx:DXCollectionView>
+                                        <ImageButton.Source>
+                                            <FontImageSource Size="45"
+                                FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever}"/>
+                                        </ImageButton.Source>
+                                        <ImageButton.CommandParameter>
+                                            <x:Int32>0</x:Int32>
+                                        </ImageButton.CommandParameter>
+                                    </ImageButton>
+                                </Border>
+                                <HorizontalStackLayout VerticalOptions="End" HorizontalOptions="Center">
+                                    <Label Text="{Binding MultiSelectText}" FontSize="16"
+            FontAttributes="Bold" TextColor="DarkSlateBlue" />
+                                </HorizontalStackLayout>
 
-            
-            
-            <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" 
-                                 HeightRequest="160" x:Name="NormalMiniUtilFABs">
-                <ImageButton  Clicked="ShowSearchView_Clicked" Padding="10"
-                                  BackgroundColor="DarkSlateBlue" CornerRadius="20">
-                    
-                    <ImageButton.GestureRecognizers>
-                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
-                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
-                    </ImageButton.GestureRecognizers>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                            </VerticalStackLayout>
 
-                <ImageButton  BackgroundColor="DarkSlateBlue"  
-                  CornerRadius="20" Clicked="SearchFAB_Clicked"
-                  Padding="10" >
-                    <ImageButton.GestureRecognizers>
-                        <SwipeGestureRecognizer Direction="Up" Swiped="SwipeGestureRecognizer_SwipedUp"/>
-                        <SwipeGestureRecognizer Direction="Down" Swiped="SwipeGestureRecognizer_SwipedDown"/>
-                    </ImageButton.GestureRecognizers>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Center_focus_strong}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-            </VerticalStackLayout>
+                            <dx:BottomSheet x:Name="songsMenuBtm" AllowedState="HalfExpanded"
+                    AllowDismiss="True"
+                    ShowGrabber="False">
+                                <VerticalStackLayout>
+                                    <VerticalStackLayout.Resources>
+                                        <ResourceDictionary>
+                                            <Style TargetType="dx:DXButton">
+                                                <Setter Property="ButtonType" Value="ToolButton"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
 
-            <VerticalStackLayout Spacing="3" VerticalOptions="End" IsVisible="False"
-                     HeightRequest="180" x:Name="MultiSelectMiniUtilFABs">
-                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" 
-                        HorizontalOptions="End" VerticalOptions="End"
-                        StrokeThickness="0">
-                    <ImageButton Clicked="CancelMultiSelect_Clicked" 
-                                 >
-                        <ImageButton.Source>
-                            <FontImageSource Size="45" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_back}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                </Border>
-                <Border BackgroundColor="DarkSlateBlue" WidthRequest="45" HorizontalOptions="End" 
-                        VerticalOptions="End" StrokeThickness="0">
-                    <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
-                             >
-                        <ImageButton.Source>
-                            <FontImageSource Size="45"
-                                             FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever}"/>
-                            </ImageButton.Source>
-                        <ImageButton.CommandParameter>
-                            <x:Int32>0</x:Int32>
-                        </ImageButton.CommandParameter>
-                    </ImageButton>
-                </Border>
-                <HorizontalStackLayout VerticalOptions="End" HorizontalOptions="Center">
-                    <Label Text="{Binding MultiSelectText}" FontSize="16"
-                           FontAttributes="Bold" TextColor="DarkSlateBlue" />
-                </HorizontalStackLayout>
-                
-            </VerticalStackLayout>
-            
+                                            </Style>
+                                            <Style TargetType="Label">
+                                                <Setter Property="FontSize" Value="24"/>
+                                                <Setter Property="FontAttributes" Value="Bold"/>
 
-                
-        </Grid>
+                                            </Style>
+                                        </ResourceDictionary>
+                                    </VerticalStackLayout.Resources>
+                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
 
-        <dx:BottomSheet x:Name="songsMenuBtm" AllowedState="HalfExpanded"
-                        AllowDismiss="True"
-                        ShowGrabber="False">
-            <VerticalStackLayout>
-                <VerticalStackLayout.Resources>
-                    <ResourceDictionary>
-                        <Style TargetType="dx:DXButton">
-                            <Setter Property="ButtonType" Value="ToolButton"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-
-                        </Style>
-                        <Style TargetType="Label">
-                            <Setter Property="FontSize" Value="24"/>
-                            <Setter Property="FontAttributes" Value="Bold"/>
-
-                        </Style>
-                    </ResourceDictionary>
-                </VerticalStackLayout.Resources>
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" 
+                                        <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" 
 LineBreakMode="TailTruncation" />
-                    <Label Text="-" />
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" />
-                </HorizontalStackLayout>
+                                        <Label Text="-" />
+                                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" />
+                                    </HorizontalStackLayout>
 
-                <dx:DXSeparator />
-                <dx:DXButton Content="Set Play Repeat Count"
-                                 Command="{Binding OpenRepeatSetterPopupCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Add to Playlist**">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Playlist_add}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Go to Album" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Go to Artist" 
-                                 Command="{Binding NavigateToArtistsPageCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Song Info" 
-                                 Command="{Binding OpenViewSongDetailsPopupCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Share" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding NavigateToShareStoryPageCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <dx:DXButton Content="Delete" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding DeleteFileCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>
-                <!--<dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                 Command="{Binding OpenEditSongPopupCommand}">
-                    <dx:DXButton.Icon>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.}" />
-                    </dx:DXButton.Icon>
-                </dx:DXButton>-->
-            </VerticalStackLayout>
+                                    <dx:DXSeparator />
+                                    <dx:DXButton Content="Set Play Repeat Count"
+                                Command="{Binding OpenRepeatSetterPopupCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Add to Playlist**">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Playlist_add}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Go to Album" Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Go to Artist" 
+                                Command="{Binding NavigateToArtistsPageCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Song Info" 
+                                Command="{Binding OpenViewSongDetailsPopupCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Share" Clicked="DXButton_Clicked"
+                                Command="{Binding NavigateToShareStoryPageCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Delete" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                                Command="{Binding DeleteFileCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                                Command="{Binding OpenEditSongPopupCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit_audio}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                </VerticalStackLayout>
 
-        </dx:BottomSheet>
-    </toolkit:DockLayout>
+                            </dx:BottomSheet>
 
-  
+                        </Grid>
+                    </syncf:SfTabItem.Content>
+                </syncf:SfTabItem>
+
+                <syncf:SfTabItem>
+                    <syncf:SfTabItem.Content>
+                        <viewsM:NowPlayingBtmSheet />
+                    </syncf:SfTabItem.Content>
+                </syncf:SfTabItem>
+            </syncf:SfTabView.Items>
+        </syncf:SfTabView>
+        
+
+            
+
+    </VerticalStackLayout>
+
+    
 </uranium:UraniumContentPage>

@@ -118,7 +118,7 @@ public static class MauiProgram
         //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
-        builder.Services.AddTransient<NowPlayingBtmSheet>(); //uranium
+        builder.Services.AddTransient<NowPlayingBtmSheet>(); //btmsheet
         //builder.Services.AddSingleton<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
@@ -158,7 +158,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SpecificAlbumPage>();
         builder.Services.AddSingleton<AlbumPageM>();
         builder.Services.AddSingleton<ShareSongPage>();
-        builder.Services.AddSingleton<NowPlayingPage>();
+        //builder.Services.AddSingleton<NowPlayingPage>();
 
 
         return builder.Build();

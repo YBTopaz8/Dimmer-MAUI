@@ -122,10 +122,10 @@
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
 
-                <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
-             HeightRequest="{OnPlatform Android=150, WinUI=210}" 
-                       WidthRequest="{OnPlatform WinUI=250, Android=0}"
-                       />
+                <mct:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                                HeightRequest="{OnPlatform Android=105, WinUI=210}" BorderWidth="0" 
+                                WidthRequest="{OnPlatform WinUI=250, Android=105}"
+                                />
 
             </FlexLayout>
 

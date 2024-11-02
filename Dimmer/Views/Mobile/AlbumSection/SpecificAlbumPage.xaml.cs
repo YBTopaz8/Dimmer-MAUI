@@ -10,7 +10,7 @@ public partial class SpecificAlbumPage : UraniumContentPage
         HomePageVM = homePageVM;
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        this.Attachments.Add(btmSheet);
+        //this.Attachments.Add(btmSheet);
     }
     public HomePageVM HomePageVM { get; }
     protected override void OnAppearing()

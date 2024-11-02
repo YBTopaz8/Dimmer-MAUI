@@ -29,7 +29,7 @@
                      />
         
         <FlexLayout JustifyContent="SpaceBetween" x:Name="BtmMediaControls" 
-                    HeightRequest="55" Margin="-5,0">
+                    Margin="-5,0">
             <FlexLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="MediaControlBtmBar_Tapped"/>
             </FlexLayout.GestureRecognizers>
