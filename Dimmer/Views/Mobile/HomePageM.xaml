@@ -124,7 +124,7 @@
                      <!--Album Name Filter (Text Input)--> 
 
                      <!--Genre Filter (Chip Group)--> 
-                    <dx:FilterCheckedListPickerItem Text="Genre" FieldName="Genre"/>
+                    <dx:FilterCheckedListPickerItem Text="Genre" FieldName="GenreName"/>
 
                      <!--Duration Filter (Slider Range)--> 
                     <dx:FilterNumericRangeItem Text="Duration" FieldName="DurationInSeconds" EditorDisplayFormat="N0" 
@@ -209,7 +209,8 @@ LongPress="SongsColView_LongPress">
 
                             <VerticalStackLayout Spacing="3" VerticalOptions="End" HorizontalOptions="End" 
                     HeightRequest="215" x:Name="NormalMiniUtilFABs">
-                                <ImageButton  Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}"
+                                <ImageButton Clicked="ShowFilterUIImgBtm_Clicked" x:Name="ShowFilterUIImgBtm"
+                                    
                                       Padding="10"
                     BackgroundColor="DarkSlateBlue" CornerRadius="20">
 
@@ -310,10 +311,16 @@ LineBreakMode="TailTruncation" />
                                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}" />
                                         </dx:DXButton.Icon>
                                     </dx:DXButton>
-                                    <dx:DXButton Content="Go to Artist" 
-                                Command="{Binding NavigateToArtistsPageCommand}">
+
+                                    <dx:DXButton Content="Go to Artist" x:Name="GotoArtistBtn" Clicked="GotoArtistBtn_Clicked">
                                         <dx:DXButton.Icon>
                                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
+                                        </dx:DXButton.Icon>
+                                    </dx:DXButton>
+                                    <dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
+                                Command="{Binding OpenEditSongPopupCommand}">
+                                        <dx:DXButton.Icon>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit_audio}" />
                                         </dx:DXButton.Icon>
                                     </dx:DXButton>
                                     <dx:DXButton Content="Song Info" 
@@ -334,12 +341,7 @@ LineBreakMode="TailTruncation" />
                                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}" />
                                         </dx:DXButton.Icon>
                                     </dx:DXButton>
-                                    <dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
-                                Command="{Binding OpenEditSongPopupCommand}">
-                                        <dx:DXButton.Icon>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit_audio}" />
-                                        </dx:DXButton.Icon>
-                                    </dx:DXButton>
+
                                 </VerticalStackLayout>
 
                             </dx:BottomSheet>

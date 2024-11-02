@@ -205,7 +205,7 @@
        StrokeThickness="0" x:Name="lyricsCover">
 
             <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
-                <dx:DXImage Source="{Binding TemporarilyPickedSong.CoverImagePath}"/>
+                <dx:DXImage Source="{Binding TemporarilyPickedSong.CoverImagePath}" Opacity="0.5"/>
                 <!--<Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                   HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
                                   WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"

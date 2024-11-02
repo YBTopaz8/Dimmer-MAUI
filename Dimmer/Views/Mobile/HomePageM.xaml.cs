@@ -44,9 +44,8 @@ protected override void OnDisappearing()
 
 private void SearchFAB_Clicked(object sender, EventArgs e)
 {
-
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-    }
+    SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+}
 
 private void SpecificSong_Tapped(object sender, TappedEventArgs e)
 {
@@ -202,7 +201,7 @@ private void StatefulContentView_Pressed(object sender, EventArgs e)
 
 private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
 {
-        if (songsMenuBtm.State != DevExpress.Maui.Controls.BottomSheetState.Hidden)
+        if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             songsMenuBtm.Show();
         }
@@ -227,6 +226,11 @@ private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionVie
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
+        CloseBtmSheet();
+    }
+
+    private void CloseBtmSheet()
+    {
         songsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
 
@@ -240,6 +244,18 @@ private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionVie
         {
             TopPart.IsVisible = true;
         }
+    }
+
+    private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
+    {
+        
+        SongsColView.ShowFilteringUIForm();
+    }
+
+    private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.NavigateToArtistsPage(0);
+        CloseBtmSheet();
     }
 }
 

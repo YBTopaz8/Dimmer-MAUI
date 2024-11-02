@@ -53,7 +53,7 @@ public partial class HomePageVM
     }
    
     [RelayCommand]
-    public async Task NavigateToArtistsPage(int callerID=0) //0 if called by else, 1 if called by homeD
+    public async Task NavigateToArtistsPage(int? callerID=0) //0 if called by else, 1 if called by homeD
     {
 
         if (callerID == 0)
