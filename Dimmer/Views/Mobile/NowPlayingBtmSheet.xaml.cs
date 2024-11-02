@@ -1,53 +1,66 @@
+using DevExpress.Maui.Controls;
+using DevExpress.Maui.Core;
 using Dimmer_MAUI.Views.Mobile.CustomViewsM;
 using System.Diagnostics;
 using UraniumUI.Extensions;
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class NowPlayingBtmSheet : Border
+public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 {
 	public NowPlayingBtmSheet()
 	{
         
 		InitializeComponent();
-        homePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        this.BindingContext = homePageVM;
+        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        this.BindingContext = HomePageVM;
 
         //Shell.SetTabBarIsVisible(this, false);
-      
+        AllowedState = BottomSheetAllowedState.FullExpanded;
+
+        this.StateChanged += NowPlayingBtmSheet_StateChanged;
     }
 
+    private void NowPlayingBtmSheet_StateChanged(object? sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+        //if (e.NewValue == BottomSheetState.FullExpanded)
+        //{
+        //    if(NPSlider.ItemsSource is null)
+        //    {
+        //        NPSlider.ItemsSource = HomePageVM.SongsMgtService.AllSongs;
+        //    }
+        //}
+    }
 
-
-    HomePageVM homePageVM { get; set; }
+    HomePageVM HomePageVM { get; set; }
 
     private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {
         await Task.Delay(800);
-        //this.IsPresented = false;
-        homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
+        this.State = BottomSheetState.Hidden;
+        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         
-        await homePageVM.NavToNowPlayingPage();
+        await HomePageVM.NavToNowPlayingPage();
 
     }
 
 
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
-        if (homePageVM.DisplayedSongs.Count < 1)
+        if (HomePageVM.DisplayedSongs.Count < 1)
         {
             return;
         }
-        homePageVM.SelectedSongToOpenBtmSheet = homePageVM.TemporarilyPickedSong;
-        await homePageVM.NavigateToArtistsPage(0);
-        //this.IsPresented = false;
+        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        await HomePageVM.NavigateToArtistsPage(0);
+        this.State = BottomSheetState.Hidden;
 
     }
 
 
     private void Slider_DragCompleted(object sender, EventArgs e)
     {
-        homePageVM.SeekSongPosition();
+        HomePageVM.SeekSongPosition();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
@@ -57,14 +70,18 @@ public partial class NowPlayingBtmSheet : Border
 
     private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
     {
-        if (homePageVM.IsPlaying)
+        if (HomePageVM.IsPlaying)
         {
-            await homePageVM.PauseSong();
+            await HomePageVM.PauseSong();
         }
         else
         {
-            await homePageVM.ResumeSong();
+            await HomePageVM.ResumeSong();
         }
     }
 
+    void CloseSheet()
+    {
+
+    }
 }

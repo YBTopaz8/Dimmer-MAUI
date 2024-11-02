@@ -1,12 +1,16 @@
-using Plainer.Maui.Controls;
+//using Plainer.Maui.Controls;
+using System.Diagnostics;
 using UraniumUI.Views;
+using Timer = System.Timers.Timer;
 
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class HomePageM : UraniumContentPage
+public partial class HomePageM : ContentPage
 {
 
+    private Timer _pressTimer;
+    private bool _isLongPress;
     public HomePageVM HomePageVM { get; }
     public HomePageM(HomePageVM homePageVM)
     {
@@ -14,54 +18,57 @@ public partial class HomePageM : UraniumContentPage
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         Shell.SetNavBarIsVisible(this, true);
+
+        _pressTimer = new Timer(1000);
+        _pressTimer.Elapsed += OnLongPressTimerElapsed;
     }
 
 
-private void SongsColView_Loaded(object? sender, EventArgs e)
-{
+    private void SongsColView_Loaded(object? sender, EventArgs e)
+    {
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
     }
 
 
-protected async override void OnAppearing()
-{
-    base.OnAppearing();
-    HomePageVM.CurrentPage = PageEnum.MainPage;
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+        HomePageVM.CurrentPage = PageEnum.MainPage;
         //HomePageVM.AssignCV(SongsColView);
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
-    Shell.SetNavBarIsVisible(this, false);
-    Shell.SetTabBarIsVisible(this, true);
+        Shell.SetNavBarIsVisible(this, false);
+        Shell.SetTabBarIsVisible(this, true);
 #endif
-}
+    }
 
-protected override void OnDisappearing()
-{
-    base.OnDisappearing();
-    
-}
-
-
-private void SearchFAB_Clicked(object sender, EventArgs e)
-{
-    SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-}
-
-private void SpecificSong_Tapped(object sender, TappedEventArgs e)
-{
-    HomePageVM.CurrentQueue = 0;
-    var view = (FlexLayout)sender;
-    var song = view.BindingContext as SongsModelView;
-    HomePageVM.PlaySongCommand.Execute(song);
-}
-
-private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-{
-    if(currentSelectionMode == SelectionMode.Multiple)
+    protected override void OnDisappearing()
     {
+        base.OnDisappearing();
+
+    }
+
+
+    private void ScrollToSongFAB_Clicked(object sender, EventArgs e)
+    {
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+    }
+
+    private void SpecificSong_Tapped(object sender, TappedEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 0;
+        var view = (FlexLayout)sender;
+        var song = view.BindingContext as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
+    }
+
+    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (currentSelectionMode == SelectionMode.Multiple)
+        {
             //HomePageVM.HandleMultiSelect(SongsColView, e);
             return;
-    }
+        }
         if (SongsColView.IsLoaded)
         {
             SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
@@ -69,8 +76,6 @@ private void SongsColView_SelectionChanged(object sender, SelectionChangedEventA
 
         }
     }
-
-EntryView searchSongTextField;
 
 
     private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
@@ -91,11 +96,11 @@ EntryView searchSongTextField;
     }
 
     private async void ShowFolderSelectorImgBtn_Clicked(object sender, EventArgs e)
-{
-    await Shell.Current.ShowPopupAsync(new ScanFoldersPopup(HomePageVM));
-}
-protected override bool OnBackButtonPressed()
-{
+    {
+        await Shell.Current.ShowPopupAsync(new ScanFoldersPopup(HomePageVM));
+    }
+    protected override bool OnBackButtonPressed()
+    {
         if (SongsColView.SelectionMode == SelectionMode.Multiple)
         {
             SongsColView.SelectionMode = SelectionMode.Single;
@@ -106,14 +111,14 @@ protected override bool OnBackButtonPressed()
             Debug.WriteLine("Back To None");
         }
         return true;
-}
+    }
 
-private void CancelMultiSelect_Clicked(object sender, EventArgs e)
-{
+    private void CancelMultiSelect_Clicked(object sender, EventArgs e)
+    {
         ToggleMultiSelect_Clicked(sender, e);
     }
 
-SelectionMode currentSelectionMode;
+    SelectionMode currentSelectionMode;
     public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
     {
         HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
@@ -149,10 +154,9 @@ SelectionMode currentSelectionMode;
     }
 
     private DateTime _lastTapTime = DateTime.MinValue;
-private const int DoubleTapTime = 300; // in milliseconds
-private const int LongPressTime = 500; // in milliseconds
-private bool _isDoubleTap = false;
-private bool _isLongPress = false;
+    private const int DoubleTapTime = 300; // in milliseconds
+    private const int LongPressTime = 500; // in milliseconds
+    private bool _isDoubleTap = false;
 
 
     //var currentTime = DateTime.Now;
@@ -169,38 +173,38 @@ private bool _isLongPress = false;
     //_lastTapTime = currentTime;
 
 
-private void StatefulContentView_LongPressed(object sender, EventArgs e)
-{
+    private void StatefulContentView_LongPressed(object sender, EventArgs e)
+    {
         ToggleMultiSelect_Clicked(sender, e);
     }
 
-private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-{
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
 
-}
-
-
-private void StatefulContentView_Pressed(object sender, EventArgs e)
-{
-    //if (SongsColView.SelectionMode != SelectionMode.Multiple)
-    //{
-
-    //    HomePageVM.CurrentQueue = 0;
-    //    var t = (View)sender;
-    //    var song = t.BindingContext as SongsModelView;
-    //    HomePageVM.PlaySongCommand.Execute(song);
-    //}
-    //else
-    //{
-    //    var send = (View)sender;
-    //    var song = (SongsModelView)send.BindingContext;
-
-    //}
-}
+    }
 
 
-private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
-{
+    private void StatefulContentView_Pressed(object sender, EventArgs e)
+    {
+        //if (SongsColView.SelectionMode != SelectionMode.Multiple)
+        //{
+
+        //    HomePageVM.CurrentQueue = 0;
+        //    var t = (View)sender;
+        //    var song = t.BindingContext as SongsModelView;
+        //    HomePageVM.PlaySongCommand.Execute(song);
+        //}
+        //else
+        //{
+        //    var send = (View)sender;
+        //    var song = (SongsModelView)send.BindingContext;
+
+        //}
+    }
+
+
+    private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
+    {
         if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             songsMenuBtm.Show();
@@ -213,14 +217,14 @@ private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
 
     }
 
-private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
-{
-    HomePageVM.CurrentQueue = 0;
-    HomePageVM.PlaySongCommand.Execute(e.Item as SongsModelView);
-}
+    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 0;
+        HomePageVM.PlaySongCommand.Execute(e.Item as SongsModelView);
+    }
 
-private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
-{
+    private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
         SongsColView.SelectionMode = SelectionMode.Multiple;
     }
 
@@ -248,7 +252,7 @@ private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionVie
 
     private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
     {
-        
+
         SongsColView.ShowFilteringUIForm();
     }
 
@@ -257,5 +261,42 @@ private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionVie
         await HomePageVM.NavigateToArtistsPage(0);
         CloseBtmSheet();
     }
+
+    private void TouchBehavior_LongPressCompleted(object sender, LongPressCompletedEventArgs e)
+    {
+        Debug.WriteLine("Long Pressed");
+    }
+
+    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
+    {
+        
+    }
+
+
+
+    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        _pressTimer.Start();
+        _isLongPress = false;
+    }
+
+    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {          
+        NowPlayingBtmSheet.State = DevExpress.Maui.Controls.BottomSheetState.FullExpanded;
+        return;       
+    }
+    private void ShowNowPlayingPage()
+    {
+        if (NowPlayingBtmSheet.State != DevExpress.Maui.Controls.BottomSheetState.FullExpanded)
+        {
+        }
+    }
+    private void OnLongPressTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        ShowNowPlayingPage();
+        _pressTimer.Stop();
+        _isLongPress = true;
+    }
 }
+
 
