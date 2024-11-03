@@ -61,4 +61,17 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         await vm.NavToNowPlayingPage(vm.TemporarilyPickedSong);
     }
+
+    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
+    {
+        if (vm.IsPlaying)
+        {
+            await vm.PauseSong();
+        }
+        else
+        {
+            await vm.ResumeSong();
+        }
+    }
+
 }

@@ -746,6 +746,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             nowPlayingShuffledOrNotSubject.OnNext(currentList);
         }
+        else
+        {
+            nowPlayingShuffledOrNotSubject.OnNext(_nowPlayingSubject.Value);
+        }
         if (CurrentAppState != CurrentAppStatee)
         {
             CurrentAppState = CurrentAppStatee;

@@ -39,7 +39,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         
         await HomePageVM.NavToNowPlayingPage();
-        await Task.Delay(800);
+        await Task.Delay(500);
         this.State = BottomSheetState.Hidden;
 
     }
@@ -80,8 +80,19 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         }
     }
 
-    void CloseSheet()
+    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
 
+    }
+
+    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        this.CloseAsync();
+        return;
+    }
+
+    private void ProgressSlider_ValueChanged(object sender, EventArgs e)
+    {
+        HomePageVM.SeekSongPosition();
     }
 }

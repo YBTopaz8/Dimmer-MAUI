@@ -1,4 +1,6 @@
 //using Plainer.Maui.Controls;
+using DevExpress.Maui.CollectionView;
+using DevExpress.Maui.Editors;
 using System.Diagnostics;
 using UraniumUI.Views;
 using Timer = System.Timers.Timer;
@@ -20,7 +22,7 @@ public partial class HomePageM : ContentPage
 
 
     private void SongsColView_Loaded(object? sender, EventArgs e)
-    {
+    {        
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
     }
 
@@ -40,14 +42,8 @@ public partial class HomePageM : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-
     }
 
-
-    private void ScrollToSongFAB_Clicked(object sender, EventArgs e)
-    {
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-    }
 
     private void SpecificSong_Tapped(object sender, TappedEventArgs e)
     {
@@ -57,20 +53,20 @@ public partial class HomePageM : ContentPage
         HomePageVM.PlaySongCommand.Execute(song);
     }
 
-    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (currentSelectionMode == SelectionMode.Multiple)
-        {
-            //HomePageVM.HandleMultiSelect(SongsColView, e);
-            return;
-        }
-        if (SongsColView.IsLoaded)
-        {
-            SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+    //private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    //{
+    //    if (currentSelectionMode == SelectionMode.Multiple)
+    //    {
+    //        //HomePageVM.HandleMultiSelect(SongsColView, e);
+    //        return;
+    //    }
+    //    if (SongsColView.IsLoaded)
+    //    {
+    //        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
 
 
-        }
-    }
+    //    }
+    //}
 
 
     private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
@@ -151,65 +147,23 @@ public partial class HomePageM : ContentPage
     private DateTime _lastTapTime = DateTime.MinValue;
     private const int DoubleTapTime = 300; // in milliseconds
     private const int LongPressTime = 500; // in milliseconds
-    private bool _isDoubleTap = false;
-
-
-    //var currentTime = DateTime.Now;
-    //var timeSinceLastTap = (currentTime - _lastTapTime).TotalMilliseconds;
-
-    //// Double tap detection
-    //if (timeSinceLastTap < DoubleTapTime)
-    //{
-    //    _isDoubleTap = true;
-    //    Debug.WriteLine("Double tap detected at: " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
-    //}
-
-
-    //_lastTapTime = currentTime;
-
+    
 
     private void StatefulContentView_LongPressed(object sender, EventArgs e)
     {
         ToggleMultiSelect_Clicked(sender, e);
     }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    {
-
-    }
-
-
-    private void StatefulContentView_Pressed(object sender, EventArgs e)
-    {
-        //if (SongsColView.SelectionMode != SelectionMode.Multiple)
-        //{
-
-        //    HomePageVM.CurrentQueue = 0;
-        //    var t = (View)sender;
-        //    var song = t.BindingContext as SongsModelView;
-        //    HomePageVM.PlaySongCommand.Execute(song);
-        //}
-        //else
-        //{
-        //    var send = (View)sender;
-        //    var song = (SongsModelView)send.BindingContext;
-
-        //}
-    }
-
 
     private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
-    {
+    {        
+        var s = (View)sender;
+        var song = (SongsModelView)s.BindingContext;
+        HomePageVM.SetContextMenuSong(song);
         if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             songsMenuBtm.Show();
         }
-        //await Shell.Current.GoToAsync(nameof(NowPlayingPage), true);
-        //songsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.HalfExpanded;
-        //songsMenuPopup.PlacementTarget = (View)this.Content;
-        //songsMenuPopup.Placement = DevExpress.Maui.Core.Placement.Bottom;
-        //songsMenuPopup.IsOpen = !songsMenuPopup.IsOpen;
-
     }
 
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -220,7 +174,7 @@ public partial class HomePageM : ContentPage
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        SongsColView.SelectionMode = SelectionMode.Multiple;
+        //SongsColView.SelectionMode = SelectionMode.Multiple;
     }
 
     private void ShareSong_Clicked(object sender, EventArgs e)
@@ -260,8 +214,39 @@ public partial class HomePageM : ContentPage
         
         return;       
     }
-   
-   
+
+    private async void ShowSongDetails_Tap(object sender, DevExpress.Maui.CollectionView.SwipeItemTapEventArgs e)
+    {
+        var song = (SongsModelView)e.Item;
+
+        HomePageVM.SelectedSongToOpenBtmSheet = song;
+
+        await HomePageVM.NavToNowPlayingPage();
+    }
+    ObservableCollection<DevExpress.Maui.CollectionView.SortDescription> Sorts;
+    private void SortSongsChip_Tap(object sender, HandledEventArgs e)
+    {
+        var chip = (DevExpress.Maui.Editors.Chip)sender;
+        SongsColView.SortDescriptions.Clear();
+        switch (chip.TapCommandParameter)
+        {
+            case "0":
+                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "Title", SortOrder = DevExpress.Maui.Core.DataSortOrder.Ascending});
+                break;
+            case "1":
+                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "Title", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
+                break;
+            case "2":
+                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Ascending });
+                break;
+            case "3":
+                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
+                break;
+            default:
+                break;
+        }
+        //var commandParam = 
+    }
 }
 
 

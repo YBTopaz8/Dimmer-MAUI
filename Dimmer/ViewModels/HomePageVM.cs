@@ -243,22 +243,12 @@ public partial class HomePageVM : ObservableObject
         await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
-    
+    [ObservableProperty]
+    bool isLoadingPage = false;
     public async Task NavToNowPlayingPage(SongsModelView? song=null)
     {
-
-        if (song != null)
-        {
-            SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
-            if (song != TemporarilyPickedSong)
-            {
-                SynchronizedLyrics?.Clear();
-                SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
-                SelectedSongToOpenBtmSheet = song;
-            }
-            
-            CurrentViewIndex = 0;
-        }
+        IsLoadingPage = true;
+        
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(SingleSongShellD));
 #elif ANDROID
@@ -273,12 +263,23 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.GoToAsync(nameof(SingleSongShell));
         }
 #endif
+
+        if (song != null)
+        {
+            SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
+            if (song != TemporarilyPickedSong)
+            {
+                SynchronizedLyrics?.Clear();
+                SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
+                SelectedSongToOpenBtmSheet = song;
+            }
+
+            CurrentViewIndex = 0;
+        }
+
+        IsLoadingSongs = false;
     }
 
-    partial void OnSelectedSongToOpenBtmSheetChanging(SongsModelView? oldValue, SongsModelView newValue)
-    {
-        Debug.WriteLine("Changing");
-    }
     #region Loadings Region
 
     [ObservableProperty]
@@ -1117,7 +1118,7 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongsModelView> backEndQ;
 
     [RelayCommand]
-    public async void RateSong(Rating obj)
+    public async Task RateSong(Rating obj)
     {
         var willBeFav = false;
         if (obj is not null)
@@ -1134,12 +1135,12 @@ public partial class HomePageVM : ObservableObject
                 case 4:
                 case 5:
                     willBeFav = true;
-                    PlayBackService.UpdateSongToFavoritesPlayList(SelectedSongToOpenBtmSheet);
+                    
                     break;
                 default:
                     break;
             }
-            
+            SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
             SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
             await UpdateSongInFavoritePlaylist(SelectedSongToOpenBtmSheet);
         }

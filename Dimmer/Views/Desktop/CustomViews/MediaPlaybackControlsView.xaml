@@ -111,7 +111,19 @@
 
                 </Border>
 
-                <cw:PlayPauseView x:Name="PlayPauseV" />
+                <Border WidthRequest="55" StrokeShape="RoundRectangle 30"
+                        HeightRequest="55" Padding="5,0,2,0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
+                    </Border.GestureRecognizers>
+                    <Image HeightRequest="35">
+                        <Image.Source>
+                            <FontImageSource 
+FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
+                        </Image.Source>
+                    </Image>
+                </Border>
+                
 
                 <Border>
                     <ImageButton Command="{Binding PlayNextSongCommand}"

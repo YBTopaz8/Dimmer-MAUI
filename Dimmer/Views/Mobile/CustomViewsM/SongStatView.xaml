@@ -29,13 +29,13 @@
                             HeightRequest="120" WidthRequest="130" Text="S"
                             BorderWidth="0" CornerRadius="10"/>
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
-                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
+                        <!--<ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
                             CommandParameter="{Binding TemporarilyPickedSong}">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Favorite}"/>
                             </ImageButton.Source>
-                        </ImageButton>
+                        </ImageButton>-->
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" IsVisible="{OnPlatform WinUI=false}"
                             Clicked="ShareStatBtn_Clicked">
                             <ImageButton.Source>

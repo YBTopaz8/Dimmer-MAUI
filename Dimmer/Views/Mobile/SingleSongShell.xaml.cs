@@ -189,4 +189,16 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         }
 
     }
+
+    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+
+    }
+
+    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        NowPlayingBtmSheet.Show();
+
+        return;
+    }
 }

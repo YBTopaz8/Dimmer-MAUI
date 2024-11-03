@@ -183,7 +183,6 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <ResourceDictionary>
@@ -197,13 +196,12 @@
                 <Label Text="Song Title" Grid.Column="0" />
                 <Label Text="Artist" Grid.Column="1"/>
                 <Label Text="Rating"  Grid.Column="2" HorizontalOptions="Center" Opacity="0.8"/>
-                <Label Text=""  Grid.Column="3" />
-                <Label Text="Album" Grid.Column="4"/>
-                <Label Text="Genre"   Grid.Column="5" />
-                <Label Text="Duration"  Grid.Column="6" />
-                <Label Text="Bitrate" Grid.Column="7"  />
-                <Label Text="Format" Grid.Column="8"/>
-                <Label Text="Play Count" Grid.Column="9"/>
+                <Label Text="Album" Grid.Column="3"/>
+                <Label Text="Genre"   Grid.Column="4" />
+                <Label Text="Duration"  Grid.Column="5" />
+                <Label Text="Bitrate" Grid.Column="6"  />
+                <Label Text="Format" Grid.Column="7"/>
+                <Label Text="Play Count" Grid.Column="8"/>
             </Grid>
             <!--<BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>-->
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
@@ -393,7 +391,6 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
                                 <Grid.RowDefinitions>
@@ -432,7 +429,7 @@
                                     </ratingsView:RatingControl.GestureRecognizers>
                                 </ratingsView:RatingControl>
 
-                                <uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
+                                <!--<uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
                                                          Hovered="FavImagStatView_HoveredAndExited"
                                                          HoverExited="FavImagStatView_HoveredAndExited">
                                     <ImageButton 
@@ -442,26 +439,26 @@
                                             <FontImageSource Size="25" FontFamily="MaterialRounded" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
-                                </uranium:StatefulContentView>
+                                </uranium:StatefulContentView>-->
 
-                                <Label Text="{Binding AlbumName}" Grid.Column="4"
+                                <Label Text="{Binding AlbumName}" Grid.Column="3"
                                        
                        ToolTipProperties.Text="{Binding AlbumName}"/>
 
-                                <Label Text="{Binding GenreName}" Grid.Column="5" 
+                                <Label Text="{Binding GenreName}" Grid.Column="4" 
                        ToolTipProperties.Text="{Binding GenreName}"/>
 
-                                <Label Grid.Column="6"  
+                                <Label Grid.Column="5"  
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-                                <Label Grid.Column="7"  
+                                <Label Grid.Column="6"  
                        Text="{Binding BitRate, StringFormat='{0} kbps'}"                                
                        ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
 
-                                <Label Text="{Binding FileFormat}" Grid.Column="8"
+                                <Label Text="{Binding FileFormat}" Grid.Column="7"
                        ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
-                                <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="9"/>
+                                <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="8"/>
                             </Grid>
                         </Border>
 

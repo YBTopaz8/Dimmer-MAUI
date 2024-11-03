@@ -247,8 +247,6 @@ public partial class SingleSongShellD : ContentPage
         }
     }
 
-    bool inRatingMode = false;
-
     private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
     {
         var newSelection = e.NewIndex;

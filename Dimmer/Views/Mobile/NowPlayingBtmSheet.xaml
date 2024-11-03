@@ -34,7 +34,7 @@
                                      toolkit:DockLayout.DockPosition="Bottom"
                                      x:Name="dl" >
 
-            <Grid BackgroundColor="Transparent" >
+            <Grid BackgroundColor="Transparent" Margin="5,0" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -43,16 +43,18 @@
 
                 <Label Grid.Column="0" Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" 
                   VerticalOptions="Center" FontSize="17"/>
-                
-                <Slider Grid.Column="1" VerticalOptions="Center" 
-                   Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" MinimumTrackColor="DarkSlateBlue"
-                   DragCompleted="Slider_DragCompleted"/>
+                <Slider Grid.Column="1" 
+                             Value="{Binding CurrentPositionPercentage, Mode=TwoWay}"
+                             
+                             x:Name="ProgressSlider" DragCompleted="Slider_DragCompleted">
+                    
+                </Slider>
 
                 <Label Grid.Column="2" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                    VerticalOptions="Center" Opacity="0.6" FontSize="16"/>
             </Grid>
 
-            <VerticalStackLayout>
+            <VerticalStackLayout >
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
                 </VerticalStackLayout.GestureRecognizers>
@@ -70,7 +72,7 @@
 
             </VerticalStackLayout>
 
-            <Grid HorizontalOptions="Fill" VerticalOptions="Start" ColumnSpacing="20"
+            <Grid HorizontalOptions="Fill" VerticalOptions="Start" ColumnSpacing="15"
              BackgroundColor="Transparent" Margin="5,0">
 
                 <Grid.ColumnDefinitions>
@@ -97,10 +99,15 @@
                                     Color="#B8B8B8"/>
                     </ImageButton.Source>
                 </ImageButton>
-
-                <dx:RadialProgressBar  WidthRequest="50" HeightRequest="50" Grid.Column="2"
-                            
-         Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="4" Thickness="0" AllowAnimation="True"
+                <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
+                   CornerRadius="40" TapPressed="NowPlayingBtn_TapPressed" Grid.Column="2"
+                   TapReleased="NowPlayingBtn_TapReleased"
+                   UseRippleEffect="True"
+                   WidthRequest="90" HeightRequest="90" >
+                    <dx:DXButton.Content>
+                        <dx:RadialProgressBar  WidthRequest="80" HeightRequest="80" 
+                                               Grid.Column="2"
+                            Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="6" Thickness="0" AllowAnimation="True"
          Fill="Transparent" StartAngle="-180" SweepAngle="360">
                     <dx:RadialProgressBar.GestureRecognizers>
                         <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
@@ -116,6 +123,8 @@
 
                 </dx:RadialProgressBar>
 
+                    </dx:DXButton.Content>
+                </dx:DXButton>
 
 
                 <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
@@ -170,32 +179,15 @@
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <ImageButton BackgroundColor="Transparent" 
-                            Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}"
+                    <ImageButton x:DataType="vm:HomePageVM"
+                            Command="{Binding Path=BindingContext.UpdateSongInFavoritePlaylistCommand, Source={x:Reference myPage}}"
                    CommandParameter="{Binding TemporarilyPickedSong}">
                         <ImageButton.Source>
-                            <FontImageSource 
+                            <FontImageSource Color="DarkSlateBlue"
                                                Size="40"
                                                FontFamily="MaterialRounded" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <!--<cm:ContextMenuContainer>
-                        <cm:ContextMenuContainer.MenuItems >
-                            <cm:ContextMenuItem Text="Share" Command="{Binding NavigateToShareStoryPageCommand}"/>
-                            <cm:ContextMenuItem Text="Delete"/>
-                        </cm:ContextMenuContainer.MenuItems>
-                        <cm:ContextMenuContainer.Content>
-                            <ImageButton BackgroundColor="Transparent" 
-                                           Padding="-8"
-                                           WidthRequest="30" HorizontalOptions="Center">
-                                <ImageButton.Source>
-                                    <FontImageSource 
-                                                       Size="40"
-                                                       FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
-                                </ImageButton.Source>
-                            </ImageButton>
-                        </cm:ContextMenuContainer.Content>
-                    </cm:ContextMenuContainer>-->
                 </HorizontalStackLayout>
 
             </FlexLayout>
