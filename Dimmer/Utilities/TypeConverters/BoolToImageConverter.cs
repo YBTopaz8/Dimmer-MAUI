@@ -15,7 +15,7 @@ public class BoolToImageConverter : IValueConverter
         }
         else
         {
-            return MaterialRounded.Favorite;
+            return MaterialRounded.Heart_broken;
         }
     }
 

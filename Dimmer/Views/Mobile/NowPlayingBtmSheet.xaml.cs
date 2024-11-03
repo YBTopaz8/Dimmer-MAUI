@@ -18,7 +18,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         //Shell.SetTabBarIsVisible(this, false);
         AllowedState = BottomSheetAllowedState.FullExpanded;
 
-        this.StateChanged += NowPlayingBtmSheet_StateChanged;
+        //this.StateChanged += NowPlayingBtmSheet_StateChanged;
     }
 
     private void NowPlayingBtmSheet_StateChanged(object? sender, ValueChangedEventArgs<BottomSheetState> e)
@@ -36,11 +36,11 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {
-        await Task.Delay(800);
-        this.State = BottomSheetState.Hidden;
         HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         
         await HomePageVM.NavToNowPlayingPage();
+        await Task.Delay(800);
+        this.State = BottomSheetState.Hidden;
 
     }
 

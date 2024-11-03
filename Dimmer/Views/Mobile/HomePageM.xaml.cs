@@ -8,9 +8,6 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : ContentPage
 {
-
-    private Timer _pressTimer;
-    private bool _isLongPress;
     public HomePageVM HomePageVM { get; }
     public HomePageM(HomePageVM homePageVM)
     {
@@ -19,8 +16,6 @@ public partial class HomePageM : ContentPage
         BindingContext = homePageVM;
         Shell.SetNavBarIsVisible(this, true);
 
-        _pressTimer = new Timer(1000);
-        _pressTimer.Elapsed += OnLongPressTimerElapsed;
     }
 
 
@@ -228,7 +223,7 @@ public partial class HomePageM : ContentPage
         SongsColView.SelectionMode = SelectionMode.Multiple;
     }
 
-    private void DXButton_Clicked(object sender, EventArgs e)
+    private void ShareSong_Clicked(object sender, EventArgs e)
     {
         CloseBtmSheet();
     }
@@ -238,22 +233,12 @@ public partial class HomePageM : ContentPage
         songsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
 
-    private void NPTabview_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
-    {
-        if (e.NewIndex == 1)
-        {
-            TopPart.IsVisible = false;
-        }
-        else
-        {
-            TopPart.IsVisible = true;
-        }
-    }
 
     private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
     {
-
-        SongsColView.ShowFilteringUIForm();
+        SearchSongPopUp.Show();
+        
+        //SearchSongPopUp.IsOpen = true;
     }
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
@@ -262,41 +247,21 @@ public partial class HomePageM : ContentPage
         CloseBtmSheet();
     }
 
-    private void TouchBehavior_LongPressCompleted(object sender, LongPressCompletedEventArgs e)
-    {
-        Debug.WriteLine("Long Pressed");
-    }
-
-    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
-    {
-        
-    }
-
 
 
     private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        _pressTimer.Start();
-        _isLongPress = false;
+        
     }
 
     private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {          
-        NowPlayingBtmSheet.State = DevExpress.Maui.Controls.BottomSheetState.FullExpanded;
+    {
+        NowPlayingBtmSheet.Show();
+        
         return;       
     }
-    private void ShowNowPlayingPage()
-    {
-        if (NowPlayingBtmSheet.State != DevExpress.Maui.Controls.BottomSheetState.FullExpanded)
-        {
-        }
-    }
-    private void OnLongPressTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        ShowNowPlayingPage();
-        _pressTimer.Stop();
-        _isLongPress = true;
-    }
+   
+   
 }
 
 

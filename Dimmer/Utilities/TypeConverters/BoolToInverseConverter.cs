@@ -28,7 +28,9 @@ public class BoolToInverseConverter : IValueConverter
                     return true;
                 }
             default:
-                return !(bool)value!;
+                var val = !(bool)value;
+                
+                return val;
         }
     }
 

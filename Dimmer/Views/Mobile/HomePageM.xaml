@@ -55,7 +55,9 @@
                         <toolkit:AvatarView ImageSource="{Binding CoverImagePath}" Text="{Binding Title}"                                            
                                             CornerRadius="10" BorderWidth="0"/>
                         <VerticalStackLayout>                            
-                            <Label Text="{Binding Title}" FontSize="16" LineBreakMode="HeadTruncation" />
+                            <Label Text="{Binding Title}" FontSize="16" 
+                                   LineBreakMode="WordWrap" MaxLines="2"
+                                   />
                             <Label Text="{Binding ArtistName}" FontSize="14" Opacity="0.5"/>
                             <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}"/>
                         </VerticalStackLayout>
@@ -87,67 +89,6 @@
 
         </DataTemplate>
 
-        <DataTemplate x:Key="filteringUIFromHomeSongsColView">
-            <dx:DXScrollView BackgroundColor="Black">
-                <VerticalStackLayout>
-                     <!--Favorite Filter (Toggle)-->
-                    <dx:FilterCheckItem Text="Favorite"  FieldName="IsFavorite"
-                                        TextFontSize="25" AllowIndeterminateInput="False"
-                                        UseRippleEffect="True" ImageWidth="25">
-                        <dx:FilterCheckItem.ImageSource>
-                            <FontImageSource FontFamily="MaterialRounded" 
-                                             Glyph="{x:Static m:MaterialRounded.Favorite}"/>
-
-                        </dx:FilterCheckItem.ImageSource>
-                    </dx:FilterCheckItem>
-
-                    <!--Title Filter (Text Input)--> 
-                    <!--<dx:filter FilterTextInputItem FieldName="Title" Placeholder="Search by Title"/>-->
-
-                     <!--Artist Filter (Picker)-->
-                    <dx:FilterCheckedListPickerItem FieldName="ArtistName" Text="Artist"
-                                                  ShowValuesOutOfFilter="true">
-                        <dx:FilterCheckedListPickerItem.PickerTitleView>
-                            <Label Text="Artist" VerticalOptions="Center"
-                                   FontSize="30"/>
-                        </dx:FilterCheckedListPickerItem.PickerTitleView>
-                    </dx:FilterCheckedListPickerItem>
-                    
-                    <dx:FilterCheckedListPickerItem FieldName="AlbumName" Text="Album"
-                                                  ShowValuesOutOfFilter="true">
-                        <dx:FilterCheckedListPickerItem.PickerTitleView>
-                            <Label Text="Artist" VerticalOptions="Center"
-                                   FontSize="30"/>
-                        </dx:FilterCheckedListPickerItem.PickerTitleView>
-                    </dx:FilterCheckedListPickerItem>
-
-                     <!--Album Name Filter (Text Input)--> 
-
-                     <!--Genre Filter (Chip Group)--> 
-                    <dx:FilterCheckedListPickerItem Text="Genre" FieldName="GenreName"/>
-
-                     <!--Duration Filter (Slider Range)--> 
-                    <dx:FilterNumericRangeItem Text="Duration" FieldName="DurationInSeconds" EditorDisplayFormat="N0" 
-                                               Min="0" 
-                                               Max="50"/>
-
-                     <!--Rating Filter (Chip Group for 1 to 5 Stars)--> 
-                    <dx:FilterChipGroupItem Text="Rating" FieldName="Rating" AllowDeselect="True" />
-
-                     <!--Release Year Filter (Chip Group)--> 
-                    <dx:FilterCheckedChipGroupItem Text="Release Year" FieldName="ReleaseYear"/>
-
-                     <!--File Format Filter (Chip Group)--> 
-                    <dx:FilterChipGroupItem Text="File Format" FieldName="FileFormat"/>
-
-                     <!--File Size Filter (Slider Range)--> 
-                    
-                    <dx:FilterNumericRangeItem Text="File Size" FieldName="FileSize" EditorDisplayFormat="N0" 
-                                               
-                                               Min="1" Max="50"/>
-                </VerticalStackLayout>
-            </dx:DXScrollView>
-        </DataTemplate>
     </ContentPage.Resources>
 
     
@@ -166,11 +107,11 @@
         
                 <!--HorizontalStackLayout at the extreme right-->
             <HorizontalStackLayout HorizontalOptions="End" Padding="10" x:Name="TopPart">
-                <ImageButton HeightRequest="35" Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}">
+                <!--<ImageButton HeightRequest="35" Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
                     </ImageButton.Source>
-                </ImageButton>
+                </ImageButton>-->
 
                 <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
                 HeightRequest="35">
@@ -188,25 +129,29 @@
 
             <dx:DXCollectionView 
                             IsScrollBarVisible="False"
-                                        x:Name="SongsColView"
-                                        UseRippleEffect="True"
-                                        RippleColor="DarkSlateBlue"
-                                        ItemTemplate="{StaticResource HomePageColViewTemplate}"
-                                        ItemsSource="{Binding DisplayedSongs}"
-                                            
-                                        FilteringUITemplate="{StaticResource filteringUIFromHomeSongsColView}"
-                                            
+                            x:Name="SongsColView"
+                            UseRippleEffect="True"
+                            RippleColor="DarkSlateBlue"
+                            ItemTemplate="{StaticResource HomePageColViewTemplate}"
+                            ItemsSource="{Binding DisplayedSongs}"
+                
                 Tap="SongsColView_Tap" 
                 LongPress="SongsColView_LongPress">
+                <dx:DXCollectionView.SortDescriptions>
+                    <dx:SortDescription FieldName="Title" SortOrder="Ascending"/>
+                </dx:DXCollectionView.SortDescriptions>
             </dx:DXCollectionView>
 
-            <VerticalStackLayout Spacing="3" VerticalOptions="End" 
+            <VerticalStackLayout Spacing="2" VerticalOptions="End" 
+                                 
                                  HorizontalOptions="End" 
-                HeightRequest="320" x:Name="NormalMiniUtilFABs" Margin="10,0">
-                
-                <dx:DXButton 
-                             Command="{Binding Commands.ShowFilteringUIForm,Source={Reference SongsColView}}"
-                             x:Name="ShowFilterUIImgBtm" CornerRadius="35"
+                HeightRequest="250" x:Name="NormalMiniUtilFABs" Margin="10,0">
+
+                <!--Command="{Binding Commands.ShowFilteringUIForm,
+                    Source={Reference SongsColView}}"-->
+                <dx:DXButton WidthRequest="60" HeightRequest="60"
+                             Clicked="ShowFilterUIImgBtm_Clicked"
+                             x:Name="ShowFilterUIImgBtm" CornerRadius="30"
                              Padding="10" BackgroundColor="DarkSlateBlue">
                     <dx:DXButton.Content>
                         <dx:DXImage>
@@ -218,9 +163,10 @@
                     </dx:DXButton.Content>
                 </dx:DXButton>
 
-                <dx:DXButton Clicked="ScrollToSongFAB_Clicked"
+                <!--<dx:DXButton Clicked="ScrollToSongFAB_Clicked"
                              x:Name="ScrollToSongFAB"
-                             CornerRadius="35" Padding="10"
+                             CornerRadius="30" Padding="10"
+                             WidthRequest="60" HeightRequest="60"
                 BackgroundColor="DarkSlateBlue">
                     <dx:DXButton.Content>
                         <dx:DXImage>
@@ -230,23 +176,29 @@
                         </dx:DXImage>
 
                     </dx:DXButton.Content>
-                </dx:DXButton>
-                <dx:DXButton BackgroundColor="DarkSlateBlue" x:Name="NowPlayingBtn"
-                             CornerRadius="35" TapPressed="NowPlayingBtn_TapPressed"
+                </dx:DXButton>-->
+                
+                <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
+                             CornerRadius="40" TapPressed="NowPlayingBtn_TapPressed"
                              TapReleased="NowPlayingBtn_TapReleased"
-                             WidthRequest="80" HeightRequest="80" >
+                             
+                             WidthRequest="70" HeightRequest="70" >
                     <dx:DXButton.Content>
                         
                     <dx:RadialProgressBar  
-                        WidthRequest="80" HeightRequest="80" Grid.Column="2"
-                    
-Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="4" Thickness="0" AllowAnimation="True"
-Fill="Transparent" StartAngle="-180" SweepAngle="360"
-                                       >
+                        WidthRequest="80" HeightRequest="80"
+                        Value="{Binding CurrentPositionPercentage}" 
+                        ValueIndicatorThickness="12" 
+                        Thickness="10" AllowAnimation="True"
+                        Fill="Transparent" StartAngle="-180" SweepAngle="360"
+                       ValueIndicatorFill="DarkSlateBlue">
                         
                         <dx:RadialProgressBar.Content>
-                                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
-                                 />
+                            
+                                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                                       WidthRequest="80" HeightRequest="80" VerticalOptions="Fill"
+                                            BorderWidth="0" CornerRadius="40" 
+                                       Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />
                             </dx:RadialProgressBar.Content>
 
                         </dx:RadialProgressBar>
@@ -292,9 +244,65 @@ FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
 
             </VerticalStackLayout>
 
+            <dx:BottomSheet HalfExpandedRatio="0.55" AllowedState="HalfExpanded"
+                x:Name="SearchSongPopUp" >
+                <VerticalStackLayout Spacing="10" Margin="10,0">
+                    <!--Favorite Filter (Toggle)-->
+                    <dx:FilterSwitchItem Text="Is Favorite?" ThumbColor="DarkSlateBlue"
+                                         FieldName="IsFavorite"
+                        TextFontSize="23" Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}"
+                        UseRippleEffect="True" ImageWidth="25">
+                        <dx:FilterSwitchItem.ImageSource>
+                            <FontImageSource FontFamily="MaterialRounded" 
+                             Glyph="{x:Static m:MaterialRounded.Favorite}"/>
+
+                        </dx:FilterSwitchItem.ImageSource>
+                    </dx:FilterSwitchItem>
+
+                    <!--Title Filter (Text Input)-->
+                    <!--<dx:filter FilterTextInputItem FieldName="Title" Placeholder="Search by Title"/>-->
+                    <!--BindingContext="{Binding SongsColView.FilteringContext,Source={x:Reference myPage}}"-->
+                    <!--Artist Filter (Picker)-->
+                    <dx:FilterCheckedListPickerItem FieldName="ArtistName" Text="Artist"
+                                  PickerShowMode="Popup" PickerBottomSheetState="HalfExpanded"
+                                ShowValuesOutOfFilter="true"
+                            Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}">
+                        
+                        <dx:FilterCheckedListPickerItem.PickerTitleView>
+                            <Label Text="Artist" VerticalOptions="Center" HorizontalOptions="Center"
+                   FontSize="30" />
+                        </dx:FilterCheckedListPickerItem.PickerTitleView>
+                    </dx:FilterCheckedListPickerItem>
+
+                    <dx:FilterCheckedListPickerItem FieldName="AlbumName" Text="Album" PickerShowMode="Popup"
+                                  ShowValuesOutOfFilter="true" Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}">
+                        <dx:FilterCheckedListPickerItem.PickerTitleView>
+                            <Label Text="Artist" VerticalOptions="Center"
+                   FontSize="30"/>
+                        </dx:FilterCheckedListPickerItem.PickerTitleView>
+                    </dx:FilterCheckedListPickerItem>
+
+                    <!--Genre Filter (Chip Group)-->
+                    <dx:FilterCheckedListPickerItem Text="Genre" PickerShowMode="Popup"
+                                                    Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}"
+                                                    FieldName="GenreName"/>
+
+                   
+                    <!--File Format Filter (Chip Group)-->
+                    <dx:FilterChipGroupItem Text="File Format" 
+                                            Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}"
+                                            FieldName="FileFormat"/>
+                    <dx:FilterRadioListPickerItem Text="Sort" ShowValuesOutOfFilter="True"
+                              ShowSearchPanel="True" PickerShowMode="Popup"
+                              ShowRadioButtons="True">
+                        
+                    </dx:FilterRadioListPickerItem>
+                </VerticalStackLayout>
+            </dx:BottomSheet>
+            
             <dx:BottomSheet x:Name="songsMenuBtm" AllowedState="HalfExpanded"
-                AllowDismiss="True"
-                ShowGrabber="False">
+                AllowDismiss="True" HalfExpandedRatio="0.63"
+                ShowGrabber="True">
                 <VerticalStackLayout>
                     <VerticalStackLayout.Resources>
                         <ResourceDictionary>
@@ -310,13 +318,15 @@ FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
                             </Style>
                         </ResourceDictionary>
                     </VerticalStackLayout.Resources>
-                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                    <VerticalStackLayout HorizontalOptions="Center" >
 
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" 
+                        <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" HorizontalTextAlignment="Center"
                                LineBreakMode="TailTruncation" />
-                        <Label Text="-" />
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" />
-                    </HorizontalStackLayout>
+                        <Label Text="-" HorizontalTextAlignment="Center"/>
+                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                               FontSize="20"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
 
                     <dx:DXSeparator />
                     <dx:DXButton Content="Set Play Repeat Count"
@@ -353,7 +363,7 @@ FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}" />
                         </dx:DXButton.Icon>
                     </dx:DXButton>
-                    <dx:DXButton Content="Share" Clicked="DXButton_Clicked"
+                    <dx:DXButton Content="Share" Clicked="ShareSong_Clicked"
                             Command="{Binding NavigateToShareStoryPageCommand}">
                         <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}" />

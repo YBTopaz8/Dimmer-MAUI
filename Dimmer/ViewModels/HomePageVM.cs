@@ -541,28 +541,7 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.SearchSong(SearchText, SelectedFilters, Achievement);
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
-    
-    bool isSongBtmSheetShown;
-    //SongMenuBtmSheet songsBtmSheet;
-//    public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
-//    {
-//#if ANDROID
-//        if (!isSongBtmSheetShown)
-//        {
-//            songsBtmSheet = new SongMenuBtmSheet(this, song);
-//            SelectedSongToOpenBtmSheet = song;
-//            await songsBtmSheet.ShowAsync();
-//            songsBtmSheet.Dismissed += SongsBtmSheet_Dismissed;
-//            isSongBtmSheetShown = true;
-//        }
-//#endif
-//    }
-
-    private void SongsBtmSheet_Dismissed(object? sender, DismissOrigin e)
-    {
-        isSongBtmSheetShown = false;
-    }
-
+  
     void ReloadSizeAndDuration()
     {
         TotalSongsDuration = PlayBackService.TotalSongsDuration;
@@ -581,9 +560,9 @@ public partial class HomePageVM : ObservableObject
             }    
         }
     }
-    public void LoadSongCoverImage()
+    public async void LoadSongCoverImage()
     {
-
+        
         if (TemporarilyPickedSong is not null)
         {
             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
@@ -596,18 +575,15 @@ public partial class HomePageVM : ObservableObject
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
             TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.Id == lastID);
-
+            if (TemporarilyPickedSong is null)
+            {
+                IsTemporarySongNull = true;
+            }
+                return;
         }
-
+        //TemporarilyPickedSong.CoverImagePath = await FetchSongCoverImage();
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
-    }
-
-    partial void OnTemporarilyPickedSongChanging(SongsModelView? oldValue, SongsModelView newValue)
-    {
-        Debug.WriteLine($"old path {oldValue?.CoverImagePath}");
-        Debug.WriteLine($"new path {newValue.CoverImagePath}");
-
     }
 
     #region Subscriptions to Services
@@ -1141,14 +1117,31 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongsModelView> backEndQ;
 
     [RelayCommand]
-    public void RateSong(Rating obj)
+    public async void RateSong(Rating obj)
     {
+        var willBeFav = false;
         if (obj is not null)
         {
-
-            SelectedSongToOpenBtmSheet.Rating = (int)obj.Value;
+            var rateValue = obj.Value;
+            switch (rateValue)
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    willBeFav = false;
+                    break;
+                case 4:
+                case 5:
+                    willBeFav = true;
+                    PlayBackService.UpdateSongToFavoritesPlayList(SelectedSongToOpenBtmSheet);
+                    break;
+                default:
+                    break;
+            }
             
-            SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
+            SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
+            await UpdateSongInFavoritePlaylist(SelectedSongToOpenBtmSheet);
         }
     }
 }

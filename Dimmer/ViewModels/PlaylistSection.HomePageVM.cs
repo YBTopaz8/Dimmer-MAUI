@@ -57,7 +57,7 @@ public partial class HomePageVM
         await toast.Show(cts.Token);
     }
     [RelayCommand]
-    async Task AddSongToFavorites(SongsModelView song)
+    async Task UpdateSongInFavoritePlaylist(SongsModelView song)
     {
         if (song is null)
         {

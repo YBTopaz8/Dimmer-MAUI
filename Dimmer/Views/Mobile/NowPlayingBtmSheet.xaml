@@ -13,6 +13,7 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM" ShowGrabber="False"
+                
             x:Name="myPage" BackgroundColor="#0C0E0D">
 
     <dx:BottomSheet.Resources>

@@ -369,4 +369,7 @@ public partial class HomePageVM
         DisplayedSongs= PlaybackUtilsService.CheckCoverImage(DisplayedSongs);
         SongsMgtService.AddSongBatchAsync(DisplayedSongs);
     }
+
+    [ObservableProperty]
+    bool isTemporarySongNull = true;
 }
