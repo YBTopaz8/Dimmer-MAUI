@@ -169,7 +169,7 @@
 
             </VerticalStackLayout>
 
-            <Grid Padding="10" 
+            <Grid Padding="10"
               toolkit:DockLayout.DockPosition="Top"
               Margin="5,0">
 
@@ -384,7 +384,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="280" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />

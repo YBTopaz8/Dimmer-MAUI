@@ -49,7 +49,7 @@
                                 </VerticalStackLayout>
                             </HorizontalStackLayout>
 
-                            <dx:DXButton Grid.Column="1" Clicked="SingleSongCxtMenuArea_Clicked" 
+                            <dx:DXButton Grid.Column="1"  
                                  IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton">
                                 <dx:DXButton.Icon>
                                     <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>

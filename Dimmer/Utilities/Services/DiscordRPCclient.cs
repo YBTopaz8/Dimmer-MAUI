@@ -17,14 +17,14 @@ public class DiscordRPCclient : IDiscordRPC
 
     public bool Initialize()
     {
-#if ANDROID
+
 return false;
-#endif
+
 
         try
         {
             
-            _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
+           // _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
             _discordRpcClient.OnConnectionFailed += _discordRpcClient_OnConnectionFailed;
             _discordRpcClient.OnError += _discordRpcClient_OnError;
             
@@ -68,6 +68,7 @@ return false;
 
     public void ShutDown()
     {
+        return ;
         if (_discordRpcClient.IsInitialized)
         {
             isConnectionEstablished = false;

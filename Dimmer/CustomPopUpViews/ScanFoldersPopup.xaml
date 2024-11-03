@@ -4,7 +4,7 @@
              xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
              x:Class="Dimmer_MAUI.CustomPopUpViews.ScanFoldersPopup"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" Color="Transparent"
-           CanBeDismissedByTappingOutsideOfPopup="False">
+           CanBeDismissedByTappingOutsideOfPopup="True">
 
     <Border Padding="20,10,20,0" HeightRequest="350" BackgroundColor="#1E1E1E" 
                          x:DataType="vm:HomePageVM" StrokeShape="RoundRectangle 20"
@@ -25,7 +25,7 @@
             </Grid>           
 
         <Button Text="Close" BackgroundColor="#861B2D" Clicked="Button_Clicked"/>
-            <Button Text="ReloadCovers" Command="{Binding ReloadCoverImageCommand}"/>
+            <!--<Button Text="ReloadCovers" Command="{Binding ReloadCoverImageCommand}"/>-->
         </VerticalStackLayout>
     </Border>
 

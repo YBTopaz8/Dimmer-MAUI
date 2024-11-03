@@ -173,8 +173,15 @@ public partial class HomePageM : ContentPage
     }
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
-    {
-        //SongsColView.SelectionMode = SelectionMode.Multiple;
+    { 
+        
+        var s = (View)sender;
+        var song = (SongsModelView)e.Item;
+        HomePageVM.SetContextMenuSong(song);
+        if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
+        {
+            songsMenuBtm.Show();
+        }
     }
 
     private void ShareSong_Clicked(object sender, EventArgs e)
