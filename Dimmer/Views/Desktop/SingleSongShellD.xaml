@@ -6,11 +6,11 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
+             xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"   
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
             x:Name="myPage"
              Shell.NavBarIsVisible="False"
@@ -58,7 +58,7 @@
                 </Grid.GestureRecognizers>
                 <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
                     <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
-                                    WidthRequest="250" Spacing="10"  x:DataType="vm:HomePageVM">
+                                    WidthRequest="250" Spacing="10" >
                         <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
@@ -100,7 +100,7 @@
 
                         <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
                             <Image.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}" Color="Gray"/>
                             </Image.Source>
                         </Image>
 
@@ -108,7 +108,7 @@
                         <ImageButton HeightRequest="45" HorizontalOptions="Center"
                                  Clicked="ToggleFocusModeClicked">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
                             </ImageButton.Source>
                         </ImageButton>
 
@@ -126,79 +126,71 @@
                         
                     </VerticalStackLayout>
 
-                    <syncf:SfTabView x:Name="TabV"
+                    <chart:SfTabView x:Name="TabV"
                         TabBarHeight="65"
                         IndicatorPlacement="Top" SelectedIndex="{Binding CurrentViewIndex }"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
                         SelectionChanged="tabView_SelectionChanged"
                         IsClippedToBounds="True">
 
-                        <syncf:SfTabView.Items>
+                        <chart:SfTabView.Items>
 
-                            <syncf:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
-                                <syncf:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
-                                </syncf:SfTabItem.ImageSource>
-                                <syncf:SfTabItem.Content>
+                            <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
                                   RowDefinitions="*" ColumnDefinitions="*">
-                                      
+                                        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+   IsVisible="{OnPlatform WinUI=false, Android=True}" Grid.Column="0" Aspect="Center"/>
 
-                                        <VerticalStackLayout x:DataType="vm:HomePageVM">
 
-                                            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"
-                                                                     IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-                                                Converter={StaticResource BoolToInverse}}"/>
-
-                                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-                                                Converter={StaticResource BoolToInverse}}"
-                                                            SelectionChanged="LyricsColView_SelectionChanged" 
+                                        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
 SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
 Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
-                                                <CollectionView.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                        <Border Stroke="Transparent" Margin="5,0" >
-                                                            <VisualStateManager.VisualStateGroups>
-                                                                <VisualStateGroup Name="CommonStates">
-                                                                    <VisualState Name="Normal">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                    <VisualState Name="Selected">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                </VisualStateGroup>
-                                                            </VisualStateManager.VisualStateGroups>
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                    <Border Stroke="Transparent" Margin="5,0" >
+                                                        <VisualStateManager.VisualStateGroups>
+                                                            <VisualStateGroup Name="CommonStates">
+                                                                <VisualState Name="Normal">
+                                                                    <VisualState.Setters>
+                                                                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                                <VisualState Name="Selected">
+                                                                    <VisualState.Setters>
+                                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                                    </VisualState.Setters>
+                                                                </VisualState>
+                                                            </VisualStateGroup>
+                                                        </VisualStateManager.VisualStateGroups>
 
-                                                            <Border.GestureRecognizers>
-                                                                <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                                            </Border.GestureRecognizers>
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                                        </Border.GestureRecognizers>
 
-                                                            <Label Text="{Binding Text}" Margin="0,5" 
+                                                        <Label Text="{Binding Text}" Margin="0,5" 
                                                        HorizontalTextAlignment="Center" 
                                                        FontSize="19" >
-                                                                <Label.Triggers>
+                                                            <Label.Triggers>
 
-                                                                </Label.Triggers>
-                                                            </Label>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </CollectionView.ItemTemplate>
-                                            </CollectionView>
-                                        </VerticalStackLayout>
-                                        
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
                                     </Grid>
-                                </syncf:SfTabItem.Content>
-                            </syncf:SfTabItem>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
 
-                            <syncf:SfTabItem Header="Fetch Lyrics">
-                                <syncf:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
-                                </syncf:SfTabItem.ImageSource>
-                                <syncf:SfTabItem.Content>
+                            <chart:SfTabItem Header="Fetch Lyrics">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
                                     <Grid Margin="5,5" RowDefinitions="Auto, *">
                                         <Grid.Resources>
                                             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
@@ -206,7 +198,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                         </Grid.Resources>
                                         <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
-                   Margin="5" HorizontalOptions="Start">
+                   Margin="5" HorizontalOptions="Center">
                                             <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
                                                     Clicked="SearchLyricsOnLyrLib_Clicked">
                                                 <Button.CommandParameter>
@@ -248,7 +240,7 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                     <Border Stroke="DarkSlateBlue" 
                 StrokeShape="RoundRectangle, 10"
                 Padding="10" Margin="0,5">
-                                                        <VerticalStackLayout HorizontalOptions="Start">
+                                                        <VerticalStackLayout>
 
                                                             <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
@@ -256,14 +248,10 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                                             <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
 
-                                                            <HorizontalStackLayout IsVisible="{Binding instrumental}">
-                                                                <Label Text="Song is an Intrumental" />
-                                                            </HorizontalStackLayout>
-                                                            
-                                                            <HorizontalStackLayout IsVisible="{Binding instrumental, Converter={StaticResource BoolToInverse}}">
+                                                            <HorizontalStackLayout>
 
                                                                 <Button Text="Plain Lyrics" HorizontalOptions="Center" 
-                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
+                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
                             IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
                         />
 
@@ -278,14 +266,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>
                                     </Grid>
-                                </syncf:SfTabItem.Content>
-                            </syncf:SfTabItem>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
 
-                            <syncf:SfTabItem Header="Stats">
-                                <syncf:SfTabItem.ImageSource>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
-                                </syncf:SfTabItem.ImageSource>
-                                <syncf:SfTabItem.Content>
+                            <chart:SfTabItem Header="Stats">
+                                <chart:SfTabItem.ImageSource>
+                                    <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
+                                </chart:SfTabItem.ImageSource>
+                                <chart:SfTabItem.Content>
                                     <Grid RowDefinitions="Auto,*" Margin="8,5">
                                         <Grid RowDefinitions="Auto,*" Grid.Row="0">
 
@@ -297,27 +285,41 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                 </VerticalStackLayout>
                                             
                                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
-                                                   
+                                                    <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
+                                                                        IsVisible="{OnPlatform WinUI=false}" 
+                                                                        HeightRequest="120" WidthRequest="130" Text="S"
+                                                                        BorderWidth="0" CornerRadius="10"/>
+                                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                                                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong" 
+                                                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
+                                                                     CommandParameter="{Binding TemporarilyPickedSong}">
+                                                            <ImageButton.Source>
+                                                                <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                                            </ImageButton.Source>
+                                                        </ImageButton>
+
+                                                    </HorizontalStackLayout>
+
                                                 </VerticalStackLayout>
                                         </Grid>
 
-                                        <Grid RowDefinitions="Auto,*" Grid.Row="1" >
+                                        <Grid RowDefinitions="Auto,*" Grid.Row="1">
                                             <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center"
                                                                    Spacing="10">
 
-                                                <syncf:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"
-                                                                              StrokeThickness="1" BackgroundColor="#111111" WidthRequest="{OnPlatform WinUI=400}"
+                                                <chart:SfSegmentedControl SelectionChanged="SfSegmentedControl_SelectionChanged" HorizontalOptions="Start"                                                                              
+                                                                              StrokeThickness="1" BackgroundColor="#111111" 
                                                                           Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}"
                                                     ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
-                                                    <syncf:SfSegmentedControl.TextStyle>
-                                                        <syncf:SegmentTextStyle TextColor="White"/>
-                                                    </syncf:SfSegmentedControl.TextStyle>
-                                                </syncf:SfSegmentedControl>
+                                                    <chart:SfSegmentedControl.TextStyle>
+                                                        <chart:SegmentTextStyle TextColor="White"/>
+                                                    </chart:SfSegmentedControl.TextStyle>
+                                                </chart:SfSegmentedControl>
 
-                                                <HorizontalStackLayout Grid.Column="1" Spacing="10" HorizontalOptions="End">
+                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
                                                     <DatePicker  x:Name="dailyDateFilter" 
                                                                                />
-                                                    <material:CheckBox LabelPosition="After" Text="View syncf"
+                                                    <material:CheckBox LabelPosition="After" Text="View Chart"
                                                                        
                                                     CheckChanged="ShowHideChart_CheckChanged"/>
                                                 </HorizontalStackLayout>
@@ -369,18 +371,18 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                  x:Name="dailyStatChart"
                                                                  IsVisible="False">
                                                 
-                                                <syncf:SfCircularChart>
-                                                    <syncf:SfCircularChart.Resources>                                                        
+                                                <chart:SfCircularChart>
+                                                    <chart:SfCircularChart.Resources>                                                        
                                                             <DataTemplate x:Key="template1">
                                                                 <HorizontalStackLayout  VerticalOptions="Fill" Spacing="0" Padding="0" Margin="0">
                                                                     <Label Text="{Binding Item.LabelForNumberOfCompletedPlays}" VerticalTextAlignment="Center" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="14" Margin="2,0,2,0" />
                                                                     <Label Text="{Binding Item.TheCount,StringFormat=' :  {0}'}" VerticalTextAlignment="Center" HorizontalOptions="End" FontAttributes="Bold" Margin="0,0,2,0" FontSize="14" />
                                                                 </HorizontalStackLayout>
                                                             </DataTemplate>
-                                                    </syncf:SfCircularChart.Resources>
-                                                    <syncf:SfCircularChart.Series>
+                                                    </chart:SfCircularChart.Resources>
+                                                    <chart:SfCircularChart.Series>
                                                         
-                                                        <syncf:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
+                                                        <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
                                                                          XBindingPath="LabelForNumberOfCompletedPlays"
                                                                          YBindingPath="TheCount"
                                                                          ShowDataLabels="True"
@@ -389,9 +391,9 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                                          EnableTooltip="True"
                                                                          
                                                                          TooltipTemplate="{StaticResource template1}">
-                                                        </syncf:PieSeries>
-                                                    </syncf:SfCircularChart.Series>
-                                                </syncf:SfCircularChart>
+                                                        </chart:PieSeries>
+                                                    </chart:SfCircularChart.Series>
+                                                </chart:SfCircularChart>
                                             </VerticalStackLayout>
                                             
                                             <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.WeeklyStats}"
@@ -484,12 +486,12 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
 
                                         </Grid>
                                     </Grid>
-                                </syncf:SfTabItem.Content>
-                            </syncf:SfTabItem>
+                                </chart:SfTabItem.Content>
+                            </chart:SfTabItem>
 
-                        </syncf:SfTabView.Items>
+                        </chart:SfTabView.Items>
 
-                    </syncf:SfTabView>
+                    </chart:SfTabView>
                 </toolkit:DockLayout>
 
     </Grid>
@@ -504,14 +506,14 @@ Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                                   PointerReleased="PointerGestureRecognizer_PointerReleased"/>
                 </ImageButton.GestureRecognizers>
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
                 </ImageButton.Source>
             </ImageButton>
 
             <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
                              x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                 </ImageButton.Source>
             </ImageButton>
 
@@ -546,7 +548,7 @@ FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
                 <ImageButton HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleFocusModeClicked">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Do_not_disturb_on}" Color="Gray"/>
                     </ImageButton.Source>
                 </ImageButton>
             </VerticalStackLayout>

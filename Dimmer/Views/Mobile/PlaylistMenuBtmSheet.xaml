@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:the49="https://schemas.the49.com/dotnet/2023/maui"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              x:DataType="vm:HomePageVM"
@@ -32,7 +32,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Play_circle_filled}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Play Playlist"/>
@@ -43,7 +43,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Drive_file_rename_outline}"/>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Drive_file_rename_outline}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Rename Playlist"/>
@@ -57,7 +57,7 @@
             </HorizontalStackLayout.GestureRecognizers>
             <ImageButton HeightRequest="35">
                 <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete}"/>
+                    <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Delete}"/>
                 </ImageButton.Source>
             </ImageButton>
             <Label Text="Delete Playlist"/>

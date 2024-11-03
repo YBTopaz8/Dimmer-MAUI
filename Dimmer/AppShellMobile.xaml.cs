@@ -20,7 +20,6 @@ public partial class AppShellMobile : Shell
         Routing.RegisterRoute(nameof(SpecificAlbumPage), typeof(SpecificAlbumPage));
         Routing.RegisterRoute(nameof(AlbumPageM), typeof(AlbumPageM));
         Routing.RegisterRoute(nameof(ShareSongPage), typeof(ShareSongPage));
-        //Routing.RegisterRoute(nameof(NowPlayingPage), typeof(NowPlayingPage));
 
         //this.Navigating += OnNavigating;
     }

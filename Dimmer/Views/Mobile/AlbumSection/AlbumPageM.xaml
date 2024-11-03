@@ -6,7 +6,7 @@
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
@@ -40,7 +40,7 @@
                 <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                   Grid.Column="1">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
@@ -99,7 +99,7 @@
                         BorderWidth="2" TextColor="White" CornerRadius="5"
                         ContentLayout="Left, 10">
                     <Button.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
                     </Button.ImageSource>
                 </Button>
                 <Button Grid.Column="1" Text="Reset"  Command="{Binding ShowSpecificArtistsSongsCommand}"
@@ -108,7 +108,7 @@
                         BackgroundColor="Transparent" TextColor="White" CornerRadius="5"
                         ContentLayout="Left, 10">
                     <Button.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>
                     </Button.ImageSource>
                 </Button>
             </Grid>
@@ -124,7 +124,7 @@
                         <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}" HeightRequest="25" WidthRequest="25"
           ToolTipProperties.Text="Show All Artist Songs">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </FlexLayout>-->
@@ -160,7 +160,7 @@
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                         <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                                         </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>
@@ -185,7 +185,7 @@
                         <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
                      ToolTipProperties.Text="Show All Artist Songs">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Restart_alt}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </FlexLayout>
@@ -221,7 +221,7 @@
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                         <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                                         </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>
@@ -325,7 +325,7 @@
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                         <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                                         </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>

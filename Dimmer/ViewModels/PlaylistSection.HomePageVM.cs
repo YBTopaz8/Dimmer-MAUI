@@ -57,14 +57,14 @@ public partial class HomePageVM
         await toast.Show(cts.Token);
     }
     [RelayCommand]
-    async Task UpdateSongInFavoritePlaylist(SongsModelView song)
+    async Task AddSongToFavorites(SongsModelView song)
     {
         if (song is null)
         {
             return;
         }
         PlayBackService.UpdateSongToFavoritesPlayList(song);
-        if (song.IsFavorite)
+        if (!song.IsFavorite)
         {
             PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();

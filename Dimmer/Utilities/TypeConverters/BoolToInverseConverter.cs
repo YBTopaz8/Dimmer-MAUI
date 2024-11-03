@@ -10,27 +10,25 @@ public class BoolToInverseConverter : IValueConverter
         {
             
             case "playbtn":                
-                if (!vm.TemporarilyPickedSong.IsPlaying)
+                if (!vm.IsPlaying)
                 {
-                    return false;
+                    return true;
                 }
                 else
                 {
                     return false;
                 }
             case "pausebtn":
-                if (!vm.TemporarilyPickedSong.IsPlaying)
+                if (!vm.IsPlaying)
                 {
-                    return true;
+                    return false;
                 }
                 else
                 {
                     return true;
                 }
             default:
-                var val = !(bool)value;
-                
-                return val;
+                return !(bool)value!;
         }
     }
 

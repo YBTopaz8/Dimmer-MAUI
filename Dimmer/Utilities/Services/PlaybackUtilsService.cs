@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI.Utilities.Services;
+﻿namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -217,7 +215,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     List<AlbumArtistGenreSongLink> genreLinks)
     {
         Track track = new(file);
-        Debug.WriteLine($"Track Name {track.Title}");
+
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
         
@@ -252,31 +250,29 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         // Process genre and links
         var genreName = track.Genre?.Trim();
-        if (string.IsNullOrEmpty(genreName))
+        if (!string.IsNullOrEmpty(genreName))
         {
-            genreName = "Unknown Genre";
-        }
-        var genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
+            var genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
 
-        // Find the artist-song link to retrieve the ArtistId
-        var artistSongLink = newLinks.FirstOrDefault(l => l.SongId == song.Id);
+            // Find the artist-song link to retrieve the ArtistId
+            var artistSongLink = newLinks.FirstOrDefault(l => l.SongId == song.Id);
 
-        if (artistSongLink != null)
-        {
-            var genreLink = new AlbumArtistGenreSongLink
+            if (artistSongLink != null)
             {
-                SongId = song.Id,
-                ArtistId = artistSongLink.ArtistId, // Use ArtistId from artist-song link
-                AlbumId = album.Id,
-                GenreId = genre.Id
-            };
-            genreLinks.Add(genreLink);
+                var genreLink = new AlbumArtistGenreSongLink
+                {
+                    SongId = song.Id,
+                    ArtistId = artistSongLink.ArtistId, // Use ArtistId from artist-song link
+                    AlbumId = album.Id,
+                    GenreId = genre.Id
+                };
+                genreLinks.Add(genreLink);
+            }
+            else
+            {
+                Debug.WriteLine("Artist-Song link not found for song: " + song.Title);
+            }
         }
-        else
-        {
-            Debug.WriteLine("Artist-Song link not found for song: " + song.Title);
-        }
-        
 
         return song;
     }
@@ -358,29 +354,27 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
     private AlbumModelView GetOrCreateAlbum(
-      string albumName,
-      List<AlbumModelView> existingAlbums,
-      Dictionary<string, AlbumModelView> albumDict,
-      List<AlbumModelView> newAlbums)
+    string albumName,
+    List<AlbumModelView> existingAlbums,
+    Dictionary<string, AlbumModelView> albumDict,
+    List<AlbumModelView> newAlbums)
     {
-        // Assign "Unknown Album" if albumName is empty or null
         if (string.IsNullOrEmpty(albumName))
         {
-            albumName = "Unknown Album";
+            return null;
         }
 
-        // Check if album already exists in dictionary
         if (!albumDict.TryGetValue(albumName, out var album))
         {
             album = new AlbumModelView
             {
                 Id = ObjectId.GenerateNewId(),
                 Name = albumName,
-                AlbumImagePath = null // Default value, will be updated later if needed
+                AlbumImagePath = null // Default value, will be updated later
             };
             albumDict[albumName] = album;
 
-            // Check if the album already exists in the database list
+            // Check if the album already exists in the database
             if (!existingAlbums.Any(a => a.Name == albumName))
             {
                 newAlbums.Add(album);
@@ -587,14 +581,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (coverImage is null || coverImage.Length < 1)
         {
             string fileNameWithoutExtension = Path.GetFileName(filePath);
-
-#if ANDROID
-            string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
-#elif WINDOWS
-        string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-#endif
-
-      
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDB", "CoverImagesDimmer");
             // Ensure the directory exists
             if (!Directory.Exists(folderPath))
             {
@@ -745,10 +732,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (currentList is not null)
         {
             nowPlayingShuffledOrNotSubject.OnNext(currentList);
-        }
-        else
-        {
-            nowPlayingShuffledOrNotSubject.OnNext(_nowPlayingSubject.Value);
         }
         if (CurrentAppState != CurrentAppStatee)
         {
@@ -959,8 +942,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 }
                 else //if()
                 {
-                    Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index1");
-                    Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index Shuff1");
+                    Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
+                    Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
                     _currentSongIndex++;
                 }
                 #region might delete
@@ -1407,8 +1390,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 break;
         }
 
-        Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index");
-        Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index Shuff");
+        Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
+        Debug.WriteLine(nowPlayingShuffledOrNotSubject.Value.IndexOf(ObservableCurrentlyPlayingSong));
         AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
         //GetPrevAndNextSongs();
     }
@@ -1531,7 +1514,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 .ToList();
 
             // Step 4: Load the results with sorting
-            Debug.WriteLine(SearchedSongsList.Count + "Search Count");
             LoadSongsWithSorting(SearchedSongsList.ToObservableCollection(), true);
         }
         catch (Exception ex)

@@ -11,10 +11,13 @@ public class DiscordRPCclient : IDiscordRPC
 
     public DiscordRPCclient()
     {
-        Initialize();
+        _discordRpcClient = new DiscordRpcClient(SecretFilesAndKeys.DiscordKey);
+        _discordRpcClient.OnConnectionFailed += _discordRpcClient_OnConnectionFailed;
+        _discordRpcClient.OnError += _discordRpcClient_OnError;
 
+        _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
+        
     }
-
     public bool Initialize()
     {
 
@@ -29,9 +32,15 @@ return false;
             _discordRpcClient.OnError += _discordRpcClient_OnError;
             
             _discordRpcClient.OnReady += DiscordRpcClient_OnReady;
+
             if (!_discordRpcClient.IsInitialized)
             {
-                return false;
+                _discordRpcClient.Initialize();
+                if (!_discordRpcClient.IsInitialized)
+                {
+                    return false;
+                }
+                return true;
             }
             return true;
         }
@@ -85,11 +94,8 @@ return false;
 
     public void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position)
     {
-        if(currentSong is not null)
-        {
-            if (song == currentSong)
-                return;
-        }
+        if (song == currentSong)
+            return;
 
         var Presence = new RichPresence()
         {
@@ -119,6 +125,16 @@ return;
         {
             return;
         }
+        else
+        {
+            if (_discordRpcClient.IsDisposed)
+                return;
+            this.Initialize();
+            position = position.Add(TimeSpan.FromMilliseconds(500));
+            var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
+            var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
+            _discordRpcClient.SetPresence(Presence);
+        }
         if (_discordRpcClient.IsInitialized)
         {
             _discordRpcClient.UpdateState(Presence.State);
@@ -126,14 +142,6 @@ return;
             _discordRpcClient.UpdateStartTime((DateTime)Presence.Timestamps.Start);
             _discordRpcClient.UpdateEndTime((DateTime)Presence.Timestamps.End);
             _discordRpcClient.UpdateLargeAsset(Presence.Assets.LargeImageKey, Presence.Assets.LargeImageText);
-        }
-        else
-        {
-            this.Initialize();
-            position = position.Add(TimeSpan.FromMilliseconds(500));
-            var artName = string.IsNullOrEmpty(song.ArtistName) ? "Unknown Artist" : song.ArtistName;
-            var albName = string.IsNullOrEmpty(song.AlbumName) ? "Unknown Album" : song.AlbumName;
-            _discordRpcClient.SetPresence(Presence);
         }
     }
 }

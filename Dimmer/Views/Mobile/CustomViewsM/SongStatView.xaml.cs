@@ -14,7 +14,7 @@ public partial class SongStatView : ContentView
     private async void ShareStatBtn_Clicked(object sender, EventArgs e)
     {
         ShareStatBtn.IsVisible = false;
-        //FavSong.IsVisible = false;
+        FavSong.IsVisible = false;
         string shareCapture = "viewToShare.png";
         string filePath = Path.Combine(FileSystem.CacheDirectory, shareCapture); 
 
@@ -23,7 +23,7 @@ public partial class SongStatView : ContentView
         await ShareScreenshot(filePath);
 
         ShareStatBtn.IsVisible = true;
-        //FavSong.IsVisible = true;
+        FavSong.IsVisible = true;
     }
 
     public static async Task CaptureCurrentViewAsync(VisualElement view, string filePath)

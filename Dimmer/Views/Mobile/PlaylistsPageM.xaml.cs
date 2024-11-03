@@ -9,7 +9,7 @@ public partial class PlaylistsPageM : UraniumContentPage
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        //this.Attachments.Add(btmSheet);
+        this.Attachments.Add(btmSheet);
 
     }
     public HomePageVM HomePageVM { get; }
@@ -27,7 +27,11 @@ public partial class PlaylistsPageM : UraniumContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        
+        if (btmSheet.IsPresented)
+        {
+            btmSheet.IsPresented = false;
+            return true;
+        }
         return base.OnBackButtonPressed();
     }
 

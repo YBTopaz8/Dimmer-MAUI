@@ -6,18 +6,14 @@
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"        
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
-             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
-             x:Name="myPage"                        
-            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
-            xmlns:dx="http://schemas.devexpress.com/maui" 
-            Shell.NavBarIsVisible="False"
-            Padding="10,0" >
+             x:Name="myPage"
+             >
 
     <uranium:UraniumContentPage.Resources>
         <ResourceDictionary>
@@ -39,32 +35,31 @@
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-    <Grid Padding="0,0" >
+    <toolkit:DockLayout >
 
         <chart:SfTabView x:Name="TabV"
                         TabBarHeight="65"
-                        IndicatorPlacement="Top" SelectedIndex="{Binding CurrentViewIndex}"
+                        IndicatorPlacement="Top" SelectedIndex="{Binding CurrentViewIndex }"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
                         SelectionChanged="tabView_SelectionChanged"
                         IsClippedToBounds="True">
 
             <chart:SfTabView.Items>
 
-                <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
-                                 TextColor="Gray" >
+                <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Lyrics}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <Grid x:Name="SyncedLyricsSL" RowDefinitions="*" ColumnDefinitions="*" >
+                        <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
+                                  RowDefinitions="*" ColumnDefinitions="*">
                             <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
-                                IsVisible="True" Grid.Column="0" Aspect="Center"/>
+   IsVisible="{OnPlatform WinUI=false, Android=True}" Grid.Column="0" Aspect="Center"/>
 
 
-                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" 
-                                            SelectionChanged="LyricsColView_SelectionChanged" 
-                                            SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}" BackgroundColor="Transparent"
-                                            Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
+                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
+Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModel">
                                         <Border Stroke="Transparent" Margin="5,0" >
@@ -102,9 +97,9 @@
                     </chart:SfTabItem.Content>
                 </chart:SfTabItem>
 
-                <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray">
+                <chart:SfTabItem Header="Fetch Lyrics">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Wifi}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
                         <Grid Margin="5,5" RowDefinitions="Auto, *">
@@ -185,17 +180,16 @@
                     </chart:SfTabItem.Content>
                 </chart:SfTabItem>
 
-                <chart:SfTabItem Header="Stats" TextColor="Gray">
+                <chart:SfTabItem Header="Stats">
                     <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{Static m:MaterialRound.Bar_chart}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <Grid RowDefinitions="Auto,*" >
-                            <Grid RowDefinitions="Auto,*,*" Grid.Row="0" x:DataType="vm:HomePageVM">
+                        <Grid RowDefinitions="Auto,*" Margin="8,5">
+                            <Grid RowDefinitions="Auto,*" Grid.Row="0">
 
                                 <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
-                                    <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"
-                                           LineBreakMode="WordWrap"/>
+                                    <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"/>
                                     <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
                                     <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
                                     <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
@@ -203,35 +197,21 @@
 
                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
                                     <toolkit:AvatarView ImageSource="{Binding SongPickedForStats.Song.CoverImagePath}" 
-                                                                        
-                                                                        HeightRequest="120" WidthRequest="120" Text="S"
+                                                                        IsVisible="{OnPlatform WinUI=false}" 
+                                                                        HeightRequest="120" WidthRequest="130" Text="S"
                                                                         BorderWidth="0" CornerRadius="10"/>
-                                    
+                                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong" 
+                                                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
+                                                                     CommandParameter="{Binding TemporarilyPickedSong}">
+                                            <ImageButton.Source>
+                                                <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                            </ImageButton.Source>
+                                        </ImageButton>
+
+                                    </HorizontalStackLayout>
 
                                 </VerticalStackLayout>
-                                <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="10">
-
-                                    <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
-                                                   HorizontalOptions="Center" Command="{Binding RateSongCommand}"
-                                                   CommandParameter="{Binding .}" 
-                                                   AllowRating="True" Animate="True" 
-                                                   StrokeColor="DarkSlateBlue" 
-                                                   Maximum="5" Fill="DarkSlateBlue"
-                                                   >
-                                        <ratingsView:RatingControl.GestureRecognizers>
-                                        </ratingsView:RatingControl.GestureRecognizers>
-                                    </ratingsView:RatingControl>
-                                    <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
-                                 Command="{Binding Source={x:Reference myPage}, Path=BindingContext.UpdateSongInFavoritePlaylistCommand}" 
-                                 CommandParameter="{Binding TemporarilyPickedSong}">
-                                        <ImageButton.Source>
-                                            <FontImageSource Size="25" 
-                                                             
-                                                             FontFamily="MaterialRounded" Glyph="{Binding SongPickedForStats.Song.IsFavorite, Converter={StaticResource BoolToImage}}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-
-                                </HorizontalStackLayout>
                             </Grid>
 
                             <Grid RowDefinitions="Auto,*" Grid.Row="1">
@@ -255,7 +235,7 @@
                                                     CheckChanged="ShowHideChart_CheckChanged"/>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
-                                <CollectionView x:Name="DailyStats" x:DataType="vm:HomePageVM"
+                                <CollectionView x:Name="DailyStats"
                                                 Grid.Row="1" ItemsSource="{Binding SongPickedForStats.DailyStats.PlayDates}" 
                                                             
                                                                 HorizontalOptions="Center" SelectionMode="Single" IsVisible="True"
@@ -302,7 +282,7 @@
                                                                  x:Name="dailyStatChart"
                                                                  IsVisible="False">
 
-                                    <chart:SfCircularChart Scale="500">
+                                    <chart:SfCircularChart>
                                         <chart:SfCircularChart.Resources>
                                             <DataTemplate x:Key="template1">
                                                 <HorizontalStackLayout  VerticalOptions="Fill" Spacing="0" Padding="0" Margin="0">
@@ -311,7 +291,7 @@
                                                 </HorizontalStackLayout>
                                             </DataTemplate>
                                         </chart:SfCircularChart.Resources>
-                                        <chart:SfCircularChart.Series >
+                                        <chart:SfCircularChart.Series>
 
                                             <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
                                                                          XBindingPath="LabelForNumberOfCompletedPlays"
@@ -358,7 +338,7 @@
                                 </CollectionView>
 
                                 <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.MonthlyStats}"
-                                                            x:Name="MonthlyStats" x:DataType="vm:HomePageVM"
+                                                            x:Name="MonthlyStats"
                                                             HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
                                     <CollectionView.Header>
                                         <Grid ColumnDefinitions="*,*" Padding="10,5">
@@ -386,7 +366,7 @@
                                 </CollectionView>
 
                                 <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.YearlyStats}"
-                                                            x:Name="YearlyStats" x:DataType="vm:HomePageVM"
+                                                            x:Name="YearlyStats"
                                                             HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
                                     <CollectionView.Header>
                                         <Grid ColumnDefinitions="*,*" Padding="10,5">
@@ -423,39 +403,5 @@
             </chart:SfTabView.Items>
 
         </chart:SfTabView>
-
-        <VerticalStackLayout Spacing="2" VerticalOptions="End"
-                             HorizontalOptions="End" HeightRequest="100"
-                             >
-            <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
-             CornerRadius="40" TapPressed="NowPlayingBtn_TapPressed"
-             TapReleased="NowPlayingBtn_TapReleased"
-             
-             WidthRequest="70" HeightRequest="70" >
-                <dx:DXButton.Content>
-
-                    <dx:RadialProgressBar  
-        WidthRequest="80" HeightRequest="80"
-        Value="{Binding CurrentPositionPercentage}" 
-        ValueIndicatorThickness="12" 
-        Thickness="10" AllowAnimation="True"
-        Fill="Transparent" StartAngle="-180" SweepAngle="360"
-       ValueIndicatorFill="DarkSlateBlue">
-
-                        <dx:RadialProgressBar.Content>
-
-                            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                       WidthRequest="80" HeightRequest="80" VerticalOptions="Fill"
-                            BorderWidth="0" CornerRadius="40" 
-                       Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />
-                        </dx:RadialProgressBar.Content>
-
-                    </dx:RadialProgressBar>
-                </dx:DXButton.Content>
-            </dx:DXButton>
-        </VerticalStackLayout>
-        
-        <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"
-                                   />
-    </Grid>
+    </toolkit:DockLayout>
 </uranium:UraniumContentPage>

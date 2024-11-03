@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<the49:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:the49="https://schemas.the49.com/dotnet/2023/maui"
+             x:Class="Dimmer_MAUI.Views.Mobile.SongMenuBtmSheet"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
+             x:DataType="vm:HomePageVM"
+             BackgroundColor="Black" 
+             x:Name="myBtmPage">
+    <the49:BottomSheet.Detents>
+        <the49:ContentDetent />
+    </the49:BottomSheet.Detents>
+    <the49:BottomSheet.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="Center"/>
+                <Setter Property="FontSize" Value="28"/>
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
+            <Style TargetType="BoxView">
+                <Setter Property="HeightRequest" Value="0.6"/>
+                <Setter Property="Color" Value="DarkSlateBlue"/>
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="FontSize" Value="28"/>
+                <Setter Property="HeightRequest" Value="40"/>
+            </Style>
+        </ResourceDictionary>
+    </the49:BottomSheet.Resources>
+    <VerticalStackLayout Margin="5">
+        <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+            
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" 
+                   LineBreakMode="TailTruncation" />
+            <Label Text="-" />
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" />
+        </HorizontalStackLayout>
+        <Rectangle Fill="DarkSlateBlue" HeightRequest="5" RadiusX="15" Margin="0,10"/>
+        <VerticalStackLayout x:Name="FirstPageBtmSheet" Spacing="20" Margin="5">
+            <VerticalStackLayout.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="Label">
+                        <Setter Property="HorizontalOptions" Value="Center"/>
+                        
+                        <Setter Property="FontSize" Value="24"/>
+
+                    </Style>
+                    <Style TargetType="VerticalStackLayout">
+                        <Setter Property="HorizontalOptions" Value="Center"/>
+                    </Style>
+                    
+                    <Style TargetType="Image">
+                        <Setter Property="HorizontalOptions" Value="Start"/>
+                    </Style>
+                </ResourceDictionary>
+            </VerticalStackLayout.Resources>
+            <uranium:StatefulContentView TappedCommand="{Binding OpenRepeatSetterPopupCommand}">
+                <Grid ColumnDefinitions="70,*"
+                      HorizontalOptions="Start">
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Set Play Repeat Count" Grid.Column="1"
+                           x:Name="SetPlayRepeat" />
+                </Grid>
+            </uranium:StatefulContentView>
+            
+            <BoxView/>
+
+            <uranium:StatefulContentView Tapped="AddToPlaylist_Clicked">
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Playlist_add}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Add to Playlist"  Grid.Column="1" x:Name="AddToPlaylist"/>
+                </Grid>
+            </uranium:StatefulContentView>
+
+
+            <uranium:StatefulContentView TappedCommand="{Binding NavToNowPlayingPageCommand}" Tapped="DismissThis_Tapped"
+                                         >
+
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Text_snippet}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="View Song Lyrics" Grid.Column="1" x:Name="ExploreSong" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+            <uranium:StatefulContentView TappedCommand="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
+                                         CommandParameter="{Binding SelectedSongToOpenBtmSheet}" Tapped="DismissThis_Tapped">
+                <Grid ColumnDefinitions="70,*">
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Album}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Go to Album" Grid.Column="1" 
+                x:Name="GoToAlbum" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+            <uranium:StatefulContentView Tapped="GoToArtistAndDismiss_Tapped" 
+TappedCommand="{Binding NavigateToArtistsPageCommand}"
+                                         >
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Go to Artist" Grid.Column="1"  
+                           x:Name="GoToArtist" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+
+            <uranium:StatefulContentView TappedCommand="{Binding OpenEditSongPopupCommand}" Tapped="DismissThis_Tapped"
+                                         CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
+
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Tag Editor" Grid.Column="1" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+
+            <uranium:StatefulContentView TappedCommand="{Binding OpenViewSongDetailsPopupCommand}" Tapped="DismissThis_Tapped">
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Song Info" Grid.Column="1" x:Name="GetSongInfo" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+            <uranium:StatefulContentView TappedCommand="{Binding NavigateToShareStoryPageCommand}" Tapped="DismissThis_Tapped">
+                <Grid ColumnDefinitions="70,*" >
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Share" Grid.Column="1" x:Name="ShareSong" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+
+            <uranium:StatefulContentView TappedCommand="{Binding DeleteFileCommand}"  
+                                         CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
+                <Grid ColumnDefinitions="70,*">
+                    <Image Grid.Column="0" >
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever}" />
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Delete from Device" Grid.Column="1"  
+                            x:Name="DltSongFromDevice" />
+                </Grid>
+            </uranium:StatefulContentView>
+
+
+        </VerticalStackLayout>
+
+        <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="False" Spacing="10"
+                             Margin="20,5">
+            <Label Text="Choose A Playlist"/>
+            <CollectionView ItemsSource="{Binding DisplayedPlaylists}">
+                <CollectionView.EmptyView>
+                    <Label Text="No Playlist Created Yet..."/>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PlaylistModelView">
+                        <Border Margin="0,10" StrokeThickness="0.8"
+                                Stroke="DarkSlateBlue" Padding="0,5"
+                                StrokeShape="RoundRectangle, 8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Tapped="CloseBtmSheet_Tapped"
+                                    Command="{Binding BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myBtmPage}}" 
+                                    CommandParameter="{Binding Id}"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="{Binding Name}" FontSize="25"/>
+
+
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
+                <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
+                        TextColor="Red"/>
+                <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+                             Spacing="10" Margin="10,5">
+            <material:TextField Title="Playlist Name" BorderColor="DarkSlateBlue" TitleColor="Gray"
+                                x:Name="NewPlaylistName"/>
+            <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
+                <Button Text="Create" x:Name="CreatePlaylistBtn" 
+                        Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+                        Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+</the49:BottomSheet>

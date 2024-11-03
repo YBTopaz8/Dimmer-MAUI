@@ -171,10 +171,10 @@ public partial class HomeD : UraniumContentPage
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
     {
         base.OnNavigatingFrom(args);
-        //if (!isPointerEntered)
-        //{
-        //    HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
-        //}
+        if (!isPointerEntered)
+        {
+            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        }
     }
 
     private async void MenuFlyoutItem_Clicked_1(object sender, EventArgs e)
@@ -340,11 +340,14 @@ public partial class HomeD : UraniumContentPage
     }
     DateTime lastKeyStroke;
 
-    private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
         
         var send = (View)sender;
-        await SearchFiltersHSL.AnimateFadeInFront();      
+
+        SearchFiltersHSL.IsVisible = true;
+        MainBody.IsVisible = false;
+        
     }
 
 
@@ -378,24 +381,15 @@ public partial class HomeD : UraniumContentPage
 
     }
 
-    private async void Search_Clicked(object sender, EventArgs e)
+    private void search_Clicked(object sender, EventArgs e)
     {
         HomePageVM.SearchSong(filterFilters);
-        await MainBody.AnimateFadeInFront();
     }
 
-    private async void CloseFiltersImgBtn_Clicked(object sender, EventArgs e)
+    private void CloseFiltersImgBtn_Clicked(object sender, EventArgs e)
     {
-        //SearchFiltersHSL.IsVisible = false;
-        //MainBody.IsVisible = true;
-
-        await SearchFiltersHSL.AnimateFadeOutBack();
-
-        await MainBody.AnimateFadeInFront();
+        SearchFiltersHSL.IsVisible = false;
+        MainBody.IsVisible = true;  
     }
 
-    private async void GoToSongOverviewClicked(object sender, EventArgs e)
-    {
-        await HomePageVM.NavToNowPlayingPage(HomePageVM.SelectedSongToOpenBtmSheet);
-    }
 }

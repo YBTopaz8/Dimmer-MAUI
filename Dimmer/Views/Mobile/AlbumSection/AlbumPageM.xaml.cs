@@ -10,7 +10,7 @@ public partial class AlbumPageM : UraniumContentPage
         this.BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        //this.Attachments.Add(btmSheet);
+        this.Attachments.Add(btmSheet);
     }
 
     public HomePageVM HomePageVM { get; }
