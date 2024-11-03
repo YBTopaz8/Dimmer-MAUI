@@ -21,7 +21,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         AttachedPage = page;
         if (Body != null)
         {
-            Body.SizeChanged += (s, e) => AlignBottomSheet(false);
+            Body.SizeChanged += (s, e) => AlignBottomSheet(true);
         }
     }
     protected virtual void Init()
@@ -105,7 +105,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
 
     private bool isVerticalPan = false;
 
-    private void HeaderWhenClosedTapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
+    private async void HeaderWhenClosedTapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
     {
         // Set the sheet to open and hide the closed header
         IsPresented = true;
@@ -117,7 +117,6 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         {
             case GestureStatus.Started:
                 isVerticalPan = false;
-                this.HeightRequest = AttachedPage.HeightRequest;
                 break;
 
             case GestureStatus.Running:
@@ -167,6 +166,7 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
                         IsPresented = true;
                     }
                 }
+
                 AlignBottomSheet(shouldVibrate:true); // Align the sheet after the gesture is completed or canceled
                 break;
         }
@@ -176,9 +176,9 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
     // Align and switch headers (HeaderWhenClosed)
     private void AlignBottomSheet(bool animate = true, bool shouldVibrate=false)
     {
-        double y=this.Height - 100;
+        double y;
         double heightRequest;
-        this.IsVisible = false;
+
         if (IsPresented)
         {
             y = 0;  // Opened, bring it to full view
@@ -194,34 +194,20 @@ public partial class NowPlayingBtmSheetContainer : Border, IPageAttachment
         }
         else
         {
-            if (!animate)
-            {
-                this.TranslationX = X;
-                this.TranslationY = y;
-                //this.HeightRequest = 130;
-            }
-            else
-            {
-                OnClosed();
-                this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
-                
-                //this.Body.IsVisible = false;
-                //this.Body.HeightRequest = 1;
-                Shell.SetNavBarIsVisible(this.AttachedPage, false);
-                Shell.SetTabBarIsVisible(this.AttachedPage, true);
-
-            }
-            
-            HeaderWhenClosed.HeightRequest = 100;
+            HeaderWhenClosed.HeightRequest = 65;
             HeaderWhenClosed.Opacity = 1;
+            y = this.Height - 65; // Align the bottom sheet to be at the bottom
+            OnClosed();
+            this.TranslateToSafely(this.X, y, 250, Easing.CubicInOut);
 
+            Shell.SetNavBarIsVisible(this.AttachedPage, false);
+            Shell.SetTabBarIsVisible(this.AttachedPage, true);
         }
         if (shouldVibrate)
         {
             HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
         }
         UpdateDisabledStateOfPage();
-        this.IsVisible = true;
     }
 
     // Disabling the rest of the page if needed

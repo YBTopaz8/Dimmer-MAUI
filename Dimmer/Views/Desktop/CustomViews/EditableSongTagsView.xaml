@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"    
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
@@ -77,13 +77,13 @@
                                 <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
                                                 WidthRequest="20" BackgroundColor="Transparent">
                                     <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialSharp.Delete}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
                                 <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
                                                 WidthRequest="20" BackgroundColor="Transparent">
                                     <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
+                                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Timer}"/>
                                     </ImageButton.Source>
                                 </ImageButton>
 

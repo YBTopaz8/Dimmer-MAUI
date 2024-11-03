@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.CustomViewsM.SongStatView"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
@@ -29,17 +29,17 @@
                             HeightRequest="120" WidthRequest="130" Text="S"
                             BorderWidth="0" CornerRadius="10"/>
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
-                        <!--<ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
+                        <ImageButton WidthRequest="35" HeightRequest="30" x:Name="FavSong"
                                     Command="{Binding Source={x:Reference myPage}, Path=BindingContext.AddSongToFavoritesCommand}" 
                             CommandParameter="{Binding TemporarilyPickedSong}">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Favorite}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Favorite_border}"/>
                             </ImageButton.Source>
-                        </ImageButton>-->
+                        </ImageButton>
                         <ImageButton WidthRequest="30" HeightRequest="30" x:Name="ShareStatBtn" IsVisible="{OnPlatform WinUI=false}"
                             Clicked="ShareStatBtn_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Share}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Share}"/>
                             </ImageButton.Source>
                         </ImageButton>
                     </HorizontalStackLayout>

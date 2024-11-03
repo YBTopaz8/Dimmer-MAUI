@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.HomeD"             
              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
              xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"
              xmlns:CustomFonts="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.Fonts"             
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
@@ -75,7 +75,7 @@
                 </Entry>
 
 
-                <Button x:Name="search" Text="Search" Clicked="Search_Clicked"/>
+                <Button x:Name="search" Text="Search" Clicked="search_Clicked"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5"  x:Name="SearchFiltersHSL"
@@ -87,7 +87,7 @@
                                            Value="{Binding Achievement}" IsVisible="False"/>
                 <ImageButton Clicked="CloseFiltersImgBtn_Clicked" >
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Close}" Size="20"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Close}" Size="20"/>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>
@@ -112,13 +112,13 @@
 
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Visibility }"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Visibility }"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
                              Grid.Column="1">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Sort}"/>
                             </ImageButton.Source>
                         </ImageButton>
 
@@ -135,7 +135,7 @@
                     <HorizontalStackLayout>
                         <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
                             <ImageButton.Source>
-                                <FontImageSource Size="30" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_back}"/>
+                                <FontImageSource FontFamily="MaterialRound" Size="30" Glyph="{x:Static m:MaterialRound.Arrow_back}"/>
                             </ImageButton.Source>
                         </ImageButton>
                         <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
@@ -147,7 +147,7 @@
 
                         <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding IsMultiSelectOn}">
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever}"/>
+                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever}"/>
                             </ImageButton.Source>
                             <ImageButton.CommandParameter>
                                 <x:Int32>0</x:Int32>
@@ -169,14 +169,15 @@
 
             </VerticalStackLayout>
 
-            <Grid Padding="10" 
+            <Grid Padding="10" ColumnSpacing="10" 
               toolkit:DockLayout.DockPosition="Top"
               Margin="5,0">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -194,28 +195,29 @@
                     </ResourceDictionary>
                 </Grid.Resources>
                 <Label Text="Song Title" Grid.Column="0" />
-                <Label Text="Artist" Grid.Column="1"/>
+                <Label Text="Artist" Grid.Column="1" />
                 <Label Text="Rating"  Grid.Column="2" HorizontalOptions="Center" Opacity="0.8"/>
-                <Label Text="Album" Grid.Column="3"/>
-                <Label Text="Genre"   Grid.Column="4" />
-                <Label Text="Duration"  Grid.Column="5" />
-                <Label Text="Bitrate" Grid.Column="6"  />
-                <Label Text="Format" Grid.Column="7"/>
-                <Label Text="Play Count" Grid.Column="8"/>
+                <Label Text=""  Grid.Column="3" />
+                <Label Text="Album" Grid.Column="4"/>
+                <Label Text="Genre"   Grid.Column="5" />
+                <Label Text="Duration"  Grid.Column="6" />
+                <Label Text="Bitrate" Grid.Column="7"  />
+                <Label Text="Format" Grid.Column="8"/>
+                <Label Text="Play Count" Grid.Column="9"/>
             </Grid>
             <!--<BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>-->
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
                         Loaded="SongsColView_Loaded"
-                        EmptyView="Nothing ...">
+                        Margin="5,0" EmptyView="Nothing ...">
                 
                     <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" HorizontalItemSpacing="0"/>
+                    <GridItemsLayout Orientation="Vertical"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent" Padding="0,0">
+                        <Border Stroke="Transparent" Padding="10,0">
                             <Border.Triggers>
                                 <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                     <Setter Property="Stroke" Value="DarkSlateBlue"/>
@@ -253,27 +255,21 @@
                             </VisualStateManager.VisualStateGroups>
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="Song Overview" Clicked="GoToSongOverviewClicked">
-                                        <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Looks}"/>
-                                        </MenuFlyoutItem.IconImageSource>
-                                    </MenuFlyoutItem>
-
                                     <MenuFlyoutItem Text="Toggle MultiSelection" Clicked="ToggleMultiSelect_Clicked">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Select_all}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Select_all}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutItem Text="Set Play Repeat Count" Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                     </MenuFlyoutItem>
                                     <MenuFlyoutSeparator />
                                     <MenuFlyoutItem Text="View File Explorer" Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder_open}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Folder_open}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                         <MenuFlyoutItem.KeyboardAccelerators>
                                             <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="E"/>
@@ -283,7 +279,7 @@
                                         Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}"  
                                         CommandParameter="{Binding .}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever }"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Delete_forever }"/>
                                         </MenuFlyoutItem.IconImageSource>
 
                                         <MenuFlyoutItem.KeyboardAccelerators>
@@ -296,7 +292,7 @@
                                     <MenuFlyoutItem Text="Edit" CommandParameter="{Binding .}"
                                         Command="{Binding BindingContext.OpenEditSongPopupCommand,Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Edit}"/>
                                         </MenuFlyoutItem.IconImageSource>
 
                                         <MenuFlyoutItem.KeyboardAccelerators>
@@ -307,7 +303,7 @@
                                     <MenuFlyoutItem Text="Information" Command="{Binding BindingContext.OpenViewSongDetailsPopupCommand
                             ,Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Info}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Info}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                         <MenuFlyoutItem.KeyboardAccelerators>
                                             <KeyboardAccelerator Modifiers="Ctrl" Key="I"/>
@@ -319,7 +315,7 @@
                                         >
 
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Person}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                     </MenuFlyoutItem>
 
@@ -327,7 +323,7 @@
 
                                     <MenuFlyoutSubItem Text="Search Song On...">
                                         <MenuFlyoutSubItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Search}"/>
                                         </MenuFlyoutSubItem.IconImageSource>
 
                                         <MenuFlyoutItem Text="Google" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
@@ -361,7 +357,7 @@
                                     <MenuFlyoutItem Text="Add To Playlist" 
                                                 Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
                                         <MenuFlyoutItem.IconImageSource>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Playlist_add}"/>
+                                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Playlist_add}"/>
                                         </MenuFlyoutItem.IconImageSource>
                                         <MenuFlyoutItem.KeyboardAccelerators>
                                             <KeyboardAccelerator Modifiers="Ctrl" Key="P"/>
@@ -371,7 +367,7 @@
                                 </MenuFlyout>
                             </FlyoutBase.ContextFlyout>
 
-                            <Grid Padding="2">
+                            <Grid Padding="10" ColumnSpacing="10">
 
                                 <Grid.Resources>
                                     <ResourceDictionary>
@@ -382,9 +378,10 @@
                                     </ResourceDictionary>
                                 </Grid.Resources>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="280" />
+                                    <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
@@ -397,16 +394,16 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <VerticalStackLayout Grid.Column="0" 
-                                                     VerticalOptions="Center">
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center"
+                                            >
                                     <HorizontalStackLayout Spacing="10" >
 
-                                        <Label Text="{Binding Title}" ToolTipProperties.Text="{Binding Title}" 
-                                               HorizontalTextAlignment="Start"
-                                               LineBreakMode="TailTruncation"/>
-                                        <Image WidthRequest="13" VerticalOptions="Center" IsVisible="{Binding HasLyrics}">
+                                        <Label Text="{Binding Title}" LineBreakMode="HeadTruncation" 
+                        ToolTipProperties.Text="{Binding Title}" Grid.Column="1"/>
+                                        <Image WidthRequest="13" VerticalOptions="Center"
+                        IsVisible="{Binding HasLyrics}">
                                             <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                                <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Lyrics}"/>
                                             </Image.Source>
                                         </Image>
 
@@ -416,9 +413,9 @@
                                 </VerticalStackLayout>
 
                                 <Label Text="{Binding ArtistName}" Grid.Column="1" 
-                                       ToolTipProperties.Text="{Binding ArtistName}"/>
+                ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                <ratingsView:RatingControl Value="{Binding Rating}" 
+                                <ratingsView:RatingControl Value="{Binding Rating}" HorizontalOptions="Start"
                                                        Grid.Column="2" Shape="Star" Fill="Green"
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">
@@ -429,36 +426,36 @@
                                     </ratingsView:RatingControl.GestureRecognizers>
                                 </ratingsView:RatingControl>
 
-                                <!--<uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
+                                <uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
                                                          Hovered="FavImagStatView_HoveredAndExited"
                                                          HoverExited="FavImagStatView_HoveredAndExited">
                                     <ImageButton 
                                              Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
                                              VerticalOptions="End" CommandParameter="{Binding .}" >
                                         <ImageButton.Source>
-                                            <FontImageSource Size="25" FontFamily="MaterialRounded" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
+                                            <FontImageSource Size="25" FontFamily="MaterialRound" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
                                         </ImageButton.Source>
                                     </ImageButton>
-                                </uranium:StatefulContentView>-->
+                                </uranium:StatefulContentView>
 
-                                <Label Text="{Binding AlbumName}" Grid.Column="3"
+                                <Label Text="{Binding AlbumName}" Grid.Column="4"
                                        
                        ToolTipProperties.Text="{Binding AlbumName}"/>
 
-                                <Label Text="{Binding GenreName}" Grid.Column="4" 
+                                <Label Text="{Binding GenreName}" Grid.Column="5" 
                        ToolTipProperties.Text="{Binding GenreName}"/>
 
-                                <Label Grid.Column="5"  
+                                <Label Grid.Column="6"  
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-                                <Label Grid.Column="6"  
+                                <Label Grid.Column="7"  
                        Text="{Binding BitRate, StringFormat='{0} kbps'}"                                
                        ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
 
-                                <Label Text="{Binding FileFormat}" Grid.Column="7"
+                                <Label Text="{Binding FileFormat}" Grid.Column="8"
                        ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
-                                <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="8"/>
+                                <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="9"/>
                             </Grid>
                         </Border>
 

@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.MiniControlNotificationView"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"  
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              Title="MiniControlNotificationView">
@@ -35,7 +35,7 @@
                         Margin="5,0,-8,0"
                         Clicked="CloseImgBtn_Clicked">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Close}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Close}"/>
                     </ImageButton.Source>
                 </ImageButton>
 
@@ -56,36 +56,36 @@
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{Binding RepeatModeImage}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
                     <ImageButton Command="{Binding PlayPreviousSongCommand}" Clicked="ImageButton_Clicked"
                                  ToolTipProperties.Text="Play Previous">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_previous}"/>
                         </ImageButton.Source>
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
                                  Clicked="playImgBtn_Clicked" x:Name="playImgBtn">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_outline}"/>
                         </ImageButton.Source>
                     </ImageButton>
                     
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
                                  x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded"
-                     Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            <FontImageSource FontFamily="MaterialRound" 
+                     Glyph="{x:Static m:MaterialRound.Pause_circle_outline}"/>
                         </ImageButton.Source>
                     </ImageButton>
                     
                     <ImageButton Command="{Binding PlayNextSongCommand}"
                                  Clicked="ImageButton_Clicked">
                         <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                            <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialTwoTone.Skip_next}"/>
                         </ImageButton.Source>
                     </ImageButton>
 

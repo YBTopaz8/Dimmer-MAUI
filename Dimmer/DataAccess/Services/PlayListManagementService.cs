@@ -192,7 +192,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 .Where(link => link.PlaylistId == specificPlaylist.Id && link.SongId == song.Id)
                 .ToList();
                     
-                if (existingLinkList is not null && existingLinkList.Count > 0)
+                if (existingLinkList is not null)
                 {
                     var existingLink = existingLinkList.First();
                     if (existingLink is not null)

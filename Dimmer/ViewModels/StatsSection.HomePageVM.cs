@@ -117,8 +117,6 @@ public partial class HomePageVM
 
     public void LoadDailyStats(SongsModelView song, DateTimeOffset? specificDate = null)
     {
-        if (song is null)
-            return;
         specificDate ??= DateTimeOffset.UtcNow.Date;
 
         SongPickedForStats.DailyStats = new DailyStats(song, specificDate.Value.Date);

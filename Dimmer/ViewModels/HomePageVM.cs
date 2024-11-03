@@ -89,7 +89,7 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         LoadSongCoverImage();
-        IsPlaying = false;
+
         //DisplayedPlaylists = PlayBackService.AllPlaylists;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
         TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
@@ -154,7 +154,7 @@ public partial class HomePageVM : ObservableObject
 
         _playerStateSubscription = PlayBackService.PlayerState
             .DistinctUntilChanged()
-            .Subscribe(async state =>
+            .Subscribe(state =>
             {
                 
                 if (TemporarilyPickedSong is not null)
@@ -200,22 +200,17 @@ public partial class HomePageVM : ObservableObject
                             TemporarilyPickedSong.IsPlaying = true;
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
-
-                            PlayPauseIcon = MaterialRounded.Pause;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
                             
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                             
-                            await FetchSongCoverImage();
-
                             break;
                         case MediaPlayerState.Paused:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong.IsPlaying = false;
                             IsPlaying = false;
-                            PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
                             //PickedSong = "Stopped";
@@ -243,12 +238,26 @@ public partial class HomePageVM : ObservableObject
         await PlayBackService.PlaySelectedSongsOutsideAppAsync(filePath);
     }
 
-    [ObservableProperty]
-    bool isLoadingPage = false;
-    public async Task NavToNowPlayingPage(SongsModelView? song=null)
+    [RelayCommand]
+    async Task NavToNowPlayingPage(SongsModelView? song)
     {
-        IsLoadingPage = true;
-        
+
+        if (song != null)
+        {
+            SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
+            if (song == TemporarilyPickedSong)
+            {
+                SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+            }
+            else
+            {
+                SynchronizedLyrics?.Clear();
+                SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
+                SelectedSongToOpenBtmSheet = song;
+            }
+            
+            CurrentViewIndex = 0;
+        }
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(SingleSongShellD));
 #elif ANDROID
@@ -263,22 +272,8 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.GoToAsync(nameof(SingleSongShell));
         }
 #endif
-
-        if (song != null)
-        {
-            SelectedSongToOpenBtmSheet = (song == TemporarilyPickedSong) ? TemporarilyPickedSong : song;
-            if (song != TemporarilyPickedSong)
-            {
-                SynchronizedLyrics?.Clear();
-                SynchronizedLyrics = LyricsService.LoadSynchronizedAndSortedLyrics(song.FilePath);
-                SelectedSongToOpenBtmSheet = song;
-            }
-
-            CurrentViewIndex = 0;
-        }
-
-        IsLoadingSongs = false;
     }
+
 
     #region Loadings Region
 
@@ -479,10 +474,10 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    string shuffleOnOffImage = MaterialRounded.Shuffle;
+    string shuffleOnOffImage = MaterialTwoTone.Shuffle;
 
     [ObservableProperty]
-    string repeatModeImage = MaterialRounded.Repeat;
+    string repeatModeImage = MaterialTwoTone.Repeat;
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
@@ -495,14 +490,14 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = MaterialRounded.Repeat_on;
+                RepeatModeImage = MaterialTwoTone.Repeat_on;
                 break;
             case 2:
             case 4:
-                RepeatModeImage = MaterialRounded.Repeat_one_on;
+                RepeatModeImage = MaterialTwoTone.Repeat_one_on;
                 break;
             case 0:
-                RepeatModeImage = MaterialRounded.Repeat;
+                RepeatModeImage = MaterialTwoTone.Repeat;
                 break;
             default:
                 break;
@@ -521,11 +516,11 @@ public partial class HomePageVM : ObservableObject
         }
         if (IsShuffleOn)
         {
-            ShuffleOnOffImage = MaterialRounded.Shuffle_on;
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle_on;
         }
         else
         {
-            ShuffleOnOffImage = MaterialRounded.Shuffle;
+            ShuffleOnOffImage = MaterialTwoTone.Shuffle;
         }
     }
     #endregion
@@ -542,7 +537,28 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.SearchSong(SearchText, SelectedFilters, Achievement);
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
-  
+    
+    bool isSongBtmSheetShown;
+    SongMenuBtmSheet songsBtmSheet;
+    public async Task OpenSingleSongOptionsBtmSheet(SongsModelView song)// = null)
+    {
+#if ANDROID
+        if (!isSongBtmSheetShown)
+        {
+            songsBtmSheet = new SongMenuBtmSheet(this, song);
+            SelectedSongToOpenBtmSheet = song;
+            await songsBtmSheet.ShowAsync();
+            songsBtmSheet.Dismissed += SongsBtmSheet_Dismissed;
+            isSongBtmSheetShown = true;
+        }
+#endif
+    }
+
+    private void SongsBtmSheet_Dismissed(object? sender, DismissOrigin e)
+    {
+        isSongBtmSheetShown = false;
+    }
+
     void ReloadSizeAndDuration()
     {
         TotalSongsDuration = PlayBackService.TotalSongsDuration;
@@ -561,9 +577,9 @@ public partial class HomePageVM : ObservableObject
             }    
         }
     }
-    public async void LoadSongCoverImage()
+    public void LoadSongCoverImage()
     {
-        
+
         if (TemporarilyPickedSong is not null)
         {
             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
@@ -576,13 +592,9 @@ public partial class HomePageVM : ObservableObject
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
             TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.Id == lastID);
-            if (TemporarilyPickedSong is null)
-            {
-                IsTemporarySongNull = true;
-            }
-                return;
+
         }
-        //TemporarilyPickedSong.CoverImagePath = await FetchSongCoverImage();
+
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
     }
@@ -592,8 +604,6 @@ public partial class HomePageVM : ObservableObject
     private IDisposable _playerStateSubscription;
     [ObservableProperty]
     bool isPlaying = false;
-    [ObservableProperty]
-    string playPauseIcon = MaterialRounded.Play_arrow;
 
     MediaPlayerState CurrentPlayerState;
     public void SetPlayerState(MediaPlayerState? state)
@@ -758,7 +768,6 @@ public partial class HomePageVM : ObservableObject
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
-
             }
             else
             {
@@ -773,15 +782,6 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    string lyricsSearchSongTitle;
-    [ObservableProperty]
-    string lyricsSearchArtistName;
-    [ObservableProperty]
-    string lyricsSearchAlbumName;
-    [ObservableProperty]
-    bool useManualSearch;
-
-    [ObservableProperty]
     Content[] allSyncLyrics;
     [ObservableProperty]
     bool isFetchSuccessful = true;
@@ -790,29 +790,14 @@ public partial class HomePageVM : ObservableObject
     
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-        LyricsSearchSongTitle ??= TemporarilyPickedSong.Title;
-        LyricsSearchArtistName ??= TemporarilyPickedSong.ArtistName;
-        LyricsSearchAlbumName ??= TemporarilyPickedSong.AlbumName;
-
-        List<string> manualSearchFields =
-        [
-            LyricsSearchAlbumName,
-            LyricsSearchArtistName,
-            LyricsSearchSongTitle,
-        ];
-
-        //if (fromUI || SynchronizedLyrics?.Count < 1)
-        //{
-        AllSyncLyrics = Array.Empty<Content>();
-        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true,manualSearchFields);
         
-        AllSyncLyrics = result.contentData;
-    
-        IsFetchSuccessful = result.IsSuccessful;
-        LyricsSearchSongTitle = null;
-        LyricsSearchArtistName = null;
-        LyricsSearchAlbumName = null;
-
+        if (fromUI || SynchronizedLyrics?.Count < 1)
+        {
+            AllSyncLyrics = Array.Empty<Content>();
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong);
+        }
+        
+        await Task.Delay(1000);
         return IsFetchSuccessful;
     }
 
@@ -838,7 +823,29 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-       
+    [ObservableProperty]
+    string songTitle;
+    [ObservableProperty]
+    string artistName;
+    [ObservableProperty]
+    string albumName;
+    [ObservableProperty]
+    bool useManualSearch;
+    [RelayCommand]
+    async Task UseManualLyricsSearch()
+    {
+        AllSyncLyrics = Array.Empty<Content>();
+        List<string> manualSearchFields = new List<string>();
+        manualSearchFields.Add(SongTitle);
+        manualSearchFields.Add(ArtistName);
+        manualSearchFields.Add(AlbumName);
+
+        (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true, manualSearchFields);
+        if (!IsFetchSuccessful)
+        {
+            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong, true, manualSearchFields);
+        }
+    }
 
     public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
     {
@@ -990,7 +997,9 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task FetchSongCoverImage()
     {
-        TemporarilyPickedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
+        TemporarilyPickedSong.CoverImagePath = string.Empty;
+
+        await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong);
     }
 
     [ObservableProperty]
@@ -1118,31 +1127,12 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongsModelView> backEndQ;
 
     [RelayCommand]
-    public async Task RateSong(Rating obj)
+    public void RateSong(Rating obj)
     {
-        var willBeFav = false;
         if (obj is not null)
         {
-            var rateValue = obj.Value;
-            switch (rateValue)
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    willBeFav = false;
-                    break;
-                case 4:
-                case 5:
-                    willBeFav = true;
-                    
-                    break;
-                default:
-                    break;
-            }
-            SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
-            SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
-            await UpdateSongInFavoritePlaylist(SelectedSongToOpenBtmSheet);
+            TemporarilyPickedSong.Rating = (int)obj.Value;
+            SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
         }
     }
 }

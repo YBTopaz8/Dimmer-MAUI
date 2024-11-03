@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM" 
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"                          
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialIcons;assembly=UraniumUI.Icons.MaterialIcons"                          
 
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Shell.NavBarIsVisible="False"
@@ -28,7 +28,7 @@
             <HorizontalStackLayout VerticalOptions="End">
                 <Image>
                     <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                        <FontImageSource FontFamily="MaterialRound" Glyph="{x:Static m:MaterialRound.Play_circle_filled}"/>
                     </Image.Source>
                 </Image>
                 <Label Text="Dimmer" VerticalOptions="Center" FontSize="22"

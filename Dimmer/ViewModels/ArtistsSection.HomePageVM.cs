@@ -28,6 +28,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongsModelView? song)
     {
+
         SelectedSongToOpenBtmSheet = song;
         (var songsArtistId, var songsAlbumId) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
         await NavigateToSpecificAlbumPage(songsAlbumId);
@@ -52,7 +53,7 @@ public partial class HomePageVM
     }
    
     [RelayCommand]
-    public async Task NavigateToArtistsPage(int? callerID=0) //0 if called by else, 1 if called by homeD
+    public async Task NavigateToArtistsPage(int callerID) //0 if called by else, 1 if called by homeD
     {
 
         if (callerID == 0)
@@ -107,12 +108,7 @@ public partial class HomePageVM
         }
         if(SelectedArtistOnArtistPage is not null)
         {
-            var album = AllArtistsAlbums.FirstOrDefault(x => x.Id == SelectedAlbumOnArtistPage!.Id);
-            if (album is not null)
-            {
-                album.IsCurrentlySelected = false;
-            }
-
+            AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage!.Id).IsCurrentlySelected = false;
             SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         }
         if (song is null)
@@ -173,11 +169,8 @@ public partial class HomePageVM
         }
         if (AllArtistsAlbums is not null)
         {
-            var album = AllArtistsAlbums.FirstOrDefault(x => x.Id == albumId);
-            if (album is not null)
-            {
-                album.IsCurrentlySelected = false;
-            }
+            if (SelectedAlbumOnArtistPage is not null)
+                AllArtistsAlbums.First(x => x.Id == SelectedAlbumOnArtistPage.Id).IsCurrentlySelected = false;
         }
 
         SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(albumId);
@@ -185,7 +178,7 @@ public partial class HomePageVM
         SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         SelectedAlbumOnArtistPage = AllAlbums.First(x => x.Id == albumId);
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
-        
+        AllArtistsAlbums.First(x=>x.Id==albumId).IsCurrentlySelected = true;
         AllArtistsAlbumSongs?.Clear();
         AllArtistsAlbumSongs = PlayBackService.GetAllArtistsAlbumSongsAlbumID(albumId);
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;

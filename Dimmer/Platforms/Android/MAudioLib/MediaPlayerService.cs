@@ -259,7 +259,6 @@ public class MediaPlayerService : Service,
             Console.WriteLine(ex.Message);
         }
         UpdatePlaybackState(PlaybackStateCode.Playing);
-        IsPlayingChanged?.Invoke(this, true);
         Console.WriteLine(DateTime.Now.ToString() + "Step 9 Prepared "+mediaPlay.Name);
     }
 
@@ -367,7 +366,7 @@ public class MediaPlayerService : Service,
         isCurrentEpisode = true;
         mediaPlayer?.Release();
         await PrepareAndPlayMediaPlayerAsync();
-        IsPlayingChanged?.Invoke(this, true);
+
     }
     
     private async Task PrepareAndPlayMediaPlayerAsync()

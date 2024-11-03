@@ -10,7 +10,7 @@ public partial class SingleSongShell : UraniumContentPage
         BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
-        //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
+        this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
 
     }
 
@@ -30,11 +30,15 @@ public partial class SingleSongShell : UraniumContentPage
         HomePageVM.CurrentViewIndex = 0;
         emptyV.IsVisible = false;
 
+        Shell.SetTabBarIsVisible(this, false);
+        Shell.SetNavBarIsVisible(this, false);
     }
 
 
     protected override void OnDisappearing()
     {
+        Shell.SetNavBarIsVisible(this, false);
+        Shell.SetTabBarIsVisible(this, true);
         base.OnDisappearing();
         
         DeviceDisplay.Current.KeepScreenOn = false;
@@ -43,7 +47,14 @@ public partial class SingleSongShell : UraniumContentPage
     protected override bool OnBackButtonPressed()
     {
         
-                
+        if(btmSheet is not null)
+        {
+            if (btmSheet.IsPresented)
+            {
+                btmSheet.IsPresented = false;
+                return true;
+            }
+        }        
         return base.OnBackButtonPressed();
     }
 
@@ -188,17 +199,5 @@ NoLyricsFoundMsg.AnimateFadeInFront());
                 break;
         }
 
-    }
-
-    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-
-    }
-
-    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        NowPlayingBtmSheet.Show();
-
-        return;
     }
 }
