@@ -24,7 +24,7 @@
             </ShellContent>
         </Tab>
 
-        <Tab Title="Artists" x:Name="albumTab">
+        <Tab Title="Artists" x:Name="albumTab" >
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
             </Tab.Icon>
@@ -46,6 +46,13 @@
             </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
                 Route="StatsD"/>
+        </Tab>
+        <Tab Title="Settings" x:Name="settingsTab">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
+                Route="SettingsD"/>
         </Tab>
 
         <!--<Tab>

@@ -59,7 +59,10 @@ public partial class MediaPlaybackControlsView : ContentView
 
     private async void NavToNowPlayingPage_Tapped(object sender, TappedEventArgs e)
     {
-        await vm.NavToNowPlayingPage(vm.TemporarilyPickedSong);
+        var send = (View)sender;
+        var song = send.BindingContext as SongsModelView;
+        vm.SelectedSongToOpenBtmSheet = vm.TemporarilyPickedSong!;
+        await vm.NavToNowPlayingPage();
     }
 
     private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)

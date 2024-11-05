@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.SettingsPageD"
+             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
+               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"   
+             x:DataType="vm:HomePageVM" 
+
+ Shell.NavBarIsVisible="False"
+ Title="Settings">
+    <VerticalStackLayout Padding="10,0" Spacing="15">
+        <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
+        
+        <toolkit:Expander  x:Name="ShowHidePreferredFoldersExpander">
+                <toolkit:Expander.Header>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start">
+                            <HorizontalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ShowHidePreferredFoldersExpander_Tapped"/>
+                            </HorizontalStackLayout.GestureRecognizers>
+                            <Image>
+                                <Image.Source>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
+                                </Image.Source>
+                            </Image>
+
+                            <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
+                        </HorizontalStackLayout>
+
+                        <ImageButton Grid.Column="2" HorizontalOptions="End">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Grid>
+                </toolkit:Expander.Header>
+                <toolkit:Expander.Content>
+                    <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
+                         Scale="0.9">
+
+                        <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
+                     
+         BorderColor="DarkSlateBlue" TextColor="White" />
+
+                        <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
+         BorderColor="DarkSlateBlue" TextColor="White" />
+                        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                        <Grid>
+                            <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Label Text="{Binding .}" FontSize="13"
+                       Margin="20,0"/>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </VerticalStackLayout>
+                </toolkit:Expander.Content>
+            </toolkit:Expander>
+
+        <material:CheckBox Text="Toggle Stick To Top" x:Name="stickToTopChkbx"
+   CheckChangedCommand="{Binding ToggleStickToTopCommand}" LabelPosition="After"
+   CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
+
+        <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
+            <Button Text="Reload All Covers" 
+        Command="{Binding ReloadCoverImageCommand}">
+                <Button.ImageSource>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
+                </Button.ImageSource>
+            </Button>
+
+        </SyncCtrls:SfEffectsView>
+        <Image IsAnimationPlaying="{Binding IsRetrievingCovers}" IsVisible="{Binding IsRetrievingCovers}"
+               Source="searching_face.gif"/>
+
+
+        <VerticalStackLayout >
+            <HorizontalStackLayout>
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Facing Issues!" FontSize="24" />
+            </HorizontalStackLayout>
+            <Button Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
+                 Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
+                 TextColor="White" />
+        </VerticalStackLayout>
+    </VerticalStackLayout>
+</ContentPage>

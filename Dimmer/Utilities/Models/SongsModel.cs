@@ -130,7 +130,7 @@ public partial class SongsModelView : ObservableObject
             SampleRate = _model.SampleRate;
             Rating = _model.Rating;
             HasLyrics = _model.HasLyrics;
-            CoverImagePath = _model.CoverImagePath;
+            CoverImagePath = _model.CoverImagePath is null ? null: _model.CoverImagePath;
             DateAdded = _model.DateAdded;            
             ArtistName = _model.ArtistName;
             Achievement = _model.Achievement;
@@ -192,7 +192,7 @@ public partial class SongsModelView : ObservableObject
     [ObservableProperty]
     bool isInstrumental = false;
     [ObservableProperty]
-    string? coverImagePath;
+    string? coverImagePath=null;
     [ObservableProperty]
     ObservableCollection<PlayDateAndIsPlayCompletedModelView> datesPlayedAndWasPlayCompleted;
     public DateTimeOffset DateAdded { get; set; }

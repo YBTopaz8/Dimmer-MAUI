@@ -45,21 +45,25 @@ return false;
 
     private void _discordRpcClient_OnError(object sender, DiscordRPC.Message.ErrorMessage args)
     {
+        return;
         Debug.WriteLine("RPC On Error!!!");
     }
 
     private void _discordRpcClient_OnConnectionFailed(object sender, DiscordRPC.Message.ConnectionFailedMessage args)
     {
+        return;
         this.ShutDown();
     }
 
     private void DiscordRpcClient_OnReady(object sender, DiscordRPC.Message.ReadyMessage args)
     {
+        return;
         Debug.WriteLine($"RPC is ready and connected to {args.User.Username}");
     }
 
     public void ClearPresence()
     {
+        return;
         if (_discordRpcClient.IsInitialized)
         {
             _discordRpcClient.ClearPresence();
@@ -85,7 +89,8 @@ return false;
 
     public void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position)
     {
-        if(currentSong is not null)
+        return;
+        if (currentSong is not null)
         {
             if (song == currentSong)
                 return;

@@ -12,6 +12,8 @@ global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 
 global using UraniumUI.Icons.MaterialSymbols;
+global using UraniumUI.Icons.FontAwesome;
+global using FontAw = UraniumUI.Icons.FontAwesome;
 global using UraniumUI.Material.Controls;
 
 global using MongoDB.Bson;

@@ -42,16 +42,9 @@ public partial class HomePageM : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        HomePageVM.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
 
-
-    private void SpecificSong_Tapped(object sender, TappedEventArgs e)
-    {
-        HomePageVM.CurrentQueue = 0;
-        var view = (FlexLayout)sender;
-        var song = view.BindingContext as SongsModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
-    }
 
     //private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     //{
@@ -88,72 +81,23 @@ public partial class HomePageM : ContentPage
 
     private async void ShowFolderSelectorImgBtn_Clicked(object sender, EventArgs e)
     {
-        await Shell.Current.ShowPopupAsync(new ScanFoldersPopup(HomePageVM));
+        await Shell.Current.GoToAsync(nameof(SettingsPageM));
     }
     protected override bool OnBackButtonPressed()
     {
-        if (SongsColView.SelectionMode == SelectionMode.Multiple)
-        {
-            SongsColView.SelectionMode = SelectionMode.Single;
-            //HomePageVM.HandleMultiSelect(SongsColView);
-            NormalMiniUtilFABs.IsVisible = true;
-            MultiSelectMiniUtilFABs.IsVisible = false;
-            HomePageVM.EnableContextMenuItems = true;
-            Debug.WriteLine("Back To None");
-        }
+        
         return true;
     }
 
-    private void CancelMultiSelect_Clicked(object sender, EventArgs e)
-    {
-        ToggleMultiSelect_Clicked(sender, e);
-    }
+
 
     SelectionMode currentSelectionMode;
-    public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
-    {
-        HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
-
-        if (sender is StatefulContentView send)
-        {
-            //SongsColView.SelectedItems.Add(send.CommandParameter);
-        }
-        switch (SongsColView.SelectionMode)
-        {
-            case SelectionMode.None:
-            case SelectionMode.Single:
-                SongsColView.SelectionMode = SelectionMode.Multiple;
-                NormalMiniUtilFABs.IsVisible = false;
-                MultiSelectMiniUtilFABs.IsVisible = true;
-                HomePageVM.EnableContextMenuItems = false;
-
-                Debug.WriteLine("Now Multi Select");
-                break;
-            case SelectionMode.Multiple:
-                SongsColView.SelectionMode = SelectionMode.Single;
-
-                NormalMiniUtilFABs.IsVisible = true;
-                MultiSelectMiniUtilFABs.IsVisible = false;
-                HomePageVM.EnableContextMenuItems = true;
-                Debug.WriteLine("Back To None");
-                break;
-            default:
-                break;
-
-        }
-        currentSelectionMode = SongsColView.SelectionMode;
-    }
+   
 
     private DateTime _lastTapTime = DateTime.MinValue;
     private const int DoubleTapTime = 300; // in milliseconds
     private const int LongPressTime = 500; // in milliseconds
     
-
-    private void StatefulContentView_LongPressed(object sender, EventArgs e)
-    {
-        ToggleMultiSelect_Clicked(sender, e);
-    }
-
 
     private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
     {        
@@ -204,24 +148,16 @@ public partial class HomePageM : ContentPage
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavigateToArtistsPage(0);
+        await HomePageVM.NavigateToArtistsPage(1);
         CloseBtmSheet();
     }
 
 
-
-    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    private void OnLongPressElapsed(object sender, System.Timers.ElapsedEventArgs e)
     {
-        
+        _isLongPressed = true;
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);        
     }
-
-    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        NowPlayingBtmSheet.Show();
-        
-        return;       
-    }
-
     private async void ShowSongDetails_Tap(object sender, DevExpress.Maui.CollectionView.SwipeItemTapEventArgs e)
     {
         var song = (SongsModelView)e.Item;
@@ -253,6 +189,61 @@ public partial class HomePageM : ContentPage
                 break;
         }
         //var commandParam = 
+    }
+
+    private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
+    {
+        var searchBar = (TextEdit)sender;
+        var txt = searchBar.Text;
+
+        if (!string.IsNullOrEmpty(txt))
+        {
+            if (txt.Length >= 1)
+            {
+                HomePageVM.IsOnSearchMode = true;
+                SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
+            }
+            else
+            {
+                HomePageVM.IsOnSearchMode = false;
+            }
+        }
+    }
+
+
+    private System.Timers.Timer _longPressTimer;
+    private bool _isLongPressed;
+
+    private void NowPlaySearchBtmSheet_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        _longPressTimer.Stop(); // Stop the timer if released early
+
+        if (!_isLongPressed)
+        {
+            // Short tap action
+            SearchSongPopUp.Show();
+        }
+        else
+        {
+            SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
+            
+        }
+    }
+
+    private void NowPlaySearchBtmSheet_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        // Initialize the timer
+        _longPressTimer = new System.Timers.Timer(500); // 1.5 seconds
+        _longPressTimer.Elapsed += OnLongPressElapsed;
+        _longPressTimer.AutoReset = false; // Only fire once per press
+        _isLongPressed = false;
+        _longPressTimer.Start(); // Start the timer on button press
+
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        SongsColView.FilterString = string.Empty;
     }
 }
 

@@ -8,6 +8,8 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"       
+            xmlns:dx="http://schemas.devexpress.com/maui"
                             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
@@ -23,79 +25,76 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
 
         </ResourceDictionary>
-    </ContentPage.Resources>
-    
-    
-    <Grid ColumnDefinitions="*" RowDefinitions="Auto,*"
-                RowSpacing="2">
-        <Grid ColumnDefinitions="*,Auto,Auto" Grid.Row="0" HeightRequest="40">
 
-            <Label Text="Albums" HorizontalTextAlignment="Center"
+        <DataTemplate x:Key="AllAlbumsColViewTemplate" x:DataType="models:AlbumModelView">
+
+            <dx:DXButton BackgroundColor="Transparent" HeightRequest="220"
+            Command="{Binding BindingContext.NavigateToSpecificAlbumPageCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}"                         
+                         PressedBorderColor="Gray" TextColor="White"
+                         BorderThickness="1" CornerRadius="20"
+                         PressedScale="1" PressedBackgroundColor="DarkSlateBlue"
+                         ShowIcon="False">
+                <dx:DXButton.Content>
+                    <VerticalStackLayout VerticalOptions="Start" Spacing="10">
+                        <dx:DXImage Source="{Binding AlbumImagePath}" 
+                                WidthRequest="110"/>
+                        <Label Text="{Binding Name}"/>
+                        
+                    </VerticalStackLayout>
+                </dx:DXButton.Content>
+            </dx:DXButton> 
+            
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout >
+        <Grid RowDefinitions="Auto,*" RowSpacing="2">
+            <Grid ColumnDefinitions="*,Auto,Auto" Grid.Row="0" HeightRequest="40">
+
+                <Label Text="Albums" HorizontalTextAlignment="Center"
            VerticalTextAlignment="Center" FontAttributes="Bold" 
            FontSize="20" Grid.Column="0"/>
 
-            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                   Grid.Column="1">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
-                </ImageButton.Source>
-            </ImageButton>
-            <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30"
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30" 
                   Grid.Column="2">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Refresh}"/>
-                </ImageButton.Source>
-            </ImageButton>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Refresh}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
+            </Grid>
+            <!--<RefreshView Command="{Binding GetAllAlbumsCommand}" RefreshColor="DarkSlateBlue">-->
+            <Grid Grid.Row="1" >
+                <dx:DXCollectionView  ItemSpanCount="3"
+                              ItemSpanSpacing="5" 
+                    VerticalOptions="Start" TapConfirmed="AlbumsColView_Tap"
+                ItemsSource="{Binding AllAlbums}"
+                              ItemTemplate="{StaticResource AllAlbumsColViewTemplate}"
+                              RippleColor="DarkSlateBlue"
+                              IsScrollBarVisible="False">
+
+                </dx:DXCollectionView>
+                <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
+                                     Margin="10,0" HeightRequest="250" 
+                                     >
+
+                    <viewsM:EachPageNPFAB_Mobile BackgroundColor="Transparent"
+                                                 VerticalOptions="End"/>
+                </VerticalStackLayout>
+            </Grid>
+
 
         </Grid>
-        <!--<RefreshView Command="{Binding GetAllAlbumsCommand}" RefreshColor="DarkSlateBlue">-->
-        <CollectionView  Grid.Row="1" EmptyView="No Albums..."
-                    VerticalOptions="Start" 
-                ItemsSource="{Binding AllAlbums}">
-
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical"
-                                 Span="4"/>
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:AlbumModelView">
-                    <uranium:StatefulContentView TappedCommand="{Binding BindingContext.NavigateToSpecificAlbumPageCommand,
-                                                Source={x:Reference myPage} }"
-                                                 CommandParameter="{Binding Id}">
-                        <Border StrokeThickness="0" Stroke="Transparent"  
-                                HorizontalOptions="Center" VerticalOptions="Center"
-                                StrokeShape="RoundRectangle 5"
-                                Margin="10">
 
 
-                            <!-- Inner layout for image and text -->
-                            <VerticalStackLayout Spacing="10" VerticalOptions="CenterAndExpand" 
-                         HorizontalOptions="Center">
 
-                                <!-- Album Image with rounded corners -->
-                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
-                    WidthRequest="100" HeightRequest="100" Text="{Binding Name}"
-                    CornerRadius="10" BorderWidth="0"
-                    HorizontalOptions="Center" VerticalOptions="Center" />
-
-                                <!-- Album Name -->
-                                <Label Text="{Binding Name}" FontSize="12" 
-                                       HorizontalTextAlignment="Center" 
-                                       LineBreakMode="TailTruncation"
-                                       TextColor="White"
-                                       MaxLines="2" />
-                            </VerticalStackLayout>
-
-                        </Border>
-                    </uranium:StatefulContentView>
-                    
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-         
-    </Grid>
-
-
+    </VerticalStackLayout> 
 
 </uranium:UraniumContentPage>
 

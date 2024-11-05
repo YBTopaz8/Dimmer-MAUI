@@ -20,6 +20,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ArtistsPageD), typeof(ArtistsPageD));
         Routing.RegisterRoute(nameof(FullStatsD), typeof(FullStatsD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
+        Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
 
 #if WINDOWS
 
@@ -164,7 +165,7 @@ public partial class AppShell : Shell
                 // Handle mouse button 4
                 var currentPage = Current.CurrentPage;
 
-                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsD) };
+                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsD), typeof(SettingsPageD) };
 
                 if (targetPages.Contains(currentPage.GetType()))
                 {

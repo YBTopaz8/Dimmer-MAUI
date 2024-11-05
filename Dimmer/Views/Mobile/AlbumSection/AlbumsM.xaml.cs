@@ -23,7 +23,7 @@ public partial class AlbumsM : UraniumContentPage
     }
     ObjectId previousAlbID = ObjectId.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
-    {
+    {        
         var t = (View)sender;
         var album = t.BindingContext as AlbumModelView;
         if (previousAlbID == album!.Id)
@@ -38,7 +38,7 @@ public partial class AlbumsM : UraniumContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllAlbumsCommand.Execute(null);
+        HomePageVM.GetAllAlbums();
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
@@ -49,5 +49,12 @@ public partial class AlbumsM : UraniumContentPage
     {
         
         return base.OnBackButtonPressed();
+    }
+
+    private void AlbumsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        var album = e.Item as AlbumModelView;
+        HomePageVM.CurrentQueue = 1;
+        HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album.Id);
     }
 }

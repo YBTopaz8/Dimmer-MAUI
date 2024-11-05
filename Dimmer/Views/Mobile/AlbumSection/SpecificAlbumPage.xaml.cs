@@ -26,4 +26,9 @@ public partial class SpecificAlbumPage : UraniumContentPage
         var song = s.BindingContext as SongsModelView;
         HomePageVM.PlaySongCommand.Execute(song);
     }
+
+    private async void FetchAlbumCover_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        await HomePageVM.FetchAlbumCoverImage(HomePageVM.SelectedAlbumOnArtistPage);
+    }
 }

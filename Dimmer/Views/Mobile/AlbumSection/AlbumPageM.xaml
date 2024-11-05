@@ -9,10 +9,12 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:DataType="vm:HomePageVM"
             Shell.BackgroundColor="#151C1C"
-            BackgroundColor="#151C1C"
+            BackgroundColor="#151C1C"   
+            xmlns:dx="http://schemas.devexpress.com/maui"
             Shell.NavBarIsVisible="False"
              x:Name="myPage">
    
@@ -26,19 +28,21 @@
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
 
+            
+
         </ResourceDictionary>
     </uranium:UraniumContentPage.Resources>
 
-    <toolkit:DockLayout x:Name="tkDL" Margin="5,0">
+    <dx:DXDockLayout x:Name="tkDL" Margin="5,0">
 
-        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center" toolkit:DockLayout.DockPosition="Top">
+        <Grid ColumnDefinitions="Auto,*,Auto" dx:DXDockLayout.Dock="Top">
 
                 <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
            VerticalTextAlignment="Center" FontAttributes="Bold" 
            FontSize="20" Grid.Column="0"/>
 
-                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                  Grid.Column="1">
+                <ImageButton HeightRequest="30"
+                  Grid.Column="2">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
                     </ImageButton.Source>
@@ -46,110 +50,52 @@
 
             </Grid>
         
-        <cv:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom" BackgroundColor="Transparent"
-                                       ZIndex="1"/>
-
-        <Grid RowDefinitions="Auto,Auto,Auto,*">
             <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween" IsVisible="True"
-            toolkit:DockLayout.DockPosition="Top"
-    Margin="10,0">
+            dx:DXDockLayout.Dock="Top" Margin="10,0">
                 <Label Text="Albums" FontAttributes="Bold"/>
                 <Label Text="{Binding AllArtistsAlbums.Count, StringFormat='{0} albums'}"
    FontAttributes="Bold"/>
             </FlexLayout>
-            <CollectionView  Grid.Row="1" 
+
+        <Grid dx:DXDockLayout.Dock="Top">
+                <CollectionView 
                 HeightRequest="150" toolkit:DockLayout.DockPosition="Top"
             SelectionMode="Single" VerticalOptions="Start" x:Name="AllAlbumsColView"
-            ItemsSource="{Binding AllArtistsAlbums}">
+            ItemsSource="{Binding AllArtistsAlbums}" EmptyView="nothing...">
 
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Horizontal"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:AlbumModelView">
-                        <Border Stroke="Transparent" HorizontalOptions="Center">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Horizontal"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:AlbumModelView">
+                            <Border Stroke="Transparent" HorizontalOptions="Center">
 
-                            <VerticalStackLayout Margin="5,5">
-                                <VerticalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
-                                </VerticalStackLayout.GestureRecognizers>
-                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                WidthRequest="140" HeightRequest="110"
-                                BorderWidth="0" CornerRadius="10"/>
+                                <VerticalStackLayout Margin="5,5">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                                    </VerticalStackLayout.GestureRecognizers>
 
-                                <Label Text="{Binding Name}" FontSize="14" 
+
+                                    <Label Text="{Binding Name}" FontSize="14" 
                                        HorizontalTextAlignment="Center" Padding="10,5" 
                                        LineBreakMode="WordWrap" MaximumWidthRequest="150"/>
 
 
-                            </VerticalStackLayout>
+                                </VerticalStackLayout>
 
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-            <Grid ColumnDefinitions="*,*" Grid.Row="2"
-                  Padding="10" HorizontalOptions="Fill"
-                 ColumnSpacing="10">
-
-                <Button Grid.Column="0" Text="Play" 
-                        HorizontalOptions="Fill" VerticalOptions="Center" 
-                        BackgroundColor="DarkSlateBlue" BorderColor="DarkSlateBlue" 
-                        BorderWidth="2" TextColor="White" CornerRadius="5"
-                        ContentLayout="Left, 10">
-                    <Button.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
-                    </Button.ImageSource>
-                </Button>
-                <Button Grid.Column="1" Text="Reset"  Command="{Binding ShowSpecificArtistsSongsCommand}"
-                        HorizontalOptions="Fill" VerticalOptions="Center" 
-                        BorderColor="DarkSlateBlue" BorderWidth="2" 
-                        BackgroundColor="Transparent" TextColor="White" CornerRadius="5"
-                        ContentLayout="Left, 10">
-                    <Button.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                    </Button.ImageSource>
-                </Button>
             </Grid>
 
-            <CollectionView SelectionMode="Single" Grid.Row="3" Margin="6,0"
-         ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-         EmptyView="No songs...">
-                <CollectionView.Header>
-                    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='Songs : {0}'}"/>
-                    <!--<FlexLayout JustifyContent="SpaceBetween">
-                        
-
-                        <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}" HeightRequest="25" WidthRequest="25"
-          ToolTipProperties.Text="Show All Artist Songs">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                    </FlexLayout>-->
-                </CollectionView.Header>
-                <CollectionView.ItemTemplate>
+            <!--<dx:DXCollectionView SelectionMode="Single" Grid.Row="3" Margin="6,0"
+      ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
+                              TapConfirmed="DXCollectionView_TapConfirmed">
+                <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
                         <Border Stroke="Transparent" Padding="2,2">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" >
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="1"/>
-                            </Border.GestureRecognizers>
                             <FlexLayout JustifyContent="SpaceBetween" >
                                 <VerticalStackLayout>
                                     <Label Text="{Binding Title}" FontSize="18"/>
@@ -167,186 +113,16 @@
                             </FlexLayout>
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </Grid>
-        
-    </toolkit:DockLayout>
-    <!--
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>-->
+           <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
+   Margin="10,0" HeightRequest="200" dx:DXDockLayout.Dock="Bottom">
 
+                <viewsM:EachPageNPFAB_Mobile />
+            </VerticalStackLayout>
 
-            <CollectionView SelectionMode="Single" Grid.Row="3" 
-                    ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-                    EmptyView="No songs...">
-                <CollectionView.Header>
-                    <FlexLayout JustifyContent="SpaceBetween">
-                        <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='Songs : {0}'}"/>
+            <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet" />
 
-                        <ImageButton Command="{Binding ShowSpecificArtistsSongsCommand}"
-                     ToolTipProperties.Text="Show All Artist Songs">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                    </FlexLayout>
-                </CollectionView.Header>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" >
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="1"/>
-                            </Border.GestureRecognizers>
-                            <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="18"/>
-                                    <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
-                                </VerticalStackLayout>
-
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                        </Image.Source>
-                                    </Image>
-                                </VerticalStackLayout>
-                            </FlexLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
-        <Grid ColumnDefinitions="*" toolkit:DockLayout.DockPosition="None" IsVisible="False"
-                RowDefinitions="auto,auto,auto,auto"
-                RowSpacing="2">
-
-
-            <CollectionView  HeightRequest="150" Grid.Row="1"
-                                SelectionMode="Single" VerticalOptions="Start" 
-                                ItemsSource="{Binding AllArtistsAlbums}">
-                
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Horizontal" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:AlbumModelView">
-                        <Border Stroke="Transparent" HorizontalOptions="Center">
-                            
-                            <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
-                                <VerticalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
-                                </VerticalStackLayout.GestureRecognizers>
-                                <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                                    WidthRequest="120" HeightRequest="110" MaximumWidthRequest="130"
-                                                    BorderWidth="0" CornerRadius="10"/>
-
-                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                                        Padding="10,5" LineBreakMode="WordWrap" MaximumWidthRequest="120" />
-
-
-                            </VerticalStackLayout>
-
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <Grid ColumnDefinitions="*,*" Grid.Row="2"
-                      Padding="10" HorizontalOptions="Fill"
-                     ColumnSpacing="10">
-
-                <Button Grid.Column="0" 
-                    Text="Play"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Center"
-                    BackgroundColor="DarkSlateBlue"
-                    BorderColor="DarkSlateBlue"
-                    BorderWidth="2"
-                    TextColor="Black"
-                    CornerRadius="5"/>
-
-                <Button Grid.Column="1" Text="Shuffle"
-                HorizontalOptions="Fill" VerticalOptions="Center"
-                BorderColor="DarkSlateBlue" BorderWidth="2"
-                BackgroundColor="Transparent" TextColor="White"
-                CornerRadius="5"/>
-            </Grid>
-
-            <CollectionView SelectionMode="Single" Grid.Row="3" 
-                    ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-                    EmptyView="No songs...">
-                <CollectionView.Header>
-                    <Label Text="Songs" FontAttributes="Bold"
-                                   FontSize="18" Margin="10,0"/>
-                </CollectionView.Header>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" >
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="1"/>
-                            </Border.GestureRecognizers>
-                            <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="18"/>
-                                    <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
-                                </VerticalStackLayout>
-
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                        </Image.Source>
-                                    </Image>
-                                </VerticalStackLayout>
-                            </FlexLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </Grid>
-        
-    </toolkit:DockLayout>-->
-
+    </dx:DXDockLayout>
 </uranium:UraniumContentPage>
 
-<!--<HorizontalStackLayout Grid.Row="1" Spacing="8" 
-                      MaximumHeightRequest="50">
-      <toolkit:AvatarView VerticalOptions="Start" BorderWidth="0" 
-  Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
-      <VerticalStackLayout>
-          <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
-          FontSize="28" FontAttributes="Bold"/>
-          <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
-      </VerticalStackLayout>
-  </HorizontalStackLayout>-->

@@ -14,7 +14,7 @@ public interface ISongsManagementService
     IList<AlbumModelView> AllAlbums { get; internal set; }
     IList<GenreModelView> AllGenres { get; internal set; }
     void GetAlbums();
-    (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId);
+    (ArtistModelView? artist, AlbumModelView? album) GetArtistAndAlbumIdFromSongId(ObjectId songId);
     IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
     ArtistModelView GetArtistFromAlbumId(ObjectId albumId);
     ArtistModelView GetArtistFromSongId(ObjectId songId);

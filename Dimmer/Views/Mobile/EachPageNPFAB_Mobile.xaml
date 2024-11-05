@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+            xmlns:dx="http://schemas.devexpress.com/maui"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            x:DataType="vm:HomePageVM" VerticalOptions="End" HorizontalOptions="End"
+             x:Class="Dimmer_MAUI.Views.Mobile.EachPageNPFAB_Mobile">
+    <HorizontalStackLayout VerticalOptions="End" Spacing="10"
+                      HorizontalOptions="End">
+        <dx:DXExpander x:Name="NowPlayingMiniControl" Opacity="0.9"
+                    IsExpanded="False" VerticalExpandMode="FromEndToStart"
+                    HorizontalExpandMode="FromEndToStart">
+            <dx:DXExpander.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="dx:DXButton">
+                        <Setter Property="WidthRequest" Value="60"/>
+                        <Setter Property="HeightRequest" Value="60"/>
+                        <Setter Property="IconHeight" Value="60"/>
+                        <Setter Property="IconWidth" Value="60"/>
+                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                        <Setter Property="IconWidth" Value="60"/>
+                        <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
+                    </Style>
+                </ResourceDictionary>
+            </dx:DXExpander.Resources>
+            <dx:DXExpander.Content>
+                <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
+                               BackgroundColor="#1E1E1E" WidthRequest="250"
+                               CornerRadius="25" 
+                               >
+                    <dx:DXStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ShowNowPlayingBtmSheetCommand}"/>
+                    </dx:DXStackLayout.GestureRecognizers>
+                    <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="TailTruncation"
+                        FontSize="20" FontAttributes="Bold" Padding="10,0"
+                        HorizontalOptions="Center"/>
+                    <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                        Spacing="10">
+                        <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
+                                  IconColor="White">
+                            <dx:DXButton.Icon>
+
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                            </dx:DXButton.Icon>
+                        </dx:DXButton>
+                        <dx:DXButton IconColor="White" Clicked="DXButton_Clicked">
+                            <dx:DXButton.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"
+                                                  x:DataType="vm:HomePageVM"/>
+                            </dx:DXButton.Icon>
+                        </dx:DXButton>
+
+                        <dx:DXButton Command="{Binding PlayNextSongCommand}"
+                                  IconColor="White">
+                            <dx:DXButton.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+
+                            </dx:DXButton.Icon>
+                        </dx:DXButton>
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
+                        FontSize="17" LineBreakMode="TailTruncation"
+                        HorizontalOptions="Center" Padding="10"/>
+                </dx:DXStackLayout>
+            </dx:DXExpander.Content>
+        </dx:DXExpander>
+
+        <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked"
+                       Command="{Binding Commands.ToggleExpandState,Source={x:Reference NowPlayingMiniControl}}"
+                       CornerRadius="40" WidthRequest="70" HeightRequest="70">
+            <dx:DXButton.Content>
+
+                <dx:RadialProgressBar  WidthRequest="80" HeightRequest="80" Value="{Binding CurrentPositionPercentage}" 
+                                       ValueIndicatorThickness="12" Thickness="10" AllowAnimation="True"
+                                       Fill="Transparent" StartAngle="-180" SweepAngle="360"
+                                       ValueIndicatorFill="DarkSlateBlue">
+
+                    <dx:RadialProgressBar.Content>
+
+                        <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                WidthRequest="80" HeightRequest="80" VerticalOptions="Fill"
+                     BorderWidth="0" CornerRadius="40" 
+                Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />
+                    </dx:RadialProgressBar.Content>
+
+                </dx:RadialProgressBar>
+            </dx:DXButton.Content>
+        </dx:DXButton>
+
+    </HorizontalStackLayout>
+</ContentView>

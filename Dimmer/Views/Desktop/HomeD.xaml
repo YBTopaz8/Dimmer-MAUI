@@ -14,7 +14,8 @@
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"                        
+             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"                      
             xmlns:shimmer="clr-namespace:Syncfusion.Maui.Toolkit.Shimmer;assembly=Syncfusion.Maui.Toolkit"
              x:DataType="vm:HomePageVM"             
              x:Name="myPage"
@@ -47,8 +48,8 @@
 
         <FlyoutBase.ContextFlyout>
             <MenuFlyout>
-                <MenuFlyoutItem Text="Find Song"
-                                Clicked="MenuFlyoutItem_Clicked">
+                <MenuFlyoutItem Text="Find Song" 
+                                Clicked="TurnSearchModeOn_Clicked">
                     <MenuFlyoutItem.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Ctrl" 
                          Key="F"/>
@@ -61,13 +62,10 @@
                                       x:Name="MediaPlayBackCW"/>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top">
             <HorizontalStackLayout HorizontalOptions="End"  Spacing="10" >
-                <material:CheckBox Text="Toggle Stick To Top" LabelPosition="Before" x:Name="stickToTopChkbx"
-                   CheckChangedCommand="{Binding ToggleStickToTopCommand}"
-                   CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
-
 
                 <Entry Text="{Binding SearchText}" x:Name="SearchSongSB" Focused="SearchSongSB_Focused" 
-                           WidthRequest="200" Placeholder="Type To Search..." ClearButtonVisibility="WhileEditing">
+                           WidthRequest="200" Placeholder="Type To Search..." ClearButtonVisibility="WhileEditing"
+                       Completed="SearchSongSB_Completed" TextChanged="SearchSongSB_TextChanged">
                     <Entry.GestureRecognizers>
                         <PointerGestureRecognizer x:Name="SearchBarPointer" PointerExited="SearchBarPointer_PointerExited"/>
                     </Entry.GestureRecognizers>
@@ -80,10 +78,11 @@
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5"  x:Name="SearchFiltersHSL"
                                    IsVisible="False" HeightRequest="30" >
+                
                 <SyncCtrls:SfChipGroup ChipType="Filter" ItemsSource="{Binding SearchFilters}"
                                        SelectionChanged="SfChipGroup_SelectionChanged" x:Name="SearchFilters"
                                        />
-                <ratingsView:RatingControl x:Name="ratingFilter" 
+                <ratingsView:RatingControl x:Name="ratingFilter" Shape="Heart"
                                            Value="{Binding Achievement}" IsVisible="False"/>
                 <ImageButton Clicked="CloseFiltersImgBtn_Clicked" >
                     <ImageButton.Source>
@@ -94,12 +93,7 @@
             
         </VerticalStackLayout>
         <toolkit:DockLayout x:Name="MainBody" >
-            <!--<SyncCtrls:SfShimmer x:Name="searchShimmer"
-                                 Margin="2" WaveColor="DarkSlateBlue"
-                                 Fill="#3B3842" WaveDirection="LeftToRight"
-                                 BackgroundColor="Transparent"
-                                 Type="Shopping" AnimationDuration="1000"
-                                 RepeatCount="3"/>-->
+          
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
@@ -107,8 +101,7 @@
                     <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
             FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
-                    <HorizontalStackLayout Spacing="10">
-                        <material:CheckBox Text="Show Preferred folders to Scan Songs" IsChecked="False" x:Name="TogglePrefFoldersChbx"/>
+                    <HorizontalStackLayout Spacing="10">                       
 
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
                             <ImageButton.Source>
@@ -124,8 +117,6 @@
 
                         <!--<Button Command="{Binding DummyFuncCommand}" Text="Dummy Func!"/>-->
 
-                        <material:CheckBox Text="Toggle Discord RPC" CheckChangedCommand="{Binding ToggleDiscordRPCCommand}" IsChecked="{Binding IsDRPCEnabled}"
-                                       x:Name="ToggleDiscordRPC" CommandParameter="{Binding IsChecked,Source={x:Reference ToggleDiscordRPC}}"/>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
@@ -157,21 +148,9 @@
 
                 </FlexLayout>
             </VerticalStackLayout>
-            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" Margin="10,0" Spacing="5"
-                             IsVisible="{Binding IsChecked,Source={x:Reference TogglePrefFoldersChbx}}">
+            
 
-                <ListView ItemsSource="{Binding FolderPaths}"/>
-
-
-                <Button Text="Click here to Select folder to scan (You can do so multiple times for multiple folders)" Command="{Binding SelectSongFromFolderCommand}"/>
-                <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"/>
-                <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}" toolkit:DockLayout.DockPosition="Top"/>
-
-            </VerticalStackLayout>
-
-            <Grid Padding="10"
-              toolkit:DockLayout.DockPosition="Top"
-              Margin="5,0">
+            <Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280" />
@@ -203,11 +182,11 @@
                 <Label Text="Format" Grid.Column="7"/>
                 <Label Text="Play Count" Grid.Column="8"/>
             </Grid>
-            <!--<BoxView HeightRequest="0.5" BackgroundColor="#383838" toolkit:DockLayout.DockPosition="Top"/>-->
+            
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
                         x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
-                        Loaded="SongsColView_Loaded"
+                        Loaded="SongsColView_Loaded" Margin="5,0"
                         EmptyView="Nothing ...">
                 
                     <CollectionView.ItemsLayout>
@@ -215,7 +194,11 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <Border Stroke="Transparent" Padding="0,0">
+
+                        <SyncCtrls:SfEffectsView TouchDownEffects="Ripple" 
+                                                 TouchUpEffects="Highlight"
+                                                 TouchDown="SfEffectsView_TouchDown">
+                            <Border Stroke="Transparent" Padding="5,0">
                             <Border.Triggers>
                                 <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                     <Setter Property="Stroke" Value="DarkSlateBlue"/>
@@ -230,10 +213,16 @@
                             <Border.GestureRecognizers>
                                 <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
                                                       PointerExited="PointerGestureRecognizer_PointerExited"
+                                                      />
+                                
+                            </Border.GestureRecognizers>
+                            <!--<Border.GestureRecognizers>
+                                <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
+                                                      PointerExited="PointerGestureRecognizer_PointerExited"
                                                       PointerPressed="PointerGestureRecognizer_PointerPressed"
                                                       PointerReleased="PointerGestureRecognizer_PointerReleased"/>
                                 <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="DoubleTapToPlay_Tapped"/>
-                            </Border.GestureRecognizers>
+                            </Border.GestureRecognizers>-->
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
@@ -315,7 +304,7 @@
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutSeparator/>
-                                    <MenuFlyoutItem Text="Go To Artist" Clicked="MenuFlyoutItem_Clicked_1"
+                                        <MenuFlyoutItem Text="Go To Artist" Clicked="NavToArtistClicked"
                                         >
 
                                         <MenuFlyoutItem.IconImageSource>
@@ -418,8 +407,8 @@
                                 <Label Text="{Binding ArtistName}" Grid.Column="1" 
                                        ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                <ratingsView:RatingControl Value="{Binding Rating}" 
-                                                       Grid.Column="2" Shape="Star" Fill="Green"
+                                <ratingsView:RatingControl Value="{Binding Rating}" Fill="DarkSlateBlue"
+                                                       Grid.Column="2" Shape="Heart"
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">
                                     <ratingsView:RatingControl.GestureRecognizers>
@@ -461,7 +450,7 @@
                                 <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="8"/>
                             </Grid>
                         </Border>
-
+                        </SyncCtrls:SfEffectsView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
@@ -471,41 +460,5 @@
 
     </toolkit:DockLayout>
 
-    <!--Putting an image here will crash app
-    <Image Source="{Binding CoverImagePath}" Grid.Column="2" WidthRequest="45"/> -->
-
-
-    <!--<cm:ContextMenuContainer BackgroundColor="Red">
-    <cm:ContextMenuContainer.MenuItems >
-        <cm:ContextMenuItem Text="Action 1" />
-        <cm:ContextMenuItem Text="Action 2"/>
-    </cm:ContextMenuContainer.MenuItems>
-
-    <cm:ContextMenuContainer.Content >
-        <Label Text="Yo!" />
-    </cm:ContextMenuContainer.Content>
-</cm:ContextMenuContainer>-->
-
-    <!--
-        <mdc:ExtendedFAB IconData="{Static icon:Material.Add}" Text="add">
-            <mdc:ExtendedFAB.ContextMenu>
-                <mdc:ContextMenu>
-                    <mdc:MenuItem Text="Action 1" />
-                    <mdc:MenuItem Text="Action 2"/>
-                </mdc:ContextMenu>
-            </mdc:ExtendedFAB.ContextMenu>
-        </mdc:ExtendedFAB>
-        <mdc:FAB IconData="{Static icon:Material.Add}"/>
-        <mdc:Chip IconData="{Static icon:Material.Filter}" Text="filter"/>
-        <mdc:ComboBox Style="{DynamicResource FilledComboBoxStyle}" FontColor="Red" LabelFontColor="Blue">
-            <mdc:MenuItem Text="item 1" />
-            <mdc:MenuItem Text="item 2" />
-        </mdc:ComboBox>
-        <mdc:ComboBox Style="{DynamicResource OutlinedComboBoxStyle}">
-            <mdc:MenuItem Text="item 1" />
-            <mdc:MenuItem Text="item 2" />
-        </mdc:ComboBox>
-
-        <mdc:TextField/>
--->
+    
 </uranium:UraniumContentPage>

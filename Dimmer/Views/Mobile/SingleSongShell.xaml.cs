@@ -11,25 +11,22 @@ public partial class SingleSongShell : UraniumContentPage
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
-
+        dailyDateFilter.Date = DateTime.Now;
+     
     }
 
+
     public HomePageVM HomePageVM { get; }
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+    }
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-
         DeviceDisplay.Current.KeepScreenOn = true;
+        HomePageVM.AfterSingleSongShellAppeared();
         
-        if (HomePageVM.AllSyncLyrics?.Length > 0)
-        {
-            Array.Clear(HomePageVM.AllSyncLyrics);
-        }
-
-        HomePageVM.CurrentViewIndex = 0;
-        emptyV.IsVisible = false;
-
     }
 
 
@@ -38,18 +35,37 @@ public partial class SingleSongShell : UraniumContentPage
         base.OnDisappearing();
         
         DeviceDisplay.Current.KeepScreenOn = false;
+        HomePageVM.IsViewingDifferentSong = false;
     }
 
     protected override bool OnBackButtonPressed()
-    {
-        
-                
+    {           
         return base.OnBackButtonPressed();
     }
 
     private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
-
+        switch (e.NewIndex)
+        {
+            case 0:
+                break;
+            case 1:
+                emptyV.IsVisible = false;
+                if (HomePageVM.AllSyncLyrics is not null)
+                {
+                    HomePageVM.AllSyncLyrics = Array.Empty<Content>();
+                }
+                break;
+            case 2:
+                break;
+            default:
+                Lookgif.IsVisible = false;
+                break;
+        }
+        if (e.NewIndex == 2)
+        {
+            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+        }
     }
 
 
@@ -59,7 +75,7 @@ public partial class SingleSongShell : UraniumContentPage
         {
             
             if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
-            {
+            {                
                 LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
             }
             
@@ -198,7 +214,22 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
         NowPlayingBtmSheet.Show();
+    }
 
-        return;
+    private void RevealNPBtmSheet_Tapped(object sender, TappedEventArgs e)
+    {
+        NowPlayingBtmSheet.Show();
+    }
+
+    private async void DXButton_Clicked(object sender, EventArgs e)
+    {
+        if (HomePageVM.IsPlaying)
+        {
+            await HomePageVM.PauseSong();
+        }
+        else
+        {
+            await HomePageVM.ResumeSong();
+        }
     }
 }

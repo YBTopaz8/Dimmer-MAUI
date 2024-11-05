@@ -486,7 +486,7 @@ public class RatingControl : BaseTemplateView<Grid>
                 image.StrokeLineJoin = PenLineJoin.Round;
                 image.StrokeThickness = 1;
                 image.Stroke = Color.FromArgb("#343434");
-                image.Fill = Colors.DarkSlateBlue;
+                image.Fill = Fill;
             }
             else
             {
@@ -560,11 +560,11 @@ public class RatingControl : BaseTemplateView<Grid>
             Property = Microsoft.Maui.Controls.Shapes.Path.ScaleProperty,
             Value = 1.01,
         };
-        
+
         var pointerOverSetter2 = new Setter()
         {
             Property = Microsoft.Maui.Controls.Shapes.Path.FillProperty,
-            Value = Colors.DarkSlateBlue
+            Value = Colors.DarkRed
         };
         pointerOverState.Setters.Add(pointerOverSetter);
         pointerOverState.Setters.Add(pointerOverSetter2);

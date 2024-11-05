@@ -95,24 +95,40 @@ public partial class HomePageVM
 
     }
 
-    public void LoadWeeklyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate=null)
+    public void LoadWeeklyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        startDate ??= DateTimeOffset.UtcNow.Date;
-        endDate ??= DateTimeOffset.UtcNow.Date;
+        startDate ??= DateTimeOffset.UtcNow.AddMonths(-6).Date; // Default to 6 months ago for a longer range
+        endDate ??= DateTimeOffset.UtcNow.Date; // Default to today
+
         SongPickedForStats.WeeklyStats = new ObservableCollection<WeeklyStats>();
-        // Loop through each week in the specified range
+
+        // Ensure start date is aligned to the beginning of the week (e.g., Monday)
         var currentStartDate = startDate.Value;
-        while (currentStartDate <= endDate.Value.Date)
+        if (currentStartDate.DayOfWeek != DayOfWeek.Monday)
         {
-            var weekEndDate = currentStartDate.AddDays(6); // Define the end date of the current week
+            int daysToMonday = ((int)DayOfWeek.Monday - (int)currentStartDate.DayOfWeek + 7) % 7;
+            currentStartDate = currentStartDate.AddDays(daysToMonday);
+        }
 
-            // Create and add each weekly stat entry
-            SongPickedForStats.WeeklyStats.Add(new WeeklyStats(song, currentStartDate, weekEndDate));
+        // Loop through each week in the specified range
+        while (currentStartDate <= endDate.Value)
+        {
+            var weekEndDate = currentStartDate.AddDays(6);
 
-            // Move to the next week
+            // Adjust the week end date if it exceeds the end date
+            if (weekEndDate > endDate.Value)
+            {
+                weekEndDate = endDate.Value;
+            }
+            var weekStat = new WeeklyStats(song, currentStartDate, weekEndDate);
+            if (weekStat.Count>0)
+            {
+                SongPickedForStats.WeeklyStats.Add(weekStat);
+            }
             currentStartDate = currentStartDate.AddDays(7);
         }
     }
+
 
 
     public void LoadDailyStats(SongsModelView song, DateTimeOffset? specificDate = null)
@@ -401,7 +417,7 @@ public partial class WeeklyStats : ObservableObject
     public WeeklyStats(SongsModelView model, DateTimeOffset? startDate=null, DateTimeOffset? endDate = null)
     {
         startDate ??= DateTimeOffset.UtcNow.Date;
-        endDate ??= DateTimeOffset.UtcNow.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date.AddDays(1);
         var weeklyPlays = model.DatesPlayedAndWasPlayCompleted?
             .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
             .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();

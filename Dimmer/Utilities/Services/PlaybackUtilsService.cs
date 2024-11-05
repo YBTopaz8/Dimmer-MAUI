@@ -1232,7 +1232,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer = null;
         }
         _currentPositionSubject.OnNext(new());
-
+        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         if (ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted != null && ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted.Count > 0)
         {
             // Find the most recent entry with `WasPlayCompleted == false` (meaning not completed yet)
@@ -1295,7 +1295,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _positionTimer?.Start();
             _playerStateSubject.OnNext(MediaPlayerState.ShowPauseBtn);  // Update state to playing
-            
         }
         else
         {
@@ -1319,6 +1318,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     public async Task<bool> PlayPreviousSongAsync()
     {
+        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+
         GetPrevAndNextSongs(IsPrevious: true);
         return await PlaySongAsync(ObservableCurrentlyPlayingSong, CurrentQueue, IsFromPreviousOrNext: true);
     }
@@ -1591,16 +1592,50 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public void AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
+    public void AddSongToPlayListWithPlayListID(SongsModelView song, PlaylistModelView playlistModel)
     {
-        PlaylistManagementService.AddSongToPlayListWithPlayListName(song, playlistName);
+        var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
+        if (anyExistingPlaylist is not null)
+        {
+            playlistModel = anyExistingPlaylist;
+        }
+        else
+        {
+            playlistModel.Id = ObjectId.GenerateNewId();
+            playlistModel.Name = playlistModel.Name;
+                playlistModel.DateCreated = DateTimeOffset.Now;
+            playlistModel.TotalSongsCount = 1;
+            playlistModel.TotalDuration = song.DurationInSeconds;
+            playlistModel.TotalSize = song.FileSize;
+        
+        }
+        var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
+        {
+            Id = ObjectId.GenerateNewId(),
+            PlaylistId = playlistModel.Id,
+            SongId = song.Id,
+        };
+
+        PlaylistManagementService.UpdatePlayList(playlistModel, newPlaylistSongLinkByUserManual, true);
+        
         //GetAllPlaylists(); it's called in HomePageVM but let's see
     }
 
     public void RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
     {
+        var playlists = PlaylistManagementService.GetPlaylists();
+        var specificPlaylist = playlists.FirstOrDefault(x => x.Id == playlistID);
+        if (specificPlaylist is not null)
+        {
+            var songsInPlaylist = _secondaryQueueSubject.Value;
+            songsInPlaylist.Remove(song);
+            _secondaryQueueSubject.OnNext(songsInPlaylist);
+            specificPlaylist.TotalSongsCount -= 1;
+            specificPlaylist.TotalDuration -= song.DurationInSeconds;
+            specificPlaylist.TotalSize -= song.FileSize;
+        }
 
-        //TODO: DO THIS
+        PlaylistManagementService.UpdatePlayList(specificPlaylist, IsRemoveSong: true);
     }
 
     public List<SongsModelView> GetSongsFromPlaylistID(ObjectId playlistID)
@@ -1634,29 +1669,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return Enumerable.Empty<SongsModelView>().ToList();
         }
 
-    }
-    public void AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
-    {
-        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
-        if (specificPlaylist is null)
-        {
-            return;
-        }
-        //specificPlaylist?.SongsIDs.Add(song.Id);        
-        specificPlaylist.TotalSongsCount += 1;
-    }
-
-    public void RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName)
-    {
-        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Name == playlistName);
-        if (specificPlaylist is not null)
-        {
-            var songsInPlaylist = _secondaryQueueSubject.Value;
-            songsInPlaylist.Remove(song);
-            _secondaryQueueSubject.OnNext(songsInPlaylist);
-            specificPlaylist.TotalSongsCount -= 1;
-        }
-        PlaylistManagementService.RemoveSongFromPlayListWithPlayListName(song, playlistName);
     }
 
     public ObservableCollection<PlaylistModelView> GetAllPlaylists()

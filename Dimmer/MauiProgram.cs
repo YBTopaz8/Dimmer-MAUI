@@ -118,6 +118,7 @@ public static class MauiProgram
         //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
+        builder.Services.AddSingleton<EachPageNPFAB_Mobile>();
         builder.Services.AddTransient<NowPlayingBtmSheet>(); //btmsheet
         //builder.Services.AddSingleton<SongMenuBtmSheet>();
 
@@ -144,6 +145,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ArtistsPageD>();
         builder.Services.AddSingleton<FullStatsD>();
         builder.Services.AddSingleton<SingleSongStatsPageD>();
+        builder.Services.AddSingleton<SettingsPageD>();
 
 
         /* Registering the Mobile Views */
@@ -158,6 +160,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SpecificAlbumPage>();
         builder.Services.AddSingleton<AlbumPageM>();
         builder.Services.AddSingleton<ShareSongPage>();
+        builder.Services.AddSingleton<SettingsPageM>();
         //builder.Services.AddSingleton<NowPlayingPage>();
 
 

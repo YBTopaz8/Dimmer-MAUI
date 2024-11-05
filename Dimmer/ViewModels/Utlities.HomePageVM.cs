@@ -363,13 +363,41 @@ public partial class HomePageVM
     }
     #endregion
 
+    [ObservableProperty]
+    bool isRetrievingCovers = true;
     [RelayCommand]
-    void ReloadCoverImage()
+    async Task ReloadCoverImageAsync()
     {
-        DisplayedSongs= PlaybackUtilsService.CheckCoverImage(DisplayedSongs);
-        SongsMgtService.AddSongBatchAsync(DisplayedSongs);
+        IsRetrievingCovers = true;
+        // Run the work on a background thread
+        await Task.Run(() =>
+        {
+            // Perform the operations on a background thread
+            DisplayedSongs = PlaybackUtilsService.CheckCoverImage(DisplayedSongs);
+
+            // Call the non-awaitable method directly
+            SongsMgtService.AddSongBatchAsync(DisplayedSongs); // No await needed
+        });
+
+        // Return to the main thread to show the alert
+        await Shell.Current.DisplayAlert("Download Complete!", "All Downloaded", "OK");
+        IsRetrievingCovers = false;
     }
+
+
 
     [ObservableProperty]
     bool isTemporarySongNull = true;
+
+
+    [ObservableProperty]
+    bool isOnSearchMode = false;
+
+
+    [RelayCommand]
+    async Task DownloadAlbumImage(AlbumModelView album)
+    {
+      var firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault();
+      SelectedAlbumOnArtistPage.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(firstSongOfSpectifAlbum.Title,firstSongOfSpectifAlbum.ArtistName, firstSongOfSpectifAlbum.AlbumName);
+    }
 }

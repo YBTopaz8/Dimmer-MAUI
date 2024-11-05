@@ -279,7 +279,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 
     }
 
-    public (ObjectId artistID, ObjectId albumID) GetArtistAndAlbumIdFromSongId(ObjectId songId)
+    public (ArtistModelView? artist, AlbumModelView? album) GetArtistAndAlbumIdFromSongId(ObjectId songId)
     {
         try
         {
@@ -292,16 +292,23 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             
             if (links.Count == 0)
             {
-                return (ObjectId.Empty, ObjectId.Empty); 
+                return (null, null); 
             }
             var link = links.FirstOrDefault(); 
 
-            return (link.ArtistId, link.AlbumId);
+            var specificAlbum = db.Find<AlbumModel>(link.AlbumId);
+            var specificArtist = db.Find<ArtistModel>(link.ArtistId);
+            if (specificAlbum is not null && specificArtist is not null)
+            {                
+                return (new ArtistModelView(specificArtist), new AlbumModelView(specificAlbum));
+            }
+
+            return (null, null);
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
-            return (ObjectId.Empty, ObjectId.Empty);  // Return empty ObjectIds in case of error
+            return (null, null);  // Return empty ObjectIds in case of error
         }
     }
 

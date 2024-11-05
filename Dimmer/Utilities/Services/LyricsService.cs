@@ -60,7 +60,7 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     pState = MediaPlayerState.CoverImageDownload;
-                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong);
+                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong.Title, PlayBackService.CurrentlyPlayingSong.AlbumName, PlayBackService.CurrentlyPlayingSong.AlbumName);
                     break;
                 default:
                     break;
@@ -129,6 +129,11 @@ public class LyricsService : ILyricsService
     }
 
     List<LyricPhraseModel>? sortedLyrics;
+    public IList<LyricPhraseModel> GetSpecificSongLyrics(SongsModelView song)
+    {
+        List<LyricPhraseModel> lyr = new();
+        return LoadLyrFromFile(song.FilePath, out lyr);
+    }
     private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null, IList<LyricPhraseModel>? syncedLyrics = null)
     {
         if (syncedLyrics is not null && songSyncLyrics?.Count > 0)
@@ -138,23 +143,11 @@ public class LyricsService : ILyricsService
             sortedLyrics = syncedLyrics.ToList();
             return sortedLyrics;
         }
-        List<LyricPhraseModel> lyrr = new();
-
-        if (!File.Exists(songPath))
+        List<LyricPhraseModel> lyrr;
+        LoadLyrFromFile(songPath, out lyrr);
+        if (lyrr.Count > 0)
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
-        }
-        IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
-
-        if (lyrics is not null && lyrics!.Count != 0)
-        {
-            hasSyncedLyrics = true;
-            sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
-            if (sortedLyrics?.Count > 1)
-            {
-                sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
-            }
-            return sortedLyrics;
         }
         string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath);
         string lrcExtension = ".lrc";
@@ -185,6 +178,30 @@ public class LyricsService : ILyricsService
 
         return sortedLyrics.ToList();//lyricPhrases;
     }
+
+    private List<LyricPhraseModel> LoadLyrFromFile(string? songPath, out List<LyricPhraseModel> lyrr)
+    {
+        lyrr = new();
+        if (!File.Exists(songPath))
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToList();
+        }
+        IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
+
+        if (lyrics is null && lyrics!.Count < 1)
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToList();
+        }
+        hasSyncedLyrics = true;
+        sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
+        if (sortedLyrics?.Count > 1)
+        {
+            sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
+        }
+        return sortedLyrics;
+        
+    }
+
     public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null)
     {
        
@@ -453,13 +470,13 @@ public class LyricsService : ILyricsService
 
     #region Fetch Lyrics Online from Lyrist
 
-    public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(string songTitle, string songArtistName)
     {
         HttpClient client = new HttpClient();
         try
         {
             Content[]? contentData = null;
-            contentData = await SearchLyricsByTitleAndArtistNameToLyrist(song, client);
+            contentData = await SearchLyricsByTitleAndArtistNameToLyrist(songTitle, songArtistName, client);
             return (true, contentData);
         }
         catch (HttpRequestException e)
@@ -478,11 +495,11 @@ public class LyricsService : ILyricsService
         }
     }
 
-    private async Task<Content[]> SearchLyricsByTitleAndArtistNameToLyrist(SongsModelView song, HttpClient client)
+    private async Task<Content[]> SearchLyricsByTitleAndArtistNameToLyrist(string songTitle, string songArtistName, HttpClient client)
     {
 
-        string trackName = Uri.EscapeDataString(song.Title);
-        string url = $"https://lyrist.vercel.app/api/{trackName}/{song.ArtistName}";
+        string trackName = Uri.EscapeDataString(songTitle);
+        string url = $"https://lyrist.vercel.app/api/{trackName}/{songArtistName}";
 
         // Send the GET request
         HttpResponseMessage response = await client.GetAsync(url);
@@ -520,45 +537,56 @@ public class LyricsService : ILyricsService
         return ImageBytes;
     }
 
-    public async Task<string> FetchAndDownloadCoverImage(SongsModelView songs)
+    public async Task<string> FetchAndDownloadCoverImage(string songTitle, string songArtistName, string albumName, SongsModelView? song =null)
     {
+        var stringAlbumName = albumName;
+        var stringSongTitle = songTitle;
+        var stringArtistName = songArtistName;
+        var localCopyOfSong = song; 
         try
         {
-
-            if (!string.IsNullOrEmpty(songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath)))
+            if (localCopyOfSong is not null)
             {
-                if (File.Exists(songs.CoverImagePath))
-                    return songs.CoverImagePath;
+                stringSongTitle = localCopyOfSong.Title;
+                stringArtistName = localCopyOfSong.ArtistName;
+                stringAlbumName = localCopyOfSong.AlbumName;
+                if (!string.IsNullOrEmpty(localCopyOfSong.CoverImagePath = SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath)))
+                {
+                    if (File.Exists(localCopyOfSong.CoverImagePath))
+                        return localCopyOfSong.CoverImagePath;
 
-                string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-                    if(Path.GetFileName(songs.CoverImagePath) is not null)
+                    string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+                    if (Path.GetFileName(localCopyOfSong.CoverImagePath) is not null)
                     {
-                        string filePath = Path.Combine(folderPath, Path.GetFileName(songs.CoverImagePath));
+                        string filePath = Path.Combine(folderPath, Path.GetFileName(localCopyOfSong.CoverImagePath));
                         if (File.Exists(filePath))
                         {
-                            songs.CoverImagePath = filePath;
-                            SongsManagementService.UpdateSongDetails(songs);
+                            localCopyOfSong.CoverImagePath = filePath;
+                            SongsManagementService.UpdateSongDetails(localCopyOfSong);
 
                             return filePath;
                         }
-                    }       
-                
-                return songs.CoverImagePath;
-            }
-            byte[]? ImageBytes = null;
-            (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(songs);
-            if (apiResponse is null || apiResponse.Length < 1)
-            {
-                return string.Empty;
-            }
-            if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
-            {
-                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
-                songs.CoverImagePath = SaveOrGetCoverImageToFilePath(songs.FilePath, ImageBytes);
-                 SongsManagementService.UpdateSongDetails(songs);
-            }
+                    }
 
-            return string.IsNullOrEmpty(songs.CoverImagePath) ? string.Empty : songs.CoverImagePath;
+                    return localCopyOfSong.CoverImagePath;
+                }
+
+            }
+                byte[]? ImageBytes = null;
+                (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
+                if (apiResponse is null || apiResponse.Length < 1)
+                {
+                    return string.Empty;
+                }
+                if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
+                {
+                    ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
+                    song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath, ImageBytes);
+                    SongsManagementService.UpdateSongDetails(song);
+                }
+
+                return string.IsNullOrEmpty(song.CoverImagePath) ? string.Empty : song.CoverImagePath;
+        
         }
         catch (HttpRequestException e)
         {
@@ -669,4 +697,10 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
         return true;
 
     }
+
+    public Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    {
+        throw new NotImplementedException();
+    }
+
 }

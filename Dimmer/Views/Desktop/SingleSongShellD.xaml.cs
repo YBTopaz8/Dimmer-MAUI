@@ -13,22 +13,19 @@ public partial class SingleSongShellD : ContentPage
 
     }
     public HomePageVM HomePageVM { get; }
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
-        if (HomePageVM.AllSyncLyrics is not null)
-        {
-            Array.Clear(HomePageVM.AllSyncLyrics);
-        }
-        HomePageVM.CurrentViewIndex = 0;
+        DeviceDisplay.Current.KeepScreenOn = true;
+        await HomePageVM.AfterSingleSongShellAppeared();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         HomePageVM.CurrentViewIndex = 0;
-        emptyV.IsVisible = false;
+        HomePageVM.IsViewingDifferentSong = false;
     }
 
     private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -60,12 +57,6 @@ public partial class SingleSongShellD : ContentPage
     {
 
     }
-
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    {
-
-    }
-
 
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
@@ -254,20 +245,18 @@ public partial class SingleSongShellD : ContentPage
         {
             case 0:
                 await Task.WhenAll(
-                DailyStats.AnimateFadeInFront(),
                 WeeklyStats.AnimateFadeOutBack(),
-
-
                 MonthlyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeOutBack());
+                YearlyStats.AnimateFadeOutBack(),
+                DailyStats.AnimateFadeInFront());
                 HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
                 break;
             case 1:
                 await Task.WhenAll(
                DailyStats.AnimateFadeOutBack(),
-               WeeklyStats.AnimateFadeInFront(),   // Fade in WeeklyStats
+               YearlyStats.AnimateFadeOutBack(),
                MonthlyStats.AnimateFadeOutBack(),
-               YearlyStats.AnimateFadeOutBack()
+               WeeklyStats.AnimateFadeInFront()   // Fade in WeeklyStats
            );
                 HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
 
@@ -275,9 +264,9 @@ public partial class SingleSongShellD : ContentPage
             case 2:
                 await Task.WhenAll(
                 DailyStats.AnimateFadeOutBack(),
-                WeeklyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeInFront(),  // Fade in MonthlyStats
-                YearlyStats.AnimateFadeOutBack()
+                WeeklyStats.AnimateFadeOutBack(),                
+                YearlyStats.AnimateFadeOutBack(),
+                MonthlyStats.AnimateFadeInFront()  // Fade in MonthlyStats
             );
                 HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
                 break;
@@ -304,12 +293,10 @@ public partial class SingleSongShellD : ContentPage
         switch (checkState)
         {
             case true:
-                await Task.WhenAll(DailyStats.AnimateFadeOutBack(),
-                dailyStatChart.AnimateFadeInFront());
+                await Task.WhenAll(StatsChart.AnimateFadeInFront());
                 break;
             case false:
-                await Task.WhenAll(DailyStats.AnimateFadeInFront(),
-                dailyStatChart.AnimateFadeOutBack());
+                await Task.WhenAll(StatsChart.AnimateFadeOutBack());
                 break;
             default:
                 break;

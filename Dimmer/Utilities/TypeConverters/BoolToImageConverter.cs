@@ -11,11 +11,12 @@ public class BoolToImageConverter : IValueConverter
 
         if (value is bool MyBoolValue && MyBoolValue is true)
         {
-            return MaterialRounded.Heart_broken;
+            return FontAw.Solid.HeartCircleMinus;
+            
         }
         else
         {
-            return MaterialRounded.Favorite;
+            return Regular.Heart;            
         }
     }
 

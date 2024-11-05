@@ -14,15 +14,9 @@ public partial class AlbumPageM : UraniumContentPage
     }
 
     public HomePageVM HomePageVM { get; }
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
-    {
-        HomePageVM.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongsModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
-    }
+    
     ObjectId previousAlbID = ObjectId.Empty;
-    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {        
         var t = (VerticalStackLayout)sender;
         var album = t.BindingContext as AlbumModelView;
@@ -30,22 +24,52 @@ public partial class AlbumPageM : UraniumContentPage
         {
             return;
         }
-        HomePageVM.ShowSpecificArtistsSongsWithAlbumIdCommand.Execute(album.Id);
+        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
         previousAlbID = album.Id;
     }
 
     protected override void OnAppearing()
     {
-        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
-        //AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
-        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllAlbumsCommand.Execute(null);
         base.OnAppearing();
-        
+        AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
+        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+
+        if (HomePageVM.SelectedSongToOpenBtmSheet is null)
+        {
+            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        }
+        HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
     {
 
+    }
+    private async void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var album = send.BindingContext as AlbumModelView;
+        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
+    }
+
+    private System.Timers.Timer _longPressTimer;
+    private bool _isLongPressed;
+
+    private void NowPlaySearchBtmSheet_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+
+    }
+
+    private void NowPlaySearchBtmSheet_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+     
+    }
+
+    private void DXCollectionView_TapConfirmed(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        HomePageVM.CurrentQueue = 1;
+
+        var song = e.Item as SongsModelView;
+        HomePageVM.PlaySongCommand.Execute(song);
     }
 }

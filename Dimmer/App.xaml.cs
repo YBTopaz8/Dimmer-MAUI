@@ -32,7 +32,7 @@ public partial class App : Application
             rpcClient.ShutDown();
         }
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
-            $"| {e.Exception.StackTrace} | {e.Exception.TargetSite}");
+            $"| {e.Exception.StackTrace} | {e.Exception.TargetSite} || {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         //await home.ExitingApp();
@@ -48,11 +48,11 @@ public partial class App : Application
         win.Width = 1200;
 #if DEBUG
 
-        win.Title = "Dimmer v0.1.0-debug";
+        win.Title = "Dimmer v0.1.2-debug";
 #endif
 
 #if RELEASE
-        win.Title = "Dimmer v0.1.0-release";
+        win.Title = "Dimmer v0.1.2-release";
 #endif
         return win;
     }
@@ -73,7 +73,10 @@ public partial class App : Application
             }
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
-
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
             // Retry mechanism for file writing
             bool success = false;
             int retries = 3;
@@ -85,8 +88,10 @@ public partial class App : Application
                 {
                     try
                     {
+#if RELEASE
                         File.AppendAllText(filePath, logContent);
                         success = true; // Write successful
+#endif
                     }
                     catch (IOException ioEx) when (retries > 0)
                     {

@@ -37,9 +37,6 @@
     <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="CustomPopUpViews\ScanFoldersPopup.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -97,6 +94,9 @@
     <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\Desktop\SettingsPageD.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Desktop\SingleSongShellD.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -119,6 +119,12 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\CustomViewsM\SongStatView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\EachPageNPFAB_Mobile.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\Mobile\SettingsPageM.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\Mobile\ShareSongPage.xaml">

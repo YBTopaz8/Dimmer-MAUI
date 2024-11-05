@@ -17,6 +17,7 @@
             Name = modelView.Name;
             ImagePath = modelView.ImagePath;        
         }
+
     }
 
     // ViewModel for ArtistModel
@@ -30,6 +31,11 @@
         string? imagePath;
         [ObservableProperty]
         bool isCurrentlySelected = false;
+        partial void OnIsCurrentlySelectedChanged(bool oldValue, bool newValue)
+        {
+            oldValue = false;
+            OnPropertyChanged(nameof(IsCurrentlySelected));
+        }
         public ArtistModelView()
         {
         }
@@ -40,5 +46,7 @@
             Name = model.Name;
             ImagePath = model.ImagePath;
         }
+
+
     }
 }

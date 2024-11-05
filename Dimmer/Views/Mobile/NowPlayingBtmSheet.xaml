@@ -7,13 +7,14 @@
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:containerr="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:mobileViews="clr-namespace:Dimmer_MAUI.Views.Mobile"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM" ShowGrabber="False"
-                
+            State="{Binding NowPlayBtmSheetState}"
             x:Name="myPage" BackgroundColor="#0C0E0D">
 
     <dx:BottomSheet.Resources>
@@ -100,7 +101,7 @@
                     </ImageButton.Source>
                 </ImageButton>
                 <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
-                   CornerRadius="40" TapPressed="NowPlayingBtn_TapPressed" Grid.Column="2"
+                   CornerRadius="40" Grid.Column="2"
                    TapReleased="NowPlayingBtn_TapReleased"
                    UseRippleEffect="True"
                    WidthRequest="90" HeightRequest="90" >
@@ -109,14 +110,10 @@
                                                Grid.Column="2"
                             Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="6" Thickness="0" AllowAnimation="True"
          Fill="Transparent" StartAngle="-180" SweepAngle="360">
-                    <dx:RadialProgressBar.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
-                    </dx:RadialProgressBar.GestureRecognizers>
                     <dx:RadialProgressBar.Content>
                         <dx:DXImage >
                             <Image.Source>
-                                <FontImageSource Size="50"
-          FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
+                                <FontImageSource Size="50" FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
                             </Image.Source>
                         </dx:DXImage>
                     </dx:RadialProgressBar.Content>
@@ -159,7 +156,8 @@
                     </ImageButton.Source>
                 </ImageButton>
 
-                <HorizontalStackLayout Spacing="15" Margin="10,0">
+                <HorizontalStackLayout Spacing="15" Margin="10,0" HeightRequest="100"
+                                       >
                     <HorizontalStackLayout.Resources>
                         <ResourceDictionary>
                             <Style TargetType="ImageButton">
@@ -169,28 +167,51 @@
                         </ResourceDictionary>
                     </HorizontalStackLayout.Resources>
 
-                    <ImageButton Command="{Binding FetchSongCoverImageCommand}" >
-                        <ImageButton.Source>
+
+                    <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent"
+                                 ShowContent="False" IconPlacement="Left" IconColor="White" VerticalOptions="Start"
+                                 Command="{Binding FetchSongCoverImageCommand}" IconWidth="40">
+                        <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton Clicked="ShowLyricsPage_Clicked">
-                        <ImageButton.Source>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
+
+
+                    <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
+                                 ShowContent="False" IconPlacement="Left" x:Name="NavToSingleSongShell" Clicked="NavToSingleSongShell_Clicked"
+                                 IconWidth="40" VerticalOptions="Start">
+                        <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton x:DataType="vm:HomePageVM"
-                            Command="{Binding Path=BindingContext.UpdateSongInFavoritePlaylistCommand, Source={x:Reference myPage}}"
-                   CommandParameter="{Binding TemporarilyPickedSong}">
-                        <ImageButton.Source>
-                            <FontImageSource Color="DarkSlateBlue"
-                                               Size="40"
-                                               FontFamily="MaterialRounded" Glyph="{Binding TemporarilyPickedSong.IsFavorite, Converter={StaticResource BoolToImage}}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
+
+                    <VerticalStackLayout >
+                        <dx:DXExpander x:Name="ShowMoreActionsContextMenuExpander"
+                                       IsExpanded="False"
+                                       HorizontalExpandMode="FromEndToStart"
+                                       VerticalExpandMode="FromCenter">
+                            <dx:DXExpander.Content>
+                                <VerticalStackLayout>
+                                    <dx:DXButton Content="Share" ButtonType="Filled" BackgroundColor="#1E1E1E"/>
+
+                                </VerticalStackLayout>
+                            </dx:DXExpander.Content>
+                        </dx:DXExpander>
+                        <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
+                                     ShowContent="False" IconPlacement="Left" Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShowMoreActionsContextMenuExpander}}"
+                                     IconWidth="40" x:Name="ShowMoreActionsContextMenuBtn">
+                            <dx:DXButton.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"
+                             />
+                            </dx:DXButton.Icon>
+                        </dx:DXButton>
+                    </VerticalStackLayout>
+                    
+
                 </HorizontalStackLayout>
 
             </FlexLayout>
+            
         </VerticalStackLayout>
 
         <Border StrokeShape="RoundRectangle 18" Padding="10,2" 
@@ -201,7 +222,8 @@
                     <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
                                   HeightRequest="{Binding Height, Source={x:Reference TopGrid}}"
                                   WidthRequest="{Binding Width, Source={x:Reference TopGrid}}"
-                                  Opacity="0.45" Aspect="AspectFill"/>
+                                  Opacity="0.45" Aspect="AspectFill"
+                           MaximumWidthRequest="400"/>
                 
                 <!--Synced lyics Col View-->
                 <Border BackgroundColor="#33101010"

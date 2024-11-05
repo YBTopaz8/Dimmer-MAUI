@@ -21,6 +21,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         //this.StateChanged += NowPlayingBtmSheet_StateChanged;
     }
 
+
     private void NowPlayingBtmSheet_StateChanged(object? sender, ValueChangedEventArgs<BottomSheetState> e)
     {
         //if (e.NewValue == BottomSheetState.FullExpanded)
@@ -44,7 +45,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     }
 
-
+    
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
         if (HomePageVM.DisplayedSongs.Count < 1)
@@ -68,7 +69,8 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         ShowLyricsPage_Clicked(sender, e);
     }
 
-    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
+
+    private async void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
         if (HomePageVM.IsPlaying)
         {
@@ -78,21 +80,22 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         {
             await HomePageVM.ResumeSong();
         }
-    }
-
-    private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-
-    }
-
-    private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        this.CloseAsync();
+    
         return;
     }
 
     private void ProgressSlider_ValueChanged(object sender, EventArgs e)
     {
         HomePageVM.SeekSongPosition();
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void NavToSingleSongShell_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.NavToNowPlayingPage();
     }
 }

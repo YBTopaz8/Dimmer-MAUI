@@ -26,9 +26,14 @@ public partial class HomePageVM
         DisplayedPlaylists?.Clear();
         DisplayedPlaylists = PlayBackService.GetAllPlaylists();
     }
+    [ObservableProperty]
+    PlaylistModelView selectedPlaylist;
+
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
+
+        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.Id == PlaylistID);
         DisplayedSongsFromPlaylist?.Clear();
         DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
         //PlayListService.GetSongsFromPlaylistID
@@ -48,33 +53,37 @@ public partial class HomePageVM
     const string PlaylistDeletedText = "Playlist Deleted Successfully!";
     const ToastDuration duration = ToastDuration.Short;
 
-    [RelayCommand]
-    public async Task AddSongToSpecifcPlaylist(string playlistName)
-    {
-        PlayBackService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, playlistName);
-        //DisplayedPlaylists = PlayListService.GetAllPlaylists();
-        var toast = Toast.Make(songAddedToPlaylistText, duration);
-        await toast.Show(cts.Token);
-    }
-    [RelayCommand]
-    async Task UpdateSongInFavoritePlaylist(SongsModelView song)
+    
+    public async Task UpdatePlayList(SongsModelView song, PlaylistModelView playlistModel =null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {
             return;
         }
-        PlayBackService.UpdateSongToFavoritesPlayList(song);
-        if (song.IsFavorite)
+        if (IsAddSong)
         {
-            PlayBackService.AddSongToPlayListWithPlayListName(song, "Favorites");
-            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
+            PlayBackService.AddSongToPlayListWithPlayListID(song, playlistModel);
+            if (CurrentPage == PageEnum.PlaylistsPage)
+            {
+                DisplayedSongsFromPlaylist.Add(song);
+
+            }
             var toast = Toast.Make(songAddedToPlaylistText, duration);
-            HapticFeedback.Perform(HapticFeedbackType.Click);
             await toast.Show(cts.Token);
         }
-        else
+        else if (IsRemoveSong)
         {
-            PlayBackService.RemoveSongFromPlayListWithPlayListName(song, "Favorites");
+            DisplayedSongsFromPlaylist.Remove(song);
+            PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.Id);
+            var toast = Toast.Make(songDeletedFromPlaylistText, duration);
+            await toast.Show(cts.Token);
+        }
+        else if (IsDeletePlaylist)
+        {
+            PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.Id);
+            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
+            var toast = Toast.Make(PlaylistDeletedText, duration);
+            await toast.Show(cts.Token);
         }
         song.IsFavorite = !song.IsFavorite;
     }
@@ -91,7 +100,11 @@ public partial class HomePageVM
     {
         if (!string.IsNullOrEmpty(PlaylistName))
         {
-            PlayBackService.AddSongToPlayListWithPlayListName(SelectedSongToOpenBtmSheet, PlaylistName);
+            var newPlaylist = new PlaylistModelView()
+            {
+                Name = PlaylistName,
+            };
+            await UpdatePlayList(SelectedSongToOpenBtmSheet, newPlaylist, IsAddSong: true);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             await toast.Show(cts.Token);

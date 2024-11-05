@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.SettingsPageM"
+              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"   
+            xmlns:dx="http://schemas.devexpress.com/maui"
+             Shell.NavBarIsVisible="False"
+             Title="Settings">
+    <dx:DXDockLayout Padding="10,10">
+        <Label Text="Settings" FontSize="30" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
+        <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" >
+            <HorizontalStackLayout Spacing="5">
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Folders" FontSize="24" />
+            </HorizontalStackLayout>
+            
+            <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
+                                 Scale="0.9">
+
+                <dx:DXButton ButtonType="Outlined" Content="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
+                             
+                 BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
+                <dx:DXButton ButtonType="Outlined" Content="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
+                 BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
+                <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                <Grid>
+                    <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding .}" FontSize="13"
+                               Margin="20,0"/>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </VerticalStackLayout>
+           
+        </VerticalStackLayout>
+        <VerticalStackLayout VerticalOptions="End" >
+            <HorizontalStackLayout>
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Facing Issues!" FontSize="24" />
+            </HorizontalStackLayout>
+            <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
+                         Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
+                         TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
+        </VerticalStackLayout>
+    </dx:DXDockLayout>
+</ContentPage>

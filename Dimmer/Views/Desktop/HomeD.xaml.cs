@@ -98,21 +98,6 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    private async void DoubleTapToPlay_Tapped(object sender, TappedEventArgs e)
-    {
-        var t = (View)sender;
-        HomePageVM.CurrentQueue = 0;
-        
-        var song = t.BindingContext as SongsModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
-        
-    }
-
-    private void MenuFlyoutItem_Clicked(object sender, EventArgs e)
-    {
-        SearchSongSB.Focus();
-    }
-
     
     private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -177,7 +162,7 @@ public partial class HomeD : UraniumContentPage
         //}
     }
 
-    private async void MenuFlyoutItem_Clicked_1(object sender, EventArgs e)
+    private async void NavToArtistClicked(object sender, EventArgs e)
     {
         await HomePageVM.NavigateToArtistsPage(1);
     }
@@ -196,6 +181,7 @@ public partial class HomeD : UraniumContentPage
     {
         var send = (View)sender;
         isPointerEntered = false;
+
     }
     private bool isPressed = false;  // Track whether the button is pressed
     private bool isAnimating = false;  // Track if an animation is running
@@ -206,15 +192,15 @@ public partial class HomeD : UraniumContentPage
             return;
         var send = (View)sender;
 
-        if (!isPressed && !isAnimating)
-        {
-            isPressed = true;
+        //if (!isPressed && !isAnimating)
+        //{
+        //    isPressed = true;
 
-            // Start the pressed animation
-            await send.AnimateHighlightPointerPressed();
+        //    // Start the pressed animation
+        //    await send.AnimateHighlightPointerPressed();
             
-            isPressed = false;
-        }
+        //    isPressed = false;
+        //}
     }
 
     private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
@@ -223,14 +209,14 @@ public partial class HomeD : UraniumContentPage
             return;
         var send = (View)sender;
 
-        if (!isAnimating)
-        {
-            isAnimating = true;
+        //if (!isAnimating)
+        //{
+        //    isAnimating = true;
 
-            await send.AnimateHighlightPointerReleased();
+        //    await send.AnimateHighlightPointerReleased();
             
-            isAnimating = false;
-        }
+        //    isAnimating = false;
+        //}
     }
 
     List<string> supportedFilePaths;
@@ -338,8 +324,6 @@ public partial class HomeD : UraniumContentPage
         inRatingMode = false;
 
     }
-    DateTime lastKeyStroke;
-
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
         
@@ -372,12 +356,6 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-
-    private void SfChipGroup_SelectionChanged_1(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
-    {
-
-    }
-
     private async void Search_Clicked(object sender, EventArgs e)
     {
         HomePageVM.SearchSong(filterFilters);
@@ -396,6 +374,78 @@ public partial class HomeD : UraniumContentPage
 
     private async void GoToSongOverviewClicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavToNowPlayingPage(HomePageVM.SelectedSongToOpenBtmSheet);
+        await HomePageVM.NavToNowPlayingPage();
+    }
+
+    private async void SearchSongSB_Completed(object sender, EventArgs e)
+    {
+        HomePageVM.SearchSong(filterFilters);
+        await MainBody.AnimateFadeInFront();
+
+    }
+
+    int countNumberOfClicks = 0;
+    ObjectId previousSelectionID = ObjectId.Empty;
+    private readonly int doubleClickThreshold = 2; // Double-click threshold
+    private readonly int doubleClickInterval = 500; // Time interval in milliseconds
+    private System.Timers.Timer clickTimer;
+
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+        clickTimer = new System.Timers.Timer(doubleClickInterval);
+        clickTimer.Elapsed += (sender, e) => ResetClickState(); // Reset on timer expiry
+        clickTimer.AutoReset = false; 
+        var send = (View)sender;
+        var song = (SongsModelView)send.BindingContext;
+
+        if (previousSelectionID == song.Id)
+        {
+            countNumberOfClicks++;
+        }
+        else
+        {
+            // Soft reset if a different song is clicked
+            previousSelectionID = song.Id;
+            countNumberOfClicks = 1; // Reset to 1 for the first click on the new item
+        }
+
+        if (countNumberOfClicks == 1)
+        {
+            clickTimer.Start();
+        }
+
+        // Trigger play if it's a double-click within the interval
+        if (countNumberOfClicks >= doubleClickThreshold)
+        {
+            // Stop the timer and reset the click count
+            clickTimer.Stop();
+            HomePageVM.PlaySongCommand.Execute(song);
+            ResetClickState(); // Reset click state after action
+        }
+    }
+
+    // Helper method to reset click state
+    private void ResetClickState()
+    {
+        countNumberOfClicks = 0;
+        previousSelectionID = ObjectId.Empty;
+    }
+
+    private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (e.NewTextValue.Length < 1)
+        {
+            HomePageVM.IsOnSearchMode = false;
+        }
+        else
+        {
+            HomePageVM.IsOnSearchMode = true;   
+        }
+    }
+
+    private void TurnSearchModeOn_Clicked(object sender, EventArgs e)
+    {
+        SearchSongSB.Focus();
     }
 }

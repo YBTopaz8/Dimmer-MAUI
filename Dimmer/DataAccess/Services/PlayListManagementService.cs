@@ -12,7 +12,7 @@ public class PlayListManagementService : IPlaylistManagementService
     }
 
 
-    public void GetPlaylists()
+    public List<PlaylistModelView> GetPlaylists()
     {
         try
         {
@@ -20,11 +20,12 @@ public class PlayListManagementService : IPlaylistManagementService
             var realmPlayLists = db.All<PlaylistModel>().ToList();
             AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
-            Debug.WriteLine($"Playlist Count {AllPlaylists.Count}");
+            return AllPlaylists.ToList();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error getting playlists: {ex.Message}");
+            return Enumerable.Empty<PlaylistModelView>().ToList();
         }
     }
 
@@ -58,42 +59,49 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool AddSongToPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
+    public bool UpdatePlayList(PlaylistModelView playlist, PlaylistSongLink playlistSongLink=null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-            db.Write(() =>
+            var checkExist = db.Find<PlaylistModel>(playlist.Id);
+            if (IsAddSong)
             {
-                var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
-                if (specificPlaylist == null)
+                
+                if (checkExist is null)
                 {
-                    specificPlaylist = new PlaylistModel
+                    db.Write(() =>
                     {
-                        Name = $"New Playlist {AllPlaylists.Count + 1}",
-                        DateCreated = DateTimeOffset.Now,
-                    };
-                    db.Add(specificPlaylist);
-                }
-                var existingLink = db.All<PlaylistSongLink>()
-                    .FirstOrDefault(link => link.PlaylistId == playlistID && link.SongId == song.Id);
-
-                if (existingLink == null)
-                {
-                    // Add the new link
-                    db.Add(new PlaylistSongLink
-                    {
-                        PlaylistId = playlistID,
-                        SongId = song.Id
+                        db.Add(new PlaylistModel(playlist));
+                        db.Add(playlistSongLink);
                     });
-
-                    // Update playlist properties
-                    specificPlaylist.TotalDuration += song.DurationInSeconds;
-                    specificPlaylist.TotalSize += song.FileSize;
-                    specificPlaylist.TotalSongsCount += 1;
                 }
-            });
-
+                db.Write(() =>
+                {
+                    db.Add(new PlaylistModel(playlist), true);
+                    db.Add(playlistSongLink);
+                });
+            }
+            if (IsRemoveSong)
+            {
+                db.Add(new PlaylistModel(playlist), true);
+            }
+            if (IsDeletePlaylist)
+            {
+                if (checkExist is null)
+                {
+                    db.Write(() =>
+                    {
+                        db.Remove(new PlaylistModel(playlist));
+                        db.Remove(playlistSongLink);
+                    });
+                }
+                db.Write(() =>
+                {
+                    db.Remove(new PlaylistModel(playlist));
+                    db.Remove(playlistSongLink);
+                });
+            }
             GetPlaylists();
             return true;
         }
