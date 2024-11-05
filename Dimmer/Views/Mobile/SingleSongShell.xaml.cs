@@ -21,11 +21,11 @@ public partial class SingleSongShell : UraniumContentPage
     {
         base.OnNavigatedTo(args);
     }
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         DeviceDisplay.Current.KeepScreenOn = true;
-        HomePageVM.AfterSingleSongShellAppeared();
+        await HomePageVM.AfterSingleSongShellAppeared();
         
     }
 

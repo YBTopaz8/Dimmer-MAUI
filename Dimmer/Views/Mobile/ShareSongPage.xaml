@@ -3,76 +3,237 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              x:DataType="vm:HomePageVM" 
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"                          
-
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Shell.NavBarIsVisible="False"
              x:Name="myPage" >
-    <toolkit:DockLayout HorizontalOptions="Center"
-                        Margin="20">
+    <Grid x:Name="PageGrid" 
+         ColumnDefinitions="*">
+        <dx:DXImage            
+            x:Name="SharePageImg" 
+               IsEnabled="False" Opacity="0.2" Aspect="Center"/>
+        <Grid x:Name="contentToShare" Grid.Row="0" RowDefinitions="500,*" VerticalOptions="Center">
+           
+            <VerticalStackLayout ZIndex="0"
+                Grid.Row="0" VerticalOptions="Center" >
 
+                <VerticalStackLayout x:Name="StoryBigContent" VerticalOptions="Center" HorizontalOptions="Center"
+                          IsVisible="True" Opacity="0.7" >
 
-        <Button x:Name="ShareButton" Margin="20" TextColor="White"
-            Text="Share to Stories"
-            FontSize="16" WidthRequest="150"
-            toolkit:DockLayout.DockPosition="Bottom"
-            Clicked="OnShareButtonClicked"/>
+                    <HorizontalStackLayout Margin="15,0"
+                                           VerticalOptions="Center">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Dimmer"   FontSize="22"
+                    FontAttributes="Bold"/>
+                    </HorizontalStackLayout>
+                    <!-- Album Cover -->
+                    <toolkit:AvatarView x:Name="AlbumCover" 
+                                    CornerRadius="20" BorderWidth="0"
+                                    ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                    HeightRequest="350" WidthRequest="350"
+                                    VerticalOptions="Center" HorizontalOptions="Center"
+                                    Opacity="0.7" Stroke="Black">
+                    </toolkit:AvatarView>
 
-        <VerticalStackLayout VerticalOptions="Center" x:Name="StoryContent"
-                             WidthRequest="300">
-            <!--<VerticalStackLayout.GestureRecognizers>
-                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
-            </VerticalStackLayout.GestureRecognizers>-->
+                    <Label x:Name="SongTitle" FontSize="28" LineBreakMode="TailTruncation" 
+                       FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                       TextColor="White" HorizontalOptions="Center"/>
+                    <Label Text="by" TextColor="White" HorizontalOptions="Center"/>
+                    <!-- Artist Name -->
+                    <Label x:Name="ArtistName" FontSize="20"
+                       TextColor="White" HorizontalOptions="Center"
+                       Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                       VerticalOptions="Start"/>
+
+                </VerticalStackLayout>
+                <VerticalStackLayout  IsVisible="False" x:Name="StorySmallContent" 
+                                     Margin="25,0"  WidthRequest="450">
+                    <HorizontalStackLayout Grid.Row="0">
+                        <Image >
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Dimmer"
+                               FontSize="22" FontAttributes="Bold"
+                               />
+                        
+                    </HorizontalStackLayout>
+                    <dx:DXButton Opacity="0.6" VerticalOptions="Center"
+ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalContentAlignment="Fill"
+         CornerRadius="8" VerticalContentAlignment="Start" PressedTextColor="White">
+                        <dx:DXButton.Content>
+                            <Grid ColumnDefinitions="Auto,*,Auto" >
+
+                                <toolkit:AvatarView Grid.Column="0" ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                            WidthRequest="130" HeightRequest="130"
+                            CornerRadius="10" HorizontalOptions="Start"/>
+
+                                <VerticalStackLayout Grid.ColumnSpan="2"
+                                                     Grid.Column="1" VerticalOptions="Center">
+                                    <Label x:Name="SongTitlesmol" FontSize="23" 
+           FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+           TextColor="Black" HorizontalOptions="Center"/>
+                                    <Label Text="by" TextColor="Black" HorizontalOptions="Center"/>
+                                    <!-- Artist Name -->
+                                    <Label x:Name="ArtistNamesmol" FontSize="17"
+           TextColor="Black" HorizontalOptions="Center"
+           Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+           />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </dx:DXButton.Content>
+                    </dx:DXButton>
+
+                    <Label Text="By Yvan Brunel" 
+                           FontSize="10"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+            <toolkit:DrawingView Grid.Row="0" x:Name="SharePageDV" ZIndex="-1"
+                                 VerticalOptions="Center" BackgroundColor="Transparent"
+                                 HeightRequest="{Binding Height,Source={x:Reference PageGrid}}"
+                                 WidthRequest="{Binding Width,Source={x:Reference PageGrid}}"
+                                 IsMultiLineModeEnabled="True" IsEnabled="False"
+                                 LineColor="DarkSlateBlue" LineWidth="4"
+                                 />
             
-            <HorizontalStackLayout VerticalOptions="End">
-                <Image>
-                    <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
-                    </Image.Source>
-                </Image>
-                <Label Text="Dimmer" VerticalOptions="Center" FontSize="22"
-                       FontAttributes="Bold"/>
+            <dx:DXButton x:Name="HighlightedLyricBtn" Grid.Row="1" TextColor="White"
+                         HeightRequest="50" ButtonType="Outlined" FontSize="25" 
+                         IsVisible="False" >
+            </dx:DXButton>
+        </Grid>
+
+        <VerticalStackLayout Spacing="10" VerticalOptions="End"
+                               
+            x:Name="UtilsHSL" ZIndex="2">
+            <VerticalStackLayout.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="dx:DXButton">
+                        <Setter Property="IconHeight" Value="35"/>
+                        <Setter Property="IconWidth" Value="35"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                        <Setter Property="IconColor" Value="White"/>
+                        <Setter Property="BorderColor" Value="Black"/>
+                        <Setter Property="HeightRequest" Value="50"/>
+                        <Setter Property="WidthRequest" Value="50"/>
+                    </Style>
+                    <Style TargetType="dx:DXToggleButton">
+                        <Setter Property="HeightRequest" Value="50"/>
+                        <Setter Property="WidthRequest" Value="50"/>
+                        <Setter Property="IconHeight" Value="35"/>
+                        <Setter Property="IconWidth" Value="35"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                        <Setter Property="BorderColor" Value="Black"/>
+                        <Setter Property="IconColor" Value="White"/>
+                        <Setter Property="CheckedIconColor" Value="White"/>
+                        <Setter Property="CheckedBackgroundColor" Value="DarkSlateBlue"/>
+                        <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
+                        <Setter Property="PressedIconColor" Value="White"/>
+                        <Setter Property="PressedBorderColor" Value="DarkSlateBlue"/>
+                        
+                        
+                    </Style>
+                </ResourceDictionary>
+            </VerticalStackLayout.Resources>
+
+            <Slider Value="1" x:Name="HeightSlider" ValueChanged="HeightSlider_ValueChanged"
+                        Minimum="-350" Maximum="350"/>
+
+            <Slider Value="1" x:Name="OpacitySlider" ValueChanged="OpacitySlider_ValueChanged"
+                        Minimum="0" Maximum="1"/>
+
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                
+            <dx:DXToggleButton BackgroundColor="Transparent"
+                  ToolTipProperties.Text="Change/Clear Your Image"
+                   CheckedBackgroundColor="Transparent" 
+                   CheckedBorderColor="DarkSlateBlue" IconColor="White"
+                   x:Name="AddUserImg" 
+                 CheckedChanged="AddUserImg_CheckedChanged">
+                <dx:DXToggleButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image}"/>
+                </dx:DXToggleButton.Icon>
+            </dx:DXToggleButton>
+            
+            <dx:DXToggleButton BackgroundColor="Transparent"                   
+                   CheckedBackgroundColor="DarkSlateBlue" IconColor="White"
+                   
+                   x:Name="ToggleDrawingMode"
+                 CheckedChanged="ToggleDrawingMode_CheckedChanged">
+                <dx:DXToggleButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Draw}"/>
+                </dx:DXToggleButton.Icon>
+            </dx:DXToggleButton>
+
+            <dx:DXButton x:Name="clearDrawing"     
+    BackgroundColor="Transparent" Clicked="ClearDrawing_Clicked" 
+                     ShowContent="False">
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Ink_eraser}"/>
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <dx:DXButton x:Name="addLyrText" IsVisible="False"
+    BackgroundColor="Transparent" Clicked="AddLyrText_Clicked" 
+                     ShowContent="False">
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Text_fields}"/>
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <dx:DXButton x:Name="ToggleSongCover"     
+    BackgroundColor="Transparent" Clicked="ToggleSongCoverBigSmoll_Clicked" 
+                     ShowContent="False">
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Replace_image}"/>
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <dx:DXButton x:Name="ShareButton" 
+    Command="{Binding Commands.Close,Source={x:Reference LyricPickerBtmSheet}}" 
+    BackgroundColor="DarkSlateBlue" Clicked="OnShareButtonClicked" 
+                     ShowContent="False">
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Share}"/>
+                </dx:DXButton.Icon>
+                </dx:DXButton>
             </HorizontalStackLayout>
-            <!-- Album Cover -->
-            <toolkit:AvatarView x:Name="AlbumCover"
-                CornerRadius="20" BorderWidth="0"
-                ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
-                HeightRequest="300"
-                WidthRequest="300"
-                VerticalOptions="Center"
-                HorizontalOptions="Center"
-                Stroke="Black">
-                <!--<toolkit:AvatarView.Shadow>
-                    <Shadow Brush="Black"
-                            Offset="20,30"
-                            Radius="60"
-                            />
-                </toolkit:AvatarView.Shadow>-->
-            </toolkit:AvatarView>
-
-            <!-- Song Title -->
-            <Label x:Name="SongTitle"
-           FontSize="28"
-           FontAttributes="Bold"
-           Text="{Binding SelectedSongToOpenBtmSheet.Title}"
-           TextColor="White"
-           HorizontalOptions="Center"
-           />
-            <Label Text="by" TextColor="White"
-HorizontalOptions="Center"/>
-            <!-- Artist Name -->
-            <Label x:Name="ArtistName"
-           FontSize="20"
-           TextColor="White"
-           HorizontalOptions="Center"
-           Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
-           VerticalOptions="Start"
-           />
-
-            <ActivityIndicator IsVisible="False" IsRunning="False"
-                               x:Name="SharingActIndic"/>
         </VerticalStackLayout>
+        
+        <dx:BottomSheet AllowedState="All" AllowDismiss="True"
+                        x:Name="LyricPickerBtmSheet">
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout Orientation="Vertical">
+                    <dx:DXButton Content="Remove Line" x:Name="rmvLyr" BackgroundColor="DarkSlateBlue"
+                                 TextColor="White"
+                                 Clicked="rmvLyr_Clicked" HorizontalOptions="End"/>
+                    <dx:DXCollectionView TapConfirmed="LyricsColView_TapConfirmed"
+ SelectionMode="Single" x:Name="LyricsColView" 
+    BackgroundColor="Transparent">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:LyricPhraseModel">
 
-    </toolkit:DockLayout>
+                                <Label Text="{Binding Text}" Margin="0,5" 
+            HorizontalTextAlignment="Center" 
+            FontSize="19" >
+
+                                </Label>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </dx:DXStackLayout>
+                
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
+    </Grid>
 </ContentPage>

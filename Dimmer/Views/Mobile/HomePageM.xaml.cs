@@ -110,10 +110,15 @@ public partial class HomePageM : ContentPage
         }
     }
 
-    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
         HomePageVM.CurrentQueue = 0;
-        HomePageVM.PlaySongCommand.Execute(e.Item as SongsModelView);
+        if (HomePageVM.IsOnSearchMode)
+        {
+            HomePageVM.CurrentQueue = 1;
+            HomePageVM.filteredSongs = filteredSongs;
+        }
+        await HomePageVM.PlaySong(e.Item as SongsModelView);
     }
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -191,6 +196,7 @@ public partial class HomePageM : ContentPage
         //var commandParam = 
     }
 
+    List<SongsModelView>? filteredSongs=new();
     private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
     {
         var searchBar = (TextEdit)sender;
@@ -201,11 +207,25 @@ public partial class HomePageM : ContentPage
             if (txt.Length >= 1)
             {
                 HomePageVM.IsOnSearchMode = true;
+                // Setting the FilterString for SongsColView
                 SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
+                filteredSongs.Clear();
+
+                // Apply the filter to the DisplayedSongs collection
+                filteredSongs = HomePageVM.DisplayedSongs
+                    .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                Debug.WriteLine($"Visible Item Count {SongsColView.VisibleItemCount}"); 
+                Debug.WriteLine($"Scroll Item Count {SongsColView.ScrollItemCount}"); 
+                Debug.WriteLine($"Scroll Item Count {HomePageVM.DisplayedSongs.Count}"); 
+                Debug.WriteLine($"Scroll Item Count {filteredSongs.Count}"); 
             }
             else
             {
                 HomePageVM.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+
             }
         }
     }

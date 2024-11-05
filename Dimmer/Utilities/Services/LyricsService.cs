@@ -60,8 +60,9 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     pState = MediaPlayerState.CoverImageDownload;
-                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong.Title, PlayBackService.CurrentlyPlayingSong.AlbumName, PlayBackService.CurrentlyPlayingSong.AlbumName);
-                    break;
+                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong.Title, PlayBackService.CurrentlyPlayingSong.ArtistName, PlayBackService.CurrentlyPlayingSong.AlbumName, PlayBackService.CurrentlyPlayingSong);
+
+                        break;
                 default:
                     break;
             }
@@ -413,7 +414,6 @@ public class LyricsService : ILyricsService
             {
                 return (false, Array.Empty<Content>());
             }
-            //WriteLyricsToLrcFile(lyricsData[0].syncedLyrics, song);
 
             return (true, lyricsData);
         }
@@ -550,42 +550,30 @@ public class LyricsService : ILyricsService
                 stringSongTitle = localCopyOfSong.Title;
                 stringArtistName = localCopyOfSong.ArtistName;
                 stringAlbumName = localCopyOfSong.AlbumName;
-                if (!string.IsNullOrEmpty(localCopyOfSong.CoverImagePath = SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath)))
+                if (!string.IsNullOrEmpty(SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath)))
                 {
                     if (File.Exists(localCopyOfSong.CoverImagePath))
+                    {                        
+                        SongsManagementService.UpdateSongDetails(localCopyOfSong);
                         return localCopyOfSong.CoverImagePath;
-
-                    string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-                    if (Path.GetFileName(localCopyOfSong.CoverImagePath) is not null)
-                    {
-                        string filePath = Path.Combine(folderPath, Path.GetFileName(localCopyOfSong.CoverImagePath));
-                        if (File.Exists(filePath))
-                        {
-                            localCopyOfSong.CoverImagePath = filePath;
-                            SongsManagementService.UpdateSongDetails(localCopyOfSong);
-
-                            return filePath;
-                        }
-                    }
-
-                    return localCopyOfSong.CoverImagePath;
+                    }                        
                 }
 
             }
-                byte[]? ImageBytes = null;
-                (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
-                if (apiResponse is null || apiResponse.Length < 1)
-                {
-                    return string.Empty;
-                }
-                if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
-                {
-                    ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
-                    song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath, ImageBytes);
-                    SongsManagementService.UpdateSongDetails(song);
-                }
+            byte[]? ImageBytes = null;
+            (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
+            if (apiResponse is null || apiResponse.Length < 1)
+            {
+                return "NC";
+            }
+            if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
+            {
+                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
+                song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath, ImageBytes);
+                SongsManagementService.UpdateSongDetails(song);
+            }
 
-                return string.IsNullOrEmpty(song.CoverImagePath) ? string.Empty : song.CoverImagePath;
+            return string.IsNullOrEmpty(song.CoverImagePath) ? "NC" : song.CoverImagePath;
         
         }
         catch (HttpRequestException e)

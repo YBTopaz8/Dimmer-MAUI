@@ -276,18 +276,20 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    public async Task AfterSingleSongShellAppeared()
+    public async Task<string> AfterSingleSongShellAppeared()
     {
         IsShellLoadingPage = false;
      
         CurrentPage = PageEnum.NowPlayingPage;
         if (!string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.CoverImagePath) && !File.Exists(SelectedSongToOpenBtmSheet.CoverImagePath))
         {
-
-            DisplayedSongs
-                .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id).CoverImagePath = await LyricsManagerService
+            var coverImg = await LyricsManagerService
                 .FetchAndDownloadCoverImage(SelectedSongToOpenBtmSheet.Title, SelectedSongToOpenBtmSheet.ArtistName, SelectedSongToOpenBtmSheet.AlbumName, SelectedSongToOpenBtmSheet);
+            DisplayedSongs
+                .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id).CoverImagePath = coverImg;
+            return coverImg;
         }
+        return string.Empty;
     }
 
     #region Loadings Region
@@ -375,9 +377,10 @@ public partial class HomePageVM : ObservableObject
 
     #region Playback Control Region
 
+    public List<SongsModelView> filteredSongs = new();
     [RelayCommand]
     //void PlaySong(SongsModelView? SelectedSong = null)
-    async Task PlaySong(SongsModelView? SelectedSong = null)
+    public async Task PlaySong(SongsModelView? SelectedSong = null)
     {
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         SelectedSong.IsCurrentPlayingHighlight = false;
@@ -414,7 +417,7 @@ public partial class HomePageVM : ObservableObject
             if (IsOnSearchMode)
             {
                 CurrentQueue = 1;
-                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: DisplayedSongs);
+                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: filteredSongs.ToObservableCollection());
             }
             else
             {
@@ -781,7 +784,6 @@ public partial class HomePageVM : ObservableObject
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
-
             }
             else
             {
@@ -813,9 +815,9 @@ public partial class HomePageVM : ObservableObject
     
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-        LyricsSearchSongTitle ??= TemporarilyPickedSong.Title;
-        LyricsSearchArtistName ??= TemporarilyPickedSong.ArtistName;
-        LyricsSearchAlbumName ??= TemporarilyPickedSong.AlbumName;
+        LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
+        LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
+        LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
 
         List<string> manualSearchFields =
         [
@@ -827,7 +829,7 @@ public partial class HomePageVM : ObservableObject
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
         AllSyncLyrics = Array.Empty<Content>();
-        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(TemporarilyPickedSong, true,manualSearchFields);
+        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
         
         AllSyncLyrics = result.contentData;
     

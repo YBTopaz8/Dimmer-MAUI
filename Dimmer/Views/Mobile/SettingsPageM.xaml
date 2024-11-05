@@ -55,5 +55,7 @@
                          Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
                          TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
         </VerticalStackLayout>
+        <Label Text="Dimmer By Yvan Brunel"/>
+        
     </dx:DXDockLayout>
 </ContentPage>

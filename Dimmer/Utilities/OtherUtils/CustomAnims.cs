@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿using Microsoft.Maui.Controls;
+
+namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class CustomAnimsExtensions
 {
     public static async Task Bounce(this View element)
@@ -61,24 +63,24 @@ public static class CustomAnimsExtensions
     }
 
     // Extension method to fade out and slide back a view
-    public static async Task AnimateFadeOutBack(this View element)
+    public static async Task AnimateFadeOutBack(this View element, uint duration = 250)
     {
         await Task.WhenAll(
-            element.FadeTo(0, 250, Easing.CubicInOut), // Fade out
-            element.TranslateTo(0, 50, 250, Easing.CubicInOut) // Slide back by 50 units on Y-axis
+            element.FadeTo(0, duration, Easing.CubicInOut), // Fade out
+            element.TranslateTo(0, 50, duration, Easing.CubicInOut) // Slide back by 50 units on Y-axis
         );
         element.IsVisible = false; // Hide the view after animation
     }
 
     // Extension method to fade in and slide forward a view
-    public static async Task AnimateFadeInFront(this View element)
+    public static async Task AnimateFadeInFront(this View element, uint duration=250)
     {
         element.IsVisible = true; // Show the view before animation
         element.Opacity = 0; // Ensure the view is initially transparent
         element.TranslationY = 50; // Start with the view slightly back
         await Task.WhenAll(
-            element.FadeTo(1, 250, Easing.CubicInOut), // Fade in
-            element.TranslateTo(0, 0, 250, Easing.CubicInOut) // Slide forward to original position
+            element.FadeTo(1, duration, Easing.CubicInOut), // Fade in
+            element.TranslateTo(0, 0, duration, Easing.CubicInOut) // Slide forward to original position
         );
     }
 

@@ -98,7 +98,7 @@
         
         <HorizontalStackLayout HorizontalOptions="End" 
                                x:Name="TopPart" Margin="25,0">
-            <Label Text="{Binding SongsColView.ItemSize,Source={x:Reference myPage}}"/>
+            
             <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
                 HeightRequest="35">
                     <ImageButton.Source>
@@ -114,7 +114,7 @@
                             UseRippleEffect="True" Margin="3,0"
                             RippleColor="DarkSlateBlue"
                             ItemTemplate="{StaticResource HomePageColViewTemplate}"
-                            ItemsSource="{Binding DisplayedSongs}"      
+                            ItemsSource="{Binding DisplayedSongs, Mode=TwoWay}"      
                                  
                 Tap="SongsColView_Tap" 
                 LongPress="SongsColView_LongPress">
@@ -203,7 +203,7 @@
 
             <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.54" x:Name="SearchSongPopUp" >
                 <dx:DXScrollView Margin="10,0">
-                    <VerticalStackLayout>
+                    <VerticalStackLayout Spacing="5">
                         <dx:DXButton Content="Clear Filter And Search" Clicked="DXButton_Clicked"
                                      ButtonType="Filled" BackgroundColor="DarkSlateBlue" HorizontalOptions="Start">
                             <dx:DXButton.Icon>
