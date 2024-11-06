@@ -36,7 +36,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 | Windows | Android| 
 | ------------- |:-------------:|
 | <img src="ScreenShots/Desktop/MainUI_D.png" height=500>| <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
-| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheet_M.jpg" height=500> |
+| <img src="ScreenShots/Desktop/NowPlayingUI_D.png" height=500>| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheetM.jpg" height=500> |
 | <img src="ScreenShots/Desktop/ArtistAlbumPage_D.png" height=500>| <img src="ScreenShots/Mobile/ArtistAlbumPage_M.png" height=500> |
 | <img src="ScreenShots/Desktop/PlayListPage_D.png" height=500>| <img src="ScreenShots/Mobile/PlayListPage_M.png" height=500> |
 | <img src="ScreenShots/Desktop/LyricsSearchResult_D.png" height=500>| <img src="ScreenShots/Mobile/LyricsSearchResult_M.png" height=500>|
@@ -49,7 +49,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 
 |Android Only|
 |:-------------:|
-| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheetM.jpg" height=500> | <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> |
+ <img src="ScreenShots/Mobile/StatisPage_M.png" height=300> |
 | <img src="ScreenShots/Mobile/MainPageSongOptions.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M2.jpg" height=500> |
 | <img src="ScreenShots/Mobile/SearchAndFilter.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
 
