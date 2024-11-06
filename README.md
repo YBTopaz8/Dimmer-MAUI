@@ -49,10 +49,9 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 
 |Android Only|
 |:-------------:|
-| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheet_M.png" height=500> | <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> |
-| <img src="ScreenShots/Mobile/SinglePlayListPage_M.png" height=500>  | <img src="ScreenShots/Mobile/MainPageSongOptions.jpg" height=500> |
-| <img src="ScreenShots/Mobile/MainUI_M2.jpg" height=500> | <img src="ScreenShots/Mobile/SearchAndFilter.jpg" height=500> |
-| <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
+| <img src="ScreenShots/Mobile/NowPlayingUIBtmSheetM.jpg" height=500> | <img src="ScreenShots/Mobile/StatisPage_M.png" height=500> |
+| <img src="ScreenShots/Mobile/MainPageSongOptions.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M2.jpg" height=500> |
+| <img src="ScreenShots/Mobile/SearchAndFilter.jpg" height=500> | <img src="ScreenShots/Mobile/MainUI_M.jpg" height=500> |
 
 ## Authors
 - [Yvan Brunel](https://github.com/YBTopaz8) (Author)
