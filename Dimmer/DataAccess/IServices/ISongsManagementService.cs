@@ -2,7 +2,8 @@
 public interface ISongsManagementService
 {
     IList<SongsModelView> AllSongs { get; internal set; }
-    Task<bool> AddSongAsync(SongsModel song);
+    IList<AlbumArtistSongLink> AllLinks { get; internal set; }
+Task<bool> AddSongAsync(SongsModel song);
     bool AddSongBatchAsync(IEnumerable<SongsModelView> song);
     Task<bool> AddArtistsBatchAsync(IEnumerable<ArtistModelView> artists);
     //public Task UpdateSongAsync(SongsModel song);
@@ -13,15 +14,7 @@ public interface ISongsManagementService
 
     IList<AlbumModelView> AllAlbums { get; internal set; }
     IList<GenreModelView> AllGenres { get; internal set; }
-    void GetAlbums();
-    (ArtistModelView? artist, AlbumModelView? album) GetArtistAndAlbumIdFromSongId(ObjectId songId);
-    IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong = false);
-    ArtistModelView GetArtistFromAlbumId(ObjectId albumId);
-    ArtistModelView GetArtistFromSongId(ObjectId songId);
-    SongsModelView GetSongFromAlbumId(ObjectId albumId);
-    SongsModelView GetSongFromArtistId(ObjectId artistId);
-    IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID);
-    IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID);
+    void GetAlbums();    
     void UpdateAlbum(AlbumModelView album);
     public int GetSongsCountFromAlbumID(ObjectId albumID);
 

@@ -56,6 +56,8 @@ public partial class HomePageVM : ObservableObject
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
 
+    public List<AlbumArtistSongLink> AllLinks { get; }
+
     [ObservableProperty]
     string unSyncedLyrics;
     [ObservableProperty]
@@ -102,6 +104,8 @@ public partial class HomePageVM : ObservableObject
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+
+        AllLinks = SongsMgtService.AllLinks.ToList();
     }
 
     void DoRefreshDependingOnPage()
@@ -140,8 +144,8 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
-
-
+    [ObservableProperty]
+    bool isMultiSelectOn;
     CollectionView? PageCV { get; set; }
     public void AssignCV(CollectionView cv)
     {
@@ -212,8 +216,8 @@ public partial class HomePageVM : ObservableObject
                             break;
                         case MediaPlayerState.Paused:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-                            PickedSong.IsCurrentPlayingHighlight = false;
-                            PickedSong.IsPlaying = false;
+                            PickedSong ??= TemporarilyPickedSong;
+                            
                             IsPlaying = false;
                             PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
@@ -273,8 +277,10 @@ public partial class HomePageVM : ObservableObject
                 SynchronizedLyrics?.Clear();
                 SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
             }
-
-            SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
+            SongPickedForStats ??= new()
+                {
+                    Song = SelectedSongToOpenBtmSheet
+                };
         }
     }
 

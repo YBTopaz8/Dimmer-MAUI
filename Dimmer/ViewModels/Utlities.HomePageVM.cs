@@ -10,23 +10,7 @@ public partial class HomePageVM
     [ObservableProperty]
     string multiSelectText;
 
-    [ObservableProperty]
-    bool isMultiSelectOn;
-    public void HandleMultiSelect(CollectionView sender, SelectionChangedEventArgs? e=null)
-    {
-        MultiSelectSongs = sender.SelectedItems.Cast<SongsModelView>().ToObservableCollection();
-        if (MultiSelectSongs.Count >= 1)
-        {
-            IsMultiSelectOn = true;
-            
-        }
-        else
-        {
-            IsMultiSelectOn = false;
-        }
-        MultiSelectText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")}/{DisplayedSongs.Count} Selected";
-        Debug.WriteLine(MultiSelectSongs.Count);
-    }
+   
 
     [RelayCommand]
     async Task MultiSelectUtilClicked(int SelectedBtn)
@@ -116,8 +100,8 @@ public partial class HomePageVM
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
         }
     }
-   
-
+    [ObservableProperty]
+    bool iIsMultiSelectOn;
     [RelayCommand]
     async Task DeleteFile(SongsModelView? song)
     {

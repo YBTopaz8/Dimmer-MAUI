@@ -7,6 +7,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
     Realm db;
 
     public IList<SongsModelView> AllSongs { get; set; }
+    public IList<AlbumArtistSongLink> AllLinks { get; set; }    
     public IList<AlbumModelView> AllAlbums { get; set; }
     public IList<GenreModelView> AllGenres { get; set; }
     public IDataBaseService DataBaseService { get; }
@@ -25,7 +26,9 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
             AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
-}
+
+            AllLinks = db.All<AlbumArtistSongLink>().ToList();
+        }
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
