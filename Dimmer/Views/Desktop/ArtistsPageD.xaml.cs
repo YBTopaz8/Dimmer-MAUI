@@ -18,6 +18,12 @@ public partial class ArtistsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
+
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;

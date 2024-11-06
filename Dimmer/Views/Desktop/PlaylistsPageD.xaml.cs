@@ -13,6 +13,10 @@ public partial class PlaylistsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
         HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
         HomePageVM.LoadFirstPlaylist();
     }

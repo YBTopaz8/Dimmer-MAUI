@@ -21,7 +21,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         //this.StateChanged += NowPlayingBtmSheet_StateChanged;
     }
 
-
+    
     private void NowPlayingBtmSheet_StateChanged(object? sender, ValueChangedEventArgs<BottomSheetState> e)
     {
         //if (e.NewValue == BottomSheetState.FullExpanded)

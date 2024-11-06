@@ -30,6 +30,14 @@ public partial class HomePageM : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
+
+
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
+
+
         HomePageVM.CurrentPage = PageEnum.MainPage;
         //HomePageVM.AssignCV(SongsColView);
 #if ANDROID

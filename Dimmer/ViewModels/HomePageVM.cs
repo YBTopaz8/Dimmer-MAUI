@@ -263,19 +263,27 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.GoToAsync(nameof(SingleSongShell), true);
         }
 #endif
-        if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
+        if (TemporarilyPickedSong is not null)
         {
-            IsViewingDifferentSong = true;
-            SynchronizedLyrics?.Clear();
-            SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+
+
+            if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
+            {
+                IsViewingDifferentSong = true;
+                SynchronizedLyrics?.Clear();
+                SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+            }
+
+            SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
         }
-
-        SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
-
     }
 
     public async Task<string> AfterSingleSongShellAppeared()
     {
+        if (SelectedSongToOpenBtmSheet is null)
+        {
+            return string.Empty;
+        }
         IsShellLoadingPage = false;
      
         CurrentPage = PageEnum.NowPlayingPage;
@@ -380,6 +388,7 @@ public partial class HomePageVM : ObservableObject
     //void PlaySong(SongsModelView? SelectedSong = null)
     public async Task PlaySong(SongsModelView? SelectedSong = null)
     {
+        TemporarilyPickedSong ??= SelectedSong!;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         SelectedSong.IsCurrentPlayingHighlight = false;
         if (SelectedSong is not null)
