@@ -44,7 +44,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     IStatsManagementService StatsMgtService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
     public IArtistsManagementService ArtistsMgtService { get; }
-    public IDiscordRPC DiscordRPC { get; }
     [ObservableProperty]
     ObservableCollection<PlaylistModelView> allPlaylists;
     [ObservableProperty]
@@ -69,14 +68,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     SortingEnum CurrentSorting;
     public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistManagementService,
-        IArtistsManagementService artistsMgtService, IDiscordRPC discordRPC)
+        IArtistsManagementService artistsMgtService)
     {
         this.SongsMgtService = SongsMgtService;
         StatsMgtService = statsMgtService;
         PlaylistManagementService = playlistManagementService;
         ArtistsMgtService = artistsMgtService;
         audioService = AudioService;
-        DiscordRPC = discordRPC;
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
@@ -870,10 +868,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
-                DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.Zero);
-                //ObservableCurrentlyPlayingSong.IsPlaying = true;
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
             }
@@ -1131,7 +1125,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ViewModel.SetPlayerState(MediaPlayerState.Paused);
 
             _positionTimer?.Stop();
-            DiscordRPC.ClearPresence();
         }
         else
         {
@@ -1157,9 +1150,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
             await audioService.ResumeAsync(currentPosition);
-            DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong, 
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.FromSeconds(currentPosition));
             
             ShowMiniPlayBackView();
         }
@@ -1300,7 +1290,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _positionTimer?.Stop();
             _playerStateSubject.OnNext(MediaPlayerState.ShowPlayBtn);
-            DiscordRPC.ClearPresence();
         }
     }
     #endregion
@@ -1349,9 +1338,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.SetCurrentTime(positionInSec);
         }
 
-        DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.FromSeconds(positionInSec));
+        
 
     }
     public void ChangeVolume(double newPercentageValue)

@@ -116,23 +116,7 @@ public partial class HomePageVM
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
         }
     }
-
-    [RelayCommand]
-    void ToggleDiscordRPC(bool isChecked)
-    {
-        if (isChecked)
-        {
-            AppSettingsService.DiscordRPCPreference.ToggleDiscordRPC(isChecked);
-            DiscordRPC.Initialize();
-            if (IsPlaying)
-            {
-                DiscordRPC.UpdatePresence(TemporarilyPickedSong,
-                    TimeSpan.FromSeconds(TemporarilyPickedSong.DurationInSeconds), TimeSpan.FromSeconds(CurrentPositionInSeconds));
-            }
-        }
-    }
-
-    
+   
 
     [RelayCommand]
     async Task DeleteFile(SongsModelView? song)

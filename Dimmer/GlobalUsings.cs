@@ -19,7 +19,6 @@ global using UraniumUI.Material.Controls;
 global using MongoDB.Bson;
 global using Realms;
 
-global using Plugin.ContextMenuContainer;
 global using Dimmer_MAUI.MAudioLib;
 
 global using CommunityToolkit.Maui.Core.Platform;

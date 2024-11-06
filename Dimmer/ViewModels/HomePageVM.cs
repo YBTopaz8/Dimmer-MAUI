@@ -55,7 +55,6 @@ public partial class HomePageVM : ObservableObject
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
-    public IDiscordRPC DiscordRPC { get; }
 
     [ObservableProperty]
     string unSyncedLyrics;
@@ -67,8 +66,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentQueue = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService,
-                      IDiscordRPC discordRPC)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService
+                      )
     {
         this.folderPicker = folderPickerService;
         FileSaver = fileSaver;
@@ -76,7 +75,6 @@ public partial class HomePageVM : ObservableObject
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
         ArtistMgtService = artistMgtService;
-        DiscordRPC = discordRPC;
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
         SubscribeToPlayerStateChanges();
