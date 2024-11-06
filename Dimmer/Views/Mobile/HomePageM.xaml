@@ -11,11 +11,9 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
-            Shell.NavBarIsVisible="True"                        
+            Shell.NavBarIsVisible="True"
             xmlns:dx="http://schemas.devexpress.com/maui"
-            
-            x:Name="myPage" Shell.TitleColor="Black"
-            
+            x:Name="myPage" Shell.TitleColor="Black"            
             Shell.TabBarBackgroundColor="Red"
             >
 

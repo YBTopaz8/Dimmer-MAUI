@@ -67,19 +67,15 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
    CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
 
         <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
-            <Button Text="Reload All Covers" 
-        Command="{Binding ReloadCoverImageCommand}">
+            <Button Text="Reload All Covers" IsVisible="False" Command="{Binding ReloadCoverImageCommand}">
                 <Button.ImageSource>
                     <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
                 </Button.ImageSource>
             </Button>
 
         </SyncCtrls:SfEffectsView>
-        <Image IsAnimationPlaying="{Binding IsRetrievingCovers}" IsVisible="{Binding IsRetrievingCovers}"
-               Source="searching_face.gif"/>
 
-
-        <VerticalStackLayout >
+        <VerticalStackLayout HorizontalOptions="Center" >
             <HorizontalStackLayout>
                 <Image>
                     <Image.Source>

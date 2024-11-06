@@ -418,9 +418,12 @@ public partial class HomeD : UraniumContentPage
         // Trigger play if it's a double-click within the interval
         if (countNumberOfClicks >= doubleClickThreshold)
         {
-            // Stop the timer and reset the click count
+            
             clickTimer.Stop();
-            HomePageVM.PlaySongCommand.Execute(song);
+            if (!HomePageVM.IsMultiSelectOn)
+            {
+                HomePageVM.PlaySongCommand.Execute(song);
+            }
             ResetClickState(); // Reset click state after action
         }
     }
