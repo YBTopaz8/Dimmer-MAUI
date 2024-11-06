@@ -11,7 +11,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Play/Pause Songs (I knooow..)
 - Show Sync lyrics from either .lrc file or from song's metadata.
 - Lyrics download.
-- Discord Rich Presence For PC
+- Social Share
 - More to come such as playlist management, song's editing, statistics etc..
 
 # Requirements
