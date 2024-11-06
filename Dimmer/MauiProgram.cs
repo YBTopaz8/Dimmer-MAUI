@@ -18,7 +18,6 @@ public static class MauiProgram
             .UseUraniumUI()
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
-            .UseBottomSheet()
             .ConfigureSyncfusionToolkit()
             .ConfigureContextMenuContainer()
             
@@ -132,7 +131,6 @@ public static class MauiProgram
         /* Registering the Utilities services */
         builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
-        builder.Services.AddSingleton<IDiscordRPC, Utilities.Services.DiscordRPCclient>();
 
         /* Registering the ViewModels */
         builder.Services.AddSingleton<HomePageVM>();

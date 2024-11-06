@@ -23,7 +23,6 @@ global using Plugin.ContextMenuContainer;
 global using Dimmer_MAUI.MAudioLib;
 
 global using CommunityToolkit.Maui.Core.Platform;
-global using The49.Maui.BottomSheet;
 
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using DevExpress.Maui;
