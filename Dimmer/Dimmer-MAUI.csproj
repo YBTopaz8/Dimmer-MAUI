@@ -140,28 +140,25 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
-		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.1.6" />
-		<PackageReference Include="DevExpress.Maui.Controls" Version="24.1.6" />
-		<PackageReference Include="DevExpress.Maui.Core" Version="24.1.6" />
-		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.1.6" />
-		<PackageReference Include="DevExpress.Maui.Editors" Version="24.1.6" />
-		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.1.6" />
-		<PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.91" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.91" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.1.7" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.92" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.92" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.6" />
-		<PackageReference Include="Plugin.ContextMenuContainer" Version="1.0.7" />
 		<PackageReference Include="Realm" Version="20.0.0" />
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.1" />
 		<PackageReference Include="System.Reactive" Version="6.0.1" />
-		<PackageReference Include="The49.Maui.BottomSheet" Version="8.0.3" />
 		<PackageReference Include="UraniumUI" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Blurs" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
 		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.10.2" />
 		<PackageReference Include="UraniumUI.Material" Version="2.9.1" />
-		<PackageReference Include="z440.atl.core" Version="6.5.0" />
+		<PackageReference Include="z440.atl.core" Version="6.7.0" />
 	</ItemGroup>
 
 	<ItemGroup>
