@@ -8,28 +8,31 @@ public partial class ShareSongPage : ContentPage
     public ShareSongPage()
     {
         InitializeComponent();
-        vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        this.BindingContext = vm;
+        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        this.BindingContext = HomePageVM;
     }
     SongsModelView currentsong;
-    HomePageVM vm { get; set; }
+    HomePageVM HomePageVM { get; set; }
     LinearGradientBrush bgBrush { get; set; }
     ObservableCollection<LyricPhraseModel>? sharelyrics=new();
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-
-        sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(vm.SelectedSongToOpenBtmSheet.FilePath);
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
+        sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(HomePageVM.SelectedSongToOpenBtmSheet.FilePath);
 
         LyricsColView.ItemsSource = sharelyrics;
         if (sharelyrics.Count > 1)
         {
             addLyrText.IsVisible = true;
         }
-        string? str = vm.SelectedSongToOpenBtmSheet.CoverImagePath;
+        string? str = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
         if (!string.IsNullOrEmpty(str))
         {            
-            currentsong = vm.SelectedSongToOpenBtmSheet;
+            currentsong = HomePageVM.SelectedSongToOpenBtmSheet;
             SharePageImg.Source = str;
         }
         else
@@ -85,7 +88,11 @@ public partial class ShareSongPage : ContentPage
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            var savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png");
+            var savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm}.png");
+            if (File.Exists(savePath))
+            {
+                File.Delete(savePath);
+            }
             using Stream fileStream = File.OpenWrite(savePath);
             await screenshot.CopyToAsync(fileStream, ScreenshotFormat.Png);
             await Share.Default.RequestAsync(new ShareFileRequest
@@ -151,7 +158,8 @@ public partial class ShareSongPage : ContentPage
                 if (ress)
                 {
                     customImgPath = string.Empty;
-                    SharePageImg.Source = vm.SelectedSongToOpenBtmSheet.CoverImagePath;
+                    SharePageImg.Source = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
+                    myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
             };
         }
@@ -184,7 +192,7 @@ public partial class ShareSongPage : ContentPage
     {
         if (sharelyrics?.Count < 1)
         {
-            sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(vm.SelectedSongToOpenBtmSheet.FilePath);
+            sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(HomePageVM.SelectedSongToOpenBtmSheet.FilePath);
 
             LyricsColView.ItemsSource = sharelyrics;
         }

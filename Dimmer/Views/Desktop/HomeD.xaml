@@ -62,7 +62,6 @@
                                       x:Name="MediaPlayBackCW"/>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Top">
             <HorizontalStackLayout HorizontalOptions="End"  Spacing="10" >
-
                 <Entry Text="{Binding SearchText}" x:Name="SearchSongSB" Focused="SearchSongSB_Focused" 
                            WidthRequest="200" Placeholder="Type To Search..." ClearButtonVisibility="WhileEditing"
                        Completed="SearchSongSB_Completed" TextChanged="SearchSongSB_TextChanged">
@@ -185,7 +184,7 @@
             
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
-                        x:Name="SongsColView" SelectionChanged="SongsColView_SelectionChanged" 
+                        x:Name="SongsColView" 
                         Loaded="SongsColView_Loaded" Margin="5,0"
                         EmptyView="Nothing ...">
                 
@@ -194,10 +193,12 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-
-                        <SyncCtrls:SfEffectsView TouchDownEffects="Ripple" 
-                                                 TouchUpEffects="Highlight"
-                                                 TouchDown="SfEffectsView_TouchDown">
+                        <SyncCtrls:SfEffectsView TouchDownEffects="Selection" BackgroundColor="Transparent"                                                                                                 
+                                                 x:Name="sfEffectsView" TouchDown="SfEffectsView_TouchDown">
+                            <SyncCtrls:SfEffectsView.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+                                
+                            </SyncCtrls:SfEffectsView.GestureRecognizers>
                             <Border Stroke="Transparent" Padding="5,0">
                             <Border.Triggers>
                                 <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
@@ -412,8 +413,8 @@
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">
                                     <ratingsView:RatingControl.GestureRecognizers>
-                                        <PointerGestureRecognizer x:Name="ratingViewD" PointerEntered="ratingViewD_PointerEntered_1"
-                          PointerExited="ratingViewD_PointerExited_1"/>
+                                        <PointerGestureRecognizer x:Name="ratingViewD" PointerEntered="ratingViewD_PointerEntered"
+                          PointerExited="ratingViewD_PointerExited"/>
 
                                     </ratingsView:RatingControl.GestureRecognizers>
                                 </ratingsView:RatingControl>

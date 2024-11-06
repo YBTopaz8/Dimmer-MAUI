@@ -16,6 +16,10 @@ public partial class SingleSongShellD : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
         DeviceDisplay.Current.KeepScreenOn = true;
         await HomePageVM.AfterSingleSongShellAppeared();

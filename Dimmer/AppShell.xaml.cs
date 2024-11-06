@@ -22,15 +22,15 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
 
-#if WINDOWS
+//#if WINDOWS
 
-        // Subscribe to events
-        this.Loaded += AppShell_Loaded;
-        this.Unloaded += AppShell_Unloaded;
-        this.Focused += AppShell_Focused;
-        this.Unfocused += AppShell_Unfocused;
+//        // Subscribe to events
+//        this.Loaded += AppShell_Loaded;
+//        this.Unloaded += AppShell_Unloaded;
+//        this.Focused += AppShell_Focused;
+//        this.Unfocused += AppShell_Unfocused;
 
-#endif
+//#endif
         
     }
 

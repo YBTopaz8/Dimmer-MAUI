@@ -1,4 +1,5 @@
-﻿using WinRT;
+﻿using System.Linq;
+using WinRT;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -27,8 +28,8 @@ public partial class HomePageVM
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongsModelView? song)
     {
         SelectedSongToOpenBtmSheet = song;
-        (var songsArtistId, var songsAlbum) = SongsMgtService.GetArtistAndAlbumIdFromSongId(song.Id);
-        await NavigateToSpecificAlbumPage(songsAlbum);
+        var songAlbum = GetAlbumFromSongId(song.Id);;
+        await NavigateToSpecificAlbumPage(songAlbum);
 
     }
 
@@ -104,7 +105,7 @@ public partial class HomePageVM
             SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         if (isFromSong)
         {
-            SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromSongId(song.Id);            
+            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.SongId == song.Id).ArtistId);
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
             
         }
@@ -112,7 +113,8 @@ public partial class HomePageVM
         {
             SelectedAlbumOnArtistPage = album;
             
-            SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(album.Id);
+            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.AlbumId == album.Id).ArtistId);
+            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
             SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
             if (SelectedAlbumOnArtistPage is null)
             {
@@ -133,7 +135,7 @@ public partial class HomePageVM
         }
 
         AllArtistsAlbums?.Clear();
-        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistOnArtistPage.Id).ToObservableCollection();
+        AllArtistsAlbums = GetAlbumsFromArtist(SelectedArtistOnArtistPage.Id);
         if (SelectedAlbumOnArtistPage is null)
         {
             SelectedAlbumOnArtistPage = AllArtistsAlbums.FirstOrDefault(x => x.Name == song.AlbumName);
@@ -142,17 +144,33 @@ public partial class HomePageVM
         await ShowSpecificArtistsSongsWithAlbum(SelectedAlbumOnArtistPage);
         
     }
+
     [RelayCommand]
     public async Task ShowSpecificArtistsSongsWithAlbum(AlbumModelView album)
     {
         if (AllArtistsAlbums is null)
         {
-            SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(album.Id);
-            if(SelectedArtistOnArtistPage != null)
-                AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistOnArtistPage.Id).ToObservableCollection();
+            var selectedLink = AllLinks.FirstOrDefault(link => link.AlbumId == album.Id);
+            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(artist => artist.Id == selectedLink?.ArtistId);
+
+            
+            List<ObjectId> allAlbums = new List<ObjectId>(); 
+            if (SelectedArtistOnArtistPage != null)
+            {
+                allAlbums = AllLinks
+                    .Where(link => link.ArtistId == SelectedArtistOnArtistPage.Id)
+                    .Select(link => link.AlbumId)
+                    .ToList();
+            }
+
+            var allAlbumsSet = new HashSet<ObjectId>(allAlbums); 
+            AllArtistsAlbums = AllAlbums
+                .Where(album => allAlbumsSet.Contains(album.Id))
+                .ToObservableCollection();
+
 
         }
-        SelectedArtistOnArtistPage = SongsMgtService.GetArtistFromAlbumId(album.Id);
+        SelectedArtistOnArtistPage = GetArtistFromAlbumId(album.Id);
         SelectedAlbumOnArtistPage = album;
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
         
@@ -169,11 +187,28 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
-
+    private ObservableCollection<AlbumModelView> GetAlbumsFromArtist(ObjectId artistId)
+    {
+        return AllAlbums
+            .Where(album => AllLinks
+                .Any(link => link.ArtistId == artistId && link.AlbumId == album.Id))
+            .ToObservableCollection();
+    }
+    private ArtistModelView GetArtistFromAlbumId(ObjectId albumId)
+    {
+        return AllArtists.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.AlbumId == albumId).ArtistId);
+    }
+    private ArtistModelView GetArtistFromSongId(ObjectId songId)
+    {
+        return AllArtists.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.SongId == songId).ArtistId);
+    }
+    private AlbumModelView GetAlbumFromSongId(ObjectId songId)
+    {
+        return AllAlbums.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.SongId == songId).AlbumId);
+    }
     public async Task GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
-        var allArtAlbum = SongsMgtService.GetAlbumsFromArtistOrSongID(artist.Id);
-        AllArtistsAlbums = allArtAlbum.ToObservableCollection();
+        AllArtistsAlbums = GetAlbumsFromArtist(artist.Id);
         await ShowSpecificArtistsSongsWithAlbum(AllArtistsAlbums.FirstOrDefault()!);
     }
 
@@ -184,9 +219,7 @@ public partial class HomePageVM
         specificAlbum.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song!.ArtistName!, song!.AlbumName!, song);
         specificAlbum.NumberOfTracks = AllArtistsAlbumSongs.Count;
         SongsMgtService.UpdateAlbum(specificAlbum);
-        AllArtistsAlbums = SongsMgtService.GetAlbumsFromArtistOrSongID(SelectedArtistOnArtistPage.Id)
-            .OrderBy(x => x.Name)
-            .ToObservableCollection();
+        
     }
 
     [RelayCommand]

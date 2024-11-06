@@ -97,6 +97,10 @@ public partial class HomePageVM
 
     public void LoadWeeklyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
+        if (song is null)
+        {
+            return;
+        }
         startDate ??= DateTimeOffset.UtcNow.AddMonths(-6).Date; // Default to 6 months ago for a longer range
         endDate ??= DateTimeOffset.UtcNow.Date; // Default to today
 
@@ -145,7 +149,9 @@ public partial class HomePageVM
 
     public void LoadMonthlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        
+
+        if (song is null)
+            return;
         startDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero);
         endDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
                         .AddMonths(1).AddDays(-1); // End of the current month
@@ -172,7 +178,9 @@ public partial class HomePageVM
 
     public void LoadYearlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        
+
+        if (song is null)
+            return;
         startDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
         endDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
 
@@ -197,6 +205,8 @@ public partial class HomePageVM
 
     private void UpdateMostPlayedDay(SongsModelView song)
     {
+        if (song is null)
+            return;
         var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted?
             .GroupBy(entry => entry.DatePlayed.DayOfWeek)
             .OrderByDescending(group => group.Count())
@@ -207,6 +217,8 @@ public partial class HomePageVM
 
     private void UpdateNumberOfTimesPlayed(SongsModelView song)
     {
+        if (song is null)
+            return;
         NumberOfTimesPlayed = song.DatesPlayedAndWasPlayCompleted?
             .Count() ?? 0;
     }

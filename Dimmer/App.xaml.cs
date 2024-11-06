@@ -21,16 +21,10 @@ public partial class App : Application
 #elif ANDROID
         MainPage = new AppShellMobile();
 #endif
-        rpcClient = IPlatformApplication.Current.Services.GetRequiredService<IDiscordRPC>();
     }
-    IDiscordRPC rpcClient { get; set; }
 
     private async void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
-        if (e.Exception.Source == "System.IO.Pipes")
-        {
-            rpcClient.ShutDown();
-        }
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite} || {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
@@ -48,11 +42,11 @@ public partial class App : Application
         win.Width = 1200;
 #if DEBUG
 
-        win.Title = "Dimmer v0.1.2-debug";
+        win.Title = "Dimmer v0.2.1-debug";
 #endif
 
 #if RELEASE
-        win.Title = "Dimmer v0.1.2-release";
+        win.Title = "Dimmer v0.2.1-release";
 #endif
         return win;
     }

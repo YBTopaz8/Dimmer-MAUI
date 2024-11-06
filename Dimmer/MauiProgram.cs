@@ -19,7 +19,6 @@ public static class MauiProgram
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
             .ConfigureSyncfusionToolkit()
-            .ConfigureContextMenuContainer()
             
             .ConfigureFonts(fonts =>
             {
@@ -80,8 +79,6 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
-                                            var dRPC = IPlatformApplication.Current.Services.GetService<IDiscordRPC>();
-                                            dRPC.ShutDown();
                                             Application.Current.CloseWindow(win);
                                         }
                                     }

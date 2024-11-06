@@ -18,6 +18,12 @@ public partial class ArtistsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
+
         AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
         AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
@@ -66,9 +72,9 @@ public partial class ArtistsPageD : ContentPage
         Border view = (Border)sender;
         ArtistModelView artist = view.BindingContext as ArtistModelView;
         await HomePageVM.GetAllArtistAlbumFromArtist(artist);
-        var song = HomePageVM.DisplayedSongs.FirstOrDefault(x => x.ArtistName == artist.Name);
-        var album = HomePageVM.SongsMgtService.GetAlbumsFromArtistOrSongID(song.Id,true).FirstOrDefault();
         
+        var AlbumArtist = HomePageVM.AllLinks.FirstOrDefault(x => x.ArtistId == artist.Id).AlbumId;
+        var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.Id == AlbumArtist);
         HomePageVM.GetAllArtistsAlbum(album:album,isFromSong:false);
     }
 

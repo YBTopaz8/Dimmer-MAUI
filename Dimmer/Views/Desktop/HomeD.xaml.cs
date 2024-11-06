@@ -1,4 +1,5 @@
 using Syncfusion.Maui.Toolkit.Chips;
+using Syncfusion.Maui.Toolkit.EffectsView;
 using System.Diagnostics;
 using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 
@@ -23,52 +24,14 @@ public partial class HomeD : UraniumContentPage
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
 
-
-#if WINDOWS
-        var currentMauiwindow = this.Window.Handler.PlatformView as MauiWinUIWindow;
-        currentMauiwindow.SizeChanged += CurrentMauiwindow_SizeChanged;
-#endif
     }
-
-#if WINDOWS
-    private CancellationTokenSource _resizeDebounceCts;
-
-    private async void CurrentMauiwindow_SizeChanged(object sender, Microsoft.UI.Xaml.WindowSizeChangedEventArgs args)
-    {
-        _resizeDebounceCts?.Cancel();
-        _resizeDebounceCts = new CancellationTokenSource();
-
-        DebounceResize(_resizeDebounceCts.Token);
-    }
-
-    private async void DebounceResize(CancellationToken token)
-    {
-        try
-        {
-            SongsColView.ItemsSource = null;
-            await Task.Delay(100, token);
-
-            SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
-        }
-        catch (TaskCanceledException ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-
-#endif
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-#if WINDOWS
-        var currentMauiwindow = this.Window.Handler.PlatformView as MauiWinUIWindow;
-        currentMauiwindow.SizeChanged -= CurrentMauiwindow_SizeChanged;
-#endif
     }
 
-    
+
 
     private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
@@ -98,55 +61,18 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    
-    private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+    private void ratingViewD_PointerEntered(object sender, PointerEventArgs e)
     {
-        if (SongsColView.IsLoaded && !isPointerEntered)
-        {
-            //SongsColView.ScrollTo(HomePageVM.PickedSong, null, ScrollToPosition.Center, animate: false);
-        }
-        else
-        {            
-            if(currentSelectionMode == SelectionMode.Multiple)
-            {
-                HomePageVM.HandleMultiSelect(SongsColView, e);
-            }
-        }
+        inRatingMode = true;
     }
 
+    private void ratingViewD_PointerExited(object sender, PointerEventArgs e)
+    {
+        inRatingMode = false;
 
-
-
-    SelectionMode currentSelectionMode;
-   public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
-   {
-        switch (SongsColView.SelectionMode)
-        {
-            case SelectionMode.None:
-                SongsColView.SelectionMode = SelectionMode.Multiple;
-                NormalMiniUtilBar.IsVisible = false;
-                MultiSelectUtilBar.IsVisible = true;
-                HomePageVM.EnableContextMenuItems = false;
-
-                Debug.WriteLine("Now Multi Select");
-                break;
-            case SelectionMode.Single:
-                break;
-            case SelectionMode.Multiple:
-                SongsColView.SelectionMode = SelectionMode.None;
-                
-                SongsColView.SelectedItems.Clear();
-                HomePageVM.HandleMultiSelect(SongsColView);
-                NormalMiniUtilBar.IsVisible = true;
-                MultiSelectUtilBar.IsVisible = false;
-                HomePageVM.EnableContextMenuItems = true;
-                Debug.WriteLine("Back To None");
-                break;
-            default:
-                break;
-        }
-        currentSelectionMode = SongsColView.SelectionMode;        
     }
+
 
     private void CancelMultiSelect_Clicked(object sender, EventArgs e)
     {
@@ -186,45 +112,11 @@ public partial class HomeD : UraniumContentPage
     private bool isPressed = false;  // Track whether the button is pressed
     private bool isAnimating = false;  // Track if an animation is running
 
-    private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
-    {
-        if (inRatingMode)
-            return;
-        var send = (View)sender;
-
-        //if (!isPressed && !isAnimating)
-        //{
-        //    isPressed = true;
-
-        //    // Start the pressed animation
-        //    await send.AnimateHighlightPointerPressed();
-            
-        //    isPressed = false;
-        //}
-    }
-
-    private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
-    {
-        if(inRatingMode)
-            return;
-        var send = (View)sender;
-
-        //if (!isAnimating)
-        //{
-        //    isAnimating = true;
-
-        //    await send.AnimateHighlightPointerReleased();
-            
-        //    isAnimating = false;
-        //}
-    }
 
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
-    {
-        
-        //e.AcceptedOperation = DataPackageOperation.Copy;
+    {        
         if(!isAboutToDropFiles)
         {
             isAboutToDropFiles=true;
@@ -307,23 +199,9 @@ public partial class HomeD : UraniumContentPage
         }
     }
 
-    private void FavImagStatView_HoverExited(object sender, EventArgs e)
-    {
-
-    }
     bool inRatingMode;
 
 
-    private void ratingViewD_PointerEntered_1(object sender, PointerEventArgs e)
-    {
-        inRatingMode = true;
-    }
-
-    private void ratingViewD_PointerExited_1(object sender, PointerEventArgs e)
-    {
-        inRatingMode = false;
-
-    }
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
         
@@ -384,55 +262,68 @@ public partial class HomeD : UraniumContentPage
 
     }
 
-    int countNumberOfClicks = 0;
-    ObjectId previousSelectionID = ObjectId.Empty;
-    private readonly int doubleClickThreshold = 2; // Double-click threshold
-    private readonly int doubleClickInterval = 500; // Time interval in milliseconds
-    private System.Timers.Timer clickTimer;
-
-
-    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    SelectionMode currentSelectionMode;
+    public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
     {
-        clickTimer = new System.Timers.Timer(doubleClickInterval);
-        clickTimer.Elapsed += (sender, e) => ResetClickState(); // Reset on timer expiry
-        clickTimer.AutoReset = false; 
-        var send = (View)sender;
-        var song = (SongsModelView)send.BindingContext;
+        switch (SongsColView.SelectionMode)
+        {
+            case SelectionMode.None:
+                SongsColView.SelectionMode = SelectionMode.Multiple;
+                NormalMiniUtilBar.IsVisible = false;
+                MultiSelectUtilBar.IsVisible = true;
+                HomePageVM.EnableContextMenuItems = false;
+                HomePageVM.IsMultiSelectOn = true;
+                selectedSongs = new();
+                selectedSongsViews = new();
+                SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
+                break;
+            case SelectionMode.Single:
+                break;
+            case SelectionMode.Multiple:
+                SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+                foreach(var view in selectedSongsViews)
+                {
+                    view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+                }
+                SongsColView.SelectionMode = SelectionMode.None;
+                HomePageVM.IsMultiSelectOn = false;
 
-        if (previousSelectionID == song.Id)
-        {
-            countNumberOfClicks++;
+                NormalMiniUtilBar.IsVisible = true;
+                MultiSelectUtilBar.IsVisible = false;
+                HomePageVM.EnableContextMenuItems = true;
+                break;
+            default:
+                break;
         }
-        else
-        {
-            // Soft reset if a different song is clicked
-            previousSelectionID = song.Id;
-            countNumberOfClicks = 1; // Reset to 1 for the first click on the new item
-        }
-
-        if (countNumberOfClicks == 1)
-        {
-            clickTimer.Start();
-        }
-
-        // Trigger play if it's a double-click within the interval
-        if (countNumberOfClicks >= doubleClickThreshold)
-        {
-            
-            clickTimer.Stop();
-            if (!HomePageVM.IsMultiSelectOn)
-            {
-                HomePageVM.PlaySongCommand.Execute(song);
-            }
-            ResetClickState(); // Reset click state after action
-        }
+        currentSelectionMode = SongsColView.SelectionMode;
     }
 
-    // Helper method to reset click state
-    private void ResetClickState()
+    List<SongsModelView> selectedSongs;
+    List<View> selectedSongsViews;
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
-        countNumberOfClicks = 0;
-        previousSelectionID = ObjectId.Empty;
+        if (HomePageVM.IsMultiSelectOn)
+        {
+            var send = (View)sender;
+            var song = send.BindingContext as SongsModelView;
+
+            // Add or remove song based on its presence in the selectedSongs list
+            if (selectedSongs.Contains(song))
+            {
+                selectedSongs.Remove(song);
+                selectedSongsViews.Remove(send);
+                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+            }
+            else
+            {
+                selectedSongs.Add(song);
+                selectedSongsViews.Add(send);
+                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+            }
+            HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.DisplayedSongs.Count} Selected";
+            return;
+        }
+
     }
 
     private void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
@@ -450,5 +341,13 @@ public partial class HomeD : UraniumContentPage
     private void TurnSearchModeOn_Clicked(object sender, EventArgs e)
     {
         SearchSongSB.Focus();
+    }
+
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongsModelView)send.BindingContext;
+
+        HomePageVM.PlaySongCommand.Execute(song);
     }
 }

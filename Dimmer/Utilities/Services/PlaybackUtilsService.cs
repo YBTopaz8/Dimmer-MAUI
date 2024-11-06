@@ -44,7 +44,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     IStatsManagementService StatsMgtService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
     public IArtistsManagementService ArtistsMgtService { get; }
-    public IDiscordRPC DiscordRPC { get; }
     [ObservableProperty]
     ObservableCollection<PlaylistModelView> allPlaylists;
     [ObservableProperty]
@@ -69,14 +68,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     SortingEnum CurrentSorting;
     public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
         IStatsManagementService statsMgtService, IPlaylistManagementService playlistManagementService,
-        IArtistsManagementService artistsMgtService, IDiscordRPC discordRPC)
+        IArtistsManagementService artistsMgtService)
     {
         this.SongsMgtService = SongsMgtService;
         StatsMgtService = statsMgtService;
         PlaylistManagementService = playlistManagementService;
         ArtistsMgtService = artistsMgtService;
         audioService = AudioService;
-        DiscordRPC = discordRPC;
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
         audioService.PlayNext += AudioService_PlayNext;
@@ -870,10 +868,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
-                DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.Zero);
-                //ObservableCurrentlyPlayingSong.IsPlaying = true;
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
             }
@@ -886,10 +880,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     private void ShowMiniPlayBackView()
     {
 #if WINDOWS
-        if (CurrentAppState == AppState.OnBackGround)
-        {
+       
             MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
-        }
+       
 #endif
     }
 
@@ -1131,7 +1124,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ViewModel.SetPlayerState(MediaPlayerState.Paused);
 
             _positionTimer?.Stop();
-            DiscordRPC.ClearPresence();
         }
         else
         {
@@ -1157,9 +1149,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
             await audioService.ResumeAsync(currentPosition);
-            DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong, 
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.FromSeconds(currentPosition));
             
             ShowMiniPlayBackView();
         }
@@ -1300,7 +1289,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             _positionTimer?.Stop();
             _playerStateSubject.OnNext(MediaPlayerState.ShowPlayBtn);
-            DiscordRPC.ClearPresence();
         }
     }
     #endregion
@@ -1349,9 +1337,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await audioService.SetCurrentTime(positionInSec);
         }
 
-        DiscordRPC.UpdatePresence(ObservableCurrentlyPlayingSong,
-                TimeSpan.FromSeconds(ObservableCurrentlyPlayingSong.DurationInSeconds),
-                TimeSpan.FromSeconds(positionInSec));
+        
 
     }
     public void ChangeVolume(double newPercentageValue)
@@ -1723,24 +1709,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         try
         {
-            var specificAlbum = SongsMgtService.AllAlbums.FirstOrDefault(x => x.Id == albumID);
-            if (specificAlbum == null)
-            {
-                Debug.WriteLine($"Album with ID {albumID} not found.");
-                return (Enumerable.Empty<SongsModelView>().ToObservableCollection());
-            }
-            var AllAlbumsForSpecificArtist = SongsMgtService.AllAlbums;
-            var songsIDsFromAlbum = new HashSet<ObjectId>(SongsMgtService.GetSongsIDsFromAlbumID(albumID));
+            var artistID = SongsMgtService.AllLinks.FirstOrDefault(x=>x.AlbumId == albumID).ArtistId;
 
-            ObservableCollection<SongsModelView> songsFromArtistAndAlbum = new();
+            var allSongIDsLinkedToArtistID = SongsMgtService.AllLinks.
+                Where(x => x.ArtistId == artistID)
+                .Select(x => x.SongId)
+                .ToList();
 
-            foreach (var songId in songsIDsFromAlbum)
-            {
-                songsFromArtistAndAlbum.Add(SongsMgtService.AllSongs.FirstOrDefault(song => song.Id == songId));
-            }
+            var allSongsLinkedToArtist = SongsMgtService.AllSongs
+                .Where(song => allSongIDsLinkedToArtistID.Contains(song.Id))
+                .ToObservableCollection();
 
-
-            return songsFromArtistAndAlbum;
+            return allSongsLinkedToArtist;
         }
         catch (Exception ex)
         {
@@ -1756,7 +1736,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             ObservableCollection<SongsModelView> songsFromArtist = new();
 
             // Get all song IDs associated with the artist
-            var songsIDsFromArtist = new HashSet<ObjectId>(SongsMgtService.GetSongsIDsFromArtistID(artistID));
+            
+            var songsIDsFromArtist = ArtistsMgtService.GetSongsIDsFromArtistID(artistID);
 
             // Add each song found by its ID
             foreach (var songId in songsIDsFromArtist)

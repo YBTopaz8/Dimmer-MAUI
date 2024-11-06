@@ -55,7 +55,8 @@ public partial class HomePageVM : ObservableObject
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
-    public IDiscordRPC DiscordRPC { get; }
+
+    public List<AlbumArtistSongLink> AllLinks { get; }
 
     [ObservableProperty]
     string unSyncedLyrics;
@@ -67,8 +68,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentQueue = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService,
-                      IDiscordRPC discordRPC)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService
+                      )
     {
         this.folderPicker = folderPickerService;
         FileSaver = fileSaver;
@@ -76,7 +77,6 @@ public partial class HomePageVM : ObservableObject
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
         ArtistMgtService = artistMgtService;
-        DiscordRPC = discordRPC;
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
         SubscribeToPlayerStateChanges();
@@ -104,6 +104,8 @@ public partial class HomePageVM : ObservableObject
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+
+        AllLinks = SongsMgtService.AllLinks.ToList();
     }
 
     void DoRefreshDependingOnPage()
@@ -142,8 +144,8 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
-
-
+    [ObservableProperty]
+    bool isMultiSelectOn;
     CollectionView? PageCV { get; set; }
     public void AssignCV(CollectionView cv)
     {
@@ -214,8 +216,8 @@ public partial class HomePageVM : ObservableObject
                             break;
                         case MediaPlayerState.Paused:
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-                            PickedSong.IsCurrentPlayingHighlight = false;
-                            PickedSong.IsPlaying = false;
+                            PickedSong ??= TemporarilyPickedSong;
+                            
                             IsPlaying = false;
                             PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
@@ -265,19 +267,29 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.GoToAsync(nameof(SingleSongShell), true);
         }
 #endif
-        if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
+        if (TemporarilyPickedSong is not null)
         {
-            IsViewingDifferentSong = true;
-            SynchronizedLyrics?.Clear();
-            SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+
+
+            if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
+            {
+                IsViewingDifferentSong = true;
+                SynchronizedLyrics?.Clear();
+                SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+            }
+            SongPickedForStats ??= new()
+                {
+                    Song = SelectedSongToOpenBtmSheet
+                };
         }
-
-        SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
-
     }
 
     public async Task<string> AfterSingleSongShellAppeared()
     {
+        if (SelectedSongToOpenBtmSheet is null)
+        {
+            return string.Empty;
+        }
         IsShellLoadingPage = false;
      
         CurrentPage = PageEnum.NowPlayingPage;
@@ -382,6 +394,7 @@ public partial class HomePageVM : ObservableObject
     //void PlaySong(SongsModelView? SelectedSong = null)
     public async Task PlaySong(SongsModelView? SelectedSong = null)
     {
+        TemporarilyPickedSong ??= SelectedSong!;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         SelectedSong.IsCurrentPlayingHighlight = false;
         if (SelectedSong is not null)

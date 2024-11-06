@@ -12,6 +12,10 @@ public partial class FullStatsD : ContentPage
 
     protected override void OnAppearing()
     {
+        if (HomePageVM.TemporarilyPickedSong is null)
+        {
+            return;
+        }
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
         HomePageVM.ShowGeneralTopXSongsCommand.Execute(null);
