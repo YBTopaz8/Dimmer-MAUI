@@ -141,55 +141,41 @@
                                 </syncf:SfTabItem.ImageSource>
                                 <syncf:SfTabItem.Content>
                                     <Grid x:Name="SyncedLyricsSL" BackgroundColor="{OnPlatform Android=#171919}"
-                                  RowDefinitions="*" ColumnDefinitions="*">
-                                      
+                            RowDefinitions="*" ColumnDefinitions="*">
+                                    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
+                                        Converter={StaticResource BoolToInverse}}"
+                                                    SelectionChanged="LyricsColView_SelectionChanged" 
+                                                    SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                    Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                <Border Stroke="Transparent" Margin="5,0" >
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroup Name="CommonStates">
+                                                            <VisualState Name="Normal">
+                                                                <VisualState.Setters>
+                                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateManager.VisualStateGroups>
 
-                                        <VerticalStackLayout x:DataType="vm:HomePageVM">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                                    </Border.GestureRecognizers>
 
-                                            <Label Text="{Binding TemporarilyPickedSong.UnSyncLyrics}"
-                                                                     IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-                                                Converter={StaticResource BoolToInverse}}"/>
+                                                    <Label Text="{Binding Text}" Margin="0,5" 
+                                                HorizontalTextAlignment="Center" 
+                                                FontSize="19" >
+                                                        <Label.Triggers>
 
-                                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-                                                Converter={StaticResource BoolToInverse}}"
-                                                            SelectionChanged="LyricsColView_SelectionChanged" 
-SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
-Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
-                                                <CollectionView.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                        <Border Stroke="Transparent" Margin="5,0" >
-                                                            <VisualStateManager.VisualStateGroups>
-                                                                <VisualStateGroup Name="CommonStates">
-                                                                    <VisualState Name="Normal">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                    <VisualState Name="Selected">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                </VisualStateGroup>
-                                                            </VisualStateManager.VisualStateGroups>
-
-                                                            <Border.GestureRecognizers>
-                                                                <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                                            </Border.GestureRecognizers>
-
-                                                            <Label Text="{Binding Text}" Margin="0,5" 
-                                                       HorizontalTextAlignment="Center" 
-                                                       FontSize="19" >
-                                                                <Label.Triggers>
-
-                                                                </Label.Triggers>
-                                                            </Label>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </CollectionView.ItemTemplate>
-                                            </CollectionView>
-                                        </VerticalStackLayout>
-                                        
+                                                        </Label.Triggers>
+                                                    </Label>
+                                                </Border>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                          
                                     </Grid>
                                 </syncf:SfTabItem.Content>
                             </syncf:SfTabItem>
