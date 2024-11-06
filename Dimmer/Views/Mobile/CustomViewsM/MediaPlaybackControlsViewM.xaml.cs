@@ -15,11 +15,6 @@ public partial class MediaPlaybackControlsViewM : ContentView
         
         
     }
-    private void NowPlayingBtmSheet_Dismissed(object? sender, DismissOrigin e)
-    {
-        DeviceDisplay.Current.KeepScreenOn = false;
-    }
-
     private void MediaControlBtmBar_Tapped(object sender, TappedEventArgs e)
     {
 

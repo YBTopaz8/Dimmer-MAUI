@@ -15,12 +15,6 @@ public partial class HomePageVM
     PlaylistModelView selectedPlaylistToOpenBtmSheet;
     [ObservableProperty]
     SongsModelView selectedSongToOpenBtmSheet;
-    PlaylistMenuBtmSheet btmSheet { get; set; }
-
-
-    
-
-
     public void RefreshPlaylists()
     {
         DisplayedPlaylists?.Clear();
@@ -114,7 +108,6 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task DeletePlaylist()
     {
-        await btmSheet.DismissAsync();
         PlayBackService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(PlaylistDeletedText, duration);
@@ -125,8 +118,7 @@ public partial class HomePageVM
     async Task OpenPlaylistMenuBtmSheet(PlaylistModelView playlist)
     {
         SelectedPlaylistToOpenBtmSheet = playlist;
-        btmSheet = new PlaylistMenuBtmSheet(this);
-        await btmSheet.ShowAsync();
+        
     }
 
     [RelayCommand]
