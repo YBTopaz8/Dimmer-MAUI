@@ -170,8 +170,16 @@ public partial class HomePageVM
 
 
         }
-        SelectedArtistOnArtistPage = GetArtistFromAlbumId(album.Id);
+        else
+        {
+            SelectedArtistOnArtistPage = GetArtistFromAlbumId(AllArtistsAlbums.FirstOrDefault().Id);
+
+        }
         SelectedAlbumOnArtistPage = album;
+        if (SelectedAlbumOnArtistPage is null)
+        {
+            return;
+        }
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
         
         AllArtistsAlbumSongs?.Clear();

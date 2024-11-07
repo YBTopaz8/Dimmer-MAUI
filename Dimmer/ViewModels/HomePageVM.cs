@@ -146,7 +146,7 @@ public partial class HomePageVM : ObservableObject
     }
     [ObservableProperty]
     bool isMultiSelectOn;
-    CollectionView? PageCV { get; set; }
+    CollectionView PageCV { get; set; }
     public void AssignCV(CollectionView cv)
     {
         PageCV = cv;
@@ -189,11 +189,11 @@ public partial class HomePageVM : ObservableObject
                                     
                                     if (IsShuffleOn)
                                     {
-                                        PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
+                                        PageCV?.ScrollTo(TemporarilyPickedSong, ScrollToPosition.Center);
                                     }
                                     else
                                     {
-                                        PageCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                                        //PageCV?.ScrollTo(TemporarilyPickedSong, ScrollToPosition.Center, true);
                                     }
                                 }
                                 
@@ -1041,7 +1041,8 @@ public partial class HomePageVM : ObservableObject
         }
         else
         {
-            DisplayedSongs.FirstOrDefault(x => x.Id == song.Id).CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song.ArtistName, song.AlbumName,song);
+            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song.ArtistName, song.AlbumName, song);
+            SelectedSongToOpenBtmSheet.CoverImagePath = str;
         }
         
     }

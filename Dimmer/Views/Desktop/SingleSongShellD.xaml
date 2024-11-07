@@ -31,7 +31,31 @@
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
             </MenuFlyout>
 
+            <DataTemplate x:Key="SyncLyricsColView" x:DataType="models:LyricPhraseModel">
+                <Border Stroke="Transparent" Margin="5,0" >
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroup Name="CommonStates">
+                            <VisualState Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateManager.VisualStateGroups>
 
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                    </Border.GestureRecognizers>
+
+                    <Label Text="{Binding Text}" Margin="0,5" 
+    HorizontalTextAlignment="Center" 
+    FontSize="19" >
+                        <Label.Triggers>
+
+                        </Label.Triggers>
+                    </Label>
+                </Border>
+            </DataTemplate>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -146,34 +170,8 @@
                                         Converter={StaticResource BoolToInverse}}"
                                                     SelectionChanged="LyricsColView_SelectionChanged" 
                                                     SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
-                                                    Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                <Border Stroke="Transparent" Margin="5,0" >
-                                                    <VisualStateManager.VisualStateGroups>
-                                                        <VisualStateGroup Name="CommonStates">
-                                                            <VisualState Name="Normal">
-                                                                <VisualState.Setters>
-                                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                                                </VisualState.Setters>
-                                                            </VisualState>
-                                                        </VisualStateGroup>
-                                                    </VisualStateManager.VisualStateGroups>
-
-                                                    <Border.GestureRecognizers>
-                                                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                                    </Border.GestureRecognizers>
-
-                                                    <Label Text="{Binding Text}" Margin="0,5" 
-                                                HorizontalTextAlignment="Center" 
-                                                FontSize="19" >
-                                                        <Label.Triggers>
-
-                                                        </Label.Triggers>
-                                                    </Label>
-                                                </Border>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
+                                                    Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded..."
+                                                    ItemTemplate="{StaticResource SyncLyricsColView}">
                                     </CollectionView>
                           
                                     </Grid>
@@ -503,13 +501,23 @@
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" 
                             VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
-
-                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                                HeightRequest="600" WidthRequest="600" StrokeThickness="0">
-                    <toolkit:AvatarView.GestureRecognizers>
-                        <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
-                    </toolkit:AvatarView.GestureRecognizers>
-                </toolkit:AvatarView>
+                <Grid RowDefinitions="*" ColumnDefinitions="*">
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                HeightRequest="600" WidthRequest="600" StrokeThickness="0"  Opacity="0.3">
+                        <toolkit:AvatarView.GestureRecognizers>
+                            <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
+                        </toolkit:AvatarView.GestureRecognizers>
+                    </toolkit:AvatarView>
+                    
+                    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
+    Converter={StaticResource BoolToInverse}}" HeightRequest="190" WidthRequest="550" 
+                SelectionChanged="LyricsColView_SelectionChanged" x:Name="focusLyr"
+                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                Grid.Column="0" 
+                ItemTemplate="{StaticResource SyncLyricsColView}">
+                    </CollectionView>
+                </Grid>
+                
                 <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
                             MinimumTrackColor="DarkSlateBlue" x:Name="slid" 
                             DragCompleted="Slider_DragCompleted" Margin="3,0">
@@ -527,14 +535,22 @@ FontSize="36" HorizontalOptions="Center" FontAttributes="Bold"/>
                 <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
 FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
 
-
-
                 <ImageButton HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleFocusModeClicked">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
                     </ImageButton.Source>
                 </ImageButton>
+                
+                <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                             Clicked="ToggleSleekModeClicked">
+                    <ImageButton.Source>
+                        <FontImageSource Size="50"
+                            FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Fullscreen}" Color="Gray"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                
+                
             </VerticalStackLayout>
         </toolkit:DockLayout>
 

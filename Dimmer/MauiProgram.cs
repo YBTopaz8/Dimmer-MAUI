@@ -14,7 +14,14 @@ public static class MauiProgram
             .UseDevExpressDataGrid()
             .UseDevExpressEditors().UseDevExpressGauges()
 
-            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkit(options =>
+            {
+
+                options.SetShouldSuppressExceptionsInAnimations(true);
+                options.SetShouldSuppressExceptionsInBehaviors(true);
+                options.SetShouldSuppressExceptionsInConverters(true);
+                
+            })
             .UseUraniumUI()
             .UseUraniumUIBlurs()
             .UseUraniumUIMaterial()
@@ -50,7 +57,7 @@ public static class MauiProgram
                         
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
-
+                        
                         if(winuiAppWindow.Title != "MP")
                         {
                             homeVM.AppWinPresenter = winuiAppWindow.Presenter;
@@ -88,9 +95,11 @@ public static class MauiProgram
                         // Check if this is the mini player window by checking its title or other identifying property
                         if (window.Title == "MP")
                         {
+                            
                             //window.SetTitleBar()
                             if (winuiAppWindow.Presenter is OverlappedPresenter p)
                             {
+                                
                                 p.IsResizable = false;
                                 p.SetBorderAndTitleBar(false, false); // Remove title bar and border
                                 p.IsAlwaysOnTop = true;

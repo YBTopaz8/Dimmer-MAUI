@@ -208,6 +208,15 @@ public partial class HomePageVM
         PlatSpecificUtils.ToggleWindowAlwaysOnTop(isStickToTop, AppWinPresenter);
 #endif
     }
+    public bool IsSleek = false;
+    [RelayCommand]
+    void ToggleSleekMode(bool isSleek)
+    {
+        IsSleek = !IsSleek;
+#if WINDOWS
+        PlatSpecificUtils.ToggleFullScreenMode(IsSleek, AppWinPresenter);
+#endif
+    }
 
     #region Search Song On... ContextMenu Options
 

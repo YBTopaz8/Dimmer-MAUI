@@ -46,7 +46,7 @@ public partial class HomeD : UraniumContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error when scrolling "+ex.Message);
+            Debug.WriteLine("Error when scrolling " + ex.Message);
         }
     }
 
@@ -116,12 +116,12 @@ public partial class HomeD : UraniumContentPage
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
-    {        
-        if(!isAboutToDropFiles)
+    {
+        if (!isAboutToDropFiles)
         {
-            isAboutToDropFiles=true;
+            isAboutToDropFiles = true;
             SongsColView.Opacity = 0.7;
-            
+
 #if WINDOWS
             var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
             var dragUI = WindowsEventArgs.DragUIOverride;
@@ -166,8 +166,8 @@ public partial class HomeD : UraniumContentPage
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
         isAboutToDropFiles = false;
-        
-        SongsColView.Opacity = 1;        
+
+        SongsColView.Opacity = 1;
     }
 
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
@@ -204,9 +204,9 @@ public partial class HomeD : UraniumContentPage
 
     private async void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
-        
+
         var send = (View)sender;
-        await SearchFiltersHSL.AnimateFadeInFront();      
+        await SearchFiltersHSL.AnimateFadeInFront();
     }
 
 
@@ -281,7 +281,7 @@ public partial class HomeD : UraniumContentPage
                 break;
             case SelectionMode.Multiple:
                 SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-                foreach(var view in selectedSongsViews)
+                foreach (var view in selectedSongsViews)
                 {
                     view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
@@ -334,7 +334,7 @@ public partial class HomeD : UraniumContentPage
         }
         else
         {
-            HomePageVM.IsOnSearchMode = true;   
+            HomePageVM.IsOnSearchMode = true;
         }
     }
 
