@@ -83,10 +83,13 @@ public partial class SingleSongShellD : ContentPage
     {
         if (isOnFocusMode)
         {
+            if (HomePageVM.IsSleek)
+            {
+                return;
+            }
             await FocusModeUI.AnimateFocusModePointerEnter();
             leftImgBtn.IsVisible = true;
             rightImgBtn.IsVisible = true;
-
         }
     }
 
@@ -98,6 +101,14 @@ public partial class SingleSongShellD : ContentPage
             leftImgBtn.IsVisible = false;
             rightImgBtn.IsVisible = false;
         }
+    }
+    private void ToggleSleekModeClicked(object sender, EventArgs e)
+    {
+
+        //await FocusModeUI.AnimateFocusModePointerExited();
+        leftImgBtn.IsVisible = false;
+        rightImgBtn.IsVisible = false;
+        HomePageVM.ToggleSleekModeCommand.Execute(true);
     }
     private async void ToggleFocusModeClicked(object sender, EventArgs e)
     {

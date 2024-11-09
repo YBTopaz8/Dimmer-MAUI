@@ -550,7 +550,12 @@ public class LyricsService : ILyricsService
                 stringSongTitle = localCopyOfSong.Title;
                 stringArtistName = localCopyOfSong.ArtistName;
                 stringAlbumName = localCopyOfSong.AlbumName;
-                if (!string.IsNullOrEmpty(SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath)))
+                if (localCopyOfSong.CoverImagePath == "NC")
+                {
+                    localCopyOfSong.CoverImagePath = string.Empty;
+                }
+                localCopyOfSong.CoverImagePath = SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath);
+                if (!string.IsNullOrEmpty(localCopyOfSong.CoverImagePath))
                 {
                     if (File.Exists(localCopyOfSong.CoverImagePath))
                     {                        
@@ -564,7 +569,7 @@ public class LyricsService : ILyricsService
             (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
             if (apiResponse is null || apiResponse.Length < 1)
             {
-                return "NC";
+                return string.Empty;
             }
             if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
             {
@@ -587,7 +592,7 @@ public class LyricsService : ILyricsService
             return string.Empty;
         }
     }
-    public static string SaveOrGetCoverImageToFilePath(string fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = false)
+    public static string SaveOrGetCoverImageToFilePath(string fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)
     {
         if (imageData is null)
         {

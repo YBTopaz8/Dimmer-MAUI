@@ -86,4 +86,28 @@ public static class PlatSpecificUtils
         }
     }
 
+    public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
+    {
+        try
+        {
+            var OverLappedPres = appPresenter as OverlappedPresenter;
+            if (IsToFullScreen)
+            {
+                OverLappedPres.IsAlwaysOnTop = true;
+                OverLappedPres.SetBorderAndTitleBar(false, false);
+                OverLappedPres!.Maximize();
+            }
+            else
+            {
+                OverLappedPres.IsAlwaysOnTop = false;
+                OverLappedPres.SetBorderAndTitleBar(true, true);
+                OverLappedPres!.Restore();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"{ex.Message}");
+        }
+    }
+
 }
