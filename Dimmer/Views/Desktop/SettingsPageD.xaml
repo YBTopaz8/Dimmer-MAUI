@@ -47,8 +47,9 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
 
                         <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
          BorderColor="DarkSlateBlue" TextColor="White" />
-                        <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
-                        <Grid>
+                    <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
+       IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                    <Grid>
                             <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>

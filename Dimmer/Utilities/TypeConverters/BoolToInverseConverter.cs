@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer_MAUI.Utilities.TypeConverters;
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

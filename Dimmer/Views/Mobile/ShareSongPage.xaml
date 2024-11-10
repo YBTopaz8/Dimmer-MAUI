@@ -8,6 +8,7 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
              Shell.NavBarIsVisible="False"
              x:Name="myPage" >
     <Grid x:Name="PageGrid" 
@@ -19,10 +20,14 @@
            
             <VerticalStackLayout ZIndex="0"
                 Grid.Row="0" VerticalOptions="Center" >
-
+                <VerticalStackLayout.GestureRecognizers>
+                    <PanGestureRecognizer x:Name="DragDropGest" PanUpdated="DragDropGest_PanUpdated"/>
+                    <PinchGestureRecognizer PinchUpdated="PinchGestureRecognizer_PinchUpdated"/>
+                </VerticalStackLayout.GestureRecognizers>
+                
                 <VerticalStackLayout x:Name="StoryBigContent" VerticalOptions="Center" HorizontalOptions="Center"
                           IsVisible="True" Opacity="0.7" >
-
+                   
                     <HorizontalStackLayout Margin="15,0"
                                            VerticalOptions="Center">
                         <Image>
@@ -30,7 +35,7 @@
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                             </Image.Source>
                         </Image>
-                        <Label Text="Dimmer"   FontSize="22"
+                        <Label Text="Dimmer" VerticalTextAlignment="Center"  FontSize="22"
                     FontAttributes="Bold"/>
                     </HorizontalStackLayout>
                     <!-- Album Cover -->
@@ -61,7 +66,7 @@
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
                             </Image.Source>
                         </Image>
-                        <Label Text="Dimmer"
+                        <Label Text="Dimmer" VerticalTextAlignment="Center"
                                FontSize="22" FontAttributes="Bold"
                                />
                         
@@ -100,18 +105,14 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                 </VerticalStackLayout>
 
             </VerticalStackLayout>
-
-            <toolkit:DrawingView Grid.Row="0" x:Name="SharePageDV" ZIndex="-1"
-                                 VerticalOptions="Center" BackgroundColor="Transparent"
-                                 HeightRequest="{Binding Height,Source={x:Reference PageGrid}}"
-                                 WidthRequest="{Binding Width,Source={x:Reference PageGrid}}"
-                                 IsMultiLineModeEnabled="True" IsEnabled="False"
-                                 LineColor="DarkSlateBlue" LineWidth="4"
-                                 />
+       
             
             <dx:DXButton x:Name="HighlightedLyricBtn" Grid.Row="1" TextColor="White"
                          HeightRequest="50" ButtonType="Outlined" FontSize="25" 
                          IsVisible="False" >
+                <dx:DXButton.GestureRecognizers>
+                    <PanGestureRecognizer x:Name="DragDropGestt" PanUpdated="DragDropGest_PanUpdated"/>
+                </dx:DXButton.GestureRecognizers>
             </dx:DXButton>
         </Grid>
 
@@ -148,11 +149,12 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                 </ResourceDictionary>
             </VerticalStackLayout.Resources>
 
-            <Slider Value="1" x:Name="HeightSlider" ValueChanged="HeightSlider_ValueChanged"
-                        Minimum="-350" Maximum="350"/>
-
-            <Slider Value="1" x:Name="OpacitySlider" ValueChanged="OpacitySlider_ValueChanged"
-                        Minimum="0" Maximum="1"/>
+            <dx:DXButton>
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Search}"/>
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <viewsM:EachPageNPFAB_Mobile />
 
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
@@ -192,9 +194,10 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                     <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Text_fields}"/>
                 </dx:DXButton.Icon>
             </dx:DXButton>
-            <dx:DXButton x:Name="ToggleSongCover"     
+            <dx:DXButton x:Name="ToggleSongCover" 
     BackgroundColor="Transparent" Clicked="ToggleSongCoverBigSmoll_Clicked" 
                      ShowContent="False">
+                   
                 <dx:DXButton.Icon>
                     <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Replace_image}"/>
                 </dx:DXButton.Icon>
@@ -234,6 +237,12 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                 </dx:DXStackLayout>
                 
             </dx:BottomSheet.Content>
+        </dx:BottomSheet>
+
+        <dx:BottomSheet>
+            <dx:DXStackLayout Orientation="Vertical">
+                
+            </dx:DXStackLayout>
         </dx:BottomSheet>
     </Grid>
 </ContentPage>

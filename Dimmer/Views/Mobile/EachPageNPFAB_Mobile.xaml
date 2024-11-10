@@ -67,21 +67,21 @@
             </dx:DXExpander.Content>
         </dx:DXExpander>
 
-        <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked" BackgroundColor="DarkSlateBlue"
+        <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked" BackgroundColor="Transparent"
                        Command="{Binding Commands.ToggleExpandState,Source={x:Reference NowPlayingMiniControl}}"
-                       CornerRadius="40" WidthRequest="70" HeightRequest="70">
+                       CornerRadius="40" WidthRequest="120" HeightRequest="120">
             <dx:DXButton.Content>
 
-                <dx:RadialProgressBar  WidthRequest="80" HeightRequest="80" Value="{Binding CurrentPositionPercentage}" 
-                                       ValueIndicatorThickness="12" Thickness="10" AllowAnimation="True"
+                <dx:RadialProgressBar  WidthRequest="120" HeightRequest="120" Value="{Binding CurrentPositionPercentage}" 
+                                       ValueIndicatorThickness="6" Thickness="10" AllowAnimation="True"
                                        Fill="Transparent" StartAngle="-180" SweepAngle="360"
                                        ValueIndicatorFill="DarkSlateBlue">
 
                     <dx:RadialProgressBar.Content>
 
                         <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                WidthRequest="80" HeightRequest="80" VerticalOptions="Fill"
-                     BorderWidth="0" CornerRadius="40" 
+                WidthRequest="120" HeightRequest="120" VerticalOptions="Fill"
+                     BorderWidth="0" CornerRadius="50" Scale="0.9"
                 Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />
                     </dx:RadialProgressBar.Content>
 

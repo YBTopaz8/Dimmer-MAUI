@@ -1,7 +1,5 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
-using System.Diagnostics;
-using WinRT;
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
@@ -907,6 +905,8 @@ public partial class HomePageVM : ObservableObject
         if (result)
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);
+            if (TemporarilyPickedSong is null)
+                TemporarilyPickedSong = SelectedSongToOpenBtmSheet;
         }
     }
 
@@ -918,17 +918,17 @@ public partial class HomePageVM : ObservableObject
 
         if (!isSync)
         {
-            TemporarilyPickedSong.HasLyrics = true;
-            TemporarilyPickedSong.UnSyncLyrics = cont.plainLyrics;
-            TemporarilyPickedSong.HasSyncedLyrics = false;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.plainLyrics, TemporarilyPickedSong, isSync);
+            SelectedSongToOpenBtmSheet.HasLyrics = true;
+            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.plainLyrics;
+            SelectedSongToOpenBtmSheet.HasSyncedLyrics = false;
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.plainLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
         else
         {
-            TemporarilyPickedSong.HasLyrics = false;
-            TemporarilyPickedSong.UnSyncLyrics = string.Empty;
-            TemporarilyPickedSong.HasSyncedLyrics = true;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.syncedLyrics, TemporarilyPickedSong, isSync);
+            SelectedSongToOpenBtmSheet.HasLyrics = false;
+            SelectedSongToOpenBtmSheet.UnSyncLyrics = string.Empty;
+            SelectedSongToOpenBtmSheet.HasSyncedLyrics = true;
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.syncedLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
         if (isSavedSuccessfully)
         {
@@ -946,13 +946,13 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         LyricsManagerService.InitializeLyrics(cont.syncedLyrics);
-        if (DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id) is not null)
+        if (DisplayedSongs.FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id) is not null)
         {
-            DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+            DisplayedSongs.FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id)!.HasLyrics = true;
         }
         if (PlayBackService.CurrentQueue != 2)
         {
-            SongsMgtService.UpdateSongDetails(TemporarilyPickedSong);
+            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
         }
 
     }

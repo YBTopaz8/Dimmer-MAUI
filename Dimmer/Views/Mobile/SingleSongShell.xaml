@@ -191,8 +191,10 @@
             </chart:SfTabView.Items>
 
         </chart:SfTabView>
-
-        <viewsM:EachPageNPFAB_Mobile/>
+        <VerticalStackLayout VerticalOptions="End" HeightRequest="180"
+                             HorizontalOptions="End">
+            <viewsM:EachPageNPFAB_Mobile Margin="10"/>
+        </VerticalStackLayout>
 
         <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"/>
         

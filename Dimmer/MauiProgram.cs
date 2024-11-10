@@ -1,6 +1,4 @@
-﻿using Dimmer_MAUI.Views.Desktop.CustomViews;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()

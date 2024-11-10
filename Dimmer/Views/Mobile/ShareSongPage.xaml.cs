@@ -1,6 +1,4 @@
 using DevExpress.Maui.Core;
-using DevExpress.Maui.Editors;
-using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Mobile;
 public partial class ShareSongPage : ContentPage
@@ -13,7 +11,7 @@ public partial class ShareSongPage : ContentPage
     }
     SongsModelView currentsong;
     HomePageVM HomePageVM { get; set; }
-    LinearGradientBrush bgBrush { get; set; }
+    
     ObservableCollection<LyricPhraseModel>? sharelyrics=new();
     protected override void OnAppearing()
     {
@@ -167,25 +165,13 @@ public partial class ShareSongPage : ContentPage
 
     private void ToggleDrawingMode_CheckedChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<bool> e)
     {
-        if (e.NewValue)
-        {
-            SharePageDV.IsEnabled = true;
-            SharePageDV.IsVisible = true;
-            
-        }
-        else
-        {
-            SharePageDV.IsEnabled = false;
-            SharePageDV.IsVisible = false;
-            SharePageDV.Lines.Clear();
-        }
-        Debug.WriteLine(SharePageDV.ZIndex);
-        Debug.WriteLine(StoryBigContent.ZIndex);
+       
+       
     }
 
     private void ClearDrawing_Clicked(object sender, EventArgs e)
     {        
-        SharePageDV.Lines.Clear();          
+        //SharePageDV.Lines.Clear();          
     }
 
     private void AddLyrText_Clicked(object sender, EventArgs e)
@@ -246,6 +232,61 @@ public partial class ShareSongPage : ContentPage
         else if(StoryBigContent.IsVisible)
         {
             StoryBigContent.TranslationY = +e.NewValue;
+        }
+    }
+
+    private void DragDropGest_PanUpdated(object sender, PanUpdatedEventArgs e) => HandleDrag(sender, e);
+
+    private void HandleDrag(object sender, PanUpdatedEventArgs e)
+    {
+        var view = sender as View;
+        double xOffset = view.TranslationX;
+        double yOffset = view.TranslationY;
+
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                break;
+
+            case GestureStatus.Running:
+                view.TranslationX = xOffset + e.TotalX;
+                view.TranslationY = yOffset + e.TotalY;
+                break;
+
+            case GestureStatus.Completed:
+                break;
+        }
+    }
+
+    double currentScale = 1;
+    double startScale = 1;
+    private void PinchGestureRecognizer_PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+    {
+        var ZoomableLabel = sender as View;
+
+        if (e.Status == GestureStatus.Started)
+        {
+            // Store the initial scale and anchor point when the pinch begins
+            startScale = currentScale;
+            ZoomableLabel.AnchorX = e.ScaleOrigin.X;
+            ZoomableLabel.AnchorY = e.ScaleOrigin.Y;
+        }
+        else if (e.Status == GestureStatus.Running)
+        {
+            // Calculate the scale factor relative to the starting scale
+            double newScale = startScale * e.Scale;
+
+            // Ensure the scale does not go below the original scale (1.0)
+            newScale = Math.Max(1.0, newScale);
+
+            // Apply the new scale to the view
+            ZoomableLabel.Scale = newScale;
+            currentScale = newScale; // Update current scale
+        }
+        else if (e.Status == GestureStatus.Completed)
+        {
+            // Store the completed scale for future reference
+            currentScale = ZoomableLabel.Scale;
         }
     }
 }

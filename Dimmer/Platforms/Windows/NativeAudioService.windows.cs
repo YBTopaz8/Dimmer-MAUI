@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using Windows.Media;
+﻿using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;

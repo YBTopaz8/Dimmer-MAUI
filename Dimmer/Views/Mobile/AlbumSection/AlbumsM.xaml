@@ -28,7 +28,7 @@
 
         <DataTemplate x:Key="AllAlbumsColViewTemplate" x:DataType="models:AlbumModelView">
 
-            <dx:DXButton BackgroundColor="Transparent" HeightRequest="220"
+            <dx:DXButton BackgroundColor="Transparent" HeightRequest="200"
             Command="{Binding BindingContext.NavigateToSpecificAlbumPageCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}"                         
                          PressedBorderColor="Gray" TextColor="White"
                          BorderThickness="1" CornerRadius="20"
@@ -36,7 +36,8 @@
                          ShowIcon="False">
                 <dx:DXButton.Content>
                     <VerticalStackLayout VerticalOptions="Start" Spacing="10">
-                        <dx:DXImage Source="{Binding AlbumImagePath}" 
+                        <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
+                                            HeightRequest="130" StrokeThickness="0"
                                 WidthRequest="110"/>
                         <Label Text="{Binding Name}"/>
                         
@@ -72,7 +73,7 @@
             <!--<RefreshView Command="{Binding GetAllAlbumsCommand}" RefreshColor="DarkSlateBlue">-->
             <Grid Grid.Row="1" >
                 <dx:DXCollectionView  ItemSpanCount="3"
-                              ItemSpanSpacing="5" 
+                              ItemSpanSpacing="2" x:Name="AlbumsColView"
                     VerticalOptions="Start" TapConfirmed="AlbumsColView_Tap"
                 ItemsSource="{Binding AllAlbums}"
                               ItemTemplate="{StaticResource AllAlbumsColViewTemplate}"
@@ -81,9 +82,15 @@
 
                 </dx:DXCollectionView>
                 <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
-                                     Margin="10,0" HeightRequest="250" 
+                                     Margin="10,0" HeightRequest="290" 
                                      >
-
+                    <dx:DXButton HeightRequest="60" WidthRequest="60" Command="{Binding Commands.Show,Source={x:Reference AlbumsPageBtmSheet}}"
+                                 IconHeight="30" IconColor="White" PressedBackgroundColor="DarkSlateBlue"
+                                 IconWidth="30" BackgroundColor="#111111">
+                        <dx:DXButton.Icon>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
                     <viewsM:EachPageNPFAB_Mobile BackgroundColor="Transparent"
                                                  VerticalOptions="End"/>
                 </VerticalStackLayout>
@@ -94,8 +101,39 @@
 
 
 
-    </VerticalStackLayout> 
+        <dx:BottomSheet x:Name="AlbumsPageBtmSheet">
+            <dx:DXScrollView>
+                <VerticalStackLayout Spacing="5" Padding="10,0">
+                    <dx:DXButton Content="Clear Filter And Search" Clicked="ClearSearch_Clicked"
+             ButtonType="Filled" BackgroundColor="DarkSlateBlue" HorizontalOptions="Start">
+                        <dx:DXButton.Icon>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Clear_all}"/>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
+                    <dx:CheckEdit Label="Toggle UI Mode" x:Name="UIModeToggleChckbx"/>
+                    <dx:DXExpander x:Name="UILayout" 
+               HorizontalExpandMode="FromCenter"
+               VerticalExpandMode="FromCenter"
+               IsExpanded="{Binding IsChecked,Source={x:Reference UIModeToggleChckbx}}">
 
+                        <dx:DXExpander.Content>
+                            <dx:ChoiceChipGroup ChipSelectedBackgroundColor="DarkSlateBlue"
+                            SelectionChanged="UILayoutToggled_SelectionChanged" x:Name="UILayoutToggled">
+                                <dx:Chip Text="Grid of 1"/>
+                                <dx:Chip Text="Grid of 2"/>
+                                <dx:Chip Text="Grid of 3"/>
+                                <dx:Chip Text="Grid of 4"/>
+                            </dx:ChoiceChipGroup>
+                        </dx:DXExpander.Content>
+                    </dx:DXExpander>
+                    <dx:TextEdit LabelText="Album Name"
+             CornerRadius="20" x:Name="AlbumNameTextEdit"
+             TextChanged="AlbumNameTextEdit_TextChanged"
+             PlaceholderText="Search the Album Name..."/>
+                </VerticalStackLayout>
+            </dx:DXScrollView>
+        </dx:BottomSheet>
+    </VerticalStackLayout>
 </uranium:UraniumContentPage>
 
 <!--<HorizontalStackLayout Grid.Row="1" Spacing="8" 

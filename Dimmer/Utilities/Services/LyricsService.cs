@@ -257,9 +257,10 @@ public class LyricsService : ILyricsService
         songSyncLyrics = StringToLyricPhraseModel(lines);
         sortedLyrics = songSyncLyrics;
         _synchronizedLyricsSubject.OnNext(songSyncLyrics);
-        if (PlayBackService.CurrentlyPlayingSong.IsPlaying)
+        if (PlayBackService.CurrentlyPlayingSong is not null && PlayBackService.CurrentlyPlayingSong.IsPlaying)
         {
-            StartLyricIndexUpdateTimer();
+                StartLyricIndexUpdateTimer();
+         
         }
     }
 

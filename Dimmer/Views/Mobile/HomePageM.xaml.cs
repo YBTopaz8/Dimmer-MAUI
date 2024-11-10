@@ -1,10 +1,4 @@
 //using Plainer.Maui.Controls;
-using DevExpress.Maui.CollectionView;
-using DevExpress.Maui.Editors;
-using System.Diagnostics;
-using UraniumUI.Views;
-using Timer = System.Timers.Timer;
-
 
 namespace Dimmer_MAUI.Views.Mobile;
 
@@ -112,9 +106,9 @@ public partial class HomePageM : ContentPage
         var s = (View)sender;
         var song = (SongsModelView)s.BindingContext;
         HomePageVM.SetContextMenuSong(song);
-        if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
+        if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
-            songsMenuBtm.Show();
+            SongsMenuBtm.Show();
         }
     }
 
@@ -135,9 +129,9 @@ public partial class HomePageM : ContentPage
         var s = (View)sender;
         var song = (SongsModelView)e.Item;
         HomePageVM.SetContextMenuSong(song);
-        if (songsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
+        if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
-            songsMenuBtm.Show();
+            SongsMenuBtm.Show();
         }
     }
 
@@ -148,7 +142,7 @@ public partial class HomePageM : ContentPage
 
     private void CloseBtmSheet()
     {
-        songsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.Hidden;
+        SongsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
 
 
@@ -217,17 +211,13 @@ public partial class HomePageM : ContentPage
                 HomePageVM.IsOnSearchMode = true;
                 // Setting the FilterString for SongsColView
                 SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
-                filteredSongs.Clear();
+                filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
                 filteredSongs = HomePageVM.DisplayedSongs
                     .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
-                Debug.WriteLine($"Visible Item Count {SongsColView.VisibleItemCount}"); 
-                Debug.WriteLine($"Scroll Item Count {SongsColView.ScrollItemCount}"); 
-                Debug.WriteLine($"Scroll Item Count {HomePageVM.DisplayedSongs.Count}"); 
-                Debug.WriteLine($"Scroll Item Count {filteredSongs.Count}"); 
             }
             else
             {
@@ -269,9 +259,45 @@ public partial class HomePageM : ContentPage
 
     }
 
-    private void DXButton_Clicked(object sender, EventArgs e)
+    private void ClearSearch_Clicked(object sender, EventArgs e)
     {
         SongsColView.FilterString = string.Empty;
+        SongTitleTextEdit.Text = string.Empty;
+    }
+
+    private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
+    {
+        var s = sender as ChoiceChipGroup;
+        switch (s.SelectedIndex)
+        {
+            case 0:
+                SongsColView.ItemSpanCount = 1;
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfOne"];
+                break;
+
+            case 1:
+                SongsColView.ItemSpanCount = 2;
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+
+                break;
+            case 2:
+                SongsColView.ItemSpanCount = 3;
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+                break;
+            case 3:
+                SongsColView.ItemSpanCount = 4;
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+                break;
+            default:
+                break;
+        }
+        Debug.WriteLine(s.GetType());
+    }
+
+    private void SingleSongCxtMenuArea2_Clicked(object sender, EventArgs e)
+    {
+        SingleSongCxtMenuArea_Clicked(sender, e);
+
     }
 }
 
