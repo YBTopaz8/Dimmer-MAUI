@@ -152,14 +152,12 @@
             <Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="380" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.Resources>
@@ -177,19 +175,16 @@
                 <Label Text="Album" Grid.Column="3"/>
                 <Label Text="Genre"   Grid.Column="4" />
                 <Label Text="Duration"  Grid.Column="5" />
-                <Label Text="Bitrate" Grid.Column="6"  />
-                <Label Text="Format" Grid.Column="7"/>
-                <Label Text="Play Count" Grid.Column="8"/>
             </Grid>
 
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
-                        x:Name="SongsColView" 
+                        x:Name="SongsColView" ItemsUpdatingScrollMode="KeepItemsInView"
                         Loaded="SongsColView_Loaded" Margin="5,0"
-                        EmptyView="Nothing ...">
+                        EmptyView="Nothing ..." >
 
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" HorizontalItemSpacing="0"/>
+                    <LinearItemsLayout Orientation="Vertical"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
@@ -372,14 +367,12 @@
                                         </ResourceDictionary>
                                     </Grid.Resources>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="280" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="380" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
@@ -419,17 +412,6 @@
                                         </ratingsView:RatingControl.GestureRecognizers>
                                     </ratingsView:RatingControl>
 
-                                    <!--<uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
-                                                         Hovered="FavImagStatView_HoveredAndExited"
-                                                         HoverExited="FavImagStatView_HoveredAndExited">
-                                    <ImageButton 
-                                             Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
-                                             VerticalOptions="End" CommandParameter="{Binding .}" >
-                                        <ImageButton.Source>
-                                            <FontImageSource Size="25" FontFamily="MaterialRounded" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                </uranium:StatefulContentView>-->
 
                                     <Label Text="{Binding AlbumName}" Grid.Column="3"
                                        
@@ -442,13 +424,6 @@
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-                                    <Label Grid.Column="6"  
-                       Text="{Binding BitRate, StringFormat='{0} kbps'}"                                
-                       ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
-
-                                    <Label Text="{Binding FileFormat}" Grid.Column="7"
-                       ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
-                                    <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="8"/>
                                 </Grid>
                             </Border>
                         </SyncCtrls:SfEffectsView>
