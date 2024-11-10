@@ -110,9 +110,11 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
+        LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         switch (CurrentPage)
         {
             case PageEnum.MainPage:
+                
                 break;
             case PageEnum.NowPlayingPage:
                 switch (CurrentViewIndex)
@@ -182,23 +184,7 @@ public partial class HomePageVM : ObservableObject
 
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong.IsCurrentPlayingHighlight = true;
-                            MainThread.BeginInvokeOnMainThread(() =>
-                            {
-                                if (!IsMultiSelectOn)
-                                {
-                                    
-                                    if (IsShuffleOn)
-                                    {
-                                        PageCV?.ScrollTo(TemporarilyPickedSong, ScrollToPosition.Center);
-                                    }
-                                    else
-                                    {
-                                        //PageCV?.ScrollTo(TemporarilyPickedSong, ScrollToPosition.Center, true);
-                                    }
-                                }
-                                
-                                
-                            });
+                            
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
                             TemporarilyPickedSong.IsPlaying = true;
@@ -599,9 +585,20 @@ public partial class HomePageVM : ObservableObject
             }    
         }
     }
+
+    [ObservableProperty]
+    ObservableCollection<SongsModelView> recentlyAddedSongs;
     public void LoadSongCoverImage()
     {
-        
+
+        RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
+
+        if (DisplayedSongs is not null && DisplayedSongs.Count > 0)
+        {
+            LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+        }
+
+
         if (TemporarilyPickedSong is not null)
         {
             TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
@@ -624,7 +621,44 @@ public partial class HomePageVM : ObservableObject
         //TemporarilyPickedSong.CoverImagePath = await FetchSongCoverImage();
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
+
+
     }
+
+    private ObservableCollection<SongsModelView> GetXRecentlyAddedSongs(ObservableCollection<SongsModelView> displayedSongs, int number=15)
+    {
+        // Sort by DateAdded in descending order and take the top X songs
+        var recentSongs = displayedSongs
+            .OrderByDescending(song => song.DateAdded)  // Sort by DateAdded in descending order
+            .Take(number)  // Limit to the top `number` of songs
+            .ToList(); // Convert to a list
+
+        // Convert the list back to ObservableCollection
+        return new ObservableCollection<SongsModelView>(recentSongs);
+    }
+
+
+    [ObservableProperty]
+    ObservableCollection<SingleSongStatistics> lastFifteenPlayedSongs;
+
+    public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongsModelView> allSongs, int number = 15)
+    {
+        // Filter and flatten only songs with non-empty DatesPlayedAndWasPlayCompleted
+        var recentPlays = allSongs
+            .Where(song => song.DatesPlayedAndWasPlayCompleted != null && song.DatesPlayedAndWasPlayCompleted.Count > 0) // Ensure the list is not null or empty
+            .SelectMany(song => song.DatesPlayedAndWasPlayCompleted
+                .Select(play => new SingleSongStatistics
+                {
+                    Song = song, // Reference to SongsModelView
+                    PlayDateTime = play.DatePlayed
+                }))
+            .OrderByDescending(stat => stat.PlayDateTime)
+            .Take(number) // Limit to the specified number of recent plays
+            .ToList();
+
+        return recentPlays;
+    }
+
 
     #region Subscriptions to Services
 

@@ -63,8 +63,8 @@ public partial class ArtistsPageD : ContentPage
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        
-        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
+        //await HomePageVM.GetAllAlbumInfos(curSel);
+        //await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
 
     private async void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
@@ -80,10 +80,10 @@ public partial class ArtistsPageD : ContentPage
 
     private void AlbumSongsCV_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (AlbumSongsCV.IsLoaded)
-        {
-            AlbumSongsCV.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.MakeVisible);
-        }
+        //if (AlbumSongsCV.IsLoaded)
+        //{
+        //    AlbumSongsCV.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.MakeVisible);
+        //}
     }
 
     
@@ -100,5 +100,10 @@ public partial class ArtistsPageD : ContentPage
         var send = (View)sender;
         var album = send.BindingContext as AlbumModelView;
         await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        
     }
 }

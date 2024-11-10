@@ -59,7 +59,6 @@ global using Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 //global using Syncfusion.Maui.Toolkit.Hosting;
 
-
 global using System.Globalization;
 global using System.Reactive.Linq;
 global using System.Reactive.Subjects;
@@ -75,6 +74,7 @@ global using Dimmer_MAUI.CustomPopUpViews;
 
 global using ATL;
 global using static ATL.LyricsInfo;
+global using Track = ATL.Track;
 
 global using Dimmer_MAUI.Utilities.Services.Models;
 
@@ -85,7 +85,6 @@ global using Dimmer_MAUI.Utilities.Models;
 
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;
-
 
 
 

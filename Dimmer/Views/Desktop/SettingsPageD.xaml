@@ -74,7 +74,7 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
             </Button>
 
         </SyncCtrls:SfEffectsView>
-
+ 
         <VerticalStackLayout HorizontalOptions="Center" >
             <HorizontalStackLayout>
                 <Image>

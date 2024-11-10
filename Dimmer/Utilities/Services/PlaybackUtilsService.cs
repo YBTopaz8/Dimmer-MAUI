@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
@@ -214,7 +215,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     List<GenreModelView> existingGenres,
     List<AlbumArtistGenreSongLink> genreLinks)
     {
-        Track track = new(file);
+        ATL.Track track = new(file);
         Debug.WriteLine($"Track Name {track.Title}");
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
@@ -850,6 +851,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 DatePlayed = DateTimeOffset.Now,
                 WasPlayCompleted = false // Mark as incomplete
             });
+
             ViewModel.SetPlayerState(MediaPlayerState.Playing);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
             ViewModel.SetPlayerState(MediaPlayerState.RefreshStats);

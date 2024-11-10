@@ -9,7 +9,7 @@
              x:Class="Dimmer_MAUI.Views.Mobile.EachPageNPFAB_Mobile">
     <HorizontalStackLayout VerticalOptions="End" Spacing="10"
                       HorizontalOptions="End">
-        <dx:DXExpander x:Name="NowPlayingMiniControl" Opacity="0.9"
+        <dx:DXExpander x:Name="NowPlayingMiniControl" Opacity="0.9" 
                     IsExpanded="False" VerticalExpandMode="FromEndToStart"
                     HorizontalExpandMode="FromEndToStart">
             <dx:DXExpander.Resources>
@@ -67,7 +67,7 @@
             </dx:DXExpander.Content>
         </dx:DXExpander>
 
-        <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked"
+        <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked" BackgroundColor="DarkSlateBlue"
                        Command="{Binding Commands.ToggleExpandState,Source={x:Reference NowPlayingMiniControl}}"
                        CornerRadius="40" WidthRequest="70" HeightRequest="70">
             <dx:DXButton.Content>
