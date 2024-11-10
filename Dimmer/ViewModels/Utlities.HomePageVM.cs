@@ -377,4 +377,13 @@ public partial class HomePageVM
       var firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault();
       SelectedAlbumOnArtistPage.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(firstSongOfSpectifAlbum.Title,firstSongOfSpectifAlbum.ArtistName, firstSongOfSpectifAlbum.AlbumName);
     }
+
+    [ObservableProperty]
+    ObservableCollection<string> photoDumps = new ObservableCollection<string>();
+    public Color[] ShareColors { get; } = new Color[]{
+            Color.FromArgb("#FF0000"),
+            Color.FromArgb("#2365BD"),
+            Color.FromArgb("#4C342F"),
+            Color.FromArgb("#661D98"),
+            };
 }

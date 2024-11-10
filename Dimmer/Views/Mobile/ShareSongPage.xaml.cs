@@ -9,9 +9,10 @@ public partial class ShareSongPage : ContentPage
         HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         this.BindingContext = HomePageVM;
     }
+    
     SongsModelView currentsong;
     HomePageVM HomePageVM { get; set; }
-    
+    bool hasLyrics;
     ObservableCollection<LyricPhraseModel>? sharelyrics=new();
     protected override void OnAppearing()
     {
@@ -20,7 +21,8 @@ public partial class ShareSongPage : ContentPage
         {
             return;
         }
-        sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(HomePageVM.SelectedSongToOpenBtmSheet.FilePath);
+
+        (hasLyrics, sharelyrics) = LyricsService.HasLyrics(HomePageVM.SelectedSongToOpenBtmSheet);
 
         LyricsColView.ItemsSource = sharelyrics;
         if (sharelyrics.Count > 1)
@@ -31,7 +33,7 @@ public partial class ShareSongPage : ContentPage
         if (!string.IsNullOrEmpty(str))
         {            
             currentsong = HomePageVM.SelectedSongToOpenBtmSheet;
-            SharePageImg.Source = str;
+            
         }
         else
         {
@@ -129,22 +131,25 @@ public partial class ShareSongPage : ContentPage
 
     bool isDarkByDefault = true;
 
+    
 
     string customImgPath = string.Empty;
     private async void AddUserImg_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
     {
         if (e.NewValue)
         {
-            var res = await FilePicker.Default.PickAsync(
+            var res = await FilePicker.Default.PickMultipleAsync(
             new PickOptions()
             {
                 PickerTitle = "Select Image To Share",
-                FileTypes = FilePickerFileType.Images
+                FileTypes = FilePickerFileType.Images,
             });
-            if (res is not null)
+            if (res != null)
             {
-                customImgPath = res.FullPath;
-                SharePageImg.Source = res.FullPath;
+                foreach (var imgPicked in res)
+                {
+                    HomePageVM.PhotoDumps.Add(imgPicked.FullPath);
+                }
             }
         }        
         else
@@ -156,22 +161,17 @@ public partial class ShareSongPage : ContentPage
                 if (ress)
                 {
                     customImgPath = string.Empty;
-                    SharePageImg.Source = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
+                    //SharePageImg.Source = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
                     myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
             };
         }
     }
-
-    private void ToggleDrawingMode_CheckedChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<bool> e)
+    private async Task<bool> ConfirmActionPopup(string action)
     {
-       
-       
-    }
+        var ress = await Shell.Current.DisplayAlert("Confirm Action", $"Are you sure you want to {action}?", "Yes", "No");
 
-    private void ClearDrawing_Clicked(object sender, EventArgs e)
-    {        
-        //SharePageDV.Lines.Clear();          
+        return ress;
     }
 
     private void AddLyrText_Clicked(object sender, EventArgs e)
@@ -288,5 +288,94 @@ public partial class ShareSongPage : ContentPage
             // Store the completed scale for future reference
             currentScale = ZoomableLabel.Scale;
         }
+    }
+
+    private async void ToggleBGImg_ChipTap(object sender, ChipEventArgs e)
+    {
+        var send = sender as ChoiceChipGroup;
+        switch (send.SelectedIndex)
+        {
+            case 0: //solid color
+                customImgPath = string.Empty;
+                
+                myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
+                break;
+            case 1: //song cover as bg
+                customImgPath = string.Empty;
+                HomePageVM.PhotoDumps.Add(HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath);
+
+                myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+                break;
+            case 2: // one img
+                HomePageVM.PhotoDumps.Clear();
+                customImgPath = string.Empty;
+                if (await ConfirmActionPopup("Pick Mulitple Images"))
+                {
+                    var res = await FilePicker.Default.PickAsync(
+                    new PickOptions()
+                    {
+                        PickerTitle = "Select Image To Share",
+                        FileTypes = FilePickerFileType.Images,
+                    });
+                    if (res != null)
+                    {
+                        HomePageVM.PhotoDumps.Add(res.FullPath);                        
+                    }
+                    SharePageColViewImg.ItemSpanCount = 1;
+                }
+                break;
+            case 3:
+                HomePageVM.PhotoDumps.Clear();
+                if (await ConfirmActionPopup("Pick Mulitple Images"))
+                {
+                    var res = await FilePicker.Default.PickMultipleAsync(
+                    new PickOptions()
+                    {
+                        PickerTitle = "Select Image To Share",
+                        FileTypes = FilePickerFileType.Images,
+                    });
+                    if (res != null)
+                    {
+                        
+                        foreach (var imgPicked in res)
+                        {
+                            HomePageVM.PhotoDumps.Add(imgPicked.FullPath);
+                        }
+                    }
+                    SharePageColViewImg.ItemSpanCount = res.Count();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private async void ToggleSongCard_ChipTap(object sender, ChipEventArgs e)
+    {
+        var send = sender as ChoiceChipGroup;
+        switch (send.SelectedIndex)
+        {
+            case 0: //no cover
+                StoryBigContent.IsVisible = false;
+                StorySmallContent.IsVisible = false;
+                break;
+            case 1: //smoll cover
+
+                await Task.WhenAll(StoryBigContent.AnimateFadeOutBack(500),
+                    StorySmallContent.AnimateFadeInFront(500));
+
+                break;
+            case 2: // big cover
+                await Task.WhenAll(StoryBigContent.AnimateFadeInFront(500),
+                    StorySmallContent.AnimateFadeOutBack(500));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void SolidBGColor_TapReleased(object sender, DXTapEventArgs e)
+    {
+        
     }
 }

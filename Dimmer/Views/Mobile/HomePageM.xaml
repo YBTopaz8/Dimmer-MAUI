@@ -196,7 +196,7 @@
                 <viewsM:EachPageNPFAB_Mobile />
             </VerticalStackLayout>
 
-            <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.54" x:Name="SearchSongPopUp" >
+            <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.64" x:Name="SearchSongPopUp" >
                 <dx:DXScrollView Margin="10,0">
                     <VerticalStackLayout Spacing="5">
                         <dx:DXButton Content="Clear Filter And Search" Clicked="ClearSearch_Clicked"
@@ -205,6 +205,7 @@
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Clear_all}"/>
                             </dx:DXButton.Icon>
                         </dx:DXButton>
+                        
                         <dx:CheckEdit Label="Toggle UI Mode" x:Name="UIModeToggleChckbx"/>
                         <dx:DXExpander x:Name="UILayout" 
                                        HorizontalExpandMode="FromCenter"
@@ -223,29 +224,23 @@
                         </dx:DXExpander>
                         <dx:TextEdit LabelText="Song Title"
                                      CornerRadius="20" x:Name="SongTitleTextEdit"
-                                     TextChanged="SongTitleTextEdit_TextChanged"
+                                     TextChanged="SongTitleTextEdit_TextChanged" ClearIconVisibility="Auto"
                                      PlaceholderText="Search the Song Title..."/>
 
-                        <dx:FilterCheckedListPickerItem FieldName="ArtistName" Text="Artist" DetailFontSize="12"
-                                  PickerShowMode="Popup" PickerBottomSheetState="HalfExpanded"
-                                ShowValuesOutOfFilter="true" Detail="Tap to Search Artist"
-                            Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}">
+                        <dx:TextEdit LabelText="Artist Name"
+                            TextChanged="ArtistNameTextEdit_TextChanged"
+                                     x:Name="ArtistNameTextEdit" CornerRadius="20" ClearIconVisibility="Auto"
+                                     PlaceholderText="Search the Artist Name">
                         
-                        <dx:FilterCheckedListPickerItem.PickerTitleView>
-                            <Label Text="Artist" VerticalOptions="Center" HorizontalOptions="Center"
-                   FontSize="30" />
-                        </dx:FilterCheckedListPickerItem.PickerTitleView>
-                        </dx:FilterCheckedListPickerItem>
+                        </dx:TextEdit>
 
-                        <dx:FilterCheckedListPickerItem FieldName="AlbumName" Text="Album" PickerShowMode="Popup" Detail="Tap to Search Album" DetailFontSize="12"
-                                      ShowValuesOutOfFilter="true" Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}"
-                                                        >
-                            <dx:FilterCheckedListPickerItem.PickerTitleView>
-                                <Label Text="Album" HorizontalOptions="Center"
-                       FontSize="30"/>
-                            </dx:FilterCheckedListPickerItem.PickerTitleView>
-                        </dx:FilterCheckedListPickerItem>
-
+                        <dx:TextEdit LabelText="Album Name"
+                            TextChanged="AlbumNameTextEdit_TextChanged"
+                                     x:Name="AlbumNameTextEdit" CornerRadius="20" ClearIconVisibility="Auto"
+                                     PlaceholderText="Search the Album Name">
+                        
+                        </dx:TextEdit>
+                        
                         <dx:FilterCheckedListPickerItem Text="Genre" PickerShowMode="Popup"
                                                         Context="{Binding Source={x:Reference SongsColView}, Path=FilteringContext}"
                                                         FieldName="GenreName" Detail="Tap to Search Genre"/>

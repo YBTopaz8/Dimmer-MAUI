@@ -11,18 +11,27 @@
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
              Shell.NavBarIsVisible="False"
              x:Name="myPage" >
-    <Grid x:Name="PageGrid" 
-         ColumnDefinitions="*">
-        <dx:DXImage            
-            x:Name="SharePageImg" 
-               IsEnabled="False" Opacity="0.2" Aspect="Center"/>
-        <Grid x:Name="contentToShare" Grid.Row="0" RowDefinitions="500,*" VerticalOptions="Center">
-           
-            <VerticalStackLayout ZIndex="0"
+    <Grid x:Name="PageGrid" BackgroundColor="Transparent"
+         ColumnDefinitions="*" RowDefinitions="*">
+        <dx:DXCollectionView Grid.Row="0"
+            x:Name="SharePageColViewImg" ItemsSource="{Binding PhotoDumps}"
+               IsEnabled="False" Opacity="0.5" ItemSpanCount="4"
+                             Orientation="Horizontal">
+            
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate>
+                    <dx:DXImage Source="{Binding .}" Aspect="AspectFill"/>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+        <Grid x:Name="contentToShare" Grid.Row="0" 
+                             BackgroundColor="Transparent">
+
+            <VerticalStackLayout ZIndex="0" BackgroundColor="Transparent"
                 Grid.Row="0" VerticalOptions="Center" >
                 <VerticalStackLayout.GestureRecognizers>
                     <PanGestureRecognizer x:Name="DragDropGest" PanUpdated="DragDropGest_PanUpdated"/>
-                    <PinchGestureRecognizer PinchUpdated="PinchGestureRecognizer_PinchUpdated"/>
+                    
                 </VerticalStackLayout.GestureRecognizers>
                 
                 <VerticalStackLayout x:Name="StoryBigContent" VerticalOptions="Center" HorizontalOptions="Center"
@@ -60,6 +69,10 @@
                 </VerticalStackLayout>
                 <VerticalStackLayout  IsVisible="False" x:Name="StorySmallContent" 
                                      Margin="25,0"  WidthRequest="450">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <PanGestureRecognizer PanUpdated="DragDropGest_PanUpdated"/>
+
+                    </VerticalStackLayout.GestureRecognizers>
                     <HorizontalStackLayout Grid.Row="0">
                         <Image >
                             <Image.Source>
@@ -71,10 +84,10 @@
                                />
                         
                     </HorizontalStackLayout>
-                    <dx:DXButton Opacity="0.6" VerticalOptions="Center"
-ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalContentAlignment="Fill"
-         CornerRadius="8" VerticalContentAlignment="Start" PressedTextColor="White">
-                        <dx:DXButton.Content>
+                    <dx:DXBorder Opacity="0.6" VerticalOptions="Center"
+                                 HeightRequest="150" BackgroundColor="White" Padding="10,0"
+                                 CornerRadius="8" >
+                        <dx:DXBorder.Content>
                             <Grid ColumnDefinitions="Auto,*,Auto" >
 
                                 <toolkit:AvatarView Grid.Column="0" ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
@@ -96,8 +109,8 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                                 </VerticalStackLayout>
 
                             </Grid>
-                        </dx:DXButton.Content>
-                    </dx:DXButton>
+                        </dx:DXBorder.Content>
+                    </dx:DXBorder>
 
                     <Label Text="By Yvan Brunel" 
                            FontSize="10"
@@ -117,41 +130,16 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
         </Grid>
 
         <VerticalStackLayout Spacing="10" VerticalOptions="End"
-                               
+                               Grid.Row="0"
             x:Name="UtilsHSL" ZIndex="2">
-            <VerticalStackLayout.Resources>
-                <ResourceDictionary>
-                    <Style TargetType="dx:DXButton">
-                        <Setter Property="IconHeight" Value="35"/>
-                        <Setter Property="IconWidth" Value="35"/>
-                        <Setter Property="BorderThickness" Value="2"/>
-                        <Setter Property="IconColor" Value="White"/>
-                        <Setter Property="BorderColor" Value="Black"/>
-                        <Setter Property="HeightRequest" Value="50"/>
-                        <Setter Property="WidthRequest" Value="50"/>
-                    </Style>
-                    <Style TargetType="dx:DXToggleButton">
-                        <Setter Property="HeightRequest" Value="50"/>
-                        <Setter Property="WidthRequest" Value="50"/>
-                        <Setter Property="IconHeight" Value="35"/>
-                        <Setter Property="IconWidth" Value="35"/>
-                        <Setter Property="BorderThickness" Value="2"/>
-                        <Setter Property="BorderColor" Value="Black"/>
-                        <Setter Property="IconColor" Value="White"/>
-                        <Setter Property="CheckedIconColor" Value="White"/>
-                        <Setter Property="CheckedBackgroundColor" Value="DarkSlateBlue"/>
-                        <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
-                        <Setter Property="PressedIconColor" Value="White"/>
-                        <Setter Property="PressedBorderColor" Value="DarkSlateBlue"/>
-                        
-                        
-                    </Style>
-                </ResourceDictionary>
-            </VerticalStackLayout.Resources>
 
-            <dx:DXButton>
+            <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8" 
+             IconWidth="25" IconHeight="40" VerticalOptions="End"
+             HorizontalOptions="End" IconColor="White"
+                             PressedBackgroundColor="DarkSlateBlue"
+             Margin="15,0" Command="{Binding Commands.Show,Source={x:Reference ShareStoryToolBox}}">
                 <dx:DXButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Search}"/>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
                 </dx:DXButton.Icon>
             </dx:DXButton>
             <viewsM:EachPageNPFAB_Mobile />
@@ -159,34 +147,6 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                 
-            <dx:DXToggleButton BackgroundColor="Transparent"
-                  ToolTipProperties.Text="Change/Clear Your Image"
-                   CheckedBackgroundColor="Transparent" 
-                   CheckedBorderColor="DarkSlateBlue" IconColor="White"
-                   x:Name="AddUserImg" 
-                 CheckedChanged="AddUserImg_CheckedChanged">
-                <dx:DXToggleButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image}"/>
-                </dx:DXToggleButton.Icon>
-            </dx:DXToggleButton>
-            
-            <dx:DXToggleButton BackgroundColor="Transparent"                   
-                   CheckedBackgroundColor="DarkSlateBlue" IconColor="White"
-                   
-                   x:Name="ToggleDrawingMode"
-                 CheckedChanged="ToggleDrawingMode_CheckedChanged">
-                <dx:DXToggleButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Draw}"/>
-                </dx:DXToggleButton.Icon>
-            </dx:DXToggleButton>
-
-            <dx:DXButton x:Name="clearDrawing"     
-    BackgroundColor="Transparent" Clicked="ClearDrawing_Clicked" 
-                     ShowContent="False">
-                <dx:DXButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Ink_eraser}"/>
-                </dx:DXButton.Icon>
-            </dx:DXButton>
             <dx:DXButton x:Name="addLyrText" IsVisible="False"
     BackgroundColor="Transparent" Clicked="AddLyrText_Clicked" 
                      ShowContent="False">
@@ -212,7 +172,103 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                 </dx:DXButton>
             </HorizontalStackLayout>
         </VerticalStackLayout>
-        
+        <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.65"
+                        x:Name="ShareStoryToolBox">
+            <dx:DXStackLayout Orientation="Vertical" Margin="10,0"
+                              ItemSpacing="5">
+                <HorizontalStackLayout HorizontalOptions="Center">
+                    <Label Text="Toolbox !" HorizontalOptions="Center"
+                           FontSize="24" HorizontalTextAlignment="Center"/>
+                    <!--<Image Source="smirking_face.gif"
+                           HeightRequest="30" IsAnimationPlaying="True"/>-->
+                </HorizontalStackLayout>
+                <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
+                                  CornerRadius="15" Padding="0,15">
+
+                    <Label Text="Set Background Image" Margin="15,0"/>
+                    <dx:ChoiceChipGroup x:Name="ToggleBGImg"
+                                    AllowDeselect="True" BoxMode="Outlined"
+                                    ChipTap="ToggleBGImg_ChipTap">
+                        <dx:Chip Text="None!">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.No_photography}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Cover Image">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Music_note}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Single Photo">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Photo Dump !">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo_album}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                    </dx:ChoiceChipGroup>
+
+                </dx:DXStackLayout>
+                <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
+                   CornerRadius="15" Padding="0,15">
+
+                    <Label Text="Set Song Card" Margin="15,0"/>
+                    <dx:DXColorSelector ItemsSource="{Binding ShareColors}"
+                                        x:Name="SolidBGColor"
+                                        TapReleased="SolidBGColor_TapReleased"/>
+
+                    <dx:ChoiceChipGroup AllowDeselect="False"
+                                    BoxMode="Outlined"
+                                    ChipTap="ToggleSongCard_ChipTap">
+                        <dx:Chip Text="No Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image_not_supported}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Smol Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Big Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Full_coverage}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                       
+                    </dx:ChoiceChipGroup>
+
+                </dx:DXStackLayout><dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
+                   CornerRadius="15" Padding="0,15">
+
+                    <Label Text="Set Song Card" Margin="15,0"/>
+                    <dx:ChoiceChipGroup x:Name="ToggleSongCard" AllowDeselect="False"
+                                    BoxMode="Outlined"
+                                    ChipTap="ToggleSongCard_ChipTap">
+                        <dx:Chip Text="No Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image_not_supported}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Smol Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Big Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Full_coverage}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                       
+                    </dx:ChoiceChipGroup>
+
+                </dx:DXStackLayout>
+            </dx:DXStackLayout>
+        </dx:BottomSheet>
         <dx:BottomSheet AllowedState="All" AllowDismiss="True"
                         x:Name="LyricPickerBtmSheet">
             <dx:BottomSheet.Content>
@@ -221,16 +277,19 @@ ButtonType="Filled" HeightRequest="150" BackgroundColor="White" HorizontalConten
                                  TextColor="White"
                                  Clicked="rmvLyr_Clicked" HorizontalOptions="End"/>
                     <dx:DXCollectionView TapConfirmed="LyricsColView_TapConfirmed"
- SelectionMode="Single" x:Name="LyricsColView" 
+ SelectionMode="Single" x:Name="LyricsColView" ItemSpacing="3" 
     BackgroundColor="Transparent">
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:LyricPhraseModel">
-
+                                <dx:DXStackLayout CornerRadius="10" Orientation="Vertical"
+                                             >
+                                    
                                 <Label Text="{Binding Text}" Margin="0,5" 
-            HorizontalTextAlignment="Center" 
-            FontSize="19" >
+            HorizontalTextAlignment="Center" FontSize="19" >
 
-                                </Label>
+                                    </Label>
+                                    <dx:DXSeparator />
+                                </dx:DXStackLayout>
                             </DataTemplate>
                         </dx:DXCollectionView.ItemTemplate>
                     </dx:DXCollectionView>

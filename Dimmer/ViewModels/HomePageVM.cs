@@ -275,7 +275,7 @@ public partial class HomePageVM : ObservableObject
             return string.Empty;
         }
         IsShellLoadingPage = false;
-     
+        (SelectedSongToOpenBtmSheet.HasSyncedLyrics, SelectedSongToOpenBtmSheet.SyncLyrics) = LyricsService.HasLyrics(SelectedSongToOpenBtmSheet);
         CurrentPage = PageEnum.NowPlayingPage;
         if (!string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.CoverImagePath) && !File.Exists(SelectedSongToOpenBtmSheet.CoverImagePath))
         {

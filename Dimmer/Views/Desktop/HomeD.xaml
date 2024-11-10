@@ -149,16 +149,15 @@
             </VerticalStackLayout>
 
 
-            <Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
+            <!--<Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="380" />
+                    <ColumnDefinition Width="380"/>
+                    <ColumnDefinition Width="220" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
                 </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <ResourceDictionary>
@@ -170,12 +169,12 @@
                     </ResourceDictionary>
                 </Grid.Resources>
                 <Label Text="Song Title" Grid.Column="0" />
-                <Label Text="Artist" Grid.Column="1"/>
-                <Label Text="Rating"  Grid.Column="2" HorizontalOptions="Center" Opacity="0.8"/>
-                <Label Text="Album" Grid.Column="3"/>
-                <Label Text="Genre"   Grid.Column="4" />
-                <Label Text="Duration"  Grid.Column="5" />
-            </Grid>
+                <Label Text="Artist" Grid.Column="1" BackgroundColor="Blue"/>
+                <Label Text="Rating"  Grid.Column="2" BackgroundColor="Red"/>
+                <Label Text="Album" Grid.Column="3" HorizontalTextAlignment="Center"/>
+                <Label Text="Genre"   Grid.Column="4" HorizontalTextAlignment="Center"/>
+                <Label Text="Duration"  Grid.Column="5" HorizontalTextAlignment="Center" BackgroundColor="Red"/>
+            </Grid>-->
 
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
@@ -184,7 +183,7 @@
                         EmptyView="Nothing ..." >
 
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical"/>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
@@ -372,7 +371,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
@@ -401,8 +400,9 @@
                                     <Label Text="{Binding ArtistName}" Grid.Column="1" 
                                        ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                    <ratingsView:RatingControl Value="{Binding Rating}" Fill="DarkSlateBlue"
-                                                       Grid.Column="2" Shape="Heart"
+                                    <ratingsView:RatingControl Grid.Column="2" 
+                                        Value="{Binding Rating}" Fill="DarkSlateBlue"
+                                        Shape="Heart" HorizontalOptions="Start"
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">
                                         <ratingsView:RatingControl.GestureRecognizers>
@@ -414,15 +414,19 @@
 
 
                                     <Label Text="{Binding AlbumName}" Grid.Column="3"
-                                       
+                                       LineBreakMode="HeadTruncation" HorizontalOptions="Center"
                        ToolTipProperties.Text="{Binding AlbumName}"/>
 
                                     <Label Text="{Binding GenreName}" Grid.Column="4" 
+                                           LineBreakMode="HeadTruncation" 
                        ToolTipProperties.Text="{Binding GenreName}"/>
 
-                                    <Label Grid.Column="5"  
+                                    <Label Grid.Column="5" HorizontalOptions="Center"
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+
+                                    <Label Grid.Column="6" HorizontalOptions="Center"
+                       Text="{Binding FileFormat}" />
 
                                 </Grid>
                             </Border>
