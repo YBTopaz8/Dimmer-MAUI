@@ -28,7 +28,9 @@
                  BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
                 <dx:DXButton ButtonType="Outlined" Content="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
                  BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
-                <ActivityIndicator IsRunning="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                
+                <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
+                       IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
                 <Grid>
                     <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
                         <CollectionView.ItemTemplate>
@@ -40,9 +42,15 @@
                     </CollectionView>
                 </Grid>
             </VerticalStackLayout>
-           
+
+            <!--<dx:DXBorder >
+                <dx:TextEdit PlaceholderText="Last FM User Name"/>
+                <dx:TextEdit PlaceholderText="Last FM User PassWord"/>
+                
+            </dx:DXBorder>-->
         </VerticalStackLayout>
-        <VerticalStackLayout VerticalOptions="End" >
+        <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center"
+                             Margin="10">
             <HorizontalStackLayout>
                 <Image>
                     <Image.Source>

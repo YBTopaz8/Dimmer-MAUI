@@ -11,7 +11,7 @@ public partial class SingleSongShell : UraniumContentPage
 
         btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
-        dailyDateFilter.Date = DateTime.Now;
+        //dailyDateFilter.Date = DateTime.Now;
      
     }
 
@@ -137,74 +137,74 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         }
     }
 
-    private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
-    {
-        var newSelection = e.NewIndex;
-        switch (newSelection)
-        {
-            case 0:
-                await Task.WhenAll(
-                DailyStats.AnimateFadeInFront(),
-                WeeklyStats.AnimateFadeOutBack(),
+    //private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
+    //{
+    //    var newSelection = e.NewIndex;
+    //    switch (newSelection)
+    //    {
+    //        case 0:
+    //            await Task.WhenAll(
+    //            DailyStats.AnimateFadeInFront(),
+    //            WeeklyStats.AnimateFadeOutBack(),
 
 
-                MonthlyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeOutBack());
-                HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            case 1:
-                await Task.WhenAll(
-               DailyStats.AnimateFadeOutBack(),
-               WeeklyStats.AnimateFadeInFront(),   // Fade in WeeklyStats
-               MonthlyStats.AnimateFadeOutBack(),
-               YearlyStats.AnimateFadeOutBack()
-           );
-                HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            MonthlyStats.AnimateFadeOutBack(),
+    //            YearlyStats.AnimateFadeOutBack());
+    //            HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        case 1:
+    //            await Task.WhenAll(
+    //           DailyStats.AnimateFadeOutBack(),
+    //           WeeklyStats.AnimateFadeInFront(),   // Fade in WeeklyStats
+    //           MonthlyStats.AnimateFadeOutBack(),
+    //           YearlyStats.AnimateFadeOutBack()
+    //       );
+    //            HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
 
-                break;
-            case 2:
-                await Task.WhenAll(
-                DailyStats.AnimateFadeOutBack(),
-                WeeklyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeInFront(),  // Fade in MonthlyStats
-                YearlyStats.AnimateFadeOutBack()
-            );
-                HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            case 3:
-                await Task.WhenAll(
-                DailyStats.AnimateFadeOutBack(),
-                WeeklyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeInFront()    // Fade in YearlyStats
-            );
-                HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            default:
-                break;
-        }
-    }
+    //            break;
+    //        case 2:
+    //            await Task.WhenAll(
+    //            DailyStats.AnimateFadeOutBack(),
+    //            WeeklyStats.AnimateFadeOutBack(),
+    //            MonthlyStats.AnimateFadeInFront(),  // Fade in MonthlyStats
+    //            YearlyStats.AnimateFadeOutBack()
+    //        );
+    //            HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        case 3:
+    //            await Task.WhenAll(
+    //            DailyStats.AnimateFadeOutBack(),
+    //            WeeklyStats.AnimateFadeOutBack(),
+    //            MonthlyStats.AnimateFadeOutBack(),
+    //            YearlyStats.AnimateFadeInFront()    // Fade in YearlyStats
+    //        );
+    //            HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
-    private async void ShowHideChart_CheckChanged(object sender, EventArgs e)
-    {
-        var send = (UraniumUI.Material.Controls.CheckBox)sender;
+    //private async void ShowHideChart_CheckChanged(object sender, EventArgs e)
+    //{
+    //    var send = (UraniumUI.Material.Controls.CheckBox)sender;
 
-        var checkState = send.IsChecked;
-        switch (checkState)
-        {
-            case true:
-                await Task.WhenAll(DailyStats.AnimateFadeOutBack(),
-                dailyStatChart.AnimateFadeInFront());
-                break;
-            case false:
-                await Task.WhenAll(DailyStats.AnimateFadeInFront(),
-                dailyStatChart.AnimateFadeOutBack());
-                break;
-            default:
-                break;
-        }
+    //    var checkState = send.IsChecked;
+    //    switch (checkState)
+    //    {
+    //        case true:
+    //            await Task.WhenAll(DailyStats.AnimateFadeOutBack(),
+    //            dailyStatChart.AnimateFadeInFront());
+    //            break;
+    //        case false:
+    //            await Task.WhenAll(DailyStats.AnimateFadeInFront(),
+    //            dailyStatChart.AnimateFadeOutBack());
+    //            break;
+    //        default:
+    //            break;
+    //    }
 
-    }
+    //}
 
     private void NowPlayingBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {

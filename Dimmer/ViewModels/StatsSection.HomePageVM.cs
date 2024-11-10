@@ -285,6 +285,8 @@ public partial class SingleSongStatistics : ObservableObject
     ObservableCollection<YearlyStats> yearlyStats;
     [ObservableProperty]
     int playCount;
+    [ObservableProperty]
+    DateTimeOffset playDateTime;
 }
 
 public partial class YearlyStats : ObservableObject

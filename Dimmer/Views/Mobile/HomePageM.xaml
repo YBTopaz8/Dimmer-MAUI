@@ -11,9 +11,9 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
-            Shell.NavBarIsVisible="True"
+            Shell.NavBarIsVisible="False"
             xmlns:dx="http://schemas.devexpress.com/maui"
-            x:Name="myPage" Shell.TitleColor="Black"            
+            x:Name="myPage" 
             Shell.TabBarBackgroundColor="Red"
             >
 
@@ -61,7 +61,7 @@
                                 <VerticalStackLayout >
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
 
-                                    <Image BackgroundColor="Transparent" 
+                                    <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"
 >
                                         <Image.Source>
@@ -95,7 +95,7 @@
     <dx:DXStackLayout >
         
         <HorizontalStackLayout HorizontalOptions="End" 
-                               x:Name="TopPart" Margin="25,0">
+                               x:Name="TopPart" Margin="10,0">
             
             <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
                 HeightRequest="35">
@@ -188,7 +188,7 @@
                 <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8"
                              IconWidth="25" IconHeight="35" VerticalOptions="End"
                              HorizontalOptions="End" x:Name="NowPlaySearchBtmSheet"
-                             TapPressed="NowPlaySearchBtmSheet_TapPressed"
+                             TapPressed="NowPlaySearchBtmSheet_TapPressed" 
                              TapReleased="NowPlaySearchBtmSheet_TapReleased" IconColor="White"
                              CornerRadius="30" PressedBackgroundColor="DarkSlateBlue">
                     <dx:DXButton.Icon>
@@ -269,7 +269,7 @@
                         <ResourceDictionary>
                             <Style TargetType="dx:DXButton">
                                 <Setter Property="ButtonType" Value="ToolButton"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Start"/>
 
                             </Style>
                             <Style TargetType="Label">
@@ -279,15 +279,19 @@
                             </Style>
                         </ResourceDictionary>
                     </VerticalStackLayout.Resources>
-                    <VerticalStackLayout HorizontalOptions="Center" >
-
+                    <HorizontalStackLayout HorizontalOptions="Center" >
+                        <dx:DXImage Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                    HeightRequest="50" WidthRequest="50"/>
+                        <VerticalStackLayout>
+                            
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" HorizontalTextAlignment="Center"
                                LineBreakMode="NoWrap" />
                         <Label Text="-" HorizontalTextAlignment="Center"/>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                                FontSize="22"
                                HorizontalTextAlignment="Center"/>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
 
                     <dx:DXSeparator />
                     <dx:DXButton Content="Set Play Repeat Count"

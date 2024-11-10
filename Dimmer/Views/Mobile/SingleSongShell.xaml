@@ -109,13 +109,13 @@
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <Grid Margin="5,5" RowDefinitions="Auto, *">
+                        <Grid Margin="5,5" RowDefinitions="*,Auto">
                             <Grid.Resources>
                                 <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
 
                             </Grid.Resources>
-                            <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
+                            <HorizontalStackLayout Spacing="10" Grid.Row="1" HeightRequest="50"
                    Margin="5" HorizontalOptions="Center">
                                 <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
                                                     Clicked="SearchLyricsOnLyrLib_Clicked">
@@ -133,7 +133,7 @@
                                 </Button>
 
                             </HorizontalStackLayout>
-                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
+                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="0"  
                                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>
                                     <ContentView>
@@ -187,242 +187,6 @@
                     </chart:SfTabItem.Content>
                 </chart:SfTabItem>
 
-                <chart:SfTabItem Header="Stats" TextColor="Gray">
-                    <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Bar_chart}"/>
-                    </chart:SfTabItem.ImageSource>
-                    <chart:SfTabItem.Content>
-                        <VerticalStackLayout>
-                            <Grid ColumnDefinitions="Auto,*,Auto"
-                                  x:DataType="vm:HomePageVM">
-                                
-                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Start">
-                                    <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"
-                                           LineBreakMode="WordWrap"/>
-                                    <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
-                                    <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
-                                    <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
-                                </VerticalStackLayout>
-                                <Grid HorizontalOptions="End" 
-                                      Grid.Column="1">
-
-                                    <Image Source="red_heart.gif" IsVisible="{Binding IsAnimatingFav}" 
-                                           IsAnimationPlaying="True"
-                                           HeightRequest="75" WidthRequest="75"/>
-                                </Grid>
-                            </Grid>
-
-                            <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="10">
-
-                                <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
-                                                   HorizontalOptions="Center" Command="{Binding RateSongCommand}"
-                                                   CommandParameter="{Binding .}" 
-                                                   AllowRating="True" Animate="True" 
-                                                   StrokeColor="DarkSlateBlue" Size="30"
-                                                   Maximum="5" Fill="DarkSlateBlue"
-                                                   Margin="10">
-                                    <ratingsView:RatingControl.GestureRecognizers>
-                                    </ratingsView:RatingControl.GestureRecognizers>
-                                </ratingsView:RatingControl>
-
-                            </HorizontalStackLayout>
-                            <Grid RowDefinitions="Auto,*" Grid.Row="1" RowSpacing="5">
-                                <VerticalStackLayout Spacing="5">
-                                    <dx:DXButton Content="Filters" BackgroundColor="DarkSlateBlue" ButtonType="Filled"
-                                                 TextColor="White" Grid.Row="0" Command="{Binding Commands.ToggleExpandState,Source={x:Reference StatsFilterExpander}}"/>
-                                    <dx:DXExpander x:Name="StatsFilterExpander" IsExpanded="False"
-                           VerticalExpandMode="FromStartToEnd" HorizontalExpandMode="None">
-                                        <dx:DXExpander.Content>
-                                            <VerticalStackLayout  HorizontalOptions="Center" Spacing="10">
-
-                                                <chart:SfSegmentedControl x:DataType="vm:HomePageVM" BackgroundColor="#111111" 
-                                                    SelectionChanged="SfSegmentedControl_SelectionChanged" 
-                                                    HorizontalOptions="Start" StrokeThickness="1" 
-                                                    Stroke="DarkSlateBlue" SelectedIndex="{Binding CurrentNowPlayingStatsViewIndex}" 
-                                                    ItemsSource="{Binding StatsFilters}" SegmentBackground="Transparent">
-                                                    <chart:SfSegmentedControl.TextStyle>
-                                                        <chart:SegmentTextStyle TextColor="White"/>
-                                                    </chart:SfSegmentedControl.TextStyle>
-                                                </chart:SfSegmentedControl>
-
-                                                <Grid ColumnDefinitions="Auto,*,Auto" Grid.Column="1" >
-                                                    <dx:DateEdit DisplayFormat="ddd, MMM d, yyyy"
-                                                                 AllowAnimation="True" x:Name="dailyDateFilter" Grid.Column="0"/>
-                                                    <material:CheckBox LabelPosition="After" Text="View Chart" Grid.Column="2"
-CheckChanged="ShowHideChart_CheckChanged"/>
-                                                </Grid>
-                                            </VerticalStackLayout>
-
-                                        </dx:DXExpander.Content>
-                                    </dx:DXExpander>
-
-
-                                </VerticalStackLayout>
-                               
-                                <CollectionView x:Name="DailyStats" x:DataType="vm:HomePageVM" Grid.Row="1"
-                                                 ItemsSource="{Binding SongPickedForStats.DailyStats.PlayDates}" 
-                                                            
-                                                                HorizontalOptions="Center" SelectionMode="Single" IsVisible="True"
-                                                            EmptyView="No Data...">
-                                    <CollectionView.Header>
-                                        <Grid ColumnDefinitions="*,*" Padding="10,0">
-
-                                            <Label Text="Day" FontAttributes="Bold" Grid.Column="0"
-                                                                   HorizontalOptions="Start"/>
-
-
-                                            <Label Text="Was Played Completely" Grid.Column="1"
-                                                                   FontAttributes="Bold" HorizontalOptions="End"/>
-                                        </Grid>
-                                    </CollectionView.Header>
-
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout Orientation="Vertical"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:PlayDateAndIsPlayCompletedModelView">
-                                            <Border x:Name="BorderOfDailyStat" Padding="10" Margin="5">
-                                                <Border.Triggers>
-                                                    <DataTrigger TargetType="Border" Binding="{Binding WasPlayCompleted}" Value="True">
-                                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                                        <Setter Property="StrokeThickness" Value="0.8"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger TargetType="Border" Binding="{Binding WasPlayCompleted}" Value="False">
-                                                        <Setter Property="Stroke" Value="Gray"/>
-                                                        <Setter Property="StrokeThickness" Value="1"/>
-                                                    </DataTrigger>
-                                                </Border.Triggers>
-                                                <Grid ColumnDefinitions="*">
-                                                    <Label Grid.Column="0" 
-                                                                           Text="{Binding DatePlayed, Converter={StaticResource DateTimeToTimeConverter}}"/>
-                                                    <Label Grid.Column="1" HorizontalOptions="End" 
-                                                                           Text="{Binding WasPlayCompleted}"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                                <VerticalStackLayout Grid.Row="1" HorizontalOptions="Center"
-                                                                 x:Name="dailyStatChart"
-                                                                 IsVisible="False">
-
-                                    <chart:SfCircularChart WidthRequest="200" HeightRequest="200">
-                                        <chart:SfCircularChart.Resources>
-                                            <DataTemplate x:Key="template1">
-                                                <HorizontalStackLayout  VerticalOptions="Fill" Spacing="0" Padding="0" Margin="0">
-                                                    <Label Text="{Binding Item.LabelForNumberOfCompletedPlays}" VerticalTextAlignment="Center" HorizontalOptions="Start" TextColor="White" FontAttributes="Bold" FontSize="14" Margin="2,0,2,0" />
-                                                    <Label Text="{Binding Item.TheCount,StringFormat=' :  {0}'}" VerticalTextAlignment="Center" HorizontalOptions="End" FontAttributes="Bold" Margin="0,0,2,0" FontSize="14" />
-                                                </HorizontalStackLayout>
-                                            </DataTemplate>
-                                        </chart:SfCircularChart.Resources>
-                                        <chart:SfCircularChart.Series >
-
-                                            <chart:PieSeries ItemsSource="{Binding SongPickedForStats.DailyStats.ColforStats}"
-                                                                         XBindingPath="LabelForNumberOfCompletedPlays"
-                                                                         YBindingPath="TheCount"
-                                                                         ShowDataLabels="True"
-                                                                         StrokeWidth="5"
-                                                                         EnableAnimation="True"
-                                                                         EnableTooltip="True"
-                                                                         
-                                                                         TooltipTemplate="{StaticResource template1}">
-                                            </chart:PieSeries>
-                                        </chart:SfCircularChart.Series>
-                                    </chart:SfCircularChart>
-                                </VerticalStackLayout>
-
-                                <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.WeeklyStats}"
-                                                            x:Name="WeeklyStats"
-                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
-                                    <CollectionView.Header>
-                                        <Grid ColumnDefinitions="*,*" Padding="10,5">
-
-                                            <Label Text="Day" FontAttributes="Bold" Grid.Column="0" 
-                                                   HorizontalOptions="Start"/>
-                                            <Label Text="Play Count" Grid.Column="1" 
-                                                   FontAttributes="Bold" HorizontalOptions="End"/>
-                                        </Grid>
-                                    </CollectionView.Header>
-
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:WeeklyStats">
-                                            <Border Padding="10" Margin="10" >
-                                                <Grid ColumnDefinitions="*">
-                                                    <Label Grid.Column="0" 
-                                                                        Text="{Binding Week}"/>
-                                                    <Label Grid.Column="1" HorizontalOptions="End"
-                                                                        Text="{Binding Count}"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                                <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.MonthlyStats}"
-                                                            x:Name="MonthlyStats" x:DataType="vm:HomePageVM"
-                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
-                                    <CollectionView.Header>
-                                        <Grid ColumnDefinitions="*,*" Padding="10,5">
-
-                                            <Label Text="Month" FontAttributes="Bold" Grid.Column="0"
-                    HorizontalOptions="Start"/>
-                                            <Label Text="Play Count" Grid.Column="1"
-                    FontAttributes="Bold" HorizontalOptions="End"/>
-                                        </Grid>
-                                    </CollectionView.Header>
-
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:MonthlyStats">
-                                            <Border Padding="10" Margin="10" >
-                                                <Grid ColumnDefinitions="*">
-                                                    <Label Grid.Column="0"  Text="{Binding Month}"/>
-                                                    <Label Grid.Column="1" HorizontalOptions="End" Text="{Binding Count}"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                                <CollectionView Grid.Row="1" ItemsSource="{Binding SongPickedForStats.YearlyStats}"
-                                                            x:Name="YearlyStats" x:DataType="vm:HomePageVM"
-                                                            HorizontalOptions="Center" SelectionMode="Single" IsVisible="False">
-                                    <CollectionView.Header>
-                                        <Grid ColumnDefinitions="*,*" Padding="10,5">
-
-                                            <Label Text="Year" FontAttributes="Bold" Grid.Column="0"
-                                                               HorizontalOptions="Start"/>
-                                            <Label Text="Play Count" Grid.Column="1" 
-                                                               FontAttributes="Bold" HorizontalOptions="End"/>
-                                        </Grid>
-                                    </CollectionView.Header>
-
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout ItemSpacing="4" Orientation="Vertical"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:YearlyStats">
-                                            <Border Padding="10" Margin="10" >
-                                                <Grid ColumnDefinitions="*">
-                                                    <Label Grid.Column="0"
-                        Text="{Binding Month}"/>
-                                                    <Label Grid.Column="1" HorizontalOptions="End"
-                        Text="{Binding Count}"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-
-                            </Grid>
-                        </VerticalStackLayout>
-                    </chart:SfTabItem.Content>
-                </chart:SfTabItem>
 
             </chart:SfTabView.Items>
 
