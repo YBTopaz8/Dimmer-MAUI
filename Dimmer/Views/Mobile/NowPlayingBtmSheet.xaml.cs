@@ -1,5 +1,8 @@
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
+using Dimmer_MAUI.Views.Mobile.CustomViewsM;
+using System.Diagnostics;
+using UraniumUI.Extensions;
 
 namespace Dimmer_MAUI.Views.Mobile;
 

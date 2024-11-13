@@ -1,5 +1,7 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
+using System.Diagnostics;
+
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
@@ -275,7 +277,7 @@ public partial class HomePageVM : ObservableObject
             return string.Empty;
         }
         IsShellLoadingPage = false;
-        (SelectedSongToOpenBtmSheet.HasSyncedLyrics, SelectedSongToOpenBtmSheet.SyncLyrics) = LyricsService.HasLyrics(SelectedSongToOpenBtmSheet);
+     
         CurrentPage = PageEnum.NowPlayingPage;
         if (!string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.CoverImagePath) && !File.Exists(SelectedSongToOpenBtmSheet.CoverImagePath))
         {

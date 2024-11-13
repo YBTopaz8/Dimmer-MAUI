@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public class SongsManagementService : ISongsManagementService, IDisposable
 {

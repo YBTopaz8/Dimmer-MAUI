@@ -1,4 +1,7 @@
+using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
+using System.Diagnostics;
+using Colors = Microsoft.Maui.Graphics.Colors;
 
 namespace Dimmer_MAUI.Views.Mobile;
 public partial class ShareSongPage : ContentPage
@@ -25,19 +28,21 @@ public partial class ShareSongPage : ContentPage
         (hasLyrics, sharelyrics) = LyricsService.HasLyrics(HomePageVM.SelectedSongToOpenBtmSheet);
 
         LyricsColView.ItemsSource = sharelyrics;
-        if (sharelyrics.Count > 1)
+        if (sharelyrics?.Count > 1)
         {
-            addLyrText.IsVisible = true;
+            //addLyrText.IsVisible = true;
         }
         string? str = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
+        HomePageVM.PhotoDumps.Clear();
         if (!string.IsNullOrEmpty(str))
         {            
             currentsong = HomePageVM.SelectedSongToOpenBtmSheet;
-            
+            HomePageVM.PhotoDumps.Add(str);
+            SharePageColViewImg.ItemSpanCount = 1;
         }
         else
         {
-            myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+            PageGrid.BackgroundColor = Colors.Black;
         }
     }
     protected override void OnDisappearing()
@@ -116,16 +121,16 @@ public partial class ShareSongPage : ContentPage
         if (isDarkByDefault)
         {
             //now go light
-            HighlightedLyricBtn.TextColor = Microsoft.Maui.Graphics.Colors.Black;
+            HighlightedLyricEdit.TextColor = Microsoft.Maui.Graphics.Colors.Black;
             
-            HighlightedLyricBtn.BackgroundColor= Microsoft.Maui.Graphics.Colors.White;
-            HighlightedLyricBtn.BorderColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+            HighlightedLyricEdit.BackgroundColor= Microsoft.Maui.Graphics.Colors.White;
+            //HighlightedLyricEdit.BorderColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         }
         else
         {
             //now go dark
-            HighlightedLyricBtn.TextColor = Microsoft.Maui.Graphics.Colors.White;
-            HighlightedLyricBtn.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
+            HighlightedLyricEdit.TextColor = Microsoft.Maui.Graphics.Colors.White;
+            HighlightedLyricEdit.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
         }
     }
 
@@ -207,14 +212,14 @@ public partial class ShareSongPage : ContentPage
         
         
         LyricPickerBtmSheet.Close();
-        HighlightedLyricBtn.Content = ee.Text;
-        HighlightedLyricBtn.IsVisible = true;
+        HighlightedLyricEdit.Text = ee.Text;
+        HighlightedLyricEdit.IsVisible = true;
     }
 
     private void rmvLyr_Clicked(object sender, EventArgs e)
     {
-        HighlightedLyricBtn.Content = string.Empty;
-        HighlightedLyricBtn.IsVisible = false;
+        HighlightedLyricEdit.Text = string.Empty;
+        HighlightedLyricEdit.IsVisible = false;
         LyricPickerBtmSheet.Close();
     }
 
@@ -293,23 +298,24 @@ public partial class ShareSongPage : ContentPage
     private async void ToggleBGImg_ChipTap(object sender, ChipEventArgs e)
     {
         var send = sender as ChoiceChipGroup;
+        HomePageVM.PhotoDumps.Clear();
+        PageGrid.BackgroundColor = Colors.Transparent;
         switch (send.SelectedIndex)
         {
             case 0: //solid color
                 customImgPath = string.Empty;
-                
-                myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
+                PageGrid.BackgroundColor = Colors.Black;
                 break;
             case 1: //song cover as bg
                 customImgPath = string.Empty;
                 HomePageVM.PhotoDumps.Add(HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath);
-
-                myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+                SharePageColViewImg.ItemSpanCount = 1;
+                PageGrid.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 break;
             case 2: // one img
                 HomePageVM.PhotoDumps.Clear();
                 customImgPath = string.Empty;
-                if (await ConfirmActionPopup("Pick Mulitple Images"))
+                if (await ConfirmActionPopup("Pick A Single Image"))
                 {
                     var res = await FilePicker.Default.PickAsync(
                     new PickOptions()
@@ -322,6 +328,7 @@ public partial class ShareSongPage : ContentPage
                         HomePageVM.PhotoDumps.Add(res.FullPath);                        
                     }
                     SharePageColViewImg.ItemSpanCount = 1;
+                    SharePageColViewImg.Orientation = DevExpress.Maui.CollectionView.LayoutOrientation.Horizontal;
                 }
                 break;
             case 3:
@@ -331,7 +338,7 @@ public partial class ShareSongPage : ContentPage
                     var res = await FilePicker.Default.PickMultipleAsync(
                     new PickOptions()
                     {
-                        PickerTitle = "Select Image To Share",
+                        PickerTitle = "Select Images To Share",
                         FileTypes = FilePickerFileType.Images,
                     });
                     if (res != null)
@@ -374,8 +381,72 @@ public partial class ShareSongPage : ContentPage
         }
     }
 
-    private void SolidBGColor_TapReleased(object sender, DXTapEventArgs e)
+    private void SolidBGColor_TapPressed(object sender, DXTapEventArgs e)
     {
+        var send = sender as DXColorSelector;
+        var color = send.ItemsSource.ToList();
         
+        var sIndex = send.SelectedIndex;
+        
+        PageGrid.BackgroundColor = color[sIndex];
+
+    }
+
+    private void CustomText_Clicked(object sender, EventArgs e)
+    {
+        // Create a StackLayout to hold the expander and buttons
+        var itemSL = new DXStackLayout()
+        {
+            Orientation = StackOrientation.Vertical,
+            HeightRequest = 490
+        };
+        TextEdit btnContent = new TextEdit()
+        {             
+            //Text = CustUserText.Text
+        };
+
+
+        itemSL.GestureRecognizers.Add(DragDropGest);
+
+        // Create the expander
+        DXExpander itemExp = new DXExpander();
+        itemExp.IsExpanded = false;
+        itemExp.VerticalExpandMode = ExpandMode.FromStartToEnd;
+
+        HorizontalStackLayout buttonLayout = new HorizontalStackLayout();
+
+        // Create the 'Delete Text' button
+        DXButton DeleteTextBtn = new DXButton()
+        {
+            WidthRequest = 50,
+            BackgroundColor = Colors.DarkRed,
+            TextColor = Colors.White,
+            Content = "Delete",
+        };
+        DeleteTextBtn.Clicked += (s, e) =>
+        {
+            ContentToShare.Children.Remove(itemSL); // Removes the entire layout with the expander
+        };
+
+        buttonLayout.Children.Add(DeleteTextBtn);
+
+        // Set the expander's content to the button layout
+        itemExp.Content = buttonLayout;
+
+        // Add the expander to the main stack layout
+        itemSL.Children.Add(btnContent);
+        itemSL.Children.Add(itemExp);
+
+        // Add the stack layout to the parent container
+        ContentToShare.Children.Add(itemSL);
+
+        //CustUserText.Text = string.Empty;
+        //CustomTextExp.IsExpanded = false;
+    }
+
+
+    private void HighlightedLyricEdit_Focused(object sender, FocusEventArgs e)
+    {
+        ShareTextExp.Commands.ToggleExpandState.Execute(null);
     }
 }

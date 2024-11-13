@@ -1,4 +1,10 @@
 //using Plainer.Maui.Controls;
+using DevExpress.Maui.CollectionView;
+
+using System.Diagnostics;
+using UraniumUI.Views;
+using Timer = System.Timers.Timer;
+
 
 namespace Dimmer_MAUI.Views.Mobile;
 
@@ -198,7 +204,97 @@ public partial class HomePageM : ContentPage
         //var commandParam = 
     }
 
-   
+    List<SongsModelView>? filteredSongs=new();
+    private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
+    {
+        var searchBar = (TextEdit)sender;
+        var txt = searchBar.Text;
+
+        if (!string.IsNullOrEmpty(txt))
+        {
+            if (txt.Length >= 1)
+            {
+                HomePageVM.IsOnSearchMode = true;
+                // Setting the FilterString for SongsColView
+                SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
+                filteredSongs?.Clear();
+
+                // Apply the filter to the DisplayedSongs collection
+                filteredSongs = HomePageVM.DisplayedSongs
+                    .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            }
+            else
+            {
+                HomePageVM.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+
+            }
+        }
+    }
+    private void ArtistNameTextEdit_TextChanged(object sender, EventArgs e)
+    {
+        var searchBar = (TextEdit)sender;
+        var txt = searchBar.Text;
+
+        if (!string.IsNullOrEmpty(txt))
+        {
+            if (txt.Length >= 1)
+            {
+                HomePageVM.IsOnSearchMode = true;
+                // Setting the FilterString for SongsColView
+                SongsColView.FilterString = $"Contains([ArtistName], '{ArtistNameTextEdit.Text}')";
+                filteredSongs?.Clear();
+
+                // Apply the filter to the DisplayedSongs collection
+                filteredSongs = HomePageVM.DisplayedSongs
+                    .Where(item => item.ArtistName.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            }
+            else
+            {
+                HomePageVM.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+
+            }
+        }
+    }
+    private void AlbumNameTextEdit_TextChanged(object sender, EventArgs e)
+    {
+        var searchBar = (TextEdit)sender;
+        var txt = searchBar.Text;
+
+        if (!string.IsNullOrEmpty(txt))
+        {
+            if (txt.Length >= 1)
+            {
+                HomePageVM.IsOnSearchMode = true;
+                // Setting the FilterString for SongsColView
+                SongsColView.FilterString = $"Contains([AlbumName], '{AlbumNameTextEdit.Text}')";
+                filteredSongs?.Clear();
+
+                // Apply the filter to the DisplayedSongs collection
+                filteredSongs = HomePageVM.DisplayedSongs
+                    .Where(item => item.AlbumName.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            }
+            else
+            {
+                HomePageVM.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+
+            }
+        }
+    }
+    private void ClearSearch_Clicked(object sender, EventArgs e)
+    {
+        SongsColView.FilterString = string.Empty;
+        SongTitleTextEdit.Text = string.Empty;
+    }
+    
 
     private System.Timers.Timer _longPressTimer;
     private bool _isLongPressed;
@@ -230,107 +326,30 @@ public partial class HomePageM : ContentPage
 
     }
 
-    private void ClearSearch_Clicked(object sender, EventArgs e)
-    {
-        SongsColView.FilterString = string.Empty;
-        SongTitleTextEdit.Text = string.Empty;
-        ArtistNameTextEdit.Text = string.Empty;
-        AlbumNameTextEdit.Text = string.Empty;
-    }
-
     private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
     {
         var s = sender as ChoiceChipGroup;
         switch (s.SelectedIndex)
         {
             case 0:
-                SongsColView.ItemSpanCount = 1;
                 SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfOne"];
                 break;
 
             case 1:
-                SongsColView.ItemSpanCount = 2;
+                SongsColView.ItemSpanSpacing = 2;
                 SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
-
                 break;
             case 2:
-                SongsColView.ItemSpanCount = 3;
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfThree"];
                 break;
             case 3:
-                SongsColView.ItemSpanCount = 4;
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfFour"];
                 break;
             default:
                 break;
         }
         Debug.WriteLine(s.GetType());
     }
-
-    private void SingleSongCxtMenuArea2_Clicked(object sender, EventArgs e)
-    {
-        SingleSongCxtMenuArea_Clicked(sender, e);
-    }
-    List<SongsModelView>? filteredSongs = new();
-    private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
-    {
-        SearchColView(SongTitleTextEdit, 0);
-
-    }
-
-    private void ArtistNameTextEdit_TextChanged(object sender, EventArgs e)
-    {
-        SearchColView(ArtistNameTextEdit, 1);
-
-    }
-
-    private void AlbumNameTextEdit_TextChanged(object sender, EventArgs e)
-    {
-        SearchColView(AlbumNameTextEdit, 2);
-    }
-    public void SearchColView(TextEdit sender, int SenderType)//0=title,1=artist, 2=album
-    {
-        var searchBar = (TextEdit)sender;
-        var txt = searchBar.Text;
-
-        if (!string.IsNullOrEmpty(txt))
-        {
-            if (txt.Length >= 1)
-            {
-                HomePageVM.IsOnSearchMode = true;
-
-                filteredSongs?.Clear();
-
-                switch (SenderType)
-                {
-                    case 0:
-                        SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
-                        break;
-
-                    case 1:
-                        SongsColView.FilterString = $"Contains([ArtistName], '{ArtistNameTextEdit.Text}')";
-                        break;
-                    case 2:
-                        SongsColView.FilterString = $"Contains([AlbumName], '{AlbumNameTextEdit.Text}')";
-                        break;
-                    default:
-                        break;
-                }
-                // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs
-                    .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-            }
-            else
-            {
-                HomePageVM.IsOnSearchMode = false;
-                SongsColView.FilterString = string.Empty;
-
-            }
-        }
-    }
-
 }
 
 

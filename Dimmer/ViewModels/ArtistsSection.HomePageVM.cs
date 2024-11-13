@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Linq;
+//using WinRT;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {

@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
+﻿using System;
+
+namespace Dimmer_MAUI.Utilities.TypeConverters;
 public class DateTimeOffsetToLocalDateConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

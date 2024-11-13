@@ -14,11 +14,14 @@ global using CommunityToolkit.Mvvm.Input;
 global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Icons.FontAwesome;
 global using FontAw = UraniumUI.Icons.FontAwesome;
+global using UraniumUI.Material.Controls;
 
 global using MongoDB.Bson;
 global using Realms;
 
 global using Dimmer_MAUI.MAudioLib;
+
+global using CommunityToolkit.Maui.Core.Platform;
 
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using DevExpress.Maui;
@@ -68,6 +71,8 @@ global using CommunityToolkit.Maui.Views;
 global using CommunityToolkit.Maui.Alerts;
 global using CommunityToolkit.Maui.Core;
 global using Dimmer_MAUI.CustomPopUpViews;
+
+global using ATL;
 global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
 

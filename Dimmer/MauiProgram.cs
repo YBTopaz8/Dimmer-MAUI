@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿using Dimmer_MAUI.Views.Desktop.CustomViews;
+
+namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -10,7 +12,8 @@ public static class MauiProgram
             .UseDevExpressCollectionView()
             .UseDevExpressControls()
             .UseDevExpressDataGrid()
-            .UseDevExpressEditors().UseDevExpressGauges()
+            .UseDevExpressEditors()
+            .UseDevExpressGauges()
 
             .UseMauiCommunityToolkit(options =>
             {

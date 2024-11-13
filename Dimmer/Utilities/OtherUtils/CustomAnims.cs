@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿using Microsoft.Maui.Controls;
+
+namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class CustomAnimsExtensions
 {
     public static async Task Bounce(this View element)

@@ -24,7 +24,7 @@
                 </DataTemplate>
             </dx:DXCollectionView.ItemTemplate>
         </dx:DXCollectionView>
-        <Grid x:Name="contentToShare" Grid.Row="0" 
+        <Grid x:Name="ContentToShare" Grid.Row="0" 
                              BackgroundColor="Transparent">
 
             <VerticalStackLayout ZIndex="0" BackgroundColor="Transparent"
@@ -118,15 +118,30 @@
                 </VerticalStackLayout>
 
             </VerticalStackLayout>
-       
-            
-            <dx:DXButton x:Name="HighlightedLyricBtn" Grid.Row="1" TextColor="White"
-                         HeightRequest="50" ButtonType="Outlined" FontSize="25" 
-                         IsVisible="False" >
-                <dx:DXButton.GestureRecognizers>
-                    <PanGestureRecognizer x:Name="DragDropGestt" PanUpdated="DragDropGest_PanUpdated"/>
-                </dx:DXButton.GestureRecognizers>
-            </dx:DXButton>
+
+            <dx:DXStackLayout Orientation="Vertical" IsVisible="False">
+                <dx:DXStackLayout.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="DragDropGest_PanUpdated"/>
+                </dx:DXStackLayout.GestureRecognizers>
+                <Label x:Name="HighlightedLyricEdit" Grid.Row="1" TextColor="White"
+                                HeightRequest="50">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer x:Name="TapToShowCustomTextExpander" 
+                                              Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShareTextExp}}"/>
+                    </Label.GestureRecognizers>
+                    
+                </Label>
+                <dx:DXExpander VerticalExpandMode="FromStartToEnd" x:Name="ShareTextExp"
+                               HorizontalExpandMode="FromStartToEnd" IsExpanded="False"
+                               >
+                    <dx:DXExpander.Content>
+                        <HorizontalStackLayout>
+                            <dx:DXButton Content="Delete"/>
+                        </HorizontalStackLayout>
+                        
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+            </dx:DXStackLayout>
         </Grid>
 
         <VerticalStackLayout Spacing="10" VerticalOptions="End"
@@ -147,29 +162,6 @@
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                 
-            <dx:DXButton x:Name="addLyrText" IsVisible="False"
-    BackgroundColor="Transparent" Clicked="AddLyrText_Clicked" 
-                     ShowContent="False">
-                <dx:DXButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Text_fields}"/>
-                </dx:DXButton.Icon>
-            </dx:DXButton>
-            <dx:DXButton x:Name="ToggleSongCover" 
-    BackgroundColor="Transparent" Clicked="ToggleSongCoverBigSmoll_Clicked" 
-                     ShowContent="False">
-                   
-                <dx:DXButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Replace_image}"/>
-                </dx:DXButton.Icon>
-            </dx:DXButton>
-            <dx:DXButton x:Name="ShareButton" 
-    Command="{Binding Commands.Close,Source={x:Reference LyricPickerBtmSheet}}" 
-    BackgroundColor="DarkSlateBlue" Clicked="OnShareButtonClicked" 
-                     ShowContent="False">
-                <dx:DXButton.Icon>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Share}"/>
-                </dx:DXButton.Icon>
-                </dx:DXButton>
             </HorizontalStackLayout>
         </VerticalStackLayout>
         <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.65"
@@ -179,8 +171,6 @@
                 <HorizontalStackLayout HorizontalOptions="Center">
                     <Label Text="Toolbox !" HorizontalOptions="Center"
                            FontSize="24" HorizontalTextAlignment="Center"/>
-                    <!--<Image Source="smirking_face.gif"
-                           HeightRequest="30" IsAnimationPlaying="True"/>-->
                 </HorizontalStackLayout>
                 <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
                                   CornerRadius="15" Padding="0,15">
@@ -212,13 +202,15 @@
                     </dx:ChoiceChipGroup>
 
                 </dx:DXStackLayout>
-                <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
-                   CornerRadius="15" Padding="0,15">
+                
+                <dx:DXStackLayout BorderColor="DarkSlateBlue"
+                                  BorderThickness="0.4" CornerRadius="15" 
+                                  Padding="0,15">
 
                     <Label Text="Set Song Card" Margin="15,0"/>
                     <dx:DXColorSelector ItemsSource="{Binding ShareColors}"
-                                        x:Name="SolidBGColor"
-                                        TapReleased="SolidBGColor_TapReleased"/>
+                                        x:Name="SolidBGColor" TapPressed="SolidBGColor_TapPressed"                                        
+                                        Margin="15,0"/>
 
                     <dx:ChoiceChipGroup AllowDeselect="False"
                                     BoxMode="Outlined"
@@ -241,32 +233,19 @@
                        
                     </dx:ChoiceChipGroup>
 
-                </dx:DXStackLayout><dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
-                   CornerRadius="15" Padding="0,15">
-
-                    <Label Text="Set Song Card" Margin="15,0"/>
-                    <dx:ChoiceChipGroup x:Name="ToggleSongCard" AllowDeselect="False"
-                                    BoxMode="Outlined"
-                                    ChipTap="ToggleSongCard_ChipTap">
-                        <dx:Chip Text="No Card">
-                            <dx:Chip.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image_not_supported}"/>
-                            </dx:Chip.Icon>
-                        </dx:Chip>
-                        <dx:Chip Text="Smol Card">
-                            <dx:Chip.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
-                            </dx:Chip.Icon>
-                        </dx:Chip>
-                        <dx:Chip Text="Big Card">
-                            <dx:Chip.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Full_coverage}"/>
-                            </dx:Chip.Icon>
-                        </dx:Chip>
-                       
-                    </dx:ChoiceChipGroup>
-
                 </dx:DXStackLayout>
+                              
+                <dx:DXButton x:Name="ShareButton" 
+                             Command="{Binding Commands.Close,Source={x:Reference LyricPickerBtmSheet}}" 
+                             BackgroundColor="DarkSlateBlue" Clicked="OnShareButtonClicked" 
+                             ShowContent="False" ButtonType="Filled" HeightRequest="60"
+                             IconWidth="40" IconHeight="40"
+                             Content="Share!">
+                    
+                    <dx:DXButton.Icon>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Share}"/>
+                    </dx:DXButton.Icon>
+                </dx:DXButton>
             </dx:DXStackLayout>
         </dx:BottomSheet>
         <dx:BottomSheet AllowedState="All" AllowDismiss="True"

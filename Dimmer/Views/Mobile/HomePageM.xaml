@@ -105,7 +105,7 @@
                 </dx:DXStackLayout.Triggers>
                 <toolkit:AvatarView HeightRequest="240" WidthRequest="240" StrokeThickness="0"
                                     ImageSource="{Binding CoverImagePath}" CornerRadius="5"/>
-                <dx:DXButton Clicked="SingleSongCxtMenuArea2_Clicked"
+                <!--<dx:DXButton Clicked="SingleSongCxtMenuArea2_Clicked"
                              x:Name="SingleSongCxtMenuArea2"
                              BackgroundColor="Transparent"
                              PressedBackgroundColor="DarkSlateBlue"
@@ -136,7 +136,7 @@
                             </HorizontalStackLayout>
                         </FlexLayout>
                     </dx:DXButton.Content>
-                </dx:DXButton>
+                </dx:DXButton>-->
                 
                 
             </dx:DXStackLayout>
@@ -146,8 +146,7 @@
 
     </ContentPage.Resources>
 
-    <dx:DXStackLayout >
-        
+    <dx:DXStackLayout>        
         <HorizontalStackLayout HorizontalOptions="End" 
                                x:Name="TopPart" Margin="10,0">
             
@@ -168,7 +167,7 @@
                             ItemsSource="{Binding DisplayedSongs, Mode=TwoWay}"
                             Tap="SongsColView_Tap" SelectedItem="{Binding TemporarilyPickedSong}"
                             ItemSpacing="5"
-                                 ItemTemplate="{StaticResource HomePageColViewGridOfOne}">
+                            ItemTemplate="{StaticResource HomePageColViewGridOfOne}">
                 
                 
                 <dx:DXCollectionView.SortDescriptions>
