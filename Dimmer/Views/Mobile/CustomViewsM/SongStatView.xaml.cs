@@ -1,3 +1,5 @@
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 namespace Dimmer_MAUI.Views.Mobile.CustomViewsM;
 
 public partial class SongStatView : ContentView

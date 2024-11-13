@@ -1,4 +1,5 @@
 using Timer = System.Timers.Timer;
+using Microsoft.Maui.ApplicationModel;
 namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MiniControlNotificationView : ContentPage

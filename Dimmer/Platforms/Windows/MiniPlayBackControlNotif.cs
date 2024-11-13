@@ -1,4 +1,6 @@
-﻿
+﻿using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
+
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
 {

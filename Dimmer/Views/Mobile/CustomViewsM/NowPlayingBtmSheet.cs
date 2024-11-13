@@ -1,5 +1,7 @@
 ﻿using InputKit.Shared.Helpers;
 using UraniumUI.Extensions;
+using Microsoft.Maui.Devices;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Dimmer_MAUI.Views.Mobile.CustomViewsM;
 [ContentProperty(nameof(Body))]

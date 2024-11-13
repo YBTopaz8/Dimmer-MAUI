@@ -85,6 +85,7 @@ global using Dimmer_MAUI.Utilities.Models;
 
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;
+using Microsoft.Maui.ApplicationModel;
 
 
 

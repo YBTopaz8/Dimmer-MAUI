@@ -1,3 +1,4 @@
+using Microsoft.Maui.Devices;
 namespace Dimmer_MAUI.Views.Mobile.CustomViewsM;
 
 public partial class MediaPlaybackControlsViewM : ContentView

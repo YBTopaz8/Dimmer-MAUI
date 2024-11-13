@@ -1,4 +1,5 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using Microsoft.Maui.ApplicationModel;
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 

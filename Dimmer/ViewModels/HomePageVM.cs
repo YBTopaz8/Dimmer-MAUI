@@ -1,6 +1,8 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using System.Diagnostics;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
 
 
 namespace Dimmer_MAUI.ViewModels;

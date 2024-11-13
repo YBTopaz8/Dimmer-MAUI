@@ -1,4 +1,5 @@
 ﻿using Android;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Dimmer_MAUI.Platforms.Android;
 

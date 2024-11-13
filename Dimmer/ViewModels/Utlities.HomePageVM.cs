@@ -1,4 +1,5 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using Microsoft.Maui.ApplicationModel;
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {

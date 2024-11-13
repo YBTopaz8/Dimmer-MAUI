@@ -1,3 +1,4 @@
+using Microsoft.Maui.ApplicationModel;
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SettingsPageM : ContentPage

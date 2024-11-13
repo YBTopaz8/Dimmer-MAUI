@@ -4,6 +4,7 @@ using Dimmer_MAUI.Views.Desktop.CustomViews;
 using Microsoft.Maui.Platform;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
+using Microsoft.Maui.ApplicationModel;
 #endif
 namespace Dimmer_MAUI;
 

@@ -10,6 +10,7 @@ using Application = Android.App.Application;
 using Android.Content.PM;
 using Uri = Android.Net.Uri;
 using Exception = System.Exception;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 

@@ -2,6 +2,9 @@ using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using System.Diagnostics;
 using Colors = Microsoft.Maui.Graphics.Colors;
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using Microsoft.Maui.Media;
 
 namespace Dimmer_MAUI.Views.Mobile;
 public partial class ShareSongPage : ContentPage

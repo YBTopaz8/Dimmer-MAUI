@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic.FileIO;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
+using Microsoft.Maui.Storage;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 public static class PlatSpecificUtils
