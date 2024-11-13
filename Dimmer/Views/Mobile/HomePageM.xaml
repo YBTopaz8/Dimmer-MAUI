@@ -178,7 +178,7 @@
             </dx:DXCollectionView>
 
             <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
-                Margin="10,0" HeightRequest="300" >
+                Margin="10,0" HeightRequest="380" >
                 <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8" 
                              IconWidth="25" IconHeight="40" VerticalOptions="End"
                              HorizontalOptions="End"
@@ -198,7 +198,7 @@
             <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.64" x:Name="SearchSongPopUp" >
                 <dx:DXScrollView Margin="10,0">
                     <VerticalStackLayout Spacing="5">
-                        <dx:DXButton Content="Clear Filter And Search" Clicked="ClearSearch_Clicked"
+                        <dx:DXButton Content="Clear Filter And Search" Clicked="ClearSearch_Clicked" PressedBackgroundColor="DarkSlateBlue"
                                      ButtonType="Filled" BackgroundColor="DarkSlateBlue" HorizontalOptions="Start">
                             <dx:DXButton.Icon>
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Clear_all}"/>

@@ -82,10 +82,11 @@
 
                 </dx:DXCollectionView>
                 <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
-                                     Margin="10,0" HeightRequest="290" 
+                                     Margin="10,0" HeightRequest="380" 
                                      >
                     <dx:DXButton HeightRequest="60" WidthRequest="60" Command="{Binding Commands.Show,Source={x:Reference AlbumsPageBtmSheet}}"
-                                 IconHeight="30" IconColor="White" PressedBackgroundColor="DarkSlateBlue"
+                                 IconHeight="30" IconColor="White" 
+                                 PressedBackgroundColor="DarkSlateBlue"
                                  IconWidth="30" BackgroundColor="#111111">
                         <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
