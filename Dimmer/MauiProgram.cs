@@ -12,7 +12,8 @@ public static class MauiProgram
             .UseDevExpressCollectionView()
             .UseDevExpressControls()
             .UseDevExpressDataGrid()
-            .UseDevExpressEditors().UseDevExpressGauges()
+            .UseDevExpressEditors()
+            .UseDevExpressGauges()
 
             .UseMauiCommunityToolkit(options =>
             {

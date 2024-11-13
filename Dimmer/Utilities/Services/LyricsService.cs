@@ -257,9 +257,10 @@ public class LyricsService : ILyricsService
         songSyncLyrics = StringToLyricPhraseModel(lines);
         sortedLyrics = songSyncLyrics;
         _synchronizedLyricsSubject.OnNext(songSyncLyrics);
-        if (PlayBackService.CurrentlyPlayingSong.IsPlaying)
+        if (PlayBackService.CurrentlyPlayingSong is not null && PlayBackService.CurrentlyPlayingSong.IsPlaying)
         {
-            StartLyricIndexUpdateTimer();
+                StartLyricIndexUpdateTimer();
+         
         }
     }
 
@@ -309,7 +310,6 @@ public class LyricsService : ILyricsService
 
             }, error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
-
 
     public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
@@ -652,6 +652,21 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
 
 #endregion
 
+    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongsModelView song)
+    {
+        if (song is null)
+        {
+            return (false, null);
+        }
+
+        var track = new Track(song.FilePath);
+        if (track.Lyrics.SynchronizedLyrics is null || track.Lyrics.SynchronizedLyrics.Count < 1)
+        {
+            return (false, null);
+        }
+
+        return (true, track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase)).ToObservableCollection());
+    }
 
     public bool WriteLyricsToLyricsFile(string Lyrics, SongsModelView songObj, bool IsSynched)
     {
@@ -662,10 +677,23 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
         if (!IsSynched)
         {
             songObj.UnSyncLyrics = Lyrics;
+            songObj.UnSyncLyrics = string.Empty;
         }
-        songObj.UnSyncLyrics=string.Empty;
-        songObj.HasLyrics = !IsSynched;
-        songObj.HasSyncedLyrics = IsSynched;
+        else
+        {
+            var track = new Track(songObj.FilePath);
+            track.Lyrics.ParseLRC(Lyrics);
+            songObj.HasSyncedLyrics = IsSynched;
+
+            track.Save();
+            
+            songObj.SyncLyrics = new ObservableCollection<LyricPhraseModel>(
+                track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase))
+            );
+
+        }
+        songObj.HasLyrics = IsSynched;
+        
         if (PlayBackService.CurrentQueue != 2)
         {
              SongsManagementService.UpdateSongDetails(songObj);
@@ -686,7 +714,7 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
         }
 
         File.WriteAllText(lrcFilePath, Lyrics); //I had a case one time where an exception was thrown because there was a folder with exact same name alreay existing
-
+        
         return true;
 
     }

@@ -14,7 +14,6 @@
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"                      
             xmlns:shimmer="clr-namespace:Syncfusion.Maui.Toolkit.Shimmer;assembly=Syncfusion.Maui.Toolkit"
              x:DataType="vm:HomePageVM"             
@@ -78,7 +77,7 @@
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5"  x:Name="SearchFiltersHSL"
                                    IsVisible="False" HeightRequest="30" >
 
-                <SyncCtrls:SfChipGroup ChipType="Filter" ItemsSource="{Binding SearchFilters}"
+                <syncf:SfChipGroup ChipType="Filter" ItemsSource="{Binding SearchFilters}"
                                        SelectionChanged="SfChipGroup_SelectionChanged" x:Name="SearchFilters"
                                        />
                 <ratingsView:RatingControl x:Name="ratingFilter" Shape="Heart"
@@ -149,18 +148,15 @@
             </VerticalStackLayout>
 
 
-            <Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
+            <!--<Grid Padding="0,10" toolkit:DockLayout.DockPosition="Top" Margin="10,0">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280" />
+                    <ColumnDefinition Width="380"/>
+                    <ColumnDefinition Width="220" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="140" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
                 </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <ResourceDictionary>
@@ -172,33 +168,30 @@
                     </ResourceDictionary>
                 </Grid.Resources>
                 <Label Text="Song Title" Grid.Column="0" />
-                <Label Text="Artist" Grid.Column="1"/>
-                <Label Text="Rating"  Grid.Column="2" HorizontalOptions="Center" Opacity="0.8"/>
-                <Label Text="Album" Grid.Column="3"/>
-                <Label Text="Genre"   Grid.Column="4" />
-                <Label Text="Duration"  Grid.Column="5" />
-                <Label Text="Bitrate" Grid.Column="6"  />
-                <Label Text="Format" Grid.Column="7"/>
-                <Label Text="Play Count" Grid.Column="8"/>
-            </Grid>
+                <Label Text="Artist" Grid.Column="1" BackgroundColor="Blue"/>
+                <Label Text="Rating"  Grid.Column="2" BackgroundColor="Red"/>
+                <Label Text="Album" Grid.Column="3" HorizontalTextAlignment="Center"/>
+                <Label Text="Genre"   Grid.Column="4" HorizontalTextAlignment="Center"/>
+                <Label Text="Duration"  Grid.Column="5" HorizontalTextAlignment="Center" BackgroundColor="Red"/>
+            </Grid>-->
 
             <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
                         VerticalScrollBarVisibility="Default" IsVisible="True"
-                        x:Name="SongsColView" 
+                        x:Name="SongsColView" ItemsUpdatingScrollMode="KeepItemsInView"
                         Loaded="SongsColView_Loaded" Margin="5,0"
-                        EmptyView="Nothing ...">
+                        EmptyView="Nothing ..." >
 
                 <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical" HorizontalItemSpacing="0"/>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongsModelView">
-                        <SyncCtrls:SfEffectsView TouchDownEffects="Selection" BackgroundColor="Transparent"                                                                                                 
+                        <syncf:SfEffectsView TouchDownEffects="Selection" BackgroundColor="Transparent"                                                                                                 
                                                  x:Name="sfEffectsView" TouchDown="SfEffectsView_TouchDown">
-                            <SyncCtrls:SfEffectsView.GestureRecognizers>
+                            <syncf:SfEffectsView.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
-                            </SyncCtrls:SfEffectsView.GestureRecognizers>
+                            </syncf:SfEffectsView.GestureRecognizers>
                             <Border Stroke="Transparent" Padding="5,0">
                                 <Border.Triggers>
                                     <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
@@ -372,9 +365,7 @@
                                         </ResourceDictionary>
                                     </Grid.Resources>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="280" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="380" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
@@ -408,8 +399,9 @@
                                     <Label Text="{Binding ArtistName}" Grid.Column="1" 
                                        ToolTipProperties.Text="{Binding ArtistName}"/>
 
-                                    <ratingsView:RatingControl Value="{Binding Rating}" Fill="DarkSlateBlue"
-                                                       Grid.Column="2" Shape="Heart"
+                                    <ratingsView:RatingControl Grid.Column="2" 
+                                        Value="{Binding Rating}" Fill="DarkSlateBlue"
+                                        Shape="Heart" HorizontalOptions="Start"
                            Command="{Binding BindingContext.RateSongCommand,Source={x:Reference myPage}}"
                                                                ToolTipProperties.Text="RateSong">
                                         <ratingsView:RatingControl.GestureRecognizers>
@@ -419,39 +411,25 @@
                                         </ratingsView:RatingControl.GestureRecognizers>
                                     </ratingsView:RatingControl>
 
-                                    <!--<uranium:StatefulContentView Grid.Column="3" x:Name="FavImagStatView"
-                                                         Hovered="FavImagStatView_HoveredAndExited"
-                                                         HoverExited="FavImagStatView_HoveredAndExited">
-                                    <ImageButton 
-                                             Command="{Binding Source={x:Reference myPage},Path=BindingContext.AddSongToFavoritesCommand}"
-                                             VerticalOptions="End" CommandParameter="{Binding .}" >
-                                        <ImageButton.Source>
-                                            <FontImageSource Size="25" FontFamily="MaterialRounded" Glyph="{Binding IsFavorite, Converter={StaticResource BoolToImage}}"/>
-                                        </ImageButton.Source>
-                                    </ImageButton>
-                                </uranium:StatefulContentView>-->
 
                                     <Label Text="{Binding AlbumName}" Grid.Column="3"
-                                       
+                                       LineBreakMode="HeadTruncation" HorizontalOptions="Center"
                        ToolTipProperties.Text="{Binding AlbumName}"/>
 
                                     <Label Text="{Binding GenreName}" Grid.Column="4" 
+                                           LineBreakMode="HeadTruncation" 
                        ToolTipProperties.Text="{Binding GenreName}"/>
 
-                                    <Label Grid.Column="5"  
+                                    <Label Grid.Column="5" HorizontalOptions="Center"
                        Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                        ToolTipProperties.Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
-                                    <Label Grid.Column="6"  
-                       Text="{Binding BitRate, StringFormat='{0} kbps'}"                                
-                       ToolTipProperties.Text="{Binding FileSize,Converter={StaticResource FileSizeConverter}}" />
+                                    <Label Grid.Column="6" HorizontalOptions="Center"
+                       Text="{Binding FileFormat}" />
 
-                                    <Label Text="{Binding FileFormat}" Grid.Column="7"
-                       ToolTipProperties.Text="{Binding FilePath, StringFormat='File Path {0}'}"/>
-                                    <Label Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" Grid.Column="8"/>
                                 </Grid>
                             </Border>
-                        </SyncCtrls:SfEffectsView>
+                        </syncf:SfEffectsView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

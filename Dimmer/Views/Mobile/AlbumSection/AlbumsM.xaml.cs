@@ -57,4 +57,66 @@ public partial class AlbumsM : UraniumContentPage
         HomePageVM.CurrentQueue = 1;
         HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album.Id);
     }
+
+
+
+    List<SongsModelView>? filteredSongs = new();
+    private void AlbumNameTextEdit_TextChanged(object sender, EventArgs e)
+    {
+        var searchBar = (TextEdit)sender;
+        var txt = searchBar.Text;
+
+        if (!string.IsNullOrEmpty(txt))
+        {
+            if (txt.Length >= 1)
+            {
+                HomePageVM.IsOnSearchMode = true;
+                // Setting the FilterString for SongsColView
+                AlbumsColView.FilterString = $"Contains([Name], '{AlbumNameTextEdit.Text}')";
+                filteredSongs?.Clear();
+
+                // Apply the filter to the DisplayedSongs collection
+                filteredSongs = HomePageVM.DisplayedSongs
+                    .Where(item => item.Title.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            }
+            else
+            {
+                HomePageVM.IsOnSearchMode = false;
+                AlbumsColView.FilterString = string.Empty;
+
+            }
+        }
+    }
+    private void ClearSearch_Clicked(object sender, EventArgs e)
+    {
+        AlbumsColView.FilterString = string.Empty;
+        AlbumNameTextEdit.Text = string.Empty;
+    }
+
+    private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
+    {
+        var s = sender as ChoiceChipGroup;
+        switch (s.SelectedIndex)
+        {
+            case 0:
+                AlbumsColView.ItemSpanCount = 1;
+                break;
+
+            case 1:
+                AlbumsColView.ItemSpanCount = 2;
+                
+                break;
+            case 2:
+                AlbumsColView.ItemSpanCount = 3;
+                break;
+            case 3:
+                AlbumsColView.ItemSpanCount = 4;
+                break;
+            default:
+                break;
+        }
+        Debug.WriteLine(s.GetType());
+    }
 }

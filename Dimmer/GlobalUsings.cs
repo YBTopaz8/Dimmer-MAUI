@@ -25,7 +25,7 @@ global using CommunityToolkit.Maui.Core.Platform;
 
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using DevExpress.Maui;
-
+global using DevExpress.Maui.Editors;
 
 
 global using Dimmer_MAUI.Utilities.OtherUtils;

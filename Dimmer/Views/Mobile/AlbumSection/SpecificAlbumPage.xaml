@@ -30,59 +30,60 @@
     </uranium:UraniumContentPage.Resources>
 
 
-    <VerticalStackLayout>
-        <Grid ColumnDefinitions="*,Auto" Grid.Row="0" 
+    <Grid RowDefinitions="Auto,*">
+        <VerticalStackLayout Grid.Row="0">
+            <Grid ColumnDefinitions="*,Auto" Grid.Row="0" 
             VerticalOptions="Center">
-            <!-- Centered Title -->
-            <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
+                <!-- Centered Title -->
+                <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
         VerticalTextAlignment="Center" FontAttributes="Bold" 
         FontSize="20" Grid.Column="0"/>
-            <!-- Right-aligned albums count -->
-            <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
+                <!-- Right-aligned albums count -->
+                <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                 Grid.Column="1">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
-                </ImageButton.Source>
-            </ImageButton>
-            <!-- Adjust margin to give some spacing from the right -->
-        </Grid>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <!-- Adjust margin to give some spacing from the right -->
+            </Grid>
 
-        <Grid Grid.Row="1" 
+            <Grid Grid.Row="1" 
         ColumnDefinitions="*" Margin="10,0" RowSpacing="10"
         RowDefinitions="auto,auto,auto,auto">
-            <dx:DXDockLayout Grid.Row="0" >
-                <toolkit:AvatarView ImageSource="{Binding SelectedAlbumOnArtistPage.AlbumImagePath}" 
+                <dx:DXDockLayout Grid.Row="0" >
+                    <toolkit:AvatarView ImageSource="{Binding SelectedAlbumOnArtistPage.AlbumImagePath}" 
                             BorderWidth="0" HeightRequest="180" WidthRequest="180"
                                 Grid.Column="0" HorizontalOptions="Start"/>
-                <VerticalStackLayout Spacing="20"  HorizontalOptions="End"
+                    <VerticalStackLayout Spacing="20"  HorizontalOptions="End"
                                 VerticalOptions="Center" Grid.Column="2">
 
-                    <Label Text="{Binding SelectedAlbumOnArtistPage.NumberOfTracks, StringFormat='{0} Track(s)'}"
+                        <Label Text="{Binding SelectedAlbumOnArtistPage.NumberOfTracks, StringFormat='{0} Track(s)'}"
                             VerticalTextAlignment="Center"/>
 
-                    <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" />
+                        <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" />
 
-                </VerticalStackLayout>
-            </dx:DXDockLayout>
-        </Grid>
-        <HorizontalStackLayout Grid.Row="1" HorizontalOptions="Center" >
-            <dx:DXButton BackgroundColor="Transparent"
+                    </VerticalStackLayout>
+                </dx:DXDockLayout>
+            </Grid>
+            <HorizontalStackLayout Grid.Row="1" HorizontalOptions="Center" >
+                <dx:DXButton BackgroundColor="Transparent"
             IconColor="White"  HorizontalOptions="Center">
-                <dx:DXButton.Icon>
-                    <FontImageSource 
+                    <dx:DXButton.Icon>
+                        <FontImageSource 
         FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person_3}"/>
-                </dx:DXButton.Icon>
-                <dx:DXButton.Content>
+                    </dx:DXButton.Icon>
+                    <dx:DXButton.Content>
 
-                    <Label Text="{Binding SelectedArtistOnArtistPage.Name}" 
+                        <Label Text="{Binding SelectedArtistOnArtistPage.Name}" 
             HorizontalOptions="End"
             FontSize="20"/>
 
-                </dx:DXButton.Content>
-            </dx:DXButton>
-        </HorizontalStackLayout>
-    
-    <!--<Grid ColumnDefinitions="*,*" Grid.Row="2"
+                    </dx:DXButton.Content>
+                </dx:DXButton>
+            </HorizontalStackLayout>
+
+            <!--<Grid ColumnDefinitions="*,*" Grid.Row="2"
             HorizontalOptions="Fill"
         ColumnSpacing="10">
 
@@ -101,7 +102,7 @@
             CornerRadius="5"/>
             </Grid>-->
 
-                
+
             <Grid>
                 <CollectionView SelectionMode="Single" ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
 EmptyView="No Songs...">
@@ -149,26 +150,27 @@ EmptyView="No Songs...">
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-                    
-                <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End" 
-                        HeightRequest="250">
-                    <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8"
+            </Grid>
+        </VerticalStackLayout>
+    
+
+        <VerticalStackLayout Grid.Row="1"
+                             VerticalOptions="End"
+                             HorizontalOptions="End"
+                        HeightRequest="200">
+            <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8"
 IconWidth="25" IconHeight="35" VerticalOptions="End"
 HorizontalOptions="End" x:Name="SpecificAlbumUtilitiesFAB"
 Command="{Binding Commands.Show,Source={x:Reference SpecificAlbumUtilsBtmSheet}}"
 IconColor="White"
 CornerRadius="30" PressedBackgroundColor="DarkSlateBlue">
-                        <dx:DXButton.Icon>
-                            <FontImageSource 
+                <dx:DXButton.Icon>
+                    <FontImageSource 
 FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
-                        </dx:DXButton.Icon>
-                    </dx:DXButton>
-                    <viewsM:EachPageNPFAB_Mobile />
-                </VerticalStackLayout>
-
-            </Grid>
-                
-
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <viewsM:EachPageNPFAB_Mobile />
+        </VerticalStackLayout>
 
 
         <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.54" x:Name="SpecificAlbumUtilsBtmSheet" >
@@ -183,6 +185,6 @@ FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
                 </VerticalStackLayout>
             </dx:DXScrollView>
         </dx:BottomSheet>
-    </VerticalStackLayout>
+    </Grid>
 
 </uranium:UraniumContentPage>

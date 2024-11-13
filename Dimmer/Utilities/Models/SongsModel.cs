@@ -210,6 +210,8 @@ public partial class SongsModelView : ObservableObject
     bool isFavorite;
     [ObservableProperty]
     string achievement;
+    [ObservableProperty]
+    ObservableCollection<LyricPhraseModel> syncLyrics;
 
     // Override Equals to compare based on ObjectId
     public override bool Equals(object? obj)

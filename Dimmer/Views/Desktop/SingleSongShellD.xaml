@@ -83,8 +83,13 @@
                 <toolkit:DockLayout Margin="50"  BackgroundColor="Transparent">
                     <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Margin="10"
                                     WidthRequest="250" Spacing="10"  x:DataType="vm:HomePageVM">
-                        <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                        <Grid>
+                            <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
+
+                            <Image Source="red_heart.gif" HeightRequest="100" IsVisible="{Binding IsAnimatingFav}"
+                                   WidthRequest="100" IsAnimationPlaying="{Binding IsAnimatingFav}" ZIndex="1"/>
+                        </Grid>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
                         FontSize="13" TextColor="Grey"/>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
@@ -139,7 +144,7 @@
                         <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
                                                    HorizontalOptions="Center" Command="{Binding RateSongCommand}"
                                                    CommandParameter="{Binding .}" 
-                                                   AllowRating="True" 
+                                                   AllowRating="True" EmptyColor="Red" 
                                                    StrokeColor="DarkSlateBlue" 
                                                    Maximum="5" Fill="DarkSlateBlue"
                                                    >

@@ -1,7 +1,4 @@
 using Syncfusion.Maui.Toolkit.Chips;
-using Syncfusion.Maui.Toolkit.EffectsView;
-using System.Diagnostics;
-using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
