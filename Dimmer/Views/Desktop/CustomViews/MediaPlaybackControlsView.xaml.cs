@@ -62,6 +62,9 @@ public partial class MediaPlaybackControlsView : ContentView
         var send = (View)sender;
         var song = send.BindingContext as SongsModelView;
         vm.SelectedSongToOpenBtmSheet = vm.TemporarilyPickedSong!;
+
+        
+
         await vm.NavToNowPlayingPage();
     }
 

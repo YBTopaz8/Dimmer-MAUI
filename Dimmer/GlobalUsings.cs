@@ -4,8 +4,7 @@ global using CommunityToolkit.Maui.Storage;
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
-global using UraniumUI;
-global using UraniumUI.Pages;
+
 
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,18 +13,20 @@ global using CommunityToolkit.Mvvm.Input;
 global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Icons.FontAwesome;
 global using FontAw = UraniumUI.Icons.FontAwesome;
-global using UraniumUI.Material.Controls;
+
 
 global using MongoDB.Bson;
 global using Realms;
 
 global using Dimmer_MAUI.MAudioLib;
+global using Dimmer_MAUI.Views.Desktop.CustomViews;
 
 global using CommunityToolkit.Maui.Core.Platform;
 
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using DevExpress.Maui;
 global using DevExpress.Maui.Editors;
+
 
 
 global using Dimmer_MAUI.Utilities.OtherUtils;

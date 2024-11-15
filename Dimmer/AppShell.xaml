@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
     xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-
+    
     Shell.FlyoutBehavior="Disabled"
     FlyoutBackgroundColor="Blue"
     Shell.NavBarIsVisible="False" 
@@ -19,8 +19,7 @@
                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Music_note}"/>
             </Tab.Icon>
             <ShellContent
-                ContentTemplate="{DataTemplate viewsD:HomeD}"
-                Route="HomePageD">
+                ContentTemplate="{DataTemplate viewsD:MainPageD}">
             </ShellContent>
         </Tab>
 
@@ -37,22 +36,22 @@
             </Tab.Icon>
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
-                Route="PlaylistsD"/>
+                Route="PlaylistsPageD"/>
             
         </Tab>
         <Tab Title="Stats" x:Name="statsTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Show_chart}"/>
             </Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsD}"
-                Route="StatsD"/>
+            <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
+                Route="FullStatsD"/>
         </Tab>
         <Tab Title="Settings" x:Name="settingsTab">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
             </Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
-                Route="SettingsD"/>
+                Route="SettingsPageD"/>
         </Tab>
 
         <!--<Tab>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.PlaylistsPageM"
              
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
              BackgroundColor="Black"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -17,7 +17,7 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
              x:Name="myPage"  
              Shell.NavBarIsVisible="False">
-    <uranium:UraniumContentPage.Resources>
+    <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="White"/>
@@ -26,7 +26,7 @@
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
-    </uranium:UraniumContentPage.Resources>
+    </ContentPage.Resources>
 
     <Grid>
         <VerticalStackLayout Margin="5,0">
@@ -79,4 +79,4 @@
     </Grid>
     
     
-</uranium:UraniumContentPage>
+</ContentPage>

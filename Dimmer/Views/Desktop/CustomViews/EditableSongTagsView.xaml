@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView">
+</ContentView>
+    
+<!--xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"    
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
-            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            
             x:DataType="vm:HomePageVM"
-            x:Name="myPage">
+            x:Name="myPage"
 
     <ContentView.Resources>
         <ResourceDictionary>
@@ -32,9 +34,9 @@
 
            <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
                                 HeightRequest="250" WidthRequest="250" BorderWidth="0"
-                                CornerRadius="25" IsVisible="{OnPlatform Android=true, WinUI=false}"/>
+                                CornerRadius="25" IsVisible="{OnPlatform Android=true, WinUI=false}"/>-->
             
-            <material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <!--<material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
             <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                                 />
             <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
@@ -42,8 +44,8 @@
             <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
                         
             <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
-                                />
-            <Button Text="Save Metadata" Command="{Binding UpdateSongToDBCommand }" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"/>
+                                />-->
+            <!--<Button Text="Save Metadata" Command="{Binding UpdateSongToDBCommand }" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"/>
             <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="400" >
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LyricPhraseModel">
@@ -101,4 +103,4 @@
 
     </Grid>
     
-</ContentView>
+</ContentView>-->

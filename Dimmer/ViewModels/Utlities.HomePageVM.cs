@@ -114,7 +114,7 @@ public partial class HomePageVM
                    $"from your Device?", "Yes", "No");
                 if (result)
                 {
-                    await PlatSpecificUtils.MultiDeleteSongFiles(MultiSelectSongs);
+                    PlatSpecificUtils.MultiDeleteSongFiles(MultiSelectSongs);
                     
                     // Loop through all songs in MultiSelectSongs and remove them from DisplayedSongs if they exist
                     foreach (var selectedSong in MultiSelectSongs)
@@ -201,12 +201,27 @@ public partial class HomePageVM
 #if WINDOWS
     public AppWindowPresenter AppWinPresenter { get; set; }
 #endif
-
+    [ObservableProperty]
+    bool isStickToTop = false;
     [RelayCommand]
-    void ToggleStickToTop(bool isStickToTop)
+    async Task ToggleStickToTop()
     {
+        //await Shell.Current.GoToAsync(nameof(SingleSongPageD));
+        //var window = IPlatformApplication.Current.Services.GetService<DimmerWindow>();
+
+        //if (IsStickToTop)
+        //{
+        //    window.Page = IPlatformApplication.Current.Services.GetService<ArtistsPageD>();
+        //}
+        //else
+        //{
+        //    window.Page = IPlatformApplication.Current.Services.GetService<SingleSongPageD>();
+        //}
+        IsStickToTop = !IsStickToTop;
+
+        return;
 #if WINDOWS
-        PlatSpecificUtils.ToggleWindowAlwaysOnTop(isStickToTop, AppWinPresenter);
+        PlatSpecificUtils.ToggleWindowAlwaysOnTop(IsStickToTop, AppWinPresenter);
 #endif
     }
     public bool IsSleek = false;
@@ -387,4 +402,30 @@ public partial class HomePageVM
             Color.FromArgb("#4C342F"),
             Color.FromArgb("#661D98"),
             };
+
+    public FlyoutItem AppFlyout { get; set; }
+    [RelayCommand]
+    public void SwitchTab(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                AppFlyout.CurrentItem = AppFlyout.Items[0];
+                break;
+            case 1:
+                AppFlyout.CurrentItem = AppFlyout.Items[1];
+                break;
+            case 2:
+                AppFlyout.CurrentItem = AppFlyout.Items[2];
+                break;
+            case 3:
+                AppFlyout.CurrentItem = AppFlyout.Items[3];
+                break;
+            case 4:
+                AppFlyout.CurrentItem = AppFlyout.Items[4];
+                break;
+            default:
+                break;
+        }
+    }
 }

@@ -2,8 +2,9 @@
 
 public partial class App : Application
 {
-    public App()
+    public App(DimmerWindow dimmerWindow)
     {
+        
         try
         {
             InitializeComponent();
@@ -15,15 +16,10 @@ public partial class App : Application
         
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-#if WINDOWS
-        MainPage = new AppShell();
-        
-#elif ANDROID
-        MainPage = new AppShellMobile();
-#endif
+        DimmerWindow = dimmerWindow;
     }
 
-    private async void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.TargetSite} || {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
@@ -32,26 +28,31 @@ public partial class App : Application
         //await home.ExitingApp();
         LogException(e.Exception);
     }
-    public Window win;
-    protected override Window CreateWindow(IActivationState activationState)
+    
+    protected override Window CreateWindow(IActivationState? activationState)
     {
-        win = base.CreateWindow(activationState);
-        win.MinimumHeight = 800;
-        win.MinimumWidth = 1200;
-        win.Height = 900;
-        win.Width = 1200;
-#if DEBUG
 
-        win.Title = "Dimmer v0.2.1-debug";
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+#if WINDOWS
+        DimmerWindow.Page = new AppShell();
+
+#elif ANDROID
+        DimmerWindow.Page = new AppShellMobile();
 #endif
 
-#if RELEASE
-        win.Title = "Dimmer v0.2.1-release";
-#endif
-        return win;
+        //win = base.CreateWindow(activationState);
+        //this.MinimumHeight = 800;
+        //this.MinimumWidth = 1200;
+        //this.Height = 900;
+        //this.Width = 1200;
+
+        return DimmerWindow;
     }
 
     private static readonly object _logLock = new object();
+
+    public DimmerWindow DimmerWindow { get; }
+
     private void LogException(Exception ex)
     {
         

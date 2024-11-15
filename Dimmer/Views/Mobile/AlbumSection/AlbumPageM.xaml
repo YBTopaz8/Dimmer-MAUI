@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.AlbumPageM"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+            
+            
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -17,9 +17,10 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
             Shell.NavBarIsVisible="False"
              x:Name="myPage">
-   
 
-    <uranium:UraniumContentPage.Resources>
+</ContentPage>
+    
+<!--<ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="White"/>
@@ -31,7 +32,7 @@
             
 
         </ResourceDictionary>
-    </uranium:UraniumContentPage.Resources>
+    </ContentPage.Resources>
 
     <dx:DXDockLayout x:Name="tkDL" Margin="5,0">
 
@@ -88,8 +89,10 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
 
-            </Grid>
+            </Grid>-->
 
+    
+    
             <!--<dx:DXCollectionView SelectionMode="Single" Grid.Row="3" Margin="6,0"
       ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
                               TapConfirmed="DXCollectionView_TapConfirmed">
@@ -115,7 +118,7 @@
                     </DataTemplate>
                 </dx:DXCollectionView.ItemTemplate>
             </dx:DXCollectionView>-->
-           <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
+           <!--<VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
    Margin="10,0" HeightRequest="200" dx:DXDockLayout.Dock="Bottom">
 
                 <viewsM:EachPageNPFAB_Mobile />
@@ -124,5 +127,5 @@
             <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet" />
 
     </dx:DXDockLayout>
-</uranium:UraniumContentPage>
+<ContentPage>-->
 

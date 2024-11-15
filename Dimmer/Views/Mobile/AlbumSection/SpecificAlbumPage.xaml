@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<uranium:UraniumContentPage x:Class="Dimmer_MAUI.Views.Mobile.SpecificAlbumPage"
+<ContentPage x:Class="Dimmer_MAUI.Views.Mobile.SpecificAlbumPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             
+             
               xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -18,8 +18,8 @@
              Shell.NavBarIsVisible="False"
 
               x:Name="myPage">
-    
-    <uranium:UraniumContentPage.Resources>
+
+    <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="White"/>
@@ -27,25 +27,22 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
-    </uranium:UraniumContentPage.Resources>
-
-
-    <Grid RowDefinitions="Auto,*">
+    </ContentPage.Resources>
+</ContentPage>
+<!--
+<Grid RowDefinitions="Auto,*">
         <VerticalStackLayout Grid.Row="0">
             <Grid ColumnDefinitions="*,Auto" Grid.Row="0" 
             VerticalOptions="Center">
-                <!-- Centered Title -->
                 <Label Text="{Binding SelectedAlbumOnArtistPage.Name}" HorizontalTextAlignment="Center"
         VerticalTextAlignment="Center" FontAttributes="Bold" 
         FontSize="20" Grid.Column="0"/>
-                <!-- Right-aligned albums count -->
                 <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
                 Grid.Column="1">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
                     </ImageButton.Source>
                 </ImageButton>
-                <!-- Adjust margin to give some spacing from the right -->
             </Grid>
 
             <Grid Grid.Row="1" 
@@ -82,26 +79,6 @@
                     </dx:DXButton.Content>
                 </dx:DXButton>
             </HorizontalStackLayout>
-
-            <!--<Grid ColumnDefinitions="*,*" Grid.Row="2"
-            HorizontalOptions="Fill"
-        ColumnSpacing="10">
-
-                <dx:DXButton Grid.Column="0" 
-                Content="Play**" TextColor="White"
-                HorizontalOptions="Fill"
-                VerticalOptions="Center"
-            ButtonType="Outlined"
-                BorderThickness="1"
-                CornerRadius="5"/>
-
-                <dx:DXButton Grid.Column="1" Content="Shuffle**" 
-                    HorizontalOptions="Fill" VerticalOptions="Center" 
-                    BorderColor="DarkSlateBlue" BorderThickness="2"
-            BackgroundColor="Transparent" TextColor="White"
-            CornerRadius="5"/>
-            </Grid>-->
-
 
             <Grid>
                 <CollectionView SelectionMode="Single" ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
@@ -187,4 +164,5 @@ FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
         </dx:BottomSheet>
     </Grid>
 
-</uranium:UraniumContentPage>
+<ContentPage>
+    -->

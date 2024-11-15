@@ -7,13 +7,14 @@
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-             xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             
             x:DataType="vm:HomePageVM"
              x:Name="myPage"
              Title="{Binding SongPickedForStats.Song.Title}">
+    <!--xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"-->
     <toolkit:DockLayout BackgroundColor="#171919" Margin="5,0">
 
-        <CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>
+        <!--<CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>-->
         <Border Stroke="Transparent" toolkit:DockLayout.DockPosition="Top" 
                 StrokeShape="RoundRectangle 10"
                 >

@@ -115,7 +115,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    async Task OpenPlaylistMenuBtmSheet(PlaylistModelView playlist)
+    void OpenPlaylistMenuBtmSheet(PlaylistModelView playlist)
     {
         SelectedPlaylistToOpenBtmSheet = playlist;
         

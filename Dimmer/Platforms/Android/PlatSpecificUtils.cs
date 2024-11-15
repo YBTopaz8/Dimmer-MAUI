@@ -24,7 +24,7 @@ public static class PlatSpecificUtils
             return false;
         }
     }
-    public static async Task<bool> MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    public static bool MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
     {
         try
         {

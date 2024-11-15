@@ -10,7 +10,7 @@
     <HorizontalStackLayout VerticalOptions="End" Spacing="10"
                       HorizontalOptions="End">
         <dx:DXExpander x:Name="NowPlayingMiniControl" Opacity="0.9" 
-                    IsExpanded="False" VerticalExpandMode="FromEndToStart"
+                    IsExpanded="False" 
                     HorizontalExpandMode="FromEndToStart">
             <dx:DXExpander.Resources>
                 <ResourceDictionary>
@@ -31,7 +31,7 @@
                                CornerRadius="25" 
                                >
                     <dx:DXStackLayout.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding ShowNowPlayingBtmSheetCommand}"/>
+                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" Command="{Binding ShowNowPlayingBtmSheetCommand}"/>
                     </dx:DXStackLayout.GestureRecognizers>
                     <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="TailTruncation"
                         FontSize="20" FontAttributes="Bold" Padding="10,0"
@@ -68,7 +68,7 @@
         </dx:DXExpander>
 
         <dx:DXButton  x:Name="NowPlayingBtn" Clicked="NowPlayingBtn_Clicked" BackgroundColor="Transparent"
-                       Command="{Binding Commands.ToggleExpandState,Source={x:Reference NowPlayingMiniControl}}"
+                       
                        CornerRadius="40" WidthRequest="120" HeightRequest="120">
             <dx:DXButton.Content>
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.TopStatsPageM"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
@@ -18,13 +18,13 @@
              Shell.BackgroundColor="#171919"
              Title="Top Played Songs">
     <!--xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"-->
-    <uranium:UraniumContentPage.Resources>
+    <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="White"/>
             </Style>
         </ResourceDictionary>
-    </uranium:UraniumContentPage.Resources>
+    </ContentPage.Resources>
     <toolkit:DockLayout Margin="3,0">
         
         <Grid RowDefinitions="Auto,*">
@@ -65,12 +65,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:SingleSongStatistics">
                     <FlexLayout JustifyContent="SpaceBetween">
-                        <FlyoutBase.ContextFlyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Text="Play Song" 
-                                        Command="{Binding BindingContext.PlaySongCommand, Source={x:Reference myPage}}" CommandParameter="{Binding Song}"/>
-                            </MenuFlyout>
-                        </FlyoutBase.ContextFlyout>
+                       
                         <FlexLayout.GestureRecognizers>
                             <TapGestureRecognizer Tapped="ShowSongStats_Tapped"/>
                         </FlexLayout.GestureRecognizers>
@@ -172,4 +167,4 @@
         </Grid>
 
     </toolkit:DockLayout>-->
-</uranium:UraniumContentPage>
+</ContentPage>

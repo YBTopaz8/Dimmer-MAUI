@@ -265,7 +265,7 @@ public class RatingControl : BaseTemplateView<Grid>
         return Control.GetColumn(tappedShape);
         
     }
-    private async void OnShapeTapped(object sender, TappedEventArgs e)
+    private void OnShapeTapped(object sender, TappedEventArgs e)
     {
         var tappedShape = sender as Microsoft.Maui.Controls.Shapes.Path;
 

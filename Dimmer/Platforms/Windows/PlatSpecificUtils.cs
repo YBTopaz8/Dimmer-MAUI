@@ -33,7 +33,7 @@ public static class PlatSpecificUtils
         }
     }
 
-    public static async Task<bool> MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    public static bool MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
     {
         try
         {

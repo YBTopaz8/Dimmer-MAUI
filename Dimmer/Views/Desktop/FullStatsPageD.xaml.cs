@@ -1,8 +1,8 @@
 namespace Dimmer_MAUI.Views.Desktop;
 
-public partial class FullStatsD : ContentPage
+public partial class FullStatsPageD : ContentPage
 {
-    public FullStatsD(HomePageVM homePageVM)
+    public FullStatsPageD(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
@@ -22,10 +22,6 @@ public partial class FullStatsD : ContentPage
     }
 
 
-    private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        
-    }
 
   
 }

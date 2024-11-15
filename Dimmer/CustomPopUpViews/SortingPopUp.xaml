@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer_MAUI.CustomPopUpViews.SortingPopUp"
-             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"     
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-           CanBeDismissedByTappingOutsideOfPopup="True"
+xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"  
+             x:Class="Dimmer_MAUI.CustomPopUpViews.SortingPopUp">
+
+    <VerticalStackLayout>
+        <Label Text="ss"/>
+    </VerticalStackLayout>
+</mct:Popup>
+    
+       
+           
+           
+             
+           <!--CanBeDismissedByTappingOutsideOfPopup="True"
            Color="Transparent">
     <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" 
             MinimumWidthRequest="{OnPlatform Android= 350}"
@@ -26,8 +34,8 @@
         <VerticalStackLayout BackgroundColor="Black" Spacing="15"
                              Padding="20">
             <Label Text="Sort by..." FontSize="Medium" 
-                   FontAttributes="Bold" />
-            <material:RadioButtonGroupView Spacing="20"
+                   FontAttributes="Bold" />-->
+            <!--<material:RadioButtonGroupView Spacing="20"
                                            x:Name="RBtnGroup">
                 <material:RadioButtonGroupView.Resources>
                     <ResourceDictionary>
@@ -52,9 +60,9 @@
                 <material:RadioButton Text="Number Of Times Played Completely- Descending" />
                 <material:RadioButton Text="Rating - Ascending" />
                 <material:RadioButton Text="Rating - Descending" />
-            </material:RadioButtonGroupView>
+            </material:RadioButtonGroupView>-->
 
-            <HorizontalStackLayout HorizontalOptions="End"
+            <!--<HorizontalStackLayout HorizontalOptions="End"
                                    Spacing="5">
                 <Button Text="Cancel" Clicked="CloseButton_Clicked" FontAttributes="Bold"
                         BackgroundColor="Transparent" TextColor="DarkRed"/>
@@ -62,4 +70,4 @@
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </Border>
-</mct:Popup>
+</mct:Popup>-->

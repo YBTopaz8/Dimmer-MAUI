@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<uranium:UraniumContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.SingleSongShell"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
@@ -20,7 +20,7 @@
             Shell.NavBarIsVisible="False"
             Padding="0,0" >
     <!--xmlns:sys="clr-namespace:System;assembly=netstandard"-->
-    <uranium:UraniumContentPage.Resources>
+    <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
@@ -38,7 +38,7 @@
             </Style>
 
         </ResourceDictionary>
-    </uranium:UraniumContentPage.Resources>
+    </ContentPage.Resources>
 
     <Grid Padding="0,0" >
         <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
@@ -199,4 +199,4 @@
         <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"/>
         
     </Grid>
-</uranium:UraniumContentPage>
+</ContentPage>

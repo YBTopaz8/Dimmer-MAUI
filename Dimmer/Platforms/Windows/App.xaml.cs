@@ -17,6 +17,7 @@ public partial class App : MauiWinUIApplication
     /// </summary>
     public App()
     {
+        
         var mainInstance = AppInstance.FindOrRegisterForKey("MainDimmer");
         if (!mainInstance.IsCurrent)
         {

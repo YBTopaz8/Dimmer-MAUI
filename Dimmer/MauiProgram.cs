@@ -1,4 +1,5 @@
-﻿using Dimmer_MAUI.Views.Desktop.CustomViews;
+﻿
+using UraniumUI;
 
 namespace Dimmer_MAUI;
 public static class MauiProgram
@@ -14,7 +15,7 @@ public static class MauiProgram
             .UseDevExpressDataGrid()
             .UseDevExpressEditors()
             .UseDevExpressGauges()
-
+            
             .UseMauiCommunityToolkit(options =>
             {
 
@@ -23,9 +24,6 @@ public static class MauiProgram
                 options.SetShouldSuppressExceptionsInConverters(true);
                 
             })
-            .UseUraniumUI()
-            .UseUraniumUIBlurs()
-            .UseUraniumUIMaterial()
             .ConfigureSyncfusionToolkit()
             
             .ConfigureFonts(fonts =>
@@ -117,7 +115,7 @@ public static class MauiProgram
 
 #if ANDROID || WINDOWS
         builder.Services.AddSingleton<INativeAudioService, NativeAudioService>();
-
+        builder.Services.AddSingleton<DimmerWindow>();
         builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
 #endif
         builder.Services.AddSingleton(FolderPicker.Default);
@@ -144,11 +142,11 @@ public static class MauiProgram
 
 
         /* Registering the Desktop Views */
-        builder.Services.AddSingleton<HomeD>();
-        builder.Services.AddSingleton<SingleSongShellD>();
+        builder.Services.AddSingleton<MainPageD>();
+        builder.Services.AddSingleton<SingleSongShellPageD>();
         builder.Services.AddSingleton<PlaylistsPageD>();
         builder.Services.AddSingleton<ArtistsPageD>();
-        builder.Services.AddSingleton<FullStatsD>();
+        builder.Services.AddSingleton<FullStatsPageD>();
         builder.Services.AddSingleton<SingleSongStatsPageD>();
         builder.Services.AddSingleton<SettingsPageD>();
 

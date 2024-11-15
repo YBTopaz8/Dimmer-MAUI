@@ -1,6 +1,6 @@
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class AlbumPageM : UraniumContentPage
+public partial class AlbumPageM : ContentPage
 {
     NowPlayingBtmSheet? btmSheet { get; set; }
     public AlbumPageM(HomePageVM homePageVM)
@@ -31,7 +31,7 @@ public partial class AlbumPageM : UraniumContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
+        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
         HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
 
         if (HomePageVM.SelectedSongToOpenBtmSheet is null)

@@ -3,7 +3,7 @@ using Microsoft.Maui.Storage;
 
 namespace Dimmer_MAUI.Views.Mobile;
 
-public partial class TopStatsPageM : UraniumContentPage
+public partial class TopStatsPageM : ContentPage
 {
     NowPlayingBtmSheet btmSheet { get; set; }
     public TopStatsPageM(HomePageVM homePageVM)

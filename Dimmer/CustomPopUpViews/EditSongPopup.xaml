@@ -8,8 +8,8 @@
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
             x:DataType="vm:HomePageVM" 
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-            xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+            
+            
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
             Color="Transparent">
@@ -34,14 +34,14 @@
                          HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}"
                    />
 
-            <material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <!--<material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
             <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                          />
             <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
             <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
 
             <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
-                         />
+                         />-->
       
             <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
                 <Button Text="Cancel" BackgroundColor="Red" Clicked="CancelBtn_Clicked"/>

@@ -1,8 +1,6 @@
 //using Plainer.Maui.Controls;
 using DevExpress.Maui.CollectionView;
 
-using System.Diagnostics;
-using UraniumUI.Views;
 using Timer = System.Timers.Timer;
 
 

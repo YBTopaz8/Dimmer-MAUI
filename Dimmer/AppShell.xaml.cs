@@ -1,6 +1,5 @@
 ﻿
 #if WINDOWS
-using Dimmer_MAUI.Views.Desktop.CustomViews;
 using Microsoft.Maui.Platform;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -15,24 +14,26 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        Routing.RegisterRoute(nameof(HomeD), typeof(HomeD));
-        Routing.RegisterRoute(nameof(SingleSongShellD), typeof(SingleSongShellD));
+        Routing.RegisterRoute(nameof(MainPageD), typeof(MainPageD));
+        Routing.RegisterRoute(nameof(SingleSongShellPageD), typeof(SingleSongShellPageD));
         Routing.RegisterRoute(nameof(PlaylistsPageD), typeof(PlaylistsPageD));
         Routing.RegisterRoute(nameof(ArtistsPageD), typeof(ArtistsPageD));
-        Routing.RegisterRoute(nameof(FullStatsD), typeof(FullStatsD));
+        Routing.RegisterRoute(nameof(FullStatsPageD), typeof(FullStatsPageD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
 
-//#if WINDOWS
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        vm.AppFlyout = shelltabbar;
+        //#if WINDOWS
 
-//        // Subscribe to events
-//        this.Loaded += AppShell_Loaded;
-//        this.Unloaded += AppShell_Unloaded;
-//        this.Focused += AppShell_Focused;
-//        this.Unfocused += AppShell_Unfocused;
+        //        // Subscribe to events
+        //        this.Loaded += AppShell_Loaded;
+        //        this.Unloaded += AppShell_Unloaded;
+        //        this.Focused += AppShell_Focused;
+        //        this.Unfocused += AppShell_Unfocused;
 
-//#endif
-        
+        //#endif
+
     }
 
 #if WINDOWS
@@ -62,7 +63,7 @@ public partial class AppShell : Shell
         if (nativeElement != null)
         {
 
-            nativeElement.PointerPressed += OnGlobalPointerPressed;
+            //nativeElement.PointerPressed += OnGlobalPointerPressed;
             //nativeElement.KeyDown += NativeElement_KeyDown; just experimenting
         }
     }
@@ -166,11 +167,11 @@ public partial class AppShell : Shell
                 // Handle mouse button 4
                 var currentPage = Current.CurrentPage;
 
-                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsD), typeof(SettingsPageD) };
+                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsPageD), typeof(SettingsPageD) };
 
                 if (targetPages.Contains(currentPage.GetType()))
                 {
-
+                    
                     shelltabbar.CurrentItem = homeTab;
                     await Current.Navigation.PopAsync();
                     return;

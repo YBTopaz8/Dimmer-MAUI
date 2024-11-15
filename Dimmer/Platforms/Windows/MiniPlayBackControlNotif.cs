@@ -52,11 +52,14 @@ public static class MiniPlayBackControlNotif
         {
             var pv = mainWindow.Handler.PlatformView;
             if (pv is MauiWinUIWindow winUIWin)
-            {
-                
+            {                
                 winUIWin.Activate();
             }
         }
+
+        
     }
+
+    
 }
 

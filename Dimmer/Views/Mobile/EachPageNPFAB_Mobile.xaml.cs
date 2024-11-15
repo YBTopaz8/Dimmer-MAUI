@@ -27,6 +27,13 @@ public partial class EachPageNPFAB_Mobile : ContentView
     private void NowPlayingBtn_Clicked(object sender, EventArgs e)
     {
         HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        NowPlayingMiniControl.Commands.ToggleExpandState.Execute(null);
         
+
+    }
+
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        NowPlayingMiniControl.Commands.ToggleExpandState.Execute(null);
     }
 }

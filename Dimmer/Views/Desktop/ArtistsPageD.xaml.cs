@@ -57,7 +57,7 @@ public partial class ArtistsPageD : ContentPage
     {
         HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
-    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
         var send = (View)sender;

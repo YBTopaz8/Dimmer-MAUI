@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.SettingsPageD"
              xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
                xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             
 xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"   
              x:DataType="vm:HomePageVM" 
@@ -63,9 +63,7 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
                 </toolkit:Expander.Content>
             </toolkit:Expander>
 
-        <material:CheckBox Text="Toggle Stick To Top" x:Name="stickToTopChkbx"
-   CheckChangedCommand="{Binding ToggleStickToTopCommand}" LabelPosition="After"
-   CommandParameter="{Binding IsChecked, Source={x:Reference stickToTopChkbx}}"/>
+ 
 
         <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
             <Button Text="Reload All Covers" IsVisible="False" Command="{Binding ReloadCoverImageCommand}">

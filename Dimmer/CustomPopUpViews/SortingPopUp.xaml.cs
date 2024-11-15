@@ -11,11 +11,11 @@ public partial class SortingPopUp : Popup
         this.BindingContext = homePageVM;
         CurrentIndex = (int)currentSort;
 
-        RBtnGroup.SelectedIndex = CurrentIndex;
+        //RBtnGroup.SelectedIndex = CurrentIndex;
 
-        this.ResultWhenUserTapsOutsideOfPopup = (SortingEnum)RBtnGroup.SelectedIndex;
+        //this.ResultWhenUserTapsOutsideOfPopup = (SortingEnum)RBtnGroup.SelectedIndex;
     }
     private void CloseButton_Clicked(object sender, EventArgs e) => Close(null);
-    private void OkButton_Clicked(object sender, EventArgs e) => Close(RBtnGroup.SelectedIndex);
+    private void OkButton_Clicked(object sender, EventArgs e) => Close(/*RBtnGroup.SelectedIndex*/);
     
 }
