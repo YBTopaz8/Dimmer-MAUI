@@ -204,22 +204,10 @@ public partial class HomePageVM
     [ObservableProperty]
     bool isStickToTop = false;
     [RelayCommand]
-    async Task ToggleStickToTop()
-    {
-        //await Shell.Current.GoToAsync(nameof(SingleSongPageD));
-        //var window = IPlatformApplication.Current.Services.GetService<DimmerWindow>();
-
-        //if (IsStickToTop)
-        //{
-        //    window.Page = IPlatformApplication.Current.Services.GetService<ArtistsPageD>();
-        //}
-        //else
-        //{
-        //    window.Page = IPlatformApplication.Current.Services.GetService<SingleSongPageD>();
-        //}
+    void ToggleStickToTop()
+    {       
         IsStickToTop = !IsStickToTop;
 
-        return;
 #if WINDOWS
         PlatSpecificUtils.ToggleWindowAlwaysOnTop(IsStickToTop, AppWinPresenter);
 #endif

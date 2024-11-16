@@ -1,28 +1,370 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer_MAUI.Views.Desktop.MainPageD"
-              xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-             xmlns:CustomFonts="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.Fonts"             
-             xmlns:sys="clr-namespace:System;assembly=netstandard"
-             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             x:Class="Dimmer_MAUI.Views.Desktop.MainPageD"              
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
-             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"                      
-            xmlns:shimmer="clr-namespace:Syncfusion.Maui.Toolkit.Shimmer;assembly=Syncfusion.Maui.Toolkit"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              x:DataType="vm:HomePageVM"             
              x:Name="myPage"
-            BackgroundColor="#1F1F1F">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+            BackgroundColor="#1F1F1F"          
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
+              xmlns:dg="clr-namespace:Maui.DataGrid;assembly=Maui.DataGrid"
+             >
+
+    <ContentPage.Resources>
+
+        <ResourceDictionary>
+            <MenuFlyout x:Key="MainDisplayContextMenu">
+                <MenuFlyoutItem Text="Song Overview" Clicked="GoToSongOverviewClicked">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Looks}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutItem Text="Toggle MultiSelection" Clicked="ToggleMultiSelect_Clicked">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Select_all}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutItem Text="Set Play Repeat Count" Command="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                </MenuFlyoutItem>
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem Text="View File Explorer" Command="{Binding BindingContext.OpenSongFolderCommand, Source={x:Reference myPage}}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder_open}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="E"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Remove from Device" IsDestructive="True" 
+            Command="{Binding BindingContext.DeleteFileCommand, Source={x:Reference myPage}}"  
+            CommandParameter="{Binding .}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Delete_forever }"/>
+                    </MenuFlyoutItem.IconImageSource>
+
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="Delete"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutSeparator />
+
+                <MenuFlyoutItem Text="Edit" CommandParameter="{Binding .}"
+            Command="{Binding BindingContext.OpenEditSongPopupCommand,Source={x:Reference myPage}}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit}"/>
+                    </MenuFlyoutItem.IconImageSource>
+
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl" Key="E"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutItem Text="Information" Command="{Binding BindingContext.OpenViewSongDetailsPopupCommand
+,Source={x:Reference myPage}}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Info}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl" Key="I"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Go To Artist" Clicked="NavToArtistClicked"
+            >
+
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                </MenuFlyoutItem>
+
+                <MenuFlyoutSeparator/>
+
+                <MenuFlyoutSubItem Text="Search Song On...">
+                    <MenuFlyoutSubItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Search}"/>
+                    </MenuFlyoutSubItem.IconImageSource>
+
+                    <MenuFlyoutItem Text="Google" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                        IconImageSource="google.png" >
+                        <MenuFlyoutItem.CommandParameter>
+                            <x:Int32>0</x:Int32>
+                        </MenuFlyoutItem.CommandParameter>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="YouTube" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                        >
+                        <MenuFlyoutItem.IconImageSource>
+                            <FileImageSource File="youtube.png"/>
+                        </MenuFlyoutItem.IconImageSource>
+                        <MenuFlyoutItem.CommandParameter>
+                            <x:Int32>1</x:Int32>
+                        </MenuFlyoutItem.CommandParameter>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem Text="Spotify" Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                        >
+                        <MenuFlyoutItem.IconImageSource>
+                            <FileImageSource File="spotify.png"/>
+                        </MenuFlyoutItem.IconImageSource>
+                        <MenuFlyoutItem.CommandParameter>
+                            <x:Int32>2</x:Int32>
+                        </MenuFlyoutItem.CommandParameter>
+                    </MenuFlyoutItem>
+                </MenuFlyoutSubItem>
+
+                <MenuFlyoutSeparator/>
+
+                <MenuFlyoutItem Text="Add To Playlist" 
+                    Command="{Binding BindingContext.AddToPlaylistCommand,Source={x:Reference myPage}}">
+                    <MenuFlyoutItem.IconImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Playlist_add}"/>
+                    </MenuFlyoutItem.IconImageSource>
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Ctrl" Key="P"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+
+            </MenuFlyout>
+        </ResourceDictionary>
+
+    </ContentPage.Resources>
+    <!--<toolkit:DockLayout>
+        <toolkit:DockLayout.GestureRecognizers>
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" DragOver="DropGestureRecognizer_DragOver"
+                     DragLeave="DropGestureRecognizer_DragLeave"
+                     Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
+       
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                              x:Name="MediaPlayBackCW"/>
+
+        <Grid RowDefinitions="*" x:Name="MainBody" >-->
+    <toolkit:DockLayout BackgroundColor="#1F1F1F" x:Name="mainDock">
+        <toolkit:DockLayout.GestureRecognizers>
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave"
+                           Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
+
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                                      x:Name="MediaPlayBackCW"/>
+ 
+        <toolkit:DockLayout x:Name="MainBody" >
+
+            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
+
+                <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+                        Margin="10,0,10,0" x:Name="NormalMiniUtilBar">
+                    <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
+            FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
+
+                    <HorizontalStackLayout Spacing="10">
+
+                        <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
+                    
+                        </ImageButton>
+                        <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
+                             Grid.Column="1">
+                          
+                        </ImageButton>
+
+                        <!--<Button Command="{Binding DummyFuncCommand}" Text="Dummy Func!"/>-->
+
+                    </HorizontalStackLayout>
+
+                </FlexLayout>
+
+                <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+                        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" IsVisible="False">
+                    <HorizontalStackLayout>
+                        <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
+                           
+                        </ImageButton>
+                        <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
+                        FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+                    </HorizontalStackLayout>
+
+
+                    <HorizontalStackLayout Spacing="10">
+
+                        <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding IsMultiSelectOn}">
+                         
+                            <ImageButton.CommandParameter>
+                                <x:Int32>0</x:Int32>
+                            </ImageButton.CommandParameter>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+
+                </FlexLayout>
+            </VerticalStackLayout>
+
+
+            <dg:DataGrid ItemsSource="{Binding DisplayedSongs}" SelectionMode="Single" BackgroundColor="#1F1F1F"
+                         SelectedItem="{Binding PickedSong}" toolkit:DockLayout.DockPosition="Top"
+                         HeaderBackground="#1F1F1F" ActiveRowColor="DarkSlateBlue">
+            
+                
+                <dg:DataGrid.Columns>
+                    <dg:DataGridColumn Title="Title" PropertyName="Title" SortingEnabled="True" >
+                        <dg:DataGridColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:SongsModelView">
+                                <Label Text="{Binding .}"/>
+                            </DataTemplate>
+                        </dg:DataGridColumn.CellTemplate>
+                    </dg:DataGridColumn>
+                 
+                </dg:DataGrid.Columns>
+                <dg:DataGrid.RowsBackgroundColorPalette>
+                    <dg:PaletteCollection>
+                        <Color>#111111</Color>
+                        <Color>#1F1F1F</Color>
+                    </dg:PaletteCollection>
+                </dg:DataGrid.RowsBackgroundColorPalette>
+                <dg:DataGrid.RowsTextColorPalette>
+                    <dg:PaletteCollection>
+                        <Color>#FFFFFF</Color>
+                    </dg:PaletteCollection>
+                </dg:DataGrid.RowsTextColorPalette>
+            </dg:DataGrid>
+
+            <!--<dg:DataGridColumn Title="" PropertyName="HasLyrics" SortingEnabled="True" >
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               
+               <Image WidthRequest="13" VerticalOptions="Center" IsVisible="{Binding .}">
+                   <Image.Source>
+                       <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                   </Image.Source>
+               </Image>
+
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>
+   
+   <dg:DataGridColumn Title="Artist" PropertyName="ArtistName" SortingEnabled="True">
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               <Label Text="{Binding .}" VerticalTextAlignment="Center" HorizontalTextAlignment="Justify"/>
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>
+
+   <dg:DataGridColumn Title="Rating" PropertyName="Rating" SortingEnabled="True">
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               <Label Text="{Binding .}" VerticalTextAlignment="Center" HorizontalTextAlignment="Justify"/>
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>
+
+   <dg:DataGridColumn Title="Album" PropertyName="AlbumName" SortingEnabled="True">
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               <Label Text="{Binding .}" VerticalTextAlignment="Center" HorizontalTextAlignment="Justify"/>
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>
+
+
+   <dg:DataGridColumn Title="Duration" PropertyName="DurationInSeconds" SortingEnabled="True">
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               <Label Text="{Binding ., Converter={StaticResource DurationConverter}}"  VerticalTextAlignment="Center" HorizontalTextAlignment="Justify"/>
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>
+
+   <dg:DataGridColumn Title="File Format" PropertyName="FileFormat" SortingEnabled="True">
+       <dg:DataGridColumn.CellTemplate>
+           <DataTemplate x:DataType="models:SongsModelView">
+               <Label Text="{Binding .}"/>
+           </DataTemplate>
+       </dg:DataGridColumn.CellTemplate>
+   </dg:DataGridColumn>-->
+
+            <!--<dg:DataGrid.HeaderLabelStyle>
+                    <Style TargetType="Label">
+                        <Setter Property="TextColor" Value="White"/>
+                    </Style>
+                </dg:DataGrid.HeaderLabelStyle>-->
+
+            <CollectionView ItemsSource="{Binding DisplayedSongs}" toolkit:DockLayout.DockPosition="Top"  
+                  VerticalScrollBarVisibility="Default" IsVisible="False" IsEnabled="False"
+                  x:Name="SongsColView" ItemsUpdatingScrollMode="KeepItemsInView"
+                  Loaded="SongsColView_Loaded" Margin="5,0"
+                  EmptyView="Nothing ..." >
+
+        <CollectionView.ItemsLayout>
+            <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+        </CollectionView.ItemsLayout>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="models:SongsModelView">
+                        <syncf:SfEffectsView TouchDownEffects="Selection" BackgroundColor="Transparent"                                                                                                 
+                         x:Name="sfEffectsView" TouchDown="SfEffectsView_TouchDown" 
+                                             >
+                            <syncf:SfEffectsView.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+
+                            </syncf:SfEffectsView.GestureRecognizers>
+                            <Border Stroke="Transparent" Padding="5,0">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                        <Setter Property="StrokeThickness" Value="0.8"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                        <Setter Property="Stroke" Value="Transparent"/>
+                                        <Setter Property="StrokeThickness" Value="1"/>
+                                    </DataTrigger>
+                                </Border.Triggers>
+
+                                <Border.GestureRecognizers>
+                                    <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
+                          PointerExited="PointerGestureRecognizer_PointerExited"
+                          />
+
+                                </Border.GestureRecognizers>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="Selected" />
+
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+                                <HorizontalStackLayout>
+                                    <Label Text="{Binding Title}"/>
+                                    <Label Text="{Binding ArtistName}"/>
+                                </HorizontalStackLayout>
+
+                            </Border>
+                        </syncf:SfEffectsView>
+                    </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+
+
+        </toolkit:DockLayout>
+
+    </toolkit:DockLayout>
+
+    <!--</Grid>
+    </toolkit:DockLayout>-->
 </ContentPage>

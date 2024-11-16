@@ -14,11 +14,9 @@ public static class MauiProgram
             .UseDevExpressControls()
             .UseDevExpressDataGrid()
             .UseDevExpressEditors()
-            .UseDevExpressGauges()
-            
+            .UseDevExpressGauges()            
             .UseMauiCommunityToolkit(options =>
             {
-
                 options.SetShouldSuppressExceptionsInAnimations(true);
                 options.SetShouldSuppressExceptionsInBehaviors(true);
                 options.SetShouldSuppressExceptionsInConverters(true);
@@ -27,8 +25,7 @@ public static class MauiProgram
             .ConfigureSyncfusionToolkit()
             
             .ConfigureFonts(fonts =>
-            {
-                
+            {                
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
@@ -149,6 +146,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<FullStatsPageD>();
         builder.Services.AddSingleton<SingleSongStatsPageD>();
         builder.Services.AddSingleton<SettingsPageD>();
+        builder.Services.AddSingleton<LandingPageD>();
 
 
         /* Registering the Mobile Views */

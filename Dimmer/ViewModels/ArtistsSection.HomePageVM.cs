@@ -101,10 +101,13 @@ public partial class HomePageVM
 
     public async void GetAllArtistsAlbum(AlbumModelView? album = null, SongsModelView? song = null, bool isFromSong = false)
     {
+        if(!DisplayedSongs.Contains(TemporarilyPickedSong))
+            return;
         if(SelectedAlbumOnArtistPage is not null)
             SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         if (isFromSong)
         {
+
             SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == AllLinks.FirstOrDefault(x => x.SongId == song.Id).ArtistId);
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
             

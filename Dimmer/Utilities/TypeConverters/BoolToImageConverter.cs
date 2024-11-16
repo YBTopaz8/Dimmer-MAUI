@@ -6,18 +6,18 @@ public class BoolToImageConverter : IValueConverter
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         if (parameter is string ImageName)
         {
-            //return vm.IsPlaying ? MaterialRounded.Pause : MaterialRounded.Play_arrow;
+            return vm.IsPlaying ? MaterialRounded.Pause : MaterialRounded.Play_arrow;
         }
 
         if (value is bool MyBoolValue && MyBoolValue is true)
         {
-            //return FontAw.Solid.HeartCircleMinus;
-            return null;
+            return FontAw.Solid.HeartCircleMinus;
+            
         }
         else
         {
-            return null;
-            //return Regular.Heart;            
+            
+            return Regular.Heart;
         }
     }
 

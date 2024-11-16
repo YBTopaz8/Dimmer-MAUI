@@ -44,7 +44,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:PlaylistModelView">
                         <Border StrokeShape="RoundRectangle 5" Margin="10,10">
-                            
+
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="CommonStates">
                                     <VisualState x:Name="Normal" />
@@ -70,7 +70,7 @@
                                     CommandParameter="{Binding Id}"/>
                             </Border.GestureRecognizers>
 
-                            <Label Text="{Binding Name}"
+                            <Label Text="{Binding Name}" x:DataType="models:PlaylistModelView"
                                    Padding="10,5" Margin="0,5"/>
                         </Border>
                     </DataTemplate>

@@ -328,7 +328,7 @@
                     <dx:DXButton Content="Tag Editor" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"
                             Command="{Binding OpenEditSongPopupCommand}">
                         <dx:DXButton.Icon>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit_audio}" />
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Edit}" />
                         </dx:DXButton.Icon>
                     </dx:DXButton>
                     <dx:DXButton Content="Song Info" 

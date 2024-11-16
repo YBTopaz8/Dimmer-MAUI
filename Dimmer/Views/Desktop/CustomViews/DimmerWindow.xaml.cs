@@ -84,6 +84,5 @@ public partial class DimmerWindow : Window
         HomepageVM.ToggleStickToTopCommand.Execute(null);
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
-
     }
 }

@@ -111,6 +111,7 @@
     <None Remove="Resources\Images\youtube.svg" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="akgul.Maui.DataGrid" Version="4.0.5" />
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.1.7" />
@@ -128,8 +129,8 @@
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     
-    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.10.2" />
-    <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.10.2" />
+    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
+    <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.9.1" />
     
     <PackageReference Include="z440.atl.core" Version="6.8.0" />
   </ItemGroup>
@@ -189,6 +190,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\FullStatsPageD.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Desktop\LandingPageD.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\MainPageD.xaml">

@@ -21,6 +21,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(FullStatsPageD), typeof(FullStatsPageD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
+        Routing.RegisterRoute(nameof(LandingPageD), typeof(LandingPageD));
 
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         vm.AppFlyout = shelltabbar;

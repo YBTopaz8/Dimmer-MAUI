@@ -184,7 +184,7 @@ public class MediaPlayerService : Service,
                 Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
                 remoteComponentName = new ComponentName(PackageName, new RemoteControlBroadcastReceiver().ComponentName);
                 mediaSession = new MediaSession(Platform.AppContext, "MauiStreamingAudio"/*, remoteComponentName*/); //TODO
-                mediaSession.SetMediaButtonBroadcastReceiver(remoteComponentName);
+                //mediaSession.SetMediaButtonBroadcastReceiver(remoteComponentName);
 
                 var pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
 
