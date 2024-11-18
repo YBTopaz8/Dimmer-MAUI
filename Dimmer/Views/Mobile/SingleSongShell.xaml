@@ -58,22 +58,22 @@
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-
-
                         <dx:DXCollectionView x:DataType="vm:HomePageVM" ItemsSource="{Binding SynchronizedLyrics}" 
                                         SelectionChanged="LyricsColView_SelectionChanged" 
                                         SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}" BackgroundColor="Transparent"
                                         Grid.Column="0">
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModel">
-                                    <Border Stroke="Transparent" Margin="5,0" >
+                                    <Border Stroke="Transparent" Opacity="0.4"
+                                            BackgroundColor="Transparent"
+                                            Margin="5,0" >
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
                                         </Border.GestureRecognizers>
 
                                         <Label Text="{Binding Text}" Margin="0,5" 
                                                     HorizontalTextAlignment="Center" 
-                                                    FontSize="19" >
+                                                    FontSize="15" >
                                             <Label.Triggers>
 
                                             </Label.Triggers>
@@ -84,13 +84,10 @@
                             <dx:DXCollectionView.SelectedItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModel">
                                     <Border Stroke="Transparent" Margin="5,0" >
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                        </Border.GestureRecognizers>
+                                      
 
                                         <Label Text="{Binding Text}" Margin="0,5" 
-                        HorizontalTextAlignment="Center" 
-                        FontSize="19" >
+                        HorizontalTextAlignment="Center" FontSize="36" >
                                             <Label.Triggers>
 
                                             </Label.Triggers>
@@ -137,7 +134,7 @@
                                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>
                                     <ContentView>
-                                        <VerticalStackLayout HorizontalOptions="Center" x:Name="emptyV">
+                                        <VerticalStackLayout HorizontalOptions="Center" x:Name="emptyV" BackgroundColor="Transparent">
 
 
                                             <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"

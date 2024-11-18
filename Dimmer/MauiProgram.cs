@@ -1,12 +1,18 @@
-﻿using UraniumUI;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
         builder
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
+                //fonts.AddMaterialSymbolsFonts();
+                //fonts.AddFontAwesomeIconFonts();
+            })
             .UseMauiApp<App>()
             .UseDevExpress(useLocalization: false)
             .UseDevExpressCollectionView()
@@ -23,14 +29,6 @@ public static class MauiProgram
                 
             })
             
-            .ConfigureFonts(fonts =>
-            {                
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
-                fonts.AddMaterialSymbolsFonts();
-                fonts.AddFontAwesomeIconFonts();
-            })
             .ConfigureSyncfusionToolkit();
 
 

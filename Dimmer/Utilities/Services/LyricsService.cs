@@ -456,14 +456,15 @@ public class LyricsService : ILyricsService
         {
             if (manualSearchFields is null)
             {
-                return JsonSerializer.Deserialize<Content[]>(content);
+                return null;
+                //return JsonSerializer.Deserialize<Content[]>(content);
             }
           
             // Read the response content
             content = await response.Content.ReadAsStringAsync();
         }
-
-        return JsonSerializer.Deserialize<Content[]>(content);
+        return null;
+        //return JsonSerializer.Deserialize<Content[]>(content);
     }
 
     #endregion
@@ -508,21 +509,21 @@ public class LyricsService : ILyricsService
         // Read the response content
         string content = await response.Content.ReadAsStringAsync();
 
-        var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
-        var lyrics = new Content();
-        if (string.IsNullOrEmpty(e.lyrics))
-        {
-            return Array.Empty<Content>();
-        }
-        lyrics.trackName = e.title;
-        lyrics.artistName = e.artist;
-        lyrics.plainLyrics = e.lyrics;
-        lyrics.linkToCoverImage = e.image;
-        lyrics.id = 1;
-        List<Content> contentList = new();
-        contentList.Add(lyrics);
-        return contentList.ToArray();
-
+        //var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
+        //var lyrics = new Content();
+        //if (string.IsNullOrEmpty(e.lyrics))
+        //{
+        //    return Array.Empty<Content>();
+        //}
+        //lyrics.trackName = e.title;
+        //lyrics.artistName = e.artist;
+        //lyrics.plainLyrics = e.lyrics;
+        //lyrics.linkToCoverImage = e.image;
+        //lyrics.id = 1;
+        //List<Content> contentList = new();
+        //contentList.Add(lyrics);
+        //return contentList.ToArray();
+        return null;
     }
 
     static async Task<byte[]>? DownloadSongImage(string coverImageURL)//, HttpClient client)

@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<linker>
+  <assembly fullname="AssemblyA" preserve="all" />
+
+  <!-- No "preserve" attribute and no types specified means preserve all -->
+  <assembly fullname="AssemblyB"/>
+</linker>

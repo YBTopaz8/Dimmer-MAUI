@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Maui.Storage;
@@ -222,13 +223,15 @@ public class AppSettingsService : IAppSettingsService
         {
             get
             {
-                string serializedFolders = Preferences.Default.Get(nameof(MusicFolders), JsonSerializer.Serialize(new List<string> { defaultFolder }));
-                return JsonSerializer.Deserialize<List<string>>(serializedFolders);
+                return Enumerable.Empty<string>().ToList();
+                //string serializedFolders = Preferences.Default.Get(nameof(MusicFolders), JsonSerializer.Serialize(new List<string> { defaultFolder }));
+                //return JsonSerializer.Deserialize<List<string>>(serializedFolders);
             }
             set
             {
-                string serializedFolders = JsonSerializer.Serialize(value);
-                Preferences.Default.Set(nameof(MusicFolders), serializedFolders);
+
+                //string serializedFolders = JsonSerializer.Serialize(value);
+                //Preferences.Default.Set(nameof(MusicFolders), serializedFolders);
             }
         }
 
@@ -293,16 +296,7 @@ public class AppSettingsService : IAppSettingsService
         }
     }
 }
-public class MyAppJsonContext : JsonSerializerContext
+[JsonSerializable(typeof(List<string>))]
+public partial class StringListJsonContext : JsonSerializerContext
 {
-    public MyAppJsonContext(JsonSerializerOptions? options) : base(options)
-    {
-    }
-
-    protected override JsonSerializerOptions? GeneratedSerializerOptions => throw new NotImplementedException();
-
-    public override JsonTypeInfo? GetTypeInfo(Type type)
-    {
-        throw new NotImplementedException();
-    }
 }

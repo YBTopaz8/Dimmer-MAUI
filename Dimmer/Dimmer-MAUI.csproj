@@ -42,10 +42,13 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19041.0</SupportedOSPlatformVersion>
 
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-    <IsAotCompatible>True</IsAotCompatible>
 
+    <PublishTrimmed>True</PublishTrimmed>
 
+    <PublishAot>True</PublishAot>
 
+    <UseSystemTextJsonSourceGeneration>true</UseSystemTextJsonSourceGeneration>
+    <!-- Enables source generation -->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
@@ -100,6 +103,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android34.0|AnyCPU'">
     <AndroidKeyStore>True</AndroidKeyStore>
 
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android35.0|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    
+    <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+    
+    <PublishTrimmed>True</PublishTrimmed>
+    
+    <RunAOTCompilation>True</RunAOTCompilation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
+    
+    <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+    
+    <PublishTrimmed>True</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->

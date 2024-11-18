@@ -13,7 +13,7 @@ public partial class SingleSongShell : ContentPage
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
 
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>());
         //dailyDateFilter.Date = DateTime.Now;
      
