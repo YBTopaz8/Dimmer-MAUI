@@ -773,7 +773,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
-            ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNotSubject.Value.FirstOrDefault();
+            ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNotSubject.Value.FirstOrDefault()!;
             if (ObservableCurrentlyPlayingSong is null)
             {
                 if (!isLoadingSongs)
@@ -827,7 +827,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
-            await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
+            audioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
 
             // Now, play the audio after initialization has completed
             
@@ -850,7 +850,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 WasPlayCompleted = false // Mark as incomplete
             });
 
-            ViewModel.SetPlayerState(MediaPlayerState.Playing);
+            ViewModel!.SetPlayerState(MediaPlayerState.Playing);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
             ViewModel.SetPlayerState(MediaPlayerState.RefreshStats);
 
@@ -866,13 +866,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         finally
         {
-            if (File.Exists(ObservableCurrentlyPlayingSong.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
+            if (File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
             }
 
-            ShowMiniPlayBackView();
+            //ShowMiniPlayBackView();
 
         }
     }
@@ -1147,7 +1147,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
             _positionTimer?.Start();
 
-            await audioService.InitializeAsync(ObservableCurrentlyPlayingSong, coverImage);
+            audioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
             await audioService.ResumeAsync(currentPosition);
             
             ShowMiniPlayBackView();

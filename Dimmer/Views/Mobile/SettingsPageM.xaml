@@ -10,8 +10,8 @@
              Title="Settings">
     <dx:DXDockLayout Padding="10,10">
         <Label Text="Settings" FontSize="30" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
-        <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" >
-            <HorizontalStackLayout Spacing="5">
+        <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" BackgroundColor="Transparent">
+            <HorizontalStackLayout Spacing="5" BackgroundColor="Transparent">
                 <Image>
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
@@ -31,7 +31,7 @@
                 
                 <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
                        IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
-                <Grid>
+                <Grid BackgroundColor="Transparent">
                     <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
@@ -49,9 +49,9 @@
                 
             </dx:DXBorder>-->
         </VerticalStackLayout>
-        <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center"
-                             Margin="10">
-            <HorizontalStackLayout>
+        <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"
+                             Margin="10" BackgroundColor="Transparent">
+            <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
                 <Image>
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
@@ -63,7 +63,9 @@
                          Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
                          TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
         </VerticalStackLayout>
-        <Label Text="Dimmer By Yvan Brunel"/>
+        <Label Text="Dimmer By Yvan Brunel" 
+               toolkit:DockLayout.DockPosition="Top"
+               HorizontalTextAlignment="Center"/>
         
     </dx:DXDockLayout>
 </ContentPage>

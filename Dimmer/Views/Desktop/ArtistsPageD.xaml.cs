@@ -66,15 +66,16 @@ public partial class ArtistsPageD : ContentPage
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
+        HomePageVM.GetSongsFromAlbumId(curSel!.Id);
         //await HomePageVM.GetAllAlbumInfos(curSel);
         //await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
 
-    private async void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
+    private void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
     {
         Border view = (Border)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
-        await HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        HomePageVM.GetAllArtistAlbumFromArtist(artist);
         
         var AlbumArtist = HomePageVM.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.Id)!.AlbumId;
         var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.Id == AlbumArtist);
@@ -114,7 +115,8 @@ public partial class ArtistsPageD : ContentPage
     {
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
-        HomePageVM.LoadSongsFromArtistId(artist.Id);
+        HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        
         //await HomePageVM.GetAllArtistAlbumFromArtist(artist);
 
 

@@ -62,10 +62,10 @@
                      BorderWidth="0" CornerRadius="15">
             </toolkit:AvatarView>
 
-            <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" >
+            <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
                 <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
             LineBreakMode="HeadTruncation" FontSize="18"/>
-                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" MaximumWidthRequest="150"
+                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
             LineBreakMode="TailTruncation"
             Opacity="0.6" HorizontalOptions="Start"/>
                 <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"

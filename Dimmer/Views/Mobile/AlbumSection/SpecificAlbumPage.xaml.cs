@@ -9,7 +9,7 @@ public partial class SpecificAlbumPage : ContentPage
         this.BindingContext = homePageVM;
         HomePageVM = homePageVM;
 
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        btmSheet = IPlatformApplication.Current?.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(btmSheet);
     }
     public HomePageVM HomePageVM { get; }

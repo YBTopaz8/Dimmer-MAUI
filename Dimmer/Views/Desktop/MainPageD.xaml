@@ -189,8 +189,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
                         <syncf:SfEffectsView
-                            TouchDown="SfEffectsView_TouchDown"
-                            FlyoutBase.ContextFlyout="{StaticResource MainDisplayContextMenu}">
+                            TouchDown="SfEffectsView_TouchDown">
                             <Grid ColumnDefinitions="Auto,*,*,*,*" ColumnSpacing="5">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>

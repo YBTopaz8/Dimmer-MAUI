@@ -86,13 +86,27 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         HomePageVM.SeekSongPosition();
     }
 
-    private void DXButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
     private async void NavToSingleSongShell_Clicked(object sender, EventArgs e)
     {
         await HomePageVM.NavToSingleSongShell();
+    }
+
+    private void lyricsCover_Clicked(object sender, EventArgs e)
+    {
+        if (HomePageVM.SynchronizedLyrics?.Count < 1 || HomePageVM.SynchronizedLyrics is null)
+        {
+            return;
+        }
+        //NormalNowPlayingUI.IsExpanded = !NormalNowPlayingUI.IsExpanded;
+        //LyricsUI.IsExpanded = !LyricsUI.IsExpanded;
+    }
+
+    private void SyncLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
+    {
+        if (HomePageVM.SynchronizedLyrics?.Count <1 || HomePageVM.SynchronizedLyrics is null)
+        {
+            return;
+        }
+        SyncLyricsColView.ScrollTo(SyncLyricsColView.GetItemHandle(HomePageVM.SynchronizedLyrics!.IndexOf(HomePageVM.CurrentLyricPhrase!)), DXScrollToPosition.Start);
     }
 }

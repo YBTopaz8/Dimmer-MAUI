@@ -9,7 +9,7 @@ public partial class AlbumPageM : ContentPage
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
 
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        btmSheet = IPlatformApplication.Current?.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(btmSheet);
     }
 
@@ -20,7 +20,7 @@ public partial class AlbumPageM : ContentPage
     {        
         var t = (VerticalStackLayout)sender;
         var album = t.BindingContext as AlbumModelView;
-        if (previousAlbID == album.Id)
+        if (previousAlbID == album!.Id)
         {
             return;
         }
@@ -36,7 +36,7 @@ public partial class AlbumPageM : ContentPage
 
         if (HomePageVM.SelectedSongToOpenBtmSheet is null)
         {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong!;
         }
         HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
     }
@@ -49,11 +49,8 @@ public partial class AlbumPageM : ContentPage
     {
         var send = (View)sender;
         var album = send.BindingContext as AlbumModelView;
-        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
+        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album!);
     }
-
-    private System.Timers.Timer _longPressTimer;
-    private bool _isLongPressed;
 
     private void NowPlaySearchBtmSheet_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {

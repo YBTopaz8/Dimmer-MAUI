@@ -7,10 +7,10 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             x:DataType="vm:HomePageVM" VerticalOptions="End" HorizontalOptions="End"
              x:Class="Dimmer_MAUI.Views.Mobile.EachPageNPFAB_Mobile">
-    <HorizontalStackLayout VerticalOptions="End" Spacing="10"
+    <HorizontalStackLayout VerticalOptions="End" Spacing="10" BackgroundColor="Transparent"
                       HorizontalOptions="End">
         <dx:DXExpander x:Name="NowPlayingMiniControl" Opacity="0.9" 
-                    IsExpanded="False" 
+                    IsExpanded="False" BackgroundColor="Transparent"
                     HorizontalExpandMode="FromEndToStart">
             <dx:DXExpander.Resources>
                 <ResourceDictionary>
@@ -26,18 +26,21 @@
                 </ResourceDictionary>
             </dx:DXExpander.Resources>
             <dx:DXExpander.Content>
-                <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
-                               BackgroundColor="#1E1E1E" WidthRequest="250"
-                               CornerRadius="25" 
+                <Grid WidthRequest="270" HeightRequest="150" BackgroundColor="Transparent">
+                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" BackgroundColor="Transparent"
+                           Opacity="0.40" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
+                    <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
+                               BackgroundColor="Transparent" 
+                               CornerRadius="25" VerticalOptions="Center"
                                >
                     <dx:DXStackLayout.GestureRecognizers>
                         <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" Command="{Binding ShowNowPlayingBtmSheetCommand}"/>
                     </dx:DXStackLayout.GestureRecognizers>
                     <Label Text="{Binding TemporarilyPickedSong.Title}" LineBreakMode="TailTruncation"
-                        FontSize="20" FontAttributes="Bold" Padding="10,0"
+                        FontSize="16" FontAttributes="Bold" Padding="5,0"
                         HorizontalOptions="Center"/>
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
-                                        Spacing="10">
+                                        Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
                                   IconColor="White">
                             <dx:DXButton.Icon>
@@ -64,6 +67,7 @@
                         FontSize="17" LineBreakMode="TailTruncation"
                         HorizontalOptions="Center" Padding="10"/>
                 </dx:DXStackLayout>
+                </Grid>
             </dx:DXExpander.Content>
         </dx:DXExpander>
 

@@ -470,6 +470,8 @@ public class MediaPlayerService : Service,
             IsSeekedFromNotificationBar?.Invoke(this, position);
             UpdatePlaybackState(MediaPlayerState, position);
         });
+        IsPlayingChanged?.Invoke(this, true);
+
     }
 
     public Task PlayNext()

@@ -383,7 +383,8 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    ObservableCollection<string> photoDumps = new ObservableCollection<string>();
+    string shareImgPath = string.Empty;
+    
     public Color[] ShareColors { get; } = new Color[]{
             Color.FromArgb("#FF0000"),
             Color.FromArgb("#2365BD"),

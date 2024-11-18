@@ -42,54 +42,33 @@
         <SearchBar toolkit:DockLayout.DockPosition="Top" HorizontalOptions="End" x:Name="SearchArtistBar"
                    WidthRequest="200" Placeholder="Type To Search" TextChanged="SearchBar_TextChanged"/>
 
-        <!--<CollectionView toolkit:DockLayout.DockPosition="Top" 
-                        HeightRequest="180" x:Name="AllAlbumsColView"
-                        ItemsLayout="HorizontalList" VerticalOptions="Start"
-                        ItemsSource="{Binding AllArtistsAlbums}" 
-                        SelectionMode="Single" EmptyView="No Albums...">
+        <CollectionView toolkit:DockLayout.DockPosition="Top" 
+                        HeightRequest="150" x:Name="AllAlbumsColView" 
+                        VerticalOptions="Start" 
+                        ItemsSource="{Binding AllArtistsAlbums}">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Horizontal" />
+            </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:AlbumModelView">
-                    <Border Stroke="Transparent" HorizontalOptions="Center">
+                    <Border Stroke="Transparent" HorizontalOptions="Center" >
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
                         </Border.GestureRecognizers>
-
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal"/>
-                                <VisualState x:Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="Transparent"/>
-                                        <Setter Property="Stroke" Value="Transparent"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="PointerOver">
-                                    <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                        <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-
-
-                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
+                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}"
+                                             >
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
-                                            WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
+                                       HeightRequest="100" WidthRequest="100" 
                                         BorderWidth="0" CornerRadius="8"/>
-                            <FlexLayout JustifyContent="SpaceBetween">
-                                <Label Text="{Binding Name}" FontSize="14"
-                                       Padding="10,5" LineBreakMode="WordWrap" 
-                                       MaximumWidthRequest="120" />
-                            </FlexLayout>
                             
+                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
+                                       Padding="10,5" LineBreakMode="WordWrap" HorizontalOptions="Center"/>
                         </VerticalStackLayout>
 
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-        </CollectionView>-->
+        </CollectionView>
 
 
         <CollectionView toolkit:DockLayout.DockPosition="Left" 

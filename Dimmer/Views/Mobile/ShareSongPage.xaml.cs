@@ -12,7 +12,7 @@ public partial class ShareSongPage : ContentPage
     public ShareSongPage()
     {
         InitializeComponent();
-        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        HomePageVM = IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
         this.BindingContext = HomePageVM;
     }
     
@@ -36,12 +36,11 @@ public partial class ShareSongPage : ContentPage
             //addLyrText.IsVisible = true;
         }
         string? str = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
-        HomePageVM.PhotoDumps.Clear();
         if (!string.IsNullOrEmpty(str))
         {            
             currentsong = HomePageVM.SelectedSongToOpenBtmSheet;
-            HomePageVM.PhotoDumps.Add(str);
-            SharePageColViewImg.ItemSpanCount = 1;
+
+           HomePageVM.ShareImgPath = str;
         }
         else
         {
@@ -156,7 +155,6 @@ public partial class ShareSongPage : ContentPage
             {
                 foreach (var imgPicked in res)
                 {
-                    HomePageVM.PhotoDumps.Add(imgPicked.FullPath);
                 }
             }
         }        
@@ -301,9 +299,8 @@ public partial class ShareSongPage : ContentPage
     private async void ToggleBGImg_ChipTap(object sender, ChipEventArgs e)
     {
         var send = sender as ChoiceChipGroup;
-        HomePageVM.PhotoDumps.Clear();
         PageGrid.BackgroundColor = Colors.Transparent;
-        switch (send.SelectedIndex)
+        switch (send!.SelectedIndex)
         {
             case 0: //solid color
                 customImgPath = string.Empty;
@@ -311,12 +308,11 @@ public partial class ShareSongPage : ContentPage
                 break;
             case 1: //song cover as bg
                 customImgPath = string.Empty;
-                HomePageVM.PhotoDumps.Add(HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath);
-                SharePageColViewImg.ItemSpanCount = 1;
+                HomePageVM.ShareImgPath = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath!;
+                
                 PageGrid.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 break;
             case 2: // one img
-                HomePageVM.PhotoDumps.Clear();
                 customImgPath = string.Empty;
                 if (await ConfirmActionPopup("Pick A Single Image"))
                 {
@@ -328,14 +324,11 @@ public partial class ShareSongPage : ContentPage
                     });
                     if (res != null)
                     {
-                        HomePageVM.PhotoDumps.Add(res.FullPath);                        
+                       HomePageVM.ShareImgPath = res.FullPath;
                     }
-                    SharePageColViewImg.ItemSpanCount = 1;
-                    SharePageColViewImg.Orientation = DevExpress.Maui.CollectionView.LayoutOrientation.Horizontal;
                 }
                 break;
             case 3:
-                HomePageVM.PhotoDumps.Clear();
                 if (await ConfirmActionPopup("Pick Mulitple Images"))
                 {
                     var res = await FilePicker.Default.PickMultipleAsync(
@@ -349,10 +342,9 @@ public partial class ShareSongPage : ContentPage
                         
                         foreach (var imgPicked in res)
                         {
-                            HomePageVM.PhotoDumps.Add(imgPicked.FullPath);
+
                         }
                     }
-                    SharePageColViewImg.ItemSpanCount = res.Count();
                 }
                 break;
             default:
@@ -451,5 +443,10 @@ public partial class ShareSongPage : ContentPage
     private void HighlightedLyricEdit_Focused(object sender, FocusEventArgs e)
     {
         ShareTextExp.Commands.ToggleExpandState.Execute(null);
+    }
+
+    private void UtilsHSL_Clicked(object sender, EventArgs e)
+    {
+        ShareStoryToolBox.Show();
     }
 }

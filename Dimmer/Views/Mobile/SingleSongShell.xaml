@@ -40,10 +40,10 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid Padding="0,0" >
+    <Grid Padding="0,0" BackgroundColor="Transparent">
         <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
     IsVisible="True" Grid.Column="0" Aspect="Center"/>
-        <chart:SfTabView x:Name="TabV"
+        <chart:SfTabView x:Name="TabV" BackgroundColor="Transparent"
                         TabBarHeight="65" TabBarPlacement="Bottom"
                         IndicatorPlacement="Bottom" SelectedIndex="{Binding CurrentViewIndex}"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
@@ -109,7 +109,7 @@
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <Grid Margin="5,5" RowDefinitions="*,Auto">
+                        <Grid Margin="5,5" RowDefinitions="*,Auto" BackgroundColor="Transparent">
                             <Grid.Resources>
                                 <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
@@ -192,7 +192,7 @@
 
         </chart:SfTabView>
         <VerticalStackLayout VerticalOptions="End" HeightRequest="180"
-                             HorizontalOptions="End">
+                             HorizontalOptions="End" BackgroundColor="Transparent">
             <viewsM:EachPageNPFAB_Mobile Margin="10"/>
         </VerticalStackLayout>
 

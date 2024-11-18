@@ -28,8 +28,7 @@ Margin="10"
             </TitleBar.Content>
 
             <TitleBar.TrailingContent>
-                <HorizontalStackLayout
-                    >
+                <HorizontalStackLayout BackgroundColor="Transparent">
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="sss"/>

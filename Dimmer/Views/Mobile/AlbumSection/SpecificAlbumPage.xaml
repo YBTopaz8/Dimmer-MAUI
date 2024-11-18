@@ -28,9 +28,7 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentPage.Resources>
-</ContentPage>
-<!--
-<Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*">
         <VerticalStackLayout Grid.Row="0">
             <Grid ColumnDefinitions="*,Auto" Grid.Row="0" 
             VerticalOptions="Center">
@@ -81,13 +79,12 @@
             </HorizontalStackLayout>
 
             <Grid>
-                <CollectionView SelectionMode="Single" ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-EmptyView="No Songs...">
-                    <CollectionView.Header>
+                <dx:DXCollectionView SelectionMode="Single" ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}">
+                    <dx:DXCollectionView.Header>
                         <Label Text="Songs" FontAttributes="Bold"
             FontSize="18" Margin="10,0"/>
-                    </CollectionView.Header>
-                    <CollectionView.ItemTemplate>
+                    </dx:DXCollectionView.Header>
+                    <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
                             <Border Stroke="Transparent">
                                 <VisualStateManager.VisualStateGroups>
@@ -125,11 +122,11 @@ EmptyView="No Songs...">
                                 </FlexLayout>
                             </Border>
                         </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
             </Grid>
         </VerticalStackLayout>
-    
+
 
         <VerticalStackLayout Grid.Row="1"
                              VerticalOptions="End"
@@ -164,5 +161,4 @@ FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
         </dx:BottomSheet>
     </Grid>
 
-<ContentPage>
-    -->
+</ContentPage>

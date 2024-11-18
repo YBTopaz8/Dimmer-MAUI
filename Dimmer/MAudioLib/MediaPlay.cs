@@ -10,7 +10,7 @@ public class MediaPlay
     /// <summary>
     /// Get/Set Album Cover in Byte[] to put on Notification 
     /// </summary>
-    public byte[] ImageBytes { get; set; }
+    public byte[]? ImageBytes { get; set; }
     /// <summary>
     /// Get/Set the VALUE of the Duration, solely used for the Notification bar to show Progress.
     /// </summary>

@@ -17,9 +17,8 @@
             Shell.BackgroundColor="#151C1C"
             BackgroundColor="#151C1C"
              x:Name="myPage">
-</ContentPage>
-    
-<!--<ContentPage.Resources>
+
+<ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
@@ -29,12 +28,11 @@
 
         <DataTemplate x:Key="AllAlbumsColViewTemplate" x:DataType="models:AlbumModelView">
 
-            <dx:DXButton BackgroundColor="Transparent" HeightRequest="200"
-            Command="{Binding BindingContext.NavigateToSpecificAlbumPageCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}"                         
-                         PressedBorderColor="Gray" TextColor="White"
-                         BorderThickness="1" CornerRadius="20"
-                         PressedScale="1" PressedBackgroundColor="DarkSlateBlue"
-                         ShowIcon="False">
+            <dx:DXButton BackgroundColor="Transparent" HeightRequest="200"            
+                         PressedBorderColor="DarkSlateBlue" TextColor="White"
+                         BorderThickness="1" CornerRadius="20" AnimationDuration="4500"
+                         PressedScale="1" PressedBackgroundColor="DarkSlateBlue" CommandParameter="{Binding .}"
+                         ShowIcon="False" x:Name="SpecificAlbum" Clicked="SpecificAlbum_Clicked">
                 <dx:DXButton.Content>
                     <VerticalStackLayout VerticalOptions="Start" Spacing="10">
                         <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
@@ -75,10 +73,9 @@
             <Grid Grid.Row="1" >
                 <dx:DXCollectionView  ItemSpanCount="3"
                               ItemSpanSpacing="2" x:Name="AlbumsColView"
-                    VerticalOptions="Start" TapConfirmed="AlbumsColView_Tap"
-                ItemsSource="{Binding AllAlbums}"
+                              VerticalOptions="Start" 
+                              ItemsSource="{Binding AllAlbums}" 
                               ItemTemplate="{StaticResource AllAlbumsColViewTemplate}"
-                              RippleColor="DarkSlateBlue"
                               IsScrollBarVisible="False">
 
                 </dx:DXCollectionView>
@@ -100,8 +97,6 @@
 
 
         </Grid>
-
-
 
         <dx:BottomSheet x:Name="AlbumsPageBtmSheet">
             <dx:DXScrollView>
@@ -136,15 +131,4 @@
             </dx:DXScrollView>
         </dx:BottomSheet>
     </VerticalStackLayout>
-</ContentPage>-->
-
-<!--<HorizontalStackLayout Grid.Row="1" Spacing="8" 
-                      MaximumHeightRequest="50">
-      <toolkit:AvatarView VerticalOptions="Start" BorderWidth="0" 
-  Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
-      <VerticalStackLayout>
-          <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}"
-          FontSize="28" FontAttributes="Bold"/>
-          <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"/>
-      </VerticalStackLayout>
-  </HorizontalStackLayout>-->
+</ContentPage>

@@ -18,9 +18,7 @@
             Shell.NavBarIsVisible="False"
              x:Name="myPage">
 
-</ContentPage>
-    
-<!--<ContentPage.Resources>
+    <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="White"/>
@@ -28,104 +26,101 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BoolToImageConverter x:Key="BoolToImage"/>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-
-            
-
         </ResourceDictionary>
     </ContentPage.Resources>
-
     <dx:DXDockLayout x:Name="tkDL" Margin="5,0">
-
         <Grid ColumnDefinitions="Auto,*,Auto" dx:DXDockLayout.Dock="Top">
 
-                <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
-           VerticalTextAlignment="Center" FontAttributes="Bold" 
-           FontSize="20" Grid.Column="0"/>
+            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
+        VerticalTextAlignment="Center" FontAttributes="Bold" 
+        FontSize="20" Grid.Column="0"/>
 
-                <ImageButton HeightRequest="30"
-                  Grid.Column="2">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+            <ImageButton HeightRequest="30"
+               Grid.Column="2">
+                <ImageButton.Source>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
+                </ImageButton.Source>
+            </ImageButton>
 
-            </Grid>
-        
-            <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween" IsVisible="True"
-            dx:DXDockLayout.Dock="Top" Margin="10,0">
-                <Label Text="Albums" FontAttributes="Bold"/>
-                <Label Text="{Binding AllArtistsAlbums.Count, StringFormat='{0} albums'}"
-   FontAttributes="Bold"/>
-            </FlexLayout>
+        </Grid>
+
+        <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween" IsVisible="True"
+         dx:DXDockLayout.Dock="Top" Margin="10,0">
+            <Label Text="Albums" FontAttributes="Bold"/>
+            <Label Text="{Binding AllArtistsAlbums.Count, StringFormat='{0} albums'}"
+FontAttributes="Bold"/>
+        </FlexLayout>
 
         <Grid dx:DXDockLayout.Dock="Top">
-                <CollectionView 
-                HeightRequest="150" toolkit:DockLayout.DockPosition="Top"
-            SelectionMode="Single" VerticalOptions="Start" x:Name="AllAlbumsColView"
-            ItemsSource="{Binding AllArtistsAlbums}" EmptyView="nothing...">
+            <CollectionView 
+             HeightRequest="150" toolkit:DockLayout.DockPosition="Top"
+         SelectionMode="Single" VerticalOptions="Start" x:Name="AllAlbumsColView"
+         ItemsSource="{Binding AllArtistsAlbums}" EmptyView="nothing...">
 
-                    <CollectionView.ItemsLayout>
-                        <GridItemsLayout Orientation="Horizontal"/>
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:AlbumModelView">
-                            <Border Stroke="Transparent" HorizontalOptions="Center">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Horizontal"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <Border Stroke="Transparent" HorizontalOptions="Center">
 
-                                <VerticalStackLayout Margin="5,5">
-                                    <VerticalStackLayout.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
-                                    </VerticalStackLayout.GestureRecognizers>
-
-
-                                    <Label Text="{Binding Name}" FontSize="14" 
-                                       HorizontalTextAlignment="Center" Padding="10,5" 
-                                       LineBreakMode="WordWrap" MaximumWidthRequest="150"/>
+                            <VerticalStackLayout Margin="5,5">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
+                                </VerticalStackLayout.GestureRecognizers>
 
 
-                                </VerticalStackLayout>
+                                <Label Text="{Binding Name}" FontSize="14" 
+                                    HorizontalTextAlignment="Center" Padding="10,5" 
+                                    LineBreakMode="WordWrap" MaximumWidthRequest="150"/>
 
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
 
-            </Grid>-->
+                            </VerticalStackLayout>
 
-    
-    
-            <!--<dx:DXCollectionView SelectionMode="Single" Grid.Row="3" Margin="6,0"
-      ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
-                              TapConfirmed="DXCollectionView_TapConfirmed">
-                <dx:DXCollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:SongModelView">
-                        <Border Stroke="Transparent" Padding="2,2">
-                            <FlexLayout JustifyContent="SpaceBetween" >
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Title}" FontSize="18"/>
-                                    <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
-                                </VerticalStackLayout>
-
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                        </Image.Source>
-                                    </Image>
-                                </VerticalStackLayout>
-                            </FlexLayout>
                         </Border>
                     </DataTemplate>
-                </dx:DXCollectionView.ItemTemplate>
-            </dx:DXCollectionView>-->
-           <!--<VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
-   Margin="10,0" HeightRequest="200" dx:DXDockLayout.Dock="Bottom">
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-                <viewsM:EachPageNPFAB_Mobile />
-            </VerticalStackLayout>
+        </Grid>
 
-            <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet" />
+
+
+        <dx:DXCollectionView SelectionMode="Single" Grid.Row="3" Margin="6,0"
+   ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
+                           TapConfirmed="DXCollectionView_TapConfirmed">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongModelView">
+                    <Border Stroke="Transparent" Padding="2,2">
+                        <FlexLayout JustifyContent="SpaceBetween" >
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                    </Image.Source>
+                                </Image>
+                            </VerticalStackLayout>
+                        </FlexLayout>
+                    </Border>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+        <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
+Margin="10,0" HeightRequest="200" dx:DXDockLayout.Dock="Bottom">
+
+            <viewsM:EachPageNPFAB_Mobile />
+        </VerticalStackLayout>
+
+        <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet" />
 
     </dx:DXDockLayout>
-<ContentPage>-->
+</ContentPage>
+            
 
+     

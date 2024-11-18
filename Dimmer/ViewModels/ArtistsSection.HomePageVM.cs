@@ -209,18 +209,23 @@ public partial class HomePageVM
 
     public void LoadSongsFromArtistId(ObjectId artistId)
     {
-        AllArtistsAlbumSongs = GetSongsFromArtistId(artistId).ToObservableCollection();
+            var songs = GetSongsFromArtistId(artistId).ToObservableCollection();
+     AllArtistsAlbumSongs = songs;
+           
     }
+
     private IEnumerable<SongModelView> GetSongsFromArtistId(ObjectId artistId)
     {
         // Get all songs linked to the specified artist
         return SongsMgtService.AllSongs.Where(song => AllLinks!.Any(link => link.SongId == song.Id && link.ArtistId == artistId));
     }
 
-    private IEnumerable<SongModelView> GetSongsFromAlbumId(ObjectId albumId)
+    public IEnumerable<SongModelView> GetSongsFromAlbumId(ObjectId albumId)
     {
         // Get all songs linked to the specified album
-        return SongsMgtService.AllSongs.Where(song => AllLinks!.Any(link => link.SongId == song.Id && link.AlbumId == albumId));
+
+        AllArtistsAlbumSongs = SongsMgtService.AllSongs.Where(song => AllLinks!.Any(link => link.SongId == song.Id && link.AlbumId == albumId)).ToObservableCollection();
+        return AllArtistsAlbumSongs;
     }
 
 
@@ -236,10 +241,19 @@ public partial class HomePageVM
     {
         return AllAlbums.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.SongId == songId)!.AlbumId)!;
     }
-    public async Task GetAllArtistAlbumFromArtist(ArtistModelView artist)
+    private IEnumerable<AlbumModelView> GetAlbumsFromArtistId(ObjectId artistId)
+    {
+        var albumIds = AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId).Distinct();
+        var Albums= AllAlbums.Where(album => albumIds.Contains(album.Id));
+        AllArtistsAlbums = Albums.ToObservableCollection();
+        return Albums;
+    }
+
+    public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
         AllArtistsAlbums = GetAlbumsFromArtist(artist.Id);
-        await ShowSpecificArtistsSongsWithAlbum(AllArtistsAlbums.FirstOrDefault()!);
+        LoadSongsFromArtistId(artist.Id);
+        
     }
 
     [RelayCommand]

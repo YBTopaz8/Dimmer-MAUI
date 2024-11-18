@@ -73,13 +73,14 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
         mediaPlayer.Play();
         IsPlaying = true;
+        
         return Task.CompletedTask;
     }
     public Task PlayAsync(bool IsFromPreviousOrNext = false)
     {
         double position = 0;
 
-        if (CurrentMedia.SongId != ObjectId.Empty)
+        if (CurrentMedia!.SongId != ObjectId.Empty)
         {
             position = 0;
             mediaPlayer.Position = TimeSpan.FromSeconds(position);
@@ -118,7 +119,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     }
 
 
-    private MediaPlaybackItem MediaPlaybackItem(MediaPlay media)
+    private MediaPlaybackItem? MediaPlaybackItem(MediaPlay media)
     {
         try
         {
@@ -130,7 +131,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
             {
                 var buffer = new byte[media.Stream.Length];
-                media.Stream.Read(buffer, 0, buffer.Length);
+                _ = media.Stream.Read(buffer, 0, buffer.Length);
                 writer.WriteBytes(buffer);
                 writer.StoreAsync().GetResults();
             }
@@ -165,12 +166,12 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException.Message}, stack {ex.StackTrace}, source {ex.Source}");
+            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException?.Message}, stack {ex.StackTrace}, source {ex.Source}");
             return null;
         }
     }
 
-    public async Task InitializeAsync(SongModelView? media, byte[]? ImageBytes)
+    public void Initialize(SongModelView? media, byte[]? ImageBytes)
     {
         CurrentMedia?.Stream?.Dispose();
         if (media is not null)
@@ -178,7 +179,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             // Directly use the file path to create a URI for local files
             using var fileStreamm = File.OpenRead(media.FilePath);
             var memStream = new MemoryStream();
-            await fileStreamm.CopyToAsync(memStream);
+            
             memStream.Position = 0;
             CurrentMedia = new MediaPlay()
             {
@@ -186,15 +187,15 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
                 Name = media.Title,
                 Author = media!.ArtistName!,
                 Stream = memStream,
-                ImageBytes = ImageBytes,
+                ImageBytes = ImageBytes is null ? ImageBytes : null,
                 DurationInMs = (long)(media.DurationInSeconds * 1000),
             };
 
         }
         try
         {
-            ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
-            var curMedia = MediaPlaybackItem(CurrentMedia);
+            ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
+            var curMedia = MediaPlaybackItem(CurrentMedia!);
             if (curMedia == null)
                 return;
             if (mediaPlayer == null)
@@ -223,13 +224,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             }
             else
             {
-                await PauseAsync();
+                PauseAsync();
                 mediaPlayer.Source = curMedia;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            await Shell.Current.DisplayAlert("Oops! An Error Occured!", "This is a very very rare error but doesn't affect the app much, Carry On :D", "OK Thanks");
+            Shell.Current.DisplayAlert("Oops! An Error Occured!", "This is a very very rare error but doesn't affect the app much, Carry On :D", "OK Thanks");
         }
     }
 

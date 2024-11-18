@@ -178,6 +178,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             return false;
         }
         await instance.Binder.GetMediaPlayerService().Seek(posInMs);
+        IsPlaying = true;
         return true;
 
     }
@@ -188,9 +189,9 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public async Task InitializeAsync(SongModelView media, byte[]? ImageBytes=null)
+    public void Initialize(SongModelView media, byte[]? ImageBytes=null)
     {
-        ViewModel ??= IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentMedia = new();
         if (CurrentMedia is not null)
         {
@@ -210,7 +211,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             if (instance == null)
             {
                 var activity = CrossCurrentActivity.Current;
-                instance = activity.Activity as IAudioActivity;
+                instance = (activity.Activity as IAudioActivity)!;
             }
             else
             {
