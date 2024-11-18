@@ -15,9 +15,9 @@ public partial class DimmerWindow : Window
     protected override void OnCreated()
     {
         base.OnCreated();
-        this.MinimumHeight = 800;
+        this.MinimumHeight = 950;
         this.MinimumWidth = 1200;
-        this.Height = 900;
+        this.Height = 950;
         this.Width = 1200;
 
 #if DEBUG

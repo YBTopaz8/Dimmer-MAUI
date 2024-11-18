@@ -79,7 +79,7 @@ public partial class HomePageM : ContentPage
     {
         if (SongsColView.IsLoaded)
         {
-            var col = SongsColView.ItemsSource as ObservableCollection<SongsModelView>;
+            var col = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
             var fItem = col.Last();
             SongsColView.ScrollTo(SongsColView.FindItemHandle(fItem), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
         }
@@ -108,7 +108,7 @@ public partial class HomePageM : ContentPage
     private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
     {        
         var s = (View)sender;
-        var song = (SongsModelView)s.BindingContext;
+        var song = (SongModelView)s.BindingContext;
         HomePageVM.SetContextMenuSong(song);
         if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
@@ -124,14 +124,14 @@ public partial class HomePageM : ContentPage
             HomePageVM.CurrentQueue = 1;
             HomePageVM.filteredSongs = filteredSongs;
         }
-        await HomePageVM.PlaySong(e.Item as SongsModelView);
+        await HomePageVM.PlaySong(e.Item as SongModelView);
     }
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     { 
         
         var s = (View)sender;
-        var song = (SongsModelView)e.Item;
+        var song = (SongModelView)e.Item;
         HomePageVM.SetContextMenuSong(song);
         if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
@@ -171,11 +171,11 @@ public partial class HomePageM : ContentPage
     }
     private async void ShowSongDetails_Tap(object sender, DevExpress.Maui.CollectionView.SwipeItemTapEventArgs e)
     {
-        var song = (SongsModelView)e.Item;
+        var song = (SongModelView)e.Item;
 
         HomePageVM.SelectedSongToOpenBtmSheet = song;
 
-        await HomePageVM.NavToNowPlayingPage();
+        await HomePageVM.NavToSingleSongShell();
     }
     ObservableCollection<DevExpress.Maui.CollectionView.SortDescription> Sorts;
     private void SortSongsChip_Tap(object sender, HandledEventArgs e)
@@ -202,7 +202,7 @@ public partial class HomePageM : ContentPage
         //var commandParam = 
     }
 
-    List<SongsModelView>? filteredSongs=new();
+    List<SongModelView>? filteredSongs=new();
     private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
     {
         var searchBar = (TextEdit)sender;

@@ -31,7 +31,7 @@ public partial class PlaylistsPageD : ContentPage
     {
         HomePageVM.CurrentQueue = 1;
         var t = (Border)sender;
-        var song = t.BindingContext as SongsModelView;
+        var song = t.BindingContext as SongModelView;
         HomePageVM.PlaySongCommand.Execute(song);        
     }
 

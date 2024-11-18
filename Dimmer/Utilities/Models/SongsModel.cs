@@ -28,7 +28,7 @@ public class SongsModel : RealmObject
     public IList<PlayDateAndIsPlayCompletedModel> DatesPlayedAndWasPlayCompleted { get;}
     public SongsModel() { }
 
-    public SongsModel(SongsModelView modelView)
+    public SongsModel(SongModelView modelView)
     {
         
         Id = modelView.Id;
@@ -107,14 +107,14 @@ public class PlayDateAndCompletionStateSongLink : RealmObject
     public ObjectId PlayDateAndSongCompStat { get; set; }
 }
 
-public partial class SongsModelView : ObservableObject
+public partial class SongModelView : ObservableObject
 {
 
-    public SongsModelView()
+    public SongModelView()
     {
 
     }
-    public SongsModelView(SongsModel _model)
+    public SongModelView(SongsModel _model)
     {
         if (_model is not null)
         {
@@ -216,7 +216,7 @@ public partial class SongsModelView : ObservableObject
     // Override Equals to compare based on ObjectId
     public override bool Equals(object? obj)
     {
-        if (obj is SongsModelView other)
+        if (obj is SongModelView other)
         {
             return this.Id == other.Id;
         }

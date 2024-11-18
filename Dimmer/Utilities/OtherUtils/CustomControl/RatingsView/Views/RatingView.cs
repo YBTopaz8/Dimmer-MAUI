@@ -57,7 +57,7 @@ public class RatingControl : BaseTemplateView<Grid>
             nameof(Fill),
             typeof(Color),
             typeof(RatingControl),
-            defaultValue: Color.FromArgb("#212121"),
+            defaultValue: Colors.DarkSlateBlue,
             propertyChanged: OnBindablePropertyChanged);
 
     public static readonly BindableProperty EmptyColorProperty =
@@ -73,7 +73,7 @@ public class RatingControl : BaseTemplateView<Grid>
             nameof(StrokeColor),
             typeof(Color),
             typeof(RatingControl),
-            defaultValue: Color.FromArgb("#343434"),
+            defaultValue: Colors.Blue,
             propertyChanged: OnBindablePropertyChanged);
 
     public static readonly BindableProperty StrokeThicknessProperty =
@@ -261,8 +261,9 @@ public class RatingControl : BaseTemplateView<Grid>
 
         if (tappedShape is null)
             return 99;
-
-        return Control.GetColumn(tappedShape);
+        var value = Control!.GetColumn(tappedShape);
+        Value = value;
+        return value;
         
     }
     private void OnShapeTapped(object sender, TappedEventArgs e)
@@ -339,9 +340,9 @@ public class RatingControl : BaseTemplateView<Grid>
             {
                 image.Data = new PathGeometry(converted);
 
-                image.Fill = Color.FromArgb("#79E4D2");
+                image.Fill = Colors.White;
                 ;
-                image.Stroke = Color.FromArgb("#79E4D2");
+                image.Stroke = Colors.Yellow;
                 ;
 
                 image.StrokeLineJoin = PenLineJoin.Round;
@@ -399,7 +400,7 @@ public class RatingControl : BaseTemplateView<Grid>
         
         await tappedShape.AnimateFocusModePointerEnter(endScale:1.2);
         GetHoverValue(sender, e);
-        UpdateDraw();
+        //UpdateDraw();
         
     }
 
@@ -422,7 +423,7 @@ public class RatingControl : BaseTemplateView<Grid>
                 image.Data = new PathGeometry((PathFigureCollection)c);
 
                 image.Fill = Colors.Transparent;
-                image.Stroke = Color.FromArgb("#343434");
+                image.Stroke = Colors.Turquoise;
                 image.Aspect = Stretch.Uniform;
                 image.HeightRequest = Size;
                 image.WidthRequest = Size;
@@ -485,7 +486,7 @@ public class RatingControl : BaseTemplateView<Grid>
                 image.WidthRequest = Size;
                 image.StrokeLineJoin = PenLineJoin.Round;
                 image.StrokeThickness = 1;
-                image.Stroke = Color.FromArgb("#343434");
+                image.Stroke = Colors.DarkSlateBlue;
                 image.Fill = Fill;
             }
             else
@@ -493,11 +494,11 @@ public class RatingControl : BaseTemplateView<Grid>
                 if (Value % 1 == 0)
                 {
                     
-                    //image.Fill = Colors.Transparent;
                     image.Fill = Colors.Transparent;
-                    
-                    image.Stroke = Color.FromArgb("#343434");
-                    image.StrokeThickness = 1;
+                    //image.Fill = Colors.Green;
+                    image.BackgroundColor = Colors.Transparent;
+                    image.Stroke = Colors.DarkSlateBlue;
+                    image.StrokeThickness = 3;
                     image.StrokeLineJoin = PenLineJoin.Round;
                 }
                 else
@@ -509,7 +510,7 @@ public class RatingControl : BaseTemplateView<Grid>
                     {
                         var colors = new GradientStopCollection
                         {
-                            new GradientStop(Colors.Orange, (float)fraction),
+                            new GradientStop(Colors.Green, (float)fraction),
                             new GradientStop(EmptyColor, (float)fraction)
                         };
 
@@ -529,19 +530,19 @@ public class RatingControl : BaseTemplateView<Grid>
         {
             case RatingShapes.Star:
                 shape = PathShapes.Star;
-                return PathConverter.ConvertStringPathToGeo(PathShapes.Star) as PathFigureCollection;
+                return (PathConverter.ConvertStringPathToGeo(PathShapes.Star) as PathFigureCollection)!;
             case RatingShapes.Heart:
                 shape = PathShapes.Heart;
-                return PathConverter.ConvertStringPathToGeo(PathShapes.Heart) as PathFigureCollection;
+                return (PathConverter.ConvertStringPathToGeo(PathShapes.Heart) as PathFigureCollection)!;
             case RatingShapes.Like:
                 shape = PathShapes.Like;
-                return PathConverter.ConvertStringPathToGeo(PathShapes.Like) as PathFigureCollection;
+                return (PathConverter.ConvertStringPathToGeo(PathShapes.Like) as PathFigureCollection)!;
             case RatingShapes.Dislike:
                 shape = PathShapes.Dislike;
-                return PathConverter.ConvertStringPathToGeo(PathShapes.Dislike) as PathFigureCollection;
+                return (PathConverter.ConvertStringPathToGeo(PathShapes.Dislike) as PathFigureCollection)!;
             default:
                 shape = PathShapes.Star;
-                return PathConverter.ConvertStringPathToGeo(PathShapes.Star) as PathFigureCollection;
+                return (PathConverter.ConvertStringPathToGeo(PathShapes.Star) as PathFigureCollection)!;
         }
 
     }

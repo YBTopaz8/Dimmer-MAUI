@@ -6,7 +6,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
 {
     Realm db;
 
-    public IList<SongsModelView> AllSongs { get; set; }
+    public IList<SongModelView> AllSongs { get; set; }
     public IList<AlbumArtistSongLink> AllLinks { get; set; }    
     public IList<AlbumModelView> AllAlbums { get; set; }
     public IList<GenreModelView> AllGenres { get; set; }
@@ -25,7 +25,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             db = Realm.GetInstance(DataBaseService.GetRealm());
             AllSongs?.Clear();
             var realmSongs = db.All<SongsModel>().OrderBy(x => x.DateAdded).ToList();
-            AllSongs = new List<SongsModelView>(realmSongs.Select(song => new SongsModelView(song)));
+            AllSongs = new List<SongModelView>(realmSongs.Select(song => new SongModelView(song)));
 
             AllLinks = db.All<AlbumArtistSongLink>().ToList();
         }
@@ -59,7 +59,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public bool AddSongBatchAsync(IEnumerable<SongsModelView> songs)
+    public bool AddSongBatchAsync(IEnumerable<SongModelView> songs)
     {
         try
         {
@@ -89,7 +89,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public bool UpdateSongDetails(SongsModelView songsModelView)
+    public bool UpdateSongDetails(SongModelView songsModelView)
     {
         try
         {
@@ -150,47 +150,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         db?.Dispose();
     }
 
-    public IList<ObjectId> GetSongsIDsFromAlbumID(ObjectId albumID)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var songLinks = db
-                .All<AlbumArtistSongLink>() 
-                .Where(link => link.AlbumId == albumID) 
-                .ToList();
-
-            var songIDs = songLinks.Select(link => link.SongId).ToList();
-
-            return songIDs;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting songs by album and artist: {ex.Message}");
-            return Enumerable.Empty<ObjectId>().ToList();
-        }
-    }
-
-    public IList<ObjectId> GetSongsIDsFromArtistID(ObjectId artistID)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var songLinks = db
-                .All<AlbumArtistSongLink>()
-                .Where(link => link.ArtistId == artistID)
-                .ToList();
-
-            var songIDs = songLinks.Select(link => link.SongId).ToList();
-
-            return songIDs;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting songs by album and artist: {ex.Message}");
-            return Enumerable.Empty<ObjectId>().ToList();
-        }
-    }
+  
     public int GetSongsCountFromAlbumID(ObjectId albumID)
     {
         try
@@ -210,47 +170,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public IList<AlbumModelView> GetAlbumsFromArtistOrSongID(ObjectId artistOrSongId, bool fromSong=false)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            List<AlbumArtistSongLink>? songLinks = new();
-            if (fromSong)
-            {
-                songLinks= db
-                    .All<AlbumArtistSongLink>()
-                    .Where(link => link.SongId == artistOrSongId)
-                    .ToList();
-            }
-            else
-            {
-                songLinks = db
-                    .All<AlbumArtistSongLink>()
-                    .Where(link => link.ArtistId == artistOrSongId)
-                    .ToList();
-            }
-
-            var albumIDs = songLinks
-                .Select(link => link.AlbumId) 
-                .Distinct() 
-                .ToList();
-            
-            var realmAlbums = db.All<AlbumModel>().ToList();
-            AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
-
-            var albumsFromArtist = AllAlbums
-                .Where(album => albumIDs.Contains(album.Id)) 
-                .ToList();
-
-            return albumsFromArtist;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting albums from artist: {ex.Message}");
-            return Enumerable.Empty<AlbumModelView>().ToList();
-        }
-    }
+  
 
     public void UpdateAlbum(AlbumModelView album)
     {
@@ -280,39 +200,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             
         }
 
-    }
-
-    public (ArtistModelView? artist, AlbumModelView? album) GetArtistAndAlbumIdFromSongId(ObjectId songId)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            // Query the database for the AlbumArtistSongLink using the songId
-            var links = db.All<AlbumArtistSongLink>()
-                         .Where(link => link.SongId == songId)
-                         .ToList();
-
-            
-            if (links.Count == 0)
-            {
-                return (null, null); 
-            }
-            var link = links.FirstOrDefault(); 
-
-            var specificAlbum = db.Find<AlbumModel>(link.AlbumId);
-            var specificArtist = db.Find<ArtistModel>(link.ArtistId);
-            if (specificAlbum is not null && specificArtist is not null)
-            {                
-                return (new ArtistModelView(specificArtist), new AlbumModelView(specificAlbum));
-            }
-
-            return (null, null);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-            return (null, null);  // Return empty ObjectIds in case of error
-        }
     }
 
     public async Task<bool> DeleteSongFromDB(ObjectId songID)
@@ -378,7 +265,7 @@ public class SongsManagementService : ISongsManagementService, IDisposable
         }
     }
 
-    public async Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongsModelView> songs)
+    public async Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongModelView> songs)
     {
         try
         {
@@ -454,170 +341,6 @@ public class SongsManagementService : ISongsManagementService, IDisposable
             return false;
         }
     }
-
-    public ArtistModelView GetArtistFromAlbumId(ObjectId albumId)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var artistIdList = db.All<AlbumArtistSongLink>()
-                .Where(link => link.AlbumId == albumId)
-                .ToList();
-            if (artistIdList == null)
-                return null;
-            var artistId = artistIdList.FirstOrDefault()!.ArtistId;
-            
-            //if (artistId == null)
-            //{
-            //    Debug.WriteLine($"Artist for album ID {albumId} not found.");
-            //    return null;
-            //}
-
-            var artist = db.All<ArtistModel>()
-                .Where(a => a.Id == artistId)
-                .ToList()
-                .FirstOrDefault();  // Fetch the artist based on artistId
-
-            if (artist == null)
-            {
-                Debug.WriteLine($"Artist with ID {artistId} not found.");
-                return null;
-            }
-
-            return new ArtistModelView(artist);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting artist from album ID: {ex.Message}");
-            return null;
-        }
-    }
-
-    public ArtistModelView GetArtistFromSongId(ObjectId songId)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-
-            var songLinks = db
-                .All<AlbumArtistSongLink>()
-                .Where(link => link.SongId == songId)
-                .ToList();
-
-            var artistId = songLinks
-                .Select(link => link.ArtistId)
-                .Distinct()
-                .FirstOrDefault();  // Get the first (unique) artist ID linked to this song
-
-            if (artistId == null)
-            {
-                Debug.WriteLine($"Artist for song ID {songId} not found.");
-                return null;
-            }
-
-            var artist = db.All<ArtistModel>()
-                .Where(a => a.Id == artistId)
-                .ToList()
-                .FirstOrDefault();  // Fetch the artist based on artistId
-
-            if (artist == null)
-            {
-                Debug.WriteLine($"Artist with ID {artistId} not found.");
-                return null;
-            }
-
-            return new ArtistModelView(artist);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting artist from song ID: {ex.Message}");
-            return null;
-        }
-    }
-    public SongsModelView GetSongFromAlbumId(ObjectId albumId)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-
-            var songLinks = db
-                .All<AlbumArtistSongLink>()
-                .Where(link => link.AlbumId == albumId)
-                .ToList();
-
-            var songId = songLinks
-                .Select(link => link.SongId)
-                .Distinct()
-                .FirstOrDefault();  // Get the first (unique) song ID linked to this album
-
-            if (songId == null)
-            {
-                Debug.WriteLine($"Song for album ID {albumId} not found.");
-                return null;
-            }
-
-            var song = db.All<SongsModel>()
-                .Where(s => s.Id == songId)
-                .ToList()
-                .FirstOrDefault();  // Fetch the song based on songId
-
-            if (song == null)
-            {
-                Debug.WriteLine($"Song with ID {songId} not found.");
-                return null;
-            }
-
-            return new SongsModelView(song);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting song from album ID: {ex.Message}");
-            return null;
-        }
-    }
-
-    public SongsModelView GetSongFromArtistId(ObjectId artistId)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-
-            var songLinks = db
-                .All<AlbumArtistSongLink>()
-                .Where(link => link.ArtistId == artistId)
-                .ToList();
-
-            var songId = songLinks
-                .Select(link => link.SongId)
-                .Distinct()
-                .FirstOrDefault();  // Get the first (unique) song ID linked to this artist
-
-            if (songId == null)
-            {
-                Debug.WriteLine($"Song for artist ID {artistId} not found.");
-                return null;
-            }
-
-            var song = db.All<SongsModel>()
-                .Where(s => s.Id == songId)
-                .ToList()
-                .FirstOrDefault();  // Fetch the song based on songId
-
-            if (song == null)
-            {
-                Debug.WriteLine($"Song with ID {songId} not found.");
-                return null;
-            }
-
-            return new SongsModelView(song);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting song from artist ID: {ex.Message}");
-            return null;
-        }
-    }
-
 }
 public class CsvExporter
 {

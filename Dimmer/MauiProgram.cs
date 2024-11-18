@@ -1,4 +1,5 @@
 ﻿
+using DrawnUi.Maui.Draw;
 using UraniumUI;
 
 namespace Dimmer_MAUI;
@@ -14,7 +15,8 @@ public static class MauiProgram
             .UseDevExpressControls()
             .UseDevExpressDataGrid()
             .UseDevExpressEditors()
-            .UseDevExpressGauges()            
+            .UseDevExpressGauges() 
+            
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
@@ -22,7 +24,6 @@ public static class MauiProgram
                 options.SetShouldSuppressExceptionsInConverters(true);
                 
             })
-            .ConfigureSyncfusionToolkit()
             
             .ConfigureFonts(fonts =>
             {                
@@ -31,11 +32,13 @@ public static class MauiProgram
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
                 fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
-            });
+            })
+            .UseDrawnUi()
+            .ConfigureSyncfusionToolkit();
 
 
 #if WINDOWS || Debug
-		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
 
 #if WINDOWS

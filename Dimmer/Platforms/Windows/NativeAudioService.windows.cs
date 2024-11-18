@@ -170,7 +170,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         }
     }
 
-    public async Task InitializeAsync(SongsModelView? media, byte[]? ImageBytes)
+    public async Task InitializeAsync(SongModelView? media, byte[]? ImageBytes)
     {
         CurrentMedia?.Stream?.Dispose();
         if (media is not null)

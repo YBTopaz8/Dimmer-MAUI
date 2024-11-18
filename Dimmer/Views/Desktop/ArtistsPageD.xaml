@@ -6,6 +6,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
@@ -32,21 +33,6 @@
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
             </MenuFlyout>
 
-            <!--<Style TargetType="Grid">
-                <Setter Property="VisualStateManager.VisualStateGroups">
-                    <VisualStateGroupList>
-                        <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="Normal" />
-                            <VisualState x:Name="Selected">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor"
-                                        Value="LightSkyBlue" />
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateGroupList>
-                </Setter>
-            </Style>-->
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout>
@@ -56,7 +42,7 @@
         <SearchBar toolkit:DockLayout.DockPosition="Top" HorizontalOptions="End" x:Name="SearchArtistBar"
                    WidthRequest="200" Placeholder="Type To Search" TextChanged="SearchBar_TextChanged"/>
 
-        <CollectionView toolkit:DockLayout.DockPosition="Top" 
+        <!--<CollectionView toolkit:DockLayout.DockPosition="Top" 
                         HeightRequest="180" x:Name="AllAlbumsColView"
                         ItemsLayout="HorizontalList" VerticalOptions="Start"
                         ItemsSource="{Binding AllArtistsAlbums}" 
@@ -88,7 +74,7 @@
                         </VisualStateManager.VisualStateGroups>
 
 
-                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}">
+                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}" >
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
                                             WidthRequest="120" HeightRequest="120" MaximumWidthRequest="120"
                                         BorderWidth="0" CornerRadius="8"/>
@@ -103,7 +89,7 @@
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-        </CollectionView>
+        </CollectionView>-->
 
 
         <CollectionView toolkit:DockLayout.DockPosition="Left" 
@@ -117,17 +103,26 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
-                    <Border Padding="15,5" Margin="5,5" StrokeShape="RoundRectangle 10"
-                            StrokeThickness="0.4" HorizontalOptions="Center">
+                    <Border HorizontalOptions="Center">                        
+                    <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" 
+                            x:Name="ArtistView" TouchDown="ArtistView_TouchDown">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
 
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>                                        
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
 
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="ArtistFromArtistPage_Tapped"/>
-                        </Border.GestureRecognizers>
-                        <Label Text="{Binding Name}"/>
+                        <Label Text="{Binding Name}" HeightRequest="40"/>
+                    </syncf:SfEffectsView>
+
                     </Border>
-               
-            </DataTemplate>
+                </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
     
@@ -148,7 +143,7 @@
                 </FlexLayout>
             </CollectionView.Header>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongsModelView">
+                <DataTemplate x:DataType="models:SongModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 
                             FlyoutBase.ContextFlyout="{StaticResource ArtistAlbumSongsContextMenu}">
                         <VisualStateManager.VisualStateGroups>
@@ -185,13 +180,13 @@
                             <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
                         </Border.GestureRecognizers>
                         <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
-                            <VerticalStackLayout>
+                            <VerticalStackLayout BackgroundColor="Transparent">
                                 <Label Text="{Binding Title}" FontSize="18"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
 
                             </VerticalStackLayout>
 
-                            <VerticalStackLayout>
+                            <VerticalStackLayout BackgroundColor="Transparent">
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                 <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
                                     <Image.Source>

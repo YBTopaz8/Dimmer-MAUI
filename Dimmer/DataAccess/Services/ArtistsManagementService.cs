@@ -253,7 +253,7 @@ public class ArtistsManagementService : IArtistsManagementService
 
 
 
-    public bool AddSongToArtistWithArtistID(SongsModelView song, ArtistModelView Artist)
+    public bool AddSongToArtistWithArtistID(SongModelView song, ArtistModelView Artist)
     {
         throw new NotImplementedException();
     }

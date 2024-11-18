@@ -10,7 +10,7 @@
             x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
             Color="Transparent">
     
-    <Border WidthRequest="350" BackgroundColor="Black"
+    <Border WidthRequest="350" 
         Stroke="Transparent" HeightRequest="200"
         StrokeShape="RoundRectangle 20">
         <VerticalStackLayout Padding="20" Spacing="8">

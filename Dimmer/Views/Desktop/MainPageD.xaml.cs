@@ -20,6 +20,8 @@ public partial class MainPageD : ContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
+        
+        //scrollView.ScrollToIndex(HomePageVM.DisplayedSongs.IndexOf(HomePageVM.TemporarilyPickedSong),true);
     }
 
     protected override void OnDisappearing()
@@ -90,15 +92,17 @@ public partial class MainPageD : ContentPage
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        var song = send.BindingContext! as SongsModelView;
+        var song = send.BindingContext! as SongModelView;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         isPointerEntered = true;
 
-        HomePageVM.SetContextMenuSong(song);
+        //HomePageVM.SetContextMenuSong(song!);
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
         isPointerEntered = false;
 
     }
@@ -179,7 +183,7 @@ public partial class MainPageD : ContentPage
     private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
         var send = (View)sender;
-        var song = send.BindingContext! as SongsModelView;
+        var song = send.BindingContext! as SongModelView;
         if (song is null)
             return;
         if (song.IsFavorite)
@@ -195,7 +199,7 @@ public partial class MainPageD : ContentPage
 
     private async void GoToSongOverviewClicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavToNowPlayingPage();
+        await HomePageVM.NavToSingleSongShell();
     }
 
 
@@ -212,7 +216,7 @@ public partial class MainPageD : ContentPage
                 HomePageVM.IsMultiSelectOn = true;
                 selectedSongs = new();
                 selectedSongsViews = new();
-                SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Black;
+                SongsColView.BackgroundColor = Color.Parse("#1D1932");                
                 break;
             case SelectionMode.Single:
                 break;
@@ -224,7 +228,7 @@ public partial class MainPageD : ContentPage
                 }
                 SongsColView.SelectionMode = SelectionMode.None;
                 HomePageVM.IsMultiSelectOn = false;
-
+                SongsColView.SelectedItems = null;
                 //NormalMiniUtilBar.IsVisible = true;
                 //MultiSelectUtilBar.IsVisible = false;
                 HomePageVM.EnableContextMenuItems = true;
@@ -235,15 +239,16 @@ public partial class MainPageD : ContentPage
         currentSelectionMode = SongsColView.SelectionMode;
     }
 
-    List<SongsModelView> selectedSongs;
+    List<SongModelView> selectedSongs;
     List<View> selectedSongsViews;
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
+        View send = (View)sender;
+        SongModelView song = (send.BindingContext as SongModelView)!;
+
         if (HomePageVM.IsMultiSelectOn)
         {
-            var send = (View)sender;
-            var song = send.BindingContext as SongsModelView;
-
+            
             // Add or remove song based on its presence in the selectedSongs list
             if (selectedSongs.Contains(song))
             {
@@ -260,13 +265,16 @@ public partial class MainPageD : ContentPage
             HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.DisplayedSongs.Count} Selected";
             return;
         }
-
+        else
+        {
+            HomePageVM.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
+        }
     }
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
         var send = (View)sender;
-        var song = (SongsModelView)send.BindingContext;
+        var song = (SongModelView)send.BindingContext;
 
         HomePageVM.PlaySongCommand.Execute(song);
     }

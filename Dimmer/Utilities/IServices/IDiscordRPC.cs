@@ -3,7 +3,7 @@
 public interface IDiscordRPC
 {
     bool Initialize();
-    void UpdatePresence(SongsModelView song, TimeSpan duration, TimeSpan position); //add a pause method
+    void UpdatePresence(SongModelView song, TimeSpan duration, TimeSpan position); //add a pause method
     void ClearPresence();
     void ShutDown();
 }

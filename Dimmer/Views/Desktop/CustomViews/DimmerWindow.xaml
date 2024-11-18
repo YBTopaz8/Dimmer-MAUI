@@ -6,13 +6,13 @@
     xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM"             
-             x:Name="myPage"
+             x:Name="myPage"        
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
         >
    
     <Window.TitleBar>
         <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" HeightRequest="55"
-                  Subtitle="Yvan Brunel" Margin="10" BackgroundColor="Transparent"
+Margin="10" 
                   >
             <TitleBar.Resources>
                 <ResourceDictionary>
@@ -23,13 +23,20 @@
             <TitleBar.Content>
                 <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"
            WidthRequest="500" Placeholder="Type To Search..." TextChanged="SearchSongSB_TextChanged" 
-                           >
+                        IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}"   >
                 </SearchBar>
             </TitleBar.Content>
 
             <TitleBar.TrailingContent>
-                <HorizontalStackLayout>
-
+                <HorizontalStackLayout
+                    >
+                    <FlyoutBase.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="sss"/>
+                            <MenuFlyoutItem Text="sss"/>
+                        </MenuFlyout>
+                    </FlyoutBase.ContextFlyout>
+                    
                     <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin}" Size="20"/>

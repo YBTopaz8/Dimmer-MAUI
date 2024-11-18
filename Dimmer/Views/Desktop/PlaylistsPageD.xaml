@@ -30,7 +30,7 @@
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Spacing="5"
                              WidthRequest="200" Margin="10,0" >
             
-            <CollectionView ItemsSource="{Binding DisplayedPlaylists}"  x:Name="DisplayedPlaylistsCV"
+        <CollectionView ItemsSource="{Binding DisplayedPlaylists}"  x:Name="DisplayedPlaylistsCV"
                             EmptyView="No Playlists Existing..." SelectionMode="Single" SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
                 <CollectionView.Header>
                     <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
@@ -87,7 +87,7 @@
         <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectedItem="{Binding PickedSong}"
                         SelectionMode="Single" x:Name="SongsColView" EmptyView="No Songs To Display...">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongsModelView">
+                <DataTemplate x:DataType="models:SongModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>

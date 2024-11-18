@@ -69,7 +69,7 @@ public partial class AlbumPageM : ContentPage
     {
         HomePageVM.CurrentQueue = 1;
 
-        var song = e.Item as SongsModelView;
+        var song = e.Item as SongModelView;
         HomePageVM.PlaySongCommand.Execute(song);
     }
 }

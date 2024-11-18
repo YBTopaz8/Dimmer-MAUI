@@ -5,7 +5,7 @@ using Microsoft.Maui.Storage;
 namespace Dimmer_MAUI.Platforms.Windows;
 public static class PlatSpecificUtils
 {
-    public static bool DeleteSongFile(SongsModelView song)
+    public static bool DeleteSongFile(SongModelView song)
     {
         try
         {
@@ -33,7 +33,7 @@ public static class PlatSpecificUtils
         }
     }
 
-    public static bool MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    public static bool MultiDeleteSongFiles(ObservableCollection<SongModelView> songs)
     {
         try
         {

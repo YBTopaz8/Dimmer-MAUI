@@ -7,7 +7,7 @@ public partial class HomePageVM
     #region HomePage MultiSelect's Logic
     public bool EnableContextMenuItems = true;
     [ObservableProperty]
-    ObservableCollection<SongsModelView> multiSelectSongs;
+    ObservableCollection<SongModelView> multiSelectSongs;
     [ObservableProperty]
     string multiSelectText;
 
@@ -104,7 +104,7 @@ public partial class HomePageVM
     [ObservableProperty]
     bool iIsMultiSelectOn;
     [RelayCommand]
-    async Task DeleteFile(SongsModelView? song)
+    async Task DeleteFile(SongModelView? song)
     {
 
         switch (IsMultiSelectOn)
@@ -192,7 +192,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    async Task OpenEditSongPopup(SongsModelView? song)
+    async Task OpenEditSongPopup(SongModelView? song)
     {
         await Shell.Current.ShowPopupAsync(new EditSongPopup(this));
     }
@@ -416,4 +416,32 @@ public partial class HomePageVM
                 break;
         }
     }
+
+    public async Task ToggleFlyout(bool isOpenFlyout=false)
+    {
+        IsFlyOutPaneOpen = false;
+        if (Shell.Current == null)
+        {
+            return;
+        }
+        if (isOpenFlyout)
+        {
+            if(Shell.Current.FlyoutBehavior != FlyoutBehavior.Locked)
+            {
+                IsFlyOutPaneOpen = true;
+                Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
+            }
+        }
+        else
+        {
+            if (Shell.Current.FlyoutBehavior != FlyoutBehavior.Flyout)
+            {
+                IsFlyOutPaneOpen = false;
+                Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
+                await Task.Delay(500);
+                Shell.Current.FlyoutIsPresented = true;
+            }
+        }
+    }
+
 }

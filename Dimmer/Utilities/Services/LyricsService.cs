@@ -72,7 +72,7 @@ public class LyricsService : ILyricsService
 
 
     #region Manage Loadings and Initializations
-    public async void LoadLyrics(SongsModelView song)
+    public async void LoadLyrics(SongModelView song)
     {
         try
         {            
@@ -130,7 +130,7 @@ public class LyricsService : ILyricsService
     }
 
     List<LyricPhraseModel>? sortedLyrics;
-    public IList<LyricPhraseModel> GetSpecificSongLyrics(SongsModelView song)
+    public IList<LyricPhraseModel> GetSpecificSongLyrics(SongModelView song)
     {
         List<LyricPhraseModel> lyr = new();
         return LoadLyrFromFile(song.FilePath, out lyr);
@@ -391,7 +391,7 @@ public class LyricsService : ILyricsService
     #endregion
 
     #region Fetch Lyrics Online from Lrclib
-    public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongsModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new();
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.1.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
@@ -433,7 +433,7 @@ public class LyricsService : ILyricsService
         }
     }
 
-    async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongsModelView song, HttpClient client, List<string>? manualSearchFields = null)
+    async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongModelView song, HttpClient client, List<string>? manualSearchFields = null)
     {
         string url;
 
@@ -537,7 +537,7 @@ public class LyricsService : ILyricsService
         return ImageBytes;
     }
 
-    public async Task<string> FetchAndDownloadCoverImage(string songTitle, string songArtistName, string albumName, SongsModelView? song =null)
+    public async Task<string> FetchAndDownloadCoverImage(string songTitle, string songArtistName, string albumName, SongModelView? song =null)
     {
         var stringAlbumName = albumName;
         var stringSongTitle = songTitle;
@@ -652,7 +652,7 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
 
 #endregion
 
-    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongsModelView song)
+    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongModelView song)
     {
         if (song is null)
         {
@@ -668,7 +668,7 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
         return (true, track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase)).ToObservableCollection());
     }
 
-    public bool WriteLyricsToLyricsFile(string Lyrics, SongsModelView songObj, bool IsSynched)
+    public bool WriteLyricsToLyricsFile(string Lyrics, SongModelView songObj, bool IsSynched)
     {
         if (Lyrics is null)
         {            
@@ -719,7 +719,7 @@ string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer
 
     }
 
-    public Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongsModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    public Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLyrist(SongModelView songs, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         throw new NotImplementedException();
     }

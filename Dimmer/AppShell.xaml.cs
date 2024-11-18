@@ -10,7 +10,7 @@ namespace Dimmer_MAUI;
 public partial class AppShell : Shell
 {
 
-    public AppShell()
+    public AppShell(HomePageVM vm)
     {
         InitializeComponent();
 
@@ -22,9 +22,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
         Routing.RegisterRoute(nameof(LandingPageD), typeof(LandingPageD));
-
-        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
-        vm.AppFlyout = shelltabbar;
+                
+        Vm = vm;
         //#if WINDOWS
 
         //        // Subscribe to events
@@ -34,11 +33,61 @@ public partial class AppShell : Shell
         //        this.Unfocused += AppShell_Unfocused;
 
         //#endif
+        BindingContext = vm;
+        //currentPage = Current.CurrentPage;
+    }
 
+    public HomePageVM Vm { get; }
+
+    private async void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
+    {
+        await Vm.NavToSingleSongShell();
+    }
+
+    private async void MultiSelect_TouchDown(object sender, EventArgs e)
+    {
+        switch (Vm.CurrentPage)
+        {
+            case PageEnum.MainPage:
+                var mainPage = Current.CurrentPage as MainPageD;
+                
+                mainPage!.ToggleMultiSelect_Clicked(sender, e);
+                if (Vm.IsMultiSelectOn)
+                {
+                    GoToSong.IsEnabled = false;
+                    await Vm.ToggleFlyout(true);
+                    GoToSong.Opacity = 0.4;
+                    await Task.WhenAll(
+                     MultiSelectView.AnimateFadeInFront());
+                }
+                else
+                {
+                    Vm.MultiSelectText = string.Empty;
+                    GoToSong.IsEnabled = true;
+                    GoToSong.Opacity = 1;
+                    
+                    await Task.WhenAll(
+                        Vm.ToggleFlyout(false),
+                        MultiSelectView.AnimateFadeOutBack());
+                }
+                break;
+            case PageEnum.NowPlayingPage:
+                break;
+            case PageEnum.PlaylistsPage:
+                break;
+            case PageEnum.FullStatsPage:
+                break;
+            case PageEnum.AllAlbumsPage:
+                break;
+            case PageEnum.SpecificAlbumPage:
+                break;
+            default:
+                break;
+        }
     }
 
 #if WINDOWS
-   
+
     private void AppShell_Loaded(object? sender, EventArgs e)
     {
         //var window = this.Window.Handler.PlatformView as MauiWinUIWindow;
@@ -60,7 +109,6 @@ public partial class AppShell : Shell
 
         var nativeElement = currentMauiwindow.Content;
 
-        HomePageVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         if (nativeElement != null)
         {
 
@@ -154,7 +202,8 @@ public partial class AppShell : Shell
 
     #endregion
     public HomePageVM HomePageVM { get; set; }
-
+    Type[] targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsPageD), typeof(SettingsPageD) };
+    Page currentPage = new();
     private async void OnGlobalPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         try
@@ -166,10 +215,9 @@ public partial class AppShell : Shell
             if (properties != null && properties.IsXButton1Pressed)
             {
                 // Handle mouse button 4
-                var currentPage = Current.CurrentPage;
+                
 
-                var targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsPageD), typeof(SettingsPageD) };
-
+                
                 if (targetPages.Contains(currentPage.GetType()))
                 {
                     

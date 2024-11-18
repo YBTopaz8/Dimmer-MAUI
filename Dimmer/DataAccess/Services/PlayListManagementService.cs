@@ -4,7 +4,7 @@ public class PlayListManagementService : IPlaylistManagementService
     Realm db;
     public IDataBaseService DataBaseService { get; }
     public IList<PlaylistModelView> AllPlaylists { get; set; }
-    public ObservableCollection<SongsModelView> SongsFromSpecificPlaylist { get; set; }
+    public ObservableCollection<SongModelView> SongsFromSpecificPlaylist { get; set; }
     public PlayListManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
@@ -59,7 +59,7 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool UpdatePlayList(PlaylistModelView playlist, PlaylistSongLink playlistSongLink=null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public bool UpdatePlayList(PlaylistModelView playlist, PlaylistSongLink? playlistSongLink=null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         try
         {
@@ -112,7 +112,7 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool AddSongToPlayListWithPlayListName(SongsModelView song, string playlistName)
+    public bool AddSongToPlayListWithPlayListName(SongModelView song, string playlistName)
     {
         try
         {
@@ -182,7 +182,7 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool RemoveSongFromPlayListWithPlayListName(SongsModelView song, string playlistName)
+    public bool RemoveSongFromPlayListWithPlayListName(SongModelView song, string playlistName)
     {
         try
         {
@@ -225,7 +225,7 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID)
+    public bool RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID)
     {
         try
         {

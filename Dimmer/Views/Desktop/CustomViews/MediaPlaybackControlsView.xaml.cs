@@ -57,16 +57,14 @@ public partial class MediaPlaybackControlsView : ContentView
         await this.AnimateFocusModePointerExited(endScale:1);
     }
 
-    private async void NavToNowPlayingPage_Tapped(object sender, TappedEventArgs e)
+    private async void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
     {
         var send = (View)sender;
-        var song = send.BindingContext as SongsModelView;
+        var song = send.BindingContext as SongModelView;
         vm.SelectedSongToOpenBtmSheet = vm.TemporarilyPickedSong!;
-
-        
-
-        await vm.NavToNowPlayingPage();
+        await vm.NavToSingleSongShell();
     }
+
 
     private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
     {

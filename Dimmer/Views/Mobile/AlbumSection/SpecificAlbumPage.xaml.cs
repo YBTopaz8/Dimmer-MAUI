@@ -23,7 +23,7 @@ public partial class SpecificAlbumPage : ContentPage
     {
         HomePageVM.CurrentQueue = 1;
         var s = (Border)sender;
-        var song = s.BindingContext as SongsModelView;
+        var song = s.BindingContext as SongModelView;
         HomePageVM.PlaySongCommand.Execute(song);
     }
 

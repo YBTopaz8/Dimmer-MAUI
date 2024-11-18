@@ -14,6 +14,7 @@ global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Icons.FontAwesome;
 global using FontAw = UraniumUI.Icons.FontAwesome;
 
+global using Syncfusion.Maui.Toolkit;
 
 global using MongoDB.Bson;
 global using Realms;

@@ -88,7 +88,7 @@ EmptyView="No Songs...">
             FontSize="18" Margin="10,0"/>
                     </CollectionView.Header>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:SongsModelView">
+                        <DataTemplate x:DataType="models:SongModelView">
                             <Border Stroke="Transparent">
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroup x:Name="CommonStates">

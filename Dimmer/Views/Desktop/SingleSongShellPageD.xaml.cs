@@ -1,3 +1,6 @@
+using Syncfusion.Maui.Toolkit.Chips;
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SingleSongShellPageD : ContentPage
@@ -11,7 +14,7 @@ public partial class SingleSongShellPageD : ContentPage
 
     }
     public HomePageVM HomePageVM { get; }
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         if (HomePageVM.TemporarilyPickedSong is null)
@@ -20,7 +23,6 @@ public partial class SingleSongShellPageD : ContentPage
         }
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
         DeviceDisplay.Current.KeepScreenOn = true;
-        await HomePageVM.AfterSingleSongShellAppeared();
     }
 
     protected override void OnDisappearing()
@@ -55,7 +57,7 @@ public partial class SingleSongShellPageD : ContentPage
         }
     }
 
-    private void SongsPlayed_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void SongsPlayed_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
 
     }
@@ -192,18 +194,15 @@ public partial class SingleSongShellPageD : ContentPage
     }
 
 
-    private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
         try
         {
-            if (CanScroll)
+            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
             {
-                if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
-                {
-                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-                }
+                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
             }
-
+         
         }
         catch (Exception ex)
         {
@@ -241,61 +240,61 @@ public partial class SingleSongShellPageD : ContentPage
         if (title == "Synced Lyrics")
         {
 
-            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, false);
+            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent!, false);
         }
         else
         if (title == "Plain Lyrics")
         {
 
-            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, true);
+            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent!, true);
         }
     }
 
-    private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
-    {
-        var newSelection = e.NewIndex;
-        switch (newSelection)
-        {
-            case 0:
-                await Task.WhenAll(
-                WeeklyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeOutBack(),
-                DailyStats.AnimateFadeInFront());
-                HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            case 1:
-                await Task.WhenAll(
-               DailyStats.AnimateFadeOutBack(),
-               YearlyStats.AnimateFadeOutBack(),
-               MonthlyStats.AnimateFadeOutBack(),
-               WeeklyStats.AnimateFadeInFront()   // Fade in WeeklyStats
-           );
-                HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //private async void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
+    //{
+    //    var newSelection = e.NewIndex;
+    //    switch (newSelection)
+    //    {
+    //        case 0:
+    //            await Task.WhenAll(
+    //            WeeklyStats.AnimateFadeOutBack(),
+    //            MonthlyStats.AnimateFadeOutBack(),
+    //            YearlyStats.AnimateFadeOutBack(),
+    //            DailyStats.AnimateFadeInFront());
+    //            HomePageVM.LoadDailyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        case 1:
+    //            await Task.WhenAll(
+    //           DailyStats.AnimateFadeOutBack(),
+    //           YearlyStats.AnimateFadeOutBack(),
+    //           MonthlyStats.AnimateFadeOutBack(),
+    //           WeeklyStats.AnimateFadeInFront()   // Fade in WeeklyStats
+    //       );
+    //            HomePageVM.LoadWeeklyStats(HomePageVM.SelectedSongToOpenBtmSheet);
 
-                break;
-            case 2:
-                await Task.WhenAll(
-                DailyStats.AnimateFadeOutBack(),
-                WeeklyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeInFront()  // Fade in MonthlyStats
-            );
-                HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            case 3:
-                await Task.WhenAll(
-                DailyStats.AnimateFadeOutBack(),
-                WeeklyStats.AnimateFadeOutBack(),
-                MonthlyStats.AnimateFadeOutBack(),
-                YearlyStats.AnimateFadeInFront()    // Fade in YearlyStats
-            );
-                HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
-                break;
-            default:
-                break;
-        }
-    }
+    //            break;
+    //        case 2:
+    //            await Task.WhenAll(
+    //            DailyStats.AnimateFadeOutBack(),
+    //            WeeklyStats.AnimateFadeOutBack(),
+    //            YearlyStats.AnimateFadeOutBack(),
+    //            MonthlyStats.AnimateFadeInFront()  // Fade in MonthlyStats
+    //        );
+    //            HomePageVM.LoadMonthlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        case 3:
+    //            await Task.WhenAll(
+    //            DailyStats.AnimateFadeOutBack(),
+    //            WeeklyStats.AnimateFadeOutBack(),
+    //            MonthlyStats.AnimateFadeOutBack(),
+    //            YearlyStats.AnimateFadeInFront()    // Fade in YearlyStats
+    //        );
+    //            HomePageVM.LoadYearlyStats(HomePageVM.SelectedSongToOpenBtmSheet);
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
 
     private void ShowHideChart_CheckChanged(object sender, EventArgs e)
@@ -327,8 +326,36 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         emptyV.IsVisible = false;
     }
 
-    private void CheckBox_CheckedChanged(object sender, CheckedChangedEventArgs e)
-    {
 
+    private async void SfChipGroup_ChipClicked(object sender, EventArgs e)
+    {
+        var send = sender as SfChip;
+        var newSelection = int.Parse(send.CommandParameter.ToString());
+        switch (newSelection)
+        {
+            case 0:
+                await Task.WhenAll(
+                    SyncedLyricGrid.AnimateFadeInFront(),
+                    PlainLyricsGrid.AnimateFadeOutBack(),
+                    SearchLyricsGrid.AnimateFadeOutBack());
+                
+                break;
+            case 1:
+                await Task.WhenAll(
+                    SyncedLyricGrid.AnimateFadeOutBack(),
+                    PlainLyricsGrid.AnimateFadeInFront(),
+                    SearchLyricsGrid.AnimateFadeOutBack());
+
+                break;
+            case 2:
+                await Task.WhenAll(
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeInFront());
+
+                break;
+                default:
+                break;
+        }
     }
 }

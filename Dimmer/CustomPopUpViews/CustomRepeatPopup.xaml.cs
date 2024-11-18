@@ -3,7 +3,7 @@ namespace Dimmer_MAUI.CustomPopUpViews;
 
 public partial class CustomRepeatPopup : Popup
 {
-	public CustomRepeatPopup(int CurrentRepeatCount, SongsModelView song)
+	public CustomRepeatPopup(int CurrentRepeatCount, SongModelView song)
 	{
 		InitializeComponent();
 

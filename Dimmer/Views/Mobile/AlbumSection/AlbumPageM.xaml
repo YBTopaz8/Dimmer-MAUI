@@ -97,7 +97,7 @@
       ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}"
                               TapConfirmed="DXCollectionView_TapConfirmed">
                 <dx:DXCollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:SongsModelView">
+                    <DataTemplate x:DataType="models:SongModelView">
                         <Border Stroke="Transparent" Padding="2,2">
                             <FlexLayout JustifyContent="SpaceBetween" >
                                 <VerticalStackLayout>

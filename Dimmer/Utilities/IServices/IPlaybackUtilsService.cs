@@ -2,11 +2,11 @@
 public interface IPlaybackUtilsService
 {
 
-    IObservable<ObservableCollection<SongsModelView>> NowPlayingSongs { get; } //to display songs in queue
-    IObservable<ObservableCollection<SongsModelView>> BackEndShufflableSongsQueue { get; } 
-    IObservable<ObservableCollection<SongsModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
-    IObservable<ObservableCollection<SongsModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongsModelView song, int CurrentQueue = 0, ObservableCollection<SongsModelView>? SecQueueSongs = null, 
+    IObservable<ObservableCollection<SongModelView>> NowPlayingSongs { get; } //to display songs in queue
+    IObservable<ObservableCollection<SongModelView>> BackEndShufflableSongsQueue { get; } 
+    IObservable<ObservableCollection<SongModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
+    IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
+    Task<bool> PlaySongAsync(SongModelView song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
         double lastPosition = 0, int repeatMode = 0, 
         int repeatMaxCount = 0, 
         bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
@@ -15,13 +15,13 @@ public interface IPlaybackUtilsService
     Task<bool> StopSongAsync(); //to stop song
     Task<bool> PauseResumeSongAsync(double lastPosition, bool isPause=false); //to pause/resume song
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
-    void RemoveSongFromQueue(SongsModelView song); //to remove song from queue
-    void AddSongToQueue(SongsModelView song); //to add song to queue
+    void RemoveSongFromQueue(SongModelView song); //to remove song from queue
+    void AddSongToQueue(SongModelView song); //to add song to queue
 
     int LoadingSongsProgressPercentage { get; }
-    SongsModelView CurrentlyPlayingSong { get; }
-    SongsModelView PreviouslyPlayingSong { get; }
-    SongsModelView NextPlayingSong { get; }
+    SongModelView CurrentlyPlayingSong { get; }
+    SongModelView PreviouslyPlayingSong { get; }
+    SongModelView NextPlayingSong { get; }
     string TotalSongsSizes { get; }
     string TotalSongsDuration { get; }
     bool IsShuffleOn { get; set; }
@@ -36,23 +36,23 @@ public interface IPlaybackUtilsService
     void IncreaseVolume();
     void ToggleShuffle(bool isShuffleOn);
     int ToggleRepeatMode();
-    void UpdateSongToFavoritesPlayList(SongsModelView song);
+    void UpdateSongToFavoritesPlayList(SongModelView song);
     int CurrentQueue { get; set; }
-    void UpdateCurrentQueue(IList<SongsModelView> songs, int QueueNumber = 1);
+    void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1);
     Task<bool> PlaySelectedSongsOutsideAppAsync(List<string> filePaths);
 
-    Task DeleteSongFromHomePage(SongsModelView song);
-    Task MultiDeleteSongFromHomePage(ObservableCollection<SongsModelView> songs);
+    Task DeleteSongFromHomePage(SongModelView song);
+    Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
     
     //Playlist Section
 
     ObservableCollection<PlaylistModelView> AllPlaylists { get; }
-    void AddSongToPlayListWithPlayListID(SongsModelView song, PlaylistModelView playlistModel);
+    void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);
     
-    void RemoveSongFromPlayListWithPlayListID(SongsModelView song, ObjectId playlistID);
+    void RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID);
     
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
-    List<SongsModelView> GetSongsFromPlaylistID(ObjectId playlistID);
+    List<SongModelView> GetSongsFromPlaylistID(ObjectId playlistID);
     bool DeletePlaylistThroughID(ObjectId playlistID);
     string SelectedPlaylistName { get; }
 
@@ -60,6 +60,6 @@ public interface IPlaybackUtilsService
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
     ObservableCollection<ArtistModelView> AllArtists { get; }
-    ObservableCollection<SongsModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID);
-    ObservableCollection<SongsModelView> GetallArtistsSongsByArtistId(ObjectId artistID);
+    ObservableCollection<SongModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID);
+    ObservableCollection<SongModelView> GetallArtistsSongsByArtistId(ObjectId artistID);
 }

@@ -16,7 +16,7 @@ public partial class ShareSongPage : ContentPage
         this.BindingContext = HomePageVM;
     }
     
-    SongsModelView currentsong;
+    SongModelView currentsong;
     HomePageVM HomePageVM { get; set; }
     bool hasLyrics;
     ObservableCollection<LyricPhraseModel>? sharelyrics=new();

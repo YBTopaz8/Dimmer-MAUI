@@ -75,7 +75,7 @@ public partial class HomePageVM
     [ObservableProperty]
     bool isChartVisible;
     [RelayCommand]
-    void ShowSingleSongStats(SongsModelView? song)
+    void ShowSingleSongStats(SongModelView? song)
     {
         IsChartVisible = false;
         if (song == null)
@@ -91,7 +91,7 @@ public partial class HomePageVM
 
     }
 
-    public void LoadWeeklyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    public void LoadWeeklyStats(SongModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
         if (song is null)
         {
@@ -131,7 +131,7 @@ public partial class HomePageVM
 
 
 
-    public void LoadDailyStats(SongsModelView song, DateTimeOffset? specificDate = null)
+    public void LoadDailyStats(SongModelView song, DateTimeOffset? specificDate = null)
     {
         if (song is null)
             return;
@@ -143,7 +143,7 @@ public partial class HomePageVM
         UpdateNumberOfTimesPlayed(song);
     }
 
-    public void LoadMonthlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    public void LoadMonthlyStats(SongModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
 
         if (song is null)
@@ -172,7 +172,7 @@ public partial class HomePageVM
     }
 
 
-    public void LoadYearlyStats(SongsModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    public void LoadYearlyStats(SongModelView song, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
 
         if (song is null)
@@ -199,7 +199,7 @@ public partial class HomePageVM
         }
     }
 
-    private void UpdateMostPlayedDay(SongsModelView song)
+    private void UpdateMostPlayedDay(SongModelView song)
     {
         if (song is null)
             return;
@@ -211,7 +211,7 @@ public partial class HomePageVM
         MostPlayedDay = mostPlayedDay?.Key.ToString() ?? "Never Played Yet";
     }
 
-    private void UpdateNumberOfTimesPlayed(SongsModelView song)
+    private void UpdateNumberOfTimesPlayed(SongModelView song)
     {
         if (song is null)
             return;
@@ -253,7 +253,7 @@ public partial class HomePageVM
     
 
     [RelayCommand]
-    async Task NavigateToSingleSongStatsPage(SongsModelView song)
+    async Task NavigateToSingleSongStatsPage(SongModelView song)
     {
         SongPickedForStats.Song = song;
 #if ANDROID
@@ -270,7 +270,7 @@ public partial class HomePageVM
 public partial class SingleSongStatistics : ObservableObject
 {
     [ObservableProperty]
-    SongsModelView? song;
+    SongModelView? song;
     [ObservableProperty]
     ObservableCollection<WeeklyStats> weeklyStats;
     [ObservableProperty]
@@ -299,7 +299,7 @@ public partial class YearlyStats : ObservableObject
     [ObservableProperty]
     double totalPlayTime;
 
-    public YearlyStats(SongsModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    public YearlyStats(SongModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
 
         startDate ??= DateTimeOffset.UtcNow.Date;
@@ -330,7 +330,7 @@ public partial class MonthlyStats : ObservableObject
     [ObservableProperty]
     double totalPlayTime;
 
-    public MonthlyStats(SongsModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
+    public MonthlyStats(SongModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
         startDate ??= DateTimeOffset.UtcNow.Date;
         endDate ??= DateTimeOffset.UtcNow.Date;
@@ -357,7 +357,7 @@ public partial class DailyStats : ObservableObject
     [ObservableProperty]
     ObservableCollection<DataForChart> colforStats;
 
-    public DailyStats(SongsModelView model, DateTimeOffset? specificDate = null)
+    public DailyStats(SongModelView model, DateTimeOffset? specificDate = null)
     {
         specificDate ??= DateTimeOffset.UtcNow.Date;
 
@@ -424,7 +424,7 @@ public partial class WeeklyStats : ObservableObject
     [ObservableProperty]
     double totalPlayTime;
 
-    public WeeklyStats(SongsModelView model, DateTimeOffset? startDate=null, DateTimeOffset? endDate = null)
+    public WeeklyStats(SongModelView model, DateTimeOffset? startDate=null, DateTimeOffset? endDate = null)
     {
         startDate ??= DateTimeOffset.UtcNow.Date;
         endDate ??= DateTimeOffset.UtcNow.Date.AddDays(1);

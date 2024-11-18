@@ -3,17 +3,21 @@ using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using System.Diagnostics;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
+using Syncfusion.Maui.Toolkit.Chips;
 
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
-    
     [ObservableProperty]
-    SongsModelView pickedSong; // I use this a lot with the collection view, mostly to scroll
+    FlyoutBehavior shellFlyoutBehavior = FlyoutBehavior.Disabled;
+    [ObservableProperty]
+    bool isFlyOutPaneOpen = false;
+    [ObservableProperty]
+    SongModelView? pickedSong; // I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    SongsModelView temporarilyPickedSong;
+    SongModelView? temporarilyPickedSong;
 
     [ObservableProperty]
     double currentPositionPercentage;
@@ -21,10 +25,10 @@ public partial class HomePageVM : ObservableObject
     double currentPositionInSeconds = 0;
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> displayedSongs;
+    ObservableCollection<SongModelView>? displayedSongs;
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> prevCurrNextSongsCollection;
+    ObservableCollection<SongModelView>? prevCurrNextSongsCollection;
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
@@ -58,7 +62,7 @@ public partial class HomePageVM : ObservableObject
     public ISongsManagementService SongsMgtService { get; }
     public IArtistsManagementService ArtistMgtService { get; }
 
-    public List<AlbumArtistSongLink> AllLinks { get; }
+    public List<AlbumArtistSongLink>? AllLinks { get; }
 
     [ObservableProperty]
     string unSyncedLyrics;
@@ -108,6 +112,7 @@ public partial class HomePageVM : ObservableObject
         RefreshPlaylists();
 
         AllLinks = SongsMgtService.AllLinks.ToList();
+        ToggleFlyout();
     }
 
     void DoRefreshDependingOnPage()
@@ -241,12 +246,20 @@ public partial class HomePageVM : ObservableObject
     bool isShellLoadingPage = false;
     [ObservableProperty]
     bool isViewingDifferentSong = false;
-    public async Task NavToNowPlayingPage()
+
+    [RelayCommand]
+    public async Task NavToSingleSongShell()
     {
         IsShellLoadingPage = true;
         CurrentViewIndex = 0;
 #if WINDOWS
+        
         await Shell.Current.GoToAsync(nameof(SingleSongShellPageD));
+        
+        await AfterSingleSongShellAppeared();
+        
+        ToggleFlyout();
+        
 #elif ANDROID
         var currentPage = Shell.Current.CurrentPage;
 
@@ -255,21 +268,32 @@ public partial class HomePageVM : ObservableObject
             await Shell.Current.GoToAsync(nameof(SingleSongShell), true);
         }
 #endif
+
         if (TemporarilyPickedSong is not null)
         {
-
 
             if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
             {
                 IsViewingDifferentSong = true;
                 SynchronizedLyrics?.Clear();
-                SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
-            }
-            SongPickedForStats ??= new()
-                {
-                    Song = SelectedSongToOpenBtmSheet
-                };
+        
+            }      
         }
+        SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+        SelectedSongToOpenBtmSheet.SyncLyrics = SynchronizedLyrics;
+        SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+        if (SongPickedForStats is null)
+        {
+            SongPickedForStats = new()
+            {
+                Song = SelectedSongToOpenBtmSheet
+            };
+        }
+        else
+        {
+            SongPickedForStats.Song = SelectedSongToOpenBtmSheet;
+        }
+        
     }
 
     public async Task<string> AfterSingleSongShellAppeared()
@@ -284,9 +308,9 @@ public partial class HomePageVM : ObservableObject
         if (!string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.CoverImagePath) && !File.Exists(SelectedSongToOpenBtmSheet.CoverImagePath))
         {
             var coverImg = await LyricsManagerService
-                .FetchAndDownloadCoverImage(SelectedSongToOpenBtmSheet.Title, SelectedSongToOpenBtmSheet.ArtistName, SelectedSongToOpenBtmSheet.AlbumName, SelectedSongToOpenBtmSheet);
-            DisplayedSongs
-                .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id).CoverImagePath = coverImg;
+                .FetchAndDownloadCoverImage(SelectedSongToOpenBtmSheet.Title, SelectedSongToOpenBtmSheet.ArtistName!, SelectedSongToOpenBtmSheet.AlbumName!, SelectedSongToOpenBtmSheet);
+            DisplayedSongs!
+                .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id)!.CoverImagePath = coverImg;
             return coverImg;
         }
         return string.Empty;
@@ -377,16 +401,17 @@ public partial class HomePageVM : ObservableObject
 
     #region Playback Control Region
 
-    public List<SongsModelView> filteredSongs = new();
+    public List<SongModelView> filteredSongs = new();
     [RelayCommand]
     //void PlaySong(SongsModelView? SelectedSong = null)
-    public async Task PlaySong(SongsModelView? SelectedSong = null)
+    public async Task PlaySong(SongModelView? SelectedSong = null)
     {
         TemporarilyPickedSong ??= SelectedSong!;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-        SelectedSong.IsCurrentPlayingHighlight = false;
+        
         if (SelectedSong is not null)
         {
+            SelectedSong.IsCurrentPlayingHighlight = false;
             SelectedSongToOpenBtmSheet = SelectedSong;
 
             CurrentQueue = 0;
@@ -399,7 +424,7 @@ public partial class HomePageVM : ObservableObject
             if (CurrentPage == PageEnum.FullStatsPage)
             {
                 CurrentQueue = 1;
-                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection());
+                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection()!);
                 //ShowGeneralTopXSongs();
                 return;
             }
@@ -576,7 +601,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    async Task UpdateSongToDB(SongsModelView song)
+    async Task UpdateSongToDB(SongModelView song)
     {
         var res = await Shell.Current.DisplayAlert("Confirm Action", "Confirm Update?", "Yes", "Cancel");
         if (res)
@@ -589,7 +614,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> recentlyAddedSongs;
+    ObservableCollection<SongModelView> recentlyAddedSongs;
     public void LoadSongCoverImage()
     {
 
@@ -630,10 +655,9 @@ public partial class HomePageVM : ObservableObject
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
 
-
     }
 
-    private ObservableCollection<SongsModelView> GetXRecentlyAddedSongs(ObservableCollection<SongsModelView> displayedSongs, int number=15)
+    private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
     {
         // Sort by DateAdded in descending order and take the top X songs
         var recentSongs = displayedSongs
@@ -642,14 +666,14 @@ public partial class HomePageVM : ObservableObject
             .ToList(); // Convert to a list
 
         // Convert the list back to ObservableCollection
-        return new ObservableCollection<SongsModelView>(recentSongs);
+        return new ObservableCollection<SongModelView>(recentSongs);
     }
 
 
     [ObservableProperty]
     ObservableCollection<SingleSongStatistics> lastFifteenPlayedSongs;
 
-    public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongsModelView> allSongs, int number = 15)
+    public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongModelView> allSongs, int number = 15)
     {
         // Filter and flatten only songs with non-empty DatesPlayedAndWasPlayCompleted
         var recentPlays = allSongs
@@ -798,7 +822,8 @@ public partial class HomePageVM : ObservableObject
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
-            DisplayedSongs = songs.Take(100).ToObservableCollection();
+            DisplayedSongs = songs;
+            //DisplayedSongs = songs.Take(150).ToObservableCollection();
             TotalNumberOfSongs = songs.Count;
             
             //ReloadSizeAndDuration();
@@ -838,16 +863,16 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    string lyricsSearchSongTitle;
+    string? lyricsSearchSongTitle;
     [ObservableProperty]
-    string lyricsSearchArtistName;
+    string? lyricsSearchArtistName;
     [ObservableProperty]
-    string lyricsSearchAlbumName;
+    string? lyricsSearchAlbumName;
     [ObservableProperty]
     bool useManualSearch;
 
     [ObservableProperty]
-    Content[] allSyncLyrics;
+    Content[]? allSyncLyrics;
     [ObservableProperty]
     bool isFetchSuccessful = true;
     [ObservableProperty]
@@ -896,7 +921,7 @@ public partial class HomePageVM : ObservableObject
 
     public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
     {
-        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont, IsPlain, this));
+        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
         if (result)
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);
@@ -1055,7 +1080,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    public async Task FetchSongCoverImage(SongsModelView? song=null)
+    public async Task FetchSongCoverImage(SongModelView? song=null)
     {
         if (song is null)
         {
@@ -1115,6 +1140,8 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     int currentViewIndex;
+    
+
     [ObservableProperty]
     bool isOnLyricsSyncMode = false;
     [RelayCommand]
@@ -1220,8 +1247,8 @@ public partial class HomePageVM : ObservableObject
     {
         SelectedPlaylistToOpenBtmSheet = pl;
     }
-
-    public void SetContextMenuSong(SongsModelView? song)
+    [RelayCommand]
+    public void SetContextMenuSong(SongModelView song)
     {
         SelectedSongToOpenBtmSheet = song;
     }
@@ -1235,7 +1262,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> backEndQ;
+    ObservableCollection<SongModelView> backEndQ;
 
     [ObservableProperty]
     bool isAnimatingFav = false;
@@ -1322,4 +1349,5 @@ public partial class HomePageVM : ObservableObject
     {
         NowPlayBtmSheetState = BottomSheetState.FullExpanded;
     }
+
 }

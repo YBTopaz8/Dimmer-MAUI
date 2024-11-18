@@ -10,11 +10,11 @@ public partial class HomePageVM
     string selectedPlaylistPageTitle;
 
     [ObservableProperty]
-    ObservableCollection<SongsModelView> displayedSongsFromPlaylist;
+    ObservableCollection<SongModelView> displayedSongsFromPlaylist;
     [ObservableProperty]
     PlaylistModelView selectedPlaylistToOpenBtmSheet;
     [ObservableProperty]
-    SongsModelView selectedSongToOpenBtmSheet;
+    SongModelView selectedSongToOpenBtmSheet;
     public void RefreshPlaylists()
     {
         DisplayedPlaylists?.Clear();
@@ -48,7 +48,7 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public async Task UpdatePlayList(SongsModelView song, PlaylistModelView playlistModel =null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public async Task UpdatePlayList(SongModelView song, PlaylistModelView playlistModel =null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {

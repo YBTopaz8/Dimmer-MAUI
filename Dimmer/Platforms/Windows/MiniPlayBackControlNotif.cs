@@ -4,7 +4,7 @@ using Microsoft.Maui.Devices;
 namespace Dimmer_MAUI.UtilitiesServices;
 public static class MiniPlayBackControlNotif
 {
-    public static void ShowUpdateMiniView(SongsModelView song)
+    public static void ShowUpdateMiniView(SongModelView song)
     {
         try
         {

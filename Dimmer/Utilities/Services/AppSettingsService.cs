@@ -148,7 +148,7 @@ public class AppSettingsService : IAppSettingsService
 
     }
 
-    public static ObservableCollection<SongsModelView> ApplySorting(ObservableCollection<SongsModelView> colToSort, SortingEnum mode)
+    public static ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode)
     {
         switch (mode)
         {

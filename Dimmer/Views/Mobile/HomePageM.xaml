@@ -30,7 +30,7 @@
     
         </ResourceDictionary>
 
-        <DataTemplate x:Key="HomePageColViewGridOfOne" x:DataType="models:SongsModelView">
+        <DataTemplate x:Key="HomePageColViewGridOfOne" x:DataType="models:SongModelView">
             <dx:SwipeContainer FullSwipeMode="End">
                 <dx:SwipeContainer.ItemView>
                 
@@ -90,7 +90,7 @@
 
         </DataTemplate>
         
-<DataTemplate x:Key="HomePageColViewGridOfTwo" x:DataType="models:SongsModelView">
+<DataTemplate x:Key="HomePageColViewGridOfTwo" x:DataType="models:SongModelView">
             <dx:DXStackLayout Orientation="Vertical"
                               Margin="10,0" CornerRadius="15">
                 <dx:DXStackLayout.Triggers>

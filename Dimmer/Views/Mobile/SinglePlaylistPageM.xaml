@@ -31,7 +31,7 @@
         <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectionMode="Single" toolkit:DockLayout.DockPosition="Top"
 x:Name="SongsColView">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:SongsModelView">
+                <DataTemplate x:DataType="models:SongModelView">
                     <FlexLayout JustifyContent="SpaceBetween" >
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">

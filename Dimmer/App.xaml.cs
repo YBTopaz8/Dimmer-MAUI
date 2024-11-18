@@ -34,7 +34,7 @@ public partial class App : Application
 
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
 #if WINDOWS
-        DimmerWindow.Page = new AppShell();
+        DimmerWindow.Page = new AppShell(vm);
 
 #elif ANDROID
         DimmerWindow.Page = new AppShellMobile();

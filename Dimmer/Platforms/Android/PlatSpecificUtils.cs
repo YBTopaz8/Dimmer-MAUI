@@ -8,7 +8,7 @@ using Color = Microsoft.Maui.Graphics.Color;
 namespace Dimmer_MAUI.Platforms.Android;
 public static class PlatSpecificUtils
 {
-    public static bool DeleteSongFile(SongsModelView song)
+    public static bool DeleteSongFile(SongModelView song)
     {
         try
         {
@@ -24,7 +24,7 @@ public static class PlatSpecificUtils
             return false;
         }
     }
-    public static bool MultiDeleteSongFiles(ObservableCollection<SongsModelView> songs)
+    public static bool MultiDeleteSongFiles(ObservableCollection<SongModelView> songs)
     {
         try
         {

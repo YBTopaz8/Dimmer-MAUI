@@ -36,7 +36,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
         HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         
-        await HomePageVM.NavToNowPlayingPage();
+        await HomePageVM.NavToSingleSongShell();
         await Task.Delay(500);
         this.State = BottomSheetState.Hidden;
 
@@ -93,6 +93,6 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private async void NavToSingleSongShell_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavToNowPlayingPage();
+        await HomePageVM.NavToSingleSongShell();
     }
 }
