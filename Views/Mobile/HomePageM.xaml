@@ -260,8 +260,7 @@
                         <Label Text="Sort By..." Margin="15,0"
                                FontSize="18"/>
                         
-                        <dx:ChoiceChipGroup ChipUseRippleEffect="True" IsMultiline="True" SelectedIndex="3"
-                                            >
+                        <dx:ChoiceChipGroup ChipUseRippleEffect="True" IsMultiline="True" IsVisible="False">
 
                             <dx:Chip Text="Title Asc" x:Name="SortTitleAsc" Tap="SortSongsChip_Tap" TapCommandParameter="0"/>
                             <dx:Chip Text="Title Desc" x:Name="SortTitleDesc" Tap="SortSongsChip_Tap" TapCommandParameter="1"/>

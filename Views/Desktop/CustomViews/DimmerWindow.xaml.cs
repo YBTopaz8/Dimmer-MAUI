@@ -22,11 +22,11 @@ public partial class DimmerWindow : Window
 
 #if DEBUG
 
-        DimmerTitleBar.Subtitle = "v0.4-debug";
+        DimmerTitleBar.Subtitle = "v0.4.2-debug";
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v0.4-release";
+        DimmerTitleBar.Subtitle = "v0.4.2-release";
 #endif
 
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
@@ -63,7 +63,7 @@ public partial class DimmerWindow : Window
             else
             {
                 HomepageVM.IsOnSearchMode = false;
-                HomepageVM.DisplayedSongs = HomepageVM.SongsMgtService.AllSongs.ToObservableCollection();
+                await HomepageVM.LoadSongsInBatchesAsync();
             }
         }
         catch (TaskCanceledException)

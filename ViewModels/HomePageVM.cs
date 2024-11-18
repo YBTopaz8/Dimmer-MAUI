@@ -86,7 +86,6 @@ public partial class HomePageVM : ObservableObject
         
         SubscribeToCurrentSongPosition();
         SubscribeToPlaylistChanges();
-        SubscribeToBackEndQChanges();
 
         //Subscriptions to LyricsServices
         SubscribeToSyncedLyricsChanges();
@@ -305,7 +304,7 @@ public partial class HomePageVM : ObservableObject
         {
             var coverImg = await LyricsManagerService
                 .FetchAndDownloadCoverImage(SelectedSongToOpenBtmSheet.Title, SelectedSongToOpenBtmSheet.ArtistName!, SelectedSongToOpenBtmSheet.AlbumName!, SelectedSongToOpenBtmSheet);
-            DisplayedSongs!
+            SongsMgtService.AllSongs
                 .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id)!.CoverImagePath = coverImg;
             return coverImg;
         }
@@ -435,7 +434,7 @@ public partial class HomePageVM : ObservableObject
 
             if (CurrentQueue == 1)
             {
-                await PlayBackService.PlaySongAsync(SelectedSong!, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
+                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
                 return;
             }
             if (IsOnSearchMode)
@@ -659,11 +658,10 @@ public partial class HomePageVM : ObservableObject
     {
         // Sort by DateAdded in descending order and take the top X songs
         var recentSongs = displayedSongs
-            .OrderByDescending(song => song.DateAdded)  // Sort by DateAdded in descending order
-            .Take(number)  // Limit to the top `number` of songs
-            .ToList(); // Convert to a list
+            .OrderByDescending(song => song.DateAdded)  
+            .Take(number)  
+            .ToList(); 
 
-        // Convert the list back to ObservableCollection
         return new ObservableCollection<SongModelView>(recentSongs);
     }
 
@@ -673,17 +671,16 @@ public partial class HomePageVM : ObservableObject
 
     public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongModelView> allSongs, int number = 15)
     {
-        // Filter and flatten only songs with non-empty DatesPlayedAndWasPlayCompleted
         var recentPlays = allSongs
             .Where(song => song.DatesPlayedAndWasPlayCompleted != null && song.DatesPlayedAndWasPlayCompleted.Count > 0) // Ensure the list is not null or empty
             .SelectMany(song => song.DatesPlayedAndWasPlayCompleted
                 .Select(play => new SingleSongStatistics
                 {
-                    Song = song, // Reference to SongsModelView
+                    Song = song, 
                     PlayDateTime = play.DatePlayed
                 }))
             .OrderByDescending(stat => stat.PlayDateTime)
-            .Take(number) // Limit to the specified number of recent plays
+            .Take(number) 
             .ToList();
 
         return recentPlays;
@@ -800,17 +797,71 @@ public partial class HomePageVM : ObservableObject
             return;
         if (result.Equals("Yes"))
         {
-            string? lyr = string.Join(Environment.NewLine, LyricsLines.Select(line => $"{line.TimeStampText} {line.Text}"));
+            string? lyr = string.Join(Environment.NewLine, LyricsLines!.Select(line => $"{line.TimeStampText} {line.Text}"));
             if (lyr is not null)
             {
-                if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong, true))
+                if (LyricsManagerService.WriteLyricsToLyricsFile(lyr, TemporarilyPickedSong!, true))
                 {
                     await Shell.Current.DisplayAlert("Success!", "Lyrics Saved Successfully!", "OK");
                     CurrentViewIndex = 0;
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
-                DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id)!.HasLyrics = true;
+                SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong!.Id)!.HasLyrics = true;
             }
+        }
+    }
+
+    private bool _isLoading = false;
+
+    private int _currentIndex = 0; // Tracks the position of the last loaded batch
+    private const int MaxDisplayedSongs = 60; // Max items in DisplayedSongs
+
+    public async Task LoadSongsInBatchesAsync()
+    {
+        if (_isLoading)
+            return; // Prevent overlapping calls
+
+        _isLoading = true;
+
+        try
+        {
+            int batchSize = 20;
+
+            // Ensure we don't exceed the total number of songs
+            if (_currentIndex >= SongsMgtService.AllSongs.Count)
+                return;
+
+            // Get the next batch of songs
+            var nextBatch = SongsMgtService.AllSongs
+                .Skip(_currentIndex)
+                .Take(batchSize)
+                .ToList();
+
+            // Add songs to DisplayedSongs on the main thread
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                foreach (var song in nextBatch)
+                {
+                    DisplayedSongs.Add(song);
+                }
+
+                // Maintain a fixed size for DisplayedSongs
+                while (DisplayedSongs.Count > MaxDisplayedSongs)
+                {
+                    DisplayedSongs.RemoveAt(0); // Remove old songs from the start
+                }
+            });
+
+            // Update the current index for the next batch
+            _currentIndex += batchSize;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during batch loading: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 
@@ -820,23 +871,14 @@ public partial class HomePageVM : ObservableObject
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
-            DisplayedSongs = songs;
-            //DisplayedSongs = songs.Take(150).ToObservableCollection();
-            TotalNumberOfSongs = songs.Count;
-            
+            DisplayedSongs = songs;  //.Take(20).ToObservableCollection();
+            TotalNumberOfSongs = SongsMgtService.AllSongs.Count;
+
             //ReloadSizeAndDuration();
         });
         IsLoadingSongs = false;
-    }
-    private void SubscribeToBackEndQChanges()
-    {
-        PlayBackService.BackEndShufflableSongsQueue.Subscribe(songs =>
-        {
-            BackEndQ ??= [];
-            BackEndQ?.Clear();
-            BackEndQ = songs;
 
-        });
+        
     }
 
     private void SubscribeToSyncedLyricsChanges()
@@ -1179,15 +1221,11 @@ public partial class HomePageVM : ObservableObject
         if (result != null)
         {
             var e = (SortingEnum)result;
-            //if (e == CurrentSortingOption)
-            //{
-            //    return;
-            //}
             IsLoadingSongs = true;
             CurrentSortingOption = e;
             if (CurrentPage == PageEnum.MainPage)
             {
-                DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs, CurrentSortingOption);
+                DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs!, CurrentSortingOption);
                 PageCV.ItemsSource = null;
                 PageCV.ItemsSource = DisplayedSongs;
 

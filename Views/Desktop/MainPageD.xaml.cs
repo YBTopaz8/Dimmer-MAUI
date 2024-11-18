@@ -2,23 +2,21 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
 {
-	public MainPageD(HomePageVM homePageVM)
+    public MainPageD(HomePageVM homePageVM)
     {
         InitializeComponent();
         HomePageVM = homePageVM;
         this.BindingContext = homePageVM;
 
-        //MediaPlayBackCW.BindingContext = homePageVM;
-
     }
     public HomePageVM HomePageVM { get; }
+
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
         HomePageVM.AssignCV(SongsColView);
-        
-        //scrollView.ScrollToIndex(HomePageVM.DisplayedSongs.IndexOf(HomePageVM.TemporarilyPickedSong),true);
     }
 
     protected override void OnDisappearing()
@@ -28,7 +26,6 @@ public partial class MainPageD : ContentPage
 
     private void ScrollToSong_Clicked(object sender, EventArgs e)
     {
-        //var s = SongsColView.SelectedItem;
         try
         {
             if (HomePageVM.PickedSong is null)
@@ -74,10 +71,6 @@ public partial class MainPageD : ContentPage
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
     {
         base.OnNavigatingFrom(args);
-        //if (!isPointerEntered)
-        //{
-        //    HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
-        //}
     }
 
     private async void NavToArtistClicked(object sender, EventArgs e)
@@ -93,7 +86,6 @@ public partial class MainPageD : ContentPage
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         isPointerEntered = true;
 
-        //HomePageVM.SetContextMenuSong(song!);
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
@@ -103,8 +95,8 @@ public partial class MainPageD : ContentPage
         isPointerEntered = false;
 
     }
-    private bool isPressed = false;  // Track whether the button is pressed
-    private bool isAnimating = false;  // Track if an animation is running
+    private bool isPressed = false;
+    private bool isAnimating = false;
 
 
     List<string> supportedFilePaths;
@@ -213,7 +205,7 @@ public partial class MainPageD : ContentPage
                 HomePageVM.IsMultiSelectOn = true;
                 selectedSongs = new();
                 selectedSongsViews = new();
-                SongsColView.BackgroundColor = Color.Parse("#1D1932");                
+                SongsColView.BackgroundColor = Color.Parse("#1D1932");
                 break;
             case SelectionMode.Single:
                 break;
@@ -245,8 +237,7 @@ public partial class MainPageD : ContentPage
 
         if (HomePageVM.IsMultiSelectOn)
         {
-            
-            // Add or remove song based on its presence in the selectedSongs list
+
             if (selectedSongs.Contains(song))
             {
                 selectedSongs.Remove(song);
@@ -259,7 +250,7 @@ public partial class MainPageD : ContentPage
                 selectedSongsViews.Add(send);
                 send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
             }
-            HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.DisplayedSongs.Count} Selected";
+            HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.SongsMgtService.AllSongs.Count} Selected";
             return;
         }
         else
@@ -276,4 +267,14 @@ public partial class MainPageD : ContentPage
         await HomePageVM.PlaySong(song);
     }
 
+    private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
+    {
+        if(HomePageVM.IsOnSearchMode)
+        {
+            return;
+        }
+        //await HomePageVM.LoadSongsInBatchesAsync();
+
+    }
 }
+

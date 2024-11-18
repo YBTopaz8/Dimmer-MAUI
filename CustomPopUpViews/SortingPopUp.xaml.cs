@@ -1,3 +1,5 @@
+//using Syncfusion.Maui.Toolkit.Chips;
+
 namespace Dimmer_MAUI.CustomPopUpViews;
 
 public partial class SortingPopUp : Popup
@@ -16,6 +18,12 @@ public partial class SortingPopUp : Popup
         //this.ResultWhenUserTapsOutsideOfPopup = (SortingEnum)RBtnGroup.SelectedIndex;
     }
     private void CloseButton_Clicked(object sender, EventArgs e) => Close(null);
-    private void OkButton_Clicked(object sender, EventArgs e) => Close(/*RBtnGroup.SelectedIndex*/);
-    
+    private void OkButton_Clicked(object sender, EventArgs e) => Close(CurrentIndex);
+
+    private void SfChipGroup_ChipClicked(object sender, EventArgs e)
+    {
+        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        var param = ee.CommandParameter.ToString();
+        CurrentIndex =int.Parse(param);
+    }
 }

@@ -6,7 +6,7 @@
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            
+            x:DataType="vm:HomePageVM"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
@@ -48,8 +48,8 @@
                     </Border.GestureRecognizers>
 
                     <Label Text="{Binding Text}" Margin="0,5" 
-    HorizontalTextAlignment="Center" 
-    FontSize="19" >
+                           HorizontalTextAlignment="Center" 
+                           FontSize="19" >
                         <Label.Triggers>
 
                         </Label.Triggers>
@@ -211,7 +211,9 @@
                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>
                                     <ContentView>
-                                        <VerticalStackLayout HorizontalOptions="Center" x:Name="emptyV">
+                                        <VerticalStackLayout HorizontalOptions="Center" 
+                                                             BackgroundColor="Transparent"
+                                                             x:Name="emptyV">
 
 
                                             <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
@@ -270,45 +272,50 @@ Padding="10" Margin="0,5">
 
         </toolkit:DockLayout>
         
-        <toolkit:DockLayout x:Name="FocusModeUI" IsVisible="False">
+        <toolkit:DockLayout x:Name="FocusModeUI" IsVisible="False" BackgroundColor="Transparent">
 
-            <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
-                             ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">
-                <ImageButton.GestureRecognizers>
-                    <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" 
-                                                  PointerReleased="PointerGestureRecognizer_PointerReleased"/>
-                </ImageButton.GestureRecognizers>
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                </ImageButton.Source>
-            </ImageButton>
-
-            <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
-                             x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-                </ImageButton.Source>
-            </ImageButton>
-
-            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" x:DataType="vm:HomePageVM"
+           
+           
+            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" x:DataType="vm:HomePageVM" BackgroundColor="Transparent"
                             VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
-                <Grid RowDefinitions="*" ColumnDefinitions="*">
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-                HeightRequest="600" WidthRequest="600" StrokeThickness="0"  Opacity="0.3">
-                        <toolkit:AvatarView.GestureRecognizers>
-                            <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
-                        </toolkit:AvatarView.GestureRecognizers>
-                    </toolkit:AvatarView>
+                <HorizontalStackLayout>
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
+                  ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">
+                        <ImageButton.GestureRecognizers>
+                            <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" 
+                                       PointerReleased="PointerGestureRecognizer_PointerReleased"/>
+                        </ImageButton.GestureRecognizers>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
 
-                    <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-    Converter={StaticResource BoolToInverse}}" HeightRequest="190" WidthRequest="550" 
-                SelectionChanged="LyricsColView_SelectionChanged" x:Name="focusLyr"
-                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
-                Grid.Column="0" 
-                ItemTemplate="{StaticResource SyncLyricsColView}">
-                    </CollectionView>
-                </Grid>
+                    <Grid RowDefinitions="*" ColumnDefinitions="*" BackgroundColor="Transparent">
+                        <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+            HeightRequest="600" WidthRequest="600" StrokeThickness="0"  Opacity="0.3" BackgroundColor="Transparent">
+                            <toolkit:AvatarView.GestureRecognizers>
+                                <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
+                            </toolkit:AvatarView.GestureRecognizers>
+                        </toolkit:AvatarView>
 
+                        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
+Converter={StaticResource BoolToInverse}}" HeightRequest="190" WidthRequest="550" BackgroundColor="Transparent"
+            SelectionChanged="LyricsColView_SelectionChanged" x:Name="focusLyr"
+            SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+            Grid.Column="0" 
+            ItemTemplate="{StaticResource SyncLyricsColView}">
+                        </CollectionView>
+                    </Grid>
+
+                    <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
+                  x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                </HorizontalStackLayout>
+                
                 <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
                             MinimumTrackColor="DarkSlateBlue" x:Name="slid" 
                             DragCompleted="Slider_DragCompleted" Margin="3,0">

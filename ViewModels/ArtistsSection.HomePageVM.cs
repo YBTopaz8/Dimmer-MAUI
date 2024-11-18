@@ -40,9 +40,9 @@ public partial class HomePageVM
         SelectedArtistOnArtistPage = GetArtistFromAlbumId(selectedAlbum.Id);
         SelectedAlbumOnArtistPage = AllAlbums.First(x => x.Id == selectedAlbum.Id);
         SelectedAlbumOnArtistPage.NumberOfTracks = SongsMgtService.GetSongsCountFromAlbumID(selectedAlbum.Id);
-        SelectedAlbumOnArtistPage.AlbumImagePath = DisplayedSongs!.First(x => x.AlbumName == SelectedAlbumOnArtistPage.Name).CoverImagePath;
+        SelectedAlbumOnArtistPage.AlbumImagePath = SongsMgtService.AllSongs.First(x => x.AlbumName == SelectedAlbumOnArtistPage.Name).CoverImagePath;
         SelectedAlbumOnArtistPage.TotalDuration = TimeSpan
-            .FromSeconds(DisplayedSongs!
+            .FromSeconds(SongsMgtService.AllSongs
             .Where(x => x.AlbumName == SelectedAlbumOnArtistPage.Name)
             .Sum(x => x.DurationInSeconds))
             .ToString(@"mm\:ss");
@@ -102,7 +102,7 @@ public partial class HomePageVM
 
     public async void GetAllArtistsAlbum(AlbumModelView? album = null, SongModelView? song = null, bool isFromSong = false)
     {
-        if(!DisplayedSongs!.Contains(TemporarilyPickedSong!))
+        if(!SongsMgtService.AllSongs.Contains(TemporarilyPickedSong!))
             return;
         if(SelectedAlbumOnArtistPage is not null)
             SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
@@ -210,8 +210,6 @@ public partial class HomePageVM
             AllArtistsAlbums = albums.ToObservableCollection();
         });
     }
-
-
 
     public async void LoadSongsFromArtistId(ObjectId artistId)
     {

@@ -45,7 +45,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
-        if (HomePageVM.DisplayedSongs!.Count < 1)
+        if (HomePageVM.SongsMgtService.AllSongs.Count < 1)
         {
             return;
         }

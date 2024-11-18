@@ -1,5 +1,3 @@
-//using Plainer.Maui.Controls;
-
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : ContentPage
@@ -18,29 +16,17 @@ public partial class HomePageM : ContentPage
     private void SongsColView_Loaded(object? sender, EventArgs e)
     {        
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-        
     }
 
 
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-
-
         if (HomePageVM.TemporarilyPickedSong is null)
         {
             return;
         }
-
-
         HomePageVM.CurrentPage = PageEnum.MainPage;
-
-#if ANDROID
-
-        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
-        Shell.SetNavBarIsVisible(this, false);
-        Shell.SetTabBarIsVisible(this, true);
-#endif
     }
 
     protected override void OnDisappearing()
@@ -48,22 +34,6 @@ public partial class HomePageM : ContentPage
         base.OnDisappearing();
         HomePageVM.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
-
-
-    //private void SongsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    //{
-    //    if (currentSelectionMode == SelectionMode.Multiple)
-    //    {
-    //        //HomePageVM.HandleMultiSelect(SongsColView, e);
-    //        return;
-    //    }
-    //    if (SongsColView.IsLoaded)
-    //    {
-    //        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-
-
-    //    }
-    //}
 
 
     private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
@@ -85,11 +55,12 @@ public partial class HomePageM : ContentPage
 
     private async void ShowFolderSelectorImgBtn_Clicked(object sender, EventArgs e)
     {
+
         await Shell.Current.GoToAsync(nameof(SettingsPageM));
+
     }
     protected override bool OnBackButtonPressed()
-    {
-        
+    {        
         return true;
     }
 
@@ -151,8 +122,6 @@ public partial class HomePageM : ContentPage
     private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
     {
         SearchSongPopUp.Show();
-        
-        //SearchSongPopUp.IsOpen = true;
     }
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
@@ -193,6 +162,8 @@ public partial class HomePageM : ContentPage
                 break;
             case "3":
                 SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
+                var servicee = IPlatformApplication.Current.Services.GetRequiredService<IPlaybackUtilsService>();
+
                 break;
             default:
                 break;
@@ -216,7 +187,7 @@ public partial class HomePageM : ContentPage
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs!
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs!
                     .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
@@ -244,7 +215,7 @@ public partial class HomePageM : ContentPage
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs!
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs!
                     .Where(item => item.ArtistName!.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
@@ -272,8 +243,8 @@ public partial class HomePageM : ContentPage
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs
-                    .Where(item => item.AlbumName.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs
+                    .Where(item => item.AlbumName!.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             }
@@ -324,6 +295,7 @@ public partial class HomePageM : ContentPage
 
     private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
     {
+        
         var s = sender as ChoiceChipGroup;
         switch (s.SelectedIndex)
         {

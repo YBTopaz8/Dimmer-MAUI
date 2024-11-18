@@ -5,8 +5,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     INativeAudioService audioService;
     public IObservable<ObservableCollection<SongModelView>> NowPlayingSongs => _nowPlayingSubject.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _nowPlayingSubject = new([]);
-    public IObservable<ObservableCollection<SongModelView>> BackEndShufflableSongsQueue => _nowPlayingSubject.AsObservable();   
-
+   
     ObservableCollection<SongModelView> nowPlayingShuffledOrNotSubject = new([]);
     
     public IObservable<ObservableCollection<SongModelView>> SecondaryQueue => _secondaryQueueSubject.AsObservable();
@@ -21,8 +20,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     System.Timers.Timer? _positionTimer;
 
     [ObservableProperty]
-    private SongModelView observableCurrentlyPlayingSong;
-    public SongModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
+    private SongModelView? observableCurrentlyPlayingSong;
+    public SongModelView? CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
     [ObservableProperty]
     private SongModelView observablePreviouslyPlayingSong;
     public SongModelView PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
@@ -43,11 +42,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public IPlaylistManagementService PlaylistManagementService { get; }
     public IArtistsManagementService ArtistsMgtService { get; }
     [ObservableProperty]
-    ObservableCollection<PlaylistModelView> allPlaylists;
+    ObservableCollection<PlaylistModelView>? allPlaylists;
     [ObservableProperty]
-    ObservableCollection<ArtistModelView> allArtists;
+    ObservableCollection<ArtistModelView>? allArtists;
     [ObservableProperty]
-    ObservableCollection<AlbumModelView> allAlbums;
+    ObservableCollection<AlbumModelView>? allAlbums;
 
     [ObservableProperty]
     string selectedPlaylistName;
@@ -524,12 +523,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
         var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
-                
+        
         _nowPlayingSubject.OnNext(sortedSongs);
         ToggleShuffle(IsShuffleOn);
     }
 
-    public SongModelView lastPlayedSong { get; set; }
+    public SongModelView? lastPlayedSong { get; set; }
 
     private void LoadLastPlayedSong()
     {
@@ -547,6 +546,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             //_nowPlayingSubject.OnNext(ObservableCurrentlyPlayingSong);
             _currentSongIndex = SongsMgtService.AllSongs.IndexOf(ObservableCurrentlyPlayingSong);
         }
+
         _playerStateSubject.OnNext(MediaPlayerState.Initialized);
     }
 
@@ -684,7 +684,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         else
         {
-            //_tertiaryQueueSubject.OnNext(nowPlayingShuffledOrNotSubject);
         }
         var allSongs = new ObservableCollection<SongModelView>();
         foreach (var file in filteredFiles)
@@ -738,13 +737,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         CurrentQueue = currentQueue;
-        if (currentList is not null)
+        if (currentList is not null && CurrentQueue == 1)
         {
-            nowPlayingShuffledOrNotSubject = currentList;
+            _secondaryQueueSubject.OnNext(currentList);
         }
-        else if(CurrentQueue == 1)
+        if (currentList is not null && CurrentQueue == 2)
         {
-            nowPlayingShuffledOrNotSubject =_secondaryQueueSubject.Value;
+            _tertiaryQueueSubject.OnNext(currentList);
         }
         if (CurrentAppState != CurrentAppStatee)
         {
@@ -757,22 +756,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer.Dispose();
             _positionTimer = null;
         }
-        switch (CurrentQueue)
-        {            
-            case 1:
-                _secondaryQueueSubject.OnNext(nowPlayingShuffledOrNotSubject);
-                break;
-            default:
-                break;
-        }
-
         if (ObservableCurrentlyPlayingSong != null)
         {
             ObservableCurrentlyPlayingSong.IsPlaying = false;
         }
         else
         {
-            ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNotSubject.FirstOrDefault()!;
+            ObservableCurrentlyPlayingSong = _nowPlayingSubject.Value.FirstOrDefault()!;
             if (ObservableCurrentlyPlayingSong is null)
             {
                 if (!isLoadingSongs)
@@ -793,23 +783,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 if (!File.Exists(song.FilePath))
                 {
-
-                    await SongsMgtService.DeleteSongFromDB(song.Id);
-                    
-                    _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
-                    
+                    await SongsMgtService.DeleteSongFromDB(song.Id);                    
+                    _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());                    
                     return false;
                 }
                 //song.IsPlaying = true;
                 ObservableCurrentlyPlayingSong = song!;
-                if (nowPlayingShuffledOrNotSubject != null)
-                {
-                    int songIndex = nowPlayingShuffledOrNotSubject.IndexOf(song);
-                    if (songIndex != -1)
-                    {
-                        _currentSongIndex = songIndex;
-                    }
-                }
+                //if (nowPlayingShuffledOrNotSubject != null)
+                //{
+                //    int songIndex = nowPlayingShuffledOrNotSubject.IndexOf(song);
+                //    if (songIndex != -1)
+                //    {
+                //        _currentSongIndex = songIndex;
+                //    }
+                //}
             }
 
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
@@ -869,6 +856,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
+                
             }
 
             //ShowMiniPlayBackView();
@@ -880,7 +868,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
 #if WINDOWS
        
-            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong);
+            MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong!);
        
 #endif
     }
@@ -891,103 +879,69 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     private Random random = new Random();  // Reuse the same Random instance
     bool isTrueShuffle = false;  // Set this based on whether shuffle is enabled
 
+    public ObservableCollection<SongModelView> mobileSongOrder;
     private void GetPrevAndNextSongs(bool IsNext = false, bool IsPrevious = false)
     {
         try
         {
-            if (nowPlayingShuffledOrNotSubject == null || nowPlayingShuffledOrNotSubject.Count < 1)
+            if (!nowPlayingShuffledOrNotSubject.Contains(ObservableCurrentlyPlayingSong))
             {
-                _currentSongIndex = _nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong);
-                return;
+                nowPlayingShuffledOrNotSubject.Add(ObservableCurrentlyPlayingSong!); // Add to shuffled list
             }
-            int indexinDisplayedList = SongsMgtService.AllSongs.IndexOf(ObservableCurrentlyPlayingSong);
-            int indexinShuffledList = nowPlayingShuffledOrNotSubject.IndexOf(ObservableCurrentlyPlayingSong);
+            // Determine the list to pick from based on CurrentQueue
+            ObservableCollection<SongModelView>? listToPickFrom = CurrentQueue switch
+            {
+                0 => SongsMgtService.AllSongs.ToObservableCollection(),
+                1 => _secondaryQueueSubject.Value,
+                2 => _tertiaryQueueSubject.Value,
+                _ => null,
+            };
+            if (listToPickFrom == null || listToPickFrom.Count < 1)
+                return;
 
-            ObservableCollection<SongModelView>? listToPickFrom = null;
-            switch (CurrentQueue)
-            {
-                case 0:
-                    listToPickFrom = _nowPlayingSubject.Value;
-                    break;
-                case 1:
-                    listToPickFrom = _secondaryQueueSubject.Value;
-                    break;
-                case 2:
-                    listToPickFrom = _tertiaryQueueSubject.Value;
-                    break;
-                default:
-                    break;
-            }
-            if (listToPickFrom == null)
-            {
-                return;
-            }
+            _currentSongIndex = listToPickFrom.IndexOf(ObservableCurrentlyPlayingSong!);
+
             // Next song requested
             if (IsNext)
             {
-
                 if (IsShuffleOn)
                 {
-                    Random random = new Random();
-                    int newPosition = listToPickFrom!.IndexOf(ObservableCurrentlyPlayingSong); 
+                    int newPosition;
 
-                    while (newPosition == _currentSongIndex && listToPickFrom.Count > 1)
-                    {
-                        newPosition = random.Next(0, listToPickFrom.Count);
-                    }
+                    // Ensure the random song picked is not the same as the current song
+                    newPosition = random.Next(0, listToPickFrom.Count);
+                    
 
-                    // Now newPosition is a random number different from currentPosition
+                    // Update current song and add it to the shuffled playlist
                     _currentSongIndex = newPosition;
                     ObservableCurrentlyPlayingSong = listToPickFrom[_currentSongIndex];
                 }
-                else //if()
+                else
                 {
-                    _currentSongIndex++;
+                    // Non-shuffle logic for next song
+                    _currentSongIndex = (_currentSongIndex + 1) % listToPickFrom.Count;
                     ObservableCurrentlyPlayingSong = listToPickFrom[_currentSongIndex];
-                    nowPlayingShuffledOrNotSubject.Add(ObservableCurrentlyPlayingSong);
                 }
             }
 
             // Previous song requested
             else if (IsPrevious)
             {
-                if (IsShuffleOn)
-                {
-                    //TODO IMPLEMENTATION
-                }
                 _currentSongIndex--;
-            }
-            if(_currentSongIndex < 0)
-            {
-                _currentSongIndex = nowPlayingShuffledOrNotSubject.Count - 1;
-            }
-            else if(_currentSongIndex >= nowPlayingShuffledOrNotSubject.Count)
-            {
-                _currentSongIndex = 0;
-            }
-            if (_currentSongIndex < 0 || _currentSongIndex >= nowPlayingShuffledOrNotSubject.Count)
-            {
-                _currentSongIndex = 0;
-            }
-            ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNotSubject[_currentSongIndex];
+                if(_currentSongIndex < 0)
+                    _currentSongIndex = listToPickFrom.Count - 1;
 
-            //UpdateObservableProperties();
+                ObservableCurrentlyPlayingSong = listToPickFrom[_currentSongIndex];
+            }
 
+            // Optional: Update observable properties or UI
+            // UpdateObservableProperties();
         }
         catch (Exception e)
         {
-            Debug.WriteLine("Error message!!:  " + e.Message);
-
+            Debug.WriteLine($"Error message!!:  {e.Message}");
         }
     }
-
-
-    private void UpdateObservableProperties()
-    {
-        ObservableCurrentlyPlayingSong = nowPlayingShuffledOrNotSubject[_currentSongIndex];
-    }
-
-
     public async Task<bool> PauseResumeSongAsync(double currentPosition, bool isPause=false)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
@@ -1249,28 +1203,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void ToggleShuffle(bool isShuffleOn)
     {
         IsShuffleOn = isShuffleOn;
-
-        switch (CurrentQueue)
-        {
-            case 0:
-                nowPlayingShuffledOrNotSubject =( IsShuffleOn is true ? _nowPlayingSubject.Value
-                    .OrderBy(x => Guid.NewGuid())
-                    .ToObservableCollection() : _nowPlayingSubject.Value.ToObservableCollection());
-                break;
-            case 1:
-                nowPlayingShuffledOrNotSubject= (IsShuffleOn is true ? _secondaryQueueSubject.Value.OrderBy(x => Guid.NewGuid()) .ToObservableCollection() : _nowPlayingSubject.Value.ToObservableCollection());
-                break;
-            case 2:
-                nowPlayingShuffledOrNotSubject =(IsShuffleOn is true ? _tertiaryQueueSubject.Value
-                    .OrderBy(x => Guid.NewGuid())
-                    .ToObservableCollection() : _nowPlayingSubject.Value.ToObservableCollection());
-                break;
-            default:
-                break;
-        }
-
-        Debug.WriteLine(_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) + "Index");
-        Debug.WriteLine(nowPlayingShuffledOrNotSubject.IndexOf(ObservableCurrentlyPlayingSong) + "Index Shuff");
         AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
         //GetPrevAndNextSongs();
     }
@@ -1653,6 +1585,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             list.RemoveAt(index); // Remove the song at the found index
 
             // Push the updated list back into the subject
+            _nowPlayingSubject.OnNext(list.ToObservableCollection());
             nowPlayingShuffledOrNotSubject = list.ToObservableCollection();
         }
 
@@ -1663,13 +1596,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public async Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs)
     {
         // Get the current list from the subject
-        var list = nowPlayingShuffledOrNotSubject.ToList();
+        var list = _nowPlayingSubject.Value;
 
         // Filter out all songs in the passed collection
-        list = list.Where(x => !songs.Any(s => s.Id == x.Id)).ToList();
-
-        // Push the updated list back into the subject
-        nowPlayingShuffledOrNotSubject = list.ToObservableCollection();
+        list = list.Where(x => !songs.Any(s => s.Id == x.Id)).ToObservableCollection();
+        
+        _nowPlayingSubject.OnNext(list.ToObservableCollection());        
 
         // Delete the songs from the database
         await SongsMgtService.MultiDeleteSongFromDB(songs);

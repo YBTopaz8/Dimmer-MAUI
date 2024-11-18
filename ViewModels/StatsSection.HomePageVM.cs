@@ -10,7 +10,7 @@ public partial class HomePageVM
     void ShowGeneralTopXSongs()
     {
 
-        TopTenPlayedSongs = DisplayedSongs!
+        TopTenPlayedSongs = SongsMgtService.AllSongs
             .Select(s => new SingleSongStatistics
             {
                 Song = s,

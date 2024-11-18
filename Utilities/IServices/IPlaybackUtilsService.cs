@@ -3,10 +3,9 @@ public interface IPlaybackUtilsService
 {
 
     IObservable<ObservableCollection<SongModelView>> NowPlayingSongs { get; } //to display songs in queue
-    IObservable<ObservableCollection<SongModelView>> BackEndShufflableSongsQueue { get; } 
     IObservable<ObservableCollection<SongModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongModelView song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
+    Task<bool> PlaySongAsync(SongModelView? song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
         double lastPosition = 0, int repeatMode = 0, 
         int repeatMaxCount = 0, 
         bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
@@ -19,7 +18,7 @@ public interface IPlaybackUtilsService
     void AddSongToQueue(SongModelView song); //to add song to queue
 
     int LoadingSongsProgressPercentage { get; }
-    SongModelView CurrentlyPlayingSong { get; }
+    SongModelView? CurrentlyPlayingSong { get; }
     SongModelView PreviouslyPlayingSong { get; }
     SongModelView NextPlayingSong { get; }
     string TotalSongsSizes { get; }
@@ -46,7 +45,7 @@ public interface IPlaybackUtilsService
     
     //Playlist Section
 
-    ObservableCollection<PlaylistModelView> AllPlaylists { get; }
+    ObservableCollection<PlaylistModelView>? AllPlaylists { get; }
     void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);
     
     void RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID);
@@ -59,7 +58,7 @@ public interface IPlaybackUtilsService
     //Artist Section
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
-    ObservableCollection<ArtistModelView> AllArtists { get; }
+    ObservableCollection<ArtistModelView>? AllArtists { get; }
     ObservableCollection<SongModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID);
     ObservableCollection<SongModelView> GetallArtistsSongsByArtistId(ObjectId artistID);
 }

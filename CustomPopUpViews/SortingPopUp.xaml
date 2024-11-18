@@ -1,68 +1,48 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"  
-             x:Class="Dimmer_MAUI.CustomPopUpViews.SortingPopUp">
-
-    <VerticalStackLayout>
-        <Label Text="ss"/>
-    </VerticalStackLayout>
-</mct:Popup>
-    
-       
-           
-           
-             
-           <!--CanBeDismissedByTappingOutsideOfPopup="True"
-           Color="Transparent">
-    <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" 
-            MinimumWidthRequest="{OnPlatform Android= 350}"
-            HeightRequest="{OnPlatform Android=400}"
-            BackgroundColor="Transparent">
-        <Border.Resources>
-            <ResourceDictionary>
-                <Style TargetType="Label">
-                    <Setter Property="FontSize" Value="17"/>
-                    <Setter Property="TextColor" Value="White"/>
-                </Style>
-
-                <Style TargetType="material:RadioButton">
-                    <Setter Property="TextColor" Value="White"/>
-                </Style>
-            </ResourceDictionary>
-        </Border.Resources>
-        <VerticalStackLayout BackgroundColor="Black" Spacing="15"
+           xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"  
+             x:Class="Dimmer_MAUI.CustomPopUpViews.SortingPopUp"
+           CanBeDismissedByTappingOutsideOfPopup="False"
+            xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
+           Color="Transparent"
+           >
+    <Border WidthRequest="500" BackgroundColor="Transparent">
+        <VerticalStackLayout BackgroundColor="Transparent" Spacing="15"
                              Padding="20">
-            <Label Text="Sort by..." FontSize="Medium" 
-                   FontAttributes="Bold" />-->
-            <!--<material:RadioButtonGroupView Spacing="20"
-                                           x:Name="RBtnGroup">
-                <material:RadioButtonGroupView.Resources>
-                    <ResourceDictionary>
-                        <Style TargetType="Label">
-                            <Setter Property="FontSize" Value="20"/>
-                        </Style>
-                    </ResourceDictionary>
-                </material:RadioButtonGroupView.Resources>
-                <material:RadioButton Text="Title - Ascending" />
-                <material:RadioButton Text="Title - Descending" />
-                <material:RadioButton Text="Artist Name - Ascending" />
-                <material:RadioButton Text="Artist Name - Descending" />
-                <material:RadioButton Text="Date Added - Ascending" />
-                <material:RadioButton Text="Date Added - Descending" />
-                <material:RadioButton Text="Duration - Ascending" />
-                <material:RadioButton Text="Duration - Descending" />
-                <material:RadioButton Text="Year - Ascending" />
-                <material:RadioButton Text="Year - Descending" />
-                <material:RadioButton Text="Number Of Times Played - Ascending" />
-                <material:RadioButton Text="Number Of Times Played - Descending" />
-                <material:RadioButton Text="Number Of Times Played Completely- Ascending" />
-                <material:RadioButton Text="Number Of Times Played Completely- Descending" />
-                <material:RadioButton Text="Rating - Ascending" />
-                <material:RadioButton Text="Rating - Descending" />
-            </material:RadioButtonGroupView>-->
+            <Label Text="Sort by..." FontSize="Medium" HorizontalTextAlignment="Center"
+                   FontAttributes="Bold" />
+            <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"
+                   ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+                   HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+                               >
+                <syncf:SfChipGroup.ChipLayout>
+                    <VerticalStackLayout Spacing="10" WidthRequest="300"
+                                         HorizontalOptions="Start"/>
+                </syncf:SfChipGroup.ChipLayout>
+                <syncf:SfChipGroup.Items>
 
-            <!--<HorizontalStackLayout HorizontalOptions="End"
+                    <syncf:SfChip Text="Title - Ascending" CommandParameter="0"/>
+                    <syncf:SfChip Text="Title - Descending" CommandParameter="1"/>
+                    <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2"/>
+                    <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3"/>
+                    <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4"/>
+                    <syncf:SfChip Text="Date Added - Descending" CommandParameter="5"/>
+                    <syncf:SfChip Text="Duration - Ascending" CommandParameter="6"/>
+                    <syncf:SfChip Text="Duration - Descending" CommandParameter="7"/>
+                    <syncf:SfChip Text="Year - Ascending" CommandParameter="8" />
+                    <syncf:SfChip Text="Year - Descending" CommandParameter="9"/>
+                    <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10"/>
+                    <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11"/>
+                    <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12"/>
+                    <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13"/>
+                    <syncf:SfChip Text="Rating - Ascending" CommandParameter="14"/>
+                    <syncf:SfChip Text="Rating - Descending" CommandParameter="15" />
+
+                </syncf:SfChipGroup.Items>
+            </syncf:SfChipGroup>
+
+            <HorizontalStackLayout HorizontalOptions="End" BackgroundColor="Transparent"
                                    Spacing="5">
                 <Button Text="Cancel" Clicked="CloseButton_Clicked" FontAttributes="Bold"
                         BackgroundColor="Transparent" TextColor="DarkRed"/>
@@ -70,4 +50,4 @@ xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.M
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </Border>
-</mct:Popup>-->
+</mct:Popup>
