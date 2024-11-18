@@ -9,7 +9,7 @@ public partial class HomePageM : ContentPage
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         Shell.SetNavBarIsVisible(this, true);
-
+        
     }
 
 
@@ -19,7 +19,7 @@ public partial class HomePageM : ContentPage
     }
 
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         if (HomePageVM.TemporarilyPickedSong is null)
@@ -27,6 +27,8 @@ public partial class HomePageM : ContentPage
             return;
         }
         HomePageVM.CurrentPage = PageEnum.MainPage;
+
+        Shell.SetNavBarIsVisible(this, false);
     }
 
     protected override void OnDisappearing()

@@ -7,11 +7,11 @@
              Shell.TabBarUnselectedColor="Gray"
              Shell.TabBarForegroundColor="DarkSlateBlue"
              Shell.TabBarBackgroundColor="Black"
-             Shell.BackgroundColor="Black"       
+             
+                
              Shell.TabBarTitleColor="DarkSlateBlue"
              Shell.ForegroundColor="Transparent"
-      Shell.NavBarIsVisible="False"
-             FlyoutBackgroundColor="Black"
+      
              Shell.FlyoutBehavior="Disabled">
 
 

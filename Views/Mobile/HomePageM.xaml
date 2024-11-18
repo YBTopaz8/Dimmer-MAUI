@@ -11,8 +11,7 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
-            
-      Shell.NavBarIsVisible="False"
+             Shell.NavBarIsVisible="False"
             xmlns:dx="http://schemas.devexpress.com/maui"
             x:Name="myPage" 
              Shell.FlyoutItemIsVisible="True"
@@ -148,18 +147,14 @@
         </DataTemplate>
 
     </ContentPage.Resources>
-
-    <dx:DXStackLayout BackgroundColor="Transparent">
-        <HorizontalStackLayout HorizontalOptions="End" BackgroundColor="Transparent"
-                               x:Name="TopPart" Margin="10,0">
-            
-            <ImageButton Clicked="ShowFolderSelectorImgBtn_Clicked" 
-                HeightRequest="35">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
-                    </ImageButton.Source>
-                </ImageButton>
-            </HorizontalStackLayout>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Clicked="ShowFolderSelectorImgBtn_Clicked">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
+    <dx:DXStackLayout BackgroundColor="Transparent">        
 
         <Grid BackgroundColor="Transparent">
             <dx:DXCollectionView SelectionMode="Single"

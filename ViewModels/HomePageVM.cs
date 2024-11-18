@@ -107,7 +107,10 @@ public partial class HomePageVM : ObservableObject
         RefreshPlaylists();
 
         AllLinks = SongsMgtService.AllLinks.ToList();
+
+#if WINDOWS
         ToggleFlyout();
+#endif 
     }
 
     void DoRefreshDependingOnPage()
