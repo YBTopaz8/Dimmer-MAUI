@@ -30,17 +30,16 @@
         </ResourceDictionary>
     </dx:BottomSheet.Resources>
 
-    <dx:DXStackLayout Orientation="Vertical" BackgroundColor="Transparent">
-        <dx:DXButton Padding="10,2" x:Name="lyricsCover" BackgroundColor="Transparent"
+    <Grid RowDefinitions="*,Auto" BackgroundColor="Transparent">
+        <dx:DXButton Grid.Row="0"
+            Padding="10,2" x:Name="lyricsCover" BackgroundColor="Transparent"
             CornerRadius="35" PressedBackgroundColor="DarkSlateBlue" Clicked="lyricsCover_Clicked">
 
             <dx:DXButton.Content>
                 <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
 
                     <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                                  
-                        Opacity="0.35" Aspect="AspectFill"
-                WidthRequest="400" HeightRequest="380"/>
+                           Opacity="0.35" Aspect="Fill"/>
 
                     <dx:DXStackLayout VerticalOptions="Center" >
                         <dx:DXCollectionView ItemsSource="{Binding SynchronizedLyrics}" BackgroundColor="Transparent"
@@ -66,7 +65,8 @@
                 </Grid>
             </dx:DXButton.Content>
         </dx:DXButton>
-        <VerticalStackLayout Spacing="15" HeightRequest="400"
+        
+        <VerticalStackLayout Grid.Row="1" Spacing="15" HeightRequest="400"
                             toolkit:DockLayout.DockPosition="Bottom"
                             x:Name="dl" >
 
@@ -79,7 +79,7 @@
 
                 <Label Grid.Column="0" Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" 
         VerticalOptions="Center" FontSize="17"/>
-                <Slider Grid.Column="1" 
+                <Slider Grid.Column="1" MinimumTrackColor="DarkSlateBlue"
                     Value="{Binding CurrentPositionPercentage, Mode=TwoWay}"
                              
                     x:Name="ProgressSlider" DragCompleted="Slider_DragCompleted">
@@ -246,7 +246,7 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
         </VerticalStackLayout>
 
 
-    </dx:DXStackLayout>
+    </Grid>
     
 
 
