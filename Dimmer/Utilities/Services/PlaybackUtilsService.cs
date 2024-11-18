@@ -1269,7 +1269,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (!audioService.IsPlaying)
         {
             Debug.WriteLine("Audio service seems stuck, forcing play event.");
-            AudioService_PlayEnded(null, null); // Force re-triggering if still stuck
+            AudioService_PlayEnded(null, EventArgs.Empty); // Force re-triggering if still stuck
         }
 
     }

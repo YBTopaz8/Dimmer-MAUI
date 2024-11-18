@@ -1,4 +1,5 @@
 
+using DevExpress.Maui.Core;
 using Syncfusion.Maui.Toolkit.Chips;
 using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 namespace Dimmer_MAUI.Views.Mobile;
@@ -76,19 +77,25 @@ public partial class SingleSongShell : ContentPage
     {
         try
         {
-            
-            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
-            {                
-                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+            if (HomePageVM.SynchronizedLyrics?.Count < 1 || HomePageVM.SynchronizedLyrics is null)
+            {
+                return;
             }
-            
+            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+            {
+                LyricsColView.ScrollTo(LyricsColView.GetItemHandle(HomePageVM.SynchronizedLyrics!.IndexOf(HomePageVM.CurrentLyricPhrase!)), DXScrollToPosition.Start);
+            }
 
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Debug.WriteLine(ex.Message);
+            return;
         }
     }
+
+
+     
+
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (HomePageVM.IsPlaying)

@@ -35,6 +35,7 @@ public partial class ArtistsPageD : ContentPage
         {
             HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         }
+        
         HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
         AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
 
@@ -60,26 +61,14 @@ public partial class ArtistsPageD : ContentPage
     {
         HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
-    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
-    {
-        HomePageVM.CurrentQueue = 1;
+    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    {        
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        HomePageVM.GetSongsFromAlbumId(curSel!.Id);
+        await HomePageVM.GetSongsFromAlbumId(curSel!.Id);
         //await HomePageVM.GetAllAlbumInfos(curSel);
         //await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
-    }
-
-    private void ArtistFromArtistPage_Tapped(object sender, TappedEventArgs e)
-    {
-        Border view = (Border)sender;
-        ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
-        HomePageVM.GetAllArtistAlbumFromArtist(artist);
-        
-        var AlbumArtist = HomePageVM.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.Id)!.AlbumId;
-        var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.Id == AlbumArtist);
-        HomePageVM.GetAllArtistsAlbum(album:album,isFromSong:false);
     }
 
     private void AlbumSongsCV_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -99,11 +88,9 @@ public partial class ArtistsPageD : ContentPage
         HomePageVM.SetContextMenuSong(song!);
     }
 
-    private async void ImageButton_Clicked(object sender, EventArgs e)
+    private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        var send = (View)sender;
-        var album = send.BindingContext as AlbumModelView;
-        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album!);
+        HomePageVM.LoadSongsFromArtistId(HomePageVM.SelectedArtistOnArtistPage.Id);
     }
 
     private void Button_Clicked(object sender, EventArgs e)
@@ -111,11 +98,11 @@ public partial class ArtistsPageD : ContentPage
         
     }
 
-    private void ArtistView_TouchDown(object sender, EventArgs e)
+    private async void ArtistView_TouchDown(object sender, EventArgs e)
     {
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
-        HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        await HomePageVM.GetAllArtistAlbumFromArtist(artist);
         
         //await HomePageVM.GetAllArtistAlbumFromArtist(artist);
 

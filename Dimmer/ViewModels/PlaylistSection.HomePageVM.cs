@@ -27,7 +27,7 @@ public partial class HomePageVM
     public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
     {
 
-        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.Id == PlaylistID);
+        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.Id == PlaylistID)!;
         DisplayedSongsFromPlaylist?.Clear();
         DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
         //PlayListService.GetSongsFromPlaylistID

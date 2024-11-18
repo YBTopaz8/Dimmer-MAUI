@@ -378,8 +378,8 @@ public partial class HomePageVM
     [RelayCommand]
     async Task DownloadAlbumImage(AlbumModelView album)
     {
-      var firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault();
-      SelectedAlbumOnArtistPage.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(firstSongOfSpectifAlbum.Title,firstSongOfSpectifAlbum.ArtistName, firstSongOfSpectifAlbum.AlbumName);
+      var firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault()!;
+      SelectedAlbumOnArtistPage.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(firstSongOfSpectifAlbum.Title,firstSongOfSpectifAlbum.ArtistName!, firstSongOfSpectifAlbum.AlbumName!);
     }
 
     [ObservableProperty]

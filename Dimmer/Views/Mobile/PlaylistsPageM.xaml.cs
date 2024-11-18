@@ -8,7 +8,7 @@ public partial class PlaylistsPageM : ContentPage
 		InitializeComponent();
         HomePageVM = homePageVM;
         BindingContext = homePageVM;
-        btmSheet = IPlatformApplication.Current.Services.GetService<NowPlayingBtmSheet>();
+        btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
 
     }

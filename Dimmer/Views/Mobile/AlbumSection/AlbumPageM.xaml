@@ -52,15 +52,12 @@ FontAttributes="Bold"/>
         </FlexLayout>
 
         <Grid dx:DXDockLayout.Dock="Top">
-            <CollectionView 
+            <dx:DXCollectionView SelectionMode="Single"
              HeightRequest="150" toolkit:DockLayout.DockPosition="Top"
-         SelectionMode="Single" VerticalOptions="Start" x:Name="AllAlbumsColView"
-         ItemsSource="{Binding AllArtistsAlbums}" EmptyView="nothing...">
+         VerticalOptions="Start" x:Name="AllAlbumsColView"
+         ItemsSource="{Binding AllArtistsAlbums}" >
 
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Horizontal"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
+            <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:AlbumModelView">
                         <Border Stroke="Transparent" HorizontalOptions="Center">
 
@@ -79,8 +76,9 @@ FontAttributes="Bold"/>
 
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            </dx:DXCollectionView.ItemTemplate>
+                
+            </dx:DXCollectionView>
 
         </Grid>
 

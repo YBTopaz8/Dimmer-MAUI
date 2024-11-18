@@ -22,11 +22,11 @@ public partial class DimmerWindow : Window
 
 #if DEBUG
 
-        DimmerTitleBar.Subtitle = "v0.2.3-debug";
+        DimmerTitleBar.Subtitle = "v0.4-debug";
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v0.2.3-release";
+        DimmerTitleBar.Subtitle = "v0.4-release";
 #endif
 
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;

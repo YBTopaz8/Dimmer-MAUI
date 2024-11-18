@@ -45,7 +45,7 @@
                 <CollectionView x:Name="PlaylistsCV" HeightRequest="150" 
                           VerticalScrollBarVisibility="Always">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="x:String">
                                                      
                             <Border Margin="0,10" StrokeThickness="0.8"
                                     Stroke="Transparent" Padding="0,5"

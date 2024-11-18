@@ -290,7 +290,7 @@ Padding="10" Margin="0,5">
                 </ImageButton.Source>
             </ImageButton>
 
-            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" 
+            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" x:DataType="vm:HomePageVM"
                             VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
                 <Grid RowDefinitions="*" ColumnDefinitions="*">
                     <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"

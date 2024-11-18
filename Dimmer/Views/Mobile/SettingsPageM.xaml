@@ -21,7 +21,7 @@
             </HorizontalStackLayout>
             
             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
-                                 Scale="0.9">
+                                 Scale="0.9" x:DataType="vm:HomePageVM">
 
                 <dx:DXButton ButtonType="Outlined" Content="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
                              

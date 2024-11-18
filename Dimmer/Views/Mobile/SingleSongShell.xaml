@@ -44,7 +44,7 @@
         <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
     IsVisible="True" Grid.Column="0" Aspect="Center"/>
         <chart:SfTabView x:Name="TabV" BackgroundColor="Transparent"
-                        TabBarHeight="65" TabBarPlacement="Bottom"
+                        TabBarHeight="65" TabBarPlacement="Bottom" x:DataType="vm:HomePageVM"
                         IndicatorPlacement="Bottom" SelectedIndex="{Binding CurrentViewIndex}"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
                         SelectionChanged="tabView_SelectionChanged"
@@ -58,49 +58,49 @@
                         <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
                     </chart:SfTabItem.ImageSource>
                     <chart:SfTabItem.Content>
-                        <dx:ShimmerView x:Name="SyncedLyricsSL" IsLoading="{Binding IsShellLoadingPage}" 
-                                        x:DataType="vm:HomePageVM" WaveOpacity="0.3" WaveBackgroundOpacity="0.6"
-                                        WaveAngle="45">
+
+
+                        <dx:DXCollectionView x:DataType="vm:HomePageVM" ItemsSource="{Binding SynchronizedLyrics}" 
+                                        SelectionChanged="LyricsColView_SelectionChanged" 
+                                        SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}" BackgroundColor="Transparent"
+                                        Grid.Column="0">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Border Stroke="Transparent" Margin="5,0" >
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                        </Border.GestureRecognizers>
+
+                                        <Label Text="{Binding Text}" Margin="0,5" 
+                                                    HorizontalTextAlignment="Center" 
+                                                    FontSize="19" >
+                                            <Label.Triggers>
+
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                            <dx:DXCollectionView.SelectedItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Border Stroke="Transparent" Margin="5,0" >
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                        </Border.GestureRecognizers>
+
+                                        <Label Text="{Binding Text}" Margin="0,5" 
+                        HorizontalTextAlignment="Center" 
+                        FontSize="19" >
+                                            <Label.Triggers>
+
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </dx:DXCollectionView.SelectedItemTemplate>
                             
-                            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" 
-                                            SelectionChanged="LyricsColView_SelectionChanged" 
-                                            SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}" BackgroundColor="Transparent"
-                                            Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                                        <Border Stroke="Transparent" Margin="5,0" >
-                                            <VisualStateManager.VisualStateGroups>
-                                                <VisualStateGroup Name="CommonStates">
-                                                    <VisualState Name="Normal">
-                                                        <VisualState.Setters>
-                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
-                                                        </VisualState.Setters>
-                                                    </VisualState>
-                                                    <VisualState Name="Selected">
-                                                        <VisualState.Setters>
-                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                                            
-                                                        </VisualState.Setters>
-                                                    </VisualState>
-                                                </VisualStateGroup>
-                                            </VisualStateManager.VisualStateGroups>
-
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                            </Border.GestureRecognizers>
-
-                                            <Label Text="{Binding Text}" Margin="0,5" 
-                                                       HorizontalTextAlignment="Center" 
-                                                       FontSize="19" >
-                                                <Label.Triggers>
-
-                                                </Label.Triggers>
-                                            </Label>
-                                        </Border>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </dx:ShimmerView>
+                        </dx:DXCollectionView>
+                        
                     </chart:SfTabItem.Content>
                 </chart:SfTabItem>
 

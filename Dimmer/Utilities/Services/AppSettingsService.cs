@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Maui.Storage;
 namespace Dimmer_MAUI.Utilities.Services;
 public class AppSettingsService : IAppSettingsService
@@ -289,5 +291,18 @@ public class AppSettingsService : IAppSettingsService
         {
             return IsDiscordRPCEnabled;
         }
+    }
+}
+public class MyAppJsonContext : JsonSerializerContext
+{
+    public MyAppJsonContext(JsonSerializerOptions? options) : base(options)
+    {
+    }
+
+    protected override JsonSerializerOptions? GeneratedSerializerOptions => throw new NotImplementedException();
+
+    public override JsonTypeInfo? GetTypeInfo(Type type)
+    {
+        throw new NotImplementedException();
     }
 }

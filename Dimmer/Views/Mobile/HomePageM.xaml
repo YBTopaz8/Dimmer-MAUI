@@ -161,7 +161,7 @@
         <Grid BackgroundColor="Transparent">
             <dx:DXCollectionView SelectionMode="Single"
                             IsScrollBarVisible="False"
-                            x:Name="SongsColView" 
+                            x:Name="SongsColView"
                             UseRippleEffect="True" Margin="3,0"
                             RippleColor="DarkSlateBlue"                            
                             ItemsSource="{Binding DisplayedSongs, Mode=TwoWay}"

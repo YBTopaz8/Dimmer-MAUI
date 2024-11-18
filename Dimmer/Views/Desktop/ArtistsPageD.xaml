@@ -44,7 +44,7 @@
 
         <CollectionView toolkit:DockLayout.DockPosition="Top" 
                         HeightRequest="150" x:Name="AllAlbumsColView" 
-                        VerticalOptions="Start" 
+                        VerticalOptions="Start" HorizontalScrollBarVisibility="Default"
                         ItemsSource="{Binding AllArtistsAlbums}">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Horizontal" />

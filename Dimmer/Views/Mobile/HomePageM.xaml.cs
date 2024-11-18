@@ -22,6 +22,7 @@ public partial class HomePageM : ContentPage
     private void SongsColView_Loaded(object? sender, EventArgs e)
     {        
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+        
     }
 
 
@@ -37,7 +38,7 @@ public partial class HomePageM : ContentPage
 
 
         HomePageVM.CurrentPage = PageEnum.MainPage;
-        //HomePageVM.AssignCV(SongsColView);
+        
 #if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
         Shell.SetNavBarIsVisible(this, false);
@@ -164,7 +165,7 @@ public partial class HomePageM : ContentPage
     }
 
 
-    private void OnLongPressElapsed(object sender, System.Timers.ElapsedEventArgs e)
+    private void OnLongPressElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
         _isLongPressed = true;
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);        
@@ -218,7 +219,7 @@ public partial class HomePageM : ContentPage
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs
+                filteredSongs = HomePageVM.DisplayedSongs!
                     .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
@@ -246,8 +247,8 @@ public partial class HomePageM : ContentPage
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.DisplayedSongs
-                    .Where(item => item.ArtistName.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
+                filteredSongs = HomePageVM.DisplayedSongs!
+                    .Where(item => item.ArtistName!.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             }

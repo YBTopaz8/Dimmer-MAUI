@@ -45,11 +45,11 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
-        if (HomePageVM.DisplayedSongs.Count < 1)
+        if (HomePageVM.DisplayedSongs!.Count < 1)
         {
             return;
         }
-        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong!;
         await HomePageVM.NavigateToArtistsPage(0);
         this.State = BottomSheetState.Hidden;
 

@@ -11,7 +11,6 @@
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              x:DataType="vm:HomePageVM"
-    xmlns:draw="http://schemas.appomobi.com/drawnUi/2023/draw"
              x:Name="myPage"
              BackgroundColor="#191719"
              xmlns:sys="clr-namespace:System;assembly=netstandard"

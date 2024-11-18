@@ -1,6 +1,4 @@
-﻿
-using DrawnUi.Maui.Draw;
-using UraniumUI;
+﻿using UraniumUI;
 
 namespace Dimmer_MAUI;
 public static class MauiProgram
@@ -33,7 +31,6 @@ public static class MauiProgram
                 fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
             })
-            .UseDrawnUi()
             .ConfigureSyncfusionToolkit();
 
 
@@ -48,7 +45,7 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnWindowCreated(async window =>
                 {
-                    var homeVM = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+                    HomePageVM homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
 
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
                     if (nativeWindowHandle != IntPtr.Zero)
@@ -71,14 +68,14 @@ public static class MauiProgram
                             {
                                 
                                 e.Cancel = true;
-                                var allWins = Application.Current.Windows.ToList<Window>();
+                                var allWins = Application.Current!.Windows.ToList<Window>();
                                 foreach (var win in allWins)
                                 {
                                     if (win.Title != "MyWin")
                                     {
                                         await homeVM.ExitingApp();
 
-                                        bool result = await win.Page.DisplayAlert(
+                                        bool result = await win!.Page!.DisplayAlert(
                                             "Confirm Action",
                                             "You sure want to close app?",
                                             "Yes",
