@@ -44,47 +44,47 @@ public partial class AppShell : Shell
         await Vm.NavToSingleSongShell();
     }
 
-    private async void MultiSelect_TouchDown(object sender, EventArgs e)
-    {
-        switch (Vm.CurrentPage)
-        {
-            case PageEnum.MainPage:
-                var mainPage = Current.CurrentPage as MainPageD;
+    //private async void MultiSelect_TouchDown(object sender, EventArgs e)
+    //{
+    //    switch (Vm.CurrentPage)
+    //    {
+    //        case PageEnum.MainPage:
+    //            var mainPage = Current.CurrentPage as MainPageD;
                 
-                mainPage!.ToggleMultiSelect_Clicked(sender, e);
-                if (Vm.IsMultiSelectOn)
-                {
-                    GoToSong.IsEnabled = false;
-                    await Vm.ToggleFlyout(true);
-                    GoToSong.Opacity = 0.4;
-                    await Task.WhenAll(
-                     MultiSelectView.AnimateFadeInFront());
-                }
-                else
-                {
-                    Vm.MultiSelectText = string.Empty;
-                    GoToSong.IsEnabled = true;
-                    GoToSong.Opacity = 1;
+    //            mainPage!.ToggleMultiSelect_Clicked(sender, e);
+    //            if (Vm.IsMultiSelectOn)
+    //            {
+    //                GoToSong.IsEnabled = false;
+    //                await Vm.ToggleFlyout(true);
+    //                GoToSong.Opacity = 0.4;
+    //                await Task.WhenAll(
+    //                 MultiSelectView.AnimateFadeInFront());
+    //            }
+    //            else
+    //            {
+    //                Vm.MultiSelectText = string.Empty;
+    //                GoToSong.IsEnabled = true;
+    //                GoToSong.Opacity = 1;
                     
-                    await Task.WhenAll(
-                        Vm.ToggleFlyout(false),
-                        MultiSelectView.AnimateFadeOutBack());
-                }
-                break;
-            case PageEnum.NowPlayingPage:
-                break;
-            case PageEnum.PlaylistsPage:
-                break;
-            case PageEnum.FullStatsPage:
-                break;
-            case PageEnum.AllAlbumsPage:
-                break;
-            case PageEnum.SpecificAlbumPage:
-                break;
-            default:
-                break;
-        }
-    }
+    //                await Task.WhenAll(
+    //                    Vm.ToggleFlyout(false),
+    //                    MultiSelectView.AnimateFadeOutBack());
+    //            }
+    //            break;
+    //        case PageEnum.NowPlayingPage:
+    //            break;
+    //        case PageEnum.PlaylistsPage:
+    //            break;
+    //        case PageEnum.FullStatsPage:
+    //            break;
+    //        case PageEnum.AllAlbumsPage:
+    //            break;
+    //        case PageEnum.SpecificAlbumPage:
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
 #if WINDOWS
 
@@ -221,7 +221,7 @@ public partial class AppShell : Shell
                 if (targetPages.Contains(currentPage.GetType()))
                 {
                     
-                    shelltabbar.CurrentItem = homeTab;
+                    //shelltabbar.CurrentItem = homeTab;
                     await Current.Navigation.PopAsync();
                     return;
                 }

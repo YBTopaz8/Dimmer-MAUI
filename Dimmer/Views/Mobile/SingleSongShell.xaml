@@ -6,7 +6,7 @@
              
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
              xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"                            
@@ -54,9 +54,7 @@
 
                 <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
                                  TextColor="Gray">
-                    <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
-                    </chart:SfTabItem.ImageSource>
+                  
                     <chart:SfTabItem.Content>
                         <dx:DXCollectionView x:DataType="vm:HomePageVM" ItemsSource="{Binding SynchronizedLyrics}" 
                                         SelectionChanged="LyricsColView_SelectionChanged" 
@@ -102,9 +100,7 @@
                 </chart:SfTabItem>
 
                 <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray">
-                    <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
-                    </chart:SfTabItem.ImageSource>
+                    
                     <chart:SfTabItem.Content>
                         <Grid Margin="5,5" RowDefinitions="*,Auto" BackgroundColor="Transparent">
                             <Grid.Resources>

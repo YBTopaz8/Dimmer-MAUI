@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.ArtistsPageD"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
@@ -113,12 +113,10 @@
                 <FlexLayout JustifyContent="SpaceBetween">
                     <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
 
-                    <ImageButton Clicked="ImageButton_Clicked"
+                    <Button Clicked="ImageButton_Clicked"
                                  ToolTipProperties.Text="Show All Artist Songs">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                      
+                    </Button>
                 </FlexLayout>
             </CollectionView.Header>
             <CollectionView.ItemTemplate>
@@ -168,9 +166,7 @@
                             <VerticalStackLayout BackgroundColor="Transparent">
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                 <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
-                                    <Image.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                    </Image.Source>
+                                    
                                 </Image>
                             </VerticalStackLayout>
                         </FlexLayout>

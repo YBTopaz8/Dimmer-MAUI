@@ -198,7 +198,7 @@ public partial class HomePageVM : ObservableObject
                             PickedSong.IsPlaying = true;
                             IsPlaying = true;
 
-                            PlayPauseIcon = MaterialRounded.Pause;
+                            //PlayPauseIcon = MaterialRounded.Pause;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
                             
@@ -212,7 +212,7 @@ public partial class HomePageVM : ObservableObject
                             PickedSong ??= TemporarilyPickedSong;
                             
                             IsPlaying = false;
-                            PlayPauseIcon = MaterialRounded.Play_arrow;
+                            //PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
                             //PickedSong = "Stopped";
@@ -221,12 +221,12 @@ public partial class HomePageVM : ObservableObject
                             LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
                             break;
                         case MediaPlayerState.ShowPlayBtn:
-                            PlayPauseIcon = MaterialRounded.Play_arrow;
+                            //PlayPauseIcon = MaterialRounded.Play_arrow;
                             IsPlaying = false;
                             break;
                         case MediaPlayerState.ShowPauseBtn:
                             IsPlaying = true;
-                            PlayPauseIcon = MaterialRounded.Pause;
+                            //PlayPauseIcon = MaterialRounded.Pause;
                             break;
                         default:
                             break;
@@ -530,10 +530,10 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    string shuffleOnOffImage = MaterialRounded.Shuffle;
+    string shuffleOnOffImage = string.Empty;//MaterialRounded.Shuffle;
 
     [ObservableProperty]
-    string repeatModeImage = MaterialRounded.Repeat;
+    string repeatModeImage = string.Empty;// MaterialRounded.Repeat;
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
@@ -546,14 +546,14 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = MaterialRounded.Repeat_on;
+                //RepeatModeImage = MaterialRounded.Repeat_on;
                 break;
             case 2:
             case 4:
-                RepeatModeImage = MaterialRounded.Repeat_one_on;
+                //RepeatModeImage = MaterialRounded.Repeat_one_on;
                 break;
             case 0:
-                RepeatModeImage = MaterialRounded.Repeat;
+                //RepeatModeImage = MaterialRounded.Repeat;
                 break;
             default:
                 break;
@@ -572,11 +572,11 @@ public partial class HomePageVM : ObservableObject
         }
         if (IsShuffleOn)
         {
-            ShuffleOnOffImage = MaterialRounded.Shuffle_on;
+            //ShuffleOnOffImage = MaterialRounded.Shuffle_on;
         }
         else
         {
-            ShuffleOnOffImage = MaterialRounded.Shuffle;
+            //ShuffleOnOffImage = MaterialRounded.Shuffle;
         }
     }
     #endregion
@@ -698,7 +698,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     bool isPlaying = false;
     [ObservableProperty]
-    string playPauseIcon = MaterialRounded.Play_arrow;
+    string playPauseIcon = string.Empty;
 
     MediaPlayerState currentPlayerState;
     public void SetPlayerState(MediaPlayerState? state)

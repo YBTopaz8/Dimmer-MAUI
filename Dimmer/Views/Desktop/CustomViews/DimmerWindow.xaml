@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM"             
              x:Name="myPage"        
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
         >
    
     <Window.TitleBar>
@@ -36,16 +36,12 @@ Margin="10"
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
                     
-                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin}" Size="20"/>
-                        </ImageButton.Source>
-                    </ImageButton>
-                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin_drop}" Size="20"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                    <Button x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}">
+                        
+                    </Button>
+                    <Button x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked" BackgroundColor="Red">
+                        
+                    </Button>
                 </HorizontalStackLayout>                
             </TitleBar.TrailingContent>
         </TitleBar>        

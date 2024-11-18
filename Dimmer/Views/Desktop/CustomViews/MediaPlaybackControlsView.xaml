@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.CustomViews.MediaPlaybackControlsView"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             
@@ -77,23 +77,19 @@
             <HorizontalStackLayout Spacing="15" BackgroundColor="Transparent"
                     HorizontalOptions="Center" Padding="10,0">
                 <Border>
-                    <ImageButton Command="{Binding ToggleRepeatModeCommand}">
-                        <ImageButton.CommandParameter>
+                    <Button Command="{Binding ToggleRepeatModeCommand}">
+                        <Button.CommandParameter>
                             <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                        </Button.CommandParameter>
+                        
+                    </Button>
                 </Border>
 
                 <Border >
-                    <ImageButton Command="{Binding PlayPreviousSongCommand}"
+                    <Button Command="{Binding PlayPreviousSongCommand}"
         ToolTipProperties.Text="Play Previous">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                       
+                    </Button>
 
                 </Border>
 
@@ -103,32 +99,25 @@
                         <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
                     </Border.GestureRecognizers>
                     <Image HeightRequest="35">
-                        <Image.Source>
-                            <FontImageSource 
-FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
-                        </Image.Source>
+                       
                     </Image>
                 </Border>
 
 
                 <Border>
-                    <ImageButton Command="{Binding PlayNextSongCommand}"
+                    <Button Command="{Binding PlayNextSongCommand}"
                         ToolTipProperties.Text="Play Next" >
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                        
+                    </Button>
                 </Border>
 
                 <Border>
-                    <ImageButton Command="{Binding ToggleShuffleStateCommand}">
-                        <ImageButton.CommandParameter>
+                    <Button Command="{Binding ToggleShuffleStateCommand}">
+                        <Button.CommandParameter>
                             <x:Boolean>True</x:Boolean>
-                        </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding ShuffleOnOffImage}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                        </Button.CommandParameter>
+                       
+                    </Button>
                 </Border>
             </HorizontalStackLayout>
 

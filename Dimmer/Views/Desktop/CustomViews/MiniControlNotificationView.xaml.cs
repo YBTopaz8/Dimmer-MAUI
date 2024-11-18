@@ -10,7 +10,7 @@ public partial class MiniControlNotificationView : ContentPage
     public MiniControlNotificationView(string title, string artistName, string imagePath)
     {
 		InitializeComponent();
-        vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         BindingContext = vm;
 #if WINDOWS
         _closeTimer = new Timer(5000);
@@ -19,7 +19,7 @@ public partial class MiniControlNotificationView : ContentPage
 #endif
         songTitle.Text = title;
         ArtistName.Text = artistName;
-        ImagePathh.Source = imagePath;
+        ImagePathh.ImageSource = imagePath;
     }
 
     private void CloseImgBtn_Clicked(object sender, EventArgs e)
@@ -63,7 +63,7 @@ public partial class MiniControlNotificationView : ContentPage
     {
         songTitle.Text = title;
         ArtistName.Text = artistName;
-        ImagePathh.Source = imagePath;
+        ImagePathh.ImageSource = imagePath;
         ResetTimer();
     }
 

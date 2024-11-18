@@ -5,7 +5,7 @@
              xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
                xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
              
-xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+
  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"   
              x:DataType="vm:HomePageVM" 
 
@@ -21,20 +21,10 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
                             <HorizontalStackLayout.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="ShowHidePreferredFoldersExpander_Tapped"/>
                             </HorizontalStackLayout.GestureRecognizers>
-                            <Image>
-                                <Image.Source>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
-                                </Image.Source>
-                            </Image>
-
+                            
                             <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
                         </HorizontalStackLayout>
 
-                        <ImageButton Grid.Column="2" HorizontalOptions="End">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
                     </Grid>
                 </toolkit:Expander.Header>
                 <toolkit:Expander.Content>
@@ -67,20 +57,14 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
 
         <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
             <Button Text="Reload All Covers" IsVisible="False" Command="{Binding ReloadCoverImageCommand}">
-                <Button.ImageSource>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
-                </Button.ImageSource>
+               
             </Button>
 
         </SyncCtrls:SfEffectsView>
  
         <VerticalStackLayout HorizontalOptions="Center" >
             <HorizontalStackLayout>
-                <Image>
-                    <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
-                    </Image.Source>
-                </Image>
+               
                 <Label Text="Facing Issues!" FontSize="24" />
             </HorizontalStackLayout>
             <Button Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"

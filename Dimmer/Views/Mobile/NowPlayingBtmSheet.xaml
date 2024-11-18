@@ -8,7 +8,7 @@
             xmlns:containerr="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:mobileViews="clr-namespace:Dimmer_MAUI.Views.Mobile"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
@@ -120,22 +120,17 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <ImageButton Grid.Column="0" WidthRequest="55" HeightRequest="55" 
+                <Button Grid.Column="0" WidthRequest="55" HeightRequest="55" 
             Command="{Binding ToggleRepeatModeCommand}">
-                    <ImageButton.CommandParameter>
+                    <Button.CommandParameter>
                         <x:Boolean>True</x:Boolean>
-                    </ImageButton.CommandParameter>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}" Color="#B8B8B8"/>
-                    </ImageButton.Source>
-                </ImageButton>
-                <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
+                    </Button.CommandParameter>
+                   
+                </Button>
+                <Button Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
                     WidthRequest="70" HeightRequest="70" >
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"
-                        Color="#B8B8B8"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                   
+                </Button>
                 <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
         CornerRadius="40" Grid.Column="2"
         TapReleased="NowPlayingBtn_TapReleased"
@@ -148,9 +143,7 @@
 Fill="Transparent" StartAngle="-180" SweepAngle="360">
                             <dx:RadialProgressBar.Content>
                                 <dx:DXImage >
-                                    <Image.Source>
-                                        <FontImageSource Size="50" FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
-                                    </Image.Source>
+                                    
                                 </dx:DXImage>
                             </dx:RadialProgressBar.Content>
 
@@ -160,22 +153,16 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                 </dx:DXButton>
 
 
-                <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"
-                        Color="#B8B8B8"/>
-                    </ImageButton.Source>
-                </ImageButton>
-                <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
+                <Button Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
+                    
+                </Button>
+                <Button Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
                     WidthRequest="55" HeightRequest="55" >
-                    <ImageButton.CommandParameter>
+                    <Button.CommandParameter>
                         <x:Boolean>True</x:Boolean>
-                    </ImageButton.CommandParameter>
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding ShuffleOnOffImage}"
-                        Color="#B8B8B8"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                    </Button.CommandParameter>
+                   
+                </Button>
             </Grid>
 
             <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.ReleaseYear}" IsVisible="False"/>
@@ -185,12 +172,9 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
 
             <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,5">
 
-                <ImageButton Command="{Binding ShowSleepTimerPopupCommand}" >
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"
-                                />
-                    </ImageButton.Source>
-                </ImageButton>
+                <Button Command="{Binding ShowSleepTimerPopupCommand}" >
+                    
+                </Button>
 
                 <HorizontalStackLayout Spacing="15">
                     <HorizontalStackLayout.Resources>
@@ -205,18 +189,14 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                     <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent"
                         ShowContent="False" IconPlacement="Left" IconColor="White" VerticalOptions="Start"
                         Command="{Binding FetchSongCoverImageCommand}" IconWidth="40">
-                        <dx:DXButton.Icon>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
-                        </dx:DXButton.Icon>
+                       
                     </dx:DXButton>
 
 
                     <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
                         ShowContent="False" IconPlacement="Left" x:Name="NavToSingleSongShell" Clicked="NavToSingleSongShell_Clicked"
                         IconWidth="40" VerticalOptions="Start">
-                        <dx:DXButton.Icon>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                        </dx:DXButton.Icon>
+                        
                     </dx:DXButton>
 
                     <VerticalStackLayout >
@@ -233,9 +213,7 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                         <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
                             ShowContent="False" IconPlacement="Left" Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShowMoreActionsContextMenuExpander}}"
                             IconWidth="40" x:Name="ShowMoreActionsContextMenuBtn">
-                            <dx:DXButton.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
-                            </dx:DXButton.Icon>
+                           
                         </dx:DXButton>
                     </VerticalStackLayout>
 

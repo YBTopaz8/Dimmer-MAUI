@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.SingleSongShellPageD"
                           xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
             
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             
@@ -92,51 +92,47 @@
                         FontSize="16"/>
 
                         <HorizontalStackLayout Spacing="5" HorizontalOptions="Center" BackgroundColor="Transparent">
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            <Button Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                 HeightRequest="25" 
             >
-                                <ImageButton.CommandParameter>
+                                <Button.CommandParameter>
                                     <x:Int32>1</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
+                                </Button.CommandParameter>
+                            <Button.ImageSource>
                                     <FileImageSource File="youtube.png"/>
-                                </ImageButton.Source>
-                            </ImageButton>
+                                </Button.ImageSource>
+                            </Button>
 
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            <Button Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                     HeightRequest="25">
-                                <ImageButton.CommandParameter>
+                                <Button.CommandParameter>
                                     <x:Int32>2</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
+                                </Button.CommandParameter>
+                                <Button.ImageSource>
                                     <FileImageSource File="spotify.png" />
-                                </ImageButton.Source>
-                            </ImageButton>
+                                </Button.ImageSource>
+                            </Button>
 
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            <Button Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                                 HeightRequest="25" >
-                                <ImageButton.CommandParameter>
+                                <Button.CommandParameter>
                                     <x:Int32>0</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
+                                </Button.CommandParameter>
+                                <Button.ImageSource>
                                     <FileImageSource File="google.png"/>
-                                </ImageButton.Source>
-                            </ImageButton>
+                                </Button.ImageSource>
+                            </Button>
                         </HorizontalStackLayout>
 
                         <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
-                            <Image.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
-                            </Image.Source>
+                           
                         </Image>
 
 
-                        <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                        <Button HeightRequest="45" HorizontalOptions="Center"
                                  Clicked="ToggleFocusModeClicked">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
-                            </ImageButton.Source>
-                        </ImageButton>
+                            
+                        </Button>
 
                         <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
                                                    HorizontalOptions="Center" Command="{Binding RateSongCommand}"
@@ -272,23 +268,19 @@ Padding="10" Margin="0,5">
         
         <toolkit:DockLayout x:Name="FocusModeUI" IsVisible="False">
 
-            <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
+            <Button Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
                              ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">
-                <ImageButton.GestureRecognizers>
+                <Button.GestureRecognizers>
                     <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" 
                                                   PointerReleased="PointerGestureRecognizer_PointerReleased"/>
-                </ImageButton.GestureRecognizers>
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                </ImageButton.Source>
-            </ImageButton>
+                </Button.GestureRecognizers>
+                
+            </Button>
 
-            <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
+            <Button Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
                              x:Name="rightImgBtn" ToolTipProperties.Text="Play Next">
-                <ImageButton.Source>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-                </ImageButton.Source>
-            </ImageButton>
+               
+            </Button>
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" x:DataType="vm:HomePageVM"
                             VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
@@ -326,20 +318,15 @@ FontSize="36" HorizontalOptions="Center" FontAttributes="Bold"/>
                 <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}"
 FontSize="23" TextColor="Grey" HorizontalOptions="Center"/>
 
-                <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                <Button HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleFocusModeClicked">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                 
+                </Button>
 
-                <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                <Button HeightRequest="45" HorizontalOptions="Center"
                              Clicked="ToggleSleekModeClicked">
-                    <ImageButton.Source>
-                        <FontImageSource Size="50"
-                            FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Fullscreen}" Color="Gray"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                
+                </Button>
 
 
             </VerticalStackLayout>

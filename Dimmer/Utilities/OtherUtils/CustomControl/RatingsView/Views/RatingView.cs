@@ -234,7 +234,7 @@ public class RatingControl : BaseTemplateView<Grid>
 
         HorizontalOptions = LayoutOptions.Center;
 
-        this.Control.ColumnSpacing = Spacing;
+        this.Control!.ColumnSpacing = Spacing;
 
         InitializeShape();
 
