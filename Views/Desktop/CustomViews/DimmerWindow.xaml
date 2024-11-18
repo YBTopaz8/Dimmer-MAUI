@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.CustomViews.DimmerWindow"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"    
+    xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             x:DataType="vm:HomePageVM"             
+             x:Name="myPage"        
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+        >
+   
+    <Window.TitleBar>
+        <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" HeightRequest="55"
+Margin="10" 
+                  >
+            <TitleBar.Resources>
+                <ResourceDictionary>
+                    <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                </ResourceDictionary>
+            </TitleBar.Resources>
+            
+            <TitleBar.Content>
+                <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"
+           WidthRequest="500" Placeholder="Type To Search..." TextChanged="SearchSongSB_TextChanged" 
+                        IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}"   >
+                </SearchBar>
+            </TitleBar.Content>
+
+            <TitleBar.TrailingContent>
+                <HorizontalStackLayout BackgroundColor="Transparent">
+                    <FlyoutBase.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="sss"/>
+                            <MenuFlyoutItem Text="sss"/>
+                        </MenuFlyout>
+                    </FlyoutBase.ContextFlyout>
+                    
+                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin}" Size="20"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin_drop}" Size="20"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </HorizontalStackLayout>                
+            </TitleBar.TrailingContent>
+        </TitleBar>        
+    </Window.TitleBar>
+    
+    
+</Window>

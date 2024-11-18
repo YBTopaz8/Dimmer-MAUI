@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"  
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            x:DataType="vm:HomePageVM"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             x:Class="Dimmer_MAUI.Views.CustomViews.SyncedLyricsView"
+             x:Name="myView"
+             >
+    <ContentView.GestureRecognizers>
+        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" PointerExited="PointerGestureRecognizer_PointerExited"/>
+    </ContentView.GestureRecognizers>
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <Grid x:Name="SyncedLyricsSL"
+          BackgroundColor="{OnPlatform Android=#171919}"
+          RowDefinitions="*"
+          ColumnDefinitions="*">
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+               IsVisible="{OnPlatform WinUI=false, Android=True}"
+               Grid.Column="0" Aspect="Center"/>
+
+
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" SelectionChanged="LyricsColView_SelectionChanged" 
+            SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}"
+            Grid.Column="0" EmptyView="No Syncronized Lyrics Loaded...">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <Border Stroke="Transparent" Margin="5,0" >
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+                        </Border.GestureRecognizers>
+
+                        <Label Text="{Binding Text}" Margin="0,5" 
+                               HorizontalTextAlignment="Center" 
+                               FontSize="19" >
+                            <Label.Triggers>
+                                
+                            </Label.Triggers>
+                        </Label>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>        
+    </Grid>
+    
+</ContentView>

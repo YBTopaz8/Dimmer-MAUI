@@ -4,3 +4,6 @@
 
 /.vs/Dimmer-MAUI/FileContentIndex/3938eecb-15d4-4bfc-9c8e-df2e0c367f91.vsidx
 /.vs/ProjectEvaluation/dimmer-maui.metadata.v9.bin
+/.vs
+/obj
+/bin

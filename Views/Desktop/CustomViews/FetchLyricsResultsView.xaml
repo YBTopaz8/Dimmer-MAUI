@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.FetchLyricsResultsView"
+            
+            
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            x:DataType="vm:HomePageVM" 
+             x:Name="myPage">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <Grid Margin="5,5" 
+          RowDefinitions="Auto, *">
+        <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50" x:DataType="vm:HomePageVM"
+                               Margin="5" HorizontalOptions="Center">
+            <Button Text="Search on LrcLib API" 
+                    >
+                <Button.CommandParameter>
+                    <x:Boolean>True</x:Boolean>
+                </Button.CommandParameter>
+            </Button>
+            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                    IsVisible="False">
+                <Button.CommandParameter>
+                    <x:Boolean>True</x:Boolean>
+                </Button.CommandParameter>
+            </Button>
+
+        </HorizontalStackLayout>
+        <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1" 
+                        >
+            <CollectionView.EmptyView>
+                <ContentView>
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <ActivityIndicator IsVisible="{Binding IsFetching}" IsRunning="{Binding IsFetching}"/>
+                        <Label Text="Service is Unavailable, try again !" IsVisible="{Binding IsFetchSuccessful, Converter={StaticResource BoolToInverse}}"/>
+                    </VerticalStackLayout>
+
+                </ContentView>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Content">
+
+                    <Border Stroke="DarkSlateBlue" 
+                            StrokeShape="RoundRectangle, 10"
+                            Padding="10" Margin="0,5">
+                        <VerticalStackLayout>
+                                
+                            <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                            <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+
+                            <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+
+                            <HorizontalStackLayout>
+
+                                <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                                        Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
+                                        IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+                                    />
+
+
+                                <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                                    IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                        
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+
+</ContentView>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.PlayPauseView"         
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+         xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+         xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+         x:DataType="vm:HomePageVM">
+    <ContentView.Resources>
+        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+    </ContentView.Resources>
+    <Border VerticalOptions="Center" x:Name="PpView" StrokeShape="RoundRectangle 20"
+            Stroke="Transparent">
+      
+          
+        
+        
+        
+        
+        <StackLayout BackgroundColor="Transparent">
+            <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
+                         Clicked="playImgBtn_Clicked" x:Name="playImgBtn" 
+                         HeightRequest="50" WidthRequest="50">
+
+                <ImageButton.Source>
+                    <FontImageSource Size="50" FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+            <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
+                         x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked"
+                         HeightRequest="50" WidthRequest="50">
+
+                <ImageButton.Source>
+                    <FontImageSource Size="50"
+                     FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                </ImageButton.Source>
+            </ImageButton>
+
+        </StackLayout>
+        
+    </Border>
+</ContentView>

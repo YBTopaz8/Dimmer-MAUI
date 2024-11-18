@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.EditableSongTagsView">
+</ContentView>
+    
+<!--xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"    
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            
+            x:DataType="vm:HomePageVM"
+            x:Name="myPage"
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <Style TargetType="material:EditorField">
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <Grid x:Name="ContentVSL"
+          RowDefinitions="Auto, auto, auto, *">
+        
+        <Button Text="Start Syncing" Clicked="StartSyncingBtn_Clicked" 
+        x:Name="StartSyncingBtn" Grid.Row="1"
+        Margin="0,10" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasLyrics, Converter={x:StaticResource BoolToInverse}}"/>
+        
+        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
+                             Spacing="10" Margin="10,0" Grid.Row="0">
+
+           <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                HeightRequest="250" WidthRequest="250" BorderWidth="0"
+                                CornerRadius="25" IsVisible="{OnPlatform Android=true, WinUI=false}"/>-->
+            
+            <!--<material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                                />
+            <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
+            
+            <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
+                        
+            <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
+                                />-->
+            <!--<Button Text="Save Metadata" Command="{Binding UpdateSongToDBCommand }" CommandParameter="{Binding SelectedSongToOpenBtmSheet}"/>
+            <CollectionView ItemsSource="{Binding SynchronizedLyrics}" MaximumHeightRequest="400" >
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModel">
+                        <Label Text="{Binding Text}"/>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+        
+
+        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" x:Name="SyncedLyricsCV" Grid.Row="2"
+                        IsVisible="{Binding IsOnLyricsSyncMode}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <Label Text="{Binding Text}" HorizontalTextAlignment="Center"/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+                    
+        <CollectionView ItemsSource="{Binding LyricsLines}" HorizontalOptions="Center" 
+                        x:Name="SyncingLyricView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModel">
+                    <HorizontalStackLayout HorizontalOptions="Center">
+                        
+                        <Entry Text="{Binding Text}"
+                                WidthRequest="600" Margin="0,0,0,5"/>                       
+
+                        <VerticalStackLayout Margin="10,0">
+                            <HorizontalStackLayout>
+                                <ImageButton Clicked="DeleteLyricLine_Clicked" x:Name="DeleteLyricLine" 
+                                                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialSharp.Delete}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+                                <ImageButton Clicked="StampLyricLine_Clicked" x:Name="StampLyricLine" 
+                                                WidthRequest="20" BackgroundColor="Transparent">
+                                    <ImageButton.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
+                                    </ImageButton.Source>
+                                </ImageButton>
+
+                            </HorizontalStackLayout>
+                            
+                            <Label Text="{Binding TimeStampText}" HorizontalTextAlignment="Center" 
+                                    VerticalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                                
+                    </HorizontalStackLayout>
+                            
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+    
+</ContentView>-->

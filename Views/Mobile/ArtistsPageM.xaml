@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.ArtistsPageM"
+              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"       
+            xmlns:dx="http://schemas.devexpress.com/maui"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <dx:DXScrollView  >
+        <Grid RowDefinitions="160,170,*" Margin="10,0" BackgroundColor="Transparent">
+            <HorizontalStackLayout Grid.Row="0" Spacing="10" 
+                BackgroundColor="Transparent" 
+                                   HorizontalOptions="Fill">
+                <toolkit:AvatarView ImageSource="{Binding SelectedArtistOnArtistPage.ImagePath}" HeightRequest="150"
+                            WidthRequest="150" Text="{Binding SelectedArtistOnArtistPage.Name}"
+                            BorderWidth="0"/>
+                <VerticalStackLayout BackgroundColor="Transparent">
+                    <Label Text="{Binding SelectedArtistOnArtistPage.Name}"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+
+
+            <dx:DXCollectionView Grid.Row="1" Margin="10,0" 
+                ItemsSource="{Binding AllArtistsAlbums}"
+                                 ItemSpanCount="4" ItemSpanSpacing="5">
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <dx:DXButton VerticalOptions="Start"
+                            ButtonType="Text"
+                            CornerRadius="20" PressedBackgroundColor="DarkSlateBlue" TapPressed="SingleAlbum_TapPressed"
+                                      WidthRequest="300" x:Name="SingleAlbum" >
+                            <dx:DXButton.Content>
+                                <VerticalStackLayout 
+                                    VerticalOptions="Start" BackgroundColor="Transparent"
+                                    WidthRequest="200" >
+                                    <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" BorderWidth="0"
+                                                        HeightRequest="110"  WidthRequest="100" VerticalOptions="Start"/>
+
+                                    <Label Text="{Binding Name}" WidthRequest="100" Padding="10,0"/>
+
+                                </VerticalStackLayout>
+                            </dx:DXButton.Content>
+                            
+                        </dx:DXButton>
+                        
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+            
+            <dx:DXCollectionView Grid.Row="2" 
+                ItemsSource="{Binding AllArtistsAlbumSongs}"
+                                 SelectionMode="Single" ItemSpacing="5">
+                <dx:DXCollectionView.Header>
+                    <FlexLayout JustifyContent="SpaceBetween">
+                        <Label Text="Songs"/>
+                        <dx:DXButton TapPressed="ResetSongs_TapPressed" x:Name="ResetSongs"
+                                     BackgroundColor="Transparent" IconColor="White"
+                                     PressedBackgroundColor="DarkSlateBlue"
+                                     >
+                            <dx:DXButton.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
+                            </dx:DXButton.Icon> 
+                        </dx:DXButton>
+                    </FlexLayout>
+                </dx:DXCollectionView.Header>
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                        <dx:DXButton CornerRadius="10" Padding="5" x:Name="SingleSongBtn"
+                                     BackgroundColor="Transparent" Clicked="SingleSongBtn_Clicked"
+                                     PressedBackgroundColor="DarkSlateBlue">
+                            
+                        <FlexLayout JustifyContent="SpaceBetween" >
+
+                                <VerticalStackLayout VerticalOptions="Center" 
+                                     BackgroundColor="Transparent">
+                                <Label Text="{Binding Title}" WidthRequest="250" HeightRequest="30" />
+                                <Image WidthRequest="13" HorizontalOptions="Start"
+                                       IsVisible="{Binding IsCurrentPlayingHighlight}">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="MaterialRounded" 
+                         Color="DarkSlateBlue"
+                         Glyph="{x:Static m:MaterialRounded.Play_arrow}"/>
+                                    </Image.Source>
+                                </Image>
+                            </VerticalStackLayout>
+                            <dx:DXButton Grid.Column="1"  
+                                 IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton">
+                                <dx:DXButton.Icon>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                                </dx:DXButton.Icon>
+
+                                <VerticalStackLayout BackgroundColor="Transparent">
+                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+
+                                    <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
+                                         WidthRequest="20" HorizontalOptions="Center"
+>
+                                        <Image.Source>
+                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                        </Image.Source>
+                                    </Image>
+                                </VerticalStackLayout>
+                            </dx:DXButton>
+                        </FlexLayout>
+
+                        </dx:DXButton>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+        </Grid>
+    </dx:DXScrollView>
+</ContentPage>

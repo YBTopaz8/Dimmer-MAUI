@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.SingleSongStatsPageM"
+              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             
+            x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             Title="{Binding SongPickedForStats.Song.Title}">
+    <!--xmlns:CustomViewsM="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"-->
+    <toolkit:DockLayout BackgroundColor="#171919" Margin="5,0">
+
+        <!--<CustomViewsM:MediaPlaybackControlsViewM toolkit:DockLayout.DockPosition="Bottom"/>-->
+        <Border Stroke="Transparent" toolkit:DockLayout.DockPosition="Top" 
+                StrokeShape="RoundRectangle 10"
+                >
+            <VerticalStackLayout VerticalOptions="Center" BackgroundColor="#171919">
+                    
+                <!--<cards:CoverFlowView ItemsSource="{Binding TopTenPlayedSongs}" 
+                                         ItemSwiped="CoverFlowV_ItemSwiped" x:Name="CoverFlowV"
+                    SelectedItem="{Binding SongPickedForStats}" IsVerticalSwipeEnabled="False">
+                        <cards:CoverFlowView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SingleSongStatistics">
+                                <Border>
+                                <toolkit:AvatarView ImageSource="{Binding Song.CoverImagePath}"
+                                                        HeightRequest="150" WidthRequest="150"
+                                                        BorderWidth="0"/>
+                                </Border>
+                            </DataTemplate>
+                        </cards:CoverFlowView.ItemTemplate>
+                </cards:CoverFlowView>-->
+                <Label Text="{Binding SongPickedForStats.Song.Title, StringFormat='Title: {0}'}" FontSize="16"/>
+                <Label Text="{Binding SongPickedForStats.Song.ArtistName, StringFormat='Artist : {0}'}" FontSize="16"/>
+                <Label Text="{Binding MostPlayedDay, StringFormat='Most Played Day: {0:}'}" FontSize="16"/>
+                <Label Text="{Binding NumberOfTimesPlayed, StringFormat='Played : {0} Times'}" FontSize="16"/>
+            </VerticalStackLayout>
+        </Border>
+        
+        
+    </toolkit:DockLayout>
+</ContentPage>
