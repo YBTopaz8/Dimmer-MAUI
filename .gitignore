@@ -4,6 +4,11 @@
 
 /.vs/slnx.sqlite
 /.vs/ProjectEvaluation/dimmer-maui.metadata.v9.bin
+/.vs/
+/obj/
+/bin/
+obj (2)/
+/Dimmer/obj (2)/
 /.vs/slnx.sqlite-journal
 /.vs/Dimmer-MAUI/v17/DocumentLayout.backup.json
 /.vs/Dimmer-MAUI/v17/.suo
@@ -27,3 +32,5 @@
 /obj/Dimmer-MAUI.csproj.nuget.g.targets
 /obj/project.assets.json
 /obj/project.nuget.cache
+/Dimmer/obj (2)/Dimmer-MAUI.csproj.nuget.g.props
+/Dimmer/obj (2)/project.assets.json
