@@ -8,3 +8,4 @@
 /obj
 /bin
 /Properties/PublishProfiles/MSIX-win10-x641.pubxml
+/Utilities/OtherUtils/APIKeys.cs
