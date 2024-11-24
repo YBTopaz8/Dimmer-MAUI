@@ -5,7 +5,7 @@
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
@@ -60,7 +60,7 @@
         </VerticalStackLayout>
 
 
-        <CollectionView Grid.Row="1"
+        <!--<CollectionView Grid.Row="1"
             ItemsSource="{Binding SongPickedForStats.Song.DatesPlayedAndWasPlayCompleted}" WidthRequest="400" 
                 HorizontalOptions="Center" HeightRequest="400"
                 SelectionMode="Single" IsVisible="True">
@@ -75,7 +75,7 @@
                 <GridItemsLayout Span="2" Orientation="Vertical"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:PlayDateAndIsPlayCompletedModelView">
+                <DataTemplate x:DataType="models:PlayDateAndCompletionStateSongLinkView">
                     <Border Padding="10" Margin="10" >
                         <Grid ColumnDefinitions="*">
                             <Label Text="{Binding DatePlayed, Converter={StaticResource DateTimeOffsetConverter}}"/>
@@ -84,6 +84,6 @@
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-        </CollectionView>
+        </CollectionView>-->
     </Grid>
 </ContentView>

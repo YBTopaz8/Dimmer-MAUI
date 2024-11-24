@@ -8,7 +8,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"    
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"    
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
              x:DataType="vm:HomePageVM"

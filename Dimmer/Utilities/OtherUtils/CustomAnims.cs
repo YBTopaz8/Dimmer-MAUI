@@ -1,12 +1,7 @@
 ﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class CustomAnimsExtensions
 {
-    public static async Task Bounce(this View element)
-    {
-
-        
-    }
-
+   
     public static async Task AnimateHighlightPointerPressed(this View element)
     {
         await element.ScaleTo(0.95, 80, Easing.CubicIn);

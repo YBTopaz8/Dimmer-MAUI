@@ -8,14 +8,14 @@ public class StatsManagementService : IStatsManagementService
     }
     public IDataBaseService DataBaseService { get; }
 
-    public async Task IncrementPlayCount(ObjectId songID)
+    public async Task IncrementPlayCount(string songID)
     {
 
         try
         {
             await db.WriteAsync(() =>
             {
-                var existingSong = db.Find<SongsModel>(songID);
+                var existingSong = db.Find<SongModel>(songID);
                 if (existingSong != null)
                 {
                 }
@@ -28,11 +28,11 @@ public class StatsManagementService : IStatsManagementService
         }
     }
 
-    public async Task IncrementSkipCount(ObjectId songID)
+    public async Task IncrementSkipCount(string songID)
     {
         try
         {
-            var song = db.Find<SongsModel>(songID);
+            var song = db.Find<SongModel>(songID);
 
             if (song is null)
             {

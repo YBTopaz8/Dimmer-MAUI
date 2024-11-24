@@ -4,7 +4,7 @@
              xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"     
              x:Class="Dimmer_MAUI.CustomPopUpViews.SingleLyricsPreviewPopUp"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM" Color="Transparent"

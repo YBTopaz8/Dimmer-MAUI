@@ -2,42 +2,95 @@
 public partial class GenreModel : RealmObject
 {
     [PrimaryKey]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    public string Name { get; set; } = "Unknown Genre";
-    public ObjectId UserId { get; set; }
+    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(GenreModel));
+    public BaseEmbedded? Instance { get; set; } // = new ();
+    public string? Name { get; set; } = "Unknown Genre";
     public GenreModel()
     {
-
+        Instance = new BaseEmbedded();
     }
 
     public GenreModel(GenreModelView modelView)
     {
-        Id = modelView.Id;
+        
         Name = modelView.Name;
+        Instance = new BaseEmbedded();
+
     }
 
-    
+
 }
 
 public partial class AlbumArtistGenreSongLink : RealmObject
 {
     [PrimaryKey]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    public ObjectId SongId { get; set; }
-    public ObjectId AlbumId { get; set; }
-    public ObjectId ArtistId { get; set; }
-    public ObjectId GenreId { get; set; }
+    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumArtistGenreSongLink));
+    public BaseEmbedded? Instance { get; set; } // = new ();
+    public string? SongId { get; set; }
+    public string? AlbumId { get; set; }
+    public string? ArtistId { get; set; }
+    public string? GenreId { get; set; }
+    
+    public AlbumArtistGenreSongLink(AlbumArtistGenreSongLinkView model)
+    {
+        SongId = model.SongId;
+        AlbumId = model.AlbumId;
+        ArtistId = model.ArtistId;
+        GenreId = model.GenreId;
+        Instance = new(model.Instance);
+        LocalDeviceId = model.LocalDeviceId;
+    }
+
+    public AlbumArtistGenreSongLink()
+    {
+        Instance = new BaseEmbedded();
+
+    }
+}
+
+
+public partial class AlbumArtistGenreSongLinkView: ObservableObject
+{
+    [ObservableProperty]
+    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumArtistGenreSongLinkView));
+
+    [ObservableProperty]
+    BaseEmbeddedView? instance = new();
+    public string? SongId { get; set; }
+    public string? AlbumId { get; set; }
+    public string? ArtistId { get; set; }
+    public string? GenreId { get; set; }
+    
+    public AlbumArtistGenreSongLinkView()
+    {
+        
+    }
+    public AlbumArtistGenreSongLinkView(AlbumArtistGenreSongLink model)
+    {
+        Instance = new(model.Instance);
+        LocalDeviceId = model.LocalDeviceId;
+        SongId = model.SongId;
+        AlbumId = model.AlbumId;
+        ArtistId = model.ArtistId;
+        GenreId = model.GenreId;
+     
+    }
 }
 
 public partial class GenreModelView : ObservableObject
 {
-    public ObjectId Id { get; set; }
-
     [ObservableProperty]
-    string name;
+    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(GenreModelView));
+    [ObservableProperty]
+    BaseEmbeddedView? instance = new();
+    [ObservableProperty]
+    string? name;
+    [ObservableProperty]
+    bool isCurrentlySelected;
     public GenreModelView(GenreModel model)
     {
-        Id = model.Id;
+        Instance = new(model.Instance);
+        LocalDeviceId = model.LocalDeviceId;
         name = model.Name;
     }
     public GenreModelView()
@@ -45,3 +98,4 @@ public partial class GenreModelView : ObservableObject
 
     }
 }
+

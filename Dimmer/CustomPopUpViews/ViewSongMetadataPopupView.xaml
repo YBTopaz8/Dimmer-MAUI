@@ -5,7 +5,7 @@
             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             x:DataType="vm:HomePageVM" 
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
             x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"

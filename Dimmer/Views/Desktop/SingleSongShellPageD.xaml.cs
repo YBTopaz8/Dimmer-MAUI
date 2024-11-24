@@ -235,7 +235,7 @@ public partial class SingleSongShellPageD : ContentPage
     {
         var send = (Button)sender;
         var title = send.Text;
-        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Services.Models.Content;
+        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
         if (title == "Synced Lyrics")
         {
 

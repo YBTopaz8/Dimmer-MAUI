@@ -128,7 +128,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISongsManagementService, SongsManagementService>();
         builder.Services.AddSingleton<IStatsManagementService, StatsManagementService>();
         builder.Services.AddSingleton<IPlaylistManagementService, PlayListManagementService>();
-        builder.Services.AddSingleton<IArtistsManagementService, ArtistsManagementService>();
+        
 
         /* Registering the Utilities services */
         builder.Services.AddSingleton<IPlaybackUtilsService, PlaybackUtilsService>();

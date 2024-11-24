@@ -21,10 +21,7 @@ public partial class ArtistsPageD : ContentPage
     {
         base.OnAppearing();
 
-        if (HomePageVM.TemporarilyPickedSong is null)
-        {
-            return;
-        }
+       
 
         //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
 
@@ -35,11 +32,21 @@ public partial class ArtistsPageD : ContentPage
         {
             HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
         }
+        if (HomePageVM.TemporarilyPickedSong is not null)
+        {
+            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+            HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
+        }
+        else {
+            HomePageVM.GetAllArtistsAlbum();
+        }
+        if (HomePageVM.SelectedSongToOpenBtmSheet is not null)
+        {
+            AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
+            AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+        }
         
-        HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
-        AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
-
-        AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+        
         
     }
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
@@ -66,7 +73,7 @@ public partial class ArtistsPageD : ContentPage
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        await HomePageVM.GetSongsFromAlbumId(curSel!.Id);
+        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
         //await HomePageVM.GetAllAlbumInfos(curSel);
         //await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
@@ -90,7 +97,7 @@ public partial class ArtistsPageD : ContentPage
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.LoadSongsFromArtistId(HomePageVM.SelectedArtistOnArtistPage.Id);
+        HomePageVM.LoadSongsFromArtistId(HomePageVM.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
     private void Button_Clicked(object sender, EventArgs e)
@@ -107,8 +114,8 @@ public partial class ArtistsPageD : ContentPage
         //await HomePageVM.GetAllArtistAlbumFromArtist(artist);
 
 
-        //var AlbumArtist = HomePageVM.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.Id)!.AlbumId;
-        //var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.Id == AlbumArtist);
+        //var AlbumArtist = HomePageVM.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
+        //var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
         //HomePageVM.GetAllArtistsAlbum(album: album, isFromSong: false);
     }
 }

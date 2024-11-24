@@ -10,7 +10,7 @@ public partial class SyncedLyricsView : ContentView
 
     public void ScrollToLyric()
     {
-        LyricsColView_SelectionChanged(null, null);
+        LyricsColView_SelectionChanged(null,null);
     }
 
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)

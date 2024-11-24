@@ -8,7 +8,7 @@ public class CountToVisibilityConverter : IValueConverter
 
         if (param == "syncview")
         {
-            if (val?.syncedLyrics?.Length > 0)
+            if (val?.SyncedLyrics?.Length > 0)
             {
                 return true;
             }
@@ -16,7 +16,7 @@ public class CountToVisibilityConverter : IValueConverter
         }
         if (param == "unsyncview")
         {
-            if (val?.plainLyrics?.Length > 0)
+            if (val?.PlainLyrics?.Length > 0)
             {
                 return true;
             }

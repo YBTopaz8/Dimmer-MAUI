@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.SettingsPageD"
              xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+
                xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
              
 xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
@@ -50,11 +52,22 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
                     <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
        IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
                     <Grid>
-                            <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140">
+                            <CollectionView ItemsSource="{Binding FolderPaths}"                                            
+                                            HeightRequest="340">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Vertical"
+                                                   ItemSpacing="5"/>
+                            </CollectionView.ItemsLayout>
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Label Text="{Binding .}" FontSize="13"
-                       Margin="20,0"/>
+                                        <Button 
+                                            BackgroundColor="Transparent"
+                                            BorderColor="DarkSlateBlue"
+                                            
+                                            BorderWidth="1"
+                                            Text="{Binding .}"  
+                                            x:DataType="sys:String"
+                                            TextColor="White" FontSize="18" Margin="20,0"/>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>

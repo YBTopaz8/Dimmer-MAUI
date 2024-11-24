@@ -11,7 +11,7 @@ public interface INativeAudioService
     ///<Summary>
     /// Set the current playback position (in seconds).
     ///</Summary>
-    Task<bool> SetCurrentTime(double value);
+    Task SetCurrentTime(double value);
 
     Task DisposeAsync();
     ///<Summary>

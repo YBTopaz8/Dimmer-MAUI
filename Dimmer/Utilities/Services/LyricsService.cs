@@ -78,14 +78,14 @@ public class LyricsService : ILyricsService
         {            
             if (song is null)
             {
-                _synchronizedLyricsSubject.OnNext(null);
+                _synchronizedLyricsSubject.OnNext(Enumerable.Empty<LyricPhraseModel>().ToList());
                 songSyncLyrics?.Clear();
                 StopLyricIndexUpdateTimer();
                 return;
             }
             if (songSyncLyrics?.Count > 0)
             {
-                if (lastSongIDLyrics == song?.Id)
+                if (lastSongIDLyrics == song?.LocalDeviceId)
                 {
                     if (pState == MediaPlayerState.Playing)
                     {
@@ -117,7 +117,7 @@ public class LyricsService : ILyricsService
                     song.HasSyncedLyrics = true;
                 }
             }
-            lastSongIDLyrics = song.Id;
+            lastSongIDLyrics = song.LocalDeviceId!;
             //Debug.WriteLine($"Loaded song lyrics {");
             song.HasLyrics = true;
             _synchronizedLyricsSubject.OnNext(songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : songSyncLyrics);
@@ -203,7 +203,7 @@ public class LyricsService : ILyricsService
         
     }
 
-    public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath = null)
+    public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath)
     {
        
         List<LyricPhraseModel> lyrr = new();
@@ -241,12 +241,12 @@ public class LyricsService : ILyricsService
     }
 
     List<LyricPhraseModel> songSyncLyrics;
-    ObjectId lastSongIDLyrics;
+    string lastSongIDLyrics;
     public void InitializeLyrics(string synclyrics)
     {
         if (string.IsNullOrEmpty(synclyrics))
         {
-            _synchronizedLyricsSubject.OnNext(null);
+            _synchronizedLyricsSubject.OnNext(Enumerable.Empty<LyricPhraseModel>().ToList());
             return;
         }
         hasSyncedLyrics = true;
@@ -510,15 +510,15 @@ public class LyricsService : ILyricsService
 
         var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
         var lyrics = new Content();
-        if (string.IsNullOrEmpty(e.lyrics))
+        if (string.IsNullOrEmpty(e.Lyrics))
         {
             return Array.Empty<Content>();
         }
-        lyrics.trackName = e.title;
-        lyrics.artistName = e.artist;
-        lyrics.plainLyrics = e.lyrics;
-        lyrics.linkToCoverImage = e.image;
-        lyrics.id = 1;
+        lyrics.TrackName = e.Title;
+        lyrics.ArtistName = e.Artist;
+        lyrics.PlainLyrics = e.Lyrics;
+        lyrics.LinkToCoverImage = e.Image;
+        lyrics.Id = 1;
         List<Content> contentList = new();
         contentList.Add(lyrics);
         return contentList.ToArray();
@@ -571,9 +571,9 @@ public class LyricsService : ILyricsService
             {
                 return string.Empty;
             }
-            if (!string.IsNullOrEmpty(apiResponse[0]?.linkToCoverImage))
+            if (!string.IsNullOrEmpty(apiResponse[0]?.LinkToCoverImage))
             {
-                ImageBytes = await DownloadSongImage(apiResponse[0]?.linkToCoverImage);
+                ImageBytes = await DownloadSongImage(apiResponse[0]?.LinkToCoverImage);
                 song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath, ImageBytes);
                 SongsManagementService.UpdateSongDetails(song);
             }

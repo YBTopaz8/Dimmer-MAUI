@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              x:DataType="vm:HomePageVM" 
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:dx="http://schemas.devexpress.com/maui"

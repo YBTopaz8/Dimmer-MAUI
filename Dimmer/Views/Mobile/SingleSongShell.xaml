@@ -8,7 +8,7 @@
              
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"                            
              
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
@@ -161,11 +161,11 @@
                 Padding="10" Margin="0,5">
                                             <VerticalStackLayout>
 
-                                                <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                                                <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
 
-                                                <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
 
                                                 <HorizontalStackLayout>
 

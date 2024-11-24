@@ -14,7 +14,7 @@ public partial class HomePageVM
             .Select(s => new SingleSongStatistics
             {
                 Song = s,
-                PlayCount = s.DatesPlayedAndWasPlayCompleted.Count()
+                //PlayCount = s.DatesPlayedAndWasPlayCompleted.Count()
                 //PlayCount = s.DatesPlayed.Count(d => d.Date >= lastWeek && d.Date <= today),
             })
             .OrderByDescending(s => s.PlayCount)
@@ -43,8 +43,8 @@ public partial class HomePageVM
     {
         Song = s,
         // Count only dates where the song was fully played (WasPlayCompleted is true)
-        PlayCount = s.DatesPlayedAndWasPlayCompleted
-            .Count(d => d.DatePlayed.Date == selectedDay.Value.Date && d.WasPlayCompleted == true)
+        //PlayCount = s.DatesPlayedAndWasPlayCompleted
+        //    .Count(d => d.DatePlayed.Date == selectedDay.Value.Date && d.WasPlayCompleted == true)
     })
     .OrderByDescending(s => s.PlayCount)
     .Take(10)
@@ -97,8 +97,8 @@ public partial class HomePageVM
         {
             return;
         }
-        startDate ??= DateTimeOffset.UtcNow.AddMonths(-6).Date; // Default to 6 months ago for a longer range
-        endDate ??= DateTimeOffset.UtcNow.Date; // Default to today
+        startDate ??= DateTimeOffset.UtcNow.Date.AddMonths(-6).Date; // Default to 6 months ago for a longer range
+        endDate ??= DateTimeOffset.UtcNow.Date.Date; // Default to today
 
         SongPickedForStats.WeeklyStats = new ObservableCollection<WeeklyStats>();
 
@@ -135,7 +135,7 @@ public partial class HomePageVM
     {
         if (song is null)
             return;
-        specificDate ??= DateTimeOffset.UtcNow.Date;
+        specificDate ??= DateTimeOffset.UtcNow.Date.Date;
 
         SongPickedForStats.DailyStats = new DailyStats(song, specificDate.Value.Date);
 
@@ -148,8 +148,8 @@ public partial class HomePageVM
 
         if (song is null)
             return;
-        startDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero);
-        endDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Year, DateTimeOffset.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
+        startDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Date.Year, DateTimeOffset.UtcNow.Date.Month, 1, 0, 0, 0, TimeSpan.Zero);
+        endDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Date.Year, DateTimeOffset.UtcNow.Date.Month, 1, 0, 0, 0, TimeSpan.Zero)
                         .AddMonths(1).AddDays(-1); // End of the current month
 
         SongPickedForStats.MonthlyStats = new ObservableCollection<MonthlyStats>();
@@ -203,20 +203,20 @@ public partial class HomePageVM
     {
         if (song is null)
             return;
-        var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted?
-            .GroupBy(entry => entry.DatePlayed.DayOfWeek)
-            .OrderByDescending(group => group.Count())
-            .FirstOrDefault();
+        //var mostPlayedDay = song.DatesPlayedAndWasPlayCompleted?
+        //    .GroupBy(entry => entry.DatePlayed.DayOfWeek)
+        //    .OrderByDescending(group => group.Count())
+        //    .FirstOrDefault();
 
-        MostPlayedDay = mostPlayedDay?.Key.ToString() ?? "Never Played Yet";
+        //MostPlayedDay = mostPlayedDay?.Key.ToString() ?? "Never Played Yet";
     }
 
     private void UpdateNumberOfTimesPlayed(SongModelView song)
     {
         if (song is null)
             return;
-        NumberOfTimesPlayed = song.DatesPlayedAndWasPlayCompleted?
-            .Count() ?? 0;
+        //NumberOfTimesPlayed = song.DatesPlayedAndWasPlayCompleted?
+        //    .Count() ?? 0;
     }
 
     [ObservableProperty]
@@ -302,14 +302,14 @@ public partial class YearlyStats : ObservableObject
     public YearlyStats(SongModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
 
-        startDate ??= DateTimeOffset.UtcNow.Date;
-        endDate ??= DateTimeOffset.UtcNow.Date;
-        var yearlyPlays = model.DatesPlayedAndWasPlayCompleted?
-            .Where(entry => entry.DatePlayed.Date >= startDate && entry.DatePlayed.Date <= endDate)
-            .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+        startDate ??= DateTimeOffset.UtcNow.Date.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date.Date;
+        //var yearlyPlays = model.DatesPlayedAndWasPlayCompleted?
+        //    .Where(entry => entry.DatePlayed.Date >= startDate && entry.DatePlayed.Date <= endDate)
+        //    .ToList() ?? new List<PlayDateAndCompletionStateSongLinkView>();
 
-        Month = startDate.Value.Year.ToString();
-        Count = yearlyPlays.Count;
+        //Month = startDate.Value.Year.ToString();
+        //Count = yearlyPlays.Count;
         TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
     }
 
@@ -332,24 +332,24 @@ public partial class MonthlyStats : ObservableObject
 
     public MonthlyStats(SongModelView model, DateTimeOffset? startDate = null, DateTimeOffset? endDate = null)
     {
-        startDate ??= DateTimeOffset.UtcNow.Date;
-        endDate ??= DateTimeOffset.UtcNow.Date;
-        {
-            var monthlyPlays = model.DatesPlayedAndWasPlayCompleted?
-                .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
-                .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+        startDate ??= DateTimeOffset.UtcNow.Date.Date;
+        //endDate ??= DateTimeOffset.UtcNow.Date.Date;
+        //{
+        //    var monthlyPlays = model.DatesPlayedAndWasPlayCompleted?
+        //        .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
+        //        .ToList() ?? new List<PlayDateAndCompletionStateSongLinkView>();
 
-            Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(startDate.Value.Month);
-            Count = monthlyPlays.Count;
-            TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
-        }
+        //    Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(startDate.Value.Month);
+        //    Count = monthlyPlays.Count;
+        //    TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
+        //}
     }
 
 }
 public partial class DailyStats : ObservableObject
 {
     [ObservableProperty]
-    ObservableCollection<PlayDateAndIsPlayCompletedModelView>? playDates;
+    ObservableCollection<PlayDateAndCompletionStateSongLinkView>? playDates;
 
     [ObservableProperty]
     double totalPlayTime;
@@ -359,14 +359,15 @@ public partial class DailyStats : ObservableObject
 
     public DailyStats(SongModelView model, DateTimeOffset? specificDate = null)
     {
-        specificDate ??= DateTimeOffset.UtcNow.Date;
+        
+        specificDate ??= DateTimeOffset.UtcNow.Date.Date;
 
-        // Filter play dates for the specific date
-        PlayDates = new ObservableCollection<PlayDateAndIsPlayCompletedModelView>(
-            model.DatesPlayedAndWasPlayCompleted?
-                .Where(entry => entry.DatePlayed.Date == specificDate.Value.Date) ??
-                Enumerable.Empty<PlayDateAndIsPlayCompletedModelView>()
-        );
+        //// Filter play dates for the specific date
+        //PlayDates = new ObservableCollection<PlayDateAndCompletionStateSongLinkView>(
+        //    model.DatesPlayedAndWasPlayCompleted?
+        //        .Where(entry => entry.DatePlayed.Date == specificDate.Value.Date) ??
+        //        Enumerable.Empty<PlayDateAndCompletionStateSongLinkView>()
+        //);
 
         // Calculate total play time in minutes
         TotalPlayTime = PlayDates.Count * model.DurationInSeconds / 60;
@@ -407,7 +408,7 @@ public partial class DailyStats : ObservableObject
 
 public class DataForChart
 {
-    public string LabelForNumberOfCompletedPlays { get; set; } // Label, e.g., "Completed Plays" or "Incomplete Plays"
+    public string? LabelForNumberOfCompletedPlays { get; set; } // Label, e.g., "Completed Plays" or "Incomplete Plays"
     public int TheCount { get; set; }                          // Count of plays
 }
 public partial class WeeklyStats : ObservableObject
@@ -426,15 +427,15 @@ public partial class WeeklyStats : ObservableObject
 
     public WeeklyStats(SongModelView model, DateTimeOffset? startDate=null, DateTimeOffset? endDate = null)
     {
-        startDate ??= DateTimeOffset.UtcNow.Date;
-        endDate ??= DateTimeOffset.UtcNow.Date.AddDays(1);
-        var weeklyPlays = model.DatesPlayedAndWasPlayCompleted?
-            .Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
-            .ToList() ?? new List<PlayDateAndIsPlayCompletedModelView>();
+        startDate ??= DateTimeOffset.UtcNow.Date.Date;
+        endDate ??= DateTimeOffset.UtcNow.Date.Date.AddDays(1);
+        //var weeklyPlays = model.DatesPlayedAndWasPlayCompleted?
+            //.Where(entry => entry.DatePlayed.Date >= startDate.Value.Date && entry.DatePlayed.Date <= endDate.Value.Date)
+            //.ToList() ?? new List<PlayDateAndCompletionStateSongLinkView>();
 
         DatePlayed = startDate;
         Week = $"Week of {startDate:MMMM dd}";
-        Count = weeklyPlays.Count;
+        //Count = weeklyPlays.Count;
         TotalPlayTime = Count * model.DurationInSeconds / 60; // Convert seconds to minutes
     }
 

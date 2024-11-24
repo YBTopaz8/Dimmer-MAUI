@@ -42,7 +42,7 @@ public static class NotificationHelper
 
         channel.SetSound(null, null);
 
-        var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
+        var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService)!;
 
         notificationManager.CreateNotificationChannel(channel);
     }
@@ -66,12 +66,7 @@ public static class NotificationHelper
                 : PendingIntentFlags.UpdateCurrent;
 
             var pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
-            
-            
-
-
-            int pendingIntentId = 0;
-            
+                        
             MediaMetadata currentTrack = mediaMetadata;
 
             MediaStyle style = new MediaStyle();
@@ -108,7 +103,7 @@ public static class NotificationHelper
         }
         
     }
-    internal static Notification.Action GenerateActionCompat(Context context, int icon, string title, string intentAction)
+    internal static Notification GenerateActionCompat(Context context, int icon, string title, string intentAction)
     {
         Intent intent = new Intent(context, typeof(MediaPlayerService));
         intent.SetAction(intentAction);
@@ -116,18 +111,9 @@ public static class NotificationHelper
         if (intentAction.Equals(MediaPlayerService.ActionStop))
             flags = PendingIntentFlags.CancelCurrent;
         flags |= PendingIntentFlags.Mutable;
-        PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags);
-        return new Notification.Action.Builder(icon, title, pendingIntent).Build();
+        PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags)!;
+        return new Notification.Builder(context, CHANNEL_ID).Build();
     }
 
-    private static void AddPlayPauseActionCompat(
-        Builder builder,
-        Context context,
-        bool isPlaying)
-    {
-        if (isPlaying)
-            builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPause, "Pause", MediaPlayerService.ActionPause));
-        else
-            builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPlay, "Play", MediaPlayerService.ActionPlay));
-    }
+    
 }

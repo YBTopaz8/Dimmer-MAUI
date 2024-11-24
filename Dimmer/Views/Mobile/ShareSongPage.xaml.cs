@@ -269,7 +269,7 @@ public partial class ShareSongPage : ContentPage
         {
             // Store the initial scale and anchor point when the pinch begins
             startScale = currentScale;
-            ZoomableLabel.AnchorX = e.ScaleOrigin.X;
+            ZoomableLabel!.AnchorX = e.ScaleOrigin.X;
             ZoomableLabel.AnchorY = e.ScaleOrigin.Y;
         }
         else if (e.Status == GestureStatus.Running)
@@ -281,13 +281,13 @@ public partial class ShareSongPage : ContentPage
             newScale = Math.Max(1.0, newScale);
 
             // Apply the new scale to the view
-            ZoomableLabel.Scale = newScale;
+            ZoomableLabel!.Scale = newScale;
             currentScale = newScale; // Update current scale
         }
         else if (e.Status == GestureStatus.Completed)
         {
             // Store the completed scale for future reference
-            currentScale = ZoomableLabel.Scale;
+            currentScale = ZoomableLabel!.Scale;
         }
     }
 
@@ -374,7 +374,7 @@ public partial class ShareSongPage : ContentPage
     private void SolidBGColor_TapPressed(object sender, DXTapEventArgs e)
     {
         var send = sender as DXColorSelector;
-        var color = send.ItemsSource.ToList();
+        var color = send!.ItemsSource.ToList();
         
         var sIndex = send.SelectedIndex;
         

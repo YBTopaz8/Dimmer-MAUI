@@ -3,7 +3,7 @@ public class DataBaseService : IDataBaseService
 {
     public void DeleteDB() => throw new NotImplementedException();
 
-    public RealmConfiguration? GetRealm()
+    public RealmConfiguration GetRealm()
     {
         string dbPath;
 #if ANDROID

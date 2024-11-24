@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"
@@ -63,7 +63,7 @@
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
                             <Border.GestureRecognizers>
-                                <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedPlaylistCommand, Source={x:Reference myPage}}" 
+                                <PointerGestureRecognizer PointerEnteredCommand="{Binding BindingContext.SetPickedPlaylistCommand, Source={x:Reference myPage}}"
                                                     PointerEnteredCommandParameter="{Binding .}"/>
                                 <TapGestureRecognizer 
                                     Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}" 

@@ -17,12 +17,14 @@ public partial class App : Application
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
-    }
 
+        
+    }
+    
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
-            $"| {e.Exception.StackTrace} | {e.Exception.TargetSite} || {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
+            $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         //await home.ExitingApp();
@@ -68,10 +70,7 @@ public partial class App : Application
             }
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            
             // Retry mechanism for file writing
             bool success = false;
             int retries = 3;
@@ -83,7 +82,7 @@ public partial class App : Application
                 {
                     try
                     {
-#if RELEASE
+#if RELEASE || DEBUG
                         File.AppendAllText(filePath, logContent);
                         success = true; // Write successful
 #endif

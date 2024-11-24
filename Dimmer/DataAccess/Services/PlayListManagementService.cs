@@ -1,7 +1,7 @@
 ﻿namespace Dimmer_MAUI.DataAccess.Services;
 public class PlayListManagementService : IPlaylistManagementService
 {
-    Realm db;
+    Realm? db;
     public IDataBaseService DataBaseService { get; }
     public IList<PlaylistModelView> AllPlaylists { get; set; }
     public ObservableCollection<SongModelView> SongsFromSpecificPlaylist { get; set; }
@@ -9,8 +9,8 @@ public class PlayListManagementService : IPlaylistManagementService
     {
         DataBaseService = dataBaseService;
         GetPlaylists();
-    }
 
+    }
 
     public List<PlaylistModelView> GetPlaylists()
     {
@@ -29,14 +29,14 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public IList<ObjectId> GetSongsIDsFromPlaylistID(ObjectId playlistID)
+    public IList<string> GetSongsIDsFromPlaylistID(string playlistID)
     {
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
             // Get the playlist
             var specificPlaylist = AllPlaylists
-                .FirstOrDefault(x => x.Id == playlistID);
+                .FirstOrDefault(x => x.LocalDeviceId == playlistID);
 
             if (specificPlaylist != null)
             {
@@ -47,15 +47,15 @@ public class PlayListManagementService : IPlaylistManagementService
                                 .Select(link => link.SongId)
                                 .ToList();
 
-                return songIds is not null ? songIds : Enumerable.Empty<ObjectId>().ToList();
+                return songIds is not null ? songIds : Enumerable.Empty<string>().ToList();
             }
 
-            return Enumerable.Empty<ObjectId>().ToList();
+            return Enumerable.Empty<string>().ToList();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error getting songs from playlist: {ex.Message}");
-            return Enumerable.Empty<ObjectId>().ToList();
+            return Enumerable.Empty<string>().ToList();
         }
     }
 
@@ -64,7 +64,7 @@ public class PlayListManagementService : IPlaylistManagementService
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-            var checkExist = db.Find<PlaylistModel>(playlist.Id);
+            var checkExist = db.Find<PlaylistModel>(playlist.LocalDeviceId);
             if (IsAddSong)
             {
                 
@@ -73,13 +73,19 @@ public class PlayListManagementService : IPlaylistManagementService
                     db.Write(() =>
                     {
                         db.Add(new PlaylistModel(playlist));
-                        db.Add(playlistSongLink);
+                        if (playlistSongLink is not null)
+                        {
+                            db.Add(playlistSongLink);
+                        }
                     });
                 }
                 db.Write(() =>
                 {
                     db.Add(new PlaylistModel(playlist), true);
-                    db.Add(playlistSongLink);
+                    if (playlistSongLink is not null)
+                    {
+                        db.Add(playlistSongLink);
+                    }
                 });
             }
             if (IsRemoveSong)
@@ -93,13 +99,19 @@ public class PlayListManagementService : IPlaylistManagementService
                     db.Write(() =>
                     {
                         db.Remove(new PlaylistModel(playlist));
-                        db.Remove(playlistSongLink);
+                        if (playlistSongLink is not null)
+                        {
+                            db.Remove(playlistSongLink);
+                        }
                     });
                 }
                 db.Write(() =>
                 {
                     db.Remove(new PlaylistModel(playlist));
-                    db.Remove(playlistSongLink);
+                    if (playlistSongLink is not null)
+                    {
+                        db.Remove(playlistSongLink);
+                    }
                 });
             }
             GetPlaylists();
@@ -111,170 +123,16 @@ public class PlayListManagementService : IPlaylistManagementService
             return false;
         }
     }
-
-    public bool AddSongToPlayListWithPlayListName(SongModelView song, string playlistName)
+        
+    public bool DeletePlaylist(string playlistID)
     {
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-            ObjectId plID = ObjectId.Empty;
-
+            var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.LocalDeviceId == playlistID);
             db.Write(() =>
             {
-                // Retrieve the playlist using a safer approach
-                PlaylistModel? specificPlaylist = null;
-                foreach (var playlist in db.All<PlaylistModel>())
-                {
-                    if (playlist.Name == playlistName)
-                    {
-                        specificPlaylist = playlist;
-                        break;
-                    }
-                }
-
-                // If no playlist is found, create a new one
-                if (specificPlaylist == null)
-                {
-                    specificPlaylist = new PlaylistModel
-                    {
-                        Name = playlistName,
-                        DateCreated = DateTimeOffset.Now,
-                    };
-                    db.Add(specificPlaylist);
-                }
-
-                // Retrieve the existing link, if any
-                PlaylistSongLink? existingLink = null;
-                foreach (var link in db.All<PlaylistSongLink>())
-                {
-                    if (link.PlaylistId == specificPlaylist.Id && link.SongId == song.Id)
-                    {
-                        existingLink = link;
-                        break;
-                    }
-                }
-
-                // If no link exists, create it and update the playlist
-                if (existingLink == null)
-                {
-                    db.Add(new PlaylistSongLink
-                    {
-                        PlaylistId = specificPlaylist.Id,
-                        SongId = song.Id
-                    });
-
-                    specificPlaylist.TotalDuration += song.DurationInSeconds;
-                    specificPlaylist.TotalSize += song.FileSize;
-                    specificPlaylist.TotalSongsCount += 1;
-                }
-
-                plID = specificPlaylist.Id;
-            });
-
-            GetPlaylists();
-            GetSongsIDsFromPlaylistID(plID);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error exception when adding to playlist: {ex.Message}");
-            return false;
-        }
-    }
-
-    public bool RemoveSongFromPlayListWithPlayListName(SongModelView song, string playlistName)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            db.Write(() =>
-            {
-                var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Name == playlistName);
-                if (specificPlaylist is null)
-                {
-                    Debug.WriteLine("Playlist not found");
-                    //Shell.Current.DisplayAlert("Error", "Playlist not found", "OK");
-                    //return false;
-                }
-                var existingLinkList = db.All<PlaylistSongLink>()
-                .Where(link => link.PlaylistId == specificPlaylist.Id && link.SongId == song.Id)
-                .ToList();
-                    
-                if (existingLinkList is not null && existingLinkList.Count > 0)
-                {
-                    var existingLink = existingLinkList.First();
-                    if (existingLink is not null)
-                    {
-                        db.Remove(existingLink);
-                    }
-
-                    specificPlaylist.TotalDuration -= song.DurationInSeconds;
-                    specificPlaylist.TotalSize -= song.FileSize;
-                    specificPlaylist.TotalSongsCount -= 1;
-                }
-            });
-            //GetPlayLists();
-            return true;
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine("Error when removingSongfrom playing with name " + ex.Message);
-            return false;
-            //throw new Exception("Error when removing from playlist" + ex.Message);
-        }
-    }
-
-    public bool RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            db.Write(() =>
-            {
-                var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
-                if (specificPlaylist == null)
-                {
-                    Debug.WriteLine("Playlist not found.");
-                    //return false;
-                }
-
-                // Find the link for the song and playlist
-                var linkToRemove = db.All<PlaylistSongLink>()
-                    .FirstOrDefault(link => link.PlaylistId == playlistID && link.SongId == song.Id);
-
-                if (linkToRemove != null)
-                {
-                    // Remove the link
-                    db.Remove(linkToRemove);
-
-                    // Update playlist properties
-                    specificPlaylist.TotalDuration -= song.DurationInSeconds;
-                    specificPlaylist.TotalSize -= song.FileSize;
-                    specificPlaylist.TotalSongsCount -= 1;
-                }
-            });
-
-            GetPlaylists();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error exception when removing from playlist: {ex.Message}");
-            return false;
-        }
-    }
-
-
-    public bool DeletePlaylist(ObjectId playlistID)
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var specificPlaylist = db.All<PlaylistModel>().FirstOrDefault(p => p.Id == playlistID);
-            db.Write(() =>
-            {
-                db.Remove(specificPlaylist);
+                db.Remove(specificPlaylist!);
             });
 
             GetPlaylists();
@@ -289,9 +147,9 @@ public class PlayListManagementService : IPlaylistManagementService
         }
     }
 
-    public bool RenamePlaylist(ObjectId playlistID, string newPlaylistName)
+    public bool RenamePlaylist(string playlistID, string newPlaylistName)
     {
-        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
+        var specificPlaylist = AllPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
         db = Realm.GetInstance(DataBaseService.GetRealm());
         
         if (specificPlaylist is null)

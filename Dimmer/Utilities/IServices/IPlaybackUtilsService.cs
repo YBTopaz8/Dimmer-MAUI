@@ -16,8 +16,8 @@ public interface IPlaybackUtilsService
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     void RemoveSongFromQueue(SongModelView song); //to remove song from queue
     void AddSongToQueue(SongModelView song); //to add song to queue
+    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
 
-    int LoadingSongsProgressPercentage { get; }
     SongModelView? CurrentlyPlayingSong { get; }
     SongModelView PreviouslyPlayingSong { get; }
     SongModelView NextPlayingSong { get; }
@@ -28,7 +28,6 @@ public interface IPlaybackUtilsService
     int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
     Task SetSongPosition(double positionInSec); // to set position from slider
-    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
     void ChangeVolume(double newVolumeValue);
     void SearchSong(string songTitleOrArtistName,List<string>? selectedFilters, int Rating); //to search song with title
     void DecreaseVolume();
@@ -39,26 +38,22 @@ public interface IPlaybackUtilsService
     int CurrentQueue { get; set; }
     void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1);
     Task<bool> PlaySelectedSongsOutsideAppAsync(List<string> filePaths);
-
-    Task DeleteSongFromHomePage(SongModelView song);
+    void FullRefresh();
+    void DeleteSongFromHomePage(SongModelView song);
     Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
     
     //Playlist Section
 
     ObservableCollection<PlaylistModelView>? AllPlaylists { get; }
-    void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);
-    
-    void RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID);
-    
+    void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);    
+    void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
-    List<SongModelView> GetSongsFromPlaylistID(ObjectId playlistID);
-    bool DeletePlaylistThroughID(ObjectId playlistID);
+    List<SongModelView> GetSongsFromPlaylistID(string playlistID);
+    bool DeletePlaylistThroughID(string playlistID);
     string SelectedPlaylistName { get; }
 
     //Artist Section
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
     ObservableCollection<ArtistModelView>? AllArtists { get; }
-    ObservableCollection<SongModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID);
-    ObservableCollection<SongModelView> GetallArtistsSongsByArtistId(ObjectId artistID);
 }

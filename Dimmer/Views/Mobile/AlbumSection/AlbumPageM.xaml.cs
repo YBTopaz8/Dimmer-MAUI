@@ -15,17 +15,17 @@ public partial class AlbumPageM : ContentPage
 
     public HomePageVM HomePageVM { get; }
     
-    ObjectId previousAlbID = ObjectId.Empty;
+    string previousAlbID = string.Empty;
     private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {        
         var t = (VerticalStackLayout)sender;
         var album = t.BindingContext as AlbumModelView;
-        if (previousAlbID == album!.Id)
+        if (previousAlbID == album!.LocalDeviceId)
         {
             return;
         }
         await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
-        previousAlbID = album.Id;
+        previousAlbID = album.LocalDeviceId;
     }
 
     protected override void OnAppearing()

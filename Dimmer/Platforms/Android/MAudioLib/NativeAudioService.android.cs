@@ -91,13 +91,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public double Balance { get => balance; set { balance = value; SetVolume(Volume, balance = value); } }
     public bool Muted { get => muted; set => SetMuted(value); }
 
-    public event EventHandler<bool> IsPlayingChanged;
-    public event EventHandler PlayEnded;
-    public event EventHandler PlayNext;
-    public event EventHandler PlayPrevious;
-    public event EventHandler NotificationTapped;
+    public event EventHandler<bool>? IsPlayingChanged;
+    public event EventHandler? PlayEnded;
+    public event EventHandler? PlayNext;
+    public event EventHandler? PlayPrevious;
+    public event EventHandler? NotificationTapped;
     public event PropertyChangedEventHandler? PropertyChanged;
-    public event EventHandler<long> IsSeekedFromNotificationBar;
+    public event EventHandler<long>? IsSeekedFromNotificationBar;
 
     public Task PauseAsync()
     {        
@@ -118,23 +118,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     public async Task PlayAsync(bool IsFromPreviousOrNext = false)
     {
-        int posInMs = 0;
-        if(ViewModel.TemporarilyPickedSong is not null)
-        {
-            if (CurrentMedia.SongId == ViewModel.TemporarilyPickedSong.Id)
-            {
-                posInMs = (int)ViewModel.CurrentPositionInSeconds * 1000;
-            }
-            if (IsFromPreviousOrNext)
-            {
-                posInMs = 0;
-            }
-            await instance.Binder.GetMediaPlayerService().Play(posInMs);
-        }
-        else
-        {
             await instance.Binder.GetMediaPlayerService().Play();
-        }
+     
         IsPlaying = true;
         ViewModel.SetPlayerState(MediaPlayerState.Playing);
         ViewModel.SetPlayerState(MediaPlayerState.ShowPauseBtn);
@@ -169,17 +154,17 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         return Task.CompletedTask;
     }
 
-    public async Task<bool> SetCurrentTime(double positionInSeconds)
+    public async Task SetCurrentTime(double positionInSeconds)
     {
         var posInMs = (int)(positionInSeconds * 1000);
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
-            return false;
+            return ;
         }
         await instance.Binder.GetMediaPlayerService().Seek(posInMs);
         IsPlaying = true;
-        return true;
+        return ;
 
     }
 
@@ -199,7 +184,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             {
                 CurrentMedia = new MediaPlay()
                 {
-                    SongId = media.Id,
+                    SongId = media.LocalDeviceId!,
                     Name = media.Title,
                     Author = media!.ArtistName!,
                     URL = media.FilePath,

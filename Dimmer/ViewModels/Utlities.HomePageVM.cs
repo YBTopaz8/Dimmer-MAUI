@@ -97,7 +97,7 @@ public partial class HomePageVM
         if (TemporarilyPickedSong is not null)
         {
             AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
-            AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.Id);
+            AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.LocalDeviceId);
         }
     }
     [ObservableProperty]
@@ -118,9 +118,9 @@ public partial class HomePageVM
                     // Loop through all songs in MultiSelectSongs and remove them from DisplayedSongs if they exist
                     foreach (var selectedSong in MultiSelectSongs)
                     {
-                        DisplayedSongs.Remove(selectedSong);
+                        DisplayedSongs?.Remove(selectedSong);
                     }
-                    if (MultiSelectSongs.Contains(TemporarilyPickedSong))
+                    if (MultiSelectSongs.Contains(TemporarilyPickedSong!))
                     {
                         await PlayNextSong();
                     }
@@ -146,8 +146,8 @@ public partial class HomePageVM
                     {
                         await PlayNextSong();
                     }
-                    DisplayedSongs.Remove(song);
-                    await PlayBackService.DeleteSongFromHomePage(song);
+                    DisplayedSongs?.Remove(song);
+                    PlayBackService.DeleteSongFromHomePage(song);
                 }
                 break;
 
@@ -155,7 +155,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    void OpenSongFolder() //SongsModel SelectedSong)
+    void OpenSongFolder() //SongModel SelectedSong)
     {
         if(!EnableContextMenuItems) return;
 #if WINDOWS
@@ -316,7 +316,7 @@ public partial class HomePageVM
 
     async Task OpenSpotifyArtistProfile()
     {
-        if (SelectedSongToOpenBtmSheet != null)
+        if (SelectedSongToOpenBtmSheet != null && !string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.ArtistName))
         {
             string searchUrl = $"https://open.spotify.com/search/{Uri.EscapeDataString(SelectedSongToOpenBtmSheet.ArtistName)}";
             await Launcher.OpenAsync(new Uri(searchUrl));
@@ -327,7 +327,7 @@ public partial class HomePageVM
     {
         if (SelectedSongToOpenBtmSheet != null && !string.IsNullOrEmpty(SelectedSongToOpenBtmSheet.AlbumName))
         {
-            string searchUrl = $"https://open.spotify.com/search/{Uri.EscapeDataString(SelectedSongToOpenBtmSheet.AlbumName)} {Uri.EscapeDataString(SelectedSongToOpenBtmSheet.ArtistName)}";
+            string searchUrl = $"https://open.spotify.com/search/{Uri.EscapeDataString(SelectedSongToOpenBtmSheet.AlbumName)} {Uri.EscapeDataString(SelectedSongToOpenBtmSheet.AlbumName)}";
             await Launcher.OpenAsync(new Uri(searchUrl));
         }
     }

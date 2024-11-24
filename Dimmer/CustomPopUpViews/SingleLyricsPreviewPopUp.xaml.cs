@@ -8,15 +8,15 @@ public partial class SingleLyricsPreviewPopUp : Popup
         BindingContext = homePageVM;
         HomePageVM = homePageVM;
 
-        ArtistNameLabel.Text = cont.artistName;
-        SongTitleLabel.Text = " "+ cont.name;
+        ArtistNameLabel.Text = cont.ArtistName;
+        SongTitleLabel.Text = " "+ cont.Name;
         if (isPlain )
         {
-            LyricsView.Text = cont.plainLyrics;
+            LyricsView.Text = cont.PlainLyrics;
         }
         else
         {
-            LyricsView.Text = cont.syncedLyrics;
+            LyricsView.Text = cont.SyncedLyrics;
         }
     }
 

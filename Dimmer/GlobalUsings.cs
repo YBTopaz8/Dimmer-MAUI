@@ -5,6 +5,8 @@ global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
 
+global using Parse;
+global using Parse.Infrastructure;
 
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
@@ -73,12 +75,12 @@ global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
 
 
-global using Dimmer_MAUI.Utilities.Services.Models;
+global using Dimmer_MAUI.Utilities.Models;
 
 global using Dimmer_MAUI.DataAccess.IServices;
 global using Dimmer_MAUI.DataAccess.Services;
 global using Dimmer_MAUI.Views.CustomViews;
-global using Dimmer_MAUI.Utilities.Models;
+
 
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;

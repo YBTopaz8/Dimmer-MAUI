@@ -1,27 +1,27 @@
-﻿namespace Dimmer_MAUI.Utilities.Services.Models;
+﻿namespace Dimmer_MAUI.Utilities.Models; 
 public class Content
 {
-    public int id { get; set; }
-    public string? name { get; set; }
-    public string? trackName { get; set; }
-    public string? artistName { get; set; }
-    public string? albumName { get; set; }
-    public float duration { get; set; }
-    public bool instrumental { get; set; }
-    public string plainLyrics { get; set; }
-    public string syncedLyrics { get; set; }
-    public string? linkToCoverImage { get; set; }
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public string? TrackName { get; set; }
+    public string? ArtistName { get; set; }
+    public string? AlbumName { get; set; }
+    public float Duration { get; set; }
+    public bool Instrumental { get; set; }
+    public string? PlainLyrics { get; set; }
+    public string? SyncedLyrics { get; set; }
+    public string? LinkToCoverImage { get; set; }
     // Read-only property with logic
-    public bool IsSynced => !string.IsNullOrEmpty(syncedLyrics);
+    public bool IsSynced => !string.IsNullOrEmpty(SyncedLyrics);
 }
 
 public class LyristApiResponse
 {
-    public string lyrics { get; set; }
-    public string title { get; set; }
-    public string artist { get; set; }
-    public string image { get; set; }
-    public int id { get; set; }
+    public string? Lyrics { get; set; }
+    public string? Title { get; set; }
+    public string? Artist { get; set; }
+    public string? Image { get; set; }
+    public int Id { get; set; }
 }
 
 

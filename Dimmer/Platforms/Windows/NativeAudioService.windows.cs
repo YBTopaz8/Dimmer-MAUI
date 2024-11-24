@@ -89,7 +89,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     }
 
     
-    public Task<bool> SetCurrentTime(double positionInSec)
+    public Task SetCurrentTime(double positionInSec)
     {
         
         if (mediaPlayer == null)
@@ -170,7 +170,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
             memStream.Position = 0;
             CurrentMedia = new MediaPlay()
             {
-                SongId = media.Id,
+                SongId = media.LocalDeviceId,
                 Name = media.Title,
                 Author = media!.ArtistName!,
                 Stream = memStream,

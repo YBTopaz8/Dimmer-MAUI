@@ -12,7 +12,8 @@ public enum MediaPlayerState
     ShowPlayBtn,
     ShowPauseBtn,
     RefreshStats,
-
+    SyncingData,
+    DoneSyncingData,
 }
 public class PlaybackInfo
 {

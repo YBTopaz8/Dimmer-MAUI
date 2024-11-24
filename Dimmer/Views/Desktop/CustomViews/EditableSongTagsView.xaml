@@ -9,7 +9,7 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"    
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             
             x:DataType="vm:HomePageVM"
             x:Name="myPage"

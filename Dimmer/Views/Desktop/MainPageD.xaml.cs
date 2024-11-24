@@ -16,7 +16,7 @@ public partial class MainPageD : ContentPage
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
-        HomePageVM.AssignCV(SongsColView);
+        
     }
 
     protected override void OnDisappearing()

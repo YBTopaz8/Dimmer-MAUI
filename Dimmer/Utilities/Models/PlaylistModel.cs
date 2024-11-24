@@ -1,52 +1,59 @@
-﻿namespace Dimmer_MAUI.Utilities.Services.Models;
+﻿namespace Dimmer_MAUI.Utilities.Models;
 public partial class PlaylistModel : RealmObject
 {
     [PrimaryKey]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    public string Name { get; set; } = "Unknown Playlist";
-    public DateTimeOffset DateCreated { get; set; }
+    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistModel));
+    public BaseEmbedded? Instance { get; set; } // = new ();
+    public string? Name { get; set; } = "Unknown Playlist";
     public double TotalDuration { get; set; }
     public double TotalSize { get; set; }
     public int TotalSongsCount { get; set; }
-    public ObjectId UserId { get; set; }
-    public PlaylistModel()
-    {
-        
-    }
-
     public PlaylistModel(PlaylistModelView model)
     {
-        Id = model.Id;
         Name = model.Name;
-        DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;
         TotalSongsCount = model.TotalSongsCount;
+        Instance = new(model.Instance);
+        LocalDeviceId = model.LocalDeviceId;
     }
-
+    public PlaylistModel()
+    {
+        Instance = new BaseEmbedded();
+    }
 }
 
 public partial class PlaylistSongLink : RealmObject
 {
     [PrimaryKey]
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
-    public ObjectId PlaylistId { get; set; }
-    public ObjectId SongId { get; set; }
+    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistSongLink));
+    public BaseEmbedded? Instance { get; set; } // = new ();
+
+    public string? PlaylistId { get; set; }
+    public string? SongId { get; set; }
+    public PlaylistSongLink()
+    {
+        Instance = new BaseEmbedded();
+    }
 }
+
 
 public partial class PlaylistModelView : ObservableObject
 {
-    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     [ObservableProperty]
-    string name;
-    public DateTimeOffset DateCreated { get; set; }
+    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistModelView));
+
+    [ObservableProperty]
+    BaseEmbeddedView instance = new();
+    [ObservableProperty]
+    string? name;
     [ObservableProperty]
     double totalDuration;
     [ObservableProperty]
     double totalSize;
     [ObservableProperty]
     int totalSongsCount;
-    
+
     public PlaylistModelView()
     {
         
@@ -54,9 +61,9 @@ public partial class PlaylistModelView : ObservableObject
 
     public PlaylistModelView(PlaylistModel model)
     {
-        Id = model.Id;
+        Instance = new(model.Instance);
+        LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
-        DateCreated = model.DateCreated;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;
         TotalSongsCount= model.TotalSongsCount;

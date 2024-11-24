@@ -92,13 +92,13 @@ public static class PlatSpecificUtils
             var OverLappedPres = appPresenter as OverlappedPresenter;
             if (IsToFullScreen)
             {
-                OverLappedPres.IsAlwaysOnTop = true;
+                OverLappedPres!.IsAlwaysOnTop = true;
                 OverLappedPres.SetBorderAndTitleBar(false, false);
                 OverLappedPres!.Maximize();
             }
             else
             {
-                OverLappedPres.IsAlwaysOnTop = false;
+                OverLappedPres!.IsAlwaysOnTop = false;
                 OverLappedPres.SetBorderAndTitleBar(true, true);
                 OverLappedPres!.Restore();
             }

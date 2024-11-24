@@ -28,7 +28,7 @@ public partial class HomePageVM : ObservableObject
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
-    int totalNumberOfSongs;
+    int? totalNumberOfSongs=0;
     [ObservableProperty]
     string totalSongsSize;
     [ObservableProperty]
@@ -56,9 +56,9 @@ public partial class HomePageVM : ObservableObject
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
-    public IArtistsManagementService ArtistMgtService { get; }
+    
 
-    public List<AlbumArtistSongLink>? AllLinks { get; }
+    public List<AlbumArtistGenreSongLinkView>? AllLinks { get; set; }
 
     [ObservableProperty]
     string unSyncedLyrics;
@@ -70,20 +70,19 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     int currentQueue = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IArtistsManagementService artistMgtService
-                      )
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService)
     {
         this.folderPicker = folderPickerService;
         FileSaver = fileSaver;
         PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
-        ArtistMgtService = artistMgtService;
+        
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
         SubscribeToPlayerStateChanges();
         SubscribetoDisplayedSongsChanges();
-        
+
         SubscribeToCurrentSongPosition();
         SubscribeToPlaylistChanges();
 
@@ -99,18 +98,29 @@ public partial class HomePageVM : ObservableObject
         IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
+        //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
         IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
-        //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
-        GetAllArtists();
-        GetAllAlbums();
-        RefreshPlaylists();
 
-        AllLinks = SongsMgtService.AllLinks.ToList();
+
+        if (SongsMgtService.AllLinks is not null)
+        {
+            AllLinks = SongsMgtService.AllLinks.ToList();
+        }
 
 #if WINDOWS
         ToggleFlyout();
-#endif 
+#endif
+        //SyncRefresh();
+    }
+
+    public void SyncRefresh()
+    {
+       PlayBackService.FullRefresh();
+
+        GetAllArtists();
+        GetAllAlbums();
+        RefreshPlaylists();
     }
 
     void DoRefreshDependingOnPage()
@@ -182,18 +192,20 @@ public partial class HomePageVM : ObservableObject
                             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
                             
                             if (PickedSong is not null)
+                            {
                                 PickedSong.IsPlaying = false;
+                                PickedSong.IsCurrentPlayingHighlight = false;
+                            }
 
                             PickedSong = TemporarilyPickedSong;
-                            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+                            PickedSong.IsPlaying = false;
+                            PickedSong.IsCurrentPlayingHighlight = false;
 
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-                            PickedSong.IsCurrentPlayingHighlight = true;
-                            
+                            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+                                                        
                             AllSyncLyrics = null;
                             splittedLyricsLines = null;
-                            TemporarilyPickedSong.IsPlaying = true;
-                            PickedSong.IsPlaying = true;
+                            
                             IsPlaying = true;
 
                             PlayPauseIcon = MaterialRounded.Pause;
@@ -216,7 +228,7 @@ public partial class HomePageVM : ObservableObject
                             //PickedSong = "Stopped";
                             break;
                         case MediaPlayerState.LoadingSongs:
-                            LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
+                            
                             break;
                         case MediaPlayerState.ShowPlayBtn:
                             PlayPauseIcon = MaterialRounded.Play_arrow;
@@ -226,6 +238,8 @@ public partial class HomePageVM : ObservableObject
                             IsPlaying = true;
                             PlayPauseIcon = MaterialRounded.Pause;
                             break;
+                        case MediaPlayerState.DoneSyncingData: 
+
                         default:
                             break;
                     }
@@ -308,7 +322,7 @@ public partial class HomePageVM : ObservableObject
             var coverImg = await LyricsManagerService
                 .FetchAndDownloadCoverImage(SelectedSongToOpenBtmSheet.Title, SelectedSongToOpenBtmSheet.ArtistName!, SelectedSongToOpenBtmSheet.AlbumName!, SelectedSongToOpenBtmSheet);
             SongsMgtService.AllSongs
-                .FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id)!.CoverImagePath = coverImg;
+                .FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)!.CoverImagePath = coverImg;
             return coverImg;
         }
         return string.Empty;
@@ -415,37 +429,32 @@ public partial class HomePageVM : ObservableObject
             SelectedSongToOpenBtmSheet = SelectedSong;
 
             CurrentQueue = 0;
-            if (CurrentPage == PageEnum.PlaylistsPage)
+            if (CurrentPage == PageEnum.PlaylistsPage) // plays from a PL
             {
                 CurrentQueue = 1;
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: DisplayedSongsFromPlaylist, repeatMode: CurrentRepeatMode, repeatMaxCount: CurrentRepeatMaxCount);
                 return;
             }
-            if (CurrentPage == PageEnum.FullStatsPage)
+            if (CurrentPage == PageEnum.FullStatsPage) // plays according to their stats
             {
                 CurrentQueue = 1;
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: TopTenPlayedSongs.Select(x => x.Song).ToObservableCollection()!);
                 //ShowGeneralTopXSongs();
                 return;
             }
+            // below here is for when on full or specific album page since it's ok and album actually has both
             if (CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllAlbumsPage && SelectedSong != null)
             {
                 CurrentQueue = 1;
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
                 return;
             }
-
-            if (CurrentQueue == 1)
-            {
-                await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
-                return;
-            }
-            if (IsOnSearchMode)
+            if (IsOnSearchMode) // here is for when I searched and I'm passing also the list of songs displayed too
             {
                 CurrentQueue = 1;
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: filteredSongs.ToObservableCollection());
             }
-            else
+            else // default playing on main page
             {
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue);
             }
@@ -480,7 +489,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
-        TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        TemporarilyPickedSong.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         await PlayBackService.PlayNextSongAsync();
@@ -634,22 +643,23 @@ public partial class HomePageVM : ObservableObject
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
 
-            var s = DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id);
+            var s = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId);
             if (s is not null)
             {
-                DisplayedSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong.Id).IsCurrentPlayingHighlight = true;
+                DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId).IsCurrentPlayingHighlight = true;
             }
 
         }
         else
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
-            TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.Id == lastID);
+            TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == lastID);
             if (TemporarilyPickedSong is null)
             {
                 IsTemporarySongNull = true;
             }
                 return;
+            
         }
         //TemporarilyPickedSong.CoverImagePath = await FetchSongCoverImage();
         SongPickedForStats ??= new SingleSongStatistics();
@@ -661,10 +671,10 @@ public partial class HomePageVM : ObservableObject
     {
         // Sort by DateAdded in descending order and take the top X songs
         var recentSongs = displayedSongs
-            .OrderByDescending(song => song.DateAdded)  
+            .OrderByDescending(song => song.Instance.DateCreated)  
             .Take(number)  
             .ToList(); 
-
+        
         return new ObservableCollection<SongModelView>(recentSongs);
     }
 
@@ -672,21 +682,23 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     ObservableCollection<SingleSongStatistics> lastFifteenPlayedSongs;
 
-    public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongModelView> allSongs, int number = 15)
+    public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongModelView>? allSongs, int number = 15)
     {
-        var recentPlays = allSongs
-            .Where(song => song.DatesPlayedAndWasPlayCompleted != null && song.DatesPlayedAndWasPlayCompleted.Count > 0) // Ensure the list is not null or empty
-            .SelectMany(song => song.DatesPlayedAndWasPlayCompleted
-                .Select(play => new SingleSongStatistics
-                {
-                    Song = song, 
-                    PlayDateTime = play.DatePlayed
-                }))
-            .OrderByDescending(stat => stat.PlayDateTime)
-            .Take(number) 
-            .ToList();
+        //if (allSongs is null)
+            return Enumerable.Empty<SingleSongStatistics>();
+        //var recentPlays = allSongs
+        //    .Where(song => song.DatesPlayedAndWasPlayCompleted != null && song.DatesPlayedAndWasPlayCompleted.Count > 0) // Ensure the list is not null or empty
+        //    .SelectMany(song => song.DatesPlayedAndWasPlayCompleted
+        //        .Select(play => new SingleSongStatistics
+        //        {
+        //            Song = song, 
+        //            PlayDateTime = play.DatePlayed
+        //        }))
+        //    .OrderByDescending(stat => stat.PlayDateTime)
+        //    .Take(number) 
+        //    .ToList();
 
-        return recentPlays;
+        //return recentPlays;
     }
 
 
@@ -725,7 +737,7 @@ public partial class HomePageVM : ObservableObject
                
                 break;
             case MediaPlayerState.LoadingSongs:
-                LoadingSongsProgress = PlayBackService.LoadingSongsProgressPercentage;
+                
                 break;
             case MediaPlayerState.ShowPauseBtn:
                 IsPlaying = true;
@@ -809,7 +821,7 @@ public partial class HomePageVM : ObservableObject
                     CurrentViewIndex = 0;
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
-                SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == TemporarilyPickedSong!.Id)!.HasLyrics = true;
+                SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong!.LocalDeviceId)!.HasLyrics = true;
             }
         }
     }
@@ -875,6 +887,10 @@ public partial class HomePageVM : ObservableObject
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
             DisplayedSongs = songs;  //.Take(20).ToObservableCollection();
+            if (SongsMgtService.AllSongs is null)
+            {
+                return;
+            }
             TotalNumberOfSongs = SongsMgtService.AllSongs.Count;
 
             //ReloadSizeAndDuration();
@@ -982,16 +998,16 @@ public partial class HomePageVM : ObservableObject
         if (!isSync)
         {
             SelectedSongToOpenBtmSheet.HasLyrics = true;
-            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.plainLyrics;
+            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.PlainLyrics;
             SelectedSongToOpenBtmSheet.HasSyncedLyrics = false;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.plainLyrics, SelectedSongToOpenBtmSheet, isSync);
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
         else
         {
             SelectedSongToOpenBtmSheet.HasLyrics = false;
             SelectedSongToOpenBtmSheet.UnSyncLyrics = string.Empty;
             SelectedSongToOpenBtmSheet.HasSyncedLyrics = true;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.syncedLyrics, SelectedSongToOpenBtmSheet, isSync);
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
         if (isSavedSuccessfully)
         {
@@ -1008,10 +1024,10 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        LyricsManagerService.InitializeLyrics(cont.syncedLyrics);
-        if (DisplayedSongs.FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id) is not null)
+        LyricsManagerService.InitializeLyrics(cont.SyncedLyrics);
+        if (DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId== SelectedSongToOpenBtmSheet.LocalDeviceId) is not null)
         {
-            DisplayedSongs.FirstOrDefault(x => x.Id == SelectedSongToOpenBtmSheet.Id)!.HasLyrics = true;
+            DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)!.HasLyrics = true;
         }
         if (PlayBackService.CurrentQueue != 2)
         {
@@ -1147,7 +1163,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public async Task FetchAlbumCoverImage(AlbumModelView album)
     {
-        var firstSong = DisplayedSongs.Where(x => x.Id == album.Id).FirstOrDefault();
+        var firstSong = DisplayedSongs.Where(x => x.LocalDeviceId == album.LocalDeviceId).FirstOrDefault();
         if (album is not null)
         {
 
@@ -1162,7 +1178,7 @@ public partial class HomePageVM : ObservableObject
         }
         else
         {
-            AllAlbums.FirstOrDefault(x => x.Id == album.Id).AlbumImagePath= await LyricsManagerService.FetchAndDownloadCoverImage(firstSong.Title, firstSong.ArtistName, firstSong.AlbumName,firstSong);
+            AllAlbums.FirstOrDefault(x => x.LocalDeviceId == album.LocalDeviceId).AlbumImagePath= await LyricsManagerService.FetchAndDownloadCoverImage(firstSong.Title, firstSong.ArtistName, firstSong.AlbumName,firstSong);
         }
         
     }

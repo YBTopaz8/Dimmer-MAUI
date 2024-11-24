@@ -43,7 +43,7 @@ public partial class ArtistsPageM : ContentPage
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        await HomePageVM.GetSongsFromAlbumId(curSel!.Id);
+        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
     }
 
     private void SingleSongBtn_Clicked(object sender, EventArgs e)

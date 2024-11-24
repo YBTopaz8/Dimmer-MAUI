@@ -11,7 +11,7 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:dx="http://schemas.devexpress.com/maui"
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
             x:DataType="vm:HomePageVM" ShowGrabber="False"
             State="{Binding NowPlayBtmSheetState}"

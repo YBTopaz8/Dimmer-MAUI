@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Collections.Generic;
+
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -38,9 +40,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     [ObservableProperty]
     string totalSongsDuration;
     ISongsManagementService SongsMgtService { get; }
-    IStatsManagementService StatsMgtService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
-    public IArtistsManagementService ArtistsMgtService { get; }
+    
     [ObservableProperty]
     ObservableCollection<PlaylistModelView>? allPlaylists;
     [ObservableProperty]
@@ -60,17 +61,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public int CurrentRepeatCount { get; set; } = 1;
     bool isSongPlaying;
 
-    List<ObjectId> playedSongsIDs = [];
-    Random _shuffleRandomizer = new Random();
+    List<string> playedSongsIDs = [];
+    Random _shuffleRandomizer = Random.Shared;
     SortingEnum CurrentSorting;
     public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
-        IStatsManagementService statsMgtService, IPlaylistManagementService playlistManagementService,
-        IArtistsManagementService artistsMgtService)
+        IPlaylistManagementService playlistManagementService)
     {
         this.SongsMgtService = SongsMgtService;
-        StatsMgtService = statsMgtService;
         PlaylistManagementService = playlistManagementService;
-        ArtistsMgtService = artistsMgtService;
+        
         audioService = AudioService;
 
         audioService.PlayPrevious += AudioService_PlayPrevious;
@@ -89,7 +88,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         LoadFirstPlaylist();
         AllPlaylists = PlaylistManagementService.AllPlaylists?.ToObservableCollection();
-        AllArtists = ArtistsMgtService.AllArtists?.ToObservableCollection();
+        AllArtists = SongsMgtService.AllArtists?.ToObservableCollection();
     }
 
     private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
@@ -101,417 +100,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #region Setups/Loadings Region
 
 
-    private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
-    HomePageVM? ViewModel { get; set; }
-    private (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistSongLink>?, List<SongModelView>?,
-    List<GenreModelView>?, List<AlbumArtistGenreSongLink>?) LoadSongsAsync(List<string> folderPaths, IProgress<int> progress)
-    {
-        try
-        {
-            var allFiles = GetAllFiles(folderPaths);
-            Debug.WriteLine("Got All Files");
-            if (allFiles.Count == 0)
-            {
-                return (null, null, null, null, null, null);
-            }
-
-            // Fetch existing data from services
-            var existingArtists = ArtistsMgtService.AllArtists;
-            var existingLinks = ArtistsMgtService.AlbumsArtistsSongLink;
-            var existingAlbums = SongsMgtService.AllAlbums;
-            var existingGenres = SongsMgtService.AllGenres is null? [] : SongsMgtService.AllGenres;
-            var oldSongs = SongsMgtService.AllSongs ?? new List<SongModelView>();
-
-            // Initialize collections and dictionaries
-            var newArtists = new List<ArtistModelView>();
-            var newAlbums = new List<AlbumModelView>();
-            var newLinks = new List<AlbumArtistSongLink>();
-            var newGenres = new List<GenreModelView>();
-            var genreLinks = new List<AlbumArtistGenreSongLink>(); // New genre link collection
-            var allSongs = new List<SongModelView>();
-
-            var artistDict = new Dictionary<string, ArtistModelView>(StringComparer.OrdinalIgnoreCase);
-            var albumDict = new Dictionary<string, AlbumModelView>();
-            var genreDict = new Dictionary<string, GenreModelView>();
-
-            int processedFiles = 0;
-            int totalFiles = allFiles.Count;
-
-            foreach (var file in allFiles)
-            {
-                if (IsValidFile(file))
-                {
-                    var songData = ProcessFile(file, existingAlbums.ToList(), albumDict, newAlbums, oldSongs.ToList(),
-                        newArtists, artistDict, newLinks, existingLinks.ToList(), existingArtists.ToList(),
-                        newGenres, genreDict, existingGenres.ToList(), genreLinks); // Pass genreLinks
-
-                    if (songData != null)
-                    {
-                        allSongs.Add(songData);
-                    }
-                }
-
-                processedFiles++;
-                if (processedFiles % 10 == 0) // Report progress every 10 files
-                {
-                    int percentComplete = processedFiles * 100 / totalFiles;
-                    progress.Report(percentComplete);
-                }
-            }
-            Debug.WriteLine("All Processed");
-            ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
-
-            return (newArtists, newAlbums, newLinks, allSongs.ToList(), newGenres, genreLinks); // Return genreLinks
-        }
-        catch (Exception ex)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-                Shell.Current.DisplayAlert("Error while scanning files", ex.Message, "OK")
-            );
-            return (null, null, null, null, null, null);
-        }
-    }
-
-    private List<string> GetAllFiles(List<string> folderPaths)
-    {
-        List<string> allFiles = new();
-
-        foreach (var path in folderPaths.Distinct())
-        {
-            if (path is null)
-            {
-                continue;
-            }
-            allFiles.AddRange(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
-                                .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
-                                .AsParallel()
-                                .ToList());
-        }
-
-        return allFiles;
-    }
-    private bool IsValidFile(string file)
-    {
-        FileInfo fileInfo = new(file);
-        return fileInfo.Length > 1000;
-    }
-    private SongModelView? ProcessFile(
-    string file,
-    List<AlbumModelView> existingAlbums,
-    Dictionary<string, AlbumModelView> albumDict,
-    List<AlbumModelView> newAlbums,
-    List<SongModelView> oldSongs,
-    List<ArtistModelView> newArtists,
-    Dictionary<string, ArtistModelView> artistDict,
-    List<AlbumArtistSongLink> newLinks,
-    List<AlbumArtistSongLink> existingLinks,
-    List<ArtistModelView> existingArtists,
-    List<GenreModelView> newGenres,
-    Dictionary<string, GenreModelView> genreDict,
-    List<GenreModelView> existingGenres,
-    List<AlbumArtistGenreSongLink> genreLinks)
-    {
-        ATL.Track track = new(file);
-        Debug.WriteLine($"Track Name {track.Title}");
-        string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
-        string albumName = string.IsNullOrEmpty(track.Album?.Trim()) ? track.Title : track.Album?.Trim();
-        
-        AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
-        Debug.WriteLine("Got Or Created Album");
-        // Extract artist names
-        var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
-        string mainArtistName = string.Join(", ", artistNames);
-        Debug.WriteLine("Got Artist");
-        var song = CreateSongModel(track, title, albumName, mainArtistName, file);
-        Debug.WriteLine("Got Song");
-        if (!string.IsNullOrEmpty(albumName))
-        {
-            album.AlbumImagePath = song.CoverImagePath;
-        }
-
-        // Check if song already exists
-        if (oldSongs.Any(s => s.Title == title && s.DurationInSeconds == track.Duration))
-        {
-            
-            Debug.WriteLine("Skipping existing song for artist: " + song.ArtistName);
-            return null;
-        }
-
-        // Process artists and links
-        foreach (var artistName in artistNames)
-        {
-            var artist = GetOrCreateArtist(artistName, artistDict, newArtists, existingArtists);
-            
-            CreateLinks(artist, album, song, newLinks, existingLinks); // Create the artist-song link
-        }
-
-        // Process genre and links
-        var genreName = track.Genre?.Trim();
-        if (string.IsNullOrEmpty(genreName))
-        {
-            genreName = "Unknown Genre";
-        }
-        var genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
-
-        // Find the artist-song link to retrieve the ArtistId
-        var artistSongLink = newLinks.FirstOrDefault(l => l.SongId == song.Id);
-
-        if (artistSongLink != null)
-        {
-            var genreLink = new AlbumArtistGenreSongLink
-            {
-                SongId = song.Id,
-                ArtistId = artistSongLink.ArtistId, // Use ArtistId from artist-song link
-                AlbumId = album.Id,
-                GenreId = genre.Id
-            };
-            genreLinks.Add(genreLink);
-        }
-        else
-        {
-            Debug.WriteLine("Artist-Song link not found for song: " + song.Title);
-        }
-        
-
-        return song;
-    }
-
-
-
-    private GenreModelView GetOrCreateGenre(
-    string genreName,
-    Dictionary<string, GenreModelView> genreDict,
-    List<GenreModelView> newGenres,
-    List<GenreModelView> existingGenres)
-    {
-        if (!genreDict.TryGetValue(genreName, out var genre))
-        {
-            genre = existingGenres.FirstOrDefault(g => g.Name.Equals(genreName, StringComparison.OrdinalIgnoreCase));
-            if (genre == null)
-            {
-                genre = new GenreModelView
-                {
-                    Id = ObjectId.GenerateNewId(),
-                    Name = genreName
-                };
-                newGenres.Add(genre);
-            }
-            genreDict[genreName] = genre;
-        }
-
-        return genre;
-    }
-
-
-    private void CreateGenreLink(GenreModelView genre, SongModelView song)
-    {
-        var genreLink = new AlbumArtistGenreSongLink
-        {
-            SongId = song.Id,
-            GenreId = genre.Id
-        };
-
-        // Add this genre-song link to the database or in-memory collection (implement your logic here)
-        // e.g., add to a list or directly add to Realm DB
-    }
-
-    private List<string> GetArtistNames(string? artist, string? albumArtist)
-    {
-        var artistNamesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        // Split and process the main artist names
-        if (!string.IsNullOrEmpty(artist))
-        {
-            var artistNames = artist
-                .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
-                .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(a => a.Trim());
-
-            foreach (var name in artistNames)
-            {
-                artistNamesSet.Add(name);
-            }
-        }
-
-        // Split and process the album artist names, if any
-        if (!string.IsNullOrEmpty(albumArtist))
-        {
-            var albumArtists = albumArtist
-                .Replace(" x ", ",", StringComparison.OrdinalIgnoreCase)  // Replace " x " with ","
-                .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(a => a.Trim());
-
-            foreach (var name in albumArtists)
-            {
-                artistNamesSet.Add(name);  // Add to the set to ensure uniqueness
-            }
-        }
-
-        // Return the artist names as a list
-        return artistNamesSet.ToList();
-    }
-
-
-    private AlbumModelView GetOrCreateAlbum(
-      string albumName,
-      List<AlbumModelView> existingAlbums,
-      Dictionary<string, AlbumModelView> albumDict,
-      List<AlbumModelView> newAlbums)
-    {
-        // Assign "Unknown Album" if albumName is empty or null
-        if (string.IsNullOrEmpty(albumName))
-        {
-            albumName = "Unknown Album";
-        }
-
-        // Check if album already exists in dictionary
-        if (!albumDict.TryGetValue(albumName, out var album))
-        {
-            album = new AlbumModelView
-            {
-                Id = ObjectId.GenerateNewId(),
-                Name = albumName,
-                AlbumImagePath = null // Default value, will be updated later if needed
-            };
-            albumDict[albumName] = album;
-
-            // Check if the album already exists in the database list
-            if (!existingAlbums.Any(a => a.Name == albumName))
-            {
-                newAlbums.Add(album);
-            }
-        }
-
-        return album;
-    }
-
-    private ArtistModelView GetOrCreateArtist(
-        string artistName,
-        Dictionary<string, ArtistModelView> artistDict,
-        List<ArtistModelView> newArtists,
-        List<ArtistModelView> existingArtists)
-    {
-        if (!artistDict.TryGetValue(artistName, out var artist))
-        {
-            artist = existingArtists.FirstOrDefault(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
-            if (artist == null)
-            {
-                artist = new ArtistModelView
-                {
-                    Id = ObjectId.GenerateNewId(),
-                    Name = artistName,
-                    ImagePath = null
-                };
-                newArtists.Add(artist);
-            }
-            artistDict[artistName] = artist;
-        }
-
-        return artist;
-    }
-
-    private void CreateLinks(
-      ArtistModelView artist,
-      AlbumModelView album,
-      SongModelView song,
-      List<AlbumArtistSongLink> newLinks,
-      List<AlbumArtistSongLink> existingLinks)
-    {
-        var newLink = new AlbumArtistSongLink
-        {
-            ArtistId = artist.Id,
-            AlbumId = album.Id,
-            SongId = song.Id
-        };
-
-        if (!existingLinks.Any(l => l.ArtistId == artist.Id && l.AlbumId == album.Id && l.SongId == song.Id))
-        {
-            newLinks.Add(newLink);
-            Debug.WriteLine("Added Artist-Song Link");
-        }
-    }
-
-    private SongModelView CreateSongModel(
-    Track track,
-    string title,
-    string albumName,
-    string artistName,
-    string filePath)
-    {
-        FileInfo fileInfo = new(filePath);
-
-        var song = new SongModelView
-        {
-            Title = title,
-            AlbumName = albumName,
-            ArtistName = artistName,
-            GenreName = track.Genre,
-            ReleaseYear = track.Year,
-            SampleRate = track.SampleRate,
-            FilePath = track.Path,
-            DurationInSeconds = track.Duration,
-            BitRate = track.Bitrate,
-            FileSize = fileInfo.Length,
-            TrackNumber = track.TrackNumber,
-            FileFormat = Path.GetExtension(filePath).TrimStart('.'),
-            HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(filePath.Replace(Path.GetExtension(filePath), ".lrc")),
-            DateAdded = fileInfo.CreationTime,
-            CoverImagePath = GetCoverImagePath(track.Path)
-        };
-
-        return song;
-    }
-
-
-
     public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)
     {
-        isLoadingSongs=true;
-        ViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        ViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        await SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
 
-        // Create a progress reporter
-        var progress = new Progress<int>(percent =>
-        {
-            ObservableLoadingSongsProgress = percent;  // Update UI with the current progress
-        });
-        Debug.WriteLine($"Percentage {ObservableLoadingSongsProgress}");
-        // Load songs from folders asynchronously without blocking the UI
-        (var allArtists, var allAlbums, var allLinks, var songs, var allGenres, var genreLinks) =
-            await Task.Run(() => LoadSongsAsync(folderPaths, progress));
-
-        if (songs is null || allArtists is null || allAlbums is null || allGenres is null || genreLinks is null)
-        {
-            await Shell.Current.DisplayAlert("Error during Scan", "No Songs to Scan", "OK");
-            return false;
-        }
-
-        songs = songs.DistinctBy(x => new { x.Title, x.DurationInSeconds, x.AlbumName, x.ArtistName }).ToList();
-        allArtists = allArtists.DistinctBy(x => x.Name).ToList();
-        allAlbums = allAlbums.DistinctBy(x => x.Name).ToList();
-        allGenres = allGenres.DistinctBy(x => x.Name).ToList();
-        allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId }).ToList();
-        genreLinks = genreLinks.DistinctBy(x => new { x.GenreId, x.SongId }).ToList(); // Ensure unique genre-song links
-
-        // Add songs, artists, albums, and genres to the database
-        AddSongsToDatabase(allArtists, allAlbums, allLinks, songs, allGenres, genreLinks);
-
-        var allSongss = SongsMgtService.AllSongs.Concat(songs).ToObservableCollection();
-        LoadSongsWithSorting(allSongss);
-
-        SongsMgtService.GetSongs();
-
-        ObservableLoadingSongsProgress = 100;
-        ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
         return true;
-    }
-
-    private void AddSongsToDatabase(List<ArtistModelView> allArtists, List<AlbumModelView> allAlbums,
-    List<AlbumArtistSongLink> allLinks, List<SongModelView> songs, List<GenreModelView> allGenres, List<AlbumArtistGenreSongLink> genreLinks)
-    {
-        List<SongsModel> dbSongs = songs?.Select(song => new SongsModel(song)).ToList()!;
-        ArtistsMgtService.AddSongToArtistWithArtistIDAndAlbumAndGenre(allArtists, allAlbums, 
-            allLinks, dbSongs, allGenres, genreLinks);
-
     }
 
 
@@ -519,6 +113,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         if (songss == null || songss.Count < 1)
         {
+            if (SongsMgtService.AllSongs is null)
+            {
+                return;
+            }
             songss = SongsMgtService.AllSongs.ToObservableCollection();
         }
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
@@ -528,15 +126,34 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         ToggleShuffle(IsShuffleOn);
     }
 
+    public void FullRefresh()
+    {
+       
+       var songss = SongsMgtService.AllSongs.ToObservableCollection();
+       
+        CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
+        var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
+        
+        _nowPlayingSubject.OnNext(sortedSongs);
+
+        
+        
+        ToggleShuffle(IsShuffleOn);
+    }
+
     public SongModelView? lastPlayedSong { get; set; }
 
     private void LoadLastPlayedSong()
     {
+        if (SongsMgtService.AllSongs is null)
+        {
+            return;
+        }
         var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
         if (lastPlayedSongID is not null)
         {
-            lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.Id == (ObjectId)lastPlayedSongID);
-
+            lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == (string)lastPlayedSongID);
+            
             if (lastPlayedSong is null)
             {
                 return;
@@ -735,7 +352,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         int repeatMode = 0, int repeatMaxCount = 0,
         bool IsFromPreviousOrNext = false, AppState CurrentAppStatee = AppState.OnForeGround)
     {
-        ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentQueue = currentQueue;
         if (currentList is not null && CurrentQueue == 1)
         {
@@ -783,7 +400,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 if (!File.Exists(song.FilePath))
                 {
-                    await SongsMgtService.DeleteSongFromDB(song.Id);                    
+                    SongsMgtService.DeleteSongFromDB(song);                    
                     _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());                    
                     return false;
                 }
@@ -829,12 +446,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 await audioService.PlayAsync(true);
             }
             _positionTimer.Start();
-            ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted ??= new ObservableCollection<PlayDateAndIsPlayCompletedModelView>();
-            ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted.Add(new PlayDateAndIsPlayCompletedModelView
-            {
-                DatePlayed = DateTimeOffset.Now,
-                WasPlayCompleted = false // Mark as incomplete
-            });
 
             ViewModel!.SetPlayerState(MediaPlayerState.Playing);
             _playerStateSubject.OnNext(MediaPlayerState.Playing);
@@ -854,6 +465,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
             {
+                ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+                ObservableCurrentlyPlayingSong.IsPlaying = true;
+
+                PlayDateAndCompletionStateSongLink links = new()
+                {
+                    DatePlayed = DateTime.Now,
+                    PlayType = 0,
+                    SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
+                };
+
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 _currentPositionSubject.OnNext(new());
                 
@@ -876,7 +497,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public AppState CurrentAppState = AppState.OnForeGround;
 
 
-    private Random random = new Random();  // Reuse the same Random instance
+    private Random random = Random.Shared;  // Reuse the same Random instance
     bool isTrueShuffle = false;  // Set this based on whether shuffle is enabled
 
     public ObservableCollection<SongModelView> mobileSongOrder;
@@ -942,8 +563,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             Debug.WriteLine($"Error message!!:  {e.Message}");
         }
     }
+    HomePageVM ViewModel;
     public async Task<bool> PauseResumeSongAsync(double currentPosition, bool isPause=false)
     {
+        
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         currentPositionInSec = currentPosition;
         ObservableCurrentlyPlayingSong ??= _nowPlayingSubject.Value.First();
@@ -1052,22 +675,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer = null;
         }
         _currentPositionSubject.OnNext(new());
-        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        if (ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted != null && ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted.Count > 0)
+        ObservableCurrentlyPlayingSong!.IsCurrentPlayingHighlight = false;
+
+        ObservableCurrentlyPlayingSong.IsPlaying = false;
+        ObservableCurrentlyPlayingSong!.IsPlayCompleted = true;
+        PlayDateAndCompletionStateSongLink link = new()
         {
-            // Find the most recent entry with `WasPlayCompleted == false` (meaning not completed yet)
-            var lastPlayEntry = ObservableCurrentlyPlayingSong.DatesPlayedAndWasPlayCompleted
-                .Last();
-
-            if (lastPlayEntry != null)
-            {
-                // Update the play completion flag to `true`
-                lastPlayEntry.WasPlayCompleted = true;  // Mark the song as fully played
-            }
-            SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-        }
-
-
+            DateFinished = DateTimeOffset.Now,
+            WasPlayCompleted = true,
+            SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
+        };
+        SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
+        SongsMgtService.UpdatePlayAndCompletionDetails(link);   
         if (CurrentRepeatMode == 2) // Repeat the same song
         {
             await PlaySongAsync();
@@ -1256,7 +875,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     double currentPosition = 0;
     #endregion
 
-    //ObjectId PreviouslyLoadedPlaylist;
+    //string PreviouslyLoadedPlaylist;
     public int CurrentQueue { get; set; } = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
 
     public void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
@@ -1381,7 +1000,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (firstPlaylist is not null && firstPlaylist.Count > 0)
         {           
             SelectedPlaylistName = firstPlaylist.First().Name;
-            GetSongsFromPlaylistID(firstPlaylist.FirstOrDefault().Id);
+            GetSongsFromPlaylistID(firstPlaylist.FirstOrDefault().LocalDeviceId);
         }
     }
 
@@ -1393,20 +1012,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             playlistModel = anyExistingPlaylist;
         }
         else
-        {
-            playlistModel.Id = ObjectId.GenerateNewId();
+        {         
             playlistModel.Name = playlistModel.Name;
-                playlistModel.DateCreated = DateTimeOffset.Now;
+         
             playlistModel.TotalSongsCount = 1;
             playlistModel.TotalDuration = song.DurationInSeconds;
             playlistModel.TotalSize = song.FileSize;
         
         }
         var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
-        {
-            Id = ObjectId.GenerateNewId(),
-            PlaylistId = playlistModel.Id,
-            SongId = song.Id,
+        {            
+            PlaylistId = playlistModel.LocalDeviceId,
+            SongId = song.LocalDeviceId,
         };
 
         PlaylistManagementService.UpdatePlayList(playlistModel, newPlaylistSongLinkByUserManual, true);
@@ -1414,10 +1031,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //GetAllPlaylists(); it's called in HomePageVM but let's see
     }
 
-    public void RemoveSongFromPlayListWithPlayListID(SongModelView song, ObjectId playlistID)
+    public void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID)
     {
         var playlists = PlaylistManagementService.GetPlaylists();
-        var specificPlaylist = playlists.FirstOrDefault(x => x.Id == playlistID);
+        var specificPlaylist = playlists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
         if (specificPlaylist is not null)
         {
             var songsInPlaylist = _secondaryQueueSubject.Value;
@@ -1431,18 +1048,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         PlaylistManagementService.UpdatePlayList(specificPlaylist, IsRemoveSong: true);
     }
 
-    public List<SongModelView> GetSongsFromPlaylistID(ObjectId playlistID)
+    public List<SongModelView> GetSongsFromPlaylistID(string playlistID)
     {
         try
         {
-            var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Id == playlistID);
-            var songsIdsFromPL = new HashSet<ObjectId>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.Id));
+            var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
+            var songsIdsFromPL = new HashSet<string>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.LocalDeviceId));
             var songsFromPlaylist = SongsMgtService.AllSongs;
             List<SongModelView> songsinpl = new();
             songsinpl?.Clear();
             foreach (var song in songsFromPlaylist)
             {
-                if (songsIdsFromPL.Contains(song.Id))
+                if (songsIdsFromPL.Contains(song.LocalDeviceId))
                 {
                     songsinpl.Add(song);
                 }
@@ -1473,11 +1090,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public ObservableCollection<ArtistModelView> GetAllArtists()
     {
-        ArtistsMgtService.GetArtists();
-        if (ArtistsMgtService.AllArtists is null)
+        SongsMgtService.GetArtists();
+        if (SongsMgtService.AllArtists is null)
             return Enumerable.Empty<ArtistModelView>().ToObservableCollection();
 
-        AllArtists = new ObservableCollection<ArtistModelView>(ArtistsMgtService.AllArtists);
+        AllArtists = new ObservableCollection<ArtistModelView>(SongsMgtService.AllArtists);
         return AllArtists;
     }
     public ObservableCollection<AlbumModelView> GetAllAlbums()
@@ -1486,37 +1103,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         AllAlbums = new ObservableCollection<AlbumModelView>(SongsMgtService.AllAlbums);
         return AllAlbums;
     }
-    public IList<SongModelView> GetSongsFromArtistID(ObjectId artistID)
-    {
-        try
-        {
-            var specificArtist = ArtistsMgtService.AllArtists.FirstOrDefault(x => x.Id == artistID);
-            var songsIDsFromArtists = new HashSet<ObjectId>(ArtistsMgtService.GetSongsIDsFromArtistID(specificArtist.Id));
-            var songsFromArtist = SongsMgtService.AllSongs;
-            List<SongModelView> songsfromartist = new();
-            songsfromartist?.Clear();
-            foreach (var song in songsFromArtist)
-            {
-                if (songsIDsFromArtists.Contains(song.Id))
-                {
-                    songsfromartist.Add(song);
-                }
-            }
-            return songsfromartist ?? Enumerable.Empty<SongModelView>().ToList();
-            ;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting songs from playlist: {ex.Message}");
-            return Enumerable.Empty<SongModelView>().ToList();
-        }
-    }
+    
 
-    public ObservableCollection<SongModelView> GetAllArtistsAlbumSongsAlbumID(ObjectId albumID)
+    public ObservableCollection<SongModelView> GetAllArtistsAlbumSongsAlbumID(string albumID)
     {
         try
         {
-            var artistID = SongsMgtService.AllLinks.FirstOrDefault(x=>x.AlbumId == albumID).ArtistId;
+            var artistID = SongsMgtService.AllLinks.FirstOrDefault(x=>x.AlbumId == albumID)!.ArtistId;
 
             var allSongIDsLinkedToArtistID = SongsMgtService.AllLinks.
                 Where(x => x.ArtistId == artistID)
@@ -1524,7 +1117,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 .ToList();
 
             var allSongsLinkedToArtist = SongsMgtService.AllSongs
-                .Where(song => allSongIDsLinkedToArtistID.Contains(song.Id))
+                .Where(song => allSongIDsLinkedToArtistID.Contains(song.LocalDeviceId))
                 .ToObservableCollection();
 
             return allSongsLinkedToArtist;
@@ -1536,49 +1129,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public ObservableCollection<SongModelView> GetallArtistsSongsByArtistId(ObjectId artistID)
-    {
-        try
-        {
-            ObservableCollection<SongModelView> songsFromArtist = new();
 
-            // Get all song IDs associated with the artist
-            
-            var songsIDsFromArtist = ArtistsMgtService.GetSongsIDsFromArtistID(artistID);
-
-            // Add each song found by its ID
-            foreach (var songId in songsIDsFromArtist)
-            {
-                var song = SongsMgtService.AllSongs.FirstOrDefault(s => s.Id == songId);
-                if (song != null)
-                {
-                    songsFromArtist.Add(song);  // Assuming AllSongs returns SongsModelView objects
-                }
-            }
-
-            return songsFromArtist;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting songs by artist ID: {ex.Message}");
-            return (Enumerable.Empty<SongModelView>().ToObservableCollection());
-        }
-    }
-
-
-    public bool DeletePlaylistThroughID(ObjectId playlistID)
+    public bool DeletePlaylistThroughID(string playlistID)
     {
         //TODO: DO THIS TOO
         throw new NotImplementedException();
     }
 
-    public async Task DeleteSongFromHomePage(SongModelView song)
+    public void DeleteSongFromHomePage(SongModelView song)
     {
         // Get the current list from the subject
         var list = nowPlayingShuffledOrNotSubject.ToList();
 
         // Find the index of the song using its unique ID
-        var index = list.FindIndex(x => x.Id == song.Id); // Assuming each song has a unique Id
+        var index = list.FindIndex(x => x.LocalDeviceId == song.LocalDeviceId); // Assuming each song has a unique Id
 
         if (index != -1) // If the song was found
         {
@@ -1590,7 +1154,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
 
-        await SongsMgtService.DeleteSongFromDB(song.Id);
+        SongsMgtService.DeleteSongFromDB(song);
         _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
     }
     public async Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs)
@@ -1599,7 +1163,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         var list = _nowPlayingSubject.Value;
 
         // Filter out all songs in the passed collection
-        list = list.Where(x => !songs.Any(s => s.Id == x.Id)).ToObservableCollection();
+        list = list.Where(x => !songs.Any(s => s.LocalDeviceId == x.LocalDeviceId)).ToObservableCollection();
         
         _nowPlayingSubject.OnNext(list.ToObservableCollection());        
 

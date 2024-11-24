@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.SingleSongStatsPageD"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              

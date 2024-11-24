@@ -21,17 +21,17 @@ public partial class AlbumsM : ContentPage
     //    var song = s.BindingContext as SongsModelView;
     //    HomePageVM.PlaySongCommand.Execute(song);
     //}
-    ObjectId previousAlbID = ObjectId.Empty;
+    string previousAlbID = string.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
         var t = (View)sender;
         var album = t.BindingContext as AlbumModelView;
-        if (previousAlbID == album!.Id)
+        if (previousAlbID == album!.LocalDeviceId)
         {
             return;
         }
-        HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album.Id);
-        previousAlbID = album.Id;
+        HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album.LocalDeviceId);
+        previousAlbID = album.LocalDeviceId;
     }
 
     protected override void OnAppearing()

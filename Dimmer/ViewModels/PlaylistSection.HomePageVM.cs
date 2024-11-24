@@ -24,10 +24,10 @@ public partial class HomePageVM
     PlaylistModelView selectedPlaylist;
 
     [RelayCommand]
-    public async Task OpenSpecificPlaylistPage(ObjectId PlaylistID)//string playlistName)
+    public async Task OpenSpecificPlaylistPage(string PlaylistID)//string playlistName)
     {
 
-        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.Id == PlaylistID)!;
+        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
         DisplayedSongsFromPlaylist?.Clear();
         DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
         //PlayListService.GetSongsFromPlaylistID
@@ -48,7 +48,7 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public async Task UpdatePlayList(SongModelView song, PlaylistModelView playlistModel =null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public async Task UpdatePlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {
@@ -68,13 +68,13 @@ public partial class HomePageVM
         else if (IsRemoveSong)
         {
             DisplayedSongsFromPlaylist.Remove(song);
-            PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.Id);
+            PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId);
             var toast = Toast.Make(songDeletedFromPlaylistText, duration);
             await toast.Show(cts.Token);
         }
         else if (IsDeletePlaylist)
         {
-            PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.Id);
+            PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.LocalDeviceId);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(PlaylistDeletedText, duration);
             await toast.Show(cts.Token);
@@ -86,7 +86,7 @@ public partial class HomePageVM
         RefreshPlaylists();
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
-            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].Id);
+            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId);
         }
     }
     [RelayCommand]
@@ -108,7 +108,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task DeletePlaylist()
     {
-        PlayBackService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.Id);
+        PlayBackService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.LocalDeviceId);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();
         var toast = Toast.Make(PlaylistDeletedText, duration);
         await toast.Show(cts.Token);
@@ -124,7 +124,7 @@ public partial class HomePageVM
     [RelayCommand]
     void RenamePlaylist(string newPlaylistName)
     {
-        //PlaylistManagementService.RenamePlaylist(SelectedPlaylistToOpenBtmSheet.Id, newPlaylistName);
+        //PlaylistManagementService.RenamePlaylist(SelectedPlaylistToOpenBtmSheet.LocalDeviceId, newPlaylistName);
         //HiDisplayedPlaylists = PlayListService.GetAllPlaylists();
     }
 

@@ -164,10 +164,10 @@ public class MediaPlayerService : Service,
     {
         base.OnCreate();
         //Find our audio and notificaton managers
-        audioManager = (AudioManager)GetSystemService(AudioService);
-        wifiManager = (WifiManager)GetSystemService(WifiService);
+        audioManager = (AudioManager)GetSystemService(AudioService)!;
+        wifiManager = (WifiManager)GetSystemService(WifiService)!;
 
-        remoteComponentName = new ComponentName(PackageName, new RemoteControlBroadcastReceiver().ComponentName);
+        remoteComponentName = new ComponentName(PackageName!, new RemoteControlBroadcastReceiver().ComponentName);
     }
 
     /// <summary>
@@ -597,8 +597,8 @@ public class MediaPlayerService : Service,
                     PlaybackState.ActionStop |
                     PlaybackState.ActionSeekTo |
                     PlaybackState.ActionSetRating
-                )
-                .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime());
+                )!
+                .SetState(state, SeekedPosition, 1.0f, SystemClock.ElapsedRealtime())!;
 
             mediaSession.SetPlaybackState(stateBuilder.Build());
 
@@ -710,8 +710,7 @@ public class MediaPlayerService : Service,
         {
             if (mediaSession != null)
             {
-                mediaSession.Dispose();
-                mediaSession = null;
+                mediaSession.Dispose();                
             }
         }
         catch (Exception ex)
@@ -743,7 +742,6 @@ public class MediaPlayerService : Service,
         if (mediaPlayer != null)
         {
             mediaPlayer.Release();
-            mediaPlayer = null;
 
             NotificationHelper.StopNotification(Platform.AppContext);
             StopForeground(StopForegroundFlags.Detach);

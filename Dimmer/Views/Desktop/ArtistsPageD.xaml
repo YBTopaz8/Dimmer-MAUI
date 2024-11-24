@@ -7,7 +7,7 @@
             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"

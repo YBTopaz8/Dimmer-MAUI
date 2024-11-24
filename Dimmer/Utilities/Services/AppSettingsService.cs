@@ -42,16 +42,16 @@ public class AppSettingsService : IAppSettingsService
             set => Preferences.Default.Set(nameof(LastPlayedSongId), value);
         }
 
-        public static void SetLastPlayedSong(ObjectId songID)
+        public static void SetLastPlayedSong(string songID)
         {
-            if (songID != ObjectId.Empty)
+            if (songID != string.Empty)
             {
                 LastPlayedSongId = songID.ToString();
             }
         }
-        public static ObjectId? GetLastPlayedSong()
+        public static string? GetLastPlayedSong()
         {
-            return LastPlayedSongId is null ? null : new ObjectId(LastPlayedSongId);
+            return LastPlayedSongId is null ? null : new string(LastPlayedSongId);
         }
     }
 
@@ -166,10 +166,10 @@ public class AppSettingsService : IAppSettingsService
                 colToSort = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
                 break;
             case SortingEnum.DateAddedAsc:
-                colToSort = colToSort.OrderBy(x => x.DateAdded).ToObservableCollection();
+                colToSort = colToSort.OrderBy(x => x.Instance.DateCreated).ToObservableCollection();
                 break;
             case SortingEnum.DateAddedDesc:
-                colToSort = colToSort.OrderByDescending(x => x.DateAdded).ToObservableCollection();
+                colToSort = colToSort.OrderByDescending(x => x.Instance.DateCreated).ToObservableCollection();
                 break;
             case SortingEnum.DurationAsc:
                 colToSort = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
@@ -183,21 +183,21 @@ public class AppSettingsService : IAppSettingsService
             case SortingEnum.YearDesc:
                 colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
                 break;
-            case SortingEnum.NumberOfTimesPlayedAsc:
-                colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
-                break;
+            //case SortingEnum.NumberOfTimesPlayedAsc:
+            //    colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
+            //    break;
 
-            case SortingEnum.NumberOfTimesPlayedDesc:
-                colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
-                break;
+            //case SortingEnum.NumberOfTimesPlayedDesc:
+            //    colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
+            //    break;
 
-            case SortingEnum.NumberOfTimesPlayedCompletelyAsc:
-                colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
-                break;
+            //case SortingEnum.NumberOfTimesPlayedCompletelyAsc:
+            //    colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
+            //    break;
 
-            case SortingEnum.NumberOfTimesPlayedCompletelyDesc:
-                colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
-                break;
+            //case SortingEnum.NumberOfTimesPlayedCompletelyDesc:
+            //    colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
+            //    break;
                 
             case SortingEnum.RatingAsc:
                 colToSort = colToSort.OrderBy(x => x.Rating).ToObservableCollection();

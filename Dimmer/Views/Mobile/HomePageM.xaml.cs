@@ -9,6 +9,7 @@ public partial class HomePageM : ContentPage
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         Shell.SetNavBarIsVisible(this, true);
+
         
     }
 
@@ -16,6 +17,14 @@ public partial class HomePageM : ContentPage
     private void SongsColView_Loaded(object? sender, EventArgs e)
     {        
         SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+        //SongsColView.GetItemHandleByVisibleIndex(visibleIndex:); param type is int
+        //SongsColView.VisibleItemCount // type int, get the number of visible items in the collection view
+        //SongsColView.GetItemVisibleIndex(itemHandle:); // param type is int. Get the visible index of the item by its handle
+        //there also exists a method to get the handle of item by object 
+        //SongsColView.FindItemHandle(item: HomePageVM.PickedSong); // param type is object. Get the handle of the item by its object
+
+        //SongsColView.GetItemHandleByVisibleIndex(visibleIndex: 0); // param type is int. Get the handle of the item by its visible index\
+        //SongsColView.GetItemHandle(sourceIndex: 0); // param type is int. Get the handle of the item by its source index
     }
 
 
@@ -86,6 +95,30 @@ public partial class HomePageM : ContentPage
             SongsMenuBtm.Show();
         }
     }
+    // Assume SongsColView is your CollectionView and HomePageVM.FilteredSongs is the data source
+    public List<SongModelView> GetVisibleItems()
+    {
+        var visibleItems = new List<SongModelView>();
+        int visibleCount = SongsColView.VisibleItemCount;
+
+        for (int i = 0; i < visibleCount; i++)
+        {
+            // Get the handle of the item by visible index
+            var handle = SongsColView.GetItemHandleByVisibleIndex(i);
+
+            if (handle != -1) // Ensure the handle is valid
+            {
+                // Retrieve the object using the handle
+                SongModelView? item = (SongModelView?)SongsColView.GetItem(handle);
+                if (item != null)
+                {
+                    visibleItems.Add(item);
+                }
+            }
+        }
+
+        return visibleItems;
+    }
 
     private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
@@ -93,7 +126,14 @@ public partial class HomePageM : ContentPage
         if (HomePageVM.IsOnSearchMode)
         {
             HomePageVM.CurrentQueue = 1;
+            var filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
+                     .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
+                     .Where(handle => handle != -1)
+                     .Select(handle => SongsColView.GetItem(handle) as SongModelView)
+                     .Where(item => item != null)
+                     .ToList()!;
             HomePageVM.filteredSongs = filteredSongs;
+
         }
         await HomePageVM.PlaySong(e.Item as SongModelView);
     }
@@ -164,7 +204,7 @@ public partial class HomePageM : ContentPage
                 break;
             case "3":
                 SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
-                var servicee = IPlatformApplication.Current.Services.GetRequiredService<IPlaybackUtilsService>();
+                var servicee = IPlatformApplication.Current!.Services.GetRequiredService<IPlaybackUtilsService>()!;
 
                 break;
             default:
@@ -323,3 +363,42 @@ public partial class HomePageM : ContentPage
 }
 
 
+public static class CollectionViewHelper
+{
+    /// <summary>
+    /// Prints the Title of each visible item in the CollectionView in the order they appear.
+    /// </summary>
+    /// <param name="collectionView">The CollectionView instance to process.</param>
+    public static void PrintVisibleItemsTitles(dynamic collectionView)
+    {
+        // Ensure the collectionView is not null
+        if (collectionView == null)
+        {
+            Console.WriteLine("CollectionView is null.");
+            return;
+        }
+
+        // Get the number of visible items
+        int visibleCount = collectionView.VisibleItemCount;
+
+        Console.WriteLine($"Visible Items Count: {visibleCount}");
+
+        // Iterate through the visible items
+        for (int i = 0; i < visibleCount; i++)
+        {
+            // Get the handle of the item by its visible index
+            var handle = collectionView.GetItemHandleByVisibleIndex(i);
+
+            if (handle != -1) // Ensure the handle is valid
+            {
+                // Retrieve the item using the handle
+                var item = collectionView.GetItem(handle);
+
+                if (item != null && item.Title != null) // Ensure the item and Title are valid
+                {
+                    Console.WriteLine($"Visible Index {i}: {item.Title}");
+                }
+            }
+        }
+    }
+}

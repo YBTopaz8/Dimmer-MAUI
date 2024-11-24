@@ -27,7 +27,7 @@ public partial class HomePageVM
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongModelView song)
     {
         SelectedSongToOpenBtmSheet = song;
-        var songAlbum = GetAlbumFromSongId(song.Id);
+        var songAlbum = GetAlbumFromSongId(song.LocalDeviceId);
         
         await NavigateToSpecificAlbumPage(songAlbum);
 
@@ -37,9 +37,9 @@ public partial class HomePageVM
     [RelayCommand]
     async Task NavigateToSpecificAlbumPage(AlbumModelView selectedAlbum)
     {
-        SelectedArtistOnArtistPage = GetArtistFromAlbumId(selectedAlbum.Id);
-        SelectedAlbumOnArtistPage = AllAlbums.First(x => x.Id == selectedAlbum.Id);
-        SelectedAlbumOnArtistPage.NumberOfTracks = SongsMgtService.GetSongsCountFromAlbumID(selectedAlbum.Id);
+        SelectedArtistOnArtistPage = GetArtistFromAlbumId(selectedAlbum.LocalDeviceId);
+        SelectedAlbumOnArtistPage = AllAlbums.First(x => x.LocalDeviceId == selectedAlbum.LocalDeviceId);
+        //SelectedAlbumOnArtistPage.NumberOfTracks = SongsMgtService.GetSongsCountFromAlbumID(selectedAlbum.LocalDeviceId);
         SelectedAlbumOnArtistPage.AlbumImagePath = SongsMgtService.AllSongs.First(x => x.AlbumName == SelectedAlbumOnArtistPage.Name).CoverImagePath;
         SelectedAlbumOnArtistPage.TotalDuration = TimeSpan
             .FromSeconds(SongsMgtService.AllSongs
@@ -65,7 +65,7 @@ public partial class HomePageVM
 #elif ANDROID
         await Shell.Current.GoToAsync(nameof(ArtistsPageM));
 #endif
-        //GetAllArtistsAlbum(SelectedSongToOpenBtmSheet.Id, SelectedSongToOpenBtmSheet);
+        //GetAllArtistsAlbum(SelectedSongToOpenBtmSheet.LocalDeviceId, SelectedSongToOpenBtmSheet);
     }
     
     public void GetAllAlbums()
@@ -75,6 +75,7 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
+        AllLinks = SongsMgtService.AllLinks.ToList();
         if (SelectedArtistOnArtistPage != null)
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         if (SelectedAlbumOnArtistPage != null)
@@ -98,12 +99,13 @@ public partial class HomePageVM
 #endif
             }
         }
+
     }
 
     public async void GetAllArtistsAlbum(AlbumModelView? album = null, SongModelView? song = null, bool isFromSong = false)
     {
-        if(!SongsMgtService.AllSongs.Contains(TemporarilyPickedSong!))
-            return;
+        //if(!SongsMgtService.AllSongs.Contains(TemporarilyPickedSong!))
+        //    return;
         if(SelectedAlbumOnArtistPage is not null)
             SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         if (isFromSong)
@@ -112,17 +114,20 @@ public partial class HomePageVM
             {
                 return;
             }
-            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.SongId == song!.Id)!.ArtistId)!;
-            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+            
+            SelectedArtistOnArtistPage = GetArtistFromSongId(song.LocalDeviceId);
+            if (SelectedArtistOnArtistPage is not null)
+            {
+                SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+            }
             
         }
-        else
+        else if(album is not null)
         {
-            SelectedAlbumOnArtistPage = album!;
-            
-            SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.AlbumId == album!.Id)!.ArtistId)!;
+            SelectedAlbumOnArtistPage = album!;            
+            SelectedArtistOnArtistPage = GetArtistFromAlbumId(album!.LocalDeviceId);
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
-            SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
+            
             if (SelectedAlbumOnArtistPage is null)
             {
                 return;
@@ -153,34 +158,34 @@ public partial class HomePageVM
     {
         if (AllArtistsAlbums is null)
         {
-            var selectedLink = AllLinks!.FirstOrDefault(link => link.AlbumId == album.Id);
-            SelectedArtistOnArtistPage = AllArtists!.FirstOrDefault(artist => artist.Id == selectedLink?.ArtistId)!;
+            var selectedLink = AllLinks!.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
+            SelectedArtistOnArtistPage = AllArtists!.FirstOrDefault(artist => artist.LocalDeviceId == selectedLink?.ArtistId)!;
 
             
-            List<ObjectId> allAlbums = new List<ObjectId>(); 
+            List<string> allAlbums = new List<string>(); 
             if (SelectedArtistOnArtistPage != null)
             {
                 allAlbums = AllLinks!
-                    .Where(link => link.ArtistId == SelectedArtistOnArtistPage.Id)
+                    .Where(link => link.ArtistId == SelectedArtistOnArtistPage.LocalDeviceId)
                     .Select(link => link.AlbumId)
                     .ToList();
             }
 
-            var allAlbumsSet = new HashSet<ObjectId>(allAlbums); 
+            var allAlbumsSet = new HashSet<string>(allAlbums); 
             AllArtistsAlbums = AllAlbums
-                .Where(album => allAlbumsSet.Contains(album.Id))
+                .Where(album => allAlbumsSet.Contains(album.LocalDeviceId))
                 .ToObservableCollection();
         }
         else
         {
-            SelectedArtistOnArtistPage = GetArtistFromAlbumId(AllArtistsAlbums.FirstOrDefault()!.Id);
+            SelectedArtistOnArtistPage = GetArtistFromAlbumId(AllArtistsAlbums.FirstOrDefault()!.LocalDeviceId);
         }
         SelectedAlbumOnArtistPage = album;
         if (SelectedAlbumOnArtistPage is null)
         {
             return;
         }
-        await GetSongsFromAlbumId(album.Id);
+        await GetSongsFromAlbumId(album.LocalDeviceId);
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
 
         var song = AllArtistsAlbumSongs!.FirstOrDefault();
@@ -193,37 +198,37 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
-    public async Task GetAlbumsFromArtistAsync(ObjectId artistId)
+    public async Task GetAlbumsFromArtistIDAsync(string artistId)
     {
         // Use asynchronous processing with deferred execution
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             // Create a set of album IDs linked to the artist
-            var albumIds = new HashSet<ObjectId>(
+            var albumIds = new HashSet<string>(
                 AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId)
             );
 
             // Filter albums efficiently using the pre-built HashSet
-            var albums = AllAlbums.Where(album => albumIds.Contains(album.Id));
+            var albums = AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId));
 
             // Convert the result to an observable collection for UI binding
             AllArtistsAlbums = albums.ToObservableCollection();
         });
     }
 
-    public async void LoadSongsFromArtistId(ObjectId artistId)
+    public async void LoadSongsFromArtistId(string artistId)
     {
 
         // Ensure the operation runs on the main thread
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             // Pre-build a HashSet of song IDs related to the album for quick lookup
-            var songIds = new HashSet<ObjectId>(
+            var songIds = new HashSet<string>(
                 AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.SongId)
             );
 
             // Filter songs using the HashSet for O(1) lookups
-            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.Id));
+            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.LocalDeviceId!));
 
             AllArtistsAlbumSongs = songs.ToObservableCollection();
         });
@@ -231,49 +236,80 @@ public partial class HomePageVM
     }
 
 
-    public async Task GetSongsFromAlbumId(ObjectId albumId)
+    public async Task GetSongsFromAlbumId(string albumId)
     {
         // Ensure the operation runs on the main thread
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             // Pre-build a HashSet of song IDs related to the album for quick lookup
-            var songIds = new HashSet<ObjectId>(
+            var songIds = new HashSet<string>(
                 AllLinks!.Where(link => link.AlbumId == albumId).Select(link => link.SongId)
             );
 
             // Filter songs using the HashSet for O(1) lookups
-            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.Id));
+            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.LocalDeviceId!));
 
             AllArtistsAlbumSongs = songs.ToObservableCollection();
         });
 
     }
 
+    private Dictionary<string, string> AlbumToArtistMap =>
+    AllLinks!.ToDictionary(link => link.AlbumId, link => link.ArtistId);
 
-    private ArtistModelView GetArtistFromAlbumId(ObjectId albumId)
+    private ArtistModelView GetArtistFromAlbumId(string albumId)
     {
-        return AllArtists.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.AlbumId == albumId)!.ArtistId)!;
+        if (AlbumToArtistMap.TryGetValue(albumId, out var artistId))
+        {
+            return AllArtists.FirstOrDefault(x => x.LocalDeviceId == artistId)!;
+        }
+        return null!;
     }
-    private ArtistModelView GetArtistFromSongId(ObjectId songId)
+    private Dictionary<string, string> SongToArtistMap =>
+       AllLinks!.ToDictionary(link => link.SongId, link => link.ArtistId);
+
+    private ArtistModelView GetArtistFromSongId(string songId)
     {
-        return AllArtists.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.SongId == songId)!.ArtistId)!;
+        if (SongToArtistMap.TryGetValue(songId, out var artistId))
+        {
+            return AllArtists.FirstOrDefault(x => x.LocalDeviceId == artistId)!;
+        }
+        return null!;
     }
-    private AlbumModelView GetAlbumFromSongId(ObjectId songId)
+    private Dictionary<string, string> SongToAlbumMap =>
+        AllLinks!.ToDictionary(link => link.SongId, link => link.AlbumId);
+
+    private AlbumModelView GetAlbumFromSongId(string songId)
     {
-        return AllAlbums.FirstOrDefault(x => x.Id == AllLinks!.FirstOrDefault(x => x.SongId == songId)!.AlbumId)!;
+        if (SongToAlbumMap.TryGetValue(songId, out var albumId))
+        {
+            return AllAlbums.FirstOrDefault(x => x.LocalDeviceId == albumId)!;
+        }
+        return null!;
     }
-    private IEnumerable<AlbumModelView> GetAlbumsFromArtistId(ObjectId artistId)
+
+    private Dictionary<string, HashSet<string>> ArtistToAlbumMap =>
+        AllLinks!
+            .GroupBy(link => link.ArtistId)
+            .ToDictionary(group => group.Key, group => group.Select(link => link.AlbumId).ToHashSet());
+
+    private IEnumerable<AlbumModelView> GetAlbumsFromArtistId(string artistId)
     {
-        var albumIds = AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId).Distinct();
-        var Albums= AllAlbums.Where(album => albumIds.Contains(album.Id));
-        AllArtistsAlbums = Albums.ToObservableCollection();
-        return Albums;
+        if (ArtistToAlbumMap.TryGetValue(artistId, out var albumIds))
+        {
+            var albums = AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId));
+            AllArtistsAlbums = albums.ToObservableCollection();
+            return albums;
+        }
+        return Enumerable.Empty<AlbumModelView>();
     }
 
     public async Task GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
+        if (artist is null)
+            return;
         SelectedArtistOnArtistPage = artist;
-        await GetAlbumsFromArtistAsync(artist.Id);
+         await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
         if (AllArtistsAlbums is null)
         {
             return;
@@ -285,8 +321,12 @@ public partial class HomePageVM
                 
             }
         }
+        if (AllArtistsAlbums.Count<1)
+        {
+            return;
+        }
         SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault()!.AlbumImagePath;
-        LoadSongsFromArtistId(artist.Id);
+        LoadSongsFromArtistId(artist.LocalDeviceId);
         
     }
 

@@ -1,7 +1,7 @@
 ﻿namespace Dimmer_MAUI.MAudioLib;
 public class MediaPlay
 {
-    public ObjectId SongId {  get; set; }
+    public string SongId {  get; set; }
     public string Name { get; set; }
     public string Author { get; set; }
     public string URL { get; set; }

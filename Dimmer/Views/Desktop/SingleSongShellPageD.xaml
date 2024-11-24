@@ -8,7 +8,7 @@
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             x:DataType="vm:HomePageVM"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
-            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Services.Models"     
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
@@ -236,17 +236,17 @@ StrokeShape="RoundRectangle, 10"
 Padding="10" Margin="0,5">
                                             <VerticalStackLayout HorizontalOptions="Start">
 
-                                                <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                                                <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
 
-                                                <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
 
-                                                <HorizontalStackLayout IsVisible="{Binding instrumental}">
+                                                <HorizontalStackLayout IsVisible="{Binding Instrumental}">
                                                     <Label Text="Song is an Intrumental" />
                                                 </HorizontalStackLayout>
 
-                                                <HorizontalStackLayout IsVisible="{Binding instrumental, Converter={StaticResource BoolToInverse}}">
+                                                <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
 
                                                     <Button Text="Plain Lyrics" HorizontalOptions="Center" 
             Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
