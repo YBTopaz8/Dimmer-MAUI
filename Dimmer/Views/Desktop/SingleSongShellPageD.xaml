@@ -140,8 +140,8 @@
 
                         <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
                                                    HorizontalOptions="Center" Command="{Binding RateSongCommand}"
-                                                   CommandParameter="{Binding .}" 
-                                                   AllowRating="True"  BackgroundColor="Transparent"
+                                                   CommandParameter="{Binding .}" EmptyColor="Red" Fill="Transparent"
+                                                   AllowRating="True"  BackgroundColor="Red"
                                                    Maximum="5" 
                                                    >
                             <ratingsView:RatingControl.GestureRecognizers>

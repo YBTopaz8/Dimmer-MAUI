@@ -27,7 +27,7 @@ public interface IPlaybackUtilsService
     int CurrentRepeatMode { get; set; }
     int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
-    Task SetSongPosition(double positionInSec); // to set position from slider
+    Task SeekTo(double positionInSec); // to set position from slider
     void ChangeVolume(double newVolumeValue);
     void SearchSong(string songTitleOrArtistName,List<string>? selectedFilters, int Rating); //to search song with title
     void DecreaseVolume();

@@ -2,16 +2,16 @@ namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
 {
-	public DimmerWindow(HomePageVM homepageVM)
+	public DimmerWindow(Lazy<HomePageVM> viewModel)
 	{
         InitializeComponent();
-        HomepageVM = homepageVM;
-        BindingContext = homepageVM;
+        HomepageVM = viewModel;
+        BindingContext = viewModel;
+        
     }
 
-    public HomePageVM HomepageVM { get; }
+    public Lazy<HomePageVM> HomepageVM { get; }
 
-    
     protected override void OnCreated()
     {
         base.OnCreated();
@@ -29,8 +29,8 @@ public partial class DimmerWindow : Window
         DimmerTitleBar.Subtitle = "v0.4.2-release";
 #endif
 
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
     }
 
     private CancellationTokenSource _debounceTimer;
@@ -53,17 +53,17 @@ public partial class DimmerWindow : Window
             {
                 if (txt.Length >= 1)
                 {
-                    HomepageVM.IsOnSearchMode = true;
+                    HomepageVM.Value.IsOnSearchMode = true;
 
-                    HomepageVM.DisplayedSongs = HomepageVM.SongsMgtService.AllSongs
+                    HomepageVM.Value.DisplayedSongs = HomepageVM.Value.SongsMgtService.AllSongs
                         .Where(item => item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase))
                         .ToObservableCollection();
                 }
             }
             else
             {
-                HomepageVM.IsOnSearchMode = false;
-                await HomepageVM.LoadSongsInBatchesAsync();
+                HomepageVM.Value.IsOnSearchMode = false;
+                await HomepageVM.Value.LoadSongsInBatchesAsync();
             }
         }
         catch (TaskCanceledException)
@@ -74,15 +74,15 @@ public partial class DimmerWindow : Window
 
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+        HomepageVM.Value.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+        HomepageVM.Value.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
     }
 }

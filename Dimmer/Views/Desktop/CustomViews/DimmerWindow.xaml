@@ -11,8 +11,8 @@
         >
    
     <Window.TitleBar>
-        <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" HeightRequest="55"
-Margin="10" 
+        <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" 
+                  HeightRequest="55" Margin="10" 
                   >
             <TitleBar.Resources>
                 <ResourceDictionary>
@@ -28,7 +28,7 @@ Margin="10"
             </TitleBar.Content>
 
             <TitleBar.TrailingContent>
-                <HorizontalStackLayout BackgroundColor="Transparent">
+                <HorizontalStackLayout BackgroundColor="Transparent" >
                     <FlyoutBase.ContextFlyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="sss"/>
@@ -46,6 +46,7 @@ Margin="10"
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin_drop}" Size="20"/>
                         </ImageButton.Source>
                     </ImageButton>
+                    <Label Text="{Binding LoadingSongsText}"/>
                 </HorizontalStackLayout>                
             </TitleBar.TrailingContent>
         </TitleBar>        

@@ -1,26 +1,25 @@
-﻿
-
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
     Realm db;
 
     public IList<SongModelView> AllSongs { get; set; }
-    
-    public IList<AlbumArtistGenreSongLinkView> AllLinks { get; set; }    
+    Lazy<HomePageVM> ViewModel { get; set; }
+    public IList<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
     public IList<AlbumModelView> AllAlbums { get; set; }
     public IList<ArtistModelView> AllArtists { get; set; }
     public IList<GenreModelView> AllGenres { get; set; }
     public IDataBaseService DataBaseService { get; }
-    public SongsManagementService(IDataBaseService dataBaseService)
+    public SongsManagementService(IDataBaseService dataBaseService, Lazy<HomePageVM> viewModel)
     {
         DataBaseService = dataBaseService;
         InitApp();
+        ViewModel = viewModel;
     }
     bool HasOnlineSyncOn;
     ParseUser? CurrentUserOnline;
-    private async Task InitApp()
+    private void InitApp()
     {
         //GetSongs();
         //isSyncingOnline = true;
@@ -33,12 +32,23 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         //    await GetOnlineDBLoaded();
         //}
         //isSyncingOnline = false;
+        GetUserAccount();
         GetSongs();
 
-        //var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //vm!.SyncRefresh();
+
 
     }
+
+    public async Task<bool> LogUserOnlineAsync(string username, string password)
+    {
+
+    }
+    public async Task<bool> LogUserOnlineAsync(string email, string password)
+    {
+
+    }
+
+
     async Task FetchAllInitially()
     {
         GetUserAccount();
@@ -74,19 +84,17 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     private async Task LoadSongsToDBFromOnline()
     {
         var query = AppParseClient.GetQuery("SongModelView")
-            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName",DeviceInfo.Name);
-
-        var songs = await query.FindAsync();
-
-        if (songs != null && songs?.Count() > 0)
+            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
+        //TODO : Add DeviceID and DeviceModel to the query
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in songs)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
@@ -111,29 +119,27 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
             });
         }
-    }    
+    }
     private async Task LoadPlayDateAndIsPlayCompletedModelToDBFromOnline()
     {
         var query = AppParseClient.GetQuery("PlayDateAndCompletionStateSongLink")
-            
-            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName",DeviceInfo.Name);
+            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
 
-        var PlayDateDIComp = await query.FindAsync();
 
-        if (PlayDateDIComp != null && PlayDateDIComp?.Count() > 0)
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in PlayDateDIComp)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
                         var itemm = MapFromDBParseObject<PlayDateAndCompletionStateSongLink>(item); //duration is off
-                        
+
                         var existingSongs = db.All<PlayDateAndCompletionStateSongLink>()
                                                 .ToList();
                         if (existingSongs.Count < 1)
@@ -156,21 +162,16 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     private async Task LoadArtistsToDBFromOnline()
     {
         var query = AppParseClient.GetQuery("ArtistModelView")
-            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName", DeviceInfo.Name);
-
-        // Uncomment the below line if filtering by UserIDOnline is needed
-        // .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
-        var artistModels = await query.FindAsync();
-
-        if (artistModels != null && artistModels.Any())
+            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in artistModels)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
@@ -207,18 +208,16 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     private async Task LoadPlaylistToDBFromOnline()
     {
         var query = AppParseClient.GetQuery("PlaylistModel")
-                            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName", DeviceInfo.Name);
-        var playlists = await query.FindAsync();
-
-        if (playlists != null || playlists?.Count() > 0)
+                            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in playlists)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
@@ -253,25 +252,26 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     }
     private async Task LoadGenreToDBFromOnline()
     {
-        var query = AppParseClient.GetQuery("GenreModelView").WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName", DeviceInfo.Name);
-        var GenreModels = await query.FindAsync();
+        var query = AppParseClient.GetQuery("GenreModelView")
+            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId);
 
-        if (GenreModels != null && GenreModels?.Count() > 0)
+
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in GenreModels)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
                         var itemmm = MapFromDBParseObject<GenreModelView>((ParseObject)item);
                         GenreModel itemm = new(itemmm);
                         var existingGenreModel = db.All<GenreModel>()
-                                                .Where(s => s.Name == itemm.Name || s.LocalDeviceId== itemm.LocalDeviceId)
+                                                .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
                                                 .ToList();
 
                         if (existingGenreModel == null)
@@ -300,18 +300,19 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     }
     private async Task LoadAlbumToDBFromOnline()
     {
-        var query = AppParseClient.GetQuery("AlbumModelView").WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName", DeviceInfo.Name);
-        var AlbumModels = await query.FindAsync();
+        var query = AppParseClient.GetQuery("AlbumModelView")
+            .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId).WhereNotEqualTo("DeviceFormFactor", DeviceInfo.Current.Idiom.ToString());
 
-        if (AlbumModels != null && AlbumModels?.Count() > 0)
+
+        var UniqueItems = await query.FindAsync();
+
+        if (UniqueItems != null && UniqueItems?.Count() > 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in AlbumModels)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
@@ -351,12 +352,14 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         var query = AppParseClient.GetQuery("AlbumArtistGenreSongLink")
                             .WhereEqualTo("UserIDOnline", CurrentUser.LocalDeviceId)
-            .WhereEqualTo("DeviceID", DeviceInfo.Platform.ToString())
-            .WhereEqualTo("DeviceName", DeviceInfo.Name);
-        var AlbumArtistGenreSongLink = await query.FindAsync();
+                            .WhereNotEqualTo("DeviceFormFactor", DeviceInfo.Current.Idiom.ToString());
 
-        if (AlbumArtistGenreSongLink != null || AlbumArtistGenreSongLink?.Count() > 0)
+        var UniqueItems = await query.FindAsync();
+
+        if (UniqueItems != null && UniqueItems.Any())
         {
+            var AlbumArtistGenreSongLink = await query.FindAsync();
+
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
@@ -393,17 +396,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
             });
         }
-    }        
-
-    async Task<bool> GetOnlineDBLoaded()
-    {
-        
-        GetUserAccount();
-        _ = await GetUserAccountOnline();
-        //await GetDataFromOnlineAsync();
-        return true;
-
     }
+
 
     bool isSyncingOnline;
     public void GetSongs()
@@ -412,7 +406,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
             AllSongs?.Clear();
-            var realmSongs = db.All<SongModel>().OrderBy(x => x.Instance!.DateCreated).ToList();
+            var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
             AllSongs = new List<SongModelView>(realmSongs.Select(song => new SongModelView(song)));
             AllSongs ??= Enumerable.Empty<SongModelView>().ToList();
 
@@ -422,7 +416,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             GetAlbums();
             GetArtists();
             GetGenres();
-            if(!isSyncingOnline)
+            if (!isSyncingOnline)
             {
             }
 
@@ -460,7 +454,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
-        
+
     }
 
     private bool IsRealmSpecificType(Type type)
@@ -480,7 +474,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 .Select(song => new SongModel(song))
                 .ToList();
 
-            
+
             db.Write(() =>
             {
                 db.Add(songsToAdd);
@@ -507,28 +501,46 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                var existingSong = db.All<SongModel>().
-                Where(x => x.Title == songsModelView.Title
-                && x.DurationInSeconds == songsModelView.DurationInSeconds
-                && x.ArtistName == songsModelView.ArtistName).ToList();
-                SongModel song = new SongModel(songsModelView);
+                var existingSong = db.All<SongModel>()
+                .Where(x => x.LocalDeviceId == songsModelView.LocalDeviceId)
+                .ToList();
 
-                song.Instance!.UserIDOnline = CurrentUser.UserIDOnline;
+                if (existingSong.Count == 0)
+                {
+                    // Fallback to the longer check if no matches by LocalDeviceID
+                    existingSong = db.All<SongModel>()
+                        .Where(x => x.Title == songsModelView.Title &&
+                                    x.DurationInSeconds == songsModelView.DurationInSeconds &&
+                                    x.ArtistName == songsModelView.ArtistName)
+                        .ToList();
+                }
+
+
+                SongModel song = new(songsModelView);
+
+                song.UserIDOnline = CurrentUser.UserIDOnline;
 
                 var newAction = new ActionPending()
                 {
-                    Actionn=0,
+                    Actionn = 0,
                     ActionSong = song,
                     TargetType = 0,
                     ApplyToAllThisDeviceOnly = true,
                 };
+                var existingAction = db.All<ActionPending>()
+                    .Where(x => x.LocalDeviceId == songsModelView.LocalDeviceId)
+                    .ToList();
+                bool actionExists = existingAction.Count > 0;
 
-
-                if (existingSong == null && existingSong?.Count <1)
-                {                    
-                    db.Add(newAction);
+                if (existingSong == null && existingSong?.Count < 1)
+                {
+                    if (!actionExists)
+                    {
+                        db.Add(newAction);
+                    }
                 }
 
 
@@ -545,9 +557,14 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     newSong.IsPlaying = false;
                     db.Add(newSong);
 
-
-                    // Save to Parse
-                    db.Add(newAction);
+                    if (actionExists)
+                    {
+                        db.Add(newAction, true);
+                    }
+                    else
+                    {
+                        //db.Add(newAction);
+                    }
                     //link. = newSong.LocalDeviceId;
 
                     return;
@@ -557,8 +574,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 if (songsModelView.IsDeleted)
                 {
                     db.Remove(existingSong.First());
-
-                    db.Add(newAction);
+                    if (!actionExists)
+                    {
+                        db.Add(newAction);
+                    }
                     return;
                 }
 
@@ -568,8 +587,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
 
                 db.Add(updatedSong, update: true);
-               
-                db.Add(newAction);
+
+
 
             });
 
@@ -581,37 +600,80 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             return false;
         }
     }
-   
-    public bool UpdatePlayAndCompletionDetails(PlayDateAndCompletionStateSongLink link)
+
+    public async void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link)
     {
         try
         {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
+            AddOrUpdateSingleRealmItem(db,
+                link,
+                l => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null);
 
-            db.Write(() =>
+            if (string.IsNullOrEmpty(CurrentUser.UserIDOnline))
             {
+                return; //no online id exists, we won't even bother saving this as pending.
+            }
 
-                var newAction = new ActionPending()
-                {
-                    Actionn = 0,
-                    ApplyToAllThisDeviceOnly = true,
-                    TargetType = 8,
-                };
-                db.Add(link);
-                // Save to Parse
-                db.Add(newAction);
-                return;
-            });
+            if (CurrentUserOnline is null)
+            {
+                return; //no account
+            }
+            
+            if (!CurrentUserOnline.IsAuthenticated)
+            {
+                return; //no not authenticated lol
+            }
 
-            return true;
+            //copy code from chat to add as normal (not pending) then clear this comment and test
+
+            await SendSingleObjectToParse(nameof(PlayDateAndCompletionStateSongLink),link);
+
+            
+            return;
         }
         catch (Exception ex)
         {
             Debug.WriteLine("Error when updating song: " + ex.Message);
-            return false;
+            return;
         }
     }
 
+
+    /* Will need these when I'll be doing some fine tuning/granular control on cross device working ;)
+     * for now I'll just take methods here one by one lol
+     * 
+        
+AddOrUpdateSingleRealmItem(
+    db,
+    song,
+    s => db.All<SongModel>().Any(existing => existing.Title == song.Title && existing.ArtistName == song.ArtistName)
+);
+
+AddOrUpdateSingleRealmItem(
+    db,
+    artist,
+    a => db.All<ArtistModel>().Any(existing => existing.Name == artist.Name)
+);
+    
+AddOrUpdateSingleRealmItem(
+    db,
+    album,
+    a => db.All<AlbumModel>().Any(existing => existing.Name == album.Name)
+);
+    AddOrUpdateSingleRealmItem(
+    db,
+    genre,
+    g => db.All<GenreModel>().Any(existing => existing.Name == genre.Name)
+);
+
+AddOrUpdateSingleRealmItem(
+    db,
+    link,
+    l => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null
+);
+
+
+*/
     private ParseObject MapToParseObject<T>(T model, string className)
     {
         var parseObject = new ParseObject(className);
@@ -740,7 +802,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 //    DateRequested = DateTimeOffset.UtcNow.Date.Date,
                 //    IsRequestedByUser = true,
                 //    IsBatch = true,
-                    
+
                 //};
             });
             return true;
@@ -757,9 +819,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         db?.Dispose();
     }
-
- 
-  
 
     public void UpdateAlbum(AlbumModelView album)
     {
@@ -783,7 +842,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 //{
                 //    ActionType = 1,
                 //    TargetType = 2,
-                    
+
                 //    ActionAlbum = new AlbumModel(album),
                 //    DateRequested = DateTimeOffset.UtcNow.Date.Date,
                 //    IsRequestedByUser = true,
@@ -796,7 +855,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         catch (Exception ex)
         {
             Debug.WriteLine("Error when updating song: " + ex.Message);
-            
+
         }
 
     }
@@ -804,7 +863,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public bool DeleteSongFromDB(SongModelView song)
     {
         song.IsDeleted = true;
-        
+
         return UpdateSongDetails(song);
     }
 
@@ -867,7 +926,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
             });
 
-            GetSongs(); 
+            GetSongs();
             return true;
         }
         catch (Exception ex)
@@ -906,7 +965,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 ApplicationID = APIKeys.ApplicationId,
                 ServerURI = APIKeys.ServerUri,
                 Key = APIKeys.ClientKey,
-                MasterKey = APIKeys.MasterKey,               
+                MasterKey = APIKeys.MasterKey,
             });
 
             AppParseClient.Publicize();
@@ -919,17 +978,17 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     UserPassword = "1234",
                 };
             }
-            if(string.IsNullOrEmpty(CurrentUser.UserName) || string.IsNullOrEmpty(CurrentUser.UserPassword))
+            if (string.IsNullOrEmpty(CurrentUser.UserName) || string.IsNullOrEmpty(CurrentUser.UserPassword))
             {
                 CurrentUser.UserName = "User";
                 CurrentUser.UserEmail = "8brunel@gmail.com";
                 CurrentUser.UserPassword = "1234";
             }
             await AppParseClient.LogInAsync(CurrentUser.UserName, CurrentUser.UserPassword);
-            CurrentUserOnline= AppParseClient.GetCurrentUser();
-            
+            CurrentUserOnline = AppParseClient.GetCurrentUser();
+
             if (CurrentUserOnline.IsAuthenticated)
-            {                
+            {
                 return null;
             }
             Debug.WriteLine(AppParseClient.GetCurrentUser().Username);
@@ -940,7 +999,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 user.UserEmail = CurrentUserOnline.Email;
                 user.UserName = CurrentUserOnline.Username;
                 user.UserPassword = CurrentUserOnline.Password;
-                
+
 
                 var userdb = db.All<UserModel>();
                 if (userdb.Any())
@@ -949,95 +1008,24 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     usr.UserEmail = user.UserEmail;
                     usr.UserName = user.UserName;
                     usr.UserPassword = user.UserPassword;
-                    
+
                     db.Add(usr, update: true);
                 }
 
             });
             return null;
-         
+
         }
         catch (Exception ex)
         {
             Debug.WriteLine("Error getting user account online: " + ex.Message);
-            await Shell.Current.DisplayAlert("Hey!", ex.Message,"Ok");
+            await Shell.Current.DisplayAlert("Hey!", ex.Message, "Ok");
             return null;
         }
     }
 
-    public async Task SyncSongsAsync()
-    {
-        try
-        {
-
-            GetUserAccount();
-            _ = await GetUserAccountOnline();
-
-            var lastSyncTime = GetLastSyncTime(nameof(SongModelView));
-
-        }
-        catch (Exception ex)
-        {
-
-            throw;
-        }
-    }
-
-
-    private DateTimeOffset GetLastSyncTime(string model)
-    {
-        var key = $"LastSyncTime_{model}";
-        if (Preferences.ContainsKey(key))
-        {
-            var ticks = Preferences.Get(key, 0L);
-            return new DateTimeOffset(ticks, TimeSpan.Zero);
-        }
-        return DateTimeOffset.MinValue;
-    }
-
-    private void SetLastSyncTime(string model, DateTimeOffset syncTime)
-    {
-        var songForExample = new SongModelView() { Title = "Soh Soh" };
-        RealmActionHandler.HandleAction(new SongModel(songForExample), ActionType.Add);
-    }
-
-
-    public static class RealmActionHandler
-    {
-        public static void HandleAction<T>(T actionObject, ActionType actionType) where T : RealmObject
-        {
-            using (var realm = Realm.GetInstance())
-            {
-                realm.Write(() =>
-                {
-                    switch (actionType)
-                    {
-                        case ActionType.Add:
-                            realm.Add(actionObject);
-                            break;
-                        case ActionType.Delete:
-                            realm.Remove(actionObject);
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Unsupported action type: {actionType}");
-                    }
-                });
-            }
-        }
-    }
-
-    public enum ActionType
-    {
-        Add,
-        Update,
-        Delete
-    }
-
-
     public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)
     {
-        ViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-
         // Load songs from folders asynchronously without blocking the UI
         (var allArtists, var allAlbums, var allLinks, var songs, var allGenres) =
             await Task.Run(() => LoadSongsAsync(folderPaths));
@@ -1060,24 +1048,32 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             combinedList.AddRange(songs!);
             var allSongss = combinedList.ToObservableCollection();
             AllSongs = allSongss;
+            AllArtists = allArtists.ToList();
+            AllAlbums = allAlbums.ToList();
+            AllGenres = allGenres.ToList();
+            AllLinks = allLinks.ToList();
+            ViewModel.Value.SyncRefresh();
         });
 
         List<SongModel> dbSongs = songs.Select(song => new SongModel(song)).ToList()!;
+
+        AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
+
+        await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
+        ViewModel.Value.SetPlayerState(MediaPlayerState.DoneScanningData);
+
+        return true;
+
         if (!await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks))
         {
             await Shell.Current.DisplayAlert("Error", "Error Adding Songs to Database", "OK");
         }
-        AppSettingsService.RepeatModePreference.RepeatState = 1;
-
-        await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
-        ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
-
         // Save to online database (fire-and-forget)
         _ = Task.Run(async () =>
         {
             try
             {
-                await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks);
+                await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
             }
             catch (Exception ex)
             {
@@ -1089,146 +1085,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         return true;
     }
 
-
-    public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(
-     List<ArtistModelView> artistModels,
-     List<AlbumModelView> albumModels,
-
-     List<SongModelView> songs,
-     List<GenreModelView> genreModels,
-     List<AlbumArtistGenreSongLinkView> AAGSLink)
-    {
-        try
-        {
-
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-
-            var CurrentUser = db.All<UserModel>().FirstOrDefault();
-            UserModelView curUsr = new UserModelView(CurrentUser);
-            if (CurrentUser is not null)
-            {
-                curUsr = new UserModelView(CurrentUser);
-            }
-            curUsr.UserName = "User";
-            curUsr.UserEmail = "8brunel@gmail.com";
-            curUsr.UserPassword = "1234";
-            CurrentUserOnline = await ParseClient.Instance.LogInAsync(curUsr.UserName, curUsr.UserPassword);
-            if (CurrentUserOnline is null)
-            {
-                await ParseClient.Instance.SignUpAsync(curUsr.UserName, curUsr.UserPassword);
-            }
-
-            if (CurrentUserOnline is null)
-            {
-                return false;//to be reviewed
-            }
-
-            if (!CurrentUserOnline.IsAuthenticated)
-            {
-
-                return false;//to be reviewed
-            }
-
-            // Save actions to Parse for Songs online
-            foreach (var item in songs)
-            {
-                try
-                {
-
-                    var parseObj = MapToParseObject(item, nameof(SongModelView));
-                    await parseObj.SaveAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving song action: {ex.Message}");
-                    ;  // Rethrow to propagate error upwards
-                }
-            }
-            Debug.WriteLine("songsToOnline");
-
-            // Save actions for Artists online
-            foreach (ArtistModelView item in artistModels)
-            {
-                try
-                {
-                    var parseObj = MapToParseObject(item, nameof(ArtistModelView));
-                    await parseObj.SaveAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving artist action: {ex.Message}");
-                    ;  // Rethrow to propagate error upwards
-                }
-            }
-            Debug.WriteLine("artistToOnline");
-
-            // Save actions for Album online
-            foreach (AlbumModelView item in albumModels)
-            {
-                try
-                {
-                    var parseObj = MapToParseObject(item, nameof(AlbumModelView));
-                    await parseObj.SaveAsync();
-
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving artist action: {ex.Message}");
-                    ;  // Rethrow to propagate error upwards
-                }
-            }
-            Debug.WriteLine("albumToOnline");
-
-            // Save actions for Genre online
-            foreach (GenreModelView item in genreModels)
-            {
-                try
-                {
-
-                    var parseObj = MapToParseObject(item, nameof(GenreModelView));
-                    await parseObj.SaveAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving artist action: {ex.Message}");
-                    ;  // Rethrow to propagate error upwards
-                }
-            }
-            Debug.WriteLine("genreToOnline");
-
-            // Save actions for AAGSLink online
-            foreach (AlbumArtistGenreSongLinkView item in AAGSLink)
-            {
-                try
-                {
-                    var parseObj = MapToParseObject(item, nameof(AlbumArtistGenreSongLinkView));
-                    await parseObj.SaveAsync();
-
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving artist action: {ex.Message}");
-                    ;  // Rethrow to propagate error upwards
-                }
-            }
-            Debug.WriteLine("good");
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // Catch and log the top-level errors
-            Debug.WriteLine($"Exception when adding data: {ex.Message}");
-            return false;
-        }
-    }
-
-
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
-    HomePageVM? ViewModel { get; set; }
-    private (List<ArtistModelView>?, List<AlbumModelView>?, 
-        List<AlbumArtistGenreSongLinkView>?, List<SongModelView>?, List<GenreModelView>?) 
-        LoadSongsAsync(List<string> folderPaths)
+
+    private
+    (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistGenreSongLinkView>?, List<SongModelView>?, List<GenreModelView>?)
+    LoadSongsAsync(List<string> folderPaths)
     {
         var allFiles = GeneralStaticUtilities.GetAllFiles(folderPaths);
         Debug.WriteLine("Got All Files");
@@ -1276,220 +1137,148 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
             }
 
-            processedFiles++;
-            if (processedFiles % 10 == 0) // Report progress every 10 files
-            {
-                int percentComplete = processedFiles * 100 / totalFiles;
-                Debug.WriteLine($"{percentComplete}%");
-                
-            }
+            //processedFiles++;
+
+            //{
+            //    percentComplete = ((double)processedFiles / totalFiles);
+            //var ss = ((double)processedFiles / totalFiles); // here i have 2/10
+            //    progressLoading.Report(percentComplete);
+
         }
-        Debug.WriteLine("All Processed");
-        ViewModel?.SetPlayerState(MediaPlayerState.LoadingSongs);
+        Debug.WriteLine("All Processed on device");
 
         return (newArtists, newAlbums, newLinks, allSongs.ToList(), newGenres); // Return genreLinks
 
 
     }
-    int countOfScanningErrors = 0;
+    double percentComplete;
 
-    public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(
-     List<ArtistModelView> artistModels,
-     List<AlbumModelView> albumModels,
-     //List<AlbumArtistGenreSongLinkView> albumArtistSongLink,
-     List<SongModel> songs,
-     List<GenreModelView> genreModels,
-     List<AlbumArtistGenreSongLinkView> AAGSLink)
+    /// <summary>
+    /// Syncs the provided data to the Online database
+    /// </summary>
+    /// <param name="songs"></param>
+    /// <param name="artistModels"></param>
+    /// <param name="albumModels"></param>
+    /// <param name="genreModels"></param>
+    /// <param name="AAGSLink"></param>
+    /// <returns></returns>
+    public async Task<bool> SyncAllDataToOnlineAsync(
+        IEnumerable<SongModelView> songs,
+        IEnumerable<ArtistModelView> artistModels,
+        IEnumerable<AlbumModelView> albumModels,
+        IEnumerable<GenreModelView> genreModels,
+        IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
+        IEnumerable<PlayDateAndCompletionStateSongLink>? PDaCSLink)
     {
-        await GetUserAccountOnline();
         try
         {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var user = db.All<UserModel>().FirstOrDefault();
-            if (user is null)
-            {
-                user = new();
-                db.Write(() =>
+            // Log in or Sign up the user
+            var currentUser = db.All<UserModel>().FirstOrDefault();
+            var curUsr = currentUser is not null
+                ? new UserModelView(currentUser)
+                : new UserModelView
                 {
-                    //user.LocalDeviceId = string.GenerateNewId();
-                    db.Add(user);
-                });
-            }
+                    UserName = "User",
+                    UserEmail = "8brunel@gmail.com",
+                    UserPassword = "1234"
+                };
 
-            // Insert new songs to db
-            try
+
+            if (CurrentUserOnline == null || !CurrentUserOnline.IsAuthenticated)
             {
-                db.Write(() =>
-                {
-                    foreach (var song in songs)
-                    {
-                        var existingSongs = db.All<SongModel>()
-                                                .Where(s => s.Title == song.Title && s.ArtistName == song.ArtistName)
-                                                .ToList();
-                        if (existingSongs.Count < 1)
-                        {
-                            db.Add(song);
-                        }
-                        Debug.WriteLine("Added Song " + song.Title);
-                    }
-                });
+                Debug.WriteLine("User authentication failed."); //todo to be reviewed, we can aske the user to login
+                return false;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inserting songs: {ex.Message}");
-                throw; // Rethrow to propagate error upwards
-            }
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            Debug.WriteLine("songsToDB");
 
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            // Insert new artists
-            try
-            {
-                db.Write(() =>
-                {
-                    foreach (var artistModel in artistModels)
-                    {
-                        var modell = new ArtistModel(artistModel);
-
-                        var existingArtist = db.Find<ArtistModel>(modell.LocalDeviceId);
-                        var existingSongs = db.All<ArtistModel>()
-                                                .Where(s => s.Name == modell.Name)
-                                                .ToList();
-
-                        if (existingArtist == null)
-                        {
-                            db.Add(modell);
-                            Debug.WriteLine("Added Artist");
-                            return;
-                        }
-
-                        if (existingSongs?.Count < 1)
-                        {
-                            db.Add(modell);
-                        }
-                        else
-                        {
-                            db.Add(modell, update: true);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inserting artists: {ex.Message}");
-                throw; // Rethrow to propagate error upwards
-            }
-            Debug.WriteLine("artistToDB");
-
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            try
-            {
-                db.Write(() =>
-                {
-                    foreach (AlbumModelView item in albumModels)
-                    {
-                        var modell = new AlbumModel(item);
-
-                        var existingAlbum = db.All<AlbumModel>()
-                                                .Where(s => s.Name == modell.Name)
-                                                .ToList();
-
-                        if (existingAlbum == null)
-                        {
-                            db.Add(modell);
-                            Debug.WriteLine("Added Album");
-                            return;
-                        }
-
-                        if (existingAlbum?.Count < 1)
-                        {
-                            db.Add(modell);
-                        }
-                        else
-                        {
-                            db.Add(modell, update: true);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inserting album: {ex.Message}");
-                throw; // Rethrow to propagate error upwards
-            }
-            Debug.WriteLine("AlbumToOnline");
-
-
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            // Insert new genres
-            try
-            {
-                db.Write(() =>
-                {
-                    foreach (var model in genreModels)
-                    {
-                        var modell = new GenreModel(model);
-                        var existingGenre = db.All<GenreModel>()
-                                                .Where(s => s.Name == modell.Name)
-                                                .ToList();
-
-                        if (existingGenre == null)
-                        {
-                            db.Add(modell);
-                            Debug.WriteLine("Added Genre");
-                            return;
-                        }
-
-                        if (existingGenre?.Count < 1)
-                        {
-                            db.Add(modell);
-                            Debug.WriteLine("Added Genre");
-                        }
-                        else
-                        {
-                            db.Add(modell, update: true);
-
-                            Debug.WriteLine("Updated Genre");
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inserting genres: {ex.Message}");
-                throw; // Rethrow to propagate error upwards
-            }
+            // Sync each collection to Parse
+            await SendMultipleObjectsToParse(songs, nameof(SongModelView));
+            Debug.WriteLine("songsToOnline");
+            await SendMultipleObjectsToParse(artistModels, nameof(ArtistModelView));
+            Debug.WriteLine("artistToOnline");
+            await SendMultipleObjectsToParse(albumModels, nameof(AlbumModelView));
             Debug.WriteLine("albumToOnline");
 
+            await SendMultipleObjectsToParse(genreModels, nameof(GenreModelView));
+            Debug.WriteLine("genreToOnline");
+            await SendMultipleObjectsToParse(AAGSLink, nameof(AlbumArtistGenreSongLinkView));
+            Debug.WriteLine("AAGSLinkToOnline");
 
-
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            // Insert new albumArtistSongLink
-            try
+            if (PDaCSLink is not null)
             {
-                db.Write(() =>
-                {
-                    foreach (var item in AAGSLink)
-                    {
-                        var AlbumArtistGenreSongLink = db.Find<AlbumArtistGenreSongLink>(item.LocalDeviceId);
-
-                        if (AlbumArtistGenreSongLink != null)
-                        {
-                            db.Add(AlbumArtistGenreSongLink);
-                        }
-                    }
-                });
+                await SendMultipleObjectsToParse(PDaCSLink, nameof(PlayDateAndCompletionStateSongLink));
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error inserting genres: {ex.Message}");
-                throw;
-            }
-            Debug.WriteLine("AAGSLinkToDB");
-
+            Debug.WriteLine("PDaCSLinkToOnline");
 
             Debug.WriteLine("good");
+
+            Debug.WriteLine("All data synced successfully.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Exception during overall sync: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Maps Collection of ModelView objects to ParseObjects then Sends to Online DB
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="items"></param>
+    /// <param name="modelName"></param>
+    /// <returns></returns>
+    public async Task<bool> SendMultipleObjectsToParse<T>(IEnumerable<T> items, string modelName)
+    {
+        try
+        {
+            foreach (var item in items)
+            {
+                try
+                {
+                    // Map and save each item to Parse
+                    await SendSingleObjectToParse(modelName, item);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error saving {modelName} action: {ex.Message}");
+                }
+            }
+            Debug.WriteLine($"{modelName}sToOnline");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Exception during sync for {modelName}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Maps Single ModelView object to ParseObject then Sends to Online DB
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="modelName"></param>
+    /// <param name="item"></param>
+    /// <returns></returns>
+    private async Task SendSingleObjectToParse<T>(string modelName, T? item)
+    {
+        var parseObj = MapToParseObject(item, modelName);
+        await parseObj.SaveAsync();
+    }
+
+    public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(
+     List<ArtistModelView> artistModels,
+     List<AlbumModelView> albumModels,
+     List<SongModelView> songs,
+     List<GenreModelView> genreModels,
+     List<AlbumArtistGenreSongLinkView> AAGSLink,
+     List<PlayDateAndCompletionStateSongLink>? PDaCSLink)
+    {
+        try
+        {
+
+            await SyncAllDataToOnlineAsync(songs, artistModels, albumModels, genreModels, AAGSLink, PDaCSLink);
 
             return true;
         }
@@ -1501,7 +1290,180 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
     }
 
+
+    /// <summary>
+    /// Syncs the provided data to the local Realm database
+    /// </summary>
+    /// <param name="artistModels"></param>
+    /// <param name="albumModels"></param>
+    /// <param name="songs"></param>
+    /// <param name="genreModels"></param>
+    /// <param name="AAGSLink"></param>
+    /// <returns></returns>
+    public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(
+     List<ArtistModelView> artistModels,
+     List<AlbumModelView> albumModels,
+     //List<AlbumArtistGenreSongLinkView> albumArtistSongLink,
+     List<SongModel> songs,
+     List<GenreModelView> genreModels,
+     List<AlbumArtistGenreSongLinkView> AAGSLink)
+    {
+        await GetUserAccountOnline();
+        try
+        {
+            SyncDataToDatabaseAsync(db, songs, artistModels, albumModels, genreModels, AAGSLink);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Catch and log the top-level errors
+            Debug.WriteLine($"Exception when adding data: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Syncs the provided data to the local Realm database
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="songs"></param>
+    /// <param name="artistModels"></param>
+    /// <param name="albumModels"></param>
+    /// <param name="genreModels"></param>
+    /// <param name="AAGSLink"></param>
+    /// <returns></returns>
+    public bool SyncDataToDatabaseAsync(
+    Realm db,
+    IEnumerable<SongModel> songs,
+    IEnumerable<ArtistModelView> artistModels,
+    IEnumerable<AlbumModelView> albumModels,
+    IEnumerable<GenreModelView> genreModels,
+    IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink)
+    {
+        try
+        {
+            // Ensure UserModel exists
+            var user = db.All<UserModel>().FirstOrDefault();
+            if (user == null)
+            {
+                db.Write(() =>
+                {
+                    user = new UserModel
+                    {
+                        // Set other properties as needed
+                    };
+                    db.Add(user);
+                });
+            }
+
+            // Sync Songs
+            AddOrUpdateMultipleRealmItems(
+                
+                songs,
+                song => db.All<SongModel>().Any(s => s.Title == song.Title && s.ArtistName == song.ArtistName)
+            );
+
+            // Sync Artists
+            AddOrUpdateMultipleRealmItems(
+                
+                artistModels.Select(a => new ArtistModel(a)),
+                artist => db.All<ArtistModel>().Any(a => a.Name == artist.Name)
+            );
+
+            // Sync Albums
+            AddOrUpdateMultipleRealmItems(
+                
+                albumModels.Select(a => new AlbumModel(a)),
+                album => db.All<AlbumModel>().Any(a => a.Name == album.Name)
+            );
+
+            // Sync Genres
+            AddOrUpdateMultipleRealmItems(
+                
+                genreModels.Select(g => new GenreModel(g)),
+                genre => db.All<GenreModel>().Any(g => g.Name == genre.Name)
+            );
+
+            // Sync AlbumArtistGenreSongLinks
+            AddOrUpdateMultipleRealmItems(
+                
+                AAGSLink.Select(l => new AlbumArtistGenreSongLink(l)),
+                link => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null
+            );
+
+            Debug.WriteLine("All data synced to database.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error syncing data: {ex.Message}");
+            return false;
+        }
+    }
+
+
+    /// <summary>
+    /// Adds or updates a collection of items in the specified Realm database.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="db"></param>
+    /// <param name="items"></param>
+    /// <param name="existsCondition"></param>
+    /// <param name="updateAction"></param>
+    public void AddOrUpdateMultipleRealmItems<T>(IEnumerable<T> items, Func<T, bool> existsCondition, Action<T>? updateAction = null) where T : RealmObject
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        db.Write(() =>
+        {
+            foreach (var item in items)
+            {
+                if (!db.All<T>().Any(existsCondition))
+                {
+                    db.Add(item);
+                    Debug.WriteLine($"Added {typeof(T).Name}");
+                }
+                else
+                {
+                    updateAction?.Invoke(item); // Perform additional updates if needed
+                    db.Add(item, update: true); // Update existing item
+                    Debug.WriteLine($"Updated {typeof(T).Name}");
+                }
+            }
+        });
+    }
+
+    /// <summary>
+    /// Adds or updates a single item in the specified Realm database.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="db"></param>
+    /// <param name="item"></param>
+    /// <param name="existsCondition"></param>
+    /// <param name="updateAction"></param>
+    public void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool> existsCondition, Action<T>? updateAction = null) where T : RealmObject
+    {
+
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        db.Write(() =>
+        {
+            if (!db.All<T>().Any(existsCondition))
+            {
+                db.Add(item);
+                Debug.WriteLine($"Added {typeof(T).Name}");
+            }
+            else
+            {
+                updateAction?.Invoke(item); // Perform additional updates if needed
+                db.Add(item, update: true); // Update existing item
+                Debug.WriteLine($"Updated {typeof(T).Name}");
+            }
+        });
+    }
+
 }
+
+
 public class CsvExporter
 {
     /// <summary>
@@ -1537,7 +1499,7 @@ public class CsvExporter
                 var actionEntries = new List<(int Action, DateTimeOffset ActionDate)>();
 
                 // Only proceed if there are any action entries
-                if (actionEntries.Any())
+                if (actionEntries.Count != 0)
                 {
                     // Sort the combined list by ActionDate in ascending order
                     var sortedActions = actionEntries

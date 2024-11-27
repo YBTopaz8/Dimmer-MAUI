@@ -5,7 +5,7 @@ public partial class SongModel : RealmObject
 {
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModel));
-    public BaseEmbedded? Instance { get; set; }
+    
     public string? Title { get; set; }
     public string? ArtistName { get; set; }
     public string? AlbumName { get; set; }
@@ -28,9 +28,16 @@ public partial class SongModel : RealmObject
     public bool IsFavorite { get; set; }
     public string? Achievement { get; set; }
     public bool IsFileExists { get; set; }
+    public DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
+    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public string? UserIDOnline { get; set; } 
     public SongModel(SongModelView model)
-    {
-        Instance = new(model.Instance);
+    {        
         LocalDeviceId = model.LocalDeviceId;
         Title = model.Title;
         FilePath = model.FilePath;
@@ -57,7 +64,7 @@ public partial class SongModel : RealmObject
     }
     public SongModel()
     {
-        Instance = new BaseEmbedded();
+        
 
     }
 }
@@ -68,8 +75,8 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(SongModelView));
-    [ObservableProperty]
-    BaseEmbeddedView instance = new();
+    
+    
     [ObservableProperty]
     string? title;
     [ObservableProperty]
@@ -123,14 +130,23 @@ public partial class SongModelView : ObservableObject
     bool isFileExists;
     [ObservableProperty]
     string? achievement;
+    
+    public bool IsPlayedFromOutsideApp { get; set; }
     [ObservableProperty]
     ObservableCollection<LyricPhraseModel>? syncLyrics;
+    
 
+    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     public SongModelView(SongModel model)
     {
         if (model is not null)
         {
-            Instance = new(model.Instance);
+            
             LocalDeviceId = model.LocalDeviceId;
             Title = model.Title;
             FilePath = model.FilePath;
@@ -186,8 +202,6 @@ public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
     string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLinkView));
 
     [ObservableProperty]
-    BaseEmbeddedView instance = new();
-    [ObservableProperty]
     string? songId;
     [ObservableProperty]
     DateTimeOffset datePlayed;
@@ -201,7 +215,7 @@ public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
     }
     public PlayDateAndCompletionStateSongLinkView(PlayDateAndCompletionStateSongLink model)
     {
-        Instance = new(model.Instance);
+        
         LocalDeviceId = model.LocalDeviceId;
     }
 }
@@ -210,7 +224,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
 {
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLink));
-    public BaseEmbedded? Instance { get; set; } // = new ();
+    
     public string? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    
@@ -218,22 +232,24 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <list type="bullet">
     /// <item><term>0</term><description>Play</description></item>
     /// <item><term>1</term><description>Pause</description></item>
-    /// <item><term>2</term><description>Completed</description></item>
+    /// <item><term>2</term><description>Resume</description></item>
+    /// <item><term>3</term><description>Completed</description></item>
+    /// <item><term>4</term><description>Seeked</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 
     public DateTimeOffset DatePlayed { get; set; }
     public DateTimeOffset DateFinished { get; set; }
     public bool WasPlayCompleted { get; set; }
-        
+    public double PositionInSeconds { get; set; }
     public PlayDateAndCompletionStateSongLink()
     {
-        Instance = new BaseEmbedded();
+        
     }
         
     public PlayDateAndCompletionStateSongLink(PlayDateAndCompletionStateSongLinkView model)
     {
-        Instance = new(model.Instance);
+        
         LocalDeviceId = model.LocalDeviceId;
     }
 
@@ -263,105 +279,3 @@ public enum SortingEnum
     
 
 }
-
-
-public class BaseEmbedded : EmbeddedObject
-{    
-    public string? UserIDOnline { get; set; }
-    public bool IsDeleted { get; set; }
-    public DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
-    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o"); 
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
-    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
-    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
-    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
-    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;    
-    
-    public BaseEmbedded()
-    {
-    }
-    public BaseEmbedded(BaseEmbeddedView model)
-    {
-        UserIDOnline = model.UserIDOnline;
-        DeviceName = model.DeviceName;
-        DeviceModel = model.DeviceModel;
-        DeviceManufacturer = model.DeviceFormFactor;
-        DeviceVersion = model.DeviceVersion;
-        DeviceManufacturer = model.DeviceManufacturer;
-        LastDateUpdated = model.LastDateUpdated;
-        DateCreated = model.DateCreated;
-    }
-
-
-}
-
-public partial class BaseEmbeddedView : ObservableObject
-{
-    [ObservableProperty]
-    string? userIDOnline;
-    [ObservableProperty]
-    bool isDeleted;
-    [ObservableProperty]
-    DateTimeOffset? lastDateUpdated;
-    public string? DateCreated { get; set; }
-    [ObservableProperty]
-    string? deviceName = DeviceInfo.Current.Name;
-    [ObservableProperty]
-    string? deviceFormFactor = DeviceInfo.Current.Idiom.ToString();
-    [ObservableProperty]
-    string? deviceModel;
-    [ObservableProperty]
-    string? deviceManufacturer;
-    [ObservableProperty]
-    string? deviceVersion;
-    
-    public BaseEmbeddedView()
-    {
-        DateCreated = DateTime.UtcNow.ToString("o"); // ISO 8601 format
-
-    }
-    public BaseEmbeddedView(BaseEmbedded model)
-    {
-        UserIDOnline = model.UserIDOnline is null ? string.Empty : model.UserIDOnline;
-        DeviceName = model.DeviceName is null ? DeviceInfo.Current.Name : model.DeviceName;
-        DeviceModel = model.DeviceModel is null ? DeviceInfo.Current.Model : model.DeviceModel;
-        DeviceManufacturer = model.DeviceFormFactor is null ? DeviceInfo.Current.Idiom.ToString() : model.DeviceFormFactor;
-        DeviceVersion = model.DeviceVersion is null ? DeviceInfo.Current.VersionString : model.DeviceVersion;
-        DeviceManufacturer = model.DeviceManufacturer is null ? DeviceInfo.Current.Manufacturer : model.DeviceManufacturer;
-        LastDateUpdated = model.LastDateUpdated;
-        DateCreated = model.DateCreated;
-    }
-    private string GenerateRandomString(int length = 10)
-    {
-        Random random = Random.Shared;
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        char[] stringChars = new char[length];
-
-        for (int i = 0; i < length; i++)
-        {
-            stringChars[i] = chars[random.Next(chars.Length)];
-        }
-        
-        return new string(stringChars);
-    }
-
-    public enum ActionType
-    {
-        Add = 0,
-        Update = 1,
-        Delete = 2
-    }
-
-    public enum TargetType
-    {
-        Song = 0,
-        Artist = 1,
-        Album = 2,
-        Playlist = 3,
-        Genre = 4,
-        User = 5,
-    }
-}
-
-
-

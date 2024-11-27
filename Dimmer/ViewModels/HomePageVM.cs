@@ -1,5 +1,6 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
+using System.Diagnostics;
 
 
 namespace Dimmer_MAUI.ViewModels;
@@ -117,6 +118,10 @@ public partial class HomePageVM : ObservableObject
     public void SyncRefresh()
     {
        PlayBackService.FullRefresh();
+        AllArtists = SongsMgtService.AllArtists.ToObservableCollection();
+        AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
+        
+        AllLinks = SongsMgtService.AllLinks.ToList();
 
         GetAllArtists();
         GetAllAlbums();
@@ -167,6 +172,18 @@ public partial class HomePageVM : ObservableObject
     public void AssignCV(CollectionView cv)
     {
         PageCV = cv;
+    }
+    [ObservableProperty]
+    string loadingSongsText;
+    public void SetLoadingProgressValue(double newValue)
+    {
+        if (newValue<100)
+        {
+            LoadingSongsText = $"Loading {newValue}% done";
+            return;
+        }
+        LoadingSongsText = $"Loading Completed !";
+
     }
     void SubscribeToPlayerStateChanges()
     {
@@ -238,8 +255,10 @@ public partial class HomePageVM : ObservableObject
                             IsPlaying = true;
                             PlayPauseIcon = MaterialRounded.Pause;
                             break;
-                        case MediaPlayerState.DoneSyncingData: 
-
+                        case MediaPlayerState.DoneScanningData:
+                            SyncRefresh();
+                            SetLoadingProgressValue(100);
+                            break;
                         default:
                             break;
                     }
@@ -489,7 +508,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task PlayNextSong()
     {
-        TemporarilyPickedSong.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
+        TemporarilyPickedSong!.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         await PlayBackService.PlayNextSongAsync();
@@ -523,13 +542,13 @@ public partial class HomePageVM : ObservableObject
         {
 
             CurrentPositionInSeconds = lryPhrase.TimeStampMs * 0.001;
-            PlayBackService.SetSongPosition(CurrentPositionInSeconds);
+            PlayBackService.SeekTo(CurrentPositionInSeconds);
             return;
         }
         if (TemporarilyPickedSong is null)
             return;
         CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
-        PlayBackService.SetSongPosition(CurrentPositionInSeconds);
+        PlayBackService.SeekTo(CurrentPositionInSeconds);
     }
 
     [RelayCommand]
@@ -671,7 +690,7 @@ public partial class HomePageVM : ObservableObject
     {
         // Sort by DateAdded in descending order and take the top X songs
         var recentSongs = displayedSongs
-            .OrderByDescending(song => song.Instance.DateCreated)  
+            .OrderByDescending(song => song.DateCreated)  
             .Take(number)  
             .ToList(); 
         
@@ -891,7 +910,7 @@ public partial class HomePageVM : ObservableObject
             {
                 return;
             }
-            TotalNumberOfSongs = SongsMgtService.AllSongs.Count;
+            TotalNumberOfSongs = songs.Count;
 
             //ReloadSizeAndDuration();
         });
@@ -899,6 +918,14 @@ public partial class HomePageVM : ObservableObject
 
         
     }
+    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
+    {
+        Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
+    }
+
+    [ObservableProperty]
+    CollectionView desktopColView;
+
 
     private void SubscribeToSyncedLyricsChanges()
     {

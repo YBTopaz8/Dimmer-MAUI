@@ -2,7 +2,7 @@
 
 public partial class AlbumModel : RealmObject
 {
-    public BaseEmbedded Instance { get; set; } // = new ();
+
 
     public string? Name { get; set; } = "Unknown Album";
     public int? ReleaseYear { get; set; }
@@ -11,18 +11,24 @@ public partial class AlbumModel : RealmObject
     public string? ImagePath { get; set; }
     public string? TotalDuration { get; set; }
 
+    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumModel));
 
     public AlbumModel()
     {
-        Instance = new BaseEmbedded();
+        
         LocalDeviceId = (nameof(AlbumModel));
     }
 
     public AlbumModel(AlbumModelView model)
     {
-        Instance = new(model.Instance);
+        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         ReleaseYear = model.ReleaseYear;
@@ -38,8 +44,6 @@ public partial class AlbumModelView : ObservableObject
     string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumModelView));
 
     [ObservableProperty]
-    BaseEmbeddedView instance = new();
-    [ObservableProperty]
     string? name;
     [ObservableProperty]
     int? releaseYear;
@@ -52,12 +56,18 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     string? albumImagePath;
 
+    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     [ObservableProperty]
     bool isCurrentlySelected;
     public AlbumModelView(AlbumModel model)
     {
 
-        Instance = new(model.Instance);
+        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         NumberOfTracks = model.NumberOfTracks;

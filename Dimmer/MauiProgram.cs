@@ -135,6 +135,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILyricsService, LyricsService>();
 
         /* Registering the ViewModels */
+        builder.Services.AddSingleton(provider =>
+        new Lazy<HomePageVM>(() => provider.GetRequiredService<HomePageVM>()));
+
         builder.Services.AddSingleton<HomePageVM>();
 
 

@@ -52,7 +52,7 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
                     <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
        IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
                     <Grid>
-                            <CollectionView ItemsSource="{Binding FolderPaths}"                                            
+                        <CollectionView ItemsSource="{Binding FolderPaths}"                                            
                                             HeightRequest="340">
                             <CollectionView.ItemsLayout>
                                 <LinearItemsLayout Orientation="Vertical"
@@ -71,7 +71,11 @@ xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                        </Grid>
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding DisplayedSongs}"
+                                    >
+                    </CollectionView>
                     </VerticalStackLayout>
                 </toolkit:Expander.Content>
             </toolkit:Expander>

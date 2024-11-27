@@ -166,10 +166,10 @@ public class AppSettingsService : IAppSettingsService
                 colToSort = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
                 break;
             case SortingEnum.DateAddedAsc:
-                colToSort = colToSort.OrderBy(x => x.Instance.DateCreated).ToObservableCollection();
+                colToSort = colToSort.OrderBy(x => x.DateCreated).ToObservableCollection();
                 break;
             case SortingEnum.DateAddedDesc:
-                colToSort = colToSort.OrderByDescending(x => x.Instance.DateCreated).ToObservableCollection();
+                colToSort = colToSort.OrderByDescending(x => x.DateCreated).ToObservableCollection();
                 break;
             case SortingEnum.DurationAsc:
                 colToSort = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();

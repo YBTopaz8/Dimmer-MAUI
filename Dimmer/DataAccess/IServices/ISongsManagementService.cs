@@ -9,7 +9,7 @@ public interface ISongsManagementService
     Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
     void GetSongs();
     bool UpdateSongDetails(SongModelView songsModelView);
-    bool UpdatePlayAndCompletionDetails(PlayDateAndCompletionStateSongLink link);
+    void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link);
 
     void Dispose();
 
