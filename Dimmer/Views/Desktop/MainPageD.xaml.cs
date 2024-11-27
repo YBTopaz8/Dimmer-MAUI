@@ -102,7 +102,7 @@ public partial class MainPageD : ContentPage
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
-
+    
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
@@ -135,7 +135,7 @@ public partial class MainPageD : ContentPage
                             e.AcceptedOperation = DataPackageOperation.None;
                             dragUI.IsGlyphVisible = true;
                             dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
-                            return;
+                            continue;
                             //break;  // If any invalid file is found, break the loop
                         }
                         else

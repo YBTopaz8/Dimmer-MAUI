@@ -33,6 +33,24 @@ public class AppSettingsService : IAppSettingsService
 
     }
 
+    public static class IsAuthenticatedPreference
+    {
+        const bool isConnected = false;
+        public static bool IsConnected
+        {
+            get => Preferences.Default.Get(nameof(IsConnected), isConnected);
+            set => Preferences.Default.Set(nameof(IsConnected), value);
+        }
+        public static void ToggleMuteState(bool muteState)
+        {
+            IsConnected = muteState;
+        }
+        public static bool GetMuteState()
+        {
+            return IsConnected;
+        }
+    }
+
     public static class LastPlayedSongSettingPreference
     {
         const string defaultSongId = null;

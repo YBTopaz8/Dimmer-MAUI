@@ -290,43 +290,50 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
 
     #region Playback Control Region
+
+    private CancellationTokenSource? _debounceTokenSource;
+
     public async Task<bool> PlaySelectedSongsOutsideAppAsync(List<string> filePaths)
     {
-        if(filePaths.Count < 1)
+        if (filePaths == null || filePaths.Count < 1)
             return false;
-        // Filter the array to include only specific file extensions
-        var filteredFiles = filePaths.Where(path => path.EndsWith(".mp3") || path.EndsWith(".flac") || path.EndsWith(".wav") || path.EndsWith(".m4a")).ToList();
-        Dictionary<string, SongModelView>? existingSongDictionary = new();
-        if (_tertiaryQueueSubject.Value is not null)
-        {
-            existingSongDictionary = _tertiaryQueueSubject.Value.ToDictionary(song => song.FilePath!, song => song, StringComparer.OrdinalIgnoreCase);
-        }
-        else
-        {
-        }
+
+        // Filter the files upfront by extension and size
+        var filteredFiles = filePaths
+            .Where(path => new[] { ".mp3", ".flac", ".wav", ".m4a" }.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
+            .Where(path => new FileInfo(path).Length >= 1000) // Exclude small files (< 1KB)
+            .ToList();
+
+        if (filteredFiles.Count == 0)
+            return false;
+
+        // Use a HashSet for fast lookup to avoid duplicates
+        var processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, SongModelView>();
         var allSongs = new ObservableCollection<SongModelView>();
+
         foreach (var file in filteredFiles)
         {
-            FileInfo fileInfo = new(file);
-            if (fileInfo.Length < 1000)
-            {
-                continue;
-            }
+            if (!processedFilePaths.Add(file))
+                continue; // Skip duplicate file paths
+
             if (existingSongDictionary.TryGetValue(file, out var existingSong))
             {
-                // If the song already exists, use the existing song
+                // Use the existing song
                 allSongs.Add(existingSong);
             }
             else
             {
-                // Otherwise, create a new song object and add it to the collection
-                Track track = new Track(file);
+                // Create a new SongModelView
+                var track = new Track(file);
+                var fileInfo = new FileInfo(file);
+
                 var newSong = new SongModelView
                 {
                     Title = track.Title,
-                    GenreName = track.Genre,
-                    ArtistName = track.Artist,
-                    AlbumName = track.Album,
+                    GenreName = string.IsNullOrEmpty(track.Genre) ? "Unknown Genre" : track.Genre,
+                    ArtistName = string.IsNullOrEmpty(track.Artist) ? "Unknown Artist" : track.Artist,
+                    AlbumName = string.IsNullOrEmpty(track.Album) ? "Unknown Album" : track.Album,
                     ReleaseYear = track.Year,
                     SampleRate = track.SampleRate,
                     FilePath = track.Path,
@@ -341,14 +348,38 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 };
                 allSongs.Add(newSong);
             }
-
         }
-        _tertiaryQueueSubject.OnNext(allSongs);  
-        await PlaySongAsync(allSongs[0], 2, allSongs);
+
+        // Update the subject with the processed songs
+        _tertiaryQueueSubject.OnNext(allSongs);
+
+        // Play the first song
+        if (allSongs.Count > 0)
+            await PlaySongAsync(allSongs[0], 2, allSongs);
 
         return true;
     }
-    //private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);  // Initialize with a count of 1
+
+    // Debounce wrapper
+    public async Task<bool> PlaySelectedSongsOutsideAppDebouncedAsync(List<string> filePaths)
+    {
+        // Cancel previous execution if still pending
+        _debounceTokenSource?.Cancel();
+        _debounceTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            // Wait for 300ms to debounce
+            await Task.Delay(300, _debounceTokenSource.Token);
+            return await PlaySelectedSongsOutsideAppAsync(filePaths);
+        }
+        catch (TaskCanceledException)
+        {
+            // Swallow cancellation exceptions as they indicate debounced execution
+            return false;
+        }
+    }
+
     bool isLoadingSongs;
     public async Task<bool> PlaySongAsync(SongModelView? song = null, int currentQueue = 0,
         ObservableCollection<SongModelView>? currentList = null, double positionInSec = 0,
@@ -462,7 +493,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         finally
         {
             //here consider adding a prompt that will show when focused OR think of a quicker way to know if ext or not, that way we can give option for user to add to db or not. (It'd be awesome!!!!)
-            if (File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null && currentQueue != 2)
+            if ((File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null) && currentQueue != 2)
             {
                 ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
@@ -473,7 +504,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     PlayType = 0,
                     SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
                 };
-
+                (ObservableCurrentlyPlayingSong.HasSyncedLyrics, ObservableCurrentlyPlayingSong.SyncLyrics) = LyricsService.HasLyrics(song: ObservableCurrentlyPlayingSong);
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 SongsMgtService.AddPlayAndCompletionLink(link);
                 _currentPositionSubject.OnNext(new());

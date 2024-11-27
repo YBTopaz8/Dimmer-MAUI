@@ -7,6 +7,11 @@ namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     [ObservableProperty]
+    UserModelView? currentUser;
+    [ObservableProperty]
+    ParseUser? currentUserOnline;
+
+    [ObservableProperty]
     FlyoutBehavior shellFlyoutBehavior = FlyoutBehavior.Disabled;
     [ObservableProperty]
     bool isFlyOutPaneOpen = false;
@@ -57,9 +62,11 @@ public partial class HomePageVM : ObservableObject
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
-    
 
-    public List<AlbumArtistGenreSongLinkView>? AllLinks { get; set; }
+    [ObservableProperty]
+    List<AlbumArtistGenreSongLinkView>? allLinks = new();
+    [ObservableProperty]
+    List<PlayDateAndCompletionStateSongLinkView>? allPDaCStateLink = new();
 
     [ObservableProperty]
     string unSyncedLyrics;
@@ -91,7 +98,6 @@ public partial class HomePageVM : ObservableObject
         SubscribeToSyncedLyricsChanges();
         SubscribeToLyricIndexChanges();
 
-        LoadSongCoverImage();
         IsPlaying = false;
         //DisplayedPlaylists = PlayBackService.AllPlaylists;
         TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
@@ -112,7 +118,9 @@ public partial class HomePageVM : ObservableObject
 #if WINDOWS
         ToggleFlyout();
 #endif
+        CurrentUser = SongsMgtService.CurrentOfflineUser;
         //SyncRefresh();
+        LoadSongCoverImage();
     }
 
     public void SyncRefresh()
@@ -122,10 +130,12 @@ public partial class HomePageVM : ObservableObject
         AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
         
         AllLinks = SongsMgtService.AllLinks.ToList();
-
+        AllPDaCStateLink = SongsMgtService.AllPlayDataAndCompletionStateLinks.ToList();
         GetAllArtists();
         GetAllAlbums();
         RefreshPlaylists();
+
+        
     }
 
     void DoRefreshDependingOnPage()
@@ -311,6 +321,7 @@ public partial class HomePageVM : ObservableObject
             }      
         }
         SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+        
         SelectedSongToOpenBtmSheet.SyncLyrics = SynchronizedLyrics;
         SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
         if (SongPickedForStats is null)
@@ -645,7 +656,10 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongModelView> recentlyAddedSongs;
     public void LoadSongCoverImage()
     {
-
+        if (DisplayedSongs is null)
+        {
+            return;
+        }
         RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
 
         if (DisplayedSongs is not null && DisplayedSongs.Count > 0)
@@ -675,9 +689,8 @@ public partial class HomePageVM : ObservableObject
             TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == lastID);
             if (TemporarilyPickedSong is null)
             {
-                IsTemporarySongNull = true;
+                TemporarilyPickedSong= DisplayedSongs.First();
             }
-                return;
             
         }
         //TemporarilyPickedSong.CoverImagePath = await FetchSongCoverImage();
@@ -976,6 +989,13 @@ public partial class HomePageVM : ObservableObject
             LyricsSearchArtistName,
             LyricsSearchSongTitle,
         ];
+
+        (SelectedSongToOpenBtmSheet.HasSyncedLyrics, SelectedSongToOpenBtmSheet.SyncLyrics)= LyricsService.HasLyrics(SelectedSongToOpenBtmSheet);
+        if (SelectedSongToOpenBtmSheet.HasSyncedLyrics)
+        {
+            IsFetchSuccessful = true;
+            return true;
+        }
 
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{

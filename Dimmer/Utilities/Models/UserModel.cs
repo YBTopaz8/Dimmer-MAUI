@@ -26,6 +26,7 @@ public partial class ActionPending : RealmObject
     public bool IsCompleted { get; set; }=false;
     public required bool ApplyToAllThisDeviceOnly { get; set; } = true;
     public bool IsBatch { get; set; }
+    public bool IsAuthenticated { get; set; } = false;
     public string? AdditionalNotes { get; set; } = string.Empty;
     
     public ActionPending()
@@ -39,6 +40,8 @@ public partial class UserModelView : ObservableObject
     [ObservableProperty]
     string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(UserModelView));
    
+    [ObservableProperty]
+    bool isAuthenticated;
     [ObservableProperty]
     string? userIDOnline;
     [ObservableProperty]
@@ -72,6 +75,13 @@ public partial class UserModelView : ObservableObject
     {
         
     }
+    public UserModelView(ParseUser model)
+    {
+        UserEmail = model.Email;
+        UserName = model.Username;
+        UserIDOnline = model.ObjectId;
+        IsAuthenticated = model.IsAuthenticated;
+    }
 }
 
 public class UserModel : RealmObject
@@ -88,6 +98,7 @@ public class UserModel : RealmObject
     public string? UserName { get; set; } = "User";
     public string? UserPassword { get; set; }
     public string? UserEmail { get; set; }
+    public string? UserIDOnline { get; set; }
     public string? CoverImage { get; set; } = string.Empty;
     public DateTimeOffset LastSessionDate { get; set; } = DateTimeOffset.UtcNow;
     public UserModel(UserModelView model)

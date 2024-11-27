@@ -27,7 +27,7 @@ public partial class SongModel : RealmObject
     public bool IsPlaying { get; set; }
     public bool IsFavorite { get; set; }
     public string? Achievement { get; set; }
-    public bool IsFileExists { get; set; }
+    public bool IsFileExists { get; set; } = true;
     public DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
@@ -127,7 +127,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     bool isPlayCompleted;
     [ObservableProperty]
-    bool isFileExists;
+    bool isFileExists = true;
     [ObservableProperty]
     string? achievement;
     
@@ -135,7 +135,6 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     ObservableCollection<LyricPhraseModel>? syncLyrics;
     
-
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
@@ -209,14 +208,21 @@ public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
     DateTimeOffset dateFinished;
     [ObservableProperty]
     bool wasPlayCompleted;
+    [ObservableProperty]
+    double positionInSeconds;
+
     public PlayDateAndCompletionStateSongLinkView()
     {
         
     }
     public PlayDateAndCompletionStateSongLinkView(PlayDateAndCompletionStateSongLink model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
+        SongId = model.SongId;
+        DatePlayed = model.DatePlayed;
+        DateFinished = model.DateFinished;
+        WasPlayCompleted = model.WasPlayCompleted;
+        PositionInSeconds = model.PositionInSeconds;
     }
 }
 
@@ -246,13 +252,16 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     {
         
     }
-        
+
     public PlayDateAndCompletionStateSongLink(PlayDateAndCompletionStateSongLinkView model)
     {
-        
         LocalDeviceId = model.LocalDeviceId;
+        SongId = model.SongId;
+        DatePlayed = model.DatePlayed;
+        DateFinished = model.DateFinished;
+        WasPlayCompleted = model.WasPlayCompleted;
+        PositionInSeconds = model.PositionInSeconds;
     }
-
     
 }
 

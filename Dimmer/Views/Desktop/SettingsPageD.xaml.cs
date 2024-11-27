@@ -1,19 +1,24 @@
+using Syncfusion.Maui.Toolkit.Carousel;
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SettingsPageD : ContentPage
 {
-	public SettingsPageD(HomePageVM vm)
+	public SettingsPageD(HomePageVM ViewModel)
     {
         InitializeComponent();
-        BindingContext = vm;
+        BindingContext = ViewModel;
+        this.ViewModel = ViewModel;
     }
+    public bool ToLogin { get; }
+    public HomePageVM ViewModel { get; }
 
     bool IsUserInLastFM;
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
-      
+        SongsManagementService.ConnectOnline();
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -26,4 +31,90 @@ public partial class SettingsPageD : ContentPage
     {
         ShowHidePreferredFoldersExpander.IsExpanded = !ShowHidePreferredFoldersExpander.IsExpanded;
     }
+
+
+    private void LoginSignUpToggle_Click(object sender, EventArgs e)
+    {
+        LoginUI.IsVisible = !LoginUI.IsVisible;
+        SignUpUI.IsVisible = !SignUpUI.IsVisible;
+    }
+
+    private async void SignUpBtn_Clicked(object sender, EventArgs e)
+    {
+        SignUpBtn.IsEnabled = false;
+        if (string.IsNullOrWhiteSpace(SignUpUname.Text) ||
+            string.IsNullOrWhiteSpace(SignUpPass.Text) ||
+            string.IsNullOrWhiteSpace(SignUpEmail.Text))
+        {
+            await Shell.Current.DisplayAlert("Error", "All fields are required.", "OK");
+            return;
+        }
+
+        ParseUser user = new ParseUser()
+        {
+            Username = SignUpUname.Text.Trim(),
+            Password = SignUpPass.Text.Trim(),
+            Email = SignUpEmail.Text.Trim()
+        };
+
+        try
+        {
+            await user.SignUpAsync();
+            await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
+            
+            // Navigate to a different page or reset fields
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Sign-up failed: {ex.Message}", "OK");
+            
+        }
+    }
+
+    private async void LoginBtn_Clicked(object sender, EventArgs e)
+    {
+        //LoginBtn.IsEnabled = false;
+        if (string.IsNullOrWhiteSpace(LoginUname.Text) || string.IsNullOrWhiteSpace(LoginPass.Text))
+        {
+            await Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
+            return;
+        }
+
+        try
+        {
+            var oUser = await ParseClient.Instance.LogInAsync(LoginUname.Text.Trim(), LoginPass.Text.Trim()).ConfigureAwait(false);
+            Debug.WriteLine(oUser.Password);
+            ViewModel.CurrentUserOnline = oUser;
+            //ViewModel.CurrentUser.IsAuthenticated = true;
+            // Navigate to a different page or perform post-login actions
+            //ViewModel.SongsMgtService.GetUserAccount(oUser);
+        }
+        catch (Exception ex)
+        {
+            ViewModel.CurrentUser.IsAuthenticated = false;
+            await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
+
+        }
+    }
+
+    private void FullSyncBtn_Clicked(object sender, EventArgs e)
+    {
+        ViewModel.FullSync();
+    }
+}
+
+public enum UserState
+{
+    LoggedInSuccessfully,
+    SignUpSuccessfully,
+    SignUpFailed,
+    LoginFailed,
+    UserAlreadyExists,
+    UserDoesNotExist,
+    PasswordIncorrect,
+    UserNotVerified,
+    UserNotLoggedIn,
+    UserLoggedOut,
+    ActionCancelled
+
 }

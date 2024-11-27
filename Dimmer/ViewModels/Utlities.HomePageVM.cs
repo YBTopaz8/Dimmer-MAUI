@@ -43,7 +43,7 @@ public partial class HomePageVM
         MiniPlayBackControlNotif.BringAppToFront();
 #endif
     }
-
+    
 
     [RelayCommand]
     async Task ShowSleepTimerPopup()
@@ -444,4 +444,21 @@ public partial class HomePageVM
         }
     }
 
+    [RelayCommand]
+    void LogOut()
+    {
+        ParseClient.Instance.LogOut();
+    }
+
+    public void FullSync()
+    {
+        SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
+        IsLoadingSongs = true;
+        SongsMgtService.SendAllDataToServerAsInitialSync();
+        SongsMgtService.GetAllDataFromOnlineAsync();
+
+        SyncRefresh();
+
+        IsLoadingSongs=false;
+    }
 }

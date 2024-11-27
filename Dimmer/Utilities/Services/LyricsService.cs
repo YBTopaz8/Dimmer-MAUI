@@ -132,6 +132,10 @@ public class LyricsService : ILyricsService
     List<LyricPhraseModel>? sortedLyrics;
     public IList<LyricPhraseModel> GetSpecificSongLyrics(SongModelView song)
     {
+        if (song is null)
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToList();
+        }
         List<LyricPhraseModel> lyr = new();
         return LoadLyrFromFile(song.FilePath, out lyr);
     }
@@ -393,8 +397,10 @@ public class LyricsService : ILyricsService
     #region Fetch Lyrics Online from Lrclib
     public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
+
+
         HttpClient client = new();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.1.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.5.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
         try
         {

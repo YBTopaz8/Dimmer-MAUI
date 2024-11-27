@@ -1,4 +1,5 @@
-﻿namespace Dimmer_MAUI.DataAccess.IServices;
+﻿
+namespace Dimmer_MAUI.DataAccess.IServices;
 public interface ISongsManagementService
 {
     IList<SongModelView> AllSongs { get; internal set; }
@@ -25,8 +26,21 @@ public interface ISongsManagementService
     bool DeleteSongFromDB(SongModelView song);
     Task<bool> MultiDeleteSongFromDB(ObservableCollection<SongModelView> songs);
 
-    UserModelView CurrentUser { get; internal set; }
-    UserModelView? GetUserAccount();
-    Task<UserModelView?> GetUserAccountOnline();
+    UserModelView CurrentOfflineUser { get; internal set; }
+    ParseUser? CurrentUserOnline { get; internal set; }
+    IList<PlayDateAndCompletionStateSongLinkView> AllPlayDataAndCompletionStateLinks { get; set; }
+
     
+    Task<UserModelView?> GetUserAccountOnline();
+    void LogOutUser();
+    bool IsEmailVerified();
+    Task<bool> LoginAndCheckEmailVerificationAsync(string username, string password);
+    
+    bool RequestPasswordResetAsync(string email);
+    bool LogUserOnlineAsync(string email, string password);
+    bool SignUpUserOnlineAsync(string email, string password);
+    
+    Task GetAllDataFromOnlineAsync();
+    UserModelView? GetUserAccount(ParseUser? usr = null);
+    Task SendAllDataToServerAsInitialSync();
 }
