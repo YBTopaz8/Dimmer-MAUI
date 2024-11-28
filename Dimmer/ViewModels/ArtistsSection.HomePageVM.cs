@@ -1,5 +1,7 @@
 ﻿//using WinRT;
 
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
@@ -198,6 +200,10 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
+    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView>? oldValue, ObservableCollection<AlbumModelView> newValue)
+    {
+        Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
+    }
     public async Task GetAlbumsFromArtistIDAsync(string artistId)
     {
         // Use asynchronous processing with deferred execution
@@ -207,9 +213,12 @@ public partial class HomePageVM
             var albumIds = new HashSet<string>(
                 AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId)
             );
-
+            if (AllAlbums is null)
+            {
+                AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
+            }
             // Filter albums efficiently using the pre-built HashSet
-            var albums = AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId));
+            var albums = SongsMgtService.AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId));
 
             // Convert the result to an observable collection for UI binding
             AllArtistsAlbums = albums.ToObservableCollection();
@@ -243,7 +252,7 @@ public partial class HomePageVM
         {
             // Pre-build a HashSet of song IDs related to the album for quick lookup
             var songIds = new HashSet<string>(
-                AllLinks!.Where(link => link.AlbumId == albumId).Select(link => link.SongId)
+                AllLinks!.Where(link => link.AlbumId == albumId).Select(link => link.SongId)!
             );
 
             // Filter songs using the HashSet for O(1) lookups

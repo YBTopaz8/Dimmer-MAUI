@@ -77,10 +77,6 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                     </Grid>
-
-                    <CollectionView ItemsSource="{Binding DisplayedSongs}"
-                                    >
-                    </CollectionView>
                     </VerticalStackLayout>
                 </toolkit:Expander.Content>
             </toolkit:Expander>

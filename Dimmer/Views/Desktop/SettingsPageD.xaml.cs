@@ -19,7 +19,13 @@ public partial class SettingsPageD : ContentPage
     {
         base.OnAppearing();
         SongsManagementService.ConnectOnline();
-        LoginBtn_Clicked(null, null); //review this.
+
+        if (ViewModel.CurrentUser is not null && !string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
+        {
+            LoginPass.Text = ViewModel.CurrentUser.UserPassword;
+            LoginBtn_Clicked(null, null); //review this.
+        }
+        
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -80,6 +86,9 @@ public partial class SettingsPageD : ContentPage
             {
                 return;
             }
+        }
+        if (string.IsNullOrWhiteSpace(LoginPass.Text))
+        {
         }
         //LoginBtn.IsEnabled = false;
         if (string.IsNullOrWhiteSpace(LoginUname.Text) || string.IsNullOrWhiteSpace(LoginPass.Text))

@@ -100,15 +100,18 @@ public partial class ArtistsPageD : ContentPage
         HomePageVM.LoadSongsFromArtistId(HomePageVM.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
-    {
-        
-    }
 
+    ArtistModelView currentlySelectedArtist;
     private async void ArtistView_TouchDown(object sender, EventArgs e)
     {
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
+
+        if (true)
+        {
+
+        }
+
         await HomePageVM.GetAllArtistAlbumFromArtist(artist);
         
         //await HomePageVM.GetAllArtistAlbumFromArtist(artist);

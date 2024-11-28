@@ -5,12 +5,12 @@ public partial class DimmerWindow : Window
 	public DimmerWindow(Lazy<HomePageVM> viewModel)
 	{
         InitializeComponent();
-        HomepageVM = viewModel;
-        BindingContext = viewModel;
+        HomepageVM = viewModel.Value;
+        BindingContext = viewModel.Value;
         
     }
 
-    public Lazy<HomePageVM> HomepageVM { get; }
+    public HomePageVM HomepageVM { get; }
 
     protected override void OnCreated()
     {
@@ -28,8 +28,8 @@ public partial class DimmerWindow : Window
         DimmerTitleBar.Subtitle = "v0.5.0-release";
 #endif
 
-        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
+        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
         syncingCloud.IsVisible = false;
         loggedInCloud.IsVisible = false;
         
@@ -39,6 +39,8 @@ public partial class DimmerWindow : Window
 
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (HomepageVM.CurrentPage != PageEnum.MainPage)
+            return; 
         var searchBar = (SearchBar)sender;
         var txt = searchBar.Text;
 
@@ -46,7 +48,14 @@ public partial class DimmerWindow : Window
         _debounceTimer?.Cancel();
         _debounceTimer = new CancellationTokenSource();
         var token = _debounceTimer.Token;
-
+        if (HomepageVM.SongsMgtService.AllSongs is null)
+        {
+            return;
+        }
+        if (HomepageVM.DisplayedSongs is null)
+        {
+            return;
+        }
         try
         {
             await Task.Delay(300, token);
@@ -55,18 +64,51 @@ public partial class DimmerWindow : Window
             {
                 if (txt.Length >= 1)
                 {
-                    HomepageVM.Value.IsOnSearchMode = true;
+                    HomepageVM.IsOnSearchMode = true;
 
-                    HomepageVM.Value.DisplayedSongs = HomepageVM.Value.SongsMgtService.AllSongs
-                        .Where(item => item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase))
-                        .ToObservableCollection();
+
+                    HomepageVM.DisplayedSongs.Clear();
+
+                    // Pre-build a HashSet of song IDs or Titles for efficient lookups
+                    var matchingTitles = new HashSet<string>(
+                        HomepageVM.SongsMgtService.AllSongs
+                        .Where(item =>
+                        item.Title!.Contains(txt, StringComparison.OrdinalIgnoreCase) || // Match by Title
+                        item.ArtistName!.Contains(txt, StringComparison.OrdinalIgnoreCase)) // Match by ArtistName
+                        .Select(item => item.LocalDeviceId)! // Use unique identifier
+                    );
+
+                    // Filter songs using the HashSet
+                    var fSongs= HomepageVM.SongsMgtService.AllSongs
+                        .Where(item => matchingTitles.Contains(item.LocalDeviceId)); // Or use the unique identifier
+                    HomepageVM.filteredSongs= fSongs.ToList();
+                    // Update the ObservableCollection
+                    foreach (var song in fSongs)
+                    {
+                        HomepageVM.DisplayedSongs.Add(song);
+                    }
+                    HomepageVM.CurrentQueue = 1;
+
+                    if (HomepageVM.DisplayedSongs.Count<1)
+                    {
+                        HomepageVM.DisplayedSongs.Clear();
+                    }
+                    OnPropertyChanged(nameof(HomepageVM.DisplayedSongs));
+                    return;
                 }
             }
             else
             {
-                HomepageVM.Value.IsOnSearchMode = false;
-                await HomepageVM.Value.LoadSongsInBatchesAsync();
+                HomepageVM.IsOnSearchMode = false;
             }
+            HomepageVM.DisplayedSongs.Clear();
+
+            // Update the ObservableCollection
+            foreach (var song in HomepageVM.SongsMgtService.AllSongs)
+            {
+                HomepageVM.DisplayedSongs.Add(song);
+            }
+            HomepageVM.CurrentQueue = 0;
         }
         catch (TaskCanceledException)
         {
@@ -76,15 +118,15 @@ public partial class DimmerWindow : Window
 
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.Value.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
+        HomepageVM.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.Value.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
+        HomepageVM.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
     }
 }

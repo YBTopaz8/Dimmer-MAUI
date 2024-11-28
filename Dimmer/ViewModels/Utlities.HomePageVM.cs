@@ -455,16 +455,18 @@ public partial class HomePageVM
 
     [ObservableProperty]
     bool isLoggedIn = false;    
-    public void FullSync()
+    public async Task FullSync()
     {
         SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
         IsSyncingSongs = true;
-        SongsMgtService.SendAllDataToServerAsInitialSync();
-        SongsMgtService.GetAllDataFromOnlineAsync();
+        await SongsMgtService.SendAllDataToServerAsInitialSync();
+        await SongsMgtService.GetAllDataFromOnlineAsync();
 
         SyncRefresh();
 
         IsSyncingSongs = false;
+
+        await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
     partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)

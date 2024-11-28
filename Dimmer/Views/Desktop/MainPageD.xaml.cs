@@ -4,27 +4,30 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
 {
+    //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM;
-        this.BindingContext = homePageVM;
+        HomePageVM = homePageVM.Value;
+        this.BindingContext = homePageVM.Value;
 
     }
-    public Lazy<HomePageVM> HomePageVM { get; }
+    public HomePageVM HomePageVM { get; }
 
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.Value.CurrentPage = PageEnum.MainPage;
+        HomePageVM.CurrentPage = PageEnum.MainPage;
 
-        SongsColView.ItemsSource = HomePageVM.Value.DisplayedSongs;
+        SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
 
-        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != HomePageVM.Value.DisplayedSongs?.Count)
+        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != HomePageVM.DisplayedSongs?.Count)
         {
-            SongsColView.ItemsSource = HomePageVM.Value.DisplayedSongs;
+            SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
         }
+
+        HomePageVM.AssignCV(SongsColView);
     }
 
     protected override void OnDisappearing()
@@ -36,13 +39,13 @@ public partial class MainPageD : ContentPage
     {
         try
         {
-            if (HomePageVM.Value.PickedSong is null || HomePageVM.Value.TemporarilyPickedSong is null)
+            if (HomePageVM.PickedSong is null || HomePageVM.TemporarilyPickedSong is null)
             {
                 return;
             }
-            HomePageVM.Value.PickedSong = HomePageVM.Value.TemporarilyPickedSong;
+            HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             
-            SongsColView.ScrollTo(HomePageVM.Value.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -54,11 +57,11 @@ public partial class MainPageD : ContentPage
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
         Debug.WriteLine("refreshes " + coon++);
-        if (SongsColView.IsLoaded && HomePageVM.Value.TemporarilyPickedSong is not null)
+        if (SongsColView.IsLoaded && HomePageVM.TemporarilyPickedSong is not null)
         {
 
-            SongsColView.ScrollTo(HomePageVM.Value.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
-            SongsColView.SelectedItem = HomePageVM.Value.TemporarilyPickedSong;
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
+            SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
         }
     }
 
@@ -86,7 +89,7 @@ public partial class MainPageD : ContentPage
 
     private async void NavToArtistClicked(object sender, EventArgs e)
     {
-        await HomePageVM.Value.NavigateToArtistsPage(1);
+        await HomePageVM.NavigateToArtistsPage(1);
     }
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
@@ -168,7 +171,7 @@ public partial class MainPageD : ContentPage
         if (supportedFilePaths.Count > 0)
         {
             await colView.AnimateRippleBounce();
-            HomePageVM.Value.LoadLocalSongFromOutSideApp(supportedFilePaths);
+            HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
         }
     }
 
@@ -192,7 +195,7 @@ public partial class MainPageD : ContentPage
 
     private async void GoToSongOverviewClicked(object sender, EventArgs e)
     {
-        await HomePageVM.Value.NavToSingleSongShell();
+        await HomePageVM.NavToSingleSongShell();
     }
 
 
@@ -205,8 +208,8 @@ public partial class MainPageD : ContentPage
                 SongsColView.SelectionMode = SelectionMode.Multiple;
                 //NormalMiniUtilBar.IsVisible = false;
                 //MultiSelectUtilBar.IsVisible = true;
-                HomePageVM.Value.EnableContextMenuItems = false;
-                HomePageVM.Value.IsMultiSelectOn = true;
+                HomePageVM.EnableContextMenuItems = false;
+                HomePageVM.IsMultiSelectOn = true;
                 selectedSongs = new();
                 selectedSongsViews = new();
                 SongsColView.BackgroundColor = Color.Parse("#1D1932");
@@ -220,11 +223,11 @@ public partial class MainPageD : ContentPage
                     view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
                 SongsColView.SelectionMode = SelectionMode.None;
-                HomePageVM.Value.IsMultiSelectOn = false;
+                HomePageVM.IsMultiSelectOn = false;
                 SongsColView.SelectedItems = null;
                 //NormalMiniUtilBar.IsVisible = true;
                 //MultiSelectUtilBar.IsVisible = false;
-                HomePageVM.Value.EnableContextMenuItems = true;
+                HomePageVM.EnableContextMenuItems = true;
                 break;
             default:
                 break;
@@ -239,7 +242,7 @@ public partial class MainPageD : ContentPage
         View send = (View)sender;
         SongModelView song = (send.BindingContext as SongModelView)!;
 
-        if (HomePageVM.Value.IsMultiSelectOn)
+        if (HomePageVM.IsMultiSelectOn)
         {
 
             if (selectedSongs.Contains(song))
@@ -254,12 +257,12 @@ public partial class MainPageD : ContentPage
                 selectedSongsViews.Add(send);
                 send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
             }
-            HomePageVM.Value.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.Value.SongsMgtService.AllSongs.Count} Selected";
+            HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.SongsMgtService.AllSongs.Count} Selected";
             return;
         }
         else
         {
-            HomePageVM.Value.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
+            HomePageVM.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
         }
     }
 
@@ -268,22 +271,22 @@ public partial class MainPageD : ContentPage
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
 
-        await HomePageVM.Value.PlaySong(song);
+        await HomePageVM.PlaySong(song);
     }
 
     private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
     {
-        if(HomePageVM.Value.IsOnSearchMode)
+        if(HomePageVM.IsOnSearchMode)
         {
             return;
         }
-        //await HomePageVM.Value.LoadSongsInBatchesAsync();
+        //await HomePageVM.LoadSongsInBatchesAsync();
 
     }
 
     private void SortBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.Value.OpenSortingPopupCommand.Execute(null);
+        HomePageVM.OpenSortingPopupCommand.Execute(null);
     }
 }
 

@@ -1167,8 +1167,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         return AllArtists;
     }
     public ObservableCollection<AlbumModelView> GetAllAlbums()
-    {
-        SongsMgtService.GetAlbums();
+    {        
         AllAlbums = new ObservableCollection<AlbumModelView>(SongsMgtService.AllAlbums);
         return AllAlbums;
     }

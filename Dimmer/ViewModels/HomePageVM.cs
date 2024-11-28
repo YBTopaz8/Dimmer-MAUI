@@ -133,9 +133,7 @@ public partial class HomePageVM : ObservableObject
         AllPDaCStateLink = SongsMgtService.AllPlayDataAndCompletionStateLinks.ToList();
         GetAllArtists();
         GetAllAlbums();
-        RefreshPlaylists();
-
-        
+        RefreshPlaylists();        
     }
 
     void DoRefreshDependingOnPage()
@@ -480,7 +478,7 @@ public partial class HomePageVM : ObservableObject
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue: CurrentQueue, SecQueueSongs: AllArtistsAlbumSongs);
                 return;
             }
-            if (IsOnSearchMode) // here is for when I searched and I'm passing also the list of songs displayed too
+            if (IsOnSearchMode) // here is for when I SEARCH and I'm passing also the list of songs displayed too
             {
                 CurrentQueue = 1;
                 await PlayBackService.PlaySongAsync(SelectedSong, CurrentQueue, SecQueueSongs: filteredSongs.ToObservableCollection());
@@ -869,54 +867,7 @@ public partial class HomePageVM : ObservableObject
     private int _currentIndex = 0; // Tracks the position of the last loaded batch
     private const int MaxDisplayedSongs = 60; // Max items in DisplayedSongs
 
-    public async Task LoadSongsInBatchesAsync()
-    {
-        if (_isLoading)
-            return; // Prevent overlapping calls
-
-        _isLoading = true;
-
-        try
-        {
-            int batchSize = 20;
-
-            // Ensure we don't exceed the total number of songs
-            if (_currentIndex >= SongsMgtService.AllSongs.Count)
-                return;
-
-            // Get the next batch of songs
-            var nextBatch = SongsMgtService.AllSongs
-                .Skip(_currentIndex)
-                .Take(batchSize)
-                .ToList();
-
-            // Add songs to DisplayedSongs on the main thread
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                foreach (var song in nextBatch)
-                {
-                    DisplayedSongs.Add(song);
-                }
-
-                // Maintain a fixed size for DisplayedSongs
-                while (DisplayedSongs.Count > MaxDisplayedSongs)
-                {
-                    DisplayedSongs.RemoveAt(0); // Remove old songs from the start
-                }
-            });
-
-            // Update the current index for the next batch
-            _currentIndex += batchSize;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during batch loading: {ex.Message}");
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
+  
 
     private void SubscribetoDisplayedSongsChanges()
     {

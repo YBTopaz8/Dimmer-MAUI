@@ -44,7 +44,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public void UpdateUserLoginDetails(ParseUser usrr)
     {
-        
+        CurrentUserOnline = usrr;
         CurrentOfflineUser.UserEmail = usrr.Username;
         CurrentOfflineUser.UserPassword = usrr.Password;
         CurrentOfflineUser.LastSessionDate = (DateTimeOffset)usrr.UpdatedAt!;
