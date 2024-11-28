@@ -154,10 +154,11 @@
             </ToolbarItem.IconImageSource>
         </ToolbarItem>
     </ContentPage.ToolbarItems>
-    <dx:DXStackLayout BackgroundColor="Transparent">        
+    <VerticalStackLayout>
+    <dx:DXStackLayout BackgroundColor="Transparent" >        
 
         <Grid BackgroundColor="Transparent">
-            <dx:DXCollectionView SelectionMode="Single"
+            <dx:DXCollectionView SelectionMode="Single" 
                             IsScrollBarVisible="False"
                             x:Name="SongsColView"
                             UseRippleEffect="True" Margin="3,0"
@@ -194,7 +195,7 @@
                 <viewsM:EachPageNPFAB_Mobile />
             </VerticalStackLayout>
 
-            <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.64" x:Name="SearchSongPopUp" >
+            <dx:BottomSheet HalfExpandedRatio="0.74" x:Name="SearchSongPopUp" >
                 <dx:DXScrollView Margin="10,0">
                     <VerticalStackLayout Spacing="5" BackgroundColor="Transparent">
                         <dx:DXButton Content="Clear Filter And Search" Clicked="ClearSearch_Clicked" PressedBackgroundColor="DarkSlateBlue"
@@ -254,7 +255,7 @@
                         <Label Text="Sort By..." Margin="15,0"
                                FontSize="18"/>
                         
-                        <dx:ChoiceChipGroup ChipUseRippleEffect="True" IsMultiline="True" IsVisible="False">
+                        <dx:ChoiceChipGroup ChipUseRippleEffect="True" IsMultiline="True" IsVisible="True">
 
                             <dx:Chip Text="Title Asc" x:Name="SortTitleAsc" Tap="SortSongsChip_Tap" TapCommandParameter="0"/>
                             <dx:Chip Text="Title Desc" x:Name="SortTitleDesc" Tap="SortSongsChip_Tap" TapCommandParameter="1"/>
@@ -356,5 +357,7 @@
         </Grid>
     </dx:DXStackLayout>
 
-    
+
+    </VerticalStackLayout>
+
 </ContentPage>

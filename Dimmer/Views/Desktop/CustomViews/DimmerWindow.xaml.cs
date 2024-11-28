@@ -21,16 +21,18 @@ public partial class DimmerWindow : Window
         this.Width = 1200;
 
 #if DEBUG
-
-        DimmerTitleBar.Subtitle = "v0.4.2-debug";
+        DimmerTitleBar.Subtitle = "v0.5.0-debug";
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v0.4.2-release";
+        DimmerTitleBar.Subtitle = "v0.5.0-release";
 #endif
 
         StickTopImgBtn.IsVisible = HomepageVM.Value.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !HomepageVM.Value.IsStickToTop;
+        syncingCloud.IsVisible = false;
+        loggedInCloud.IsVisible = false;
+        
     }
 
     private CancellationTokenSource _debounceTimer;

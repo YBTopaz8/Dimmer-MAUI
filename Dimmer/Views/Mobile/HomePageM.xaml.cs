@@ -2,8 +2,8 @@ namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : ContentPage
 {
-    public Lazy<HomePageVM> HomePageVM { get; }
-    public HomePageM(Lazy<HomePageVM> homePageVM)
+    public HomePageVM HomePageVM { get; }
+    public HomePageM(HomePageVM homePageVM)
     {
         InitializeComponent();
         this.HomePageVM = homePageVM;
@@ -16,12 +16,12 @@ public partial class HomePageM : ContentPage
 
     private void SongsColView_Loaded(object? sender, EventArgs e)
     {        
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.Value.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
         //SongsColView.GetItemHandleByVisibleIndex(visibleIndex:); param type is int
         //SongsColView.VisibleItemCount // type int, get the number of visible items in the collection view
         //SongsColView.GetItemVisibleIndex(itemHandle:); // param type is int. Get the visible index of the item by its handle
         //there also exists a method to get the handle of item by object 
-        //SongsColView.FindItemHandle(item: HomePageVM.Value.PickedSong); // param type is object. Get the handle of the item by its object
+        //SongsColView.FindItemHandle(item: HomePageVM.PickedSong); // param type is object. Get the handle of the item by its object
 
         //SongsColView.GetItemHandleByVisibleIndex(visibleIndex: 0); // param type is int. Get the handle of the item by its visible index\
         //SongsColView.GetItemHandle(sourceIndex: 0); // param type is int. Get the handle of the item by its source index
@@ -31,19 +31,19 @@ public partial class HomePageM : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (HomePageVM.Value.TemporarilyPickedSong is null)
+        if (HomePageVM.TemporarilyPickedSong is null)
         {
             return;
         }
-        HomePageVM.Value.CurrentPage = PageEnum.MainPage;
+        HomePageVM.CurrentPage = PageEnum.MainPage;
 
-        Shell.SetNavBarIsVisible(this, false);
+        Shell.SetNavBarIsVisible(this, true);
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.Value.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
+        HomePageVM.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
 
 
@@ -89,13 +89,13 @@ public partial class HomePageM : ContentPage
     {        
         var s = (View)sender;
         var song = (SongModelView)s.BindingContext;
-        HomePageVM.Value.SetContextMenuSong(song);
+        HomePageVM.SetContextMenuSong(song);
         if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             SongsMenuBtm.Show();
         }
     }
-    // Assume SongsColView is your CollectionView and HomePageVM.Value.FilteredSongs is the data source
+    // Assume SongsColView is your CollectionView and HomePageVM.FilteredSongs is the data source
     public List<SongModelView> GetVisibleItems()
     {
         var visibleItems = new List<SongModelView>();
@@ -122,20 +122,20 @@ public partial class HomePageM : ContentPage
 
     private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        HomePageVM.Value.CurrentQueue = 0;
-        if (HomePageVM.Value.IsOnSearchMode)
+        HomePageVM.CurrentQueue = 0;
+        if (HomePageVM.IsOnSearchMode)
         {
-            HomePageVM.Value.CurrentQueue = 1;
+            HomePageVM.CurrentQueue = 1;
             var filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
                      .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
                      .Where(handle => handle != -1)
                      .Select(handle => SongsColView.GetItem(handle) as SongModelView)
                      .Where(item => item != null)
                      .ToList()!;
-            HomePageVM.Value.filteredSongs = filteredSongs;
+            HomePageVM.filteredSongs = filteredSongs;
 
         }
-        await HomePageVM.Value.PlaySong(e.Item as SongModelView);
+        await HomePageVM.PlaySong(e.Item as SongModelView);
     }
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -143,7 +143,7 @@ public partial class HomePageM : ContentPage
         
         var s = (View)sender;
         var song = (SongModelView)e.Item;
-        HomePageVM.Value.SetContextMenuSong(song);
+        HomePageVM.SetContextMenuSong(song);
         if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             SongsMenuBtm.Show();
@@ -168,7 +168,7 @@ public partial class HomePageM : ContentPage
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.Value.NavigateToArtistsPage(1);
+        await HomePageVM.NavigateToArtistsPage(1);
         CloseBtmSheet();
     }
 
@@ -176,15 +176,15 @@ public partial class HomePageM : ContentPage
     private void OnLongPressElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
         _isLongPressed = true;
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.Value.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);        
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);        
     }
     private async void ShowSongDetails_Tap(object sender, DevExpress.Maui.CollectionView.SwipeItemTapEventArgs e)
     {
         var song = (SongModelView)e.Item;
 
-        HomePageVM.Value.SelectedSongToOpenBtmSheet = song;
+        HomePageVM.SelectedSongToOpenBtmSheet = song;
 
-        await HomePageVM.Value.NavToSingleSongShell();
+        await HomePageVM.NavToSingleSongShell();
     }
     ObservableCollection<DevExpress.Maui.CollectionView.SortDescription> Sorts;
     private void SortSongsChip_Tap(object sender, HandledEventArgs e)
@@ -223,20 +223,20 @@ public partial class HomePageM : ContentPage
         {
             if (txt.Length >= 1)
             {
-                HomePageVM.Value.IsOnSearchMode = true;
+                HomePageVM.IsOnSearchMode = true;
                 // Setting the FilterString for SongsColView
                 SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.Value.SongsMgtService.AllSongs!
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs!
                     .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             }
             else
             {
-                HomePageVM.Value.IsOnSearchMode = false;
+                HomePageVM.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
 
             }
@@ -251,20 +251,20 @@ public partial class HomePageM : ContentPage
         {
             if (txt.Length >= 1)
             {
-                HomePageVM.Value.IsOnSearchMode = true;
+                HomePageVM.IsOnSearchMode = true;
                 // Setting the FilterString for SongsColView
                 SongsColView.FilterString = $"Contains([ArtistName], '{ArtistNameTextEdit.Text}')";
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.Value.SongsMgtService.AllSongs!
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs!
                     .Where(item => item.ArtistName!.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             }
             else
             {
-                HomePageVM.Value.IsOnSearchMode = false;
+                HomePageVM.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
 
             }
@@ -279,20 +279,20 @@ public partial class HomePageM : ContentPage
         {
             if (txt.Length >= 1)
             {
-                HomePageVM.Value.IsOnSearchMode = true;
+                HomePageVM.IsOnSearchMode = true;
                 // Setting the FilterString for SongsColView
                 SongsColView.FilterString = $"Contains([AlbumName], '{AlbumNameTextEdit.Text}')";
                 filteredSongs?.Clear();
 
                 // Apply the filter to the DisplayedSongs collection
-                filteredSongs = HomePageVM.Value.SongsMgtService.AllSongs
+                filteredSongs = HomePageVM.SongsMgtService.AllSongs
                     .Where(item => item.AlbumName!.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             }
             else
             {
-                HomePageVM.Value.IsOnSearchMode = false;
+                HomePageVM.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
 
             }
@@ -319,7 +319,7 @@ public partial class HomePageM : ContentPage
         }
         else
         {
-            SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.Value.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
+            SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
             
         }
     }
@@ -350,10 +350,10 @@ public partial class HomePageM : ContentPage
                 SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
                 break;
             case 2:
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfThree"];
+                //SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfThree"];
                 break;
             case 3:
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfFour"];
+                //SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfFour"];
                 break;
             default:
                 break;

@@ -278,7 +278,7 @@ Padding="10" Margin="0,5">
            
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" x:DataType="vm:HomePageVM" BackgroundColor="Transparent"
                             VerticalOptions="Center" HorizontalOptions="Center" x:Name="FocusModeVSL">
-                <HorizontalStackLayout>
+                <HorizontalStackLayout BackgroundColor="Transparent">
                     <ImageButton Command="{Binding PlayPreviousSongCommand}" toolkit:DockLayout.DockPosition="Left"
                   ToolTipProperties.Text="Play Previous" x:Name="leftImgBtn">
                         <ImageButton.GestureRecognizers>
@@ -292,19 +292,12 @@ Padding="10" Margin="0,5">
 
                     <Grid RowDefinitions="*" ColumnDefinitions="*" BackgroundColor="Transparent">
                         <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
-            HeightRequest="600" WidthRequest="600" StrokeThickness="0"  Opacity="0.3" BackgroundColor="Transparent">
+            HeightRequest="600" WidthRequest="600" StrokeThickness="0"  Opacity="0.5" BackgroundColor="Transparent">
                             <toolkit:AvatarView.GestureRecognizers>
                                 <TapGestureRecognizer NumberOfTapsRequired="1" Tapped="FocusModePlayResume_Tapped"/>
                             </toolkit:AvatarView.GestureRecognizers>
                         </toolkit:AvatarView>
 
-                        <CollectionView ItemsSource="{Binding SynchronizedLyrics}" IsVisible="{Binding TemporarilyPickedSong.IsInstrumental,
-Converter={StaticResource BoolToInverse}}" HeightRequest="190" WidthRequest="550" BackgroundColor="Transparent"
-            SelectionChanged="LyricsColView_SelectionChanged" x:Name="focusLyr"
-            SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
-            Grid.Column="0" 
-            ItemTemplate="{StaticResource SyncLyricsColView}">
-                        </CollectionView>
                     </Grid>
 
                     <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"

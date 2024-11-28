@@ -97,9 +97,10 @@
                                 <Label Text="{Binding CurrentUser.UserName}"/>
                                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                                 <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
-                                <Label Text="{Binding CurrentUserOnline.IsAuthenticated}"/>
-                            
-                                <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
+                            <Label FontSize="24"
+    Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
+
+                            <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
                                         IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
                             
 
@@ -143,7 +144,7 @@
                         <Entry Placeholder="User Name" x:Name="LoginUname"
                                Text="YBTopaz8"/>
                         <Entry IsPassword="True"
-                               Text="Yvan"
+                               
                                Placeholder="Password" x:Name="LoginPass" />
                         <Button Text="Sign Up"  BackgroundColor="Transparent" HeightRequest="15"
              FontSize="15" Clicked="LoginSignUpToggle_Click"/>

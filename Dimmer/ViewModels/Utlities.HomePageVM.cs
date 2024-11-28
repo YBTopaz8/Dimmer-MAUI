@@ -450,15 +450,33 @@ public partial class HomePageVM
         ParseClient.Instance.LogOut();
     }
 
+    [ObservableProperty]
+    bool isSyncingSongs = false;    
+
+    [ObservableProperty]
+    bool isLoggedIn = false;    
     public void FullSync()
     {
         SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
-        IsLoadingSongs = true;
+        IsSyncingSongs = true;
         SongsMgtService.SendAllDataToServerAsInitialSync();
         SongsMgtService.GetAllDataFromOnlineAsync();
 
         SyncRefresh();
 
-        IsLoadingSongs=false;
+        IsSyncingSongs = false;
+    }
+
+    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
+    {
+        if (newValue is not null && newValue.IsAuthenticated)
+        {
+            SongsMgtService.UpdateUserLoginDetails(newValue);
+            IsLoggedIn = true;
+        }
+        else
+        {
+            IsLoggedIn = false; //do more here 
+        }
     }
 }

@@ -36,7 +36,7 @@ public partial class MainPageD : ContentPage
     {
         try
         {
-            if (HomePageVM.Value.PickedSong is not null || HomePageVM.Value.TemporarilyPickedSong is null)
+            if (HomePageVM.Value.PickedSong is null || HomePageVM.Value.TemporarilyPickedSong is null)
             {
                 return;
             }
@@ -279,6 +279,11 @@ public partial class MainPageD : ContentPage
         }
         //await HomePageVM.Value.LoadSongsInBatchesAsync();
 
+    }
+
+    private void SortBtn_Clicked(object sender, EventArgs e)
+    {
+        HomePageVM.Value.OpenSortingPopupCommand.Execute(null);
     }
 }
 

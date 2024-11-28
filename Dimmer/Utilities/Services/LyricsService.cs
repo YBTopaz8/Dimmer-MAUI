@@ -193,7 +193,7 @@ public class LyricsService : ILyricsService
         }
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
-        if (lyrics is null && lyrics!.Count < 1)
+        if (lyrics is null || lyrics!.Count < 1)
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
@@ -334,7 +334,7 @@ public class LyricsService : ILyricsService
         }
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
-        int offsetValue = 1250;
+        int offsetValue = 1050;
         var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
 
         if (highlightedLyric == null)
@@ -356,34 +356,45 @@ public class LyricsService : ILyricsService
             {
                 if (_synchronizedLyricsSubject?.Value?.Count > 0)
                 {
-                    sortedLyrics?.Clear();
-                    sortedLyrics = _synchronizedLyricsSubject.Value.ToList();
+                    sortedLyrics = _synchronizedLyricsSubject.Value.OrderBy(l => l.TimeStampMs).ToList();
                 }
                 else
                 {
                     StopLyricIndexUpdateTimer();
                     return null;
                 }
-
             }
 
-            // Iterate through the lyrics until we find the first one with a timestamp greater than the current position
-            for (int i = 0; i < sortedLyrics.Count; i++)
+            int index = sortedLyrics.BinarySearch(
+                new LyricPhraseModel { TimeStampMs = (int)currentPositionInMs },
+                new LyricTimestampComparer()
+            );
+
+            if (index >= 0)
             {
-                if (sortedLyrics[i].TimeStampMs > currentPositionInMs)
-                {
-                    // Return the previous lyric if it exists, otherwise return the first lyric
-                    return i > 0 ? sortedLyrics[i - 1] : sortedLyrics[0];
-                }
+                // Exact match found
+                return sortedLyrics[index];
             }
-
-            // If we didn't find any lyric with a timestamp greater than the current position, return the last lyric
-            return sortedLyrics[sortedLyrics.Count - 1];
+            else
+            {
+                // No exact match, get the previous lyric
+                index = ~index; // Bitwise complement to get insertion point
+                return index > 0 ? sortedLyrics[index - 1] : sortedLyrics[0];
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error when finding closest lyric: {ex.Message}");
             return null;
+        }
+    }
+
+    // Comparer for BinarySearch
+    class LyricTimestampComparer : IComparer<LyricPhraseModel>
+    {
+        public int Compare(LyricPhraseModel x, LyricPhraseModel y)
+        {
+            return x.TimeStampMs.CompareTo(y.TimeStampMs);
         }
     }
 
@@ -397,8 +408,6 @@ public class LyricsService : ILyricsService
     #region Fetch Lyrics Online from Lrclib
     public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
-
-
         HttpClient client = new();
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.5.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
@@ -462,14 +471,14 @@ public class LyricsService : ILyricsService
         {
             if (manualSearchFields is null)
             {
-                return JsonSerializer.Deserialize<Content[]>(content);
+                return JsonSerializer.Deserialize<Content[]>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
           
             // Read the response content
             content = await response.Content.ReadAsStringAsync();
         }
 
-        return JsonSerializer.Deserialize<Content[]>(content);
+        return JsonSerializer.Deserialize<Content[]>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive =true});
     }
 
     #endregion

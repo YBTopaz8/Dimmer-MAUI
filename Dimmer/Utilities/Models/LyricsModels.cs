@@ -1,4 +1,4 @@
-﻿namespace Dimmer_MAUI.Utilities.Models; 
+﻿namespace Dimmer_MAUI.Utilities.Models;
 public class Content
 {
     public int Id { get; set; }
@@ -33,17 +33,20 @@ public partial class LyricPhraseModel : ObservableObject
     string? timeStampText;
     [ObservableProperty]
     string text = string.Empty;
-    
+
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModel(LyricsPhrase? phrase=null)
+    public LyricPhraseModel(LyricsPhrase? phrase = null)
     {
-        
+
         if (phrase != null)
         {
             TimeStampText = string.Format("[{0:mm\\:ss\\:fff}]", TimeSpan.FromMilliseconds(phrase.TimestampMs));
             TimeStampMs = phrase.TimestampMs;
             Text = phrase.Text;
         }
-        
+
     }
 }
+
+
+

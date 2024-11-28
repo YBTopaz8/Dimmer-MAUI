@@ -46,7 +46,10 @@
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin_drop}" Size="20"/>
                         </ImageButton.Source>
                     </ImageButton>
-                    <Label Text="{Binding LoadingSongsText}"/>
+
+
+                    <Image Source="syncingCloud.gif" x:Name="syncingCloud" IsVisible="{Binding IsSyncingSongs}" IsAnimationPlaying="{Binding IsSyncingSongs}"/>
+                    <Image Source="onlineCloud.gif" x:Name="loggedInCloud" IsVisible="{Binding IsLoggedIn}"/>
                 </HorizontalStackLayout>                
             </TitleBar.TrailingContent>
         </TitleBar>        

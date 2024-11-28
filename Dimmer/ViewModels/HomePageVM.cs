@@ -320,6 +320,7 @@ public partial class HomePageVM : ObservableObject
         
             }      
         }
+        
         SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
         
         SelectedSongToOpenBtmSheet.SyncLyrics = SynchronizedLyrics;
@@ -366,7 +367,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     ObservableCollection<string> folderPaths;
     [RelayCommand]
-    async Task SelectSongFromFolder()
+    public async Task SelectSongFromFolder()
     {
         //bool res = await Shell.Current.DisplayAlert("Select Song", "Sure?", "Yes", "No");
         //if (!res)
@@ -404,7 +405,7 @@ public partial class HomePageVM : ObservableObject
     List<string> FullFolderPaths = new();
 
     [RelayCommand]
-    private async Task LoadSongsFromFolders()
+    public async Task LoadSongsFromFolders()
     {
         try
         {
@@ -660,6 +661,11 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
+
+        if (DisplayedSongs.Count < 1)
+        {
+            return;
+        }
         RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
 
         if (DisplayedSongs is not null && DisplayedSongs.Count > 0)
@@ -676,20 +682,20 @@ public partial class HomePageVM : ObservableObject
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
 
-            var s = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId);
+            var s = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId);
             if (s is not null)
             {
-                DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId).IsCurrentPlayingHighlight = true;
+                DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId)!.IsCurrentPlayingHighlight = true;
             }
 
         }
         else
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
-            TemporarilyPickedSong = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == lastID);
+            TemporarilyPickedSong = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == lastID);
             if (TemporarilyPickedSong is null)
             {
-                TemporarilyPickedSong= DisplayedSongs.First();
+                TemporarilyPickedSong= DisplayedSongs!.First();
             }
             
         }
@@ -994,7 +1000,7 @@ public partial class HomePageVM : ObservableObject
         if (SelectedSongToOpenBtmSheet.HasSyncedLyrics)
         {
             IsFetchSuccessful = true;
-            return true;
+            
         }
 
         //if (fromUI || SynchronizedLyrics?.Count < 1)
@@ -1046,13 +1052,13 @@ public partial class HomePageVM : ObservableObject
         {
             SelectedSongToOpenBtmSheet.HasLyrics = true;
             SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.PlainLyrics;
-            SelectedSongToOpenBtmSheet.HasSyncedLyrics = false;
+            
             isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
         else
         {
             SelectedSongToOpenBtmSheet.HasLyrics = false;
-            SelectedSongToOpenBtmSheet.UnSyncLyrics = string.Empty;
+            
             SelectedSongToOpenBtmSheet.HasSyncedLyrics = true;
             isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics, SelectedSongToOpenBtmSheet, isSync);
         }
@@ -1072,14 +1078,14 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         LyricsManagerService.InitializeLyrics(cont.SyncedLyrics);
-        if (DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId== SelectedSongToOpenBtmSheet.LocalDeviceId) is not null)
+        if (DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId== SelectedSongToOpenBtmSheet.LocalDeviceId) is not null)
         {
-            DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)!.HasLyrics = true;
+            DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)!.HasLyrics = true;
         }
-        if (PlayBackService.CurrentQueue != 2)
-        {
-            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
-        }
+        //if (PlayBackService.CurrentQueue != 2)
+        //{
+        //    SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+        //}
 
     }
 

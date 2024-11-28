@@ -19,6 +19,7 @@ public partial class SettingsPageD : ContentPage
     {
         base.OnAppearing();
         SongsManagementService.ConnectOnline();
+        LoginBtn_Clicked(null, null); //review this.
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -73,9 +74,16 @@ public partial class SettingsPageD : ContentPage
 
     private async void LoginBtn_Clicked(object sender, EventArgs e)
     {
+        if (ViewModel.CurrentUserOnline is not null)
+        {
+            if (ViewModel.CurrentUserOnline.IsAuthenticated)
+            {
+                return;
+            }
+        }
         //LoginBtn.IsEnabled = false;
         if (string.IsNullOrWhiteSpace(LoginUname.Text) || string.IsNullOrWhiteSpace(LoginPass.Text))
-        {
+        {   
             await Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
             return;
         }
@@ -83,9 +91,10 @@ public partial class SettingsPageD : ContentPage
         try
         {
             var oUser = await ParseClient.Instance.LogInAsync(LoginUname.Text.Trim(), LoginPass.Text.Trim()).ConfigureAwait(false);
-            Debug.WriteLine(oUser.Password);
+            ViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
             ViewModel.CurrentUserOnline = oUser;
-            //ViewModel.CurrentUser.IsAuthenticated = true;
+            ViewModel.CurrentUser.IsAuthenticated = true;
+            //await Shell.Current.DisplayAlert("Success !", $"Welcome Back ! {oUser.Username}", "OK"); //if you uncomment this, app will crash :)
             // Navigate to a different page or perform post-login actions
             //ViewModel.SongsMgtService.GetUserAccount(oUser);
         }

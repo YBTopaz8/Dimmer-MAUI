@@ -497,7 +497,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
-
+                if (ObservableCurrentlyPlayingSong.DurationInSeconds < 1)
+                {
+                    ObservableCurrentlyPlayingSong.DurationInSeconds = (new Track(ObservableCurrentlyPlayingSong.FilePath).DurationMs / 1000);
+                }
                 PlayDateAndCompletionStateSongLink link = new()
                 {
                     DatePlayed = DateTime.Now,
@@ -534,6 +537,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public ObservableCollection<SongModelView> mobileSongOrder;
     private void GetPrevAndNextSongs(bool IsNext = false, bool IsPrevious = false)
     {
+        if (ObservableCurrentlyPlayingSong is null)
+        {
+            return;
+        }
         try
         {
             if (!nowPlayingShuffledOrNotSubject.Contains(ObservableCurrentlyPlayingSong))
@@ -792,7 +799,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #endregion
     public async Task<bool> PlayNextSongAsync()
     {
-        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        if (ObservableCurrentlyPlayingSong is not null)
+        {
+            ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        }
         if (CurrentRepeatMode == 0)
         {
             await PlaySongAsync(currentQueue: CurrentQueue, IsFromPreviousOrNext: true);

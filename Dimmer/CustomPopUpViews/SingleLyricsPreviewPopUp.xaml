@@ -36,8 +36,8 @@
 
             <HorizontalStackLayout HorizontalOptions="End" 
                                Grid.Row="2">
-                <Button Text="Cancel" BackgroundColor="Transparent"
-                    TextColor="Red"
+                <Button Text="Cancel" BackgroundColor="Black" BorderColor="Black"
+                    TextColor="Red" 
                     Clicked="CloseButton_Clicked"/>
                 <Button Text="Save" Clicked="OkButton_Clicked"/>
             </HorizontalStackLayout>

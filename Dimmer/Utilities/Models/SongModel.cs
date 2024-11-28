@@ -248,6 +248,11 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     public DateTimeOffset DateFinished { get; set; }
     public bool WasPlayCompleted { get; set; }
     public double PositionInSeconds { get; set; }
+    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     public PlayDateAndCompletionStateSongLink()
     {
         

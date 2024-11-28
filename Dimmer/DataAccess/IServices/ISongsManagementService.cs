@@ -43,4 +43,5 @@ public interface ISongsManagementService
     Task GetAllDataFromOnlineAsync();
     UserModelView? GetUserAccount(ParseUser? usr = null);
     Task SendAllDataToServerAsInitialSync();
+    void UpdateUserLoginDetails(ParseUser usrr);
 }

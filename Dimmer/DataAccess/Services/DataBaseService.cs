@@ -17,7 +17,7 @@ public class DataBaseService : IDataBaseService
             Directory.CreateDirectory(dbPath);
         }
         
-        string filePath = Path.Combine(dbPath, "DimmerDB.realm");
+        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
         //File.Delete(filePath);
         var config = new RealmConfiguration(filePath)
         {

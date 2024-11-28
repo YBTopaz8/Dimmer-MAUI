@@ -8,6 +8,7 @@ public partial class App : Application
         try
         {
             InitializeComponent();
+            SongsManagementService.InitializeParseClient();
         }
         catch (Exception ex)
         {

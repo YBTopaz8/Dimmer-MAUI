@@ -140,7 +140,6 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.10" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-    <PackageReference Include="Parse" Version="3.0.2" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.0.0" />
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.1" />
@@ -257,9 +256,6 @@
     <MauiXaml Update="Views\Mobile\HomePageM.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\Mobile\PlaylistMenuBtmSheet.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="Views\Mobile\PlaylistsPageM.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -286,6 +282,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Platforms\Android\CustomHandlers\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Parse-SDK-dotNET\Parse\Parse.csproj" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

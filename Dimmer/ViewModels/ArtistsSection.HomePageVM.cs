@@ -102,7 +102,7 @@ public partial class HomePageVM
 
     }
 
-    public async void GetAllArtistsAlbum(AlbumModelView? album = null, SongModelView? song = null, bool isFromSong = false)
+    public void GetAllArtistsAlbum(AlbumModelView? album = null, SongModelView? song = null, bool isFromSong = false)
     {
         //if(!SongsMgtService.AllSongs.Contains(TemporarilyPickedSong!))
         //    return;
@@ -147,7 +147,7 @@ public partial class HomePageVM
         }
 
         AllArtistsAlbums?.Clear();
-        await GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
+        _ =  GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
         
         //await ShowSpecificArtistsSongsWithAlbum(SelectedAlbumOnArtistPage!);
         
@@ -266,7 +266,10 @@ public partial class HomePageVM
         return null!;
     }
     private Dictionary<string, string> SongToArtistMap =>
-       AllLinks!.ToDictionary(link => link.SongId, link => link.ArtistId);
+    AllLinks!
+       .GroupBy(link => link.SongId)
+       .Select(group => group.First()) // Keeps only the first occurrence
+       .ToDictionary(link => link.SongId, link => link.ArtistId);
 
     private ArtistModelView GetArtistFromSongId(string songId)
     {
@@ -310,7 +313,7 @@ public partial class HomePageVM
             return;
         SelectedArtistOnArtistPage = artist;
          await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
-        if (AllArtistsAlbums is null)
+        if (AllArtistsAlbums is null || AllArtistsAlbums.Count<1)
         {
             return;
         }

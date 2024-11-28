@@ -128,7 +128,7 @@
                         <syncf:SfEffectsView >
                             <Label Text="Google"/>
                         </syncf:SfEffectsView>
-                        <syncf:SfEffectsView >
+                        <syncf:SfEffectsView>
                             <Label Text="YouTube"/>
                         </syncf:SfEffectsView>
                         <syncf:SfEffectsView >
@@ -166,7 +166,10 @@
     </Shell.FlyoutContent>
 
     <Shell.FlyoutFooter>
-        <HorizontalStackLayout Spacing="5" 
+        <VerticalStackLayout>
+            <Image Source="onlinecloud.gif" IsVisible="{Binding IsLoggedIn}"
+                   HeightRequest="30" HorizontalOptions="Start"/>
+            <HorizontalStackLayout Spacing="5" 
                                Padding="5"
                                BackgroundColor="#1D1932">
             <HorizontalStackLayout.GestureRecognizers>
@@ -188,7 +191,8 @@
                 <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
            LineBreakMode="HeadTruncation"/>
             </VerticalStackLayout>
-        </HorizontalStackLayout>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
     </Shell.FlyoutFooter>
     
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar" >

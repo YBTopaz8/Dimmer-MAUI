@@ -51,7 +51,8 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Visibility}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="20"
+                        <ImageButton HeightRequest="20" 
+                                     Clicked="SortBtn_Clicked" x:Name="SortBtn"
                 Grid.Column="1">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
@@ -99,7 +100,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                         <DataTemplate x:DataType="models:SongModelView">
                             <syncf:SfEffectsView
                             TouchDown="SfEffectsView_TouchDown">
-                                <Grid ColumnDefinitions="*,*,*,*,*,*,*" RowDefinitions="60" ColumnSpacing="55">
+                                <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="60" ColumnSpacing="55">
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -139,7 +140,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                                            LineBreakMode="TailTruncation"
                                            Text="{Binding GenreName}" />
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
-                                       Grid.Column="4"/>
+                                       Grid.Column="4" HorizontalOptions="Center" />
                                     <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" />
                                     <!--<Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" />-->
                                 </Grid>

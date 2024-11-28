@@ -42,6 +42,21 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     #region Online Region
 
+    public void UpdateUserLoginDetails(ParseUser usrr)
+    {
+        
+        CurrentOfflineUser.UserEmail = usrr.Username;
+        CurrentOfflineUser.UserPassword = usrr.Password;
+        CurrentOfflineUser.LastSessionDate = (DateTimeOffset)usrr.UpdatedAt!;
+        UserModel usr = new(CurrentOfflineUser);
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        db.Write(() =>
+        {
+            db.Add(usr, update: true);
+        });
+    }
+
+
     /// <summary>
     /// Creates a new ParseUser object and signs up the user online.
     /// MAKE SURE YOU DID ALL VALIDATION BEFORE CALLING THIS METHOD
@@ -52,8 +67,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public bool SignUpUserOnlineAsync(string email, string password)
     {
-        //ParseClient.Instance.
-
+        
         ParseUser newUser = new ParseUser()
         {
             Email = email,
@@ -373,7 +387,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     private async Task LoadPlayDateAndIsPlayCompletedModelToDBFromOnline()
     {
         var query = ParseClient.Instance.GetQuery("PlayDateAndCompletionStateSongLink")
-            .WhereEqualTo("UserIDOnline", CurrentOfflineUser.LocalDeviceId);
+            .WhereEqualTo("deviceName", CurrentOfflineUser.LocalDeviceId);
 
 
         var AllItems = await query.FindAsync();
@@ -1287,45 +1301,61 @@ AddOrUpdateSingleRealmItem(
 
     // THIS IS PRODUCTION READY
     //private bool InitializeParseClient(string ApplicationId, string ServerUri, string ClientKey, string MasterKey, bool PublicizedAfterInitializing)
-    
-    
+
+
     //ParseClient ParseClient.Instance;
     //testing only
 
 
-    public static bool InitializeParseClient(bool PublicizedAfterInitializing=true)
+    public static bool InitializeParseClient()
     {
-        bool isConnectedToInternet = Connectivity.NetworkAccess == NetworkAccess.Internet;
-        if (!isConnectedToInternet)
+        try
         {
-            // await Shell.Current.DisplayAlert("No Internet Connection", "Please connect to the internet to use the app", "OK");
-            // I don't want to make my method async though so idk :(
+            // Check for internet connection
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                Console.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
+                return false;
+            }
+
+            // Validate API Keys
+            if (string.IsNullOrEmpty(APIKeys.ApplicationId) ||
+                string.IsNullOrEmpty(APIKeys.ServerUri) ||
+                string.IsNullOrEmpty(APIKeys.DotNetKEY))
+            {
+                Console.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
+                return false;
+            }
+
+            // Create ParseClient
+            ParseClient client = new ParseClient(new ServerConnectionData
+            {
+                ApplicationID = APIKeys.ApplicationId,
+                ServerURI = APIKeys.ServerUri,
+                Key = APIKeys.DotNetKEY,
+            }
+            );
+
+            HostManifestData manifest = new HostManifestData()
+            {
+                Version = "1.0.0",
+                Identifier = "com.yvanbrunel.dimmer",
+                Name = "Dimmer",
+            };
+
+            client.Publicize();
+
+
+            Console.WriteLine("ParseClient initialized successfully.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing ParseClient: {ex.Message}");
             return false;
         }
-        new ParseClient(new ServerConnectionData
-        {
-            ApplicationID = APIKeys.ApplicationId,
-            ServerURI = APIKeys.ServerUri,
-            Key = APIKeys.DotNetKEY,
-        }).Publicize();
-
-        //ParseClient.Instance = new ParseClient(new ServerConnectionData
-        //{
-        //    ApplicationID = APIKeys.ApplicationId,
-        //    ServerURI = APIKeys.ServerUri,
-        //    Key = APIKeys.ClientKey,
-        //    MasterKey = APIKeys.MasterKey,
-        //});
-
-        ////TODO REMOVE THIS WHEN DONE TESTIIIIIING
-        //if (PublicizedAfterInitializing)
-        //{
-        //    ParseClient.Instance.Publicize();
-        //}
-
-        return true;
     }
-
+    
     public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)
     {
         // Load songs from folders asynchronously without blocking the UI
@@ -1400,16 +1430,16 @@ AddOrUpdateSingleRealmItem(
         return true;
     }
 
-    public static async Task ConnectOnline(bool ToLoginUI=true)
+    public static void ConnectOnline(bool ToLoginUI=true)
     {
         InitializeParseClient();
         
         return;
     }
 
-    public async Task OpenConnectPopup()
+    public void OpenConnectPopup()
     {
-        await ConnectOnline();
+        ConnectOnline();
 
         CurrentUserOnline = ParseClient.Instance.GetCurrentUser();
         if(CurrentUserOnline is null || !CurrentUserOnline.IsAuthenticated)
@@ -1474,7 +1504,6 @@ AddOrUpdateSingleRealmItem(
         var albumDict = new Dictionary<string, AlbumModelView>();
         var genreDict = new Dictionary<string, GenreModelView>();
 
-        int processedFiles = 0;
         int totalFiles = allFiles.Count;
 
         foreach (var file in allFiles)
