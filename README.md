@@ -12,6 +12,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Show Sync lyrics from either .lrc file or from song's metadata.
 - Lyrics download.
 - Social Share
+- Account Creation/Login/Syncing (Experimental!)
 - More to come such as playlist management, song's editing, statistics etc..
 
 # Requirements
