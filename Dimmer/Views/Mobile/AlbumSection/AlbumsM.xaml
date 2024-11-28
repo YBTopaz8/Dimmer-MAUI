@@ -80,7 +80,7 @@
 
                 </dx:DXCollectionView>
                 <VerticalStackLayout VerticalOptions="End" HorizontalOptions="End"
-                                     Margin="10,0" HeightRequest="380" 
+                                     Margin="10,0" HeightRequest="380"  BackgroundColor="Transparent"
                                      >
                     <dx:DXButton HeightRequest="60" WidthRequest="60" Command="{Binding Commands.Show,Source={x:Reference AlbumsPageBtmSheet}}"
                                  IconHeight="30" IconColor="White" 

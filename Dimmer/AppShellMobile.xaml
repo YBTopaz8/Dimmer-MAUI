@@ -11,7 +11,8 @@
                 
              Shell.TabBarTitleColor="DarkSlateBlue"
              Shell.ForegroundColor="Transparent"
-      
+      Shell.NavBarIsVisible="False"
+       Shell.TabBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled">
 
 

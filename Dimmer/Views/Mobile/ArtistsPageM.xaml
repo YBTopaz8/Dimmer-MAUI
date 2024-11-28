@@ -21,7 +21,7 @@
 
         </ResourceDictionary>
     </ContentPage.Resources>
-    <dx:DXScrollView  >
+    <dx:DXScrollView   BackgroundColor="Transparent">
         <VerticalStackLayout Margin="10,0" BackgroundColor="Transparent">
             <HorizontalStackLayout Grid.Row="0" Spacing="10" 
                 BackgroundColor="Transparent" 

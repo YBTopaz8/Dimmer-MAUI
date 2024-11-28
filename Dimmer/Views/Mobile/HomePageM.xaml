@@ -11,14 +11,15 @@
             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
             x:DataType="vm:HomePageVM"
-             Shell.NavBarIsVisible="False"
             xmlns:dx="http://schemas.devexpress.com/maui"
             x:Name="myPage" 
              Shell.FlyoutItemIsVisible="True"
              Shell.TabBarIsVisible="True"
-            
+            Shell.NavBarIsVisible="False"
             >
-
+    <Shell.TitleView>
+        <Label Text="trt" HeightRequest="0"/>
+    </Shell.TitleView>
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
@@ -92,7 +93,7 @@
 
         </DataTemplate>
         
-<DataTemplate x:Key="HomePageColViewGridOfTwo" x:DataType="models:SongModelView">
+        <DataTemplate x:Key="HomePageColViewGridOfTwo" x:DataType="models:SongModelView">
             <dx:DXStackLayout Orientation="Vertical"
                               Margin="10,0" CornerRadius="15">
                 <dx:DXStackLayout.Triggers>
@@ -147,17 +148,22 @@
         </DataTemplate>
 
     </ContentPage.Resources>
+
     <ContentPage.ToolbarItems>
-        <ToolbarItem Clicked="ShowFolderSelectorImgBtn_Clicked">
+        <ToolbarItem Clicked="GoToSettingsPage">
             <ToolbarItem.IconImageSource>
                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
             </ToolbarItem.IconImageSource>
         </ToolbarItem>
     </ContentPage.ToolbarItems>
-    <VerticalStackLayout>
-    <dx:DXStackLayout BackgroundColor="Transparent" >        
-
-        <Grid BackgroundColor="Transparent">
+    
+    <VerticalStackLayout >
+    <dx:DXStackLayout BackgroundColor="Transparent" >
+            <HorizontalStackLayout HeightRequest="30">
+                <Label Text="{Binding .Count, StringFormat='{0} Songs'}"
+                       FontSize="18" TextColor="DarkSlateBlue" FontAttributes="Bold"/>
+            </HorizontalStackLayout>
+            <Grid BackgroundColor="Transparent">
             <dx:DXCollectionView SelectionMode="Single" 
                             IsScrollBarVisible="False"
                             x:Name="SongsColView"
@@ -178,7 +184,7 @@
             <VerticalStackLayout VerticalOptions="End"
                                  BackgroundColor="Transparent"
                                  HorizontalOptions="End"
-                Margin="10,0" HeightRequest="380" >
+                Margin="10,0" HeightRequest="480" >
                 <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.9" 
                              IconWidth="25" IconHeight="40" VerticalOptions="End"
                              HorizontalOptions="End"

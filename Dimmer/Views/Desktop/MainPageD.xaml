@@ -46,17 +46,13 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
                     <HorizontalStackLayout Spacing="10">
 
-                        <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Visibility}"/>
-                            </ImageButton.Source>
+                        <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
+                                     Source="eyelocate.png">
+                                     
                         </ImageButton>
                         <ImageButton HeightRequest="20" 
-                                     Clicked="SortBtn_Clicked" x:Name="SortBtn"
-                Grid.Column="1">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
-                            </ImageButton.Source>
+                                     Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
+                                     Source="sortdark.png">
                         </ImageButton>
                       
                     </HorizontalStackLayout>

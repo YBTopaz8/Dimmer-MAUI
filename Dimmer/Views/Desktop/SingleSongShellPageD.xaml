@@ -214,9 +214,9 @@
                                         <VerticalStackLayout HorizontalOptions="Center" 
                                                              BackgroundColor="Transparent"
                                                              x:Name="emptyV">
+                                        <Label Text="Searching..."/>
 
-
-                                            <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                        <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
                                                HeightRequest="0" WidthRequest="0" />
                                             <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
                                                IsVisible="False" IsAnimationPlaying="False"/>

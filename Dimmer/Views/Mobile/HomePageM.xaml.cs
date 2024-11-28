@@ -64,7 +64,7 @@ public partial class HomePageM : ContentPage
         }
     }
 
-    private async void ShowFolderSelectorImgBtn_Clicked(object sender, EventArgs e)
+    private async void GoToSettingsPage(object sender, EventArgs e)
     {
 
         await Shell.Current.GoToAsync(nameof(SettingsPageM));

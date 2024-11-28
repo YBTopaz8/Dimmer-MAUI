@@ -37,10 +37,7 @@
                         <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
                     </HorizontalStackLayout>
 
-                    <ImageButton Grid.Column="2" HorizontalOptions="End">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
-                        </ImageButton.Source>
+                    <ImageButton Grid.Column="2" HorizontalOptions="End" Source="arrowdark.png">
                     </ImageButton>
                 </Grid>
             </toolkit:Expander.Header>

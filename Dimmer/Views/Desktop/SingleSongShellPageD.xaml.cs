@@ -325,7 +325,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     private async void SfChipGroup_ChipClicked(object sender, EventArgs e)
     {
         var send = sender as SfChip;
-        var newSelection = int.Parse(send.CommandParameter.ToString());
+        var newSelection = int.Parse(send.CommandParameter.ToString()!);
         switch (newSelection)
         {
             case 0:
