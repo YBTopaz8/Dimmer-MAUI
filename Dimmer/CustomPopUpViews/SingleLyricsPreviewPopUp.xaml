@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"     
+             x:Class="Dimmer_MAUI.CustomPopUpViews.SingleLyricsPreviewPopUp"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+            xmlns:cm="https://github.com/jerry08/Plugin.ContextMenuContainer"
+            xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            x:DataType="vm:HomePageVM" Color="Transparent"
+            x:Name="myPage"
+           CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
+        Stroke="Transparent" 
+        WidthRequest="500" HeightRequest="{OnPlatform WinUI=450, Android=450}"
+        BackgroundColor="Black"
+        Margin="5" Padding="10">
+        <Grid BackgroundColor="Transparent" Padding="10"
+          RowDefinitions="30,Auto,50">
+            <VerticalStackLayout HorizontalOptions="Center" 
+                               Grid.Row="0">
+                <HorizontalStackLayout HorizontalOptions="Center">
+                    <Label Text="Artist name" x:Name="ArtistNameLabel" FontSize="23" FontAttributes="Bold"/>
+                    <Label Text=" - " FontSize="23" FontAttributes="Bold"/>
+                    <Label Text="Song Title" x:Name="SongTitleLabel" FontSize="23" FontAttributes="Bold"/>
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+
+            <ScrollView Grid.Row="1" HeightRequest="330">
+                <Label Text="Lyrics" x:Name="LyricsView" LineBreakMode="WordWrap"
+                VerticalOptions="Start" HorizontalTextAlignment="Start"
+                Padding="10"/>
+            </ScrollView>
+
+            <HorizontalStackLayout HorizontalOptions="End" 
+                               Grid.Row="2">
+                <Button Text="Cancel" BackgroundColor="Black" BorderColor="Black"
+                    TextColor="Red" 
+                    Clicked="CloseButton_Clicked"/>
+                <Button Text="Save" Clicked="OkButton_Clicked"/>
+            </HorizontalStackLayout>
+        </Grid>
+    </Border>
+
+</mct:Popup>

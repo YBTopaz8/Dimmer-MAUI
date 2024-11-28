@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.CustomViewsM.FetchLyricsResultsView"
+             
+            
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            x:DataType="vm:HomePageVM" 
+             x:Name="myPage">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <VerticalStackLayout>
+        <Label 
+            Text="Welcome to .NET MAUI!"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentView>

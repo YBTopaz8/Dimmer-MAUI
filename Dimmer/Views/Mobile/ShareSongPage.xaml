@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.ShareSongPage"
+              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+             x:DataType="vm:HomePageVM" 
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:dx="http://schemas.devexpress.com/maui"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
+             Shell.NavBarIsVisible="False" BackgroundColor="Transparent"
+             x:Name="myPage" >
+    <Grid x:Name="PageGrid" BackgroundColor="Transparent"
+         ColumnDefinitions="*" RowDefinitions="*">
+
+        <Image Grid.Row="0" Source="{Binding ShareImgPath}" Aspect="AspectFill" 
+               Opacity="0.15"/>
+        
+        <Grid x:Name="ContentToShare" Grid.Row="0" 
+                             BackgroundColor="Transparent">
+
+            <VerticalStackLayout ZIndex="0" BackgroundColor="Transparent"
+                Grid.Row="0" VerticalOptions="Center" >
+                <VerticalStackLayout.GestureRecognizers>
+                    <PanGestureRecognizer x:Name="DragDropGest" PanUpdated="DragDropGest_PanUpdated"/>
+                    
+                </VerticalStackLayout.GestureRecognizers>
+
+                <VerticalStackLayout x:Name="StoryBigContent" BackgroundColor="Transparent"
+                                     HeightRequest="500" 
+                                     VerticalOptions="Center" HorizontalOptions="Center"
+                          IsVisible="True" Opacity="0.7" >
+
+                    <HorizontalStackLayout Margin="55,0" BackgroundColor="Transparent"
+                                           VerticalOptions="Center">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Dimmer" VerticalTextAlignment="Center"  FontSize="28"
+                    FontAttributes="Bold"/>
+                    </HorizontalStackLayout>
+                    <!-- Album Cover -->
+                    <toolkit:AvatarView x:Name="AlbumCover" 
+                                    CornerRadius="15" BorderWidth="0"
+                                    ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                    HeightRequest="300" WidthRequest="300"
+                                    VerticalOptions="Center" HorizontalOptions="Center"
+                                    Opacity="0.7" Stroke="Black">
+                    </toolkit:AvatarView>
+
+                    <Label x:Name="SongTitle" FontSize="28" LineBreakMode="TailTruncation" 
+                       FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                       TextColor="White" HorizontalOptions="Center" HorizontalTextAlignment="Justify"/>
+                    <Label Text="by" TextColor="White" HorizontalOptions="Center"/>
+                    <!-- Artist Name -->
+                    <Label x:Name="ArtistName" FontSize="18"
+                       TextColor="White" HorizontalOptions="Center"
+                       Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                       VerticalOptions="Start"/>
+
+                </VerticalStackLayout>
+                <VerticalStackLayout  IsVisible="False" x:Name="StorySmallContent" 
+                                     Margin="25,0"  WidthRequest="450" BackgroundColor="Transparent">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <PanGestureRecognizer PanUpdated="DragDropGest_PanUpdated"/>
+
+                    </VerticalStackLayout.GestureRecognizers>
+                    <HorizontalStackLayout Grid.Row="0" BackgroundColor="Transparent">
+                        <Image >
+                            <Image.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Dimmer" VerticalTextAlignment="Center"
+                               FontSize="22" FontAttributes="Bold"
+                               />
+                        
+                    </HorizontalStackLayout>
+                    <dx:DXBorder Opacity="0.6" VerticalOptions="Center" 
+                                 HeightRequest="150"  BackgroundColor="White" Padding="10,0"
+                                 CornerRadius="8" >
+                        <dx:DXBorder.Content>
+                            <Grid ColumnDefinitions="Auto,*,Auto" BackgroundColor="White">
+
+                                <toolkit:AvatarView Grid.Column="0" ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                            WidthRequest="130" HeightRequest="130"
+                            CornerRadius="10" HorizontalOptions="Start"/>
+
+                                <VerticalStackLayout Grid.ColumnSpan="2" BackgroundColor="Transparent"
+                                                     Grid.Column="1" VerticalOptions="Center">
+                                    <Label x:Name="SongTitlesmol" FontSize="23" 
+           FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+           TextColor="Black" HorizontalOptions="Center"/>
+                                    <Label Text="by" TextColor="Black" HorizontalOptions="Center"/>
+                                    <!-- Artist Name -->
+                                    <Label x:Name="ArtistNamesmol" FontSize="17"
+           TextColor="Black" HorizontalOptions="Center"
+           Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+           />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </dx:DXBorder.Content>
+                    </dx:DXBorder>
+
+                    <Label Text="By Yvan Brunel" 
+                           FontSize="10"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+            <dx:DXStackLayout Orientation="Vertical" IsVisible="False" BackgroundColor="Transparent">
+                <dx:DXStackLayout.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="DragDropGest_PanUpdated"/>
+                </dx:DXStackLayout.GestureRecognizers>
+                <Label x:Name="HighlightedLyricEdit" Grid.Row="1" TextColor="White"
+                                HeightRequest="50">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer x:Name="TapToShowCustomTextExpander" 
+                                              Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShareTextExp}}"/>
+                    </Label.GestureRecognizers>
+                    
+                </Label>
+                <dx:DXExpander VerticalExpandMode="FromStartToEnd" x:Name="ShareTextExp"
+                               HorizontalExpandMode="FromStartToEnd" IsExpanded="False"
+                               >
+                    <dx:DXExpander.Content>
+                        <HorizontalStackLayout BackgroundColor="Transparent">
+                            <dx:DXButton Content="Delete"/>
+                        </HorizontalStackLayout>
+                        
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+            </dx:DXStackLayout>
+        </Grid>
+
+        <VerticalStackLayout Spacing="10" VerticalOptions="End"
+                               Grid.Row="0" BackgroundColor="Transparent"
+            x:Name="UtilsHSL" ZIndex="2">
+
+            <dx:DXButton BackgroundColor="#1E1E1E" Opacity="0.8" 
+             IconWidth="25" IconHeight="40" VerticalOptions="End"
+             HorizontalOptions="End" IconColor="White"
+                             PressedBackgroundColor="DarkSlateBlue"
+             Margin="15,0" Clicked="UtilsHSL_Clicked" >
+                <dx:DXButton.Icon>
+                    <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Settings}"/>
+                </dx:DXButton.Icon>
+            </dx:DXButton>
+            <viewsM:EachPageNPFAB_Mobile />
+
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+        <dx:BottomSheet AllowedState="HalfExpanded" HalfExpandedRatio="0.65"
+                        x:Name="ShareStoryToolBox" Grid.Row="0">
+            <dx:DXStackLayout Orientation="Vertical" Margin="10,0"
+                              ItemSpacing="15">
+                <HorizontalStackLayout HorizontalOptions="Center" BackgroundColor="Transparent">
+                    <Label Text="Toolbox !" HorizontalOptions="Center"
+                           FontSize="24" HorizontalTextAlignment="Center"/>
+                </HorizontalStackLayout>
+                <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
+                                  CornerRadius="15" Padding="0,15">
+
+                    <Label Text="Set Background Image" Margin="15,0"/>
+                    <dx:ChoiceChipGroup x:Name="ToggleBGImg"
+                                    AllowDeselect="True" BoxMode="Outlined"
+                                    ChipTap="ToggleBGImg_ChipTap">
+                        <dx:Chip Text="None!">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.No_photography}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Cover Image">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Music_note}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Single Photo">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Photo Dump !" IsVisible="False">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo_album}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                    </dx:ChoiceChipGroup>
+
+                </dx:DXStackLayout>
+                
+                <dx:DXStackLayout BorderColor="DarkSlateBlue"
+                                  BorderThickness="0.4" CornerRadius="15" 
+                                  Padding="0,15">
+
+                    <Label Text="Set Song Card" Margin="15,0"/>
+                    <dx:DXColorSelector ItemsSource="{Binding ShareColors}"
+                                        x:Name="SolidBGColor" TapPressed="SolidBGColor_TapPressed"                                        
+                                        Margin="15,0"/>
+
+                    <dx:ChoiceChipGroup AllowDeselect="False"
+                                    BoxMode="Outlined"
+                                    ChipTap="ToggleSongCard_ChipTap">
+                        <dx:Chip Text="No Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Image_not_supported}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Smol Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Photo}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                        <dx:Chip Text="Big Card">
+                            <dx:Chip.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Full_coverage}"/>
+                            </dx:Chip.Icon>
+                        </dx:Chip>
+                       
+                    </dx:ChoiceChipGroup>
+
+                </dx:DXStackLayout>
+                              
+                <dx:DXButton x:Name="ShareButton" 
+                             Command="{Binding Commands.Close,Source={x:Reference LyricPickerBtmSheet}}" 
+                             BackgroundColor="DarkSlateBlue" Clicked="OnShareButtonClicked" 
+                             ShowContent="False" ButtonType="Filled" HeightRequest="60"
+                             IconWidth="40" IconHeight="40"
+                             Content="Share!">
+                    
+                    <dx:DXButton.Icon>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Share}"/>
+                    </dx:DXButton.Icon>
+                </dx:DXButton>
+            </dx:DXStackLayout>
+        </dx:BottomSheet>
+        <dx:BottomSheet AllowedState="All" AllowDismiss="True" Grid.Row="0"
+                        x:Name="LyricPickerBtmSheet">
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout Orientation="Vertical">
+                    <dx:DXButton Content="Remove Line" x:Name="rmvLyr" BackgroundColor="DarkSlateBlue"
+                                 TextColor="White"
+                                 Clicked="rmvLyr_Clicked" HorizontalOptions="End"/>
+                    <dx:DXCollectionView TapConfirmed="LyricsColView_TapConfirmed"
+ SelectionMode="Single" x:Name="LyricsColView" ItemSpacing="3" 
+    BackgroundColor="Transparent">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:LyricPhraseModel">
+                                <dx:DXStackLayout CornerRadius="10" Orientation="Vertical"
+                                             >
+                                    
+                                <Label Text="{Binding Text}" Margin="0,5" 
+            HorizontalTextAlignment="Center" FontSize="19" >
+
+                                    </Label>
+                                    <dx:DXSeparator />
+                                </dx:DXStackLayout>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </dx:DXStackLayout>
+                
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
+
+    </Grid>
+</ContentPage>

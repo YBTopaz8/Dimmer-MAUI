@@ -2,9 +2,35 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs/Dimmer-MAUI/FileContentIndex/3938eecb-15d4-4bfc-9c8e-df2e0c367f91.vsidx
+/.vs/slnx.sqlite
 /.vs/ProjectEvaluation/dimmer-maui.metadata.v9.bin
-/.vs
-/obj
-/bin
-/Properties/PublishProfiles/MSIX-win10-x641.pubxml
+/.vs/
+/obj/
+/bin/
+obj (2)/
+/Dimmer/obj (2)/
+/.vs/slnx.sqlite-journal
+/.vs/Dimmer-MAUI/v17/DocumentLayout.backup.json
+/.vs/Dimmer-MAUI/v17/.suo
+/.vs/Dimmer-MAUI/CopilotIndices/17.12.31.40377/CodeChunks.db
+/.vs/Dimmer-MAUI/CopilotIndices/17.12.31.40377/SemanticSymbols.db
+/.vs/Dimmer-MAUI/DesignTimeBuild/.dtbcache.v2
+/.vs/Dimmer-MAUI/FileContentIndex/02934fe6-1860-4fff-8739-f931a496c804.vsidx
+/.vs/Dimmer-MAUI/FileContentIndex/5db19b65-a4df-42f9-9432-ca69c6bb3038.vsidx
+/.vs/Dimmer-MAUI/FileContentIndex/7b89d9e5-a0d4-4388-aa49-e79e9424160f.vsidx
+/.vs/Dimmer-MAUI/FileContentIndex/7fc06a22-9885-47fa-9321-51375a7f7616.vsidx
+/.vs/Dimmer-MAUI/FileContentIndex/b1d67f52-2b32-40de-98b9-5a93a52322c4.vsidx
+/.vs/Dimmer-MAUI/v17/.futdcache.v2
+/.vs/Dimmer-MAUI/v17/.wsuo
+/.vs/Dimmer-MAUI/v17/DocumentLayout.json
+/.vs/Dimmer-MAUI/v17/fileList.bin
+/.vs/ProjectEvaluation/dimmer-maui.projects.v9.bin
+/.vs/ProjectEvaluation/dimmer-maui.strings.v9.bin
+/.vs/VSWorkspaceState.json
+/obj/Dimmer-MAUI.csproj.nuget.dgspec.json
+/obj/Dimmer-MAUI.csproj.nuget.g.props
+/obj/Dimmer-MAUI.csproj.nuget.g.targets
+/obj/project.assets.json
+/obj/project.nuget.cache
+/Dimmer/obj (2)/Dimmer-MAUI.csproj.nuget.g.props
+/Dimmer/obj (2)/project.assets.json

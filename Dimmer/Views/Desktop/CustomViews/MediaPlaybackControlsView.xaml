@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.CustomViews.MediaPlaybackControlsView"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="vm:HomePageVM" BackgroundColor="#111111" Opacity="0.5"
+             x:Name="myPage">
+    <ContentView.GestureRecognizers>
+        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"
+                                  PointerExited="PointerGestureRecognizer_PointerExited"/>
+    </ContentView.GestureRecognizers>
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
+            <Style TargetType="Border">
+                <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
+                <Setter Property="HeightRequest" Value="50"/>
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup Name="CommonStates">
+                            <VisualState Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+
+<Grid ColumnDefinitions="Auto,*">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
+        </Grid.GestureRecognizers>
+
+        <HorizontalStackLayout Grid.Column="0" IsVisible="{Binding IsFlyOutPaneOpen, Converter={StaticResource BoolToInverse}}"
+                               Spacing="5" Padding="5" >
+            <HorizontalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer 
+         Tapped="NavToSingleSongShell_Tapped"/>
+            </HorizontalStackLayout.GestureRecognizers>
+            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" Stroke="LightCoral" StrokeThickness="2"
+                     Text="{Binding TemporarilyPickedSong.Title}"
+                 WidthRequest="95" HeightRequest="95" Margin="2,0,0,0"
+                     BorderWidth="0" CornerRadius="20">
+
+                <toolkit:AvatarView.Triggers>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                </toolkit:AvatarView.Triggers>
+            </toolkit:AvatarView>
+
+            <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
+                <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
+            LineBreakMode="HeadTruncation" FontSize="18"/>
+                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
+            LineBreakMode="TailTruncation"
+            Opacity="0.6" HorizontalOptions="Start"/>
+                <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
+        LineBreakMode="HeadTruncation"/>
+                <!--<Label Text="{Binding IsShuffleOn}"/>-->
+            </VerticalStackLayout>
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout HorizontalOptions="Fill" Grid.Column="1">
+            <HorizontalStackLayout Spacing="15" BackgroundColor="Transparent"
+                    HorizontalOptions="Center" Padding="10,0">
+                <Border>
+                    <ImageButton Command="{Binding ToggleRepeatModeCommand}">
+                        <ImageButton.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </ImageButton.CommandParameter>
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
+
+                <Border >
+                    <ImageButton Command="{Binding PlayPreviousSongCommand}" Source="backwardskipdark.png" 
+                                 ToolTipProperties.Text="Play Previous">
+                    </ImageButton>
+
+                </Border>
+
+                <Border WidthRequest="55" StrokeShape="RoundRectangle 30"
+            HeightRequest="55" Padding="5,0,2,0" IsVisible="{Binding IsPlaying}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
+                    </Border.GestureRecognizers>
+                    <Image HeightRequest="35" Source="pausedark.png">
+                    </Image>
+                </Border>
+
+                <Border WidthRequest="55" StrokeShape="RoundRectangle 30" IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}}"
+            HeightRequest="55" Padding="5,0,2,0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="PlayPauseBtn_Tapped"/>
+                    </Border.GestureRecognizers>
+                    <Image HeightRequest="35" Source="playdark.png" >
+                    </Image>
+                </Border>
+
+
+                <Border>
+                    <ImageButton Command="{Binding PlayNextSongCommand}"
+                        ToolTipProperties.Text="Play Next" Source="forwarddark.png">
+                    </ImageButton>
+                </Border>
+
+                <Border>
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsShuffleOn}" Value="True">
+                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                            <Setter Property="StrokeThickness" Value="3"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsShuffleOn}" Value="False">
+                            <Setter Property="Stroke" Value="Transparent"/>
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <VerticalStackLayout>
+                        
+                        <ImageButton Command="{Binding ToggleShuffleStateCommand}"  Source="shuffledark.png"
+                                     WidthRequest="15">
+                            <ImageButton.CommandParameter>
+                                <x:Boolean>True</x:Boolean>
+                            </ImageButton.CommandParameter>
+                        </ImageButton>
+                
+                    </VerticalStackLayout>
+                </Border>
+            </HorizontalStackLayout>
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Padding="10,0" >
+
+                <Label Grid.Column="0" VerticalOptions="Center"
+            Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
+               />
+                <Slider Grid.Column="1" 
+            Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+MinimumTrackColor="DarkSlateBlue" x:Name="slid" VerticalOptions="Start"
+DragCompleted="Slider_DragCompleted" Margin="15,0" >
+                </Slider>
+
+                <Label Grid.Column="2" VerticalOptions="Center"
+            Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+            Opacity="0.6"/>
+
+            </Grid>
+        </VerticalStackLayout>
+    
+</Grid>
+     
+</ContentView>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.SingleSongShell"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+             xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"                            
+             x:DataType="vm:HomePageVM"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
+             x:Name="myPage"
+            xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
+            xmlns:dx="http://schemas.devexpress.com/maui" 
+            Shell.NavBarIsVisible="False"
+            Padding="0,0" >
+    <!--xmlns:sys="clr-namespace:System;assembly=netstandard"-->
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <Style TargetType="ImageButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="BorderColor" Value="Transparent"/>
+                <Setter Property="WidthRequest" Value="50"/>
+                <Setter Property="HeightRequest" Value="45"/>
+            </Style>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid Padding="0,0" BackgroundColor="Transparent">
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+    IsVisible="True" Grid.Column="0" Aspect="Center"/>
+        <chart:SfTabView x:Name="TabV" BackgroundColor="Transparent"
+                        TabBarHeight="65" TabBarPlacement="Bottom" x:DataType="vm:HomePageVM"
+                        IndicatorPlacement="Bottom" SelectedIndex="{Binding CurrentViewIndex}"
+                        EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
+                        SelectionChanged="tabView_SelectionChanged"
+                        IsClippedToBounds="True">
+
+            <chart:SfTabView.Items >
+
+                <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
+                                 TextColor="Gray">
+                    <chart:SfTabItem.ImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
+                    </chart:SfTabItem.ImageSource>
+                    <chart:SfTabItem.Content>
+
+
+                        <dx:DXCollectionView x:DataType="vm:HomePageVM" ItemsSource="{Binding SynchronizedLyrics}" 
+                                        SelectionChanged="LyricsColView_SelectionChanged" 
+                                        SelectionMode="Single" x:Name="LyricsColView" SelectedItem="{Binding CurrentLyricPhrase}" BackgroundColor="Transparent"
+                                        Grid.Column="0">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Border Stroke="Transparent" BackgroundColor="Transparent" Margin="5,0" >
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                        </Border.GestureRecognizers>
+
+                                        <Label Text="{Binding Text}" Margin="0,5" 
+                                                    HorizontalTextAlignment="Center" 
+                                                    FontSize="13" >
+                                            <Label.Triggers>
+
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                            <dx:DXCollectionView.SelectedItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Border Stroke="Transparent" Margin="5,0" >
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                        </Border.GestureRecognizers>
+
+                                        <Label Text="{Binding Text}" Margin="0,5" 
+                                               HorizontalTextAlignment="Center"
+                                               FontSize="23">
+                                            <Label.Triggers>
+
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </dx:DXCollectionView.SelectedItemTemplate>
+                            
+                        </dx:DXCollectionView>
+                        
+                    </chart:SfTabItem.Content>
+                </chart:SfTabItem>
+
+                <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray">
+                    <chart:SfTabItem.ImageSource>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
+                    </chart:SfTabItem.ImageSource>
+                    <chart:SfTabItem.Content>
+                        <Grid Margin="5,5" RowDefinitions="*,Auto" BackgroundColor="Transparent">
+                            <Grid.Resources>
+                                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                                <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+
+                            </Grid.Resources>
+                            <HorizontalStackLayout Spacing="10" Grid.Row="1" HeightRequest="50"
+                   Margin="5" HorizontalOptions="Center">
+                                <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
+                                                    Clicked="SearchLyricsOnLyrLib_Clicked">
+                                    <Button.CommandParameter>
+                                        <x:Boolean>True</x:Boolean>
+                                    </Button.CommandParameter>
+                                </Button>
+
+
+                                <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                                                    IsVisible="False">
+                                    <Button.CommandParameter>
+                                        <x:Boolean>True</x:Boolean>
+                                    </Button.CommandParameter>
+                                </Button>
+
+                            </HorizontalStackLayout>
+                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="0"  
+                                                        x:DataType="vm:HomePageVM">
+                                <CollectionView.EmptyView>
+                                    <ContentView>
+                                        <VerticalStackLayout HorizontalOptions="Center" x:Name="emptyV"
+                                                             BackgroundColor="Transparent">
+
+
+                                            <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                                               HeightRequest="0" WidthRequest="0" />
+                                            <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+                                                               IsVisible="False" IsAnimationPlaying="False"/>
+
+                                            <Label Text="Service is Unavailable, try again !" 
+                                                               x:Name="NoLyricsFoundMsg" IsVisible="False"
+                                                               />
+                                        </VerticalStackLayout>
+
+                                    </ContentView>
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Content">
+
+                                        <Border Stroke="DarkSlateBlue" 
+                StrokeShape="RoundRectangle, 10"
+                Padding="10" Margin="0,5">
+                                            <VerticalStackLayout>
+
+                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
+
+                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
+
+                                                <HorizontalStackLayout>
+
+                                                    <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DimGrey"
+                            IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+                        />
+
+
+                                                    <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                        IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Border>
+
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </chart:SfTabItem.Content>
+                </chart:SfTabItem>
+
+
+            </chart:SfTabView.Items>
+
+        </chart:SfTabView>
+        <VerticalStackLayout VerticalOptions="End" HeightRequest="180"
+                             HorizontalOptions="End" BackgroundColor="Transparent">
+            <viewsM:EachPageNPFAB_Mobile Margin="10"/>
+        </VerticalStackLayout>
+
+        <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"/>
+        
+    </Grid>
+</ContentPage>

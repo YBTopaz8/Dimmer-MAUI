@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.NowPlayingBtmSheet"
+             
+            
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:containerr="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:mobileViews="clr-namespace:Dimmer_MAUI.Views.Mobile"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:dx="http://schemas.devexpress.com/maui"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+            xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            x:DataType="vm:HomePageVM" ShowGrabber="False"
+            State="{Binding NowPlayBtmSheetState}"
+            x:Name="myPage">
+
+    <dx:BottomSheet.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+            </Style>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        </ResourceDictionary>
+    </dx:BottomSheet.Resources>
+
+    <Grid RowDefinitions="*,Auto" BackgroundColor="Transparent">
+        <dx:DXButton Grid.Row="0"
+            Padding="10,2" x:Name="lyricsCover" BackgroundColor="Transparent"
+            CornerRadius="35" PressedBackgroundColor="DarkSlateBlue" Clicked="lyricsCover_Clicked">
+
+            <dx:DXButton.Content>
+                <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
+
+                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                           Opacity="0.35" Aspect="Fill"/>
+
+                    <dx:DXStackLayout VerticalOptions="Center" >
+                        <dx:DXCollectionView ItemsSource="{Binding SynchronizedLyrics}" BackgroundColor="Transparent"
+                                                ItemSpacing="5" SelectionMode="Single" HeightRequest="150" VerticalOptions="Center"
+                                                SelectionChanged="SyncLyricsColView_SelectionChanged" x:Name="SyncLyricsColView"
+                                                SelectedItem="{Binding CurrentLyricPhrase}" >
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Label Text="{Binding Text}"   TextColor="Gray"                            
+                                            HorizontalTextAlignment="Center"/>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                            <dx:DXCollectionView.SelectedItemTemplate>
+                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                    <Label Text="{Binding Text}" TextColor="White" HorizontalTextAlignment="Center"
+                                            FontAttributes="Bold" BackgroundColor="Transparent"
+                                            FontSize="30"/>
+                                </DataTemplate>
+                            </dx:DXCollectionView.SelectedItemTemplate>
+                        </dx:DXCollectionView>
+
+                    </dx:DXStackLayout>
+                </Grid>
+            </dx:DXButton.Content>
+        </dx:DXButton>
+        
+        <VerticalStackLayout Grid.Row="1" Spacing="15" HeightRequest="400"
+                            toolkit:DockLayout.DockPosition="Bottom"
+                            x:Name="dl" >
+
+            <Grid BackgroundColor="Transparent" Margin="5,0" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}" 
+        VerticalOptions="Center" FontSize="17"/>
+                <Slider Grid.Column="1" MinimumTrackColor="DarkSlateBlue"
+                    Value="{Binding CurrentPositionPercentage, Mode=TwoWay}"
+                             
+                    x:Name="ProgressSlider" DragCompleted="Slider_DragCompleted">
+
+                </Slider>
+
+                <Label Grid.Column="2" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+        VerticalOptions="Center" Opacity="0.6" FontSize="16"/>
+            </Grid>
+
+            <VerticalStackLayout >
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="ShowSongAlbum_Tapped" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalTextAlignment="Center" 
+                FontAttributes="Bold" FontSize="20"/>
+
+                <Label HorizontalTextAlignment="Center" FontSize="18">
+                    <Label.Text>
+                        <MultiBinding StringFormat="{} {0} · {1}">
+                            <Binding Path="TemporarilyPickedSong.ArtistName"/>
+                            <Binding Path="TemporarilyPickedSong.AlbumName"/>
+                        </MultiBinding>
+                    </Label.Text>
+                </Label>
+
+            </VerticalStackLayout>
+
+            <Grid HorizontalOptions="Fill" VerticalOptions="Start" ColumnSpacing="15"
+    BackgroundColor="Transparent" Margin="5,0">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ImageButton Grid.Column="0" WidthRequest="55" HeightRequest="55" 
+            Command="{Binding ToggleRepeatModeCommand}">
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}" Color="#B8B8B8"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"
+                    WidthRequest="70" HeightRequest="70" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"
+                        Color="#B8B8B8"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
+        CornerRadius="40" Grid.Column="2"
+        TapReleased="NowPlayingBtn_TapReleased"
+        UseRippleEffect="True"
+        WidthRequest="90" HeightRequest="90" >
+                    <dx:DXButton.Content>
+                        <dx:RadialProgressBar  WidthRequest="80" HeightRequest="80" 
+                                    Grid.Column="2"
+                Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="6" Thickness="0" AllowAnimation="True"
+Fill="Transparent" StartAngle="-180" SweepAngle="360">
+                            <dx:RadialProgressBar.Content>
+                                <dx:DXImage >
+                                    <Image.Source>
+                                        <FontImageSource Size="50" FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"/>
+                                    </Image.Source>
+                                </dx:DXImage>
+                            </dx:RadialProgressBar.Content>
+
+                        </dx:RadialProgressBar>
+
+                    </dx:DXButton.Content>
+                </dx:DXButton>
+
+
+                <ImageButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" WidthRequest="70" HeightRequest="70" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"
+                        Color="#B8B8B8"/>
+                    </ImageButton.Source>
+                </ImageButton>
+                <ImageButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
+                    WidthRequest="55" HeightRequest="55" >
+                    <ImageButton.CommandParameter>
+                        <x:Boolean>True</x:Boolean>
+                    </ImageButton.CommandParameter>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding ShuffleOnOffImage}"
+                        Color="#B8B8B8"/>
+                    </ImageButton.Source>
+                </ImageButton>
+            </Grid>
+
+            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.ReleaseYear}" IsVisible="False"/>
+            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileFormat}" FontSize="20"/>
+            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
+    FontSize="16"/>
+
+            <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" Margin="5,0,5,5">
+
+                <ImageButton Command="{Binding ShowSleepTimerPopupCommand}" >
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"
+                                />
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <HorizontalStackLayout Spacing="15">
+                    <HorizontalStackLayout.Resources>
+                        <ResourceDictionary>
+                            <Style TargetType="ImageButton">
+                                <Setter Property="WidthRequest" Value="40"/>
+                                <Setter Property="Padding" Value="-2"/>
+                            </Style>
+                        </ResourceDictionary>
+                    </HorizontalStackLayout.Resources>
+
+                    <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent"
+                        ShowContent="False" IconPlacement="Left" IconColor="White" VerticalOptions="Start"
+                        Command="{Binding FetchSongCoverImageCommand}" IconWidth="40">
+                        <dx:DXButton.Icon>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
+
+
+                    <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
+                        ShowContent="False" IconPlacement="Left" x:Name="NavToSingleSongShell" Clicked="NavToSingleSongShell_Clicked"
+                        IconWidth="40" VerticalOptions="Start">
+                        <dx:DXButton.Icon>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                        </dx:DXButton.Icon>
+                    </dx:DXButton>
+
+                    <VerticalStackLayout >
+                        <dx:DXExpander x:Name="ShowMoreActionsContextMenuExpander"
+                            IsExpanded="False"
+                            HorizontalExpandMode="FromEndToStart"
+                            VerticalExpandMode="FromCenter">
+                            <dx:DXExpander.Content>
+                                <VerticalStackLayout>
+                                    <dx:DXButton Content="Share" ButtonType="Filled" BackgroundColor="#1E1E1E"/>
+                                </VerticalStackLayout>
+                            </dx:DXExpander.Content>
+                        </dx:DXExpander>
+                        <dx:DXButton IconHeight="40" WidthRequest="40" BackgroundColor="Transparent" IconColor="White"
+                            ShowContent="False" IconPlacement="Left" Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShowMoreActionsContextMenuExpander}}"
+                            IconWidth="40" x:Name="ShowMoreActionsContextMenuBtn">
+                            <dx:DXButton.Icon>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
+                            </dx:DXButton.Icon>
+                        </dx:DXButton>
+                    </VerticalStackLayout>
+
+
+                </HorizontalStackLayout>
+
+            </FlexLayout>
+
+        </VerticalStackLayout>
+
+
+    </Grid>
+    
+
+
+</dx:BottomSheet>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.CustomPopUpViews.EditSongPopup"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+            x:DataType="vm:HomePageVM" 
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            
+            
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
+            x:Name="myPage" CanBeDismissedByTappingOutsideOfPopup="False"
+            Color="Transparent">
+
+    <mct:Popup.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+        </ResourceDictionary>
+    </mct:Popup.Resources>
+    <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
+            Stroke="Transparent" 
+            WidthRequest="450" HeightRequest="{OnPlatform WinUI=670, Android=600}"
+            BackgroundColor="Black" Margin="5" Padding="20">
+
+        <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
+                      Spacing="10" Margin="10,0" Grid.Row="0">
+
+            <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                         HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}"
+                   />
+
+            <!--<material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                         />
+            <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
+            <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
+
+            <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
+                         />-->
+      
+            <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
+                <Button Text="Cancel" BackgroundColor="Red" Clicked="CancelBtn_Clicked"/>
+                <Button Text="Update!" BackgroundColor="DarkSlateBlue" Command="{Binding UpdateSongToDBCommand}"
+                        CommandParameter="{Binding SelectedSongToOpenBtmSheet}" Clicked="CancelBtn_Clicked"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+    </Border>
+</mct:Popup>

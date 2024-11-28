@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.MainPageD"              
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"             
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
+             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             x:DataType="vm:HomePageVM"
+             x:Name="myPage"
+             BackgroundColor="#191719"
+             xmlns:sys="clr-namespace:System;assembly=netstandard"
+             >
+
+    <ContentPage.Resources>
+
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+        </ResourceDictionary>
+
+    </ContentPage.Resources>
+    <toolkit:DockLayout BackgroundColor="#1F1F1F" x:Name="mainDock">
+        <toolkit:DockLayout.GestureRecognizers>
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" DragOver="DropGestureRecognizer_DragOver"
+            DragLeave="DropGestureRecognizer_DragLeave"
+            Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
+
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                        x:Name="MediaPlayBackCW"/>
+        <toolkit:DockLayout x:Name="MainBody" >
+
+            <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
+
+                <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+        Margin="10,0,10,0" x:Name="NormalMiniUtilBar">
+                    <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="18"
+FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
+
+                    <HorizontalStackLayout Spacing="10">
+
+                        <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
+                                     Source="eyelocate.png">
+                                     
+                        </ImageButton>
+                        <ImageButton HeightRequest="20" 
+                                     Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
+                                     Source="sortdark.png">
+                        </ImageButton>
+                      
+                    </HorizontalStackLayout>
+
+                </FlexLayout>
+
+                <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
+        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" IsVisible="False">
+                    <HorizontalStackLayout>
+                        <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
+
+                        </ImageButton>
+                        <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
+        FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+                    </HorizontalStackLayout>
+
+
+                    <HorizontalStackLayout Spacing="10">
+
+                        <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding IsMultiSelectOn}">
+
+                            <ImageButton.CommandParameter>
+                                <x:Int32>0</x:Int32>
+                            </ImageButton.CommandParameter>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+
+                </FlexLayout>
+            </VerticalStackLayout>
+            <Grid toolkit:DockLayout.DockPosition="Top" >
+                <CollectionView ItemsSource="{Binding DisplayedSongs}" 
+    VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
+    x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset"
+    Loaded="SongsColView_Loaded" Margin="5,0"
+    EmptyView="Nothing ..." >
+
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:SongModelView">
+                            <syncf:SfEffectsView
+                            TouchDown="SfEffectsView_TouchDown">
+                                <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="60" ColumnSpacing="55">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+
+                                        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
+                                                      PointerExited="PointerGestureRecognizer_PointerExited"
+                                                      />
+                                    </Grid.GestureRecognizers>
+
+                                    <!--<toolkit:AvatarView ImageSource="{Binding CoverImagePath}" 
+                                                HeightRequest="50" WidthRequest="50"
+                                                Grid.Column="0" BorderWidth="0"
+                                                CornerRadius="10" Text="{Binding Title}"/>-->
+                                    <VerticalStackLayout Grid.Column="0" Margin="10,0"
+                                                 BackgroundColor="Transparent"
+                                                 VerticalOptions="Center">
+                                        <Label Text="{Binding Title}" />
+                                        <Image WidthRequest="13" HorizontalOptions="Start"
+                                       IsVisible="{Binding HasLyrics}">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
+                                            </Image.Source>
+                                        </Image>
+
+                                        <Image WidthRequest="13" HorizontalOptions="Start"
+                                       IsVisible="{Binding IsCurrentPlayingHighlight}">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="MaterialRounded" 
+                                                             Color="DarkSlateBlue"
+                                                             Glyph="{x:Static m:MaterialRounded.Play_arrow}"/>
+                                            </Image.Source>
+                                        </Image>
+
+                                    </VerticalStackLayout>
+                                    <Label Text="{Binding ArtistName}" Grid.Column="1" LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding AlbumName}" LineBreakMode="TailTruncation" Grid.Column="2"/>
+                                    <Label Grid.Column="3" HorizontalOptions="Center" 
+                                           LineBreakMode="TailTruncation"
+                                           Text="{Binding GenreName}" />
+                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                                       Grid.Column="4" HorizontalOptions="Center" />
+                                    <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" />
+                                    <!--<Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding DatesPlayedAndWasPlayCompleted.Count}" />-->
+                                </Grid>
+
+                            </syncf:SfEffectsView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </toolkit:DockLayout>
+
+    </toolkit:DockLayout>
+
+</ContentPage>

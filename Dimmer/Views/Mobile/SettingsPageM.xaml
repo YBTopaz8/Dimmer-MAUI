@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.SettingsPageM"
+              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
+            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"         
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"               
+             
+
+            xmlns:dx="http://schemas.devexpress.com/maui"
+             Shell.NavBarIsVisible="False"             
+             
+             x:DataType="vm:HomePageVM" 
+
+             Title="Settings">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <dx:DXScrollView>
+        
+    <dx:DXDockLayout Padding="10,10">
+        
+        <Label Text="Settings" FontSize="30" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
+        <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" BackgroundColor="Transparent">
+            <VerticalStackLayout Spacing="5" BackgroundColor="Transparent" Grid.Column="2">
+                <Label Text="{Binding CurrentUser.UserName}"/>
+                <Label Text="{Binding CurrentUser.UserEmail}"/>
+                <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
+                <Label FontSize="24"
+                    Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
+
+                <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
+               IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
+                    <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
+                            Clicked="SyncPDaCS_Clicked"/>
+
+                    <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
+
+                    <Label Text="Already Logged In!"/>
+                    <Button Text="Log Out" Command="{Binding LogOutCommand}"/>
+                </VerticalStackLayout>
+
+
+            </VerticalStackLayout>
+
+            <toolkit:Expander x:Name="ShowHideConnectOnlineExpander" BackgroundColor="Transparent">
+                <toolkit:Expander.Header>
+                    <VerticalStackLayout>
+                        <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start" BackgroundColor="Transparent">
+                            <HorizontalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer x:Name="ShowHideConnectOnlineExpanderTap" Grid.Column="1" />
+                            </HorizontalStackLayout.GestureRecognizers>
+
+                         
+                        </HorizontalStackLayout>
+                        <Label Text="Login/Sign Up"/>
+                        <!--<Image>
+                                <Image.Source>
+                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Wifi}"/>
+                                </Image.Source>
+                            </Image>
+
+                            <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
+                        </HorizontalStackLayout>-->
+
+                        <ImageButton Grid.Column="2" HorizontalOptions="End">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </VerticalStackLayout>
+                </toolkit:Expander.Header>
+                <toolkit:Expander.Content>
+                    <HorizontalStackLayout HorizontalOptions="Center"
+                    BackgroundColor="Transparent" VerticalOptions="Center"
+                    >
+
+                        <VerticalStackLayout x:Name="LoginUI" Spacing="20" 
+                      VerticalOptions="Center" BackgroundColor="Transparent"> 
+
+                            <Label Text="User Login" FontSize="26"/>
+
+                            <Entry Placeholder="User Name" x:Name="LoginUname"
+                               Text="YBTopaz8"/>
+                            <Entry IsPassword="True"
+                               
+                               Placeholder="Password" x:Name="LoginPass" />
+                            <Button Text="Sign Up"  BackgroundColor="Transparent" HeightRequest="15"
+             FontSize="15" Clicked="LoginSignUpToggle_Click"/>
+                            <Button Text="Forgotten Password"  BackgroundColor="Transparent" HeightRequest="15"
+             FontSize="15"/>
+
+                            <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+
+                                <Button Text="Login" x:Name="LoginBtn"
+             Clicked="LoginBtn_Clicked"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout x:Name="SignUpUI" Spacing="15" 
+                      WidthRequest="280" VerticalOptions="Center"
+                      IsVisible="False">
+
+                            <Label Text="User Sign Up" FontSize="26"/>
+
+                            <Entry Placeholder="User Name" x:Name="SignUpUname"
+                               />
+                            <Entry Placeholder="Email" x:Name="SignUpEmail"/>
+                            <Entry Placeholder="Password" x:Name="SignUpPass" IsPassword="True"/>
+
+                            <Button Text="Login" Clicked="LoginSignUpToggle_Click" BackgroundColor="Transparent" HeightRequest="15"
+             FontSize="15" />
+
+                            <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+
+                                <Button Text="Sign Up" x:Name="SignUpBtn" Clicked="SignUpBtn_Clicked"/>
+                            </HorizontalStackLayout>
+
+                        </VerticalStackLayout>
+
+                    </HorizontalStackLayout>
+                </toolkit:Expander.Content>
+            </toolkit:Expander>
+
+
+
+            <HorizontalStackLayout Spacing="5" BackgroundColor="Transparent">
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Folders" FontSize="24" />
+            </HorizontalStackLayout>
+            
+            <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
+                                 Scale="0.9" x:DataType="vm:HomePageVM">
+
+                <dx:DXButton ButtonType="Outlined" Content="Select Folder" 
+                             x:Name="PickFolder" Clicked="PickFolder_Clicked"
+                 BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
+                <dx:DXButton ButtonType="Outlined" Content="Scan All" x:Name="ScanAllBtn"
+                             Clicked="ScanAllBtn_Clicked" 
+                 BorderColor="DarkSlateBlue" TextColor="White" PressedBackgroundColor="DarkSlateBlue"/>
+                
+                <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
+                       IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                <Grid BackgroundColor="Transparent">
+                    <CollectionView ItemsSource="{Binding FolderPaths}" HeightRequest="140"
+                                    EmptyView="No Folders..">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="18" 
+                                       TextColor="White"
+                               Margin="20,0"/>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </VerticalStackLayout>
+
+            <!--<dx:DXBorder >
+                <dx:TextEdit PlaceholderText="Last FM User Name"/>
+                <dx:TextEdit PlaceholderText="Last FM User PassWord"/>
+                
+            </dx:DXBorder>-->
+            
+        </VerticalStackLayout>
+        <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"
+                             Margin="10" BackgroundColor="Transparent">
+            <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Facing Issues ?" FontSize="24" />
+            </HorizontalStackLayout>
+            <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
+                         Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
+                         TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
+            <Label Text="Dimmer By Yvan Brunel" HorizontalTextAlignment="Center"/>
+        </VerticalStackLayout>
+
+        </dx:DXDockLayout>
+    </dx:DXScrollView>
+</ContentPage>
