@@ -107,10 +107,6 @@ public partial class ArtistsPageD : ContentPage
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
-        if (true)
-        {
-
-        }
 
         await HomePageVM.GetAllArtistAlbumFromArtist(artist);
         

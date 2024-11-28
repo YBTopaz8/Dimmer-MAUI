@@ -359,6 +359,7 @@ public partial class DailyStats : ObservableObject
 
     public DailyStats(SongModelView model, DateTimeOffset? specificDate = null)
     {
+        return;
         
         specificDate ??= DateTimeOffset.UtcNow.Date.Date;
 
@@ -370,7 +371,7 @@ public partial class DailyStats : ObservableObject
         //);
 
         // Calculate total play time in minutes
-        TotalPlayTime = PlayDates.Count * model.DurationInSeconds / 60;
+        //TotalPlayTime = PlayDates.Count * model.DurationInSeconds / 60;
 
         // Initialize ColforStats collection
         ColforStats = new ObservableCollection<DataForChart>();

@@ -44,4 +44,6 @@ public interface ISongsManagementService
     UserModelView? GetUserAccount(ParseUser? usr = null);
     Task SendAllDataToServerAsInitialSync();
     void UpdateUserLoginDetails(ParseUser usrr);
+    void InitApp(HomePageVM vm);
+    Task<bool> SyncPlayDataAndCompletionData();
 }

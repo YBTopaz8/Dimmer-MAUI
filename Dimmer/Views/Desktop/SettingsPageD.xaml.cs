@@ -117,7 +117,11 @@ public partial class SettingsPageD : ContentPage
 
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
     {
-        ViewModel.FullSync();
+        _= ViewModel.FullSync();
+    }
+    private async void SyncPDaCS_Clicked(object sender, EventArgs e)
+    {
+        await ViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
     }
 }
 

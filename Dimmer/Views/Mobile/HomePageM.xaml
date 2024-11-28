@@ -313,7 +313,8 @@
                         </dx:DXButton.Icon>
                     </dx:DXButton>
                     <dx:DXButton Content="Go to Album" Command="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
-                                 CommandParameter="{Binding SelectedSongToOpenBtmSheet}" Clicked="ShareSong_Clicked">
+                                 CommandParameter="{Binding SelectedSongToOpenBtmSheet}" 
+                                 x:Name="GoToAlbumBtn">
                         <dx:DXButton.Icon>
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}" />
                         </dx:DXButton.Icon>

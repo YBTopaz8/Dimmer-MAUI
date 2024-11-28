@@ -58,8 +58,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                                 <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Sort}"/>
                             </ImageButton.Source>
                         </ImageButton>
-                        <Button Text="{Binding TemporarilyPickedSong.Title, StringFormat='oasinfiuqeno'}" TextColor="White" />
-
+                      
                     </HorizontalStackLayout>
 
                 </FlexLayout>

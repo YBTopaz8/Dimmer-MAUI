@@ -302,6 +302,7 @@ public partial class HomePageM : ContentPage
     {
         SongsColView.FilterString = string.Empty;
         SongTitleTextEdit.Text = string.Empty;
+        HomePageVM.IsOnSearchMode = false;  
     }
     
 
@@ -359,5 +360,10 @@ public partial class HomePageM : ContentPage
                 break;
         }
         Debug.WriteLine(s.GetType());
+    }
+
+    private void GoToArtistBtn_Clicked_1(object sender, EventArgs e)
+    {
+
     }
 }

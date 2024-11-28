@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.DataAccess.Services;
 
@@ -7,23 +8,26 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     Realm db;
 
     public IList<SongModelView> AllSongs { get; set; }
-    Lazy<HomePageVM> ViewModel { get; set; }
+    HomePageVM ViewModel { get; set; }
     public IList<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
     public IList<PlayDateAndCompletionStateSongLinkView> AllPlayDataAndCompletionStateLinks { get; set; }
     public IList<AlbumModelView> AllAlbums { get; set; }
     public IList<ArtistModelView> AllArtists { get; set; }
     public IList<GenreModelView> AllGenres { get; set; }
     public IDataBaseService DataBaseService { get; }
-    public SongsManagementService(IDataBaseService dataBaseService, Lazy<HomePageVM> viewModel)
+    public SongsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
-        InitApp();
-        ViewModel = viewModel;
+
+        GetUserAccount();
+        GetSongs();
     }
     bool HasOnlineSyncOn;
     public ParseUser? CurrentUserOnline { get; set; }
-    private void InitApp()
+    public void InitApp(HomePageVM vm)
     {
+        //InitApp();
+        ViewModel = vm;
         //GetSongs();
         //isSyncingOnline = true;
         //if (AllSongs?.Count<1)
@@ -35,8 +39,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         //    await GetOnlineDBLoaded();
         //}
         //isSyncingOnline = false;
-        GetUserAccount();
-        GetSongs();
 
     }
 
@@ -287,7 +289,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     public async Task GetAllDataFromOnlineAsync()
     {
         if (CurrentUserOnline is null)
-            CurrentUserOnline= ViewModel.Value.CurrentUserOnline!;
+            CurrentUserOnline= ViewModel.CurrentUserOnline!;
 
         if (CurrentUserOnline is null)
         {
@@ -315,7 +317,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 await LoadAAGSLinkViewToDBFromOnline();
                 await LoadPlayDateAndIsPlayCompletedModelToDBFromOnline();
                 GetSongs();
-                ViewModel.Value.SyncRefresh();
+                ViewModel.SyncRefresh();
                 HasOnlineSyncOn = false;
             }
         }
@@ -965,12 +967,12 @@ AddOrUpdateSingleRealmItem(
                 // Handle string as string (required for Parse compatibility)
                 if (property.PropertyType == typeof(string))
                 {
-                    parseObject[property.Name] = value.ToString();
+                    parseObject[property.Name] = ToString();
                     continue;
                 }
 
                 // Add a fallback check for unsupported complex types
-                if (value.GetType().Namespace?.StartsWith("Realms") == true)
+                if (GetType().Namespace?.StartsWith("Realms") == true)
                 {
                     Debug.WriteLine($"Skipped unsupported Realm type: {property.Name}");
                     continue;
@@ -1026,7 +1028,7 @@ AddOrUpdateSingleRealmItem(
                         }
 
                         // For other types, directly set the value if the property has a setter
-                        if (property.CanWrite && property.PropertyType.IsAssignableFrom(value.GetType()))
+                        if (property.CanWrite && property.PropertyType.IsAssignableFrom(GetType()))
                         {
                             property.SetValue(model, value);
                         }
@@ -1258,7 +1260,7 @@ AddOrUpdateSingleRealmItem(
             if (CurrentUserOnline is null)
             {
                 // display user is offline
-                await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "Ok");
+                //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "Ok");
                 return null;
             }
 
@@ -1374,8 +1376,6 @@ AddOrUpdateSingleRealmItem(
         allGenres = allGenres.DistinctBy(x => x.Name).ToList();
         allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId, x.GenreId }).ToList();
 
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
             var combinedList = new List<SongModelView>(AllSongs);
             combinedList.AddRange(songs!);
             var allSongss = combinedList.ToObservableCollection();
@@ -1384,15 +1384,14 @@ AddOrUpdateSingleRealmItem(
             AllAlbums = allAlbums.ToList();
             AllGenres = allGenres.ToList();
             AllLinks = allLinks.ToList();
-            ViewModel.Value.SyncRefresh();
-        });
+            ViewModel.SyncRefresh();
 
         List<SongModel> dbSongs = songs.Select(song => new SongModel(song)).ToList()!;
 
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
-        ViewModel.Value.SetPlayerState(MediaPlayerState.DoneScanningData);
+        ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
                 
 
         if (!await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null))
@@ -1402,7 +1401,7 @@ AddOrUpdateSingleRealmItem(
 
         if (CurrentUserOnline is null || CurrentUserOnline.IsAuthenticated)
         {
-                await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
+                //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
                 return false;
            
         }
@@ -1453,7 +1452,7 @@ AddOrUpdateSingleRealmItem(
         CurrentOfflineUser.UserEmail= CurrentUserOnline.Email;
         
 
-        ViewModel.Value.CurrentUser = CurrentOfflineUser;
+        ViewModel.CurrentUser = CurrentOfflineUser;
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
@@ -1510,8 +1509,7 @@ AddOrUpdateSingleRealmItem(
         {
             if (GeneralStaticUtilities.IsValidFile(file))
             {
-                var songData = GeneralStaticUtilities.ProcessFile
-                (file, existingAlbums.ToList(), albumDict, newAlbums, oldSongs.ToList(),
+                var songData = GeneralStaticUtilities.ProcessFile(file, existingAlbums.ToList(), albumDict, newAlbums, oldSongs.ToList(),
                     newArtists, artistDict, newLinks, existingLinks.ToList(), existingArtists.ToList(),
                     newGenres, genreDict, existingGenres.ToList());
 
@@ -1636,6 +1634,11 @@ AddOrUpdateSingleRealmItem(
     /// <param name="AAGSLink"></param>
     /// <returns></returns>
 
+    public async Task<bool> SyncPlayDataAndCompletionData()
+    {
+        await SendMultipleObjectsToParse(AllPlayDataAndCompletionStateLinks, nameof(PlayDateAndCompletionStateSongLink));
+        return true;
+    }
     public async Task<bool> SyncAllDataToOnlineAsync( //TRY NOT TO USE THIS FIRST. USE ADDSONG.....OnlineAsyc
         IEnumerable<SongModelView> songs,
         IEnumerable<ArtistModelView> artistModels,
@@ -1700,7 +1703,8 @@ AddOrUpdateSingleRealmItem(
                     Debug.WriteLine($"Error saving {modelName} action: {ex.Message}");
                 }
             }
-            Debug.WriteLine($"{modelName}sToOnline");
+            Debug.WriteLine($"{modelName}sToOnline saved!");
+            await Shell.Current.DisplayAlert("Success!", "Synced!","Ok");
             return true;
         }
         catch (Exception ex)

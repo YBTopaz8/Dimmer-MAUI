@@ -53,7 +53,7 @@
                     <VerticalStackLayout Spacing="20"  HorizontalOptions="End"
                                 VerticalOptions="Center" Grid.Column="2">
 
-                        <Label Text="{Binding SelectedAlbumOnArtistPage.NumberOfTracks, StringFormat='{0} Track(s)'}"
+                        <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Track(s)'}"
                             VerticalTextAlignment="Center"/>
 
                         <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" />

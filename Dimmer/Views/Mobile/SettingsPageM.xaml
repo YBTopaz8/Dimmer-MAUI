@@ -38,9 +38,10 @@
 
                 <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
                IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
+                    <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
+                            Clicked="SyncPDaCS_Clicked"/>
 
-
-                <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
+                    <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
 
                     <Label Text="Already Logged In!"/>
                     <Button Text="Log Out" Command="{Binding LogOutCommand}"/>

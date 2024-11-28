@@ -1,4 +1,6 @@
 
+using DevExpress.Maui.Core;
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class ArtistsPageM : ContentPage
@@ -53,5 +55,13 @@ public partial class ArtistsPageM : ContentPage
         var song = s.BindingContext as SongModelView;
         HomePageVM.PlaySongCommand.Execute(song);
 
+    }
+
+    private async void ShowArtistAlbums_Tapped(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var curSel = send.BindingContext as AlbumModelView;
+
+        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
     }
 }

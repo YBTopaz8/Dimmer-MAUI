@@ -22,7 +22,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     <dx:DXScrollView  >
-        <Grid RowDefinitions="160,170,*" Margin="10,0" BackgroundColor="Transparent">
+        <VerticalStackLayout Margin="10,0" BackgroundColor="Transparent">
             <HorizontalStackLayout Grid.Row="0" Spacing="10" 
                 BackgroundColor="Transparent" 
                                    HorizontalOptions="Fill">
@@ -34,35 +34,22 @@
                 </VerticalStackLayout>
             </HorizontalStackLayout>
 
-
-            <dx:DXCollectionView Grid.Row="1" Margin="10,0" 
-                ItemsSource="{Binding AllArtistsAlbums}"
-                                 ItemSpanCount="4" ItemSpanSpacing="5">
+            <dx:DXCollectionView ItemsSource="{Binding AllArtistsAlbums}" HeightRequest="150" Orientation="Horizontal">
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:AlbumModelView">
-                        <dx:DXButton VerticalOptions="Start"
-                            ButtonType="Text"
-                            CornerRadius="20" PressedBackgroundColor="DarkSlateBlue" TapPressed="SingleAlbum_TapPressed"
-                                      WidthRequest="300" x:Name="SingleAlbum" >
+                        <dx:DXButton BackgroundColor="Transparent" Clicked="ShowArtistAlbums_Tapped" CommandParameter="{Binding .}"
+                                     PressedBackgroundColor="DarkSlateBlue">
                             <dx:DXButton.Content>
-                                <VerticalStackLayout 
-                                    VerticalOptions="Start" BackgroundColor="Transparent"
-                                    WidthRequest="200" >
-                                    <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" BorderWidth="0"
-                                                        HeightRequest="110"  WidthRequest="100" VerticalOptions="Start"/>
-
-                                    <Label Text="{Binding Name}" WidthRequest="100" Padding="10,0"/>
-
+                                <VerticalStackLayout BackgroundColor="Transparent">
+                                    <Image Source="{Binding AlbumImagePath}" HeightRequest="50"/>
+                                    <Label Text="{Binding Name}"/>
                                 </VerticalStackLayout>
                             </dx:DXButton.Content>
-                            
                         </dx:DXButton>
-                        
                     </DataTemplate>
                 </dx:DXCollectionView.ItemTemplate>
             </dx:DXCollectionView>
-            
-            <dx:DXCollectionView Grid.Row="2" 
+            <dx:DXCollectionView Grid.Row="2"  IsVisible="True"
                 ItemsSource="{Binding AllArtistsAlbumSongs}"
                                  SelectionMode="Single" ItemSpacing="5">
                 <dx:DXCollectionView.Header>
@@ -122,6 +109,6 @@
                     </DataTemplate>
                 </dx:DXCollectionView.ItemTemplate>
             </dx:DXCollectionView>
-        </Grid>
+        </VerticalStackLayout>
     </dx:DXScrollView>
 </ContentPage>

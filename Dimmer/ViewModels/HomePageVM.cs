@@ -85,7 +85,7 @@ public partial class HomePageVM : ObservableObject
         PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
-        
+        SongsMgtService.InitApp(this);
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
         SubscribeToPlayerStateChanges();

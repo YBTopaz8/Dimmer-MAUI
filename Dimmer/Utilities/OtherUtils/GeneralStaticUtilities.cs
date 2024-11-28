@@ -100,22 +100,44 @@ public static class GeneralStaticUtilities
 
         foreach (var path in folderPaths.Distinct())
         {
-            if (path is null)
+            if (string.IsNullOrWhiteSpace(path))
             {
                 continue;
             }
 
             try
             {
-                var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
-                                     .Where(s => s.EndsWith(".mp3") || s.EndsWith(".flac") || s.EndsWith(".wav") || s.EndsWith(".m4a"))
-                                     .AsParallel()
-                                     .ToList();
-                allFiles.AddRange(files);
+                if (Directory.Exists(path))
+                {
+                    // It's a valid directory, get files recursively
+                    var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                                         .Where(s => s.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+                                                     s.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) ||
+                                                     s.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ||
+                                                     s.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase))
+                                         .AsParallel()
+                                         .ToList();
+                    allFiles.AddRange(files);
+                }
+                else if (File.Exists(path))
+                {
+                    // It's a file, check the extension and add if it matches
+                    if (path.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+                        path.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) ||
+                        path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ||
+                        path.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase))
+                    {
+                        allFiles.Add(path);
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine($"Invalid path: '{path}'"); // Log invalid paths
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error scanning folder '{path}': {ex.Message}"); // TODO: Log error
+                Debug.WriteLine($"Error processing path '{path}': {ex.Message}");
                 countOfScanningErrors++;
             }
         }
@@ -123,6 +145,7 @@ public static class GeneralStaticUtilities
         Debug.WriteLine($"Total folders with errors: {countOfScanningErrors}");
         return allFiles;
     }
+
 
     public static List<string> GetArtistNames(string? artist, string? albumArtist)
     {

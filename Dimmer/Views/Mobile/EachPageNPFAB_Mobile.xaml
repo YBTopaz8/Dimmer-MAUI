@@ -80,7 +80,14 @@
                                        ValueIndicatorThickness="6" Thickness="10" AllowAnimation="True"
                                        Fill="Transparent" StartAngle="-180" SweepAngle="360"
                                        ValueIndicatorFill="DarkSlateBlue">
-
+                    <dx:RadialProgressBar.Triggers>
+                        <DataTrigger TargetType="dx:RadialProgressBar" Binding="{Binding CurrentQueue}" Value="0">
+                            <Setter Property="ValueIndicatorFill" Value="DarkSlateBlue"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="dx:RadialProgressBar" Binding="{Binding CurrentQueue}" Value="1">
+                            <Setter Property="ValueIndicatorFill" Value="LightCoral"/>
+                        </DataTrigger>
+                    </dx:RadialProgressBar.Triggers>
                     <dx:RadialProgressBar.Content>
 
                         <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
