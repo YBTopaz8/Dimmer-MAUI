@@ -375,11 +375,11 @@ public partial class HomePageVM : ObservableObject
 
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
-#if ANDROID
+#if ANDROID && NET9_0
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
 
-#if WINDOWS || ANDROID
+#if WINDOWS || ANDROID && NET9_0
         var res = await FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
@@ -387,7 +387,7 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         var folder = res.Folder?.Path;
-#elif IOS || MACCATALYST
+#elif IOS || MACCATALYST && NET9_0
         string folder = null;
 #endif
 
@@ -603,6 +603,7 @@ public partial class HomePageVM : ObservableObject
     void ToggleShuffleState(bool IsCalledByUI = false)
     {
         IsShuffleOn = PlayBackService.IsShuffleOn;
+        
         if (IsCalledByUI)
         {
             IsShuffleOn = !IsShuffleOn;

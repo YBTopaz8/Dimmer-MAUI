@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
-    xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+    
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
     x:DataType="vm:HomePageVM"
     x:Name="myPage"
@@ -154,12 +154,10 @@
                 
                 <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"/>
 
-                <ImageButton x:Name="DltImgBtn" HorizontalOptions="End" 
+                <Button x:Name="DltImgBtn" HorizontalOptions="End" Text="Delete"
                     Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding SelectedSongToOpenBtmSheet}">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Delete_forever}"/>
-                    </ImageButton.Source>
-                </ImageButton>
+                    
+                </Button>
             </FlexLayout>
         </Grid>
 
@@ -196,42 +194,27 @@
     </Shell.FlyoutFooter>
     
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar" >
-        <Tab Title="Home" x:Name="homeTab" >
-            <Tab.Icon>
-                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Music_note}"/>
-            </Tab.Icon>
+        <Tab Title="Home" x:Name="homeTab" Icon="house.png">
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:MainPageD}">
             </ShellContent>
         </Tab>
 
-        <Tab Title="Artists" x:Name="albumTab" >
-            <Tab.Icon>
-                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
-            </Tab.Icon>
+        <Tab Title="Artists" x:Name="albumTab" Icon="artistdark.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
 
-        <Tab Title="Playlists" x:Name="playlistsTab">
-            <Tab.Icon>
-                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Queue_music}"/>
-            </Tab.Icon>
+        <Tab Title="Playlists" x:Name="playlistsTab" Icon="playlist.png">
             <ShellContent 
                 ContentTemplate="{DataTemplate viewsD:PlaylistsPageD}"
                 Route="PlaylistsPageD"/>
             
         </Tab>
-        <Tab Title="Stats" x:Name="statsTab">
-            <Tab.Icon>
-                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Show_chart}"/>
-            </Tab.Icon>
+        <Tab Title="Stats" x:Name="statsTab" Icon="stats.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>
-        <Tab Title="Settings" x:Name="settingsTab">
-            <Tab.Icon>
-                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Settings}"/>
-            </Tab.Icon>
+        <Tab Title="Settings" x:Name="settingsTab" Icon="settings.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
                 Route="SettingsPageD"/>
         </Tab>

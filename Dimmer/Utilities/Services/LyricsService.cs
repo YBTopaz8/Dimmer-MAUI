@@ -624,9 +624,9 @@ public class LyricsService : ILyricsService
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
 
         //TODO: SET THIS AS PREFERENCE FOR USERS
-#if ANDROID
-string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
-#elif WINDOWS
+#if ANDROID && NET9_0
+        string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
+#elif WINDOWS && NET9_0
         string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
 #endif
         if (!Directory.Exists(folderPath))

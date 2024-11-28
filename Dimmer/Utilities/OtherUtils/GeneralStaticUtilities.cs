@@ -356,9 +356,9 @@ public static class GeneralStaticUtilities
         {
             string fileNameWithoutExtension = Path.GetFileName(filePath);
 
-#if ANDROID
+#if ANDROID && NET9_0
             string folderPath = Path.Combine(FileSystem.AppDataDirectory, "CoverImagesDimmer"); // Use AppDataDirectory for Android compatibility
-#elif WINDOWS
+#elif WINDOWS && NET9_0
             string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
 #endif
 

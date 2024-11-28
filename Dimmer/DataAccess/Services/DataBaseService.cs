@@ -6,9 +6,9 @@ public class DataBaseService : IDataBaseService
     public RealmConfiguration GetRealm()
     {
         string dbPath;
-#if ANDROID
+#if ANDROID && NET9_0
         dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Dimmer";
-#elif WINDOWS
+#elif WINDOWS && NET9_0
         dbPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD";
 #endif
 

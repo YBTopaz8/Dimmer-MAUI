@@ -2,13 +2,13 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
-    <ActiveDebugFramework>net9.0-android35.0</ActiveDebugFramework>
-    <ActiveDebugProfile>Pixel 5 - API 34 (Android 14.0 - API 34)</ActiveDebugProfile>
+    <ActiveDebugFramework>net9.0-windows10.0.19041.0</ActiveDebugFramework>
+    <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
     <DefaultDevice>pixel_5_-_api_34</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
-    <_LastSelectedProfileId>MSIX-win10-x641.pubxml</_LastSelectedProfileId>
+    <_LastSelectedProfileId>MSIX-win-x64.pubxml</_LastSelectedProfileId>
     <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">

@@ -88,7 +88,7 @@ public partial class HomePageVM
 
     public async Task ExitingApp()
     {
-#if WINDOWS
+#if WINDOWS && NET9_0
         if (IsPlaying)
         {
             await this.PauseSong();

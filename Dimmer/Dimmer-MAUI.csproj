@@ -10,6 +10,10 @@
 		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
     <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
+
+
+
+    <AppxSymbolPackageEnabled>false</AppxSymbolPackageEnabled>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer_MAUI</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -44,8 +48,14 @@
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     <IsAotCompatible>True</IsAotCompatible>
 
+    <OutputType>Exe</OutputType>
 
 
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
+    <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
@@ -54,6 +64,13 @@
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <ApplicationTitle>Dimmer</ApplicationTitle>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
     <AndroidKeyStore>False</AndroidKeyStore>
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>

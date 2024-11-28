@@ -96,7 +96,7 @@ public partial class MainPageD : ContentPage
     {
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
-        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)

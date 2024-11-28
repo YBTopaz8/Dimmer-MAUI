@@ -47,7 +47,7 @@ public partial class SingleSongShellPageD : ContentPage
             case 2:
                 break;
             default:
-                Lookgif.IsVisible = false;
+                
                 break;
         }
         if (e.NewIndex == 2)
@@ -307,18 +307,14 @@ public partial class SingleSongShellPageD : ContentPage
         await Task.WhenAll(Lookgif.AnimateFadeInFront(), fetchFailed.AnimateFadeOutBack(),
 NoLyricsFoundMsg.AnimateFadeOutBack());
 
-        Lookgif.HeightRequest = 100;
-        Lookgif.WidthRequest = 100;
-        Lookgif.IsAnimationPlaying = true;
+        Lookgif.IsVisible = true;
 
         await HomePageVM.FetchLyrics(true);
 
-        Lookgif.HeightRequest = 0;
-        Lookgif.WidthRequest = 0;
         await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
 NoLyricsFoundMsg.AnimateFadeInFront());
-        fetchFailed.IsAnimationPlaying = true;
-        Lookgif.IsAnimationPlaying = false;
+        fetchFailed.IsAnimationPlaying = false;
+        
         await Task.Delay(3000);
         fetchFailed.IsAnimationPlaying = false;
         fetchFailed.IsVisible = false;
