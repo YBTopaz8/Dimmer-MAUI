@@ -21,10 +21,9 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Visual Studio 2019, 2022 or latest (It was built on VS 2022) with MAUI support.
 
 # How To Install on Windows
-- Download the release and extract package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
-- Right Click on "install.ps1" and click "Run with PowerShell"
-- Review all on screen instructions and agreed to install certificates and the app.
-- Open the App from Start Menu.
+- Download the release .exe file made by InnoSetup [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
+- Follow Installation instruction.
+- Open the App from Start Menu or Desktop
 - Enjoy
   
 # How to install on Android
