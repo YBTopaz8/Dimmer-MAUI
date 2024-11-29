@@ -84,7 +84,7 @@
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
 
                             <Image Source="red_heart.gif" HeightRequest="100" IsVisible="{Binding IsAnimatingFav}"
-                                   WidthRequest="100" IsAnimationPlaying="{Binding IsAnimatingFav}" ZIndex="1"/>
+                                   WidthRequest="100" IsAnimationPlaying="False" ZIndex="1"/>
                         </Grid>
                         <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
                         FontSize="13" TextColor="Grey"/>
@@ -138,7 +138,23 @@
                             </ImageButton.Source>
                         </ImageButton>
 
-                        <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
+                    <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"  x:Name="RatingChipCtrl"
+                                       ChipClicked="RatingChipCtrl_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+        HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue" SelectedChipBackground="DarkSlateBlue"
+                    >
+                        <syncf:SfChipGroup.ChipLayout>
+                            <HorizontalStackLayout Spacing="10" WidthRequest="300"
+                              HorizontalOptions="Start"/>
+                        </syncf:SfChipGroup.ChipLayout>
+                        <syncf:SfChipGroup.Items>
+
+                            <syncf:SfChip Text="Hate It" CommandParameter="2"/>
+                            <syncf:SfChip Text="Love it" CommandParameter="4"/>
+
+                        </syncf:SfChipGroup.Items>
+                    </syncf:SfChipGroup>
+
+                    <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
                                                    HorizontalOptions="Center" Command="{Binding RateSongCommand}"
                                                    CommandParameter="{Binding .}" EmptyColor="Red" Fill="Transparent"
                                                    AllowRating="True"  BackgroundColor="Red"
@@ -153,11 +169,11 @@
                 <Grid RowDefinitions="Auto,*" Grid.Column="1" BackgroundColor="Transparent">
                     <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"
                                        ChipClicked="SfChipGroup_ChipClicked"
-                                       HorizontalOptions="Center">
+                                       HorizontalOptions="Center" >
                         <syncf:SfChipGroup.Items>
-                            <syncf:SfChip Text="Sync Lyrics" CommandParameter="0"/>
-                            <syncf:SfChip Text="Plain Lyrics" CommandParameter="1"/>
-                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2"/>
+                            <syncf:SfChip Text="Sync Lyrics" CommandParameter="0" FontSize="24"/>
+                            <syncf:SfChip Text="Plain Lyrics" CommandParameter="1" IsVisible="False"/>
+                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2" FontSize="24"/>
                             <!--<syncf:SfChip Text="Large"/>
                             <syncf:SfChip Text="Extra Large"/>-->
                         </syncf:SfChipGroup.Items>
@@ -214,7 +230,7 @@
                                         <VerticalStackLayout HorizontalOptions="Center" 
                                                              BackgroundColor="Transparent"
                                                              x:Name="emptyV">
-                                        <Label Text="Searching..."/>
+                                        <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
 
                                         <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
                                                HeightRequest="0" WidthRequest="0" />

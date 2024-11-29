@@ -97,8 +97,19 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
-                        <Label Text="{Binding Name}" HeightRequest="40"/>
-                    </syncf:SfEffectsView>
+                            <Label Text="{Binding Name}" HeightRequest="40">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsCurrentlySelected}" Value="True">
+                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="FontSize" Value="20"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsCurrentlySelected}" Value="False">
+                                        <Setter Property="TextColor" Value="White"/>
+                                        <Setter Property="FontSize" Value="16"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </syncf:SfEffectsView>
 
                     </Border>
                 </DataTemplate>

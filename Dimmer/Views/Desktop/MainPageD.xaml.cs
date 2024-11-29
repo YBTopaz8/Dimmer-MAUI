@@ -92,11 +92,15 @@ public partial class MainPageD : ContentPage
         await HomePageVM.NavigateToArtistsPage(1);
     }
 
+    bool isPointerEntered;
+
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
-        
+
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        isPointerEntered = true;
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)

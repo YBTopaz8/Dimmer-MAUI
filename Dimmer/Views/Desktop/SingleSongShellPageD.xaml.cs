@@ -1,4 +1,5 @@
 using Syncfusion.Maui.Toolkit.Chips;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -22,6 +23,7 @@ public partial class SingleSongShellPageD : ContentPage
         }
         HomePageVM.CurrentPage = PageEnum.NowPlayingPage;
         DeviceDisplay.Current.KeepScreenOn = true;
+        HomePageVM.AssignSyncLyricsCV(LyricsColView);
     }
 
     protected override void OnDisappearing()
@@ -352,5 +354,12 @@ NoLyricsFoundMsg.AnimateFadeInFront());
                 default:
                 break;
         }
+    }
+
+    private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
+    {
+        var ee = RatingChipCtrl.SelectedItem;
+
+        Debug.WriteLine(ee.GetType());
     }
 }

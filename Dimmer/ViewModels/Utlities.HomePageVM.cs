@@ -226,9 +226,13 @@ public partial class HomePageVM
     [RelayCommand]
     async Task CntxtMenuSearch(int param)
     {
+        if (SelectedSongToOpenBtmSheet is null)
+        {
+            return; // show error msg here or cue
+        }
         if (CurrentPage == PageEnum.NowPlayingPage)
         {
-            SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
+            SelectedSongToOpenBtmSheet = TemporarilyPickedSong!;
         }
         switch (param)
         {
@@ -417,7 +421,7 @@ public partial class HomePageVM
         }
     }
 
-    public async Task ToggleFlyout(bool isOpenFlyout=false)
+    public void ToggleFlyout(bool isOpenFlyout=false)
     {
         IsFlyOutPaneOpen = false;
         if (Shell.Current == null)
@@ -438,7 +442,7 @@ public partial class HomePageVM
             {
                 IsFlyOutPaneOpen = false;
                 Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-                await Task.Delay(500);
+                _ = Task.Delay(500);
                 Shell.Current.FlyoutIsPresented = true;
             }
         }

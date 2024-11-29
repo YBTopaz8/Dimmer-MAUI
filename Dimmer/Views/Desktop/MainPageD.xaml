@@ -94,7 +94,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
-                            <syncf:SfEffectsView
+                            <syncf:SfEffectsView 
                             TouchDown="SfEffectsView_TouchDown">
                                 <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="60" ColumnSpacing="55">
                                     <Grid.GestureRecognizers>
@@ -121,13 +121,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                                         </Image>
 
                                         <Image WidthRequest="13" HorizontalOptions="Start"
-                                       IsVisible="{Binding IsCurrentPlayingHighlight}">
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" 
-                                                             Color="DarkSlateBlue"
-                                                             Glyph="{x:Static m:MaterialRounded.Play_arrow}"/>
-                                            </Image.Source>
-                                        </Image>
+                                       IsVisible="{Binding IsCurrentPlayingHighlight}" Source="playdark.png"/>
 
                                     </VerticalStackLayout>
                                     <Label Text="{Binding ArtistName}" Grid.Column="1" LineBreakMode="TailTruncation"/>

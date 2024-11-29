@@ -8,28 +8,28 @@ public partial class HomePageVM
 {
 
     [ObservableProperty]
-    ObservableCollection<ArtistModelView> allArtists;
+    ObservableCollection<ArtistModelView>? allArtists;
     [ObservableProperty]
-    ObservableCollection<AlbumModelView> allAlbums;
+    ObservableCollection<AlbumModelView>? allAlbums;
     [ObservableProperty]
-    ObservableCollection<SongModelView> allArtistsAlbumSongs;
+    ObservableCollection<SongModelView>? allArtistsAlbumSongs;
     [ObservableProperty]
-    ObservableCollection<SongModelView> allArtistsSongs;
+    ObservableCollection<SongModelView>? allArtistsSongs;
     [ObservableProperty]
-    ObservableCollection<AlbumModelView> allArtistsAlbums;
+    ObservableCollection<AlbumModelView>? allArtistsAlbums;
     [ObservableProperty]
-    string selectedArtistPageTitle;
+    string? selectedArtistPageTitle;
 
     [ObservableProperty]
-    AlbumModelView selectedAlbumOnArtistPage;
+    AlbumModelView? selectedAlbumOnArtistPage;
     [ObservableProperty]
-    ArtistModelView selectedArtistOnArtistPage;
+    ArtistModelView? selectedArtistOnArtistPage;
 
     [RelayCommand]
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongModelView song)
     {
         SelectedSongToOpenBtmSheet = song;
-        var songAlbum = GetAlbumFromSongID(song.LocalDeviceId).First();
+        var songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).First();
         
         await NavigateToSpecificAlbumPage(songAlbum);
 
@@ -79,7 +79,7 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
-        AllLinks = SongsMgtService.AllLinks.ToList();
+        
         if (SelectedArtistOnArtistPage != null)
             SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         if (SelectedAlbumOnArtistPage != null)
@@ -157,7 +157,7 @@ public partial class HomePageVM
         }
 
         AllArtistsAlbums?.Clear();
-        _ =  GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
+        GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
         
         //await ShowSpecificArtistsSongsWithAlbum(SelectedAlbumOnArtistPage!);
         
@@ -281,7 +281,7 @@ public partial class HomePageVM
     //GetAllSongsFromArtistID
 
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
-    {
+  {
         var artistIds = AllLinks!
             .Where(link => link.SongId == songId && link.ArtistId != null)
             .Select(link => link.ArtistId!)
@@ -363,12 +363,14 @@ public partial class HomePageVM
         );
     }
 
-    public async Task GetAllArtistAlbumFromArtist(ArtistModelView artist)
+    public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
+        SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         if (artist is null)
             return;
         SelectedArtistOnArtistPage = artist;
-        AllArtistsAlbums = GetAllAlbumsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId);
+        SelectedArtistOnArtistPage.IsCurrentlySelected = true;
+        AllArtistsAlbums = GetAllAlbumsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);
         //await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
         if (AllArtistsAlbums is null || AllArtistsAlbums.Count<1)
         {
@@ -385,9 +387,10 @@ public partial class HomePageVM
         {
             return;
         }
+        SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault()!.AlbumImagePath;
-        AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId);
-        
+        AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId!);
+        SelectedSongToOpenBtmSheet.IsCurrentPlayingHighlight = true;
     }
 
     [RelayCommand]

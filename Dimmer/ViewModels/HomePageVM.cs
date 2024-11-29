@@ -119,8 +119,75 @@ public partial class HomePageVM : ObservableObject
         ToggleFlyout();
 #endif
         CurrentUser = SongsMgtService.CurrentOfflineUser;
-        //SyncRefresh();
+        SyncRefresh();
         LoadSongCoverImage();
+    }
+
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        Debug.WriteLine($"Old Ver {oldValue?.CoverImagePath} | New Ver {newValue?.CoverImagePath} , Song {TemporarilyPickedSong?.Title}");
+        if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            newValue.CoverImagePath = null;
+        }
+        if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
+            {
+                if (oldValue.AlbumName != newValue.AlbumName)
+                {
+                    newValue.CoverImagePath = string.Empty;
+                }
+            }
+        }
+
+        if (newValue is not null)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (DisplayedSongsColView is not null)
+                {
+                    DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                    
+                }
+            });
+
+        }
+    }
+
+    partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel>? oldValue, ObservableCollection<LyricPhraseModel>? newValue)
+    {
+        Debug.WriteLine($"Old Ver {oldValue?.Count} | New Ver { newValue?.Count} , Song { TemporarilyPickedSong?.Title}");
+        if (oldValue is not null && oldValue.Count > 0)
+        {
+            Debug.WriteLine(oldValue[0].Text);
+        }
+        if (newValue is not null && newValue.Count < 1)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (SyncLyricsCV is not null)
+                {
+                    SyncLyricsCV!.ItemsSource = null;               
+                }
+
+            });
+        }
+        if (newValue is not null && newValue.Count > 0)
+        {
+            Debug.WriteLine(newValue[0].Text);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (SyncLyricsCV is not null)
+                {
+                    SyncLyricsCV!.ItemsSource = null;
+                    SyncLyricsCV.ItemsSource = newValue;
+                    SyncLyricsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                }
+
+            });
+        }
+        
     }
 
     public void SyncRefresh()
@@ -176,10 +243,16 @@ public partial class HomePageVM : ObservableObject
     }
     [ObservableProperty]
     bool isMultiSelectOn;
-    CollectionView PageCV { get; set; }
+    CollectionView DisplayedSongsColView { get; set; }
     public void AssignCV(CollectionView cv)
     {
-        PageCV = cv;
+        DisplayedSongsColView = cv;
+    }
+
+    CollectionView? SyncLyricsCV { get; set; }
+    public void AssignSyncLyricsCV(CollectionView cv)
+    {
+        SyncLyricsCV = cv;
     }
     [ObservableProperty]
     string loadingSongsText;
@@ -233,6 +306,7 @@ public partial class HomePageVM : ObservableObject
                             
                             IsPlaying = true;
 
+
                             PlayPauseIcon = MaterialRounded.Pause;
                             CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
@@ -272,7 +346,7 @@ public partial class HomePageVM : ObservableObject
                     }
                 }
             });
-
+        
     }
 
     public async void LoadLocalSongFromOutSideApp(List<string> filePath)
@@ -297,7 +371,7 @@ public partial class HomePageVM : ObservableObject
         
         await AfterSingleSongShellAppeared();
         
-        await ToggleFlyout();
+        ToggleFlyout();
         
 #elif ANDROID
         var currentPage = Shell.Current.CurrentPage;
@@ -318,9 +392,14 @@ public partial class HomePageVM : ObservableObject
         
             }      
         }
-        
-        SynchronizedLyrics = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
-        
+        var ee  = LyricsManagerService.GetSpecificSongLyrics(SelectedSongToOpenBtmSheet).ToObservableCollection();
+        SynchronizedLyrics.Clear();
+        foreach (var item in ee)
+        {
+            SynchronizedLyrics.Add(item);
+        }
+
+
         SelectedSongToOpenBtmSheet.SyncLyrics = SynchronizedLyrics;
         SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
         if (SongPickedForStats is null)
@@ -407,7 +486,6 @@ public partial class HomePageVM : ObservableObject
     {
         try
         {
-
             DeviceDisplay.Current.KeepScreenOn = true;
             IsLoadingSongs = true;
             if (FolderPaths is null)
@@ -702,6 +780,8 @@ public partial class HomePageVM : ObservableObject
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
 
+        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
+        SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
     }
 
     private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
@@ -1250,8 +1330,8 @@ public partial class HomePageVM : ObservableObject
             if (CurrentPage == PageEnum.MainPage)
             {
                 DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs!, CurrentSortingOption);
-                PageCV.ItemsSource = null;
-                PageCV.ItemsSource = DisplayedSongs;
+                DisplayedSongsColView.ItemsSource = null;
+                DisplayedSongsColView.ItemsSource = DisplayedSongs;
 
             }
             else if (CurrentPage == PageEnum.AllAlbumsPage)

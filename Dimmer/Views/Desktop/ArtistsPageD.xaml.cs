@@ -30,14 +30,16 @@ public partial class ArtistsPageD : ContentPage
 
         if (HomePageVM.SelectedSongToOpenBtmSheet is null)
         {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+
+            if (HomePageVM.TemporarilyPickedSong is not null)
+            {
+                HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+                HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
+                
+            }
         }
-        if (HomePageVM.TemporarilyPickedSong is not null)
+        else
         {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
-            HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
-        }
-        else {
             HomePageVM.GetAllArtistsAlbum();
         }
         if (HomePageVM.SelectedSongToOpenBtmSheet is not null)
@@ -102,13 +104,13 @@ public partial class ArtistsPageD : ContentPage
 
 
     ArtistModelView currentlySelectedArtist;
-    private async void ArtistView_TouchDown(object sender, EventArgs e)
+    private void ArtistView_TouchDown(object sender, EventArgs e)
     {
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
-
-        await HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        //artist.IsCurrentlySelected = true;
+        HomePageVM.GetAllArtistAlbumFromArtist(artist);
         
         //await HomePageVM.GetAllArtistAlbumFromArtist(artist);
 

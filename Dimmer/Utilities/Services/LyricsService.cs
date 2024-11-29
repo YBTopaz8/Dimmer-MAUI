@@ -99,7 +99,7 @@ public class LyricsService : ILyricsService
                 }
             }
             songSyncLyrics?.Clear();
-            songSyncLyrics = LoadSynchronizedAndSortedLyrics(song.FilePath, _synchronizedLyricsSubject.Value);
+            songSyncLyrics = LoadSynchronizedAndSortedLyrics(song!.FilePath!, _synchronizedLyricsSubject.Value);
 
             if (songSyncLyrics?.Count < 1)
             {
@@ -136,10 +136,10 @@ public class LyricsService : ILyricsService
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
-        List<LyricPhraseModel> lyr = new();
-        return LoadLyrFromFile(song.FilePath, out lyr);
+        List<LyricPhraseModel> lyr = LoadLyrFromFile(song.FilePath);
+        return lyr;
     }
-    private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string? songPath = null, IList<LyricPhraseModel>? syncedLyrics = null)
+    private List<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath, IList<LyricPhraseModel>? syncedLyrics = null)
     {
         if (syncedLyrics is not null && songSyncLyrics?.Count > 0)
         {
@@ -148,64 +148,99 @@ public class LyricsService : ILyricsService
             sortedLyrics = syncedLyrics.ToList();
             return sortedLyrics;
         }
-        List<LyricPhraseModel> lyrr;
-        LoadLyrFromFile(songPath, out lyrr);
-        if (lyrr.Count > 0)
+        List<LyricPhraseModel> lyrr = LoadLyrFromFile(songPath);
+        if (lyrr.Count <= 0)
         {
-            return Enumerable.Empty<LyricPhraseModel>().ToList();
-        }
-        string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath);
-        string lrcExtension = ".lrc";
-        //string txtExtension = ".txt";
-        string lrcFilePath;
-
-        if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))
-        {
-            hasSyncedLyrics = false;
-            //lrcFilePath = Path.ChangeExtension(songPath,txtExtension);
             StopLyricIndexUpdateTimer();
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
-        else
-        {
-            hasSyncedLyrics = true;
-            lrcFilePath = Path.ChangeExtension(songPath, lrcExtension);
-            string[] lines = File.ReadAllLines(lrcFilePath);
-            lyrr = StringToLyricPhraseModel(lines);
 
-            sortedLyrics = lyrr;
-            if (sortedLyrics.Count > 1)
-            {
-                sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
-                //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
-            }
-        }
+        //string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songPath)!;
+        //string lrcExtension = ".lrc";
+        ////string txtExtension = ".txt";
+        //string lrcFilePath;
+
+        //if (!File.Exists(Path.ChangeExtension(songPath, lrcExtension)))
+        //{
+        //    hasSyncedLyrics = false;
+        //    //lrcFilePath = Path.ChangeExtension(songPath,txtExtension);
+        //    StopLyricIndexUpdateTimer();
+        //    return Enumerable.Empty<LyricPhraseModel>().ToList();
+        //}
+        //else
+        //{
+        //    hasSyncedLyrics = true;
+        //    lrcFilePath = Path.ChangeExtension(songPath, lrcExtension)!;
+        //    string[] lines = File.ReadAllLines(lrcFilePath);
+        //    lyrr = StringToLyricPhraseModel(lines);
+
+        //    sortedLyrics = lyrr;
+        //    if (sortedLyrics.Count > 1)
+        //    {
+        //        sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
+        //        //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
+        //    }
+        //}
 
         return sortedLyrics.ToList();//lyricPhrases;
     }
 
-    private List<LyricPhraseModel> LoadLyrFromFile(string? songPath, out List<LyricPhraseModel> lyrr)
+    private List<LyricPhraseModel> LoadLyrFromFile(string? songPath)
     {
-        lyrr = new();
-        if (!File.Exists(songPath))
+        var lyrr = new List<LyricPhraseModel>();
+        if (string.IsNullOrEmpty(songPath) || !File.Exists(songPath))
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
+
+
+        // If no synchronized lyrics are found, look for a .lrc file
+        string lrcPath = Path.ChangeExtension(songPath, ".lrc");
+        if (File.Exists(lrcPath))
+        {
+            var lrcLines = File.ReadAllLines(lrcPath);
+            var parsedLyrics = new List<LyricPhraseModel>();
+
+            foreach (var line in lrcLines)
+            {
+                // Parse each line in .lrc format
+                var match = Regex.Match(line, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
+                if (match.Success)
+                {
+                    int minutes = int.Parse(match.Groups[1].Value);
+                    int seconds = int.Parse(match.Groups[2].Value);
+                    int milliseconds = int.Parse(match.Groups[3].Value.PadRight(3, '0')); // Ensure ms has 3 digits
+                    string text = match.Groups[4].Value.Trim();
+
+                    var timestampMs = (minutes * 60 * 1000) + (seconds * 1000) + milliseconds;
+
+                    parsedLyrics.Add(new LyricPhraseModel
+                    {
+                        TimeStampMs = timestampMs,
+                        TimeStampText = $"[{minutes:D2}:{seconds:D2}.{milliseconds:D3}]",
+                        Text = text
+                    });
+                }
+            }
+
+            sortedLyrics = parsedLyrics.OrderBy(l => l.TimeStampMs).ToList(); // Ensure lyrics are sorted
+            return sortedLyrics;
+        }
+
+        // Try to get synchronized lyrics using Track
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
-        if (lyrics is null || lyrics!.Count < 1)
+        if (lyrics != null && lyrics.Count > 0)
         {
-            return Enumerable.Empty<LyricPhraseModel>().ToList();
+            hasSyncedLyrics = true;
+            sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
+            return sortedLyrics;
         }
-        hasSyncedLyrics = true;
-        sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
-        if (sortedLyrics?.Count > 1)
-        {
-            sortedLyrics.Sort((x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
-        }
-        return sortedLyrics;
-        
+        return Enumerable.Empty<LyricPhraseModel>().ToList(); // Return empty if no lyrics are found
     }
+
+
+
 
     public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath)
     {
@@ -588,8 +623,8 @@ public class LyricsService : ILyricsService
             }
             if (!string.IsNullOrEmpty(apiResponse[0]?.LinkToCoverImage))
             {
-                ImageBytes = await DownloadSongImage(apiResponse[0]?.LinkToCoverImage);
-                song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath, ImageBytes);
+                ImageBytes = await DownloadSongImage(apiResponse[0]?.LinkToCoverImage!)!;
+                song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath!, ImageBytes);
                 SongsManagementService.UpdateSongDetails(song);
             }
 

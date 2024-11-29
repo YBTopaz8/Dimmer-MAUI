@@ -327,7 +327,10 @@ public static class GeneralStaticUtilities
     {
         foreach (var item in col)
         {
-            item.CoverImagePath = GetCoverImagePath(item.FilePath);
+            if (item.FilePath is not null)
+            {
+                item.CoverImagePath = GetCoverImagePath(item.FilePath);
+            }
         }
 
         return col;

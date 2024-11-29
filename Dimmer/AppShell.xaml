@@ -125,14 +125,23 @@
                     
                     <VerticalStackLayout>
                         
-                        <syncf:SfEffectsView >
+                        <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                        <x:Int32>0</x:Int32>
+                                    </syncf:SfEffectsView.TouchDownCommandParameter>
                             <Label Text="Google"/>
                         </syncf:SfEffectsView>
-                        <syncf:SfEffectsView>
-                            <Label Text="YouTube"/>
+                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                        <x:Int32>1</x:Int32>
+                                    </syncf:SfEffectsView.TouchDownCommandParameter>
+                                    <Label Text="YouTube"/>
                         </syncf:SfEffectsView>
-                        <syncf:SfEffectsView >
-                            <Label Text="Spotify"/>
+                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                        <x:Int32>2</x:Int32>
+                                    </syncf:SfEffectsView.TouchDownCommandParameter>
+                                    <Label Text="Spotify"/>
                         </syncf:SfEffectsView>
                     </VerticalStackLayout>
                     

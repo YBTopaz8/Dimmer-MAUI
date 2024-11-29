@@ -55,7 +55,7 @@ public partial class AppShell : Shell
                 if (Vm.IsMultiSelectOn)
                 {
                     GoToSong.IsEnabled = false;
-                    await Vm.ToggleFlyout(true);
+                    Vm.ToggleFlyout(true);
                     GoToSong.Opacity = 0.4;
                     await Task.WhenAll(
                      MultiSelectView.AnimateFadeInFront());
@@ -65,10 +65,8 @@ public partial class AppShell : Shell
                     Vm.MultiSelectText = string.Empty;
                     GoToSong.IsEnabled = true;
                     GoToSong.Opacity = 1;
-                    
-                    await Task.WhenAll(
-                        Vm.ToggleFlyout(false),
-                        MultiSelectView.AnimateFadeOutBack());
+                    Vm.ToggleFlyout(false);
+                    await Task.WhenAll(MultiSelectView.AnimateFadeOutBack());
                 }
                 break;
             case PageEnum.NowPlayingPage:
@@ -84,6 +82,11 @@ public partial class AppShell : Shell
             default:
                 break;
         }
+    }
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+
     }
 
 #if WINDOWS

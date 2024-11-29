@@ -35,9 +35,9 @@ public partial class ArtistsPageM : ContentPage
         HomePageVM.GetAllArtistsAlbum(song: HomePageVM.SelectedSongToOpenBtmSheet, isFromSong: true);
     }
 
-    private async void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        await HomePageVM.GetAllArtistAlbumFromArtist(HomePageVM.SelectedArtistOnArtistPage);
+        HomePageVM.GetAllArtistAlbumFromArtist(HomePageVM.SelectedArtistOnArtistPage);
     }
 
     private async void SingleAlbum_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
@@ -62,6 +62,10 @@ public partial class ArtistsPageM : ContentPage
         var send = (DXButton)sender;
         var curSel = send.BindingContext as AlbumModelView;
 
+
+
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
     }
 }

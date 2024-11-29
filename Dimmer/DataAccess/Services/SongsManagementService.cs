@@ -362,7 +362,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                             continue;                            
                         }
                         itemmm.DurationInSeconds = dur;
-                        SongModel itemm = new(itemmm);
+                        SongModel itemm = new SongModel(itemmm);
                         var existingSongs = db.All<SongModel>()
                                                 .Where(s => s.Title == itemm.Title && s.ArtistName == itemm.ArtistName)
                                                 .ToList();
