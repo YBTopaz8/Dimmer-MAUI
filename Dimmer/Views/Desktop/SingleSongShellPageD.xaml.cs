@@ -362,4 +362,9 @@ NoLyricsFoundMsg.AnimateFadeInFront());
 
         Debug.WriteLine(ee.GetType());
     }
+
+    private void SearchLastFM_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

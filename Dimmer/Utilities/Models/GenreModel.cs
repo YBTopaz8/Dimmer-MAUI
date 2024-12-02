@@ -20,7 +20,7 @@ public partial class GenreModel : RealmObject
     {
         
         Name = modelView.Name;
-        
+        LocalDeviceId = modelView.LocalDeviceId;
 
     }
 
@@ -45,6 +45,7 @@ public partial class AlbumArtistGenreSongLink : RealmObject
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     public AlbumArtistGenreSongLink(AlbumArtistGenreSongLinkView model)
     {
+        LocalDeviceId = model.LocalDeviceId;
         SongId = model.SongId;
         AlbumId = model.AlbumId;
         ArtistId = model.ArtistId;
@@ -97,8 +98,7 @@ public partial class GenreModelView : ObservableObject
     [ObservableProperty]
     bool isCurrentlySelected;
     public GenreModelView(GenreModel model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
         name = model.Name;
     }

@@ -66,7 +66,7 @@ public partial class SettingsPageD : ContentPage
 
         try
         {
-            await user.SignUpAsync();
+            await ParseClient.Instance.SignUpAsync(user);
             await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
             
             // Navigate to a different page or reset fields

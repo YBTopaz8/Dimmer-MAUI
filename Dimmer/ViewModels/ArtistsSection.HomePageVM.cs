@@ -1,6 +1,7 @@
 ﻿//using WinRT;
 
 using System.Diagnostics;
+using System.Linq;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -8,15 +9,15 @@ public partial class HomePageVM
 {
 
     [ObservableProperty]
-    ObservableCollection<ArtistModelView>? allArtists;
+    ObservableCollection<ArtistModelView> allArtists=new();
     [ObservableProperty]
-    ObservableCollection<AlbumModelView>? allAlbums;
+    ObservableCollection<AlbumModelView> allAlbums= new();
     [ObservableProperty]
-    ObservableCollection<SongModelView>? allArtistsAlbumSongs;
+    ObservableCollection<SongModelView> allArtistsAlbumSongs = new();
     [ObservableProperty]
-    ObservableCollection<SongModelView>? allArtistsSongs;
+    ObservableCollection<SongModelView> allArtistsSongs = new();
     [ObservableProperty]
-    ObservableCollection<AlbumModelView>? allArtistsAlbums;
+    ObservableCollection<AlbumModelView> allArtistsAlbums = new();
     [ObservableProperty]
     string? selectedArtistPageTitle;
 
@@ -110,6 +111,10 @@ public partial class HomePageVM
     {
         //if(!SongsMgtService.AllSongs.Contains(TemporarilyPickedSong!))
         //    return;
+        if (DisplayedSongs is null)
+        {
+            return;
+        }
         if(SelectedAlbumOnArtistPage is not null)
             SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         if (isFromSong)
@@ -143,7 +148,19 @@ public partial class HomePageVM
                 return;
             }
         }
+        else
+        {
+            SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong!.LocalDeviceId!).FirstOrDefault();
+            if (SelectedAlbumOnArtistPage is null && AllArtists?.Count > 0)
+            {
+                if (DisplayedSongs.Contains(TemporarilyPickedSong))
+                {
+                    SelectedAlbumOnArtistPage = AllAlbums?.FirstOrDefault(x => x.Name == TemporarilyPickedSong!.AlbumName);
+                }
+            }
+            SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong!.LocalDeviceId!).FirstOrDefault();
 
+        }
         if (AllArtists?.Count < 1)
         {
             AllArtists = PlayBackService.GetAllArtists()
@@ -272,46 +289,65 @@ public partial class HomePageVM
     }
 
 
-    //GetAllArtistsFromSongID
-    //GetAlbumFromSongID
-    //GetAllArtistFromAlbumID
-    //GetAllSongsFromAlbumID
-    //GetAllArtistFromAlbumID
-    //GetAllAlbumsFromArtistID
-    //GetAllSongsFromArtistID
-
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
   {
         var artistIds = AllLinks!
-            .Where(link => link.SongId == songId && link.ArtistId != null)
+            .Where(link => link.SongId == songId)
             .Select(link => link.ArtistId!)
             .Distinct()
             .ToHashSet();
-        var s = AllArtists.Where(artist => artistIds.Contains(artist.LocalDeviceId!));
-        if (s is not null)
+        if (artistIds is null || artistIds.Count < 1)
         {
-            return new ObservableCollection<ArtistModelView>(s);
+            var artName = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId).ArtistName;
+            if (string.IsNullOrEmpty(artName))
+                return new ObservableCollection<ArtistModelView>();
+
+            var matchingArtist = AllArtists?.FirstOrDefault(x =>
+            x.Name.Equals(artName, StringComparison.OrdinalIgnoreCase));
+
+            return matchingArtist is not null
+                ? new ObservableCollection<ArtistModelView> { matchingArtist }
+                : new ObservableCollection<ArtistModelView>();
         }
-        else
-        {
-            return Enumerable.Empty<ArtistModelView>().ToObservableCollection();
-        }
+
+        return new ObservableCollection<ArtistModelView>(
+            AllArtists.Where(artist => artistIds.Contains(artist.LocalDeviceId!))
+        );
     }
     public ObservableCollection<AlbumModelView> GetAlbumFromSongID(string songId)
     {
-        var albumIds = AllLinks!
-            .Where(link => link.SongId == songId && link.AlbumId != null)
-            .Select(link => link.AlbumId!)
+        // Find album IDs associated with the song
+        var albumIds = AllLinks?
+            .Where(link => link.SongId == songId)
+            .Select(link => link.AlbumId)
+            .Where(id => id is not null) // Filter out null IDs
             .Distinct()
             .ToHashSet();
-        if (AllAlbums is null)
+
+        // Fallback if no album IDs found
+        if (albumIds is null || albumIds.Count < 1)
         {
-            AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
+            var albumName = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId)?.AlbumName;
+            if (string.IsNullOrEmpty(albumName))
+                return new ObservableCollection<AlbumModelView>(); // No fallback found
+
+            var matchingAlbum = AllAlbums?.FirstOrDefault(x =>
+                x.Name.Equals(albumName, StringComparison.OrdinalIgnoreCase));
+
+            return matchingAlbum is not null
+                ? new ObservableCollection<AlbumModelView> { matchingAlbum }
+                : new ObservableCollection<AlbumModelView>();
         }
+
+        // Initialize AllAlbums if null
+        AllAlbums ??= SongsMgtService.AllAlbums.ToObservableCollection();
+
+        // Filter AllAlbums based on matching IDs
         return new ObservableCollection<AlbumModelView>(
-            AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId!))
+            AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId))
         );
     }
+
     public ObservableCollection<ArtistModelView> GetAllArtistsFromAlbumID(string albumId)
     {
         var artistIds = AllLinks!
@@ -365,9 +401,9 @@ public partial class HomePageVM
 
     public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
-        SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         if (artist is null)
             return;
+        SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         SelectedArtistOnArtistPage = artist;
         SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         AllArtistsAlbums = GetAllAlbumsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);

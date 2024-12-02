@@ -27,18 +27,18 @@ public partial class HomePageVM : ObservableObject
     double currentPositionInSeconds = 0;
 
     [ObservableProperty]
-    ObservableCollection<SongModelView>? displayedSongs;
+    ObservableCollection<SongModelView> displayedSongs = new();
 
     [ObservableProperty]
-    ObservableCollection<SongModelView>? prevCurrNextSongsCollection;
+    ObservableCollection<SongModelView>? prevCurrNextSongsCollection = new();
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
-    int? totalNumberOfSongs=0;
+    int totalNumberOfSongs=0;
     [ObservableProperty]
-    string totalSongsSize;
+    string? totalSongsSize;
     [ObservableProperty]
-    string totalSongsDuration;
+    string? totalSongsDuration;
 
     [ObservableProperty]
     ObservableCollection<LyricPhraseModel>? synchronizedLyrics;
@@ -69,9 +69,9 @@ public partial class HomePageVM : ObservableObject
     List<PlayDateAndCompletionStateSongLinkView>? allPDaCStateLink = new();
 
     [ObservableProperty]
-    string unSyncedLyrics;
+    string? unSyncedLyrics;
     [ObservableProperty]
-    string localFilePath;
+    string? localFilePath;
 
     public AppState CurrentAppState = AppState.OnForeGround;
 

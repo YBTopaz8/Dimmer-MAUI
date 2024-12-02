@@ -5,7 +5,6 @@ public partial class SongModel : RealmObject
 {
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModel));
-    
     public string? Title { get; set; }
     public string? ArtistName { get; set; }
     public string? AlbumName { get; set; }
@@ -60,7 +59,7 @@ public partial class SongModel : RealmObject
         IsFavorite = model.IsFavorite;
         Achievement = model.Achievement;
         IsFileExists = model.IsFileExists;
-        SyncLyrics = model.SyncLyrics is null ? null : model.SyncLyrics.Select(x => new LyricPhraseModel().TimeStampText).ToList().ToString();
+        SyncLyrics = model.SyncLyrics?.Select(x => new LyricPhraseModel().TimeStampText).ToList().ToString();
     }
     public SongModel()
     {

@@ -173,7 +173,9 @@
                         <syncf:SfChipGroup.Items>
                             <syncf:SfChip Text="Sync Lyrics" CommandParameter="0" FontSize="24"/>
                             <syncf:SfChip Text="Plain Lyrics" CommandParameter="1" IsVisible="False"/>
-                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2" FontSize="24"/>
+                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2" FontSize="24" BackgroundColor="Transparent"
+                                          />
+                            <syncf:SfChip Text="Song Details" CommandParameter="3" FontSize="24"/>
                             <!--<syncf:SfChip Text="Large"/>
                             <syncf:SfChip Text="Extra Large"/>-->
                         </syncf:SfChipGroup.Items>
@@ -205,15 +207,8 @@
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
 
                             </Grid.Resources>
-                            <HorizontalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
+                            <VerticalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
    Margin="5" HorizontalOptions="Start">
-                                <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
-                                    Clicked="SearchLyricsOnLyrLib_Clicked">
-                                    <Button.CommandParameter>
-                                        <x:Boolean>True</x:Boolean>
-                                    </Button.CommandParameter>
-                                </Button>
-
 
                                 <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
                                     IsVisible="False">
@@ -221,8 +216,28 @@
                                         <x:Boolean>True</x:Boolean>
                                     </Button.CommandParameter>
                                 </Button>
+                            <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
+                            <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
+                            <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
+                            <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
+                            <HorizontalStackLayout>
+                                
+                            <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
+                                    Clicked="SearchLyricsOnLyrLib_Clicked">
+                                <Button.CommandParameter>
+                                    <x:Boolean>True</x:Boolean>
+                                </Button.CommandParameter>
+                            </Button>
+                                
+                            <Button Text="Search Song Data on Last Fm" x:Name="SearchLastFM"
+                                    Clicked="SearchLastFM_Clicked">
+                                <Button.CommandParameter>
+                                    <x:Boolean>True</x:Boolean>
+                                </Button.CommandParameter>
+                            </Button>
 
                             </HorizontalStackLayout>
+                        </VerticalStackLayout>
                             <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>

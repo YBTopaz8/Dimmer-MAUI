@@ -24,8 +24,7 @@ public partial class ArtistModel : RealmObject
     }
 
     public ArtistModel(ArtistModelView model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         ImagePath = model.ImagePath;
@@ -61,8 +60,7 @@ public partial class ArtistModelView : ObservableObject
     }
 
     public ArtistModelView(ArtistModel model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         ImagePath = model.ImagePath;     

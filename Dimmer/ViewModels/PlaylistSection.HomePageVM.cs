@@ -5,12 +5,12 @@ namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
     [ObservableProperty]
-    ObservableCollection<PlaylistModelView> displayedPlaylists;
+    ObservableCollection<PlaylistModelView>? displayedPlaylists=[];
     [ObservableProperty]
-    string selectedPlaylistPageTitle;
+    string? selectedPlaylistPageTitle;
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> displayedSongsFromPlaylist;
+    ObservableCollection<SongModelView> displayedSongsFromPlaylist=[];
     [ObservableProperty]
     PlaylistModelView selectedPlaylistToOpenBtmSheet;
     [ObservableProperty]

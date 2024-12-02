@@ -48,7 +48,7 @@ public partial class SettingsPageM : ContentPage
 
         try
         {
-            await user.SignUpAsync();
+            await ParseClient.Instance.SignUpAsync(user);
             await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
 
             // Navigate to a different page or reset fields
@@ -98,7 +98,7 @@ public partial class SettingsPageM : ContentPage
 
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
     {
-        ViewModel.FullSync();
+       _=  ViewModel.FullSync();
     }
 
     private void DXButton_Clicked(object sender, EventArgs e)

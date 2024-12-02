@@ -20,7 +20,14 @@ public partial class ArtistsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        if (HomePageVM.SelectedAlbumOnArtistPage is not null)
+        {
+            HomePageVM.SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
+        }
+        if (HomePageVM.SelectedArtistOnArtistPage is not null)
+        {
+            HomePageVM.SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+        }
        
 
         //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
