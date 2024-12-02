@@ -312,6 +312,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, SongModelView>();
         var allSongs = new ObservableCollection<SongModelView>();
 
+        
         foreach (var file in filteredFiles)
         {
             if (!processedFilePaths.Add(file))
@@ -460,7 +461,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
             audioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
-
+            
             // Now, play the audio after initialization has completed
             
 
@@ -493,14 +494,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         finally
         {
             //here consider adding a prompt that will show when focused OR think of a quicker way to know if ext or not, that way we can give option for user to add to db or not. (It'd be awesome!!!!)
-            if ((File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null) && currentQueue != 2)
+            if ((File.Exists(ObservableCurrentlyPlayingSong!.FilePath) && ObservableCurrentlyPlayingSong != null))// && currentQueue != 2)
             {
                 ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
                 ObservableCurrentlyPlayingSong.IsPlaying = true;
-                if (ObservableCurrentlyPlayingSong.DurationInSeconds < 1)
-                {
-                    ObservableCurrentlyPlayingSong.DurationInSeconds = (new Track(ObservableCurrentlyPlayingSong.FilePath).DurationMs / 1000);
-                }
+                
                 PlayDateAndCompletionStateSongLink link = new()
                 {
                     DatePlayed = DateTime.Now,
@@ -508,9 +506,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
                 };
                 (ObservableCurrentlyPlayingSong.HasSyncedLyrics, ObservableCurrentlyPlayingSong.SyncLyrics) = LyricsService.HasLyrics(song: ObservableCurrentlyPlayingSong);
+                if (ObservableCurrentlyPlayingSong.DurationInSeconds == 0)
+                {
+                    ObservableCurrentlyPlayingSong.DurationInSeconds = audioService.Duration;
+
+                }
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 SongsMgtService.AddPlayAndCompletionLink(link);
                 _currentPositionSubject.OnNext(new());
+                
                 
             }
 
@@ -518,7 +522,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         }
     }
-
     private void ShowMiniPlayBackView()
     {
 #if WINDOWS

@@ -147,7 +147,7 @@ public partial class HomePageVM : ObservableObject
             {
                 if (DisplayedSongsColView is not null)
                 {
-                    DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                    DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
                     
                 }
             });

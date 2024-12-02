@@ -330,24 +330,20 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     //make these return their cols and then call AddSongToArtistWithArtistIDAndAlbumAndGenreAsync() since it's already established
     private async Task LoadSongsToDBFromOnline()
     {
-        var AllItems = await ParseClient.Instance.CallCloudCodeFunctionAsync<List<object>>
-            (
-                "getSongsForDevice", new Dictionary<string, object> 
-                { 
-                    { "deviceName", CurrentOfflineUser.DeviceName! } 
-                }
-            );
-        //AllItems.DistinctBy(x => x.Title).ToList();
-        //add option if user wants to save to db 
+        var query = ParseClient.Instance.GetQuery("SongModelView")
+            .WhereEqualTo("deviceName", CurrentOfflineUser.LocalDeviceId);
+
+        var AllItems = await query.FindAsync();
+        var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
 
         //var UniqueItems = AllItems.DistinctBy(x => x["DeviceFormFactor"]).ToList();
-        if (AllItems != null && AllItems.Count != 0)
+        if (UniqueItems != null && UniqueItems.Count != 0)
         {
             // Get the realm database instance.
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                foreach (var item in AllItems)
+                foreach (var item in UniqueItems)
                 {
                     try
                     {
@@ -967,7 +963,7 @@ AddOrUpdateSingleRealmItem(
                 // Handle string as string (required for Parse compatibility)
                 if (property.PropertyType == typeof(string))
                 {
-                    parseObject[property.Name] = ToString();
+                    parseObject[property.Name] = value.ToString();
                     continue;
                 }
 
@@ -1557,6 +1553,7 @@ AddOrUpdateSingleRealmItem(
     {
         try
         {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
             // Ensure UserModel exists
             var user = db.All<UserModel>().FirstOrDefault();
             if (user == null)

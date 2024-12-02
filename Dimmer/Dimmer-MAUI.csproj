@@ -301,7 +301,9 @@
     <Folder Include="Platforms\Android\CustomHandlers\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\YBTopaz8\Parse-SDK-dotNETMAUI\Parse\Parse.csproj" />
+    <ProjectReference Include="..\Last.fm-MAUI\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+    <ProjectReference Include="..\ParseLiveQ\ParseLiveQuery\ParseLiveQuery.csproj" />
+    <ProjectReference Include="..\ParseServer\Parse\Parse.csproj" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

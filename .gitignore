@@ -34,3 +34,6 @@ obj (2)/
 /obj/project.nuget.cache
 /Dimmer/obj (2)/Dimmer-MAUI.csproj.nuget.g.props
 /Dimmer/obj (2)/project.assets.json
+/ParseLiveqQ/ParseLiveQuery/obj/
+/ParseLiveqQ/ParseLiveQuery/bin/
+
