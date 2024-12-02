@@ -203,11 +203,16 @@ Console.WriteLine((await client.GetQuery("TestClass").WhereEqualTo("objectId", t
 // Mutate some value on the object.
 testObject.Set("someValue", "This is another value.");
 
-// Save the object again.
-await testObject.SaveAsync();
-
-// Query the object again to see that the change was made.
-Console.WriteLine((await client.GetQuery("TestClass").WhereEqualTo("objectId", testObject.ObjectId).FirstAsync()).Get<string>("someValue"));
+# How To Install on Windows
+- Download the release .exe file made by InnoSetup [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
+- Follow Installation instruction.
+- Open the App from Start Menu or Desktop
+- Enjoy
+  
+# How to install on Android
+- Download the release.apk package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
+- Install the app
+- Run.
 
 // Store the object's objectId so it can be verified that it was deleted later.
 var testObjectId = testObject.ObjectId;
