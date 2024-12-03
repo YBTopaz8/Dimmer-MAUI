@@ -23,7 +23,7 @@
         
         <toolkit:Expander  x:Name="ShowHidePreferredFoldersExpander">
             <toolkit:Expander.Header>
-                <Grid ColumnDefinitions="Auto,*,Auto">
+                <Grid ColumnDefinitions="Auto,*,Auto" >
                     <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start">
                         <HorizontalStackLayout.GestureRecognizers>
                             <TapGestureRecognizer Tapped="ShowHidePreferredFoldersExpander_Tapped"/>
@@ -34,7 +34,8 @@
                             </Image.Source>
                         </Image>
 
-                        <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
+                        <Label Text="Folders (Tap to view)" VerticalOptions="Center" FontSize="24" Grid.Column="1"
+                               />
                     </HorizontalStackLayout>
 
                     <ImageButton Grid.Column="2" HorizontalOptions="End" Source="arrowdark.png">
@@ -87,12 +88,14 @@
                             </HorizontalStackLayout.GestureRecognizers>
                         
                             <VerticalStackLayout Spacing="5">
+                            <HorizontalStackLayout Spacing="15">
+                                
                                 <Label Text="{Binding CurrentUser.UserName}"/>
                                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                                 <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
-                            <Label FontSize="24"
-    Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
+                            <Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
 
+                            </HorizontalStackLayout>
                             <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
                                         IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
                             <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
@@ -188,7 +191,15 @@
 
         </SyncCtrls:SfEffectsView>
        
-        <VerticalStackLayout HorizontalOptions="Center" >
+        <VerticalStackLayout HorizontalOptions="Center" Spacing="15">
+
+            <Label Text="Log In LastFM" />
+            <Entry Text="{Binding LastFMUserName}" Placeholder="LastFM Email"/>
+            <Entry Text="{Binding LastFMPassword}" Placeholder="LastFM Password"/>
+
+            <Button Text="Log In!"
+                    Command="{Binding LogInToLastFMWebsiteCommand}"/>
+
             <HorizontalStackLayout>
                 <Image>
                     <Image.Source>

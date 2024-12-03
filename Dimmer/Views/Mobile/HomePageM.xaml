@@ -160,7 +160,7 @@
     <VerticalStackLayout >
     <dx:DXStackLayout BackgroundColor="Transparent" >
             <HorizontalStackLayout HeightRequest="30">
-                <Label Text="{Binding .Count, StringFormat='{0} Songs'}"
+                <Label Text="{Binding VisibleItemCount,Source={x:Reference SongsColView}, StringFormat='{0} Songs'}"
                        FontSize="18" TextColor="DarkSlateBlue" FontAttributes="Bold"/>
             </HorizontalStackLayout>
             <Grid BackgroundColor="Transparent">

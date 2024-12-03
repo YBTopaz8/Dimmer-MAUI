@@ -18,14 +18,14 @@ public partial class SettingsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        SongsManagementService.ConnectOnline();
+        //SongsManagementService.ConnectOnline();
 
-        if (ViewModel.CurrentUser is not null && !string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
+        if (string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
         {
             LoginPass.Text = ViewModel.CurrentUser.UserPassword;
             LoginBtn_Clicked(null, null); //review this.
-        }
-        
+            _ = ViewModel.LogInToLastFMWebsite();
+        }        
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -68,7 +68,10 @@ public partial class SettingsPageD : ContentPage
         {
             await ParseClient.Instance.SignUpAsync(user);
             await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
-            
+
+            _ = SecureStorage.Default.SetAsync("ParseUsername", SignUpUname.Text);
+            _ = SecureStorage.Default.SetAsync("ParsePassWord", SignUpPass.Text);
+            _ = SecureStorage.Default.SetAsync("ParseEmail", SignUpEmail.Text);
             // Navigate to a different page or reset fields
         }
         catch (Exception ex)
@@ -80,39 +83,7 @@ public partial class SettingsPageD : ContentPage
 
     private async void LoginBtn_Clicked(object sender, EventArgs e)
     {
-        if (ViewModel.CurrentUserOnline is not null)
-        {
-            if (ViewModel.CurrentUserOnline.IsAuthenticated)
-            {
-                return;
-            }
-        }
-        if (string.IsNullOrWhiteSpace(LoginPass.Text))
-        {
-        }
-        //LoginBtn.IsEnabled = false;
-        if (string.IsNullOrWhiteSpace(LoginUname.Text) || string.IsNullOrWhiteSpace(LoginPass.Text))
-        {   
-            await Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
-            return;
-        }
-
-        try
-        {
-            var oUser = await ParseClient.Instance.LogInAsync(LoginUname.Text.Trim(), LoginPass.Text.Trim()).ConfigureAwait(false);
-            ViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
-            ViewModel.CurrentUserOnline = oUser;
-            ViewModel.CurrentUser.IsAuthenticated = true;
-            //await Shell.Current.DisplayAlert("Success !", $"Welcome Back ! {oUser.Username}", "OK"); //if you uncomment this, app will crash :)
-            // Navigate to a different page or perform post-login actions
-            //ViewModel.SongsMgtService.GetUserAccount(oUser);
-        }
-        catch (Exception ex)
-        {
-            ViewModel.CurrentUser.IsAuthenticated = false;
-            await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
-
-        }
+        await ViewModel.LogInToParseServer(LoginUname.Text, LoginPass.Text);
     }
 
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
@@ -138,5 +109,4 @@ public enum UserState
     UserNotLoggedIn,
     UserLoggedOut,
     ActionCancelled
-
 }

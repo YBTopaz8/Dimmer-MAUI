@@ -365,6 +365,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
 
     private void SearchLastFM_Clicked(object sender, EventArgs e)
     {
-
+        _= HomePageVM.FetchOnLastFM();
     }
 }

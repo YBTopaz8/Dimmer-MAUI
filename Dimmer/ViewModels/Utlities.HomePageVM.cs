@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using Hqub.Lastfm;
+using Hqub.Lastfm.Cache;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -473,7 +476,7 @@ public partial class HomePageVM
         await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
-    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
+    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser newValue)
     {
         if (newValue is not null && newValue.IsAuthenticated)
         {
@@ -485,4 +488,6 @@ public partial class HomePageVM
             IsLoggedIn = false; //do more here 
         }
     }
+
+   
 }

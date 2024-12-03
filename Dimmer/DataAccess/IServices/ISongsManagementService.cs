@@ -9,7 +9,13 @@ public interface ISongsManagementService
     bool AddArtistsBatch(IEnumerable<ArtistModelView> artists);
     Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
     void GetSongs();
-    bool UpdateSongDetails(SongModelView songsModelView);
+
+    /// <summary>
+    /// Adds/Updates a single song to the database.
+    /// </summary>
+    /// <param name="SongModelView"></param>
+    /// <returns></returns>
+    bool UpdateSongDetails(SongModelView songModelView);
     void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link);
 
     void Dispose();

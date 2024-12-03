@@ -1,25 +1,29 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
+using Hqub.Lastfm;
+using Hqub.Lastfm.Cache;
+using Syncfusion.Maui.Toolkit.Carousel;
 using System.Diagnostics;
 
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
+    //LastfmClient LastfmClient;
     [ObservableProperty]
-    UserModelView? currentUser;
+    UserModelView currentUser=new();
     [ObservableProperty]
-    ParseUser? currentUserOnline;
+    ParseUser currentUserOnline;
 
     [ObservableProperty]
     FlyoutBehavior shellFlyoutBehavior = FlyoutBehavior.Disabled;
     [ObservableProperty]
     bool isFlyOutPaneOpen = false;
     [ObservableProperty]
-    SongModelView? pickedSong; // I use this a lot with the collection view, mostly to scroll
+    SongModelView pickedSong = new(); // I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    SongModelView? temporarilyPickedSong;
+    SongModelView temporarilyPickedSong= new();
 
     [ObservableProperty]
     double currentPositionPercentage;
@@ -30,7 +34,7 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongModelView> displayedSongs = new();
 
     [ObservableProperty]
-    ObservableCollection<SongModelView>? prevCurrNextSongsCollection = new();
+    ObservableCollection<SongModelView> prevCurrNextSongsCollection = new();
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
@@ -41,9 +45,9 @@ public partial class HomePageVM : ObservableObject
     string? totalSongsDuration;
 
     [ObservableProperty]
-    ObservableCollection<LyricPhraseModel>? synchronizedLyrics;
+    ObservableCollection<LyricPhraseModel> synchronizedLyrics=new();
     [ObservableProperty]
-    LyricPhraseModel? currentLyricPhrase;
+    LyricPhraseModel currentLyricPhrase = new();
 
     [ObservableProperty]
     int loadingSongsProgress;
@@ -57,7 +61,7 @@ public partial class HomePageVM : ObservableObject
     int currentRepeatMode;
     [ObservableProperty]
     bool isDRPCEnabled;
-    IFolderPicker folderPicker { get; }
+    IFolderPicker FolderPicker { get; }
     IFileSaver FileSaver { get; }
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
@@ -80,7 +84,7 @@ public partial class HomePageVM : ObservableObject
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService)
     {
-        this.folderPicker = folderPickerService;
+        this.FolderPicker = folderPickerService;
         FileSaver = fileSaver;
         PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
@@ -121,9 +125,12 @@ public partial class HomePageVM : ObservableObject
         CurrentUser = SongsMgtService.CurrentOfflineUser;
         SyncRefresh();
         LoadSongCoverImage();
+
+
+        _ = GetSecuredData();
     }
 
-    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView newValue)
     {
         Debug.WriteLine($"Old Ver {oldValue?.CoverImagePath} | New Ver {newValue?.CoverImagePath} , Song {TemporarilyPickedSong?.Title}");
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
@@ -459,7 +466,7 @@ public partial class HomePageVM : ObservableObject
 #endif
 
 #if WINDOWS || ANDROID && NET9_0
-        var res = await FolderPicker.Default.PickAsync(token);
+        var res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
         {
@@ -1014,7 +1021,6 @@ public partial class HomePageVM : ObservableObject
     bool isFetchSuccessful = true;
     [ObservableProperty]
     bool isFetching = false;
-    
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
         LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
@@ -1065,7 +1071,7 @@ public partial class HomePageVM : ObservableObject
 
     public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
     {
-        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
+        var result = ((bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this)));
         if (result)
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);
@@ -1438,7 +1444,7 @@ public partial class HomePageVM : ObservableObject
             SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
             bool isAdd = false;
             var favPlaylist = new PlaylistModelView { Name = "Favorites" };
-            if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue>3)
+            if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue > 3)
             {
                 SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
                 IsAnimatingFav = true;
@@ -1465,29 +1471,171 @@ public partial class HomePageVM : ObservableObject
                 await Task.Delay(3000);
                 IsAnimatingFav = false;
             }
-            else if (SelectedSongToOpenBtmSheet.Rating<3 && rateValue <=3)
+            else if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue <= 3)
             {
                 await UpdatePlayList(SelectedSongToOpenBtmSheet, IsRemoveSong: true, playlistModel: favPlaylist);
             }
-            else if (SelectedSongToOpenBtmSheet.Rating>4 && rateValue <=3)
+            else if (SelectedSongToOpenBtmSheet.Rating > 4 && rateValue <= 3)
             {
                 await UpdatePlayList(SelectedSongToOpenBtmSheet, IsRemoveSong: true, playlistModel: favPlaylist);
             }
             else if (SelectedSongToOpenBtmSheet.Rating > 4 && rateValue > 4)
             {
-                 SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+                SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
             }
 
         }
     }
 
-    
+    public async Task<bool> GetSecuredData()
+    {
+        
+        var Uname =  await SecureStorage.Default.GetAsync("ParseUsername");
+        var uPass = await SecureStorage.Default.GetAsync("ParsePassWord");
+        var uEmail = await SecureStorage.Default.GetAsync("ParseEmail");
+        var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
+        var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
+
+        CurrentUser.UserEmail = uEmail;
+        CurrentUser.UserPassword = uPass;
+        CurrentUser.UserName = Uname;
+        LastFMUserName = lastFMUname;
+        LastFMPassword = lastFMPass;
+        if (string.IsNullOrWhiteSpace(Uname) || string.IsNullOrEmpty(uPass) && string.IsNullOrEmpty(uEmail)) //maybe i'm being too agressive here, but I'll see.
+        {
+            return false; //I saw lmao. best to not be agro since well, what if they just opened app?
+        }
+
+        _=LogInToLastFMWebsite();
+        _ = LogInToLastFMWebsite();
+        return true;
+    }
+
+
+
     [ObservableProperty]
     BottomSheetState nowPlayBtmSheetState = BottomSheetState.Hidden;
     [RelayCommand]
     void ShowNowPlayingBtmSheet()
     {
         NowPlayBtmSheetState = BottomSheetState.FullExpanded;
+    }
+
+    [ObservableProperty]
+    ObservableCollection<Hqub.Lastfm.Entities.Track> lastfmTracks = new();
+
+    [ObservableProperty]
+    string lastFMUserName;
+    [ObservableProperty]
+    string lastFMPassword;
+    LastfmClient clientLastFM;
+    [RelayCommand]
+    public async Task LogInToLastFMWebsite()
+    {
+        clientLastFM = LastfmClient.Instance;
+        if (!clientLastFM.Session.Authenticated)
+        {
+            //LoginBtn.IsEnabled = false;
+            if (string.IsNullOrWhiteSpace(LastFMUserName) || string.IsNullOrWhiteSpace(LastFMPassword))
+            {
+                _ = Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
+                return;
+            }
+            await clientLastFM.AuthenticateAsync(LastFMUserName, LastFMUserName);
+            if (clientLastFM.Session.Authenticated)
+            {
+                
+                var usr = await clientLastFM.User.GetInfoAsync(LastFMUserName);
+                _ = SecureStorage.Default.SetAsync("LastFMUsername", usr.Name);
+                _ = SecureStorage.Default.SetAsync("LastFMPassWord", LastFMPassword);
+            }
+        }
+    }
+
+    public async Task LogInToParseServer(string uname, string password)
+    {
+        if (CurrentUserOnline is not null)
+        {
+            if (CurrentUserOnline.IsAuthenticated)
+            {
+                return;
+            }
+        }
+        if (string.IsNullOrWhiteSpace(password))
+        {
+        }
+        //LoginBtn.IsEnabled = false;
+        if (string.IsNullOrWhiteSpace(uname) || string.IsNullOrWhiteSpace(password))
+        {
+            await Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
+            return;
+        }
+
+        try
+        {
+            var oUser = await ParseClient.Instance.LogInAsync(uname.Trim(), password.Trim()).ConfigureAwait(false);
+            SongsMgtService.CurrentOfflineUser.UserPassword = password;
+            CurrentUserOnline = oUser;
+            CurrentUser.IsAuthenticated = true;
+            //await Shell.Current.DisplayAlert("Success !", $"Welcome Back !", "OK"); looks like an issue with parse funnily, I can't exactl reproduce it.
+
+            _ = SecureStorage.Default.SetAsync("ParseUsername", CurrentUserOnline.Username);
+            _ = SecureStorage.Default.SetAsync("ParsePassWord", password);
+            _ = SecureStorage.Default.SetAsync("ParseEmail", CurrentUser.UserEmail!);
+
+            // Navigate to a different page or perform post-login actions
+            //ViewModel.SongsMgtService.GetUserAccount(oUser);
+        }
+        catch (Exception ex)
+        {
+            CurrentUser!.IsAuthenticated = false;
+            await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
+
+        }
+    }
+
+    [RelayCommand]
+    void LogInToLastFMClientLocal()
+    {
+        var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+
+        clientLastFM = new LastfmClient(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET)
+        {
+            Cache = new FileRequestCache(Path.Combine(localPath, "cache"))
+        };
+        //await LastFmService.Authenticate();
+
+        return;
+
+    }
+    public async Task FetchOnLastFM() //0 == song, 1 == artist, 2 = album. will rework this
+    {
+        LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
+        LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
+        LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
+        //if (LastfmClient.Session.Authenticated)
+        //{
+        if (clientLastFM is null)
+        {
+            LogInToLastFMClientLocal();
+        }
+        PagedResponse<Hqub.Lastfm.Entities.Track>? tracks = await clientLastFM!.Track.SearchAsync(LyricsSearchSongTitle, LyricsSearchArtistName);
+        if (tracks != null && tracks.Any())
+        {
+            LastfmTracks.Clear(); // Clear existing tracks
+            foreach (var track in tracks)
+            {
+                LastfmTracks.Add(track);
+            }
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("No Results", "No Results Found", "OK");
+            // Handle no results found
+        }
+
+        //}
     }
 
 }

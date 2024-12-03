@@ -99,18 +99,18 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             var user = ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
-                Console.WriteLine("Login successful. Email is verified.");
+                Debug.WriteLine("Login successful. Email is verified.");
                 return true;
             }
             else
             {
-                Console.WriteLine("Login successful, but email is not verified.");
+                Debug.WriteLine("Login successful, but email is not verified.");
                 return false; // Deny further access until verification
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Login failed: {ex.Message}");
+            Debug.WriteLine($"Login failed: {ex.Message}");
             return false; // Login failed
         }
     }
@@ -123,7 +123,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to send password reset email: {ex.Message}");
+            Debug.WriteLine($"Failed to send password reset email: {ex.Message}");
             return false; // Failed: Handle error (e.g., invalid email)
         }
     }
@@ -141,16 +141,16 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             // Trigger resend by re-saving the email field
             user.Email = user.Email; // Even if unchanged, this triggers resend
             await user.SaveAsync(); // Wait for the operation to complete
-            Console.WriteLine("Verification email re-sent.");
+            Debug.WriteLine("Verification email re-sent.");
             return true;
         }
 
-        Console.WriteLine("User is already verified or not found.");
+        Debug.WriteLine("User is already verified or not found.");
         return false;
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Failed to resend verification email: {ex.Message}");
+        Debug.WriteLine($"Failed to resend verification email: {ex.Message}");
         return false;
     }
 }*/
@@ -162,7 +162,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
         ParseClient.Instance.LogOut();
 
-        Console.WriteLine("User logged out successfully.");
+        Debug.WriteLine("User logged out successfully.");
     }
     public bool IsEmailVerified()
     {
@@ -182,7 +182,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             return true;
         }
 
-        Console.WriteLine("Email not verified.");
+        Debug.WriteLine("Email not verified.");
         return false;
     }
 
@@ -203,7 +203,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             var user = ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
-                Console.WriteLine("Login successful and email verified!");
+                Debug.WriteLine("Login successful and email verified!");
                 return true; // User can proceed
             }
             else
@@ -212,13 +212,13 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 user.Email = user.Email; // This triggers the email resend
                 await user.SaveAsync(); // Save the user to resend the verification email
 
-                Console.WriteLine("Email not verified. Verification email re-sent.");
+                Debug.WriteLine("Email not verified. Verification email re-sent.");
                 return false; // Block access until email is verified
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Login failed: {ex.Message}");
+            Debug.WriteLine($"Login failed: {ex.Message}");
             return false;
         }
     }
@@ -241,16 +241,16 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             {
                 await user.DeleteAsync();
                 ParseClient.Instance.LogOut(); // Log out after deletion
-                Console.WriteLine("User account deleted successfully.");
+                Debug.WriteLine("User account deleted successfully.");
                 return true;
             }
 
-            Console.WriteLine("No user is currently logged in.");
+            Debug.WriteLine("No user is currently logged in.");
             return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to delete user account: {ex.Message}");
+            Debug.WriteLine($"Failed to delete user account: {ex.Message}");
             return false;
         }
     }
@@ -271,7 +271,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             catch (Exception ex)
             {
                 // Handle GetUserAccountOnline exceptions
-                Console.WriteLine($"Error in GetUserAccountOnline: {ex.Message}");
+                Debug.WriteLine($"Error in GetUserAccountOnline: {ex.Message}");
             }
         }
         try
@@ -281,7 +281,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         catch (Exception ex)
         {
             // Handle GetAllDataFromOnlineAsync exceptions
-            Console.WriteLine($"Error in GetAllDataFromOnlineAsync: {ex.Message}");
+            Debug.WriteLine($"Error in GetAllDataFromOnlineAsync: {ex.Message}");
         }
 
     }
@@ -755,6 +755,21 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
     }
 
+    public bool UpdateSongDBDataAndSongFile(SongModelView song)
+    {
+        if (UpdateSongDetails(song))
+        {
+            Track file = new(song.FilePath);
+            file.Title = song.Title;
+            file.Artist = song.ArtistName;
+            file.Album = song.AlbumName;
+            file.Genre = song.GenreName;
+            file.TrackNumber = song.TrackNumber;
+            file.SaveTo(song.FilePath);
+        }
+        return true;
+
+    }
     public bool UpdateSongDetails(SongModelView songsModelView)
     {
         try
@@ -1312,7 +1327,7 @@ AddOrUpdateSingleRealmItem(
             // Check for internet connection
             if (Connectivity.NetworkAccess != NetworkAccess.Internet)
             {
-                Console.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
+                Debug.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
                 return false;
             }
 
@@ -1321,7 +1336,7 @@ AddOrUpdateSingleRealmItem(
                 string.IsNullOrEmpty(APIKeys.ServerUri) ||
                 string.IsNullOrEmpty(APIKeys.DotNetKEY))
             {
-                Console.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
+                Debug.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
                 return false;
             }
 
@@ -1344,12 +1359,12 @@ AddOrUpdateSingleRealmItem(
             client.Publicize();
 
 
-            Console.WriteLine("ParseClient initialized successfully.");
+            Debug.WriteLine("ParseClient initialized successfully.");
             return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error initializing ParseClient: {ex.Message}");
+            Debug.WriteLine($"Error initializing ParseClient: {ex.Message}");
             return false;
         }
     }
@@ -1920,7 +1935,7 @@ public class CsvExporter
             }
         }
 
-        Console.WriteLine($"Data successfully exported to {csvFilePath}");
+        Debug.WriteLine($"Data successfully exported to {csvFilePath}");
     }
 
     /// <summary>

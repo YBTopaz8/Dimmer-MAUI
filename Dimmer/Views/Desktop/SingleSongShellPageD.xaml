@@ -2,9 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.SingleSongShellPageD"
-                          xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-            
+            xmlns:entitys ="clr-namespace:Hqub.Lastfm.Entities;assembly=Hqub.Lastfm"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             x:DataType="vm:HomePageVM"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
@@ -207,37 +207,76 @@
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
 
                             </Grid.Resources>
-                            <VerticalStackLayout Spacing="10" Grid.Row="0" HeightRequest="50"
-   Margin="5" HorizontalOptions="Start">
+                        <VerticalStackLayout Spacing="10"
+                                             BackgroundColor="#1E1E1E"
+                                             Grid.Row="0" HeightRequest="250" Margin="5" HorizontalOptions="Start">
 
                                 <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
-                                    IsVisible="False">
+                                        IsVisible="False">
+                                        <Button.CommandParameter>
+                                            <x:Boolean>True</x:Boolean>
+                                        </Button.CommandParameter>
+                                    </Button>
+                                <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
+                                <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
+                                <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
+                                <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
+                                
+                                <HorizontalStackLayout>
+                                
+                                <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
+                                        Clicked="SearchLyricsOnLyrLib_Clicked">
                                     <Button.CommandParameter>
                                         <x:Boolean>True</x:Boolean>
                                     </Button.CommandParameter>
                                 </Button>
-                            <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
-                            <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
-                            <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
-                            <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
-                            <HorizontalStackLayout>
                                 
-                            <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
-                                    Clicked="SearchLyricsOnLyrLib_Clicked">
-                                <Button.CommandParameter>
-                                    <x:Boolean>True</x:Boolean>
-                                </Button.CommandParameter>
-                            </Button>
-                                
-                            <Button Text="Search Song Data on Last Fm" x:Name="SearchLastFM"
-                                    Clicked="SearchLastFM_Clicked">
-                                <Button.CommandParameter>
-                                    <x:Boolean>True</x:Boolean>
-                                </Button.CommandParameter>
-                            </Button>
+                                <Button Text="Search Song on Last Fm" x:Name="SearchLastFMS"
+                                        Clicked="SearchLastFM_Clicked">
+                                    <Button.CommandParameter>
+                                        <x:Int32>0</x:Int32>
+                                    </Button.CommandParameter>
+                                </Button>
+                                <Button Text="Search Song Album on Last Fm" x:Name="SearchLastFMAl"
+                                        Clicked="SearchLastFM_Clicked">
+                                    <Button.CommandParameter>
+                                        <x:Int32>1</x:Int32>
+                                    </Button.CommandParameter>
+                                </Button>
+                                <Button Text="Search Song Artist on Last Fm" x:Name="SearchLastFM"
+                                        Clicked="SearchLastFM_Clicked">
+                                    <Button.CommandParameter>
+                                            <x:Int32>2</x:Int32>
+                                    </Button.CommandParameter>
+                                </Button>
 
                             </HorizontalStackLayout>
+                                
                         </VerticalStackLayout>
+                        
+                        
+                        <CollectionView ItemsSource="{Binding LastfmTracks}" Grid.Row="1" 
+                                        HeightRequest="400" BackgroundColor="#1E1E1E">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entitys:Track">
+                                    <Border>
+                                        <VerticalStackLayout>
+                                            <Label Text="{Binding Name}"/>
+                                            <Label Text="{Binding Artist.Name}"/>
+                                            <Label Text="{Binding Album.Name}"/>
+                                            <Label Text="{Binding UserPlayCount}"/>
+                                            <Label Text="{Binding Statistics.Listeners}"/>
+                                            <Label Text="{Binding Statistics.PlayCount}"/>
+                                            <Label Text="{Binding Wiki}"/>
+                                            <Label Text="{Binding Statistics.Listeners}"/>
+                                            <Label Text="{Binding Statistics.PlayCount}"/>
+                                            
+                                        </VerticalStackLayout>
+                                    </Border>
+                                    
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                             <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>

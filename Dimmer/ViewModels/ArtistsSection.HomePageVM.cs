@@ -447,10 +447,8 @@ public partial class HomePageVM
             AllArtists = PlayBackService.GetAllArtists();
             return;
         }
-        AllArtists = PlayBackService.GetAllArtists()
-    .Where(a => a.Name.Contains(aName, StringComparison.OrdinalIgnoreCase))
-    .OrderBy(x => x.Name)
-    .ToObservableCollection();
+        AllArtists = PlayBackService.GetAllArtists().Where(a => a.Name.Contains(aName, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.Name).ToObservableCollection();
 
         if (AllArtists.Count > 0)
         {

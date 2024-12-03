@@ -328,9 +328,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 // Create a new SongModelView
                 var track = new Track(file);
                 var fileInfo = new FileInfo(file);
-
+                
                 var newSong = new SongModelView
                 {
+                    
                     Title = track.Title,
                     GenreName = string.IsNullOrEmpty(track.Genre) ? "Unknown Genre" : track.Genre,
                     ArtistName = string.IsNullOrEmpty(track.Artist) ? "Unknown Artist" : track.Artist,
@@ -347,6 +348,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
                     CoverImagePath = LyricsService.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
                 };
+
+                SongsMgtService.UpdateSongDetails(newSong);
                 allSongs.Add(newSong);
             }
         }
@@ -771,15 +774,20 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             await PlayNextSongAsync();
         }
 
+        //if (!audioService.IsPlaying)
+        //{
+        //    Debug.WriteLine("Audio service seems stuck, forcing play event.");
+        //    AudioService_PlayEnded(null, EventArgs.Empty); // Force re-triggering if still stuck
+        //}
 
-        // Additional logic to force re-triggering if the app is stuck
-        await Task.Delay(2000); // Wait for 2 seconds
-        if (!audioService.IsPlaying)
+        Scrobble scr = new()
         {
-            Debug.WriteLine("Audio service seems stuck, forcing play event.");
-            AudioService_PlayEnded(null, EventArgs.Empty); // Force re-triggering if still stuck
-        }
-
+            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : ObservableCurrentlyPlayingSong.ArtistName,
+            Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
+            Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
+            Date = DateTime.Now - TimeSpan.FromSeconds(120)
+        };
+        _ = LastfmClient.Instance.Track.ScrobbleAsync(scr);
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
@@ -923,7 +931,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         currentPositionInSec++;
-
+        //if (currentPositionInSec >=30)
+        //{
+        //   _ = LastfmClient.Instance.Track.UpdateNowPlayingAsync(
+        //        ObservableCurrentlyPlayingSong.Title,
+        //        ObservableCurrentlyPlayingSong.ArtistName,album:
+        //        ObservableCurrentlyPlayingSong.AlbumName);
+        //}
         double totalDurationInSeconds = ObservableCurrentlyPlayingSong.DurationInSeconds;
         double percentagePlayed = currentPositionInSec / totalDurationInSeconds;
 
