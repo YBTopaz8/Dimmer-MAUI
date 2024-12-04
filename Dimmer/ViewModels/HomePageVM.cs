@@ -1506,7 +1506,12 @@ public partial class HomePageVM : ObservableObject
             return false; //I saw lmao. best to not be agro since well, what if they just opened app?
         }
 
-        _=LogInToLastFMWebsite();
+        _ = LogInToLastFMWebsite();
+
+        if (string.IsNullOrEmpty(lastFMUname) || string.IsNullOrEmpty(lastFMPass))
+        {
+
+        }
         _ = LogInToLastFMWebsite();
         return true;
     }
