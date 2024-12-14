@@ -15,8 +15,6 @@ global using CommunityToolkit.Mvvm.Input;
 global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Icons.FontAwesome;
 global using FontAw = UraniumUI.Icons.FontAwesome;
-
-global using MongoDB.Bson;
 global using Realms;
 
 global using Dimmer_MAUI.MAudioLib;
@@ -56,7 +54,6 @@ global using Dimmer_MAUI.Platforms.Android;
 global using Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 #endif
-
 
 //global using Syncfusion.Maui.Toolkit.Hosting;
 

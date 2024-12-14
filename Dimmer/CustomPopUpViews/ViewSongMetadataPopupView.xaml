@@ -163,7 +163,7 @@
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Update}"/>
                         </Image.Source>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DateAdded, Converter={StaticResource DateTimeOffsetConverter}}"/>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>
                 </HorizontalStackLayout>
             </VerticalStackLayout>
 

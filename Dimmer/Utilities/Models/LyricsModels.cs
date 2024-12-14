@@ -11,6 +11,7 @@ public class Content
     public string? PlainLyrics { get; set; }
     public string? SyncedLyrics { get; set; }
     public string? LinkToCoverImage { get; set; }
+    public List<string>? listOfLinksToCoverImages { get; set; }
     // Read-only property with logic
     public bool IsSynced => !string.IsNullOrEmpty(SyncedLyrics);
 }

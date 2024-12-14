@@ -1,6 +1,3 @@
-using Syncfusion.Maui.Toolkit.Carousel;
-using System.Diagnostics;
-
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SettingsPageD : ContentPage
@@ -93,6 +90,11 @@ public partial class SettingsPageD : ContentPage
     private async void SyncPDaCS_Clicked(object sender, EventArgs e)
     {
         await ViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+    }
+
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        ViewModel.SetupLiveQueries();
     }
 }
 

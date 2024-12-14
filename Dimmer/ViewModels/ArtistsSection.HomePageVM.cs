@@ -1,8 +1,5 @@
 ﻿//using WinRT;
 
-using System.Diagnostics;
-using System.Linq;
-
 namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
@@ -298,10 +295,13 @@ public partial class HomePageVM
             .ToHashSet();
         if (artistIds is null || artistIds.Count < 1)
         {
-            var artName = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId).ArtistName;
-            if (string.IsNullOrEmpty(artName))
+            var song= DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId);
+            if (song is null)
+            {
                 return new ObservableCollection<ArtistModelView>();
-
+            }
+            var artName = song.ArtistName;
+            
             var matchingArtist = AllArtists?.FirstOrDefault(x =>
             x.Name.Equals(artName, StringComparison.OrdinalIgnoreCase));
 

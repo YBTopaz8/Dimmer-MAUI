@@ -1,5 +1,4 @@
 using Syncfusion.Maui.Toolkit.Chips;
-using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -33,7 +32,7 @@ public partial class SingleSongShellPageD : ContentPage
         HomePageVM.IsViewingDifferentSong = false;
     }
 
-    private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
         switch (e.NewIndex)
         {
@@ -328,30 +327,88 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         var send = sender as SfChip;
         var newSelection = int.Parse(send.CommandParameter.ToString()!);
+        
         switch (newSelection)
         {
             case 0:
                 await Task.WhenAll(
-                    SyncedLyricGrid.AnimateFadeInFront(),
-                    PlainLyricsGrid.AnimateFadeOutBack(),
-                    SearchLyricsGrid.AnimateFadeOutBack());
-                
+                SyncedLyricGrid.AnimateFadeInFront(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeOutBack());
+
                 break;
             case 1:
+
                 await Task.WhenAll(
-                    SyncedLyricGrid.AnimateFadeOutBack(),
-                    PlainLyricsGrid.AnimateFadeInFront(),
-                    SearchLyricsGrid.AnimateFadeOutBack());
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeInFront(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeOutBack());
 
                 break;
             case 2:
                 await Task.WhenAll(
                 SyncedLyricGrid.AnimateFadeOutBack(),
                 PlainLyricsGrid.AnimateFadeOutBack(),
-                SearchLyricsGrid.AnimateFadeInFront());
+                SearchLyricsGrid.AnimateFadeInFront(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeOutBack());
 
                 break;
-                default:
+            case 3:
+
+                await Task.WhenAll(
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeInFront(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeOutBack());
+                break;
+            case 4:
+
+                await Task.WhenAll(
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeInFront(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeOutBack());
+                break;
+            case 5:
+
+                await Task.WhenAll(
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeInFront(),
+                SongStats.AnimateFadeOutBack());
+                break;
+            case 6:
+
+                await Task.WhenAll(
+                SyncedLyricGrid.AnimateFadeOutBack(),
+                PlainLyricsGrid.AnimateFadeOutBack(),
+                SearchLyricsGrid.AnimateFadeOutBack(),
+                SongDetails.AnimateFadeOutBack(),
+                ArtistDetails.AnimateFadeOutBack(),
+                AlbumDetails.AnimateFadeOutBack(),
+                SongStats.AnimateFadeInFront());
+                break;
+            default:
                 break;
         }
     }

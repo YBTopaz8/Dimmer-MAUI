@@ -10,18 +10,18 @@ public partial class HomePageVM
     string? selectedPlaylistPageTitle;
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> displayedSongsFromPlaylist=[];
+    ObservableCollection<SongModelView>? displayedSongsFromPlaylist=[];
     [ObservableProperty]
-    PlaylistModelView selectedPlaylistToOpenBtmSheet;
+    PlaylistModelView? selectedPlaylistToOpenBtmSheet = new();
     [ObservableProperty]
-    SongModelView selectedSongToOpenBtmSheet;
+    SongModelView? selectedSongToOpenBtmSheet=new();
     public void RefreshPlaylists()
     {
         DisplayedPlaylists?.Clear();
         DisplayedPlaylists = PlayBackService.GetAllPlaylists();
     }
     [ObservableProperty]
-    PlaylistModelView selectedPlaylist;
+    PlaylistModelView? selectedPlaylist=new();
 
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(string PlaylistID)//string playlistName)
@@ -68,9 +68,13 @@ public partial class HomePageVM
         else if (IsRemoveSong)
         {
             DisplayedSongsFromPlaylist.Remove(song);
-            PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId);
-            var toast = Toast.Make(songDeletedFromPlaylistText, duration);
-            await toast.Show(cts.Token);
+            SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
+            if (SelectedPlaylist is not null)
+            {
+                PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId);
+                var toast = Toast.Make(songDeletedFromPlaylistText, duration);
+                await toast.Show(cts.Token);
+            }
         }
         else if (IsDeletePlaylist)
         {

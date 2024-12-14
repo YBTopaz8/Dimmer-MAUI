@@ -12,7 +12,7 @@
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
-            x:Name="myPage" 
+             x:Name="myPage" 
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False">
     <ContentPage.Resources>
@@ -76,72 +76,70 @@
             <Grid ColumnDefinitions="Auto,*"  toolkit:DockLayout.DockPosition="Top" 
                 x:Name="NowPlayingGrid" IsVisible="True" BackgroundColor="Transparent">
 
-                <VerticalStackLayout Grid.Column="0" Margin="10" 
-                                     BackgroundColor="Transparent"
-                                    WidthRequest="250" Spacing="10"  x:DataType="vm:HomePageVM">
-                        <Grid BackgroundColor="Transparent">
-                            <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                <VerticalStackLayout Grid.Column="0" Margin="10" BackgroundColor="Transparent"
+                                    WidthRequest="250" Spacing="10" x:DataType="vm:HomePageVM">
+                    <Grid BackgroundColor="Transparent">
+                        <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
                         WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
 
-                            <Image Source="red_heart.gif" HeightRequest="100" IsVisible="{Binding IsAnimatingFav}"
+                        <Image Source="red_heart.gif" HeightRequest="100" IsVisible="{Binding IsAnimatingFav}"
                                    WidthRequest="100" IsAnimationPlaying="False" ZIndex="1"/>
-                        </Grid>
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
+                    </Grid>
+                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
                         FontSize="13" TextColor="Grey"/>
                     <Label Text="{Binding SelectedSongToOpenBtmSheet.Title}" HorizontalTextAlignment="Center"
-                        FontSize="16"/>
+                            FontSize="16"/>
 
-                        <HorizontalStackLayout Spacing="5" HorizontalOptions="Center" BackgroundColor="Transparent">
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
-                                HeightRequest="25" 
-            >
-                                <ImageButton.CommandParameter>
-                                    <x:Int32>1</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
-                                    <FileImageSource File="youtube.png"/>
-                                </ImageButton.Source>
-                            </ImageButton>
-
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
-                                    HeightRequest="25">
-                                <ImageButton.CommandParameter>
-                                    <x:Int32>2</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
-                                    <FileImageSource File="spotify.png" />
-                                </ImageButton.Source>
-                            </ImageButton>
-
-                            <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
-                                HeightRequest="25" >
-                                <ImageButton.CommandParameter>
-                                    <x:Int32>0</x:Int32>
-                                </ImageButton.CommandParameter>
-                                <ImageButton.Source>
-                                    <FileImageSource File="google.png"/>
-                                </ImageButton.Source>
-                            </ImageButton>
-                        </HorizontalStackLayout>
-
-                        <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
-                            <Image.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
-                            </Image.Source>
-                        </Image>
-
-
-                        <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                 Clicked="ToggleFocusModeClicked">
+                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center" BackgroundColor="Transparent">
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>1</x:Int32>
+                            </ImageButton.CommandParameter>
                             <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                                <FileImageSource File="youtube.png"/>
                             </ImageButton.Source>
                         </ImageButton>
 
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                                HeightRequest="25">
+                            <ImageButton.CommandParameter>
+                                <x:Int32>2</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="spotify.png" />
+                            </ImageButton.Source>
+                        </ImageButton>
+
+                        <ImageButton Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            HeightRequest="25" >
+                            <ImageButton.CommandParameter>
+                                <x:Int32>0</x:Int32>
+                            </ImageButton.CommandParameter>
+                            <ImageButton.Source>
+                                <FileImageSource File="google.png"/>
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+
+                    <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding SelectedSongToOpenBtmSheet.HasSyncedLyrics}">
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}" Color="Gray"/>
+                        </Image.Source>
+                    </Image>
+
+
+                    <ImageButton HeightRequest="45" HorizontalOptions="Center"
+                                Clicked="ToggleFocusModeClicked">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Do_not_disturb_on}" Color="Gray"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+
                     <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"  x:Name="RatingChipCtrl"
                                        ChipClicked="RatingChipCtrl_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
-        HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue" SelectedChipBackground="DarkSlateBlue"
-                    >
+                                       HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue" SelectedChipBackground="DarkSlateBlue"
+                                       >
                         <syncf:SfChipGroup.ChipLayout>
                             <HorizontalStackLayout Spacing="10" WidthRequest="300"
                               HorizontalOptions="Start"/>
@@ -166,6 +164,195 @@
 
 
                     </VerticalStackLayout>
+                <syncf:SfTabView x:Name="SongShellTabView">
+                    <syncf:SfTabView.Items>
+                        <syncf:SfTabItem Header="Sync Lyrics" x:Name="SyncedLyricGrid">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"
+                                                SelectionChanged="LyricsColView_SelectionChanged" 
+                                                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                EmptyView="No Syncronized Lyrics ..." ItemTemplate="{StaticResource SyncLyricsColView}">
+                                </CollectionView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Plain Lyrics" x:Name="PlainLyricsGrid">
+                            <syncf:SfTabItem.Content>
+
+                                <ScrollView>
+                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.UnSyncLyrics}"/>
+                                </ScrollView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Plain Lyrics" x:Name="PlainLyricsGrid">
+                            <syncf:SfTabItem.Content>
+
+                                <Grid BackgroundColor="Transparent"                             
+                            Margin="5,5" RowDefinitions="Auto, *">
+                                    <Grid.Resources>
+                                        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                                        <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+
+                                    </Grid.Resources>
+                                    <VerticalStackLayout Spacing="10"
+                                             BackgroundColor="#1E1E1E"
+                                             Grid.Row="0" HeightRequest="250" Margin="5" HorizontalOptions="Start">
+
+                                        <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
+                                        IsVisible="False">
+                                            <Button.CommandParameter>
+                                                <x:Boolean>True</x:Boolean>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
+                                        <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
+                                        <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
+                                        <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
+
+                                        <HorizontalStackLayout>
+
+                                            <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
+                                        Clicked="SearchLyricsOnLyrLib_Clicked">
+                                                <Button.CommandParameter>
+                                                    <x:Boolean>True</x:Boolean>
+                                                </Button.CommandParameter>
+                                            </Button>
+
+                                            <Button Text="Search Song on Last Fm" x:Name="SearchLastFMS"
+                                        Clicked="SearchLastFM_Clicked">
+                                                <Button.CommandParameter>
+                                                    <x:Int32>0</x:Int32>
+                                                </Button.CommandParameter>
+                                            </Button>
+
+                                        </HorizontalStackLayout>
+
+                                    </VerticalStackLayout>
+
+
+                                    <CollectionView ItemsSource="{Binding LastfmTracks}" Grid.Row="1" 
+                                        HeightRequest="400" BackgroundColor="#1E1E1E">
+                                        <CollectionView.ItemsLayout>
+                                            <GridItemsLayout Span="3" Orientation="Horizontal"/>
+
+
+                                        </CollectionView.ItemsLayout>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="entitys:Track">
+                                                <Border>
+                                                    <VerticalStackLayout>
+                                                        <Label Text="{Binding Name}"/>
+                                                        <Label Text="{Binding Artist.Name}"/>
+                                                        <Label Text="{Binding Album.Name}"/>
+                                                        <Label Text="{Binding UserPlayCount}"/>
+                                                        <Label Text="{Binding Statistics.Listeners}"/>
+                                                        <Label Text="{Binding Statistics.PlayCount}"/>
+                                                        <Label Text="{Binding Wiki}"/>
+                                                        <Label Text="{Binding Statistics.Listeners}"/>
+                                                        <Label Text="{Binding Statistics.PlayCount}"/>
+
+                                                    </VerticalStackLayout>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                    <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
+                                        x:DataType="vm:HomePageVM">
+                                        <CollectionView.EmptyView>
+                                            <ContentView>
+                                                <VerticalStackLayout HorizontalOptions="Center" 
+                                                             BackgroundColor="Transparent"
+                                                             x:Name="emptyV">
+                                                    <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
+
+                                                    <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                               HeightRequest="0" WidthRequest="0" />
+                                                    <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+                                               IsVisible="False" IsAnimationPlaying="False"/>
+
+                                                    <Label Text="Service is Unavailable, try again !" 
+                                               x:Name="NoLyricsFoundMsg" IsVisible="False"
+                                               />
+                                                </VerticalStackLayout>
+
+                                            </ContentView>
+                                        </CollectionView.EmptyView>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Content">
+
+                                                <Border Stroke="DarkSlateBlue" 
+StrokeShape="RoundRectangle, 10"
+Padding="10" Margin="0,5">
+                                                    <VerticalStackLayout HorizontalOptions="Start">
+
+                                                        <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                                                        <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
+
+                                                        <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
+
+                                                        <HorizontalStackLayout IsVisible="{Binding Instrumental}">
+                                                            <Label Text="Song is an Intrumental" />
+                                                        </HorizontalStackLayout>
+
+                                                        <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
+
+                                                            <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                                                                    Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
+            IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
+        />
+
+
+                                                            <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+        IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                                                        </HorizontalStackLayout>
+                                                    </VerticalStackLayout>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Search Lyrics" x:Name="SearchLyricsGrid">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"
+                                                SelectionChanged="LyricsColView_SelectionChanged" 
+                                                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                EmptyView="No Syncronized Lyrics ..." ItemTemplate="{StaticResource SyncLyricsColView}">
+                                </CollectionView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Song Details" x:Name="SongDetails">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"
+                                                SelectionChanged="LyricsColView_SelectionChanged" 
+                                                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                EmptyView="No Syncronized Lyrics ..." ItemTemplate="{StaticResource SyncLyricsColView}">
+                                </CollectionView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Song Artist Details" x:Name="ArtistDetails">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"
+                                                SelectionChanged="LyricsColView_SelectionChanged" 
+                                                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                EmptyView="No Syncronized Lyrics ..." ItemTemplate="{StaticResource SyncLyricsColView}">
+                                </CollectionView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                        <syncf:SfTabItem Header="Song Album Details" x:Name="AlbumDetails">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"
+                                                SelectionChanged="LyricsColView_SelectionChanged" 
+                                                SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                                EmptyView="No Syncronized Lyrics ..." ItemTemplate="{StaticResource SyncLyricsColView}">
+                                </CollectionView>
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                    </syncf:SfTabView.Items>
+                </syncf:SfTabView>
                 <Grid RowDefinitions="Auto,*" Grid.Column="1" BackgroundColor="Transparent">
                     <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"
                                        ChipClicked="SfChipGroup_ChipClicked"
@@ -173,168 +360,205 @@
                         <syncf:SfChipGroup.Items>
                             <syncf:SfChip Text="Sync Lyrics" CommandParameter="0" FontSize="24"/>
                             <syncf:SfChip Text="Plain Lyrics" CommandParameter="1" IsVisible="False"/>
-                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2" FontSize="24" BackgroundColor="Transparent"
-                                          />
+                            <syncf:SfChip Text="Fetch Lyrics" CommandParameter="2" FontSize="24" 
+                                          BackgroundColor="Transparent"/>
+                            
                             <syncf:SfChip Text="Song Details" CommandParameter="3" FontSize="24"/>
+                            <syncf:SfChip Text="Artist Details" CommandParameter="4" FontSize="24"/>
+                            <syncf:SfChip Text="Album Details" CommandParameter="5" FontSize="24"/>
+                            <syncf:SfChip Text="Stats" CommandParameter="6" FontSize="24"/>
                             <!--<syncf:SfChip Text="Large"/>
                             <syncf:SfChip Text="Extra Large"/>-->
                         </syncf:SfChipGroup.Items>
                     </syncf:SfChipGroup>
 
-                    <Grid Grid.Row="1" BackgroundColor="Transparent"
-                            x:Name="SyncedLyricGrid" >
-                            <CollectionView x:Name="LyricsColView" 
-                                ItemsSource="{Binding SelectedSongToOpenBtmSheet.SyncLyrics}"                                 
-                        SelectionChanged="LyricsColView_SelectionChanged" 
-                        SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
-                        Grid.Column="0" EmptyView="No Syncronized Lyrics ..."
-                        ItemTemplate="{StaticResource SyncLyricsColView}">
-                            </CollectionView>
+                    <Grid Grid.Row="1" x:Name="SyncedLyricGrid"
+                          
+                          BackgroundColor="Transparent"
+                             >
 
                         </Grid>
-                    <Grid Grid.Row="1" 
+                    <Grid Grid.Row="1" x:Name="PlainLyricsGrid"
                           BackgroundColor="Transparent"
-                          IsVisible="False" x:Name="PlainLyricsGrid">
+                          IsVisible="False" >
                         <ScrollView>
                             <Label Text="{Binding SelectedSongToOpenBtmSheet.UnSyncLyrics}"/>
                         </ScrollView>
                     </Grid>
-                    <Grid Grid.Row="1" BackgroundColor="Transparent"
-                            x:Name="SearchLyricsGrid" IsVisible="False"
-                            Margin="5,5" RowDefinitions="Auto, *">
-                            <Grid.Resources>
-                                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-                                <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+                    <Grid Grid.Row="1" x:Name="SongDetails" IsVisible="False">
+                        <VerticalStackLayout x:Name="DetailsView">
+                            <Border StrokeThickness="0" StrokeShape="RoundRectangle, 25"
+                                    Stroke="Transparent" WidthRequest="{OnPlatform WinUI=700, Android=350}" HeightRequest="{OnPlatform WinUI=720, Android=650}"
+                                    BackgroundColor="Black" Margin="5" Padding="20">
+                                <VerticalStackLayout Spacing="5">
+                                    <HorizontalStackLayout>
+                                        <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
+                                            <Image.Source>
+                                                <FontImageSource Color="DarkSlateBlue"
+                        FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Music_note }"/>
+                                            </Image.Source>
+                                        </Image>
+                                        <Label Text="Information" FontSize="26"/>
+                                    </HorizontalStackLayout>
 
-                            </Grid.Resources>
-                        <VerticalStackLayout Spacing="10"
-                                             BackgroundColor="#1E1E1E"
-                                             Grid.Row="0" HeightRequest="250" Margin="5" HorizontalOptions="Start">
-
-                                <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
-                                        IsVisible="False">
-                                        <Button.CommandParameter>
-                                            <x:Boolean>True</x:Boolean>
-                                        </Button.CommandParameter>
-                                    </Button>
-                                <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
-                                <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
-                                <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
-                                <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
-                                
-                                <HorizontalStackLayout>
-                                
-                                <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
-                                        Clicked="SearchLyricsOnLyrLib_Clicked">
-                                    <Button.CommandParameter>
-                                        <x:Boolean>True</x:Boolean>
-                                    </Button.CommandParameter>
-                                </Button>
-                                
-                                <Button Text="Search Song on Last Fm" x:Name="SearchLastFMS"
-                                        Clicked="SearchLastFM_Clicked">
-                                    <Button.CommandParameter>
-                                        <x:Int32>0</x:Int32>
-                                    </Button.CommandParameter>
-                                </Button>
-                                <Button Text="Search Song Album on Last Fm" x:Name="SearchLastFMAl"
-                                        Clicked="SearchLastFM_Clicked">
-                                    <Button.CommandParameter>
-                                        <x:Int32>1</x:Int32>
-                                    </Button.CommandParameter>
-                                </Button>
-                                <Button Text="Search Song Artist on Last Fm" x:Name="SearchLastFM"
-                                        Clicked="SearchLastFM_Clicked">
-                                    <Button.CommandParameter>
-                                            <x:Int32>2</x:Int32>
-                                    </Button.CommandParameter>
-                                </Button>
-
-                            </HorizontalStackLayout>
-                                
-                        </VerticalStackLayout>
-                        
-                        
-                        <CollectionView ItemsSource="{Binding LastfmTracks}" Grid.Row="1" 
-                                        HeightRequest="400" BackgroundColor="#1E1E1E">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="entitys:Track">
-                                    <Border>
+                                    <FlexLayout JustifyContent="SpaceBetween">
                                         <VerticalStackLayout>
-                                            <Label Text="{Binding Name}"/>
-                                            <Label Text="{Binding Artist.Name}"/>
-                                            <Label Text="{Binding Album.Name}"/>
-                                            <Label Text="{Binding UserPlayCount}"/>
-                                            <Label Text="{Binding Statistics.Listeners}"/>
-                                            <Label Text="{Binding Statistics.PlayCount}"/>
-                                            <Label Text="{Binding Wiki}"/>
-                                            <Label Text="{Binding Statistics.Listeners}"/>
-                                            <Label Text="{Binding Statistics.PlayCount}"/>
-                                            
+
+                                            <Label Text="Song Details" FontSize="25" Margin="0,0,0,8"
+                   TextColor="DarkOrange" HorizontalOptions="Start"/>
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Title}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding  SelectedSongToOpenBtmSheet.Title}"/>
+                                              
+                                            </HorizontalStackLayout>
+
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding  SelectedSongToOpenBtmSheet.ArtistName}"/>
+
+                                            </HorizontalStackLayout>
+
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}"/>
+
+                                            </HorizontalStackLayout>
+
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Style}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding SelectedSongToOpenBtmSheet.GenreName}"/>
+
+                                            </HorizontalStackLayout>
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Date_range}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear}"/>
+
+                                            </HorizontalStackLayout>
+                                            <HorizontalStackLayout>
+                                                <Image>
+                                                    <Image.Source>
+                                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Numbers}"/>
+                                                    </Image.Source>
+                                                </Image>
+                                                <Label Text="{Binding SelectedSongToOpenBtmSheet.TrackNumber}"/>
+
+                                            </HorizontalStackLayout>
                                         </VerticalStackLayout>
-                                    </Border>
-                                    
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
-                                        x:DataType="vm:HomePageVM">
-                                <CollectionView.EmptyView>
-                                    <ContentView>
-                                        <VerticalStackLayout HorizontalOptions="Center" 
-                                                             BackgroundColor="Transparent"
-                                                             x:Name="emptyV">
-                                        <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
 
-                                        <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
-                                               HeightRequest="0" WidthRequest="0" />
-                                            <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
-                                               IsVisible="False" IsAnimationPlaying="False"/>
+                                    <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                                                        HeightRequest="{OnPlatform Android=105, WinUI=210}" BorderWidth="0" 
+                                                        WidthRequest="{OnPlatform WinUI=250, Android=105}"/>
+                                    </FlexLayout>
 
-                                            <Label Text="Service is Unavailable, try again !" 
-                                               x:Name="NoLyricsFoundMsg" IsVisible="False"
-                                               />
-                                        </VerticalStackLayout>
+                                    <VerticalStackLayout>
+                                        <Label Text="File Details" FontSize="25" 
+                   TextColor="DarkOrange" HorizontalOptions="Start"/>
+                                        <!--<HorizontalStackLayout>
+                <Image>
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Short_text}"/>
+                    </Image.Source>
+                </Image>
+                <Label Text="Name" WidthRequest="100"/>
+                <Label Text="{Binding FilePath}"/>
+            </HorizontalStackLayout>-->
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Directions}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath}" LineBreakMode="TailTruncation"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Format_size}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.FileSize, Converter={StaticResource FileSizeConverter}}"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Update}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
 
-                                    </ContentView>
-                                </CollectionView.EmptyView>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Content">
+                                    <VerticalStackLayout>
+                                        <Label Text="Audio Details" FontSize="25" 
+                   TextColor="DarkOrange"/>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label 
+                    Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Info}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.FileFormat}"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Track_changes}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.SampleRate, StringFormat='{0} Hz'}"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <Image>
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Rate_review}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <Label Text="{Binding SelectedSongToOpenBtmSheet.BitRate, StringFormat='{0} kbps'}"/>
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
 
-                                        <Border Stroke="DarkSlateBlue" 
-StrokeShape="RoundRectangle, 10"
-Padding="10" Margin="0,5">
-                                            <VerticalStackLayout HorizontalOptions="Start">
+                                </VerticalStackLayout>
 
-                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
-
-                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
-
-                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
-
-                                                <HorizontalStackLayout IsVisible="{Binding Instrumental}">
-                                                    <Label Text="Song is an Intrumental" />
-                                                </HorizontalStackLayout>
-
-                                                <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
-
-                                                    <Button Text="Plain Lyrics" HorizontalOptions="Center" 
-            Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
-            IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"
-        />
-
-
-                                                    <Button Text="Synced Lyrics" HorizontalOptions="Center" 
-        IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
-                                                </HorizontalStackLayout>
-                                            </VerticalStackLayout>
-                                        </Border>
-
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                        </Grid>
-
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Grid Grid.Row="1" x:Name="ArtistDetails" IsVisible="False">
+                    </Grid>
+                    <Grid Grid.Row="1" x:Name="AlbumDetails" IsVisible="False">
+                        
+                    </Grid>
+                    <Grid Grid.Row="1" x:Name="SongStats" IsVisible="False">
+                           
+                    </Grid>
                 </Grid>
                 
           

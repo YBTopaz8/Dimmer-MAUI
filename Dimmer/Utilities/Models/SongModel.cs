@@ -1,6 +1,4 @@
-﻿
-
-namespace Dimmer_MAUI.Utilities.Models;
+﻿namespace Dimmer_MAUI.Utilities.Models;
 public partial class SongModel : RealmObject
 {
     [PrimaryKey]
@@ -126,7 +124,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     bool isPlayCompleted;
     [ObservableProperty]
-    bool isFileExists = true;
+    private bool isFileExists = true;
     [ObservableProperty]
     string? achievement;
     

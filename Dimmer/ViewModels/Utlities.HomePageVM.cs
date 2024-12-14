@@ -1,7 +1,4 @@
-﻿using Hqub.Lastfm;
-using Hqub.Lastfm.Cache;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -489,5 +486,24 @@ public partial class HomePageVM
         }
     }
 
-   
+    [ObservableProperty]
+    bool isNotificationOn;
+    [ObservableProperty]
+    string notificationText = string.Empty;
+
+    private async Task ShowNotificationAsync(string message)
+    {
+        IsNotificationOn = true; // Turn on the notification
+        NotificationText = message;  // Set the notification message
+
+        // Wait for 3 seconds
+        await Task.Delay(3000);
+
+        // Clear the notification
+        NotificationText = string.Empty;
+        IsNotificationOn = false;
+
+        // Notify the UI to re-render
+        
+    }
 }

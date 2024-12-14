@@ -441,10 +441,10 @@ public class LyricsService : ILyricsService
     #endregion
 
     #region Fetch Lyrics Online from Lrclib
-    public async Task<(bool IsFetchSuccessful, Content[] contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
+    public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.5.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v0.5.2 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
         try
         {
@@ -465,6 +465,11 @@ public class LyricsService : ILyricsService
                 return (false, Array.Empty<Content>());
             }
 
+            var potentialImages = await FetchLyricsOnlineLyrist(song.Title!, song.ArtistName!); ;
+            for (int i = 0; i < potentialImages.contentData?.Length; i++)
+            {
+                lyricsData[i].LinkToCoverImage = potentialImages.contentData[i].LinkToCoverImage;
+            }
             return (true, lyricsData);
         }
         catch (HttpRequestException e)
@@ -483,7 +488,7 @@ public class LyricsService : ILyricsService
         }
     }
 
-    async Task<Content[]>? SearchLyricsByTitleAndArtistNameToLrc(SongModelView song, HttpClient client, List<string>? manualSearchFields = null)
+    async Task<Content[]?> SearchLyricsByTitleAndArtistNameToLrc(SongModelView song, HttpClient client, List<string>? manualSearchFields = null)
     {
         string url;
 

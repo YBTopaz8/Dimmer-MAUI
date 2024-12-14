@@ -1,9 +1,9 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
-using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
-using Syncfusion.Maui.Toolkit.Carousel;
+using Parse.LiveQuery;
 using System.Diagnostics;
+using System.Reflection;
 
 
 namespace Dimmer_MAUI.ViewModels;
@@ -150,24 +150,16 @@ public partial class HomePageVM : ObservableObject
 
         if (newValue is not null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (DisplayedSongsColView is not null)
-                {
-                    DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
-                    
-                }
-            });
-
+         
         }
     }
 
     partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel>? oldValue, ObservableCollection<LyricPhraseModel>? newValue)
     {
-        Debug.WriteLine($"Old Ver {oldValue?.Count} | New Ver { newValue?.Count} , Song { TemporarilyPickedSong?.Title}");
+        
         if (oldValue is not null && oldValue.Count > 0)
         {
-            Debug.WriteLine(oldValue[0].Text);
+            
         }
         if (newValue is not null && newValue.Count < 1)
         {
@@ -182,14 +174,14 @@ public partial class HomePageVM : ObservableObject
         }
         if (newValue is not null && newValue.Count > 0)
         {
-            Debug.WriteLine(newValue[0].Text);
+            
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 if (SyncLyricsCV is not null)
                 {
                     SyncLyricsCV!.ItemsSource = null;
                     SyncLyricsCV.ItemsSource = newValue;
-                    SyncLyricsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                    SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
                 }
 
             });
@@ -529,11 +521,40 @@ public partial class HomePageVM : ObservableObject
 
     #region Playback Control Region
 
-    public List<SongModelView> filteredSongs = new();
-    [RelayCommand]
-    //void PlaySong(SongsModelView? SelectedSong = null)
-    public async Task PlaySong(SongModelView? SelectedSong = null)
+
+    async Task UpdateRelatedPlayingData(SongModelView song)
     {
+        var songArt = song.ArtistName;
+        if (!string.IsNullOrEmpty(songArt))
+        {
+            if (AllArtists is not null && AllArtists.Count > 0)
+            {
+                var art= GetAllArtistsFromSongID(song.LocalDeviceId!).FirstOrDefault();
+
+                if (art is null)
+                {
+                    List<string> load = [song.FilePath];
+
+                    if(await PlayBackService.LoadSongsFromFolderAsync(load))
+                    {
+                        string msg = $"Song {song.Title} remembered.";
+                        //_ = ShowNotificationAsync(msg);
+                    }
+                    return;
+                }
+                SelectedAlbumOnArtistPage = GetAlbumFromSongID(song.LocalDeviceId!).SingleOrDefault();
+            }
+        }
+    }
+
+
+    public List<SongModelView> filteredSongs = new();
+    [RelayCommand]    
+    public async Task PlaySong(SongModelView SelectedSong)
+    {
+        //_ = UpdateRelatedPlayingData(SelectedSong!);//always check if we already have the song's artist and other data loaded
+
+
         TemporarilyPickedSong ??= SelectedSong!;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         
@@ -951,11 +972,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     private bool _isLoading = false;
-
-    private int _currentIndex = 0; // Tracks the position of the last loaded batch
-    private const int MaxDisplayedSongs = 60; // Max items in DisplayedSongs
-
-  
+      
 
     private void SubscribetoDisplayedSongsChanges()
     {
@@ -1044,7 +1061,7 @@ public partial class HomePageVM : ObservableObject
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
         AllSyncLyrics = Array.Empty<Content>();
-        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
+        (bool IsSuccessful, Content[]? contentData) result = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
         
         AllSyncLyrics = result.contentData;
     
@@ -1055,7 +1072,8 @@ public partial class HomePageVM : ObservableObject
 
         return IsFetchSuccessful;
     }
-
+    [ObservableProperty]
+    List<string>? linkToFetchSongCoverImage=new();
     [RelayCommand]
     async Task FetchLyricsLyrist(bool fromUI = false)
     {
@@ -1135,7 +1153,7 @@ public partial class HomePageVM : ObservableObject
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            await PlaySong();
+            await PlaySong(TemporarilyPickedSong);
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
@@ -1296,8 +1314,7 @@ public partial class HomePageVM : ObservableObject
     bool isOnLyricsSyncMode = false;
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
-    {
-        
+    {        
         switch (viewIndex)
         {
             case 0:
@@ -1308,6 +1325,10 @@ public partial class HomePageVM : ObservableObject
                 Array.Clear(splittedLyricsLines);
                 break;
             case 1:
+                LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
+                LyricsSearchArtistName = SelectedSongToOpenBtmSheet.ArtistName;
+                LyricsSearchAlbumName = SelectedSongToOpenBtmSheet.AlbumName;
+
                 break;
             case 2:
                 SongPickedForStats ??= new SingleSongStatistics();
@@ -1316,6 +1337,11 @@ public partial class HomePageVM : ObservableObject
                 OpenEditableSongsTagsView();
                 CurrentPage = PageEnum.FullStatsPage;
                 ShowSingleSongStats(SelectedSongToOpenBtmSheet);
+                break;
+            case 3:
+                SelectedArtistOnArtistPage = GetAllArtistsFromSongID(SelectedSongToOpenBtmSheet.LocalDeviceId!).FirstOrDefault();
+                SelectedAlbumOnArtistPage = GetAlbumFromSongID(SelectedSongToOpenBtmSheet.LocalDeviceId!).FirstOrDefault();
+
                 break;
             default:
                 break;
@@ -1373,7 +1399,7 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentRepeatMode = 4;
             CurrentRepeatMaxCount = result;
-            await PlaySong();
+            await PlaySong(TemporarilyPickedSong);
             ToggleRepeatMode();
 
             CurrentRepeatMaxCount = 0;
@@ -1588,14 +1614,68 @@ public partial class HomePageVM : ObservableObject
             _ = SecureStorage.Default.SetAsync("ParsePassWord", password);
             _ = SecureStorage.Default.SetAsync("ParseEmail", CurrentUser.UserEmail!);
 
-            // Navigate to a different page or perform post-login actions
-            //ViewModel.SongsMgtService.GetUserAccount(oUser);
+            SetupLiveQueries();
         }
         catch (Exception ex)
         {
             CurrentUser!.IsAuthenticated = false;
             await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
 
+        }
+    }
+
+    public ParseLiveQueryClient LiveQueryClient { get; set; }
+
+    public void SetupLiveQueries()
+    {
+        try
+        {
+            LiveQueryClient = new();
+            var SongQuery = ParseClient.Instance.GetQuery("SongModelView");
+            var subscription = LiveQueryClient.Subscribe(SongQuery);
+
+            LiveQueryClient.OnConnected.
+                Subscribe(_ =>
+                {
+                    Debug.WriteLine("Connected to LiveQuery Server");
+                });
+
+            LiveQueryClient.OnError.
+                Subscribe(ex =>
+                {
+                    Debug.WriteLine($"Error: {ex.Message}");
+                });
+
+            LiveQueryClient.OnSubscribed.
+                Subscribe(sub =>
+                {
+                    Debug.WriteLine($"Subscribed to {sub.requestId}");
+                });
+
+            LiveQueryClient.OnObjectEvent
+                .Where(e => e.evt == Subscription.Event.Update)
+                .Subscribe(async e =>
+                {
+                    SongModelView song = new();
+                    var objData = (e.objectDictionnary as Dictionary<string, object>);
+
+                    song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
+                    CurrentQueue=0;
+                    if (song.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)
+                    {
+                        _ = PauseSong();
+                    }
+                    else
+                    {
+                        _ = PlaySong(song);
+                    }
+
+                });
+        }
+        catch (Exception ex)
+        {
+
+            throw;
         }
     }
 
@@ -1643,4 +1723,149 @@ public partial class HomePageVM : ObservableObject
         //}
     }
 
+}
+public static class ObjectMapper
+{
+    /// <summary>
+    /// Maps values from a dictionary to an instance of type T.
+    /// Excludes ObjectId fields and skips ParseObjects.
+    /// Handles nullable types and performs safe type conversions.
+    /// Logs any keys that don't match properties in T.
+    /// </summary>
+    /// <typeparam name="T">The type of the target model.</typeparam>
+    /// <param name="source">The source dictionary from Parse.</param>
+    /// <returns>An instance of T with mapped values.</returns>
+    public static T MapFromDictionary<T>(IDictionary<string, object> source) where T : new()
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        // Create an instance of T
+        T target = new T();
+
+        // Get all writable properties of T, case-insensitive
+        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite)
+            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+
+        // Track unmatched keys
+        List<string> unmatchedKeys = new();
+
+        foreach (var kvp in source)
+        {
+            // Skip ObjectId fields
+            if (kvp.Key.Equals("objectId", StringComparison.OrdinalIgnoreCase) ||
+                kvp.Key.Equals("ObjectId", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (properties.TryGetValue(kvp.Key, out var property))
+            {
+                try
+                {
+                    if (kvp.Value == null)
+                    {
+                        // Assign null to nullable types or reference types
+                        if (IsNullable(property.PropertyType))
+                        {
+                            property.SetValue(target, null);
+                        }
+                        // Else, skip assigning null to non-nullable value types
+                    }
+                    else
+                    {
+                        Type targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+                        // If the target type is an enum, attempt to parse it
+                        if (targetType.IsEnum)
+                        {
+                            var enumValue = Enum.Parse(targetType, kvp.Value.ToString());
+                            property.SetValue(target, enumValue);
+                        }
+                        // Handle special conversions if necessary
+                        else if (targetType == typeof(DateTime))
+                        {
+                            if (kvp.Value is string dateString && DateTime.TryParse(dateString, out DateTime parsedDate))
+                            {
+                                property.SetValue(target, parsedDate);
+                            }
+                            else if (kvp.Value is DateTime dateTimeValue)
+                            {
+                                property.SetValue(target, dateTimeValue);
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Cannot convert value '{kvp.Value}' to DateTime for property '{property.Name}'.");
+                            }
+                        }
+                        else if (targetType == typeof(int))
+                        {
+                            // Handle cases where source is double but target is int
+                            if (kvp.Value is double doubleValue)
+                            {
+                                property.SetValue(target, Convert.ToInt32(doubleValue));
+                            }
+                            else
+                            {
+                                var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                                property.SetValue(target, convertedValue);
+                            }
+                        }
+                        else if (targetType == typeof(int?))
+                        {
+                            // Handle nullable int separately
+                            if (kvp.Value is double doubleValue)
+                            {
+                                property.SetValue(target, (int?)Convert.ToInt32(doubleValue));
+                            }
+                            else
+                            {
+                                var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                                property.SetValue(target, convertedValue);
+                            }
+                        }
+                        else
+                        {
+                            // General conversion for other types
+                            var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                            property.SetValue(target, convertedValue);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to set property '{property.Name}' with value '{kvp.Value}': {ex.Message}");
+                    // Optionally, log more details or handle specific exceptions
+                }
+            }
+            else
+            {
+                // Log unmatched keys
+                unmatchedKeys.Add(kvp.Key);
+            }
+        }
+
+        // Log keys that don't match
+        if (unmatchedKeys.Count > 0)
+        {
+            Debug.WriteLine("Unmatched Keys:");
+            foreach (var key in unmatchedKeys)
+            {
+                Debug.WriteLine($"- {key}");
+            }
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Checks if a type is nullable.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <returns>True if nullable, else false.</returns>
+    private static bool IsNullable(Type type)
+    {
+        return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+    }
 }

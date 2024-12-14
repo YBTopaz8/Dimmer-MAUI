@@ -1,7 +1,4 @@
-﻿
-using System.Diagnostics;
-
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -349,7 +346,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                     {
                         var duration = ((ParseObject)item)["DurationInSeconds"];
                         double dur = Convert.ToDouble(duration);
-                        var itemmm = MapFromDBParseObject<SongModelView>((ParseObject)item); //duration is off
+                        var itemmm = MapFromParseObjectToClassObject<SongModelView>((ParseObject)item); //duration is off
 
                         
                         //check if itemmm.Title != string.IsNullOrEmpty
@@ -400,7 +397,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemm = MapFromDBParseObject<PlayDateAndCompletionStateSongLink>(item); //duration is off
+                        var itemm = MapFromParseObjectToClassObject<PlayDateAndCompletionStateSongLink>(item); //duration is off
 
                         var existingSongs = db.All<PlayDateAndCompletionStateSongLink>()
                                                 .ToList();
@@ -437,7 +434,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<ArtistModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<ArtistModelView>((ParseObject)item);
                         ArtistModel itemm = new(itemmm);
                         var existingArtist = db.All<ArtistModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -483,7 +480,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<PlaylistModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<PlaylistModelView>((ParseObject)item);
                         PlaylistModel itemm = new PlaylistModel(itemmm);
                         var existingPlaylist = db.All<PlaylistModel>()
                                                 .Where(s => s.Name == itemm.Name)
@@ -530,7 +527,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<GenreModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<GenreModelView>((ParseObject)item);
                         GenreModel itemm = new(itemmm);
                         var existingGenreModel = db.All<GenreModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -578,7 +575,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemm = MapFromDBParseObject<AlbumModel>((ParseObject)item);
+                        var itemm = MapFromParseObjectToClassObject<AlbumModel>((ParseObject)item);
 
                         var existingAlbumModel = db.All<AlbumModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -630,7 +627,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<AlbumArtistGenreSongLinkView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<AlbumArtistGenreSongLinkView>((ParseObject)item);
                         AlbumArtistGenreSongLink itemm = new(itemmm);
                         var AAGSLink = db.All<AlbumArtistGenreSongLink>()
                                                 .Where(s => s.LocalDeviceId == itemm.LocalDeviceId)
@@ -879,9 +876,16 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     {
         try
         {
-            AddOrUpdateSingleRealmItem(db,
-                link,
-                l => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null);
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            var listofLinks = db.All<AlbumArtistGenreSongLink>();
+            var anyThing = listofLinks
+            .FirstOrDefault(x => x.LocalDeviceId != null);
+                
+            if (anyThing != null)
+            {
+                AddOrUpdateSingleRealmItem(db,
+                    link);
+            }
 
             if (string.IsNullOrEmpty(CurrentOfflineUser.UserIDOnline))
             {
@@ -1002,7 +1006,7 @@ AddOrUpdateSingleRealmItem(
         return parseObject;
     }
 
-    private T MapFromDBParseObject<T>(ParseObject parseObject) where T : new()
+    private T MapFromParseObjectToClassObject<T>(ParseObject parseObject) where T : new()
     {
         var model = new T();
         var properties = typeof(T).GetProperties();
@@ -1635,17 +1639,6 @@ AddOrUpdateSingleRealmItem(
         }
     }
 
-
-    /// <summary>
-    /// Syncs the provided data to the Online database
-    /// </summary>
-    /// <param name="songs"></param>
-    /// <param name="artistModels"></param>
-    /// <param name="albumModels"></param>
-    /// <param name="genreModels"></param>
-    /// <param name="AAGSLink"></param>
-    /// <returns></returns>
-
     public async Task<bool> SyncPlayDataAndCompletionData()
     {
         await SendMultipleObjectsToParse(AllPlayDataAndCompletionStateLinks, nameof(PlayDateAndCompletionStateSongLink));
@@ -1663,26 +1656,21 @@ AddOrUpdateSingleRealmItem(
         {
             // Sync each collection to Parse
             await SendMultipleObjectsToParse(songs, nameof(SongModelView));
-            Debug.WriteLine("songsToOnline");
-            await SendMultipleObjectsToParse(artistModels, nameof(ArtistModelView));
-            Debug.WriteLine("artistToOnline");
-            await SendMultipleObjectsToParse(albumModels, nameof(AlbumModelView));
-            Debug.WriteLine("albumToOnline");
+            
+            //await SendMultipleObjectsToParse(artistModels, nameof(ArtistModelView));
+            
+            //await SendMultipleObjectsToParse(albumModels, nameof(AlbumModelView));
+            
 
-            await SendMultipleObjectsToParse(genreModels, nameof(GenreModelView));
-            Debug.WriteLine("genreToOnline");
-            await SendMultipleObjectsToParse(AAGSLink, nameof(AlbumArtistGenreSongLinkView));
-            Debug.WriteLine("AAGSLinkToOnline");
+            //await SendMultipleObjectsToParse(genreModels, nameof(GenreModelView));
+            
+            //await SendMultipleObjectsToParse(AAGSLink, nameof(AlbumArtistGenreSongLinkView));
+            
 
-            if (PDaCSLink is not null)
-            {
-                await SendMultipleObjectsToParse(PDaCSLink, nameof(PlayDateAndCompletionStateSongLink));
-            }
-            Debug.WriteLine("PDaCSLinkToOnline");
-
-            Debug.WriteLine("good");
-
-            Debug.WriteLine("All data synced successfully.");
+            //if (PDaCSLink is not null)
+            //{
+            //    await SendMultipleObjectsToParse(PDaCSLink, nameof(PlayDateAndCompletionStateSongLink));
+            //}
             return true;
         }
         catch (Exception ex)
@@ -1701,22 +1689,19 @@ AddOrUpdateSingleRealmItem(
     /// <returns></returns>
     public async Task<bool> SendMultipleObjectsToParse<T>(IEnumerable<T> items, string modelName)
     {
+
         try
         {
-            foreach (var item in items)
+            foreach (var item in items.Take(500))
             {
-                try
-                {
-                    // Map and save each item to Parse
-                    await SendSingleObjectToParse(modelName, item);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving {modelName} action: {ex.Message}");
-                }
+                
+                var parseObj = MapToParseObject(item, modelName);
+                // Map and save each item to Parse
+                await SendSingleObjectToParse(modelName, item);
+                
             }
             Debug.WriteLine($"{modelName}sToOnline saved!");
-            await Shell.Current.DisplayAlert("Success!", "Synced!","Ok");
+            await Shell.Current.DisplayAlert("Success!", "Synced Songs!","Ok");
             return true;
         }
         catch (Exception ex)
@@ -1844,16 +1829,20 @@ AddOrUpdateSingleRealmItem(
     /// <param name="item"></param>
     /// <param name="existsCondition"></param>
     /// <param name="updateAction"></param>
-    public void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool> existsCondition, Action<T>? updateAction = null) where T : RealmObject
+    public void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool> existsCondition=null, Action<T>? updateAction = null) where T : RealmObject
     {
 
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
+            if (existsCondition is null)
+            {
+                db.Add(item);
+                return;
+            }
             if (!db.All<T>().Any(existsCondition))
             {
                 db.Add(item);
-                Debug.WriteLine($"Added {typeof(T).Name}");
             }
             else
             {

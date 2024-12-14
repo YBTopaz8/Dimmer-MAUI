@@ -1,5 +1,4 @@
-﻿using Hqub.Lastfm;
-using Hqub.Lastfm.Cache;
+﻿
 using System.Net;
 
 namespace Dimmer_MAUI;
@@ -61,10 +60,12 @@ LogException(e.Exception);
     {
 
         var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        //DimmerWindow.Page.
 #if WINDOWS
         DimmerWindow.Page = new AppShell(vm);
 
 #elif ANDROID
+        
         DimmerWindow.Page = new AppShellMobile();
 #endif
 
