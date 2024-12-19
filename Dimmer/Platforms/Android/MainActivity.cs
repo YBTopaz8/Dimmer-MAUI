@@ -20,6 +20,15 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+        base.OnCreate(savedInstanceState);
+        if (DeviceInfo.Idiom == DeviceIdiom.Watch)
+        {
+            return;
+        }
+        var plat = DeviceInfo.Platform.ToString();
+        var plate = DeviceInfo.Name.ToString();
+        var platee = DeviceInfo.Manufacturer.ToString();
+
         if (!Android.OS.Environment.IsExternalStorageManager)
         {
             Intent intent = new Intent();
@@ -29,7 +38,6 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
             StartActivity(intent);
         }
 
-        base.OnCreate(savedInstanceState);
         //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
 #if RELEASE
         Window.SetStatusBarColor(Android.Graphics.Color.Black);

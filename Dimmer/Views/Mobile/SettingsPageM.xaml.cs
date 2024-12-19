@@ -48,7 +48,7 @@ public partial class SettingsPageM : ContentPage
 
         try
         {
-            await ParseClient.Instance.SignUpAsync(user);
+            await ParseClient.Instance.SignUpWithAsync(user);
             await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
 
             // Navigate to a different page or reset fields
@@ -64,7 +64,7 @@ public partial class SettingsPageM : ContentPage
     {
         if (ViewModel.CurrentUserOnline is not null)
         {
-            if (ViewModel.CurrentUserOnline.IsAuthenticated)
+            if (await ViewModel.CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return;
             }
@@ -80,7 +80,7 @@ public partial class SettingsPageM : ContentPage
         {
             var uname= LoginUname.Text.Trim();
             var pass = LoginPass.Text.Trim();
-            var oUser = await ParseClient.Instance.LogInAsync(uname,pass);
+            var oUser = await ParseClient.Instance.LogInWithAsync(uname,pass);
             ViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
             ViewModel.CurrentUserOnline = oUser;
             ViewModel.CurrentUser.IsAuthenticated = true;

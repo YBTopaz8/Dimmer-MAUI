@@ -32,13 +32,13 @@
             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent" Grid.Column="2">
                 <Label Text="{Binding CurrentUser.UserName}"/>
                 <Label Text="{Binding CurrentUser.UserEmail}"/>
-                <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
+                <Label Text="{Binding CurrentUser.DeviceFormFactor, StringFormat='Type of Device: {0}'}"/>
                 <Label FontSize="24"
-                    Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
+                    Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUser.IsAuthenticated}"/>
 
-                <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
+                <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn" IsVisible="False"
                IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
-                    <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
+                    <Button Text="Sync PlayStats" x:Name="SyncPDaCS" IsVisible="False"
                             Clicked="SyncPDaCS_Clicked"/>
 
                     <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
@@ -60,7 +60,7 @@
 
                          
                         </HorizontalStackLayout>
-                        <Label Text="Login/Sign Up"/>
+                        <Label Text="Login/Sign Up (Tap to Reveal)"/>
                         <!--<Image>
                                 <Image.Source>
                                     <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Wifi}"/>
@@ -88,7 +88,7 @@
                             <Label Text="User Login" FontSize="26"/>
 
                             <Entry Placeholder="User Name" x:Name="LoginUname"
-                               Text="YBTopaz8"/>
+                               />
                             <Entry IsPassword="True"
                                
                                Placeholder="Password" x:Name="LoginPass" />

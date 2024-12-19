@@ -1,7 +1,4 @@
-﻿
-using System.Diagnostics;
-
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -77,40 +74,40 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
         };
 
-        _ = ParseClient.Instance.SignUpAsync(newUser);
+        _ = ParseClient.Instance.SignUpWithAsync(newUser);
         return true;
     }
-    public bool LogUserOnlineAsync(string email, string password)
+    public async Task<bool> LogUserOnlineAsync(string email, string password)
     {
         try
         {
             // Log the user in
-            _ = ParseClient.Instance.LogInAsync(email, password);
+            _ = ParseClient.Instance.LogInWithAsync(email, password);
 
             // Check if the email is verified (if applicable)
             if (CurrentUserOnline is not null)
             {
-                if (CurrentUserOnline.IsAuthenticated)
+                if (await CurrentUserOnline.IsAuthenticatedAsync())
                 {
                     return true;
                 }
 
             }
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
-                Console.WriteLine("Login successful. Email is verified.");
+                Debug.WriteLine("Login successful. Email is verified.");
                 return true;
             }
             else
             {
-                Console.WriteLine("Login successful, but email is not verified.");
+                Debug.WriteLine("Login successful, but email is not verified.");
                 return false; // Deny further access until verification
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Login failed: {ex.Message}");
+            Debug.WriteLine($"Login failed: {ex.Message}");
             return false; // Login failed
         }
     }
@@ -123,7 +120,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to send password reset email: {ex.Message}");
+            Debug.WriteLine($"Failed to send password reset email: {ex.Message}");
             return false; // Failed: Handle error (e.g., invalid email)
         }
     }
@@ -141,16 +138,16 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             // Trigger resend by re-saving the email field
             user.Email = user.Email; // Even if unchanged, this triggers resend
             await user.SaveAsync(); // Wait for the operation to complete
-            Console.WriteLine("Verification email re-sent.");
+            Debug.WriteLine("Verification email re-sent.");
             return true;
         }
 
-        Console.WriteLine("User is already verified or not found.");
+        Debug.WriteLine("User is already verified or not found.");
         return false;
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Failed to resend verification email: {ex.Message}");
+        Debug.WriteLine($"Failed to resend verification email: {ex.Message}");
         return false;
     }
 }*/
@@ -162,27 +159,27 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
         ParseClient.Instance.LogOut();
 
-        Console.WriteLine("User logged out successfully.");
+        Debug.WriteLine("User logged out successfully.");
     }
-    public bool IsEmailVerified()
+    public async Task<bool> IsEmailVerified()
     {
         // Check if the email is verified (if applicable)
         if (CurrentUserOnline is not null)
         {
-            if (CurrentUserOnline.IsAuthenticated)
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return true;
             }
 
         }
-        var user = ParseClient.Instance.GetCurrentUser();
+        var user = await ParseClient.Instance.GetCurrentUser();
 
         if (user != null && user.Get<bool>("emailVerified"))
         {
             return true;
         }
 
-        Console.WriteLine("Email not verified.");
+        Debug.WriteLine("Email not verified.");
         return false;
     }
 
@@ -197,13 +194,13 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         try
         {
             // Log the user in
-            await ParseClient.Instance.LogInAsync(username, password);
+            await ParseClient.Instance.LogInWithAsync(username, password);
 
             // Check if the email is verified
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
-                Console.WriteLine("Login successful and email verified!");
+                Debug.WriteLine("Login successful and email verified!");
                 return true; // User can proceed
             }
             else
@@ -212,13 +209,13 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 user.Email = user.Email; // This triggers the email resend
                 await user.SaveAsync(); // Save the user to resend the verification email
 
-                Console.WriteLine("Email not verified. Verification email re-sent.");
+                Debug.WriteLine("Email not verified. Verification email re-sent.");
                 return false; // Block access until email is verified
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Login failed: {ex.Message}");
+            Debug.WriteLine($"Login failed: {ex.Message}");
             return false;
         }
     }
@@ -235,22 +232,22 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 return false;
 
             }
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
 
             if (user != null)
             {
                 await user.DeleteAsync();
                 ParseClient.Instance.LogOut(); // Log out after deletion
-                Console.WriteLine("User account deleted successfully.");
+                Debug.WriteLine("User account deleted successfully.");
                 return true;
             }
 
-            Console.WriteLine("No user is currently logged in.");
+            Debug.WriteLine("No user is currently logged in.");
             return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to delete user account: {ex.Message}");
+            Debug.WriteLine($"Failed to delete user account: {ex.Message}");
             return false;
         }
     }
@@ -271,7 +268,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             catch (Exception ex)
             {
                 // Handle GetUserAccountOnline exceptions
-                Console.WriteLine($"Error in GetUserAccountOnline: {ex.Message}");
+                Debug.WriteLine($"Error in GetUserAccountOnline: {ex.Message}");
             }
         }
         try
@@ -281,7 +278,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         catch (Exception ex)
         {
             // Handle GetAllDataFromOnlineAsync exceptions
-            Console.WriteLine($"Error in GetAllDataFromOnlineAsync: {ex.Message}");
+            Debug.WriteLine($"Error in GetAllDataFromOnlineAsync: {ex.Message}");
         }
 
     }
@@ -306,7 +303,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             {
                 return;
             }
-            if (CurrentUserOnline!.IsAuthenticated)
+            if ( await CurrentUserOnline!.IsAuthenticatedAsync())
             {
                 HasOnlineSyncOn = true;
                 await LoadSongsToDBFromOnline();
@@ -349,7 +346,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                     {
                         var duration = ((ParseObject)item)["DurationInSeconds"];
                         double dur = Convert.ToDouble(duration);
-                        var itemmm = MapFromDBParseObject<SongModelView>((ParseObject)item); //duration is off
+                        var itemmm = MapFromParseObjectToClassObject<SongModelView>((ParseObject)item); //duration is off
 
                         
                         //check if itemmm.Title != string.IsNullOrEmpty
@@ -400,7 +397,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemm = MapFromDBParseObject<PlayDateAndCompletionStateSongLink>(item); //duration is off
+                        var itemm = MapFromParseObjectToClassObject<PlayDateAndCompletionStateSongLink>(item); //duration is off
 
                         var existingSongs = db.All<PlayDateAndCompletionStateSongLink>()
                                                 .ToList();
@@ -437,7 +434,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<ArtistModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<ArtistModelView>((ParseObject)item);
                         ArtistModel itemm = new(itemmm);
                         var existingArtist = db.All<ArtistModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -483,7 +480,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<PlaylistModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<PlaylistModelView>((ParseObject)item);
                         PlaylistModel itemm = new PlaylistModel(itemmm);
                         var existingPlaylist = db.All<PlaylistModel>()
                                                 .Where(s => s.Name == itemm.Name)
@@ -530,7 +527,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<GenreModelView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<GenreModelView>((ParseObject)item);
                         GenreModel itemm = new(itemmm);
                         var existingGenreModel = db.All<GenreModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -578,7 +575,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemm = MapFromDBParseObject<AlbumModel>((ParseObject)item);
+                        var itemm = MapFromParseObjectToClassObject<AlbumModel>((ParseObject)item);
 
                         var existingAlbumModel = db.All<AlbumModel>()
                                                 .Where(s => s.Name == itemm.Name || s.LocalDeviceId == itemm.LocalDeviceId)
@@ -630,7 +627,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 {
                     try
                     {
-                        var itemmm = MapFromDBParseObject<AlbumArtistGenreSongLinkView>((ParseObject)item);
+                        var itemmm = MapFromParseObjectToClassObject<AlbumArtistGenreSongLinkView>((ParseObject)item);
                         AlbumArtistGenreSongLink itemm = new(itemmm);
                         var AAGSLink = db.All<AlbumArtistGenreSongLink>()
                                                 .Where(s => s.LocalDeviceId == itemm.LocalDeviceId)
@@ -755,6 +752,21 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
     }
 
+    public bool UpdateSongDBDataAndSongFile(SongModelView song)
+    {
+        if (UpdateSongDetails(song))
+        {
+            Track file = new(song.FilePath);
+            file.Title = song.Title;
+            file.Artist = song.ArtistName;
+            file.Album = song.AlbumName;
+            file.Genre = song.GenreName;
+            file.TrackNumber = song.TrackNumber;
+            file.SaveTo(song.FilePath);
+        }
+        return true;
+
+    }
     public bool UpdateSongDetails(SongModelView songsModelView)
     {
         try
@@ -864,9 +876,16 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     {
         try
         {
-            AddOrUpdateSingleRealmItem(db,
-                link,
-                l => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null);
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            var listofLinks = db.All<AlbumArtistGenreSongLink>();
+            var anyThing = listofLinks
+            .FirstOrDefault(x => x.LocalDeviceId != null);
+                
+            if (anyThing != null)
+            {
+                AddOrUpdateSingleRealmItem(db,
+                    link);
+            }
 
             if (string.IsNullOrEmpty(CurrentOfflineUser.UserIDOnline))
             {
@@ -878,7 +897,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 return; //no account
             }
             
-            if (!CurrentUserOnline.IsAuthenticated)
+            if (! await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return; //no not authenticated lol
             }
@@ -987,7 +1006,7 @@ AddOrUpdateSingleRealmItem(
         return parseObject;
     }
 
-    private T MapFromDBParseObject<T>(ParseObject parseObject) where T : new()
+    private T MapFromParseObjectToClassObject<T>(ParseObject parseObject) where T : new()
     {
         var model = new T();
         var properties = typeof(T).GetProperties();
@@ -1260,11 +1279,10 @@ AddOrUpdateSingleRealmItem(
                 return null;
             }
 
-            if (CurrentUserOnline.IsAuthenticated)
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return null;
             }
-            Debug.WriteLine(ParseClient.Instance.GetCurrentUser().Username);
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
@@ -1312,7 +1330,7 @@ AddOrUpdateSingleRealmItem(
             // Check for internet connection
             if (Connectivity.NetworkAccess != NetworkAccess.Internet)
             {
-                Console.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
+                Debug.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
                 return false;
             }
 
@@ -1321,7 +1339,7 @@ AddOrUpdateSingleRealmItem(
                 string.IsNullOrEmpty(APIKeys.ServerUri) ||
                 string.IsNullOrEmpty(APIKeys.DotNetKEY))
             {
-                Console.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
+                Debug.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
                 return false;
             }
 
@@ -1344,12 +1362,12 @@ AddOrUpdateSingleRealmItem(
             client.Publicize();
 
 
-            Console.WriteLine("ParseClient initialized successfully.");
+            Debug.WriteLine("ParseClient initialized successfully.");
             return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error initializing ParseClient: {ex.Message}");
+            Debug.WriteLine($"Error initializing ParseClient: {ex.Message}");
             return false;
         }
     }
@@ -1388,39 +1406,24 @@ AddOrUpdateSingleRealmItem(
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
         ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
-                
 
-        if (!await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null))
-        {
-            await Shell.Current.DisplayAlert("Error", "Error Adding Songs to Database", "OK");
-        }
 
-        if (CurrentUserOnline is null || CurrentUserOnline.IsAuthenticated)
+        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null);
+        
+        if (CurrentUserOnline is null || await CurrentUserOnline.IsAuthenticatedAsync())
         {
                 //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
-                return false;
-           
+                return false;           
         }
 
 
-        if (CurrentUserOnline == null || !CurrentUserOnline.IsAuthenticated)
+        if (CurrentUserOnline == null || !await CurrentUserOnline.IsAuthenticatedAsync())
         {
             Debug.WriteLine("User authentication failed."); //todo to be reviewed, we can aske the user to login
             return false;
         }
-        // Save to online database (fire-and-forget)
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
-            }
-            catch (Exception ex)
-            {
-                // Log the error silently, avoid disturbing the app's flow
-                Debug.WriteLine($"Error saving online: {ex.Message}");
-            }
-        });
+        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
+       
 
         return true;
     }
@@ -1432,18 +1435,19 @@ AddOrUpdateSingleRealmItem(
         return;
     }
 
-    public void OpenConnectPopup()
+    public async void OpenConnectPopup()
     {
         ConnectOnline();
 
-        CurrentUserOnline = ParseClient.Instance.GetCurrentUser();
-        if(CurrentUserOnline is null || !CurrentUserOnline.IsAuthenticated)
+        CurrentUserOnline = await ParseClient.Instance.GetCurrentUser();
+        if(CurrentUserOnline is null || ! await CurrentUserOnline.IsAuthenticatedAsync())
         {
             Debug.WriteLine("User authentication failed.");
             return;
         }
         CurrentOfflineUser.UserIDOnline = CurrentUserOnline.ObjectId;
-        CurrentOfflineUser.IsAuthenticated = CurrentUserOnline.IsAuthenticated;
+        CurrentOfflineUser.IsAuthenticated = await CurrentUserOnline.IsAuthenticatedAsync();
+        ;
         CurrentOfflineUser.UserName = CurrentUserOnline.Username;
         CurrentOfflineUser.UserEmail= CurrentUserOnline.Email;
         
@@ -1542,7 +1546,7 @@ AddOrUpdateSingleRealmItem(
     /// <param name="genreModels"></param>
     /// <param name="AAGSLink"></param>
     /// <returns></returns>
-    public bool SyncAllDataToDatabaseAsync(
+    public bool SyncAllDataToDatabase(
     Realm db,
     IEnumerable<SongModel> songs,
     IEnumerable<ArtistModelView> artistModels,
@@ -1620,17 +1624,6 @@ AddOrUpdateSingleRealmItem(
         }
     }
 
-
-    /// <summary>
-    /// Syncs the provided data to the Online database
-    /// </summary>
-    /// <param name="songs"></param>
-    /// <param name="artistModels"></param>
-    /// <param name="albumModels"></param>
-    /// <param name="genreModels"></param>
-    /// <param name="AAGSLink"></param>
-    /// <returns></returns>
-
     public async Task<bool> SyncPlayDataAndCompletionData()
     {
         await SendMultipleObjectsToParse(AllPlayDataAndCompletionStateLinks, nameof(PlayDateAndCompletionStateSongLink));
@@ -1648,26 +1641,21 @@ AddOrUpdateSingleRealmItem(
         {
             // Sync each collection to Parse
             await SendMultipleObjectsToParse(songs, nameof(SongModelView));
-            Debug.WriteLine("songsToOnline");
-            await SendMultipleObjectsToParse(artistModels, nameof(ArtistModelView));
-            Debug.WriteLine("artistToOnline");
-            await SendMultipleObjectsToParse(albumModels, nameof(AlbumModelView));
-            Debug.WriteLine("albumToOnline");
+            
+            //await SendMultipleObjectsToParse(artistModels, nameof(ArtistModelView));
+            
+            //await SendMultipleObjectsToParse(albumModels, nameof(AlbumModelView));
+            
 
-            await SendMultipleObjectsToParse(genreModels, nameof(GenreModelView));
-            Debug.WriteLine("genreToOnline");
-            await SendMultipleObjectsToParse(AAGSLink, nameof(AlbumArtistGenreSongLinkView));
-            Debug.WriteLine("AAGSLinkToOnline");
+            //await SendMultipleObjectsToParse(genreModels, nameof(GenreModelView));
+            
+            //await SendMultipleObjectsToParse(AAGSLink, nameof(AlbumArtistGenreSongLinkView));
+            
 
-            if (PDaCSLink is not null)
-            {
-                await SendMultipleObjectsToParse(PDaCSLink, nameof(PlayDateAndCompletionStateSongLink));
-            }
-            Debug.WriteLine("PDaCSLinkToOnline");
-
-            Debug.WriteLine("good");
-
-            Debug.WriteLine("All data synced successfully.");
+            //if (PDaCSLink is not null)
+            //{
+            //    await SendMultipleObjectsToParse(PDaCSLink, nameof(PlayDateAndCompletionStateSongLink));
+            //}
             return true;
         }
         catch (Exception ex)
@@ -1686,22 +1674,19 @@ AddOrUpdateSingleRealmItem(
     /// <returns></returns>
     public async Task<bool> SendMultipleObjectsToParse<T>(IEnumerable<T> items, string modelName)
     {
+
         try
         {
-            foreach (var item in items)
+            foreach (var item in items.Take(500))
             {
-                try
-                {
-                    // Map and save each item to Parse
-                    await SendSingleObjectToParse(modelName, item);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error saving {modelName} action: {ex.Message}");
-                }
+                
+                var parseObj = MapToParseObject(item, modelName);
+                // Map and save each item to Parse
+                await SendSingleObjectToParse(modelName, item);
+                
             }
             Debug.WriteLine($"{modelName}sToOnline saved!");
-            await Shell.Current.DisplayAlert("Success!", "Synced!","Ok");
+            await Shell.Current.DisplayAlert("Success!", "Synced Songs!","Ok");
             return true;
         }
         catch (Exception ex)
@@ -1778,7 +1763,7 @@ AddOrUpdateSingleRealmItem(
         await GetUserAccountOnline();
         try
         {
-            SyncAllDataToDatabaseAsync(db, songs, artistModels, albumModels, genreModels, AAGSLink, null);
+            SyncAllDataToDatabase(db, songs, artistModels, albumModels, genreModels, AAGSLink, null);
             
             return true;
         }
@@ -1809,13 +1794,13 @@ AddOrUpdateSingleRealmItem(
                 if (!db.All<T>().Any(existsCondition))
                 {
                     db.Add(item);
-                    Debug.WriteLine($"Added {typeof(T).Name}");
+                    
                 }
                 else
                 {
                     updateAction?.Invoke(item); // Perform additional updates if needed
                     db.Add(item, update: true); // Update existing item
-                    Debug.WriteLine($"Updated {typeof(T).Name}");
+                    
                 }
             }
         });
@@ -1829,22 +1814,26 @@ AddOrUpdateSingleRealmItem(
     /// <param name="item"></param>
     /// <param name="existsCondition"></param>
     /// <param name="updateAction"></param>
-    public void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool> existsCondition, Action<T>? updateAction = null) where T : RealmObject
+    public void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool> existsCondition=null, Action<T>? updateAction = null) where T : RealmObject
     {
 
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
+            if (existsCondition is null)
+            {
+                db.Add(item);
+                return;
+            }
             if (!db.All<T>().Any(existsCondition))
             {
                 db.Add(item);
-                Debug.WriteLine($"Added {typeof(T).Name}");
             }
             else
             {
                 updateAction?.Invoke(item); // Perform additional updates if needed
                 db.Add(item, update: true); // Update existing item
-                Debug.WriteLine($"Updated {typeof(T).Name}");
+             
             }
         });
     }
@@ -1920,7 +1909,7 @@ public class CsvExporter
             }
         }
 
-        Console.WriteLine($"Data successfully exported to {csvFilePath}");
+        Debug.WriteLine($"Data successfully exported to {csvFilePath}");
     }
 
     /// <summary>

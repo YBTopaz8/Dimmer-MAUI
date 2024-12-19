@@ -1,86 +1,89 @@
 ﻿using DevExpress.Maui.Controls;
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
-using System.Diagnostics;
+using Hqub.Lastfm.Cache;
+using Parse.LiveQuery;
+using System.Reflection;
 
 
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
+    //LastfmClient LastfmClient;
     [ObservableProperty]
-    UserModelView? currentUser;
+    public partial UserModelView CurrentUser { get; set; } =new();
     [ObservableProperty]
-    ParseUser? currentUserOnline;
+    public partial ParseUser CurrentUserOnline { get; set; }
 
     [ObservableProperty]
-    FlyoutBehavior shellFlyoutBehavior = FlyoutBehavior.Disabled;
+    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;
     [ObservableProperty]
-    bool isFlyOutPaneOpen = false;
+    public partial bool IsFlyOutPaneOpen { get; set; } = false;
     [ObservableProperty]
-    SongModelView? pickedSong; // I use this a lot with the collection view, mostly to scroll
+    public partial SongModelView PickedSong { get; set; } = new(); // I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    SongModelView? temporarilyPickedSong;
+    public partial SongModelView TemporarilyPickedSong { get; set; } = new();
 
     [ObservableProperty]
-    double currentPositionPercentage;
+    public partial double CurrentPositionPercentage { get; set; }
     [ObservableProperty]
-    double currentPositionInSeconds = 0;
+    public partial double CurrentPositionInSeconds { get; set; } = 0;
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> displayedSongs = new();
+    public partial ObservableCollection<SongModelView> DisplayedSongs { get; set; } = new();
 
     [ObservableProperty]
-    ObservableCollection<SongModelView>? prevCurrNextSongsCollection = new();
+    public partial ObservableCollection<SongModelView> PrevCurrNextSongsCollection { get; set; } = new();
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
-    int totalNumberOfSongs=0;
+    public partial int TotalNumberOfSongs { get; set; } = 0;
     [ObservableProperty]
-    string? totalSongsSize;
+    public partial string? TotalSongsSize { get; set; }
     [ObservableProperty]
-    string? totalSongsDuration;
+    public partial string? TotalSongsDuration { get; set; }
 
     [ObservableProperty]
-    ObservableCollection<LyricPhraseModel>? synchronizedLyrics;
+    public partial ObservableCollection<LyricPhraseModel> SynchronizedLyrics { get; set; } = new();
     [ObservableProperty]
-    LyricPhraseModel? currentLyricPhrase;
+    public partial LyricPhraseModel CurrentLyricPhrase { get; set; } = new();
 
     [ObservableProperty]
-    int loadingSongsProgress;
+    public partial int LoadingSongsProgress { get; set; }
 
     [ObservableProperty]
-    double volumeSliderValue = 1;
+    public partial double VolumeSliderValue { get; set; } = 1;
 
     [ObservableProperty]
-    bool isShuffleOn;
+    public partial bool IsShuffleOn { get; set; }
     [ObservableProperty]
-    int currentRepeatMode;
+    public partial int CurrentRepeatMode { get; set; }
     [ObservableProperty]
-    bool isDRPCEnabled;
-    IFolderPicker folderPicker { get; }
+    public partial bool IsDRPCEnabled { get; set; }
+    IFolderPicker FolderPicker { get; }
     IFileSaver FileSaver { get; }
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
 
     [ObservableProperty]
-    List<AlbumArtistGenreSongLinkView>? allLinks = new();
+    public partial List<AlbumArtistGenreSongLinkView>? AllLinks { get; set; } = new();
     [ObservableProperty]
-    List<PlayDateAndCompletionStateSongLinkView>? allPDaCStateLink = new();
+    public partial List<PlayDateAndCompletionStateSongLinkView>? AllPDaCStateLink { get; set; } = new();
 
     [ObservableProperty]
-    string? unSyncedLyrics;
+    public partial string? UnSyncedLyrics { get; set; }
     [ObservableProperty]
-    string? localFilePath;
+    public partial string? LocalFilePath { get; set; }
 
     public AppState CurrentAppState = AppState.OnForeGround;
 
     [ObservableProperty]
-    int currentQueue = 0;
+    public partial int CurrentQueue { get; set; } = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService)
     {
-        this.folderPicker = folderPickerService;
+        this.FolderPicker = folderPickerService;
         FileSaver = fileSaver;
         PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
@@ -120,10 +123,16 @@ public partial class HomePageVM : ObservableObject
 #endif
         CurrentUser = SongsMgtService.CurrentOfflineUser;
         SyncRefresh();
+        
         LoadSongCoverImage();
+
+        LoadData();
+
+        _ = GetSecuredData();
+        
     }
 
-    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    partial void OnTemporarilyPickedSongChanging(SongModelView oldValue, SongModelView newValue)
     {
         Debug.WriteLine($"Old Ver {oldValue?.CoverImagePath} | New Ver {newValue?.CoverImagePath} , Song {TemporarilyPickedSong?.Title}");
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
@@ -143,24 +152,16 @@ public partial class HomePageVM : ObservableObject
 
         if (newValue is not null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (DisplayedSongsColView is not null)
-                {
-                    DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, false);
-                    
-                }
-            });
-
+         
         }
     }
 
     partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel>? oldValue, ObservableCollection<LyricPhraseModel>? newValue)
     {
-        Debug.WriteLine($"Old Ver {oldValue?.Count} | New Ver { newValue?.Count} , Song { TemporarilyPickedSong?.Title}");
+        
         if (oldValue is not null && oldValue.Count > 0)
         {
-            Debug.WriteLine(oldValue[0].Text);
+            
         }
         if (newValue is not null && newValue.Count < 1)
         {
@@ -175,14 +176,14 @@ public partial class HomePageVM : ObservableObject
         }
         if (newValue is not null && newValue.Count > 0)
         {
-            Debug.WriteLine(newValue[0].Text);
+            
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 if (SyncLyricsCV is not null)
                 {
                     SyncLyricsCV!.ItemsSource = null;
                     SyncLyricsCV.ItemsSource = newValue;
-                    SyncLyricsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+                    SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
                 }
 
             });
@@ -439,7 +440,7 @@ public partial class HomePageVM : ObservableObject
     #region Loadings Region
 
     [ObservableProperty]
-    bool isLoadingSongs;
+    public partial bool IsLoadingSongs { get; set; }
 
     [ObservableProperty]
     ObservableCollection<string> folderPaths;
@@ -454,12 +455,12 @@ public partial class HomePageVM : ObservableObject
 
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
-#if ANDROID && NET9_0
+#if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
 
-#if WINDOWS || ANDROID && NET9_0
-        var res = await FolderPicker.Default.PickAsync(token);
+#if WINDOWS || ANDROID 
+        var res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
         {
@@ -522,11 +523,40 @@ public partial class HomePageVM : ObservableObject
 
     #region Playback Control Region
 
-    public List<SongModelView> filteredSongs = new();
-    [RelayCommand]
-    //void PlaySong(SongsModelView? SelectedSong = null)
-    public async Task PlaySong(SongModelView? SelectedSong = null)
+
+    async Task UpdateRelatedPlayingData(SongModelView song)
     {
+        var songArt = song.ArtistName;
+        if (!string.IsNullOrEmpty(songArt))
+        {
+            if (AllArtists is not null && AllArtists.Count > 0)
+            {
+                var art= GetAllArtistsFromSongID(song.LocalDeviceId!).FirstOrDefault();
+
+                if (art is null)
+                {
+                    List<string> load = [song.FilePath];
+
+                    if(await PlayBackService.LoadSongsFromFolderAsync(load))
+                    {
+                        string msg = $"Song {song.Title} remembered.";
+                        //_ = ShowNotificationAsync(msg);
+                    }
+                    return;
+                }
+                SelectedAlbumOnArtistPage = GetAlbumFromSongID(song.LocalDeviceId!).SingleOrDefault();
+            }
+        }
+    }
+
+
+    public List<SongModelView> filteredSongs = new();
+    [RelayCommand]    
+    public async Task PlaySong(SongModelView SelectedSong)
+    {
+        //_ = UpdateRelatedPlayingData(SelectedSong!);//always check if we already have the song's artist and other data loaded
+
+
         TemporarilyPickedSong ??= SelectedSong!;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         
@@ -599,7 +629,7 @@ public partial class HomePageVM : ObservableObject
         TemporarilyPickedSong!.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackService.PlayNextSongAsync();
+        await PlayBackService.PlayNextSongAsync(true);
     }
 
     [RelayCommand]
@@ -607,7 +637,7 @@ public partial class HomePageVM : ObservableObject
     {
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackService.PlayPreviousSongAsync();
+        await PlayBackService.PlayPreviousSongAsync(true);
     }
 
     [RelayCommand]
@@ -944,11 +974,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     private bool _isLoading = false;
-
-    private int _currentIndex = 0; // Tracks the position of the last loaded batch
-    private const int MaxDisplayedSongs = 60; // Max items in DisplayedSongs
-
-  
+      
 
     private void SubscribetoDisplayedSongsChanges()
     {
@@ -969,13 +995,13 @@ public partial class HomePageVM : ObservableObject
 
         
     }
-    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
+    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
     {
         Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
     }
 
     [ObservableProperty]
-    CollectionView desktopColView;
+    public partial CollectionView DesktopColView { get; set; }
 
 
     private void SubscribeToSyncedLyricsChanges()
@@ -1000,21 +1026,20 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    string? lyricsSearchSongTitle;
+    public partial string? LyricsSearchSongTitle { get; set; }
     [ObservableProperty]
-    string? lyricsSearchArtistName;
+    public partial string? LyricsSearchArtistName {get;set;}
     [ObservableProperty]
-    string? lyricsSearchAlbumName;
+    public partial string? LyricsSearchAlbumName {get;set;}
     [ObservableProperty]
-    bool useManualSearch;
+    public partial bool UseManualSearch { get; set; }
 
     [ObservableProperty]
-    Content[]? allSyncLyrics;
+    public partial ObservableCollection<Content?>? AllSyncLyrics {get;set;}
     [ObservableProperty]
-    bool isFetchSuccessful = true;
+    public partial bool IsFetchSuccessful {get;set;}= true;
     [ObservableProperty]
-    bool isFetching = false;
-    
+public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
         LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
@@ -1037,35 +1062,32 @@ public partial class HomePageVM : ObservableObject
 
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
-        AllSyncLyrics = Array.Empty<Content>();
-        (bool IsSuccessful, Content[] contentData) result= await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
+        AllSyncLyrics = new();
+        (bool IsSuccessful, Content[]? contentData) result = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
         
-        AllSyncLyrics = result.contentData;
-    
+        AllSyncLyrics = result.contentData.ToObservableCollection();
+        (IsFetchSuccessful, var e) = await LyricsManagerService.FetchLyricsOnlineLyrist(SelectedSongToOpenBtmSheet.Title, TemporarilyPickedSong.ArtistName);
+        if (e is not null)
+        {
+            AllSyncLyrics.Add(e.FirstOrDefault());
+        }
+
+        await FetchOnLastFM();
+
         IsFetchSuccessful = result.IsSuccessful;
-        LyricsSearchSongTitle = null;
-        LyricsSearchArtistName = null;
-        LyricsSearchAlbumName = null;
+        
+        //LyricsSearchSongTitle = null;
+        //LyricsSearchArtistName = null;
+        //LyricsSearchAlbumName = null;
 
         return IsFetchSuccessful;
     }
-
-    [RelayCommand]
-    async Task FetchLyricsLyrist(bool fromUI = false)
-    {
-        IsFetching = true;
-        if (fromUI || SynchronizedLyrics?.Count < 1)
-        {
-            AllSyncLyrics = Array.Empty<Content>();
-            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName);
-        }
-        IsFetching = false;
-        return;
-    }
-
+    [ObservableProperty]
+    public partial List<string>? LinkToFetchSongCoverImage { get; set; } =new();
+    
     public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
     {
-        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
+        var result = ((bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this)));
         if (result)
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);
@@ -1129,7 +1151,7 @@ public partial class HomePageVM : ObservableObject
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            await PlaySong();
+            await PlaySong(TemporarilyPickedSong);
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
@@ -1290,8 +1312,7 @@ public partial class HomePageVM : ObservableObject
     bool isOnLyricsSyncMode = false;
     [RelayCommand]
     void SwitchViewNowPlayingPage(int viewIndex)
-    {
-        
+    {        
         switch (viewIndex)
         {
             case 0:
@@ -1302,6 +1323,10 @@ public partial class HomePageVM : ObservableObject
                 Array.Clear(splittedLyricsLines);
                 break;
             case 1:
+                LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
+                LyricsSearchArtistName = SelectedSongToOpenBtmSheet.ArtistName;
+                LyricsSearchAlbumName = SelectedSongToOpenBtmSheet.AlbumName;
+
                 break;
             case 2:
                 SongPickedForStats ??= new SingleSongStatistics();
@@ -1310,6 +1335,11 @@ public partial class HomePageVM : ObservableObject
                 OpenEditableSongsTagsView();
                 CurrentPage = PageEnum.FullStatsPage;
                 ShowSingleSongStats(SelectedSongToOpenBtmSheet);
+                break;
+            case 3:
+                SelectedArtistOnArtistPage = GetAllArtistsFromSongID(SelectedSongToOpenBtmSheet.LocalDeviceId!).FirstOrDefault();
+                SelectedAlbumOnArtistPage = GetAlbumFromSongID(SelectedSongToOpenBtmSheet.LocalDeviceId!).FirstOrDefault();
+
                 break;
             default:
                 break;
@@ -1367,7 +1397,7 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentRepeatMode = 4;
             CurrentRepeatMaxCount = result;
-            await PlaySong();
+            await PlaySong(TemporarilyPickedSong);
             ToggleRepeatMode();
 
             CurrentRepeatMaxCount = 0;
@@ -1408,39 +1438,31 @@ public partial class HomePageVM : ObservableObject
     bool isAnimatingFav = false;
     System.Timers.Timer _showAndHideFavGif;
     [RelayCommand]
-    public async Task RateSong(Rating obj)
+    public async Task RateSong(string value)
     {
-        _showAndHideFavGif = new System.Timers.Timer(2000);
-        _showAndHideFavGif.AutoReset = false;
-        _showAndHideFavGif.Elapsed += ((send, arg) =>
+        bool willBeFav = false;
+        var rateValue = int.Parse(value);
+        switch (rateValue)
         {
-            IsAnimatingFav = false;
-        });
-        var willBeFav = false;
-        if (obj is not null)
-        {
-            var rateValue = obj.Value;
-            switch (rateValue)
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    willBeFav = false;
-                    break;
-                case 4:
-                case 5:
-                    willBeFav = true;
-                    break;
-                default:
-                    break;
-            }
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                willBeFav = false;
+                break;
+            case 4:
+            case 5:
+                willBeFav = true;
+                break;
+            default:
+                break;
+        }
             SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
             bool isAdd = false;
             var favPlaylist = new PlaylistModelView { Name = "Favorites" };
-            if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue>3)
+            if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue > 3)
             {
-                SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
+                SelectedSongToOpenBtmSheet.Rating = rateValue;
                 IsAnimatingFav = true;
 #if ANDROID
                 HapticFeedback.Default.Perform(HapticFeedbackType.Click);
@@ -1453,7 +1475,7 @@ public partial class HomePageVM : ObservableObject
             else
             if (SelectedSongToOpenBtmSheet.Rating == 0 && rateValue <= 3)
             {
-                SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
+                SelectedSongToOpenBtmSheet.Rating = rateValue;
                 SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
             }
             else
@@ -1465,23 +1487,53 @@ public partial class HomePageVM : ObservableObject
                 await Task.Delay(3000);
                 IsAnimatingFav = false;
             }
-            else if (SelectedSongToOpenBtmSheet.Rating<3 && rateValue <=3)
+            else if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue <= 3)
             {
                 await UpdatePlayList(SelectedSongToOpenBtmSheet, IsRemoveSong: true, playlistModel: favPlaylist);
             }
-            else if (SelectedSongToOpenBtmSheet.Rating>4 && rateValue <=3)
+            else if (SelectedSongToOpenBtmSheet.Rating > 4 && rateValue <= 3)
             {
                 await UpdatePlayList(SelectedSongToOpenBtmSheet, IsRemoveSong: true, playlistModel: favPlaylist);
             }
             else if (SelectedSongToOpenBtmSheet.Rating > 4 && rateValue > 4)
             {
-                 SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+                SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
             }
 
         }
+    
+
+    public async Task<bool> GetSecuredData()
+    {
+        
+        var Uname =  await SecureStorage.Default.GetAsync("ParseUsername");
+        var uPass = await SecureStorage.Default.GetAsync("ParsePassWord");
+        var uEmail = await SecureStorage.Default.GetAsync("ParseEmail");
+        var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
+        var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
+
+        CurrentUser.UserEmail = uEmail;
+        CurrentUser.UserPassword = uPass;
+        CurrentUser.UserName = Uname;
+        LastFMUserName = lastFMUname;
+        LastFMPassword = lastFMPass;
+        if (string.IsNullOrWhiteSpace(Uname) || string.IsNullOrEmpty(uPass) && string.IsNullOrEmpty(uEmail)) //maybe i'm being too agressive here, but I'll see.
+        {
+            return false; //I saw lmao. best to not be agro since well, what if they just opened app?
+        }
+
+        _ = LogInToLastFMWebsite();
+
+        if (string.IsNullOrEmpty(lastFMUname) || string.IsNullOrEmpty(lastFMPass))
+        {
+
+        }
+        _ = LogInToLastFMWebsite();
+        return true;
     }
 
-    
+
+
     [ObservableProperty]
     BottomSheetState nowPlayBtmSheetState = BottomSheetState.Hidden;
     [RelayCommand]
@@ -1490,4 +1542,333 @@ public partial class HomePageVM : ObservableObject
         NowPlayBtmSheetState = BottomSheetState.FullExpanded;
     }
 
+    [ObservableProperty]
+    ObservableCollection<Hqub.Lastfm.Entities.Track> lastfmTracks = new();
+
+    [ObservableProperty]
+    string lastFMUserName;
+    [ObservableProperty]
+    string lastFMPassword;
+    LastfmClient clientLastFM;
+    [RelayCommand]
+    public async Task LogInToLastFMWebsite()
+    {
+        clientLastFM = LastfmClient.Instance;
+        if (!clientLastFM.Session.Authenticated)
+        {
+            //LoginBtn.IsEnabled = false;
+            if (string.IsNullOrWhiteSpace(LastFMUserName) || string.IsNullOrWhiteSpace(LastFMPassword))
+            {
+                _ = Shell.Current.DisplayAlert("Error when logging to lastfm", "Username and Password are required.", "OK");
+                return;
+            }
+            await clientLastFM.AuthenticateAsync(LastFMUserName, LastFMUserName);
+            if (clientLastFM.Session.Authenticated)
+            {
+                
+                var usr = await clientLastFM.User.GetInfoAsync(LastFMUserName);
+                _ = SecureStorage.Default.SetAsync("LastFMUsername", usr.Name);
+                _ = SecureStorage.Default.SetAsync("LastFMPassWord", LastFMPassword);
+            }
+        }
+    }
+
+    public async Task LogInToParseServer(string uname, string password)
+    {
+        if (CurrentUserOnline is not null)
+        {
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
+            {
+                return;
+            }
+        }
+        if (string.IsNullOrWhiteSpace(password))
+        {
+        }
+        //LoginBtn.IsEnabled = false;
+        if (string.IsNullOrWhiteSpace(uname) || string.IsNullOrWhiteSpace(password))
+        {
+            await Shell.Current.DisplayAlert("Error Online Logging", "Username and Password are required.", "OK");
+            return;
+        }
+
+        try
+        {
+            var oUser = await ParseClient.Instance.LogInWithAsync(uname.Trim(), password.Trim()).ConfigureAwait(false);
+            SongsMgtService.CurrentOfflineUser.UserPassword = password;
+            CurrentUserOnline = oUser;
+            CurrentUser.IsAuthenticated = true;
+            //await Shell.Current.DisplayAlert("Success !", $"Welcome Back !", "OK"); looks like an issue with parse funnily, I can't exactl reproduce it.
+
+            _ = SecureStorage.Default.SetAsync("ParseUsername", CurrentUserOnline.Username);
+            _ = SecureStorage.Default.SetAsync("ParsePassWord", password);
+            _ = SecureStorage.Default.SetAsync("ParseEmail", CurrentUser.UserEmail!);
+
+            SetupLiveQueries();
+        }
+        catch (Exception ex)
+        {
+            CurrentUser!.IsAuthenticated = false;
+            await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
+
+        }
+    }
+
+    public ParseLiveQueryClient LiveQueryClient { get; set; }
+
+    public void SetupLiveQueries()
+    {
+        return;
+        try
+        {
+            LiveQueryClient = new();
+            var SongQuery = ParseClient.Instance.GetQuery("SongModelView");
+            var subscription = LiveQueryClient.Subscribe(SongQuery);
+
+            LiveQueryClient.OnConnected.
+                Subscribe(_ =>
+                {
+                    Debug.WriteLine("Connected to LiveQuery Server");
+                });
+
+            LiveQueryClient.OnError.
+                Subscribe(ex =>
+                {
+                    Debug.WriteLine($"Error: {ex.Message}");
+                });
+
+            LiveQueryClient.OnSubscribed.
+                Subscribe(sub =>
+                {
+                    Debug.WriteLine($"Subscribed to {sub.requestId}");
+                });
+
+            LiveQueryClient.OnObjectEvent
+                .Where(e => e.evt == Subscription.Event.Update)
+                .Subscribe(async e =>
+                {
+                    SongModelView song = new();
+                    var objData = (e.objectDictionnary as Dictionary<string, object>);
+
+                    song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
+                    CurrentQueue=0;
+                    if (song.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)
+                    {
+                        _ = PauseSong();
+                    }
+                    else
+                    {
+                        _ = PlaySong(song);
+                    }
+
+                });
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+    }
+
+    [RelayCommand]
+    void LogInToLastFMClientLocal()
+    {
+        var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+
+        clientLastFM = new LastfmClient(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET)
+        {
+            Cache = new FileRequestCache(Path.Combine(localPath, "cache"))
+        };
+        //await LastFmService.Authenticate();
+
+        return;
+
+    }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track LastFMTrackInfoToSave { get; set; }
+    public async Task FetchOnLastFM() //0 == song, 1 == artist, 2 = album. will rework this
+    {
+        LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
+        LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
+        LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
+        //if (LastfmClient.Session.Authenticated)
+        //{
+        if (clientLastFM is null)
+        {
+            LogInToLastFMClientLocal();
+        }
+        PagedResponse<Hqub.Lastfm.Entities.Track>? tracks = await clientLastFM!.Track.SearchAsync(LyricsSearchSongTitle, LyricsSearchArtistName);
+        if (tracks != null && tracks.Count != 0)
+        {
+            LastfmTracks.Clear(); // Clear existing tracks
+            foreach (var track in tracks)
+            {
+                LastfmTracks.Add(track);
+            }
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("No Results", "No Results Found on Last FM", "OK");
+            // Handle no results found
+        }
+
+        //}
+    }
+    public void SaveLastFMTrackInfo()
+    {
+        if (LastFMTrackInfoToSave is not null)
+        {
+            SelectedSongToOpenBtmSheet!.ArtistName = LastFMTrackInfoToSave.Artist.Name;
+            SelectedSongToOpenBtmSheet.Title = LastFMTrackInfoToSave.Name;
+            SelectedSongToOpenBtmSheet.AlbumName = LastFMTrackInfoToSave.Album.Name;
+            SelectedSongToOpenBtmSheet.SongWiki = LastFMTrackInfoToSave.Wiki.Summary;
+            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+        }
+    }
+}
+public static class ObjectMapper
+{
+    /// <summary>
+    /// Maps values from a dictionary to an instance of type T.
+    /// Excludes ObjectId fields and skips ParseObjects.
+    /// Handles nullable types and performs safe type conversions.
+    /// Logs any keys that don't match properties in T.
+    /// </summary>
+    /// <typeparam name="T">The type of the target model.</typeparam>
+    /// <param name="source">The source dictionary from Parse.</param>
+    /// <returns>An instance of T with mapped values.</returns>
+    public static T MapFromDictionary<T>(IDictionary<string, object> source) where T : new()
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        // Create an instance of T
+        T target = new T();
+
+        // Get all writable properties of T, case-insensitive
+        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite)
+            .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase);
+
+        // Track unmatched keys
+        List<string> unmatchedKeys = new();
+
+        foreach (var kvp in source)
+        {
+            // Skip ObjectId fields
+            if (kvp.Key.Equals("objectId", StringComparison.OrdinalIgnoreCase) ||
+                kvp.Key.Equals("ObjectId", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (properties.TryGetValue(kvp.Key, out var property))
+            {
+                try
+                {
+                    if (kvp.Value == null)
+                    {
+                        // Assign null to nullable types or reference types
+                        if (IsNullable(property.PropertyType))
+                        {
+                            property.SetValue(target, null);
+                        }
+                        // Else, skip assigning null to non-nullable value types
+                    }
+                    else
+                    {
+                        Type targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+                        // If the target type is an enum, attempt to parse it
+                        if (targetType.IsEnum)
+                        {
+                            var enumValue = Enum.Parse(targetType, kvp.Value.ToString());
+                            property.SetValue(target, enumValue);
+                        }
+                        // Handle special conversions if necessary
+                        else if (targetType == typeof(DateTime))
+                        {
+                            if (kvp.Value is string dateString && DateTime.TryParse(dateString, out DateTime parsedDate))
+                            {
+                                property.SetValue(target, parsedDate);
+                            }
+                            else if (kvp.Value is DateTime dateTimeValue)
+                            {
+                                property.SetValue(target, dateTimeValue);
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Cannot convert value '{kvp.Value}' to DateTime for property '{property.Name}'.");
+                            }
+                        }
+                        else if (targetType == typeof(int))
+                        {
+                            // Handle cases where source is double but target is int
+                            if (kvp.Value is double doubleValue)
+                            {
+                                property.SetValue(target, Convert.ToInt32(doubleValue));
+                            }
+                            else
+                            {
+                                var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                                property.SetValue(target, convertedValue);
+                            }
+                        }
+                        else if (targetType == typeof(int?))
+                        {
+                            // Handle nullable int separately
+                            if (kvp.Value is double doubleValue)
+                            {
+                                property.SetValue(target, (int?)Convert.ToInt32(doubleValue));
+                            }
+                            else
+                            {
+                                var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                                property.SetValue(target, convertedValue);
+                            }
+                        }
+                        else
+                        {
+                            // General conversion for other types
+                            var convertedValue = Convert.ChangeType(kvp.Value, targetType);
+                            property.SetValue(target, convertedValue);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to set property '{property.Name}' with value '{kvp.Value}': {ex.Message}");
+                    // Optionally, log more details or handle specific exceptions
+                }
+            }
+            else
+            {
+                // Log unmatched keys
+                unmatchedKeys.Add(kvp.Key);
+            }
+        }
+
+        // Log keys that don't match
+        if (unmatchedKeys.Count > 0)
+        {
+            Debug.WriteLine("Unmatched Keys:");
+            foreach (var key in unmatchedKeys)
+            {
+                Debug.WriteLine($"- {key}");
+            }
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Checks if a type is nullable.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <returns>True if nullable, else false.</returns>
+    private static bool IsNullable(Type type)
+    {
+        return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+    }
 }

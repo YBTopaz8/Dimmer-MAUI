@@ -37,7 +37,9 @@ public partial class HomePageM : ContentPage
         }
         HomePageVM.CurrentPage = PageEnum.MainPage;
 
-        Shell.SetNavBarIsVisible(this, true);
+        //Shell.SetNavBarIsVisible(this, true);
+
+        
     }
 
     protected override void OnDisappearing()

@@ -47,18 +47,18 @@ public static class GeneralStaticUtilities
         {
             return null;
         }
-        Debug.WriteLine($"Track Name {track.Title}");
+        
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album.Trim()) ? track.Title : track.Album.Trim();
 
         AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
-        Debug.WriteLine("Got Or Created Album");
+        
         // Extract artist names
         var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
         string mainArtistName = string.Join(", ", artistNames);
-        Debug.WriteLine("Got Artist");
+        
         var song = CreateSongModel(track, title, albumName, mainArtistName, file);
-        Debug.WriteLine("Got Song");
+        
         if (!string.IsNullOrEmpty(albumName))
         {
             album.AlbumImagePath = song.CoverImagePath;
@@ -391,4 +391,22 @@ public static class GeneralStaticUtilities
 
         return null;
     }
+
+#if WINDOWS
+    public static void UpdateTaskBarProgress(double progress)
+    {
+        return;
+        //// wait for now.
+        //int maxProgressbarValue = 100;
+        //var taskbarInstance = Microsoft.WindowsAPICodePack.Taskbar.TaskbarManager.Instance;
+        //taskbarInstance.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.Normal);
+        //taskbarInstance.SetProgressValue((int)progress, maxProgressbarValue);
+        
+        //if (progress >= maxProgressbarValue)
+        //{
+        //    taskbarInstance.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.NoProgress);
+        //}
+
+    }
+#endif
 }

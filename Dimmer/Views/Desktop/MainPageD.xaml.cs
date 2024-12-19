@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
@@ -45,7 +43,7 @@ public partial class MainPageD : ContentPage
             }
             HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            //SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -60,8 +58,6 @@ public partial class MainPageD : ContentPage
         if (SongsColView.IsLoaded && HomePageVM.TemporarilyPickedSong is not null)
         {
 
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, null, ScrollToPosition.Center, animate: false);
-            SongsColView.SelectedItem = HomePageVM.TemporarilyPickedSong;
         }
     }
 
@@ -291,6 +287,16 @@ public partial class MainPageD : ContentPage
     private void SortBtn_Clicked(object sender, EventArgs e)
     {
         HomePageVM.OpenSortingPopupCommand.Execute(null);
+    }
+
+    private void Slider_OnValueChanged(object? sender, ValueChangedEventArgs e)
+    {
+
+    }
+
+    private async void Button_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.GetAllData();
     }
 }
 

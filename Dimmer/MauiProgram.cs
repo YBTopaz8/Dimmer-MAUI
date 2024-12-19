@@ -31,6 +31,7 @@ public static class MauiProgram
                 fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
             })
+            
             .ConfigureSyncfusionToolkit();
 
 
@@ -166,7 +167,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ShareSongPage>();
         builder.Services.AddSingleton<SettingsPageM>();
         //builder.Services.AddSingleton<NowPlayingPage>();
-
+               
 
         return builder.Build();
     }

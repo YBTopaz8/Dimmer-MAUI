@@ -47,7 +47,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                     <HorizontalStackLayout Spacing="10">
 
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
-                                     Source="eyelocate.png">
+                                     Source="eyelocatedark.png">
                                      
                         </ImageButton>
                         <ImageButton HeightRequest="20" 
@@ -112,7 +112,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
                                     <VerticalStackLayout Grid.Column="0" Margin="10,0"
                                                  BackgroundColor="Transparent"
                                                  VerticalOptions="Center">
-                                        <Label Text="{Binding Title}" />
+                                        <Label Text="{Binding Title}" LineBreakMode="WordWrap"/>
                                         <Image WidthRequest="13" HorizontalOptions="Start"
                                        IsVisible="{Binding HasLyrics}">
                                             <Image.Source>

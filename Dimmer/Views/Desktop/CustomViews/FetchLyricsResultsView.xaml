@@ -53,11 +53,11 @@
                             Padding="10" Margin="0,5">
                         <VerticalStackLayout>
                                 
-                            <Label Text="{Binding trackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                            <Label Text="{Binding artistName, StringFormat='Artist Name : {0}'}"/>
+                            <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
 
-                            <Label Text="{Binding albumName, StringFormat='Album Name: {0}'}"/>
+                            <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
 
                             <HorizontalStackLayout>
 

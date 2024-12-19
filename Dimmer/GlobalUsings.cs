@@ -15,8 +15,6 @@ global using CommunityToolkit.Mvvm.Input;
 global using UraniumUI.Icons.MaterialSymbols;
 global using UraniumUI.Icons.FontAwesome;
 global using FontAw = UraniumUI.Icons.FontAwesome;
-
-global using MongoDB.Bson;
 global using Realms;
 
 global using Dimmer_MAUI.MAudioLib;
@@ -29,7 +27,8 @@ global using DevExpress.Maui.Editors;
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;
 
-
+global using Hqub.Lastfm;
+global using Hqub.Lastfm.Entities;
 //global using SkiaSharp;
 //global using LiveChartsCore;
 //global using LiveChartsCore.SkiaSharpView;
@@ -55,7 +54,6 @@ global using Dimmer_MAUI.Platforms.Android;
 global using Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 #endif
-
 
 //global using Syncfusion.Maui.Toolkit.Hosting;
 

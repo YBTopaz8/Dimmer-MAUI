@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI;
+﻿
+using System.Net;
+
+namespace Dimmer_MAUI;
 
 public partial class App : Application
 {
@@ -9,6 +12,8 @@ public partial class App : Application
         {
             InitializeComponent();
             SongsManagementService.InitializeParseClient();
+            SetupLastFM();
+
         }
         catch (Exception ex)
         {
@@ -21,25 +26,45 @@ public partial class App : Application
 
         
     }
-    
+
+    private static void SetupLastFM()
+    {
+        AuthData.SetAPIData(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET);
+        AuthData.SetUNameAndUPass(APIKeys.USER, APIKeys.PASSWORD);
+        string localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+
+        // Step 1: Define the factory method
+        Func<string, string, IWebProxy, LastfmClient> factoryMethod = (apiKey, apiSecret, proxy) =>
+        {
+            return new LastfmClient(apiKey, apiSecret, proxy); // Replace with your LastfmClient's actual constructor
+        };
+
+        // Step 2: Configure the client
+        LastfmClient.Configure(factoryMethod, APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET);
+
+
+    }
+
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //await home.ExitingApp();
-        LogException(e.Exception);
+        //await home.ExitingApp();LogException(e.Exception);
     }
     
     protected override Window CreateWindow(IActivationState? activationState)
     {
 
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        //DimmerWindow.Page.
 #if WINDOWS
         DimmerWindow.Page = new AppShell(vm);
 
 #elif ANDROID
+        
         DimmerWindow.Page = new AppShellMobile();
 #endif
 

@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dimmer-MAUI", "Dimmer-MAUI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm-MAUI\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{023EA79B-77A5-4453-8094-DDF3F9D72BBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\ParseLiveQ\ParseLiveQuery\ParseLiveQuery.csproj", "{A3760EEC-BB4B-4327-B6B9-DE2B7F7E1D4B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parse", "..\ParseServer\Parse\Parse.csproj", "{8952B614-8A00-40C2-989E-C2D32FD7FAF7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,14 +23,6 @@ Global
 		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3760EEC-BB4B-4327-B6B9-DE2B7F7E1D4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3760EEC-BB4B-4327-B6B9-DE2B7F7E1D4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3760EEC-BB4B-4327-B6B9-DE2B7F7E1D4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3760EEC-BB4B-4327-B6B9-DE2B7F7E1D4B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8952B614-8A00-40C2-989E-C2D32FD7FAF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8952B614-8A00-40C2-989E-C2D32FD7FAF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8952B614-8A00-40C2-989E-C2D32FD7FAF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8952B614-8A00-40C2-989E-C2D32FD7FAF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

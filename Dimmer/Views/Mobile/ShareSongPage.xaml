@@ -121,7 +121,7 @@
                 <Label x:Name="HighlightedLyricEdit" Grid.Row="1" TextColor="White"
                                 HeightRequest="50">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer x:Name="TapToShowCustomTextExpander" 
+                        <TapGestureRecognizer x:Name="TapToShowCustomTextExpander" x:DataType="viewsM:ShareSongPage"
                                               Command="{Binding Commands.ToggleExpandState,Source={x:Reference ShareTextExp}}"/>
                     </Label.GestureRecognizers>
                     
@@ -230,7 +230,7 @@
 
                 </dx:DXStackLayout>
                               
-                <dx:DXButton x:Name="ShareButton" 
+                <dx:DXButton x:Name="ShareButton"  x:DataType="viewsM:ShareSongPage"
                              Command="{Binding Commands.Close,Source={x:Reference LyricPickerBtmSheet}}" 
                              BackgroundColor="DarkSlateBlue" Clicked="OnShareButtonClicked" 
                              ShowContent="False" ButtonType="Filled" HeightRequest="60"

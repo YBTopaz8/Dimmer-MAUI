@@ -1,7 +1,7 @@
 ﻿namespace Dimmer_MAUI.DataAccess.Services;
 public class StatsManagementService : IStatsManagementService
 {
-    Realm db;
+    Realm  db;
     public StatsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;

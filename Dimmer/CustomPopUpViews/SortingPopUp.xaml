@@ -7,37 +7,38 @@
             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
            Color="Transparent"
            >
-    <Border WidthRequest="500" BackgroundColor="Transparent">
+    <Border WidthRequest="500" BackgroundColor="#1E1E1E" StrokeShape="RoundRectangle 20">
         <VerticalStackLayout BackgroundColor="Transparent" Spacing="15"
                              Padding="20">
             <Label Text="Sort by..." FontSize="Medium" HorizontalTextAlignment="Center"
                    FontAttributes="Bold" />
-            <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"
+            <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+                               
                    ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
                    HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
                                >
                 <syncf:SfChipGroup.ChipLayout>
-                    <VerticalStackLayout Spacing="10" WidthRequest="300"
+                    <VerticalStackLayout Spacing="10" WidthRequest="300" 
                                          HorizontalOptions="Start"/>
                 </syncf:SfChipGroup.ChipLayout>
                 <syncf:SfChipGroup.Items>
 
-                    <syncf:SfChip Text="Title - Ascending" CommandParameter="0"/>
-                    <syncf:SfChip Text="Title - Descending" CommandParameter="1"/>
-                    <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2"/>
-                    <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3"/>
-                    <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4"/>
-                    <syncf:SfChip Text="Date Added - Descending" CommandParameter="5"/>
-                    <syncf:SfChip Text="Duration - Ascending" CommandParameter="6"/>
-                    <syncf:SfChip Text="Duration - Descending" CommandParameter="7"/>
-                    <syncf:SfChip Text="Year - Ascending" CommandParameter="8" />
-                    <syncf:SfChip Text="Year - Descending" CommandParameter="9"/>
-                    <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10"/>
-                    <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11"/>
-                    <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12"/>
-                    <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13"/>
-                    <syncf:SfChip Text="Rating - Ascending" CommandParameter="14"/>
-                    <syncf:SfChip Text="Rating - Descending" CommandParameter="15" />
+                    <syncf:SfChip Text="Title - Ascending" CommandParameter="0" TextColor="White"/>
+                    <syncf:SfChip Text="Title - Descending" CommandParameter="1" TextColor="White"/>
+                    <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2" TextColor="White"/>
+                    <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3" TextColor="White"/>
+                    <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4" TextColor="White"/>
+                    <syncf:SfChip Text="Date Added - Descending" CommandParameter="5" TextColor="White"/>
+                    <syncf:SfChip Text="Duration - Ascending" CommandParameter="6" TextColor="White"/>
+                    <syncf:SfChip Text="Duration - Descending" CommandParameter="7" TextColor="White"/>
+                    <syncf:SfChip Text="Year - Ascending" CommandParameter="8"  TextColor="White"/>
+                    <syncf:SfChip Text="Year - Descending" CommandParameter="9" TextColor="White"/>
+                    <!--<syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
+                    <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11" TextColor="White"/>
+                    <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12" TextColor="White"/>
+                    <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>-->
+                    <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
+                    <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
 
                 </syncf:SfChipGroup.Items>
             </syncf:SfChipGroup>
