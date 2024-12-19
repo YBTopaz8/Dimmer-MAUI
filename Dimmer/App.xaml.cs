@@ -30,7 +30,7 @@ public partial class App : Application
     private static void SetupLastFM()
     {
         AuthData.SetAPIData(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET);
-        AuthData.SetUNameAndUPass(APIKeys.USER, APIKeys.PASSWORD);
+        
         string localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
 

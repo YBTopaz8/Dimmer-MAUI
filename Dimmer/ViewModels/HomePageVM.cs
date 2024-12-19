@@ -1511,9 +1511,6 @@ public partial bool IsFetching { get; set; } = false;
         var uPass = await SecureStorage.Default.GetAsync("ParsePassWord");
         var uEmail = await SecureStorage.Default.GetAsync("ParseEmail");
         
-        SecureStorage.Default.Remove("LastFMUsername");
-        SecureStorage.Default.Remove("LastFMPassWord");
-
         var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
         var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
         CurrentUser.UserEmail = uEmail;
