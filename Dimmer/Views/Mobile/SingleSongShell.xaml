@@ -83,14 +83,14 @@
                             </dx:DXCollectionView.ItemTemplate>
                             <dx:DXCollectionView.SelectedItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModel">
-                                    <Border Stroke="Transparent" Margin="5,0" >
+                                    <Border Stroke="DarkSlateBlue" Padding="5,0" BackgroundColor="Transparent">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
                                         </Border.GestureRecognizers>
 
                                         <Label Text="{Binding Text}" Margin="0,5" 
                                                HorizontalTextAlignment="Center"
-                                               FontSize="23">
+                                               FontSize="33" >
                                             <Label.Triggers>
 
                                             </Label.Triggers>

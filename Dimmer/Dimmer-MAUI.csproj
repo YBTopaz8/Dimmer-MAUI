@@ -10,7 +10,7 @@
 		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
     <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
-
+    <Authors>Yvan Brunel</Authors>
 
     <AppxSymbolPackageEnabled>false</AppxSymbolPackageEnabled>
     <OutputType>Exe</OutputType>
@@ -49,7 +49,7 @@
 
     <OutputType>Exe</OutputType>
 
-
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
@@ -168,10 +168,15 @@
     
     <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
     <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.9.1" />
-    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="2.0.3" />
+    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="2.0.4" />
     
     <PackageReference Include="z440.atl.core" Version="6.9.0" />
+
   </ItemGroup>
+
+	<!--<ItemGroup Condition="$(TargetFramework.Contains('-windows')) == true">
+	  <PackageReference Include="WindowsAPICodePack" Version="8.0.4" />
+	</ItemGroup>-->
   <ItemGroup>
     <MauiXaml Update="AppShellMobile.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -313,4 +318,5 @@
       <UserProperties XamarinHotReloadDebuggerTimeoutExceptionDimmerMAUIHideInfoBar="True" />
     </VisualStudio>
   </ProjectExtensions>
+
 </Project>

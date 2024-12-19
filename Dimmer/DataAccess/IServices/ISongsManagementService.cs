@@ -36,14 +36,14 @@ public interface ISongsManagementService
     ParseUser? CurrentUserOnline { get; internal set; }
     IList<PlayDateAndCompletionStateSongLinkView> AllPlayDataAndCompletionStateLinks { get; set; }
 
-    
+
     Task<UserModelView?> GetUserAccountOnline();
     void LogOutUser();
-    bool IsEmailVerified();
+    Task<bool> IsEmailVerified();
     Task<bool> LoginAndCheckEmailVerificationAsync(string username, string password);
     
     bool RequestPasswordResetAsync(string email);
-    bool LogUserOnlineAsync(string email, string password);
+    Task<bool> LogUserOnlineAsync(string email, string password);
     bool SignUpUserOnlineAsync(string email, string password);
     
     Task GetAllDataFromOnlineAsync();

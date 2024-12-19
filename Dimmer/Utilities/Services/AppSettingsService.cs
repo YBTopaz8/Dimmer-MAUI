@@ -216,7 +216,7 @@ public class AppSettingsService : IAppSettingsService
             //case SortingEnum.NumberOfTimesPlayedCompletelyDesc:
             //    colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
             //    break;
-                
+
             case SortingEnum.RatingAsc:
                 colToSort = colToSort.OrderBy(x => x.Rating).ToObservableCollection();
                 break;

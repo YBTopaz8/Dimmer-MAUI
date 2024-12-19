@@ -385,7 +385,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     bool isLoadingSongs;
     public async Task<bool> PlaySongAsync(SongModelView? song = null, int currentQueue = 0,
         ObservableCollection<SongModelView>? currentList = null, double positionInSec = 0,
-        int repeatMode = 0, int repeatMaxCount = 0,
+        int repeatMode = 0, int repeatMaxCount = 0, bool IsUserSkipped = true,
         bool IsFromPreviousOrNext = false, AppState CurrentAppStatee = AppState.OnForeGround)
     {
         
@@ -484,12 +484,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             return true;
         }
-        catch (Exception e)
+        catch (Exception )
         {
-            Debug.WriteLine("Error message!!:  " + e.Message);
-
-            await Shell.Current.DisplayAlert("Error message!!",
-                $"***** UNHANDLED EXCEPTION! Details: {e.Message} | {e.Source} ", "Ok");
             return false;
         }
         finally
@@ -506,17 +502,18 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     PlayType = 0,
                     SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
                 };
+                ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
                 (ObservableCurrentlyPlayingSong.HasSyncedLyrics, ObservableCurrentlyPlayingSong.SyncLyrics) = LyricsService.HasLyrics(song: ObservableCurrentlyPlayingSong);
                 if (ObservableCurrentlyPlayingSong.DurationInSeconds == 0)
                 {
                     ObservableCurrentlyPlayingSong.DurationInSeconds = audioService.Duration;
-
                 }
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
                 SongsMgtService.AddPlayAndCompletionLink(link);
-                _currentPositionSubject.OnNext(new());
-                
-                
+                _currentPositionSubject.OnNext(new PlaybackInfo());
+#if WINDOWS
+                GeneralStaticUtilities.UpdateTaskBarProgress(0);
+#endif
             }
 
             //ShowMiniPlayBackView();
@@ -627,6 +624,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = currentPositionInSec
             };
+            ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
             SongsMgtService.AddPlayAndCompletionLink(link);
         }
         else //we are resuming
@@ -661,6 +659,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = currentPositionInSec
             };
+            ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
             SongsMgtService.AddPlayAndCompletionLink(link);
             ShowMiniPlayBackView();
         }
@@ -709,11 +708,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             if (CurrentRepeatMode == 2) //repeat the same song
             {
-                await PlaySongAsync(IsFromPreviousOrNext: true);
+                await PlaySongAsync(IsFromPreviousOrNext: true, IsUserSkipped:false);
                 return;
             }
 
-            await PlayNextSongAsync();
+            await PlayNextSongAsync(false);
         }
         finally
         {
@@ -733,6 +732,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _positionTimer = null;
         }
         _currentPositionSubject.OnNext(new());
+#if WINDOWS
+        GeneralStaticUtilities.UpdateTaskBarProgress(0);
+#endif
         ObservableCurrentlyPlayingSong!.IsCurrentPlayingHighlight = false;
 
         ObservableCurrentlyPlayingSong.IsPlaying = false;
@@ -744,11 +746,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             PlayType = 3,
             SongId = ObservableCurrentlyPlayingSong.LocalDeviceId
         };
+        ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
+
         SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
         SongsMgtService.AddPlayAndCompletionLink(link);   
         if (CurrentRepeatMode == 2) // Repeat the same song
         {
-            await PlaySongAsync();
+            await PlaySongAsync(IsUserSkipped: false);
         }
 
         else if (CurrentRepeatMode == 4) // Custom repeat mode
@@ -757,19 +761,19 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 CurrentRepeatCount++;
                 Debug.WriteLine($"Repeating song {CurrentRepeatCount}/{repeatCountMax}");
-                await PlaySongAsync();
+                await PlaySongAsync(IsUserSkipped: false);
             }
             else
             {
                 CurrentRepeatMode = 1;
                 CurrentRepeatCount = 1;
                 Debug.WriteLine("Finished repeating the song, moving to next song.");
-                await PlayNextSongAsync();
+                await PlayNextSongAsync(false);
             }
         }
         else
         {
-            await PlayNextSongAsync();
+            await PlayNextSongAsync(false);
         }
 
         //if (!audioService.IsPlaying)
@@ -806,27 +810,39 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
     #endregion
-    public async Task<bool> PlayNextSongAsync()
+    public async Task<bool> PlayNextSongAsync(bool IsUserSkipped = true)
     {
+        if (IsUserSkipped)
+        {
+            PlayDateAndCompletionStateSongLink link = new()
+            {
+                DatePlayed = DateTime.Now,
+                PlayType = 5,
+                SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
+                WasPlayCompleted = false
+
+            };
+            SongsMgtService.AddPlayAndCompletionLink(link);
+        }
         if (ObservableCurrentlyPlayingSong is not null)
         {
             ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         }
         if (CurrentRepeatMode == 0)
         {
-            await PlaySongAsync(currentQueue: CurrentQueue, IsFromPreviousOrNext: true);
+            await PlaySongAsync(currentQueue: CurrentQueue, IsUserSkipped: IsUserSkipped,  IsFromPreviousOrNext: true);
             return true;
         }
 
         GetPrevAndNextSongs(IsNext: true);
         return await PlaySongAsync(ObservableCurrentlyPlayingSong, CurrentQueue, IsFromPreviousOrNext: true);
     }
-    public async Task<bool> PlayPreviousSongAsync()
+    public async Task<bool> PlayPreviousSongAsync(bool IsUserSkipped = true)
     {
         ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
 
         GetPrevAndNextSongs(IsPrevious: true);
-        return await PlaySongAsync(ObservableCurrentlyPlayingSong, CurrentQueue, IsFromPreviousOrNext: true);
+        return await PlaySongAsync(ObservableCurrentlyPlayingSong, CurrentQueue, IsUserSkipped:IsUserSkipped, IsFromPreviousOrNext: true);
     }
 
     /// <summary>
@@ -854,6 +870,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = currentPositionInSec
             };
+            ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
             SongsMgtService.AddPlayAndCompletionLink(link);
         }
     }
@@ -954,6 +971,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
         _currentPositionSubject.OnNext(CurrentPlayBackInfo);
+#if WINDOWS
+        //GeneralStaticUtilities.z(percentagePlayed);
+#endif
     }
 
     double currentPosition = 0;

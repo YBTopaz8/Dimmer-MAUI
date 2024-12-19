@@ -63,7 +63,7 @@ public partial class SettingsPageD : ContentPage
 
         try
         {
-            await ParseClient.Instance.SignUpAsync(user);
+            await ParseClient.Instance.SignUpWithAsync(user);
             await Shell.Current.DisplayAlert("Success", "Account created successfully!", "OK");
 
             _ = SecureStorage.Default.SetAsync("ParseUsername", SignUpUname.Text);

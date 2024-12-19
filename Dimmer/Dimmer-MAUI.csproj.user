@@ -4,8 +4,8 @@
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
     <ActiveDebugFramework>net9.0-windows10.0.19041.0</ActiveDebugFramework>
     <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
-    <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <DefaultDevice>wear_os_large_round_-_api_34</DefaultDevice>
+    <SelectedPlatformGroup>PhysicalDevice</SelectedPlatformGroup>
+    <DefaultDevice>pixel_4_xl_-_api_30</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
     <_LastSelectedProfileId>MSIX-win-x64.pubxml</_LastSelectedProfileId>

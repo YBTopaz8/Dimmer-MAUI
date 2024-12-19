@@ -572,7 +572,8 @@ public class LyricsService : ILyricsService
         lyrics.TrackName = e.Title;
         lyrics.ArtistName = e.Artist;
         lyrics.PlainLyrics = e.Lyrics;
-        lyrics.LinkToCoverImage = e.Image;
+        lyrics.ListOfLinksToCoverImages.Add(e.Image);
+        
         lyrics.Id = 1;
         List<Content> contentList = new();
         contentList.Add(lyrics);

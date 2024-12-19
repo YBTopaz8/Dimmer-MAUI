@@ -30,13 +30,13 @@
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Surface}}" />
     </Style>
     <Style TargetType="VerticalStackLayout">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Surface}}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark=Transparent}" />
     </Style>
     <Style TargetType="HorizontalStackLayout">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Surface}}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark=Transparent}" />
     </Style>
     <Style TargetType="Grid">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Surface}}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark=Transparent}" />
     </Style>
 
     <Style TargetType="toolkit:Expander">

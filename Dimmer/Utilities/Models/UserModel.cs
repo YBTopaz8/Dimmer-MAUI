@@ -82,7 +82,7 @@ public partial class UserModelView : ObservableObject
         UserEmail = model.Email;
         UserName = model.Username;
         UserIDOnline = model.ObjectId;
-        IsAuthenticated = model.IsAuthenticated;
+        
     }
 }
 

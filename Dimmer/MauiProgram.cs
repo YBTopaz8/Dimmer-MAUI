@@ -31,6 +31,7 @@ public static class MauiProgram
                 fonts.AddMaterialSymbolsFonts();
                 fonts.AddFontAwesomeIconFonts();
             })
+            
             .ConfigureSyncfusionToolkit();
 
 

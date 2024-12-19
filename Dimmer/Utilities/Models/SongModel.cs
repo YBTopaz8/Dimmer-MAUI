@@ -71,67 +71,70 @@ public partial class SongModelView : ObservableObject
 {
 
     [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(SongModelView));
-    
-    
-    [ObservableProperty]
-    string? title;
-    [ObservableProperty]
-    string? filePath;
-    [ObservableProperty]
-    string? artistName;
-    [ObservableProperty]
-    string? albumName;
-    [ObservableProperty]
-    string? genreName;
-    [ObservableProperty]
-    double durationInSeconds;
-    [ObservableProperty]
-    int? releaseYear;
+    public partial string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModelView));
+
 
     [ObservableProperty]
-    bool isDeleted;
+    public partial string? Title {get;set;}
     [ObservableProperty]
-    int? trackNumber;
+    public partial string? FilePath {get;set;}
     [ObservableProperty]
-    string? fileFormat;
+    public partial string? ArtistName {get;set;}
     [ObservableProperty]
-    long fileSize;
+    public partial string? AlbumName {get;set;}
     [ObservableProperty]
-    int? bitRate;
+    public partial string? GenreName {get;set;}
     [ObservableProperty]
-    double? sampleRate;
+    public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
-    int rating = 0;
+    public partial int? ReleaseYear {get;set;}
 
     [ObservableProperty]
-    bool hasLyrics;
+    public partial bool IsDeleted {get;set;}
     [ObservableProperty]
-    bool hasSyncedLyrics = false;
+    public partial int? TrackNumber {get;set;}
     [ObservableProperty]
-    bool isInstrumental = false;
+    public partial string? FileFormat {get;set;}
     [ObservableProperty]
-    string? coverImagePath = null;
+    public partial long FileSize {get;set;}
     [ObservableProperty]
-    string? unSyncLyrics;
+    public partial int? BitRate {get;set;}
     [ObservableProperty]
-    bool isPlaying;
+    public partial double? SampleRate {get;set;}
+    [ObservableProperty]
+    public partial int Rating {get;set;} = 0;
 
     [ObservableProperty]
-    bool isCurrentPlayingHighlight;
+    public partial bool HasLyrics {get;set;}
     [ObservableProperty]
-    bool isFavorite;
+    public partial bool HasSyncedLyrics {get;set;} = false;
     [ObservableProperty]
-    bool isPlayCompleted;
+    public partial bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
-    private bool isFileExists = true;
+    public partial string? CoverImagePath { get; set; } = null;
     [ObservableProperty]
-    string? achievement;
-    
+    public partial string? UnSyncLyrics {get;set;}
+    [ObservableProperty]
+    public partial bool IsPlaying {get;set;}
+
+    [ObservableProperty]
+    public partial bool IsCurrentPlayingHighlight {get;set;}
+    [ObservableProperty]
+    public partial bool IsFavorite {get;set;}
+    [ObservableProperty]
+    public partial bool IsPlayCompleted {get;set;}
+    [ObservableProperty]
+    public partial bool IsFileExists { get; set; } = true;
+    [ObservableProperty]
+    public partial string? Achievement {get;set;}
+    [ObservableProperty]
+    public partial string? SongWiki {get;set;}
+
     public bool IsPlayedFromOutsideApp { get; set; }
     [ObservableProperty]
-    ObservableCollection<LyricPhraseModel>? syncLyrics;
-    
+    public partial ObservableCollection<LyricPhraseModel> SyncLyrics { get; set; } = new();
+
+
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
@@ -195,18 +198,37 @@ public partial class SongModelView : ObservableObject
 public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
 {
     [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLinkView));
+    public partial string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLinkView));
 
     [ObservableProperty]
-    string? songId;
+    public partial string? SongId { get; set; }
+    /// <summary>
+    /// Indicates the type of play action performed.    
+    /// Possible VALID values:
+    /// <list type="bullet">
+    /// <item><term>0</term><description>Play</description></item>
+    /// <item><term>1</term><description>Pause</description></item>
+    /// <item><term>2</term><description>Resume</description></item>
+    /// <item><term>3</term><description>Completed</description></item>
+    /// <item><term>4</term><description>Seeked</description></item>
+    /// <item><term>5</term><description>Skipped Skipped</description></item>
+    
+    /// </list>
+    /// </summary>
     [ObservableProperty]
-    DateTimeOffset datePlayed;
+    public partial int PlayType { get; set; } = 0;
+
     [ObservableProperty]
-    DateTimeOffset dateFinished;
+    public partial DateTimeOffset DateStarted { get; set; }
+
     [ObservableProperty]
-    bool wasPlayCompleted;
+    public partial DateTimeOffset DateFinished { get; set; }
+
     [ObservableProperty]
-    double positionInSeconds;
+    public partial bool WasPlayCompleted { get; set; }
+
+    [ObservableProperty]
+    public partial double PositionInSeconds { get; set; }
 
     public PlayDateAndCompletionStateSongLinkView()
     {
@@ -216,10 +238,12 @@ public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
     {        
         LocalDeviceId = model.LocalDeviceId;
         SongId = model.SongId;
-        DatePlayed = model.DatePlayed;
+        DateStarted = model.DatePlayed;
+        
         DateFinished = model.DateFinished;
         WasPlayCompleted = model.WasPlayCompleted;
         PositionInSeconds = model.PositionInSeconds;
+        PlayType = model.PlayType;
     }
 }
 
@@ -231,13 +255,14 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     public string? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    
-    /// Possible VALID values:
+    /// Possible VALID values for <see cref="PlayType"/>:
     /// <list type="bullet">
     /// <item><term>0</term><description>Play</description></item>
     /// <item><term>1</term><description>Pause</description></item>
     /// <item><term>2</term><description>Resume</description></item>
     /// <item><term>3</term><description>Completed</description></item>
     /// <item><term>4</term><description>Seeked</description></item>
+    /// <item><term>5</term><description>Skipped</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 
@@ -259,7 +284,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     {
         LocalDeviceId = model.LocalDeviceId;
         SongId = model.SongId;
-        DatePlayed = model.DatePlayed;
+        DatePlayed = model.DateStarted;
         DateFinished = model.DateFinished;
         WasPlayCompleted = model.WasPlayCompleted;
         PositionInSeconds = model.PositionInSeconds;

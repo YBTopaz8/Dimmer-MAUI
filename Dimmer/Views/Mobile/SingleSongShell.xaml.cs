@@ -56,7 +56,7 @@ public partial class SingleSongShell : ContentPage
                 emptyV.IsVisible = false;
                 if (HomePageVM.AllSyncLyrics is not null)
                 {
-                    HomePageVM.AllSyncLyrics = Array.Empty<Content>();
+                    HomePageVM.AllSyncLyrics = new();
                 }
                 break;
             case 2:

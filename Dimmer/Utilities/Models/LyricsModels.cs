@@ -10,8 +10,8 @@ public class Content
     public bool Instrumental { get; set; }
     public string? PlainLyrics { get; set; }
     public string? SyncedLyrics { get; set; }
-    public string? LinkToCoverImage { get; set; }
-    public List<string>? listOfLinksToCoverImages { get; set; }
+    public string? LinkToCoverImage { get; set; } = "e";
+    public List<string>? ListOfLinksToCoverImages { get; set; }
     // Read-only property with logic
     public bool IsSynced => !string.IsNullOrEmpty(SyncedLyrics);
 }

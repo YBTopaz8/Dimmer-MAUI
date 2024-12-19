@@ -7,10 +7,10 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
     Task<bool> PlaySongAsync(SongModelView? song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
         double lastPosition = 0, int repeatMode = 0, 
-        int repeatMaxCount = 0, 
+        int repeatMaxCount = 0, bool IsUserSkipped = true,
         bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
-    Task<bool> PlayNextSongAsync(); //to play next song
-    Task<bool> PlayPreviousSongAsync(); //to play previous song
+    Task<bool> PlayNextSongAsync(bool IsUserSkipped=true); //to play next song
+    Task<bool> PlayPreviousSongAsync(bool IsUserSkipped = true); //to play previous song
     Task<bool> StopSongAsync(); //to stop song
     Task<bool> PauseResumeSongAsync(double lastPosition, bool isPause=false); //to pause/resume song
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button

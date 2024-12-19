@@ -52,14 +52,13 @@ public partial class App : Application
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //await home.ExitingApp();
-LogException(e.Exception);
+        //await home.ExitingApp();LogException(e.Exception);
     }
     
     protected override Window CreateWindow(IActivationState? activationState)
     {
 
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         //DimmerWindow.Page.
 #if WINDOWS
         DimmerWindow.Page = new AppShell(vm);

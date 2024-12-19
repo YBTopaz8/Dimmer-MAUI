@@ -2,7 +2,6 @@
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using Hqub.Lastfm.Cache;
 using Parse.LiveQuery;
-using System.Diagnostics;
 using System.Reflection;
 
 
@@ -11,56 +10,56 @@ public partial class HomePageVM : ObservableObject
 {
     //LastfmClient LastfmClient;
     [ObservableProperty]
-    UserModelView currentUser=new();
+    public partial UserModelView CurrentUser { get; set; } =new();
     [ObservableProperty]
-    ParseUser currentUserOnline;
+    public partial ParseUser CurrentUserOnline { get; set; }
 
     [ObservableProperty]
-    FlyoutBehavior shellFlyoutBehavior = FlyoutBehavior.Disabled;
+    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;
     [ObservableProperty]
-    bool isFlyOutPaneOpen = false;
+    public partial bool IsFlyOutPaneOpen { get; set; } = false;
     [ObservableProperty]
-    SongModelView pickedSong = new(); // I use this a lot with the collection view, mostly to scroll
+    public partial SongModelView PickedSong { get; set; } = new(); // I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    SongModelView temporarilyPickedSong= new();
+    public partial SongModelView TemporarilyPickedSong { get; set; } = new();
 
     [ObservableProperty]
-    double currentPositionPercentage;
+    public partial double CurrentPositionPercentage { get; set; }
     [ObservableProperty]
-    double currentPositionInSeconds = 0;
+    public partial double CurrentPositionInSeconds { get; set; } = 0;
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> displayedSongs = new();
+    public partial ObservableCollection<SongModelView> DisplayedSongs { get; set; } = new();
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> prevCurrNextSongsCollection = new();
+    public partial ObservableCollection<SongModelView> PrevCurrNextSongsCollection { get; set; } = new();
 
     SortingEnum CurrentSortingOption;
     [ObservableProperty]
-    int totalNumberOfSongs=0;
+    public partial int TotalNumberOfSongs { get; set; } = 0;
     [ObservableProperty]
-    string? totalSongsSize;
+    public partial string? TotalSongsSize { get; set; }
     [ObservableProperty]
-    string? totalSongsDuration;
+    public partial string? TotalSongsDuration { get; set; }
 
     [ObservableProperty]
-    ObservableCollection<LyricPhraseModel> synchronizedLyrics=new();
+    public partial ObservableCollection<LyricPhraseModel> SynchronizedLyrics { get; set; } = new();
     [ObservableProperty]
-    LyricPhraseModel currentLyricPhrase = new();
+    public partial LyricPhraseModel CurrentLyricPhrase { get; set; } = new();
 
     [ObservableProperty]
-    int loadingSongsProgress;
+    public partial int LoadingSongsProgress { get; set; }
 
     [ObservableProperty]
-    double volumeSliderValue = 1;
+    public partial double VolumeSliderValue { get; set; } = 1;
 
     [ObservableProperty]
-    bool isShuffleOn;
+    public partial bool IsShuffleOn { get; set; }
     [ObservableProperty]
-    int currentRepeatMode;
+    public partial int CurrentRepeatMode { get; set; }
     [ObservableProperty]
-    bool isDRPCEnabled;
+    public partial bool IsDRPCEnabled { get; set; }
     IFolderPicker FolderPicker { get; }
     IFileSaver FileSaver { get; }
     IPlaybackUtilsService PlayBackService { get; }
@@ -68,19 +67,19 @@ public partial class HomePageVM : ObservableObject
     public ISongsManagementService SongsMgtService { get; }
 
     [ObservableProperty]
-    List<AlbumArtistGenreSongLinkView>? allLinks = new();
+    public partial List<AlbumArtistGenreSongLinkView>? AllLinks { get; set; } = new();
     [ObservableProperty]
-    List<PlayDateAndCompletionStateSongLinkView>? allPDaCStateLink = new();
+    public partial List<PlayDateAndCompletionStateSongLinkView>? AllPDaCStateLink { get; set; } = new();
 
     [ObservableProperty]
-    string? unSyncedLyrics;
+    public partial string? UnSyncedLyrics { get; set; }
     [ObservableProperty]
-    string? localFilePath;
+    public partial string? LocalFilePath { get; set; }
 
     public AppState CurrentAppState = AppState.OnForeGround;
 
     [ObservableProperty]
-    int currentQueue = 0;
+    public partial int CurrentQueue { get; set; } = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
                       ILyricsService lyricsService, ISongsManagementService songsMgtService)
     {
@@ -124,13 +123,16 @@ public partial class HomePageVM : ObservableObject
 #endif
         CurrentUser = SongsMgtService.CurrentOfflineUser;
         SyncRefresh();
+        
         LoadSongCoverImage();
 
+        LoadData();
 
         _ = GetSecuredData();
+        
     }
 
-    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView newValue)
+    partial void OnTemporarilyPickedSongChanging(SongModelView oldValue, SongModelView newValue)
     {
         Debug.WriteLine($"Old Ver {oldValue?.CoverImagePath} | New Ver {newValue?.CoverImagePath} , Song {TemporarilyPickedSong?.Title}");
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
@@ -438,7 +440,7 @@ public partial class HomePageVM : ObservableObject
     #region Loadings Region
 
     [ObservableProperty]
-    bool isLoadingSongs;
+    public partial bool IsLoadingSongs { get; set; }
 
     [ObservableProperty]
     ObservableCollection<string> folderPaths;
@@ -453,11 +455,11 @@ public partial class HomePageVM : ObservableObject
 
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
-#if ANDROID && NET9_0
+#if ANDROID
         PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
 
-#if WINDOWS || ANDROID && NET9_0
+#if WINDOWS || ANDROID 
         var res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
@@ -627,7 +629,7 @@ public partial class HomePageVM : ObservableObject
         TemporarilyPickedSong!.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackService.PlayNextSongAsync();
+        await PlayBackService.PlayNextSongAsync(true);
     }
 
     [RelayCommand]
@@ -635,7 +637,7 @@ public partial class HomePageVM : ObservableObject
     {
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
-        await PlayBackService.PlayPreviousSongAsync();
+        await PlayBackService.PlayPreviousSongAsync(true);
     }
 
     [RelayCommand]
@@ -993,13 +995,13 @@ public partial class HomePageVM : ObservableObject
 
         
     }
-    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView>? oldValue, ObservableCollection<SongModelView>? newValue)
+    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
     {
         Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
     }
 
     [ObservableProperty]
-    CollectionView desktopColView;
+    public partial CollectionView DesktopColView { get; set; }
 
 
     private void SubscribeToSyncedLyricsChanges()
@@ -1024,20 +1026,20 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    string? lyricsSearchSongTitle;
+    public partial string? LyricsSearchSongTitle { get; set; }
     [ObservableProperty]
-    string? lyricsSearchArtistName;
+    public partial string? LyricsSearchArtistName {get;set;}
     [ObservableProperty]
-    string? lyricsSearchAlbumName;
+    public partial string? LyricsSearchAlbumName {get;set;}
     [ObservableProperty]
-    bool useManualSearch;
+    public partial bool UseManualSearch { get; set; }
 
     [ObservableProperty]
-    Content[]? allSyncLyrics;
+    public partial ObservableCollection<Content?>? AllSyncLyrics {get;set;}
     [ObservableProperty]
-    bool isFetchSuccessful = true;
+    public partial bool IsFetchSuccessful {get;set;}= true;
     [ObservableProperty]
-    bool isFetching = false;
+public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
         LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
@@ -1060,33 +1062,29 @@ public partial class HomePageVM : ObservableObject
 
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
-        AllSyncLyrics = Array.Empty<Content>();
+        AllSyncLyrics = new();
         (bool IsSuccessful, Content[]? contentData) result = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true,manualSearchFields);
         
-        AllSyncLyrics = result.contentData;
-    
+        AllSyncLyrics = result.contentData.ToObservableCollection();
+        (IsFetchSuccessful, var e) = await LyricsManagerService.FetchLyricsOnlineLyrist(SelectedSongToOpenBtmSheet.Title, TemporarilyPickedSong.ArtistName);
+        if (e is not null)
+        {
+            AllSyncLyrics.Add(e.FirstOrDefault());
+        }
+
+        await FetchOnLastFM();
+
         IsFetchSuccessful = result.IsSuccessful;
-        LyricsSearchSongTitle = null;
-        LyricsSearchArtistName = null;
-        LyricsSearchAlbumName = null;
+        
+        //LyricsSearchSongTitle = null;
+        //LyricsSearchArtistName = null;
+        //LyricsSearchAlbumName = null;
 
         return IsFetchSuccessful;
     }
     [ObservableProperty]
-    List<string>? linkToFetchSongCoverImage=new();
-    [RelayCommand]
-    async Task FetchLyricsLyrist(bool fromUI = false)
-    {
-        IsFetching = true;
-        if (fromUI || SynchronizedLyrics?.Count < 1)
-        {
-            AllSyncLyrics = Array.Empty<Content>();
-            (IsFetchSuccessful, AllSyncLyrics) = await LyricsManagerService.FetchLyricsOnlineLyrist(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName);
-        }
-        IsFetching = false;
-        return;
-    }
-
+    public partial List<string>? LinkToFetchSongCoverImage { get; set; } =new();
+    
     public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
     {
         var result = ((bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this)));
@@ -1440,39 +1438,31 @@ public partial class HomePageVM : ObservableObject
     bool isAnimatingFav = false;
     System.Timers.Timer _showAndHideFavGif;
     [RelayCommand]
-    public async Task RateSong(Rating obj)
+    public async Task RateSong(string value)
     {
-        _showAndHideFavGif = new System.Timers.Timer(2000);
-        _showAndHideFavGif.AutoReset = false;
-        _showAndHideFavGif.Elapsed += ((send, arg) =>
+        bool willBeFav = false;
+        var rateValue = int.Parse(value);
+        switch (rateValue)
         {
-            IsAnimatingFav = false;
-        });
-        var willBeFav = false;
-        if (obj is not null)
-        {
-            var rateValue = obj.Value;
-            switch (rateValue)
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    willBeFav = false;
-                    break;
-                case 4:
-                case 5:
-                    willBeFav = true;
-                    break;
-                default:
-                    break;
-            }
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                willBeFav = false;
+                break;
+            case 4:
+            case 5:
+                willBeFav = true;
+                break;
+            default:
+                break;
+        }
             SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
             bool isAdd = false;
             var favPlaylist = new PlaylistModelView { Name = "Favorites" };
             if (SelectedSongToOpenBtmSheet.Rating < 3 && rateValue > 3)
             {
-                SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
+                SelectedSongToOpenBtmSheet.Rating = rateValue;
                 IsAnimatingFav = true;
 #if ANDROID
                 HapticFeedback.Default.Perform(HapticFeedbackType.Click);
@@ -1485,7 +1475,7 @@ public partial class HomePageVM : ObservableObject
             else
             if (SelectedSongToOpenBtmSheet.Rating == 0 && rateValue <= 3)
             {
-                SelectedSongToOpenBtmSheet.Rating = (int)rateValue;
+                SelectedSongToOpenBtmSheet.Rating = rateValue;
                 SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
             }
             else
@@ -1511,7 +1501,7 @@ public partial class HomePageVM : ObservableObject
             }
 
         }
-    }
+    
 
     public async Task<bool> GetSecuredData()
     {
@@ -1569,7 +1559,7 @@ public partial class HomePageVM : ObservableObject
             //LoginBtn.IsEnabled = false;
             if (string.IsNullOrWhiteSpace(LastFMUserName) || string.IsNullOrWhiteSpace(LastFMPassword))
             {
-                _ = Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
+                _ = Shell.Current.DisplayAlert("Error when logging to lastfm", "Username and Password are required.", "OK");
                 return;
             }
             await clientLastFM.AuthenticateAsync(LastFMUserName, LastFMUserName);
@@ -1587,7 +1577,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (CurrentUserOnline is not null)
         {
-            if (CurrentUserOnline.IsAuthenticated)
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return;
             }
@@ -1598,13 +1588,13 @@ public partial class HomePageVM : ObservableObject
         //LoginBtn.IsEnabled = false;
         if (string.IsNullOrWhiteSpace(uname) || string.IsNullOrWhiteSpace(password))
         {
-            await Shell.Current.DisplayAlert("Error", "Username and Password are required.", "OK");
+            await Shell.Current.DisplayAlert("Error Online Logging", "Username and Password are required.", "OK");
             return;
         }
 
         try
         {
-            var oUser = await ParseClient.Instance.LogInAsync(uname.Trim(), password.Trim()).ConfigureAwait(false);
+            var oUser = await ParseClient.Instance.LogInWithAsync(uname.Trim(), password.Trim()).ConfigureAwait(false);
             SongsMgtService.CurrentOfflineUser.UserPassword = password;
             CurrentUserOnline = oUser;
             CurrentUser.IsAuthenticated = true;
@@ -1628,6 +1618,7 @@ public partial class HomePageVM : ObservableObject
 
     public void SetupLiveQueries()
     {
+        return;
         try
         {
             LiveQueryClient = new();
@@ -1694,6 +1685,8 @@ public partial class HomePageVM : ObservableObject
         return;
 
     }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track LastFMTrackInfoToSave { get; set; }
     public async Task FetchOnLastFM() //0 == song, 1 == artist, 2 = album. will rework this
     {
         LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
@@ -1706,7 +1699,7 @@ public partial class HomePageVM : ObservableObject
             LogInToLastFMClientLocal();
         }
         PagedResponse<Hqub.Lastfm.Entities.Track>? tracks = await clientLastFM!.Track.SearchAsync(LyricsSearchSongTitle, LyricsSearchArtistName);
-        if (tracks != null && tracks.Any())
+        if (tracks != null && tracks.Count != 0)
         {
             LastfmTracks.Clear(); // Clear existing tracks
             foreach (var track in tracks)
@@ -1716,13 +1709,23 @@ public partial class HomePageVM : ObservableObject
         }
         else
         {
-            await Shell.Current.DisplayAlert("No Results", "No Results Found", "OK");
+            await Shell.Current.DisplayAlert("No Results", "No Results Found on Last FM", "OK");
             // Handle no results found
         }
 
         //}
     }
-
+    public void SaveLastFMTrackInfo()
+    {
+        if (LastFMTrackInfoToSave is not null)
+        {
+            SelectedSongToOpenBtmSheet!.ArtistName = LastFMTrackInfoToSave.Artist.Name;
+            SelectedSongToOpenBtmSheet.Title = LastFMTrackInfoToSave.Name;
+            SelectedSongToOpenBtmSheet.AlbumName = LastFMTrackInfoToSave.Album.Name;
+            SelectedSongToOpenBtmSheet.SongWiki = LastFMTrackInfoToSave.Wiki.Summary;
+            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+        }
+    }
 }
 public static class ObjectMapper
 {

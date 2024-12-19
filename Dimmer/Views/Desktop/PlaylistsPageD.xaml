@@ -67,7 +67,7 @@
                                                     PointerEnteredCommandParameter="{Binding .}"/>
                                 <TapGestureRecognizer 
                                     Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}" 
-                                    CommandParameter="{Binding Id}"/>
+                                    />
                             </Border.GestureRecognizers>
 
                             <Label Text="{Binding Name}" x:DataType="models:PlaylistModelView"

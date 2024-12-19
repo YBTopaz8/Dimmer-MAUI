@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -473,9 +475,9 @@ public partial class HomePageVM
         await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
-    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser newValue)
+    partial void OnCurrentUserOnlineChanged(ParseUser oldValue, ParseUser newValue)
     {
-        if (newValue is not null && newValue.IsAuthenticated)
+        if (newValue is not null)
         {
             SongsMgtService.UpdateUserLoginDetails(newValue);
             IsLoggedIn = true;
@@ -506,4 +508,28 @@ public partial class HomePageVM
         // Notify the UI to re-render
         
     }
+
+    public async Task GetAllData()
+    {
+        var allData = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("getAllData", new Dictionary<string, object>());
+        Debug.WriteLine("Fetched data for all classes:" + allData.GetType());
+
+        foreach (var item in allData as List<object>)
+        {
+            Debug.WriteLine(item.GetType());
+        }
+        // Store this data somewhere for future use
+        //await RestoreAllData(allData); // Example: Restore immediately
+}
+
+public async Task RestoreAllData(List<List<Dictionary<string, object>>> backupData)
+{
+    var args = new Dictionary<string, object>
+        {
+            { "data", backupData }
+        };
+
+    var result =  await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", args);
+    Console.WriteLine("Restore result: " + result);
+}
 }

@@ -288,5 +288,15 @@ public partial class MainPageD : ContentPage
     {
         HomePageVM.OpenSortingPopupCommand.Execute(null);
     }
+
+    private void Slider_OnValueChanged(object? sender, ValueChangedEventArgs e)
+    {
+
+    }
+
+    private async void Button_Clicked(object sender, EventArgs e)
+    {
+        await HomePageVM.GetAllData();
+    }
 }
 

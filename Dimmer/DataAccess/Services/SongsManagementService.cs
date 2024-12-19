@@ -74,26 +74,26 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
         };
 
-        _ = ParseClient.Instance.SignUpAsync(newUser);
+        _ = ParseClient.Instance.SignUpWithAsync(newUser);
         return true;
     }
-    public bool LogUserOnlineAsync(string email, string password)
+    public async Task<bool> LogUserOnlineAsync(string email, string password)
     {
         try
         {
             // Log the user in
-            _ = ParseClient.Instance.LogInAsync(email, password);
+            _ = ParseClient.Instance.LogInWithAsync(email, password);
 
             // Check if the email is verified (if applicable)
             if (CurrentUserOnline is not null)
             {
-                if (CurrentUserOnline.IsAuthenticated)
+                if (await CurrentUserOnline.IsAuthenticatedAsync())
                 {
                     return true;
                 }
 
             }
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
                 Debug.WriteLine("Login successful. Email is verified.");
@@ -161,18 +161,18 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
 
         Debug.WriteLine("User logged out successfully.");
     }
-    public bool IsEmailVerified()
+    public async Task<bool> IsEmailVerified()
     {
         // Check if the email is verified (if applicable)
         if (CurrentUserOnline is not null)
         {
-            if (CurrentUserOnline.IsAuthenticated)
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return true;
             }
 
         }
-        var user = ParseClient.Instance.GetCurrentUser();
+        var user = await ParseClient.Instance.GetCurrentUser();
 
         if (user != null && user.Get<bool>("emailVerified"))
         {
@@ -194,10 +194,10 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         try
         {
             // Log the user in
-            await ParseClient.Instance.LogInAsync(username, password);
+            await ParseClient.Instance.LogInWithAsync(username, password);
 
             // Check if the email is verified
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
                 Debug.WriteLine("Login successful and email verified!");
@@ -232,7 +232,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 return false;
 
             }
-            var user = ParseClient.Instance.GetCurrentUser();
+            var user = await ParseClient.Instance.GetCurrentUser();
 
             if (user != null)
             {
@@ -303,7 +303,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             {
                 return;
             }
-            if (CurrentUserOnline!.IsAuthenticated)
+            if ( await CurrentUserOnline!.IsAuthenticatedAsync())
             {
                 HasOnlineSyncOn = true;
                 await LoadSongsToDBFromOnline();
@@ -897,7 +897,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                 return; //no account
             }
             
-            if (!CurrentUserOnline.IsAuthenticated)
+            if (! await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return; //no not authenticated lol
             }
@@ -1279,11 +1279,10 @@ AddOrUpdateSingleRealmItem(
                 return null;
             }
 
-            if (CurrentUserOnline.IsAuthenticated)
+            if (await CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return null;
             }
-            Debug.WriteLine(ParseClient.Instance.GetCurrentUser().Username);
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
@@ -1407,39 +1406,24 @@ AddOrUpdateSingleRealmItem(
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
         ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
-                
 
-        if (!await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null))
-        {
-            await Shell.Current.DisplayAlert("Error", "Error Adding Songs to Database", "OK");
-        }
 
-        if (CurrentUserOnline is null || CurrentUserOnline.IsAuthenticated)
+        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null);
+        
+        if (CurrentUserOnline is null || await CurrentUserOnline.IsAuthenticatedAsync())
         {
                 //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
-                return false;
-           
+                return false;           
         }
 
 
-        if (CurrentUserOnline == null || !CurrentUserOnline.IsAuthenticated)
+        if (CurrentUserOnline == null || !await CurrentUserOnline.IsAuthenticatedAsync())
         {
             Debug.WriteLine("User authentication failed."); //todo to be reviewed, we can aske the user to login
             return false;
         }
-        // Save to online database (fire-and-forget)
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
-            }
-            catch (Exception ex)
-            {
-                // Log the error silently, avoid disturbing the app's flow
-                Debug.WriteLine($"Error saving online: {ex.Message}");
-            }
-        });
+        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
+       
 
         return true;
     }
@@ -1451,18 +1435,19 @@ AddOrUpdateSingleRealmItem(
         return;
     }
 
-    public void OpenConnectPopup()
+    public async void OpenConnectPopup()
     {
         ConnectOnline();
 
-        CurrentUserOnline = ParseClient.Instance.GetCurrentUser();
-        if(CurrentUserOnline is null || !CurrentUserOnline.IsAuthenticated)
+        CurrentUserOnline = await ParseClient.Instance.GetCurrentUser();
+        if(CurrentUserOnline is null || ! await CurrentUserOnline.IsAuthenticatedAsync())
         {
             Debug.WriteLine("User authentication failed.");
             return;
         }
         CurrentOfflineUser.UserIDOnline = CurrentUserOnline.ObjectId;
-        CurrentOfflineUser.IsAuthenticated = CurrentUserOnline.IsAuthenticated;
+        CurrentOfflineUser.IsAuthenticated = await CurrentUserOnline.IsAuthenticatedAsync();
+        ;
         CurrentOfflineUser.UserName = CurrentUserOnline.Username;
         CurrentOfflineUser.UserEmail= CurrentUserOnline.Email;
         
@@ -1561,7 +1546,7 @@ AddOrUpdateSingleRealmItem(
     /// <param name="genreModels"></param>
     /// <param name="AAGSLink"></param>
     /// <returns></returns>
-    public bool SyncAllDataToDatabaseAsync(
+    public bool SyncAllDataToDatabase(
     Realm db,
     IEnumerable<SongModel> songs,
     IEnumerable<ArtistModelView> artistModels,
@@ -1778,7 +1763,7 @@ AddOrUpdateSingleRealmItem(
         await GetUserAccountOnline();
         try
         {
-            SyncAllDataToDatabaseAsync(db, songs, artistModels, albumModels, genreModels, AAGSLink, null);
+            SyncAllDataToDatabase(db, songs, artistModels, albumModels, genreModels, AAGSLink, null);
             
             return true;
         }
@@ -1809,13 +1794,13 @@ AddOrUpdateSingleRealmItem(
                 if (!db.All<T>().Any(existsCondition))
                 {
                     db.Add(item);
-                    Debug.WriteLine($"Added {typeof(T).Name}");
+                    
                 }
                 else
                 {
                     updateAction?.Invoke(item); // Perform additional updates if needed
                     db.Add(item, update: true); // Update existing item
-                    Debug.WriteLine($"Updated {typeof(T).Name}");
+                    
                 }
             }
         });
@@ -1848,7 +1833,7 @@ AddOrUpdateSingleRealmItem(
             {
                 updateAction?.Invoke(item); // Perform additional updates if needed
                 db.Add(item, update: true); // Update existing item
-                Debug.WriteLine($"Updated {typeof(T).Name}");
+             
             }
         });
     }

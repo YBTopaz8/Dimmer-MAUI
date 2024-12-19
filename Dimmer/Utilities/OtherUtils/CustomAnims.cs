@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿using Microsoft.Maui.Controls;
+
+namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class CustomAnimsExtensions
 {
    
@@ -11,13 +13,13 @@ public static class CustomAnimsExtensions
         await element.ScaleTo(1.0, 80, Easing.CubicOut);        
     }
 
-    public static async Task DimmOut(this View element)//, EventArgs e)
+    public static async Task DimmOut(this View element, double duration = 250)
     {
-        await element.FadeTo(0.85, 80, Easing.CubicIn);
+        await element.FadeTo(0.70, (uint)duration, Easing.CubicIn);
     }
-    public static async Task DimmIn(this View element)//, EventArgs e)
+    public static async Task DimmIn(this View element, double duration = 250)
     {
-        await element.FadeTo(1.0, 80, Easing.CubicOut);
+        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
         
     }
 
@@ -36,22 +38,22 @@ public static class CustomAnimsExtensions
         }
     }
 
-    public static async Task AnimateFocusModePointerEnter(this View element, double endOpacity = 1, double endScale = 1)
+    public static async Task AnimateFocusModePointerEnter(this View element,double duration=250, double endScale = 1)
     {
         // Animate scale-up to 1.2 and opacity to 1 with a smooth transition
         await Task.WhenAll(
-            element.ScaleTo(endScale, 250, Easing.CubicInOut),
-            element.FadeTo(1.0, 250, Easing.CubicInOut)
+            element.ScaleTo(endScale, (uint)duration, Easing.CubicInOut),
+            element.FadeTo(1.0, (uint)duration, Easing.CubicInOut)
         );
     }
 
     
-    public static async Task AnimateFocusModePointerExited(this View element, double endOpacity = 0.7,double endScale = 0.7)
+    public static async Task AnimateFocusModePointerExited(this View element, double duration = 250, double endOpacity = 0.7,double endScale = 0.7)
     {
         // Animate scale-down to 0.8 and opacity to 0.7 with a smooth transition
         await Task.WhenAll(
-            element.ScaleTo(endScale, 250, Easing.CubicInOut),
-            element.FadeTo(endOpacity, 250, Easing.CubicInOut)
+            element.ScaleTo(endScale, (uint)duration, Easing.CubicInOut),
+            element.FadeTo(endOpacity, (uint)duration, Easing.CubicInOut)
         );
     }
 
