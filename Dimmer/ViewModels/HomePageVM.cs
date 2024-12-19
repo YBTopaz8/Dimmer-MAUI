@@ -2,6 +2,7 @@
 using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using Hqub.Lastfm.Cache;
 using Parse.LiveQuery;
+using System.Diagnostics;
 using System.Reflection;
 
 
@@ -1509,9 +1510,12 @@ public partial bool IsFetching { get; set; } = false;
         var Uname =  await SecureStorage.Default.GetAsync("ParseUsername");
         var uPass = await SecureStorage.Default.GetAsync("ParsePassWord");
         var uEmail = await SecureStorage.Default.GetAsync("ParseEmail");
+        
+        SecureStorage.Default.Remove("LastFMUsername");
+        SecureStorage.Default.Remove("LastFMPassWord");
+
         var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
         var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
-
         CurrentUser.UserEmail = uEmail;
         CurrentUser.UserPassword = uPass;
         CurrentUser.UserName = Uname;
@@ -1522,12 +1526,13 @@ public partial bool IsFetching { get; set; } = false;
             return false; //I saw lmao. best to not be agro since well, what if they just opened app?
         }
 
-        _ = LogInToLastFMWebsite();
-
         if (string.IsNullOrEmpty(lastFMUname) || string.IsNullOrEmpty(lastFMPass))
         {
+            return true;
 
         }
+        Debug.WriteLine(lastFMUname);
+        Debug.WriteLine(lastFMPass);
         _ = LogInToLastFMWebsite();
         return true;
     }
@@ -1562,15 +1567,17 @@ public partial bool IsFetching { get; set; } = false;
                 _ = Shell.Current.DisplayAlert("Error when logging to lastfm", "Username and Password are required.", "OK");
                 return;
             }
-            await clientLastFM.AuthenticateAsync(LastFMUserName, LastFMUserName);
+            await clientLastFM.AuthenticateAsync(LastFMUserName, LastFMPassword);
             if (clientLastFM.Session.Authenticated)
             {
-                
+                await Shell.Current.DisplayAlert(lastFMUserName, "Welcome Back !", "OK");
                 var usr = await clientLastFM.User.GetInfoAsync(LastFMUserName);
                 _ = SecureStorage.Default.SetAsync("LastFMUsername", usr.Name);
                 _ = SecureStorage.Default.SetAsync("LastFMPassWord", LastFMPassword);
             }
         }
+
+        
     }
 
     public async Task LogInToParseServer(string uname, string password)
@@ -1670,8 +1677,7 @@ public partial bool IsFetching { get; set; } = false;
         }
     }
 
-    [RelayCommand]
-    void LogInToLastFMClientLocal()
+    public void LogInToLastFMClientLocal()
     {
         var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 

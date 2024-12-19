@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
@@ -749,7 +751,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         ViewModel.Value!.AllPDaCStateLink?.Add(new PlayDateAndCompletionStateSongLinkView(link));
 
         SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-        SongsMgtService.AddPlayAndCompletionLink(link);   
+        SongsMgtService.AddPlayAndCompletionLink(link);
+
+        Scrobble scr = new()
+        {
+            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : ObservableCurrentlyPlayingSong.ArtistName,
+            Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
+            Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
+            Date = DateTime.Now - TimeSpan.FromSeconds(120)
+        };
+        _ = LastfmClient.Instance.Track.ScrobbleAsync(scr);
+
         if (CurrentRepeatMode == 2) // Repeat the same song
         {
             await PlaySongAsync(IsUserSkipped: false);
@@ -782,14 +794,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //    AudioService_PlayEnded(null, EventArgs.Empty); // Force re-triggering if still stuck
         //}
 
-        Scrobble scr = new()
-        {
-            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : ObservableCurrentlyPlayingSong.ArtistName,
-            Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
-            Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
-            Date = DateTime.Now - TimeSpan.FromSeconds(120)
-        };
-        _ = LastfmClient.Instance.Track.ScrobbleAsync(scr);
     }
     private void AudioService_PlayingChanged(object? sender, bool e)
     {

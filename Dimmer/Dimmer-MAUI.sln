@@ -5,7 +5,7 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dimmer-MAUI", "Dimmer-MAUI.csproj", "{70A39173-241E-446E-AD20-5BFFD7380F7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm-MAUI\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{023EA79B-77A5-4453-8094-DDF3F9D72BBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm-MAUI\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{437A105F-2809-4D53-A823-9E2CD2F26054}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +19,10 @@ Global
 		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{023EA79B-77A5-4453-8094-DDF3F9D72BBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{437A105F-2809-4D53-A823-9E2CD2F26054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{437A105F-2809-4D53-A823-9E2CD2F26054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{437A105F-2809-4D53-A823-9E2CD2F26054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{437A105F-2809-4D53-A823-9E2CD2F26054}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

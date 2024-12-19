@@ -158,6 +158,7 @@
     <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
+    <PackageReference Include="Hqub.Last.fm" Version="2.4.0" />
     
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.21" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.21" />
