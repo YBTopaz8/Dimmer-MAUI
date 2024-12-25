@@ -58,12 +58,12 @@ public partial class ArtistsPageD : ContentPage
         
         
     }
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    private async void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
         var s = (Border)sender;
         var song = s.BindingContext as SongModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
+        await HomePageVM.PlaySong(song);
     }
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)

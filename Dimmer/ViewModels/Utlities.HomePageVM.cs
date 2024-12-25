@@ -511,13 +511,25 @@ public partial class HomePageVM
 
     public async Task GetAllData()
     {
-        var allData = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("getAllData", new Dictionary<string, object>());
-        Debug.WriteLine("Fetched data for all classes:" + allData.GetType());
-
-        foreach (var item in allData as List<object>)
+         var Links=await  ParseClient.Instance.CallCloudCodeFunctionAsync<object>("testCodeWithAuth", new Dictionary<string, object>());
+        var listOfDicts = (List<List<object>>)Links;
+        var onlyLinks = listOfDicts[0];
+        List<PlayDateAndCompletionStateSongLink> listofLinks = new();
+        foreach (var item in onlyLinks)
         {
-            Debug.WriteLine(item.GetType());
+            var link = ObjectMapper.MapFromDictionary<PlayDateAndCompletionStateSongLink>(item as IDictionary<string, object>);
+            listofLinks.Add(link);
+            SongsMgtService.AddPlayAndCompletionLink(link);
         }
+
+        
+
+        //Debug.WriteLine("Fetched data for all classes:" + allData.GetType());
+
+        //foreach (var item in allData as List<object>)
+        //{
+        //    Debug.WriteLine(item.GetType());
+        //}
         // Store this data somewhere for future use
         //await RestoreAllData(allData); // Example: Restore immediately
 }
@@ -528,8 +540,8 @@ public async Task RestoreAllData(List<List<Dictionary<string, object>>> backupDa
         {
             { "data", backupData }
         };
-
+        
     var result =  await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", args);
-    Console.WriteLine("Restore result: " + result);
+    Debug.WriteLine("Restore result: " + result);
 }
 }

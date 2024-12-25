@@ -24,7 +24,7 @@ public partial class TopStatsPageM : ContentPage
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.FullStatsPage;
         
-        HomePageVM.LoadDailyData();
+        //HomePageVM.LoadDailyData();
     }
 
     private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
@@ -66,18 +66,18 @@ public partial class TopStatsPageM : ContentPage
         switch (selectedStatView)
         {
             case 0:
-                HomePageVM.GetDaysNeededForNextEddington();
-                HomePageVM.GetParetoPlayRatio();
-                HomePageVM.GetGiniPlayIndex();
-                HomePageVM.GetFibonacciPlayCount();
+                //HomePageVM.GetDaysNeededForNextEddington();
+                //HomePageVM.GetParetoPlayRatio();
+                //HomePageVM.GetGiniPlayIndex();
+                //HomePageVM.GetFibonacciPlayCount();
 
                 //GeneralStatsView front, rest back
                 break;
             case 1:
                 //SongsStatsView front, rest back
-                HomePageVM.GetLifetimeBingeSong();
-                HomePageVM.GetBiggestClimbers();
-                HomePageVM.GetMostDimmsPerDay(15);
+                //HomePageVM.GetLifetimeBingeSong();
+                //HomePageVM.GetBiggestClimbers();
+                //HomePageVM.GetMostDimmsPerDay(15);
                 //HomePageVM.GetNotListenedStreaks();
                 //HomePageVM.GetTopStreakTracks();
 
@@ -92,10 +92,10 @@ public partial class TopStatsPageM : ContentPage
                 //HomePageVM.GetOngoingGapBetweenTracks();
                 break;
             case 2:
-                HomePageVM.GetTopPlayedArtists();
+                //HomePageVM.GetTopPlayedArtists();
                 break;
             case 3:
-                HomePageVM.GetTopPlayedAlbums();
+                //HomePageVM.GetTopPlayedAlbums();
                 break;
             case 4:
                 break;

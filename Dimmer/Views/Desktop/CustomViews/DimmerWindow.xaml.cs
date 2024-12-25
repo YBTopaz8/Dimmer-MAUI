@@ -21,11 +21,12 @@ public partial class DimmerWindow : Window
         this.Width = 1200;
 
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v0.6-debug";
+        DimmerTitleBar.Subtitle = "v0.7-debug";
+        DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v0.6-release";
+        DimmerTitleBar.Subtitle = "v0.7-release";
 #endif
 
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
@@ -128,5 +129,11 @@ public partial class DimmerWindow : Window
         HomepageVM.ToggleStickToTopCommand.Execute(null);
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+    }
+
+    private void SfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+        
+        EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
     }
 }

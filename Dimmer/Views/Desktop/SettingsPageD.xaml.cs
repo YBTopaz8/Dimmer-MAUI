@@ -12,16 +12,16 @@ public partial class SettingsPageD : ContentPage
     public HomePageVM ViewModel { get; }
 
     bool IsUserInLastFM;
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         //SongsManagementService.ConnectOnline();
+        await ViewModel.LogInToLastFMWebsite();
 
         if (string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
         {
             LoginPass.Text = ViewModel.CurrentUser.UserPassword;
             LoginBtn_Clicked(null, null); //review this.
-            _ = ViewModel.LogInToLastFMWebsite();
         }        
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
@@ -95,6 +95,11 @@ public partial class SettingsPageD : ContentPage
     private void Button_Clicked(object sender, EventArgs e)
     {
         ViewModel.SetupLiveQueries();
+    }
+
+    private async void Button_Clicked_1(object sender, EventArgs e)
+    {
+        await ViewModel.LogInToLastFMWebsite();
     }
 }
 

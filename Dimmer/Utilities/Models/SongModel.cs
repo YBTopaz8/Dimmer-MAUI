@@ -26,6 +26,7 @@ public partial class SongModel : RealmObject
     public string? Achievement { get; set; }
     public bool IsFileExists { get; set; } = true;
     public DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
+    
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
@@ -135,13 +136,19 @@ public partial class SongModelView : ObservableObject
     public partial ObservableCollection<LyricPhraseModel> SyncLyrics { get; set; } = new();
 
 
+    [ObservableProperty]
+    public partial ObservableCollection<PlayDataLink> PlayData { get; set; } = new();
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
     public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
-    public SongModelView(SongModel model)
+    [ObservableProperty]
+    public partial int NumberOfTimesPlayed { get; set; }
+    [ObservableProperty]
+    public partial int NumberOfTimesPlayedCompletely { get; set; }
+    public SongModelView(SongModel model) 
     {
         if (model is not null)
         {
@@ -158,7 +165,7 @@ public partial class SongModelView : ObservableObject
             SampleRate = model.SampleRate;
             Rating = model.Rating;
             HasLyrics = model.HasLyrics;
-            CoverImagePath = model.CoverImagePath is null ? null : model.CoverImagePath;
+            CoverImagePath = model.CoverImagePath;
             ArtistName = model.ArtistName;
             Achievement = model.Achievement;
             AlbumName = model.AlbumName;
@@ -169,14 +176,37 @@ public partial class SongModelView : ObservableObject
             HasLyrics = model.HasLyrics;
             HasSyncedLyrics = model.HasSyncedLyrics;
             IsFileExists = model.IsFileExists;
+            
         }
+       
 
     }
 
+    public SongModelView(SongModel model, ObservableCollection<PlayDateAndCompletionStateSongLink>? AllPlayLinks = null) : this(model)
+    {
+        if (AllPlayLinks is not null)
+        {
+            PlayData = AllPlayLinks.Select(x=> new PlayDataLink() 
+            {
+
+                LocalDeviceId = x.LocalDeviceId!,                
+                SongId = x.SongId,
+                DateFinished= x.DateFinished.LocalDateTime,
+                DateStarted= x.DatePlayed.LocalDateTime,
+                PlayType= x.PlayType,
+                WasPlayCompleted= x.WasPlayCompleted,
+                PositionInSeconds= x.PositionInSeconds,
+                
+            }).ToObservableCollection();
+            NumberOfTimesPlayed = PlayData.Count;
+            NumberOfTimesPlayedCompletely = PlayData.Count(p => p.WasPlayCompleted);
+        }
+    }
     public SongModelView()
     {
         
     }
+    
 
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
@@ -195,62 +225,69 @@ public partial class SongModelView : ObservableObject
     }
 }
 
-public partial class PlayDateAndCompletionStateSongLinkView : ObservableObject
+public partial class PlayDataLink : ObservableObject
 {
     [ObservableProperty]
-    public partial string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLinkView));
+    public required partial string LocalDeviceId { get; set; }
 
     [ObservableProperty]
     public partial string? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    
-    /// Possible VALID values:
+    /// Possible VALID values for <see cref="PlayType"/>:
     /// <list type="bullet">
     /// <item><term>0</term><description>Play</description></item>
     /// <item><term>1</term><description>Pause</description></item>
     /// <item><term>2</term><description>Resume</description></item>
     /// <item><term>3</term><description>Completed</description></item>
     /// <item><term>4</term><description>Seeked</description></item>
-    /// <item><term>5</term><description>Skipped Skipped</description></item>
-    
+    /// <item><term>5</term><description>Skipped</description></item>
+    /// <item><term>6</term><description>Restarted</description></item>
+    /// <item><term>7</term><description>SeekRestarted</description></item>
+    /// <item><term>8</term><description>SeekRestarted</description></item>
     /// </list>
     /// </summary>
     [ObservableProperty]
     public partial int PlayType { get; set; } = 0;
 
     [ObservableProperty]
-    public partial DateTimeOffset DateStarted { get; set; }
+    public partial DateTime DateStarted { get; set; }
 
     [ObservableProperty]
-    public partial DateTimeOffset DateFinished { get; set; }
+    public partial DateTime DateFinished { get; set; }
 
     [ObservableProperty]
     public partial bool WasPlayCompleted { get; set; }
 
     [ObservableProperty]
     public partial double PositionInSeconds { get; set; }
+    [ObservableProperty]
+    public partial DateTime EventDate { get; internal set; }=DateTime.UtcNow;
 
-    public PlayDateAndCompletionStateSongLinkView()
+    public PlayDataLink()
     {
         
     }
-    public PlayDateAndCompletionStateSongLinkView(PlayDateAndCompletionStateSongLink model)
+    public PlayDataLink(PlayDateAndCompletionStateSongLink model)
     {        
-        LocalDeviceId = model.LocalDeviceId;
+        LocalDeviceId = model.LocalDeviceId!;
         SongId = model.SongId;
-        DateStarted = model.DatePlayed;
-        
-        DateFinished = model.DateFinished;
+        DateStarted = model.DatePlayed.LocalDateTime;        
+        DateFinished = model.DateFinished.LocalDateTime;
         WasPlayCompleted = model.WasPlayCompleted;
         PositionInSeconds = model.PositionInSeconds;
         PlayType = model.PlayType;
+        
+        
+            EventDate = model.EventDate!.Value.LocalDateTime;
+        
     }
 }
 
 public partial class PlayDateAndCompletionStateSongLink : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLink));
+    public string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLink));
     
     public string? SongId { get; set; }
     /// <summary>
@@ -263,6 +300,9 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <item><term>3</term><description>Completed</description></item>
     /// <item><term>4</term><description>Seeked</description></item>
     /// <item><term>5</term><description>Skipped</description></item>
+    /// <item><term>6</term><description>Restarted</description></item>
+    /// <item><term>7</term><description>SeekRestarted</description></item>
+    /// <item><term>8</term><description>SeekRestarted</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 
@@ -275,21 +315,12 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public DateTimeOffset? EventDate { get; set; } = DateTimeOffset.UtcNow;
     public PlayDateAndCompletionStateSongLink()
     {
         
     }
 
-    public PlayDateAndCompletionStateSongLink(PlayDateAndCompletionStateSongLinkView model)
-    {
-        LocalDeviceId = model.LocalDeviceId;
-        SongId = model.SongId;
-        DatePlayed = model.DateStarted;
-        DateFinished = model.DateFinished;
-        WasPlayCompleted = model.WasPlayCompleted;
-        PositionInSeconds = model.PositionInSeconds;
-    }
-    
 }
 
 public enum SortingEnum
@@ -312,6 +343,4 @@ public enum SortingEnum
     NumberOfTimesPlayedCompletelyDesc,
     RatingAsc,
     RatingDesc,
-    
-
 }

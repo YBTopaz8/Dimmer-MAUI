@@ -94,7 +94,7 @@
                                 <Label Text="{Binding CurrentUser.UserName}"/>
                                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                                 <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
-                            <Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>
+                            <!--<Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>-->
 
                             </HorizontalStackLayout>
                             <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
@@ -194,11 +194,10 @@
         <VerticalStackLayout HorizontalOptions="Center" Spacing="15">
 
             <Label Text="Log In LastFM" />
-            <Entry Text="{Binding LastFMUserName}" Placeholder="LastFM Email"/>
+            <Entry Text="{Binding LastFMUserName}" Placeholder="LastFM User Name"/>
             <Entry Text="{Binding LastFMPassword}" Placeholder="LastFM Password"/>
 
-            <Button Text="Log In!"
-                    Command="{Binding LogInToLastFMWebsiteCommand}"/>
+            <Button Text="Log In!" Clicked="Button_Clicked_1"/>
 
             <HorizontalStackLayout>
                 <Image>

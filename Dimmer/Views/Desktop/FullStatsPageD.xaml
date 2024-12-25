@@ -7,12 +7,11 @@
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
-             
+             BackgroundColor="White"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"   
-             x:Name="myPage"
-             x:DataType="vm:HomePageVM">
+             x:Name="myPage">
              <!--xmlns:s="clr-namespace:Plugin.Maui.SegmentedControl;assembly=Plugin.Maui.SegmentedControl"-->
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -47,7 +46,9 @@
             <Grid.Resources>
                
             </Grid.Resources>
-            <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center"
+            <VerticalStackLayout Grid.Row="0" >
+                
+            <syncf:SfChipGroup HorizontalOptions="Center"
                 ChipType="Choice" ChoiceMode="Single" SelectionChanged="StatsTabs_SelectionChanged"
                    x:Name="StatsTabs" toolkit:DockLayout.DockPosition="Top">
                 <syncf:SfChip Text="General" x:Name="GeneralStatsTab" CommandParameter="0"/>
@@ -58,10 +59,17 @@
                 <syncf:SfChip Text="Playlists" x:Name="PlaylistsStatsTab"  CommandParameter="5"/>
                 <syncf:SfChip Text="Genre" x:Name="GenreStatsTab"  CommandParameter="6"/>-->
 
-            </syncf:SfChipGroup>
+                </syncf:SfChipGroup>
+
+                <HorizontalStackLayout HorizontalOptions="Center" >
+                    <Label Text="Click To Preview Song" VerticalOptions="Center"/>
+                    <CheckBox IsChecked="True" VerticalOptions="Center" HeightRequest="30"
+                              CheckedChanged="CheckBox_CheckedChanged"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
             <!-- General Stats View -->
-            <Border x:Name="GeneralStatsView" Grid.Row="1" Margin="10,0" >
-                <VerticalStackLayout VerticalOptions="Center" Spacing="50">
+            <ScrollView x:Name="GeneralStatsView" Grid.Row="1" Padding="50,0" x:DataType="vm:HomePageVM" >
+                <VerticalStackLayout VerticalOptions="Start" Spacing="50">
                     
                         <syncf:SfEffectsView VerticalOptions="Start"  
                         Opacity="0.5" Loaded="StatView_Loaded"
@@ -87,10 +95,10 @@
                                 </FlexLayout.GestureRecognizers>
                                 <Label Text="First Dimm: " FontSize="24" FontAttributes="Bold" />
                                 <HorizontalStackLayout>
-                                    <Label Text="{Binding FirstDimmSong,StringFormat='{0}'}" 
-                                           FontSize="24" FontAttributes="Bold" />
-                                    <Label Text="{Binding FirstDimmArtist,StringFormat=' by {0}'}" 
-                                           FontSize="24" FontAttributes="Bold" />
+                                    <Label Text="{Binding FirstDimmSong.Title,StringFormat='{0}'}" 
+                                           FontSize="20" FontAttributes="Bold" />
+                                    <Label Text="{Binding FirstDimmSong.ArtistName,StringFormat=' by {0}'}" 
+                                           FontSize="20" FontAttributes="Bold" />
                                 </HorizontalStackLayout>
 
                             </FlexLayout>
@@ -142,8 +150,19 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Fibonacci Play Count:" FontSize="24" FontAttributes="Bold" />
-                                <Label Text="{Binding FibonacciPlay,StringFormat='{0}'}" 
+                                <Label Text="Percentage Completion:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="{Binding PercentageCompletion,StringFormat='{0:n2}%'}" 
+                                       FontSize="24" FontAttributes="Bold" />
+
+                            </FlexLayout>
+                            
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <FlexLayout.GestureRecognizers>
+                                    <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
+                                                              PointerExited="FocusModePointerRec_PExited"/>
+                                </FlexLayout.GestureRecognizers>
+                                <Label Text="Number of Started Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="{Binding TotalNumberStartedDimms,StringFormat='{0}'}" 
                                        FontSize="24" FontAttributes="Bold" />
 
                             </FlexLayout>
@@ -152,74 +171,212 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Total number of Dimms:" FontSize="24" FontAttributes="Bold" />
-                                <Label Text="{Binding TotalNumberOfDimms,StringFormat='{0}'}" 
+                                <Label Text="Number of Paused Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="{Binding TotalNumberPausedDimms,StringFormat='{0}'}" 
+                                       FontSize="24" FontAttributes="Bold" />
+
+                            </FlexLayout>
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <FlexLayout.GestureRecognizers>
+                                    <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
+                                                              PointerExited="FocusModePointerRec_PExited"/>
+                                </FlexLayout.GestureRecognizers>
+                                <Label Text="Number of Completed Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="{Binding TotalNumberCompletedDimms,StringFormat='{0}'}" 
                                        FontSize="24" FontAttributes="Bold" />
 
                             </FlexLayout>
                         </VerticalStackLayout>                           
 
                         </syncf:SfEffectsView>
-                    
-                    <syncf:SfEffectsView VerticalOptions="Start"
-                    Opacity="0.5"  
-                    TouchUp="SfEffectsView_TouchUp" TouchUpCommandParameter="2">
-                        <syncf:SfEffectsView.GestureRecognizers>
-                            <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
-PointerExited="FocusModePointerRec_PExited"/>
-                        </syncf:SfEffectsView.GestureRecognizers>
-                        <VerticalStackLayout>
-
-                            <FlexLayout JustifyContent="SpaceBetween" ToolTipProperties.Text="{Binding ParetoRatio, StringFormat='{0:n2}% of your total plays come from the top 20% of songs you listen to most frequently.'}">
-                                <FlexLayout.GestureRecognizers>
-                                    <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
-PointerExited="FocusModePointerRec_PExited"/>
-                                </FlexLayout.GestureRecognizers>
-                                <Label Text="Pareto Dimm Ratio:" FontSize="24" FontAttributes="Bold" />
-                                <Label Text="{Binding ParetoRatio,StringFormat='{0:n2}%'}" 
-    FontSize="24" FontAttributes="Bold" />
-                            </FlexLayout>
-                            
-                        </VerticalStackLayout>
-                        
-                    </syncf:SfEffectsView>
-                    
                
                 </VerticalStackLayout>
                 
-            </Border>
+            </ScrollView>
             <!-- Songs Stats View -->
             <Border x:Name="SongsStatsView" Grid.Row="1" IsVisible="False" Margin="10,0">
+              
                 <ScrollView>
                     <VerticalStackLayout>
+                        
                         <Border>
-                            <syncf:SfEffectsView>
-                                <Grid ColumnDefinitions="Auto,Auto"
+                            
+                                <Grid RowDefinitions="*,*" ColumnDefinitions="*,400"
                             HorizontalOptions="Center" >
-                                    <!--<CollectionView ItemsSource="{Binding LifetimeBingeSongs}" Grid.Column="0"
-                                                    EmptyView="Nothing" Header="Top LifeTime Binges" 
-                                                    >
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:DimmData">
-                                                <VerticalStackLayout >
+                                    
+                                <syncf:SfPolarChart Grid.Row="1" BackgroundColor="Transparent" 
+                                                       HeightRequest="900" WidthRequest="1200" 
+                                                        Grid.Column="0">
+                                    <syncf:SfPolarChart.PrimaryAxis>
+                                        <syncf:CategoryAxis />
+                                    </syncf:SfPolarChart.PrimaryAxis>
+                                    
+                                    <syncf:SfPolarChart.SecondaryAxis>
+                                        <syncf:NumericalAxis/>
+                                    </syncf:SfPolarChart.SecondaryAxis>
+                                    
+                                    
+                                    <syncf:SfPolarChart.Resources>
+
+                                    </syncf:SfPolarChart.Resources>
+                                    <syncf:PolarLineSeries ItemsSource="{Binding TopPlayedSongs}" ShowMarkers="True"
+                                                           ShowDataLabels="False" EnableAnimation="True"
+                                                           YBindingPath="DimmCount" EnableTooltip="True">
+                                        <syncf:PolarLineSeries.XBindingPath>
+                                            <x:String>SongTitle</x:String>
+                                        </syncf:PolarLineSeries.XBindingPath>
+
+                                        <syncf:PolarLineSeries.SelectionBehavior>
+                                            <syncf:DataPointSelectionBehavior Type="Single" 
+                                SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
+                                SelectionBrush="DarkSlateBlue"/>
+                                        </syncf:PolarLineSeries.SelectionBehavior>
 
 
-                                                    <FlexLayout JustifyContent="SpaceBetween" Loaded="StatView_Loaded">
-                                                        <FlexLayout.GestureRecognizers>
-                                                            <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
-PointerExited="FocusModePointerRec_PExited"/>
-                                                        </FlexLayout.GestureRecognizers>
-                                                        <Label Text="{Binding SongTitle}" LineBreakMode="WordWrap" />
-                                                    <Label Text="{Binding LifeTimeHours, StringFormat=' {0:F2} hrs'}"/>
-                                                    </FlexLayout>
-                                                </VerticalStackLayout>
+                                        <syncf:PolarLineSeries.LabelTemplate>
+                                            <DataTemplate>
+                                                <Label TextColor="White">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{} {0} ({1})">
+                                                            <Binding Path="Item.SongTitle"/>
+                                                            <Binding Path="Item.DimmCount"/>
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
                                             </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>-->
+                                        </syncf:PolarLineSeries.LabelTemplate>
+
+                                        <syncf:PolarLineSeries.TooltipTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout>
+                                                    
+                                                <Label TextColor="White">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{} {0} by {1}">
+                                                            <Binding Path="Item.SongTitle"/>
+                                                            <Binding Path="Item.ArtistName"/>
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                                    <Label Text="{Binding Item.DimmCount, StringFormat='Dimm Count {0}'}"/>
+                                                </VerticalStackLayout>
+
+                                            </DataTemplate>
+                                        </syncf:PolarLineSeries.TooltipTemplate>
+                                    </syncf:PolarLineSeries>
+
+                                    <syncf:SfPolarChart.TooltipBehavior>
+                                        <syncf:ChartTooltipBehavior Duration="5000"/>
+                                    </syncf:SfPolarChart.TooltipBehavior>
+                                </syncf:SfPolarChart>
+
+
+                                <VerticalStackLayout Grid.Column="1" Grid.Row="0" x:DataType="vm:HomePageVM"
+                                                     VerticalOptions="Center" >
+                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title, StringFormat='{0}'}" HorizontalOptions="Center"
+                                           FontAttributes="Bold" FontSize="23" LineBreakMode="WordWrap" 
+                                           ToolTipProperties.Text="Song Title" />
+                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName, StringFormat='by {0}'}" 
+                                           HorizontalOptions="Center" ToolTipProperties.Text="Artist Name"/>
+                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName, StringFormat='{0}'}"
+                                           HorizontalOptions="Center" ToolTipProperties.Text="Album Name"/>
+
+                                    <Grid>
+                                        <Image IsVisible="True"
+                                               Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.6"/>
+
+                                    </Grid>
+                                    <Image Source="red_heart.gif" IsAnimationPlaying="{Binding SelectedSongToOpenBtmSheet.IsFavorite}"
+                                           WidthRequest="60" HeightRequest="60" IsVisible="{Binding SelectedSongToOpenBtmSheet.IsFavorite}"/>
+
+                                </VerticalStackLayout>
+
+
+                                <syncf:SfCircularChart Grid.Row="0" BackgroundColor="Transparent" 
+                                                       HeightRequest="800" WidthRequest="1200"
+                                                       Grid.Column="0" HorizontalOptions="Center">
+                                    
+                                    <syncf:SfCircularChart.Resources>
+
+                                    </syncf:SfCircularChart.Resources>
+                                    
+                                    
+                                    
+                                    <syncf:DoughnutSeries ItemsSource="{Binding TopPlayedSongs}"
+              ShowDataLabels="True" EnableAnimation="True"
+              YBindingPath="DimmCount" EnableTooltip="True">
+
+                                        <syncf:DoughnutSeries.XBindingPath>
+                                            <x:String>SongTitle</x:String>
+                                        </syncf:DoughnutSeries.XBindingPath>
+
+                                        <syncf:DoughnutSeries.SelectionBehavior>
+                                            <syncf:DataPointSelectionBehavior Type="Single" 
+                                SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
+                                SelectionBrush="DarkSlateBlue"/>
+                                        </syncf:DoughnutSeries.SelectionBehavior>
+                                        <syncf:DoughnutSeries.DataLabelSettings>
+                                            <syncf:CircularDataLabelSettings LabelPosition="Inside" LabelPlacement="Inner" >
+                                            </syncf:CircularDataLabelSettings>
+                                        </syncf:DoughnutSeries.DataLabelSettings>
+
+                                        <syncf:DoughnutSeries.LabelTemplate>
+                                            <DataTemplate>
+                                                <Label TextColor="White">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{} {0} ({1})">
+                                                            <Binding Path="Item.SongTitle"/>
+                                                            <Binding Path="Item.DimmCount"/>
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </DataTemplate>
+                                        </syncf:DoughnutSeries.LabelTemplate>
+
+                                        <syncf:DoughnutSeries.TooltipTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout>
+
+                                                    <Label TextColor="White">
+                                                        <Label.Text>
+                                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                                <Binding Path="Item.SongTitle"/>
+                                                                <Binding Path="Item.ArtistName"/>
+                                                            </MultiBinding>
+                                                        </Label.Text>
+                                                    </Label>                                                    
+                                                </VerticalStackLayout>
+
+                                            </DataTemplate>
+                                        </syncf:DoughnutSeries.TooltipTemplate>
+
+                                        <syncf:DoughnutSeries.CenterView>
+                                            <VerticalStackLayout x:DataType="vm:HomePageVM">
+                                                <Label Text="{Binding TemporarilyPickedSong.Title}"/>
+                                            </VerticalStackLayout>
+                                        </syncf:DoughnutSeries.CenterView>
+                                    </syncf:DoughnutSeries>
+
+                                    <syncf:SfCircularChart.TooltipBehavior>
+                                        <syncf:ChartTooltipBehavior Duration="5000"/>
+                                    </syncf:SfCircularChart.TooltipBehavior>
+                                </syncf:SfCircularChart>
+
+                            </Grid>
+                            
+                        </Border>
+                        
+                   
+                        <Border>
+                            
+                                <Grid ColumnDefinitions="*" 
+                            HorizontalOptions="Center" >
+                                    
+                                    
                                     <syncf:SfCartesianChart Grid.Column="1" BackgroundColor="Transparent" 
-                                                            HeightRequest="600" WidthRequest="800" 
-                                                            Title="Top Total Listening Times (hrs) / Artist">
-                                            <syncf:SfCartesianChart.XAxes>
+                        HeightRequest="600" WidthRequest="1600" 
+                        Title="Top Dimmed Genres">
+                                        <syncf:SfCartesianChart.XAxes>
                                             <syncf:CategoryAxis Interval="1">
 
                                                 <syncf:CategoryAxis.Title>
@@ -227,86 +384,70 @@ PointerExited="FocusModePointerRec_PExited"/>
                                                 </syncf:CategoryAxis.Title>
                                             </syncf:CategoryAxis>
                                         </syncf:SfCartesianChart.XAxes>
-                                            <syncf:SfCartesianChart.YAxes>
-                                            <syncf:NumericalAxis ShowMajorGridLines="False" Interval="1"
-                                                                     >
+                                        <syncf:SfCartesianChart.YAxes>
+                                            <syncf:NumericalAxis ShowMajorGridLines="False" Interval="5"
+                                 >
                                                 <syncf:NumericalAxis.Title>
-                                                    <syncf:ChartAxisTitle Text="Time in hours"/>
+                                                    <syncf:ChartAxisTitle Text="Dimm Count"/>
                                                 </syncf:NumericalAxis.Title>
                                             </syncf:NumericalAxis>
                                         </syncf:SfCartesianChart.YAxes>
 
-                                        <syncf:ColumnSeries ItemsSource="{Binding LifetimeBingeSongs}" 
-                                            ShowDataLabels="True" Spacing="50" Width="40"
-                                            YBindingPath="LifeTimeHours" EnableTooltip="True"
+                                        <syncf:ColumnSeries ItemsSource="{Binding TopPlayedGenres}" EnableAnimation="True"
+                                                            ShowDataLabels="True" Spacing="50" Width="40"
+                                                            YBindingPath="DimmCount" EnableTooltip="True"
                                                             >
-                                            
                                             <syncf:ColumnSeries.XBindingPath>
-                                                <x:String>SongTitle</x:String>
+                                                <x:String>GenreName</x:String>
                                             </syncf:ColumnSeries.XBindingPath>
                                         </syncf:ColumnSeries>
                                     </syncf:SfCartesianChart>
+                                    
+                                    
                                 </Grid>
-                            </syncf:SfEffectsView>
+                            
                         </Border>
-                        
                    
                         <Border>
-                            <syncf:SfEffectsView>
+                            
                                 <Grid ColumnDefinitions="*" 
                             HorizontalOptions="Center" >
-                                    <!--<CollectionView ItemsSource="{Binding MostDimmsPerDayCol}" Grid.Column="0"
-                                                    EmptyView="Nothing" Header="Top Dimms Per Day" VerticalOptions="Start"
-                                                    >
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:DimmData">
+
+
+                                <syncf:SfCircularChart Grid.Column="1" BackgroundColor="Transparent" 
+                        HeightRequest="600" WidthRequest="1600" 
+                        Title="Top Streaks">
+                                        <syncf:RadialBarSeries ItemsSource="{Binding TopStreaks}"  MaximumValue="10"
+                                                            ShowDataLabels="True" YBindingPath="StreakLength" EnableTooltip="True"
+                                                            StrokeWidth="10" CapStyle="BothCurve" GapRatio="1">
+                                        <syncf:RadialBarSeries.XBindingPath>
+                                                <x:String>SongTitle</x:String>
+                                            </syncf:RadialBarSeries.XBindingPath>
+
+                                        <syncf:RadialBarSeries.TooltipTemplate>
+                                            <DataTemplate>
                                                 <VerticalStackLayout>
-                                                    <FlexLayout JustifyContent="SpaceBetween" Loaded="StatView_Loaded">
-                                                        <FlexLayout.GestureRecognizers>
-                                                            <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
-PointerExited="FocusModePointerRec_PExited"/>
-                                                        </FlexLayout.GestureRecognizers>
-                                                        <Label Text="{Binding SongTitle}" LineBreakMode="WordWrap"
-                                                               WidthRequest="150"/>
 
-                                                        <Label Text="{Binding ArtistName, StringFormat=' {0}'}"/>
-                                                        <Label Text="{Binding DimmCount, StringFormat=' {0}'}"/>
-                                                    </FlexLayout>
+                                                    <Label TextColor="White">
+                                                        <Label.Text>
+                                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                                <Binding Path="Item.SongTitle"/>
+                                                                <Binding Path="Item.ArtistName"/>
+                                                            </MultiBinding>
+                                                        </Label.Text>
+                                                    </Label>
+                                                    <Label Text="{Binding Item.StreakLength, StringFormat='Streak Length {0}'}"/>
                                                 </VerticalStackLayout>
+
                                             </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>-->
-                                    
-                                    <syncf:SfPolarChart Grid.Column="1" VerticalOptions="Start" GridLineType="Polygon"
-                                                        
-                                                        HorizontalOptions="FillAndExpand" HeightRequest="1200" WidthRequest="1200"
-                                                        Title="Top Total Listening Times (hrs) / Artist">
-                                        <syncf:SfPolarChart.PrimaryAxis>
-                                            <syncf:CategoryAxis>
+                                        </syncf:RadialBarSeries.TooltipTemplate>
 
-                                                <syncf:CategoryAxis.Title>
-                                                    <syncf:ChartAxisTitle Text="Song Title"/>
-                                                </syncf:CategoryAxis.Title>
-                                            </syncf:CategoryAxis>
-                                        </syncf:SfPolarChart.PrimaryAxis>
-                                        <syncf:SfPolarChart.SecondaryAxis>
-                                            <syncf:NumericalAxis ShowMajorGridLines="False" Interval="10"
-                                                                     >
-                                                <syncf:NumericalAxis.Title>
-                                                    <syncf:ChartAxisTitle Text="Play Count"/>
-                                                </syncf:NumericalAxis.Title>
-                                            </syncf:NumericalAxis>
-                                        </syncf:SfPolarChart.SecondaryAxis>
-
-                                        <syncf:PolarLineSeries ItemsSource="{Binding MostDimmsPerDayCol}" 
-                                            ShowDataLabels="True" EnableAnimation="True" 
-                                            YBindingPath="DimmCount" EnableTooltip="True"
-                                            XBindingPath="SongTitle">
-                                            
-                                        </syncf:PolarLineSeries>
-                                    </syncf:SfPolarChart>
+                                    </syncf:RadialBarSeries>
+                                        
+                                        
+                                    </syncf:SfCircularChart>
                                 </Grid>
-                            </syncf:SfEffectsView>
+                            
                         </Border>
                     </VerticalStackLayout>
                 </ScrollView>
@@ -324,44 +465,37 @@ PointerExited="FocusModePointerRec_PExited"/>
                         </Border>
 
                         <Border >
-                            <syncf:SfEffectsView>
-                                <Grid ColumnDefinitions="*"
-                            HorizontalOptions="Center" >
-                                    <!--<CollectionView Grid.Row="0" Header="Top Played Artists" VerticalOptions="Start"
-                                                    ItemsSource="{Binding TopPlayedArtists}" 
-                                                    SelectionMode="None" HeightRequest="600" >
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:DimmData">
-                                                <FlexLayout JustifyContent="SpaceBetween" Padding="5" WidthRequest="400" >
-                                                    <Label Text="{Binding ArtistName}"/>
-                                                    <Label Text="{Binding DimmCount, StringFormat='{0 Plays}'}" 
-                                                           WidthRequest="150"/>
 
-                                                </FlexLayout>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>-->
 
-                                    <syncf:SfCartesianChart Grid.Column="1" IsTransposed="False" Title="Top Played Artists"
-                                                            HeightRequest="800" VerticalOptions="Start"
-                                                            WidthRequest="800" >
-                                        <syncf:SfCartesianChart.XAxes>
-                                            <syncf:CategoryAxis ShowMajorGridLines="False"/>
-                                        </syncf:SfCartesianChart.XAxes>
-                                        <syncf:SfCartesianChart.YAxes>
-                                            <syncf:NumericalAxis ShowMajorGridLines="False" Interval="10"/>
-                                        </syncf:SfCartesianChart.YAxes>
+                            <syncf:SfCartesianChart Grid.Column="1" BackgroundColor="Transparent" 
+                        HeightRequest="600" WidthRequest="1600" 
+                        Title="Top Dimmed Genres">
+                                <syncf:SfCartesianChart.XAxes>
+                                    <syncf:CategoryAxis Interval="1">
 
-                                        <syncf:ColumnSeries  ItemsSource="{Binding TopPlayedArtists}" 
-                                    ShowDataLabels="True" IsVisible="True" EnableAnimation="True" EnableTooltip="True"
-                                    XBindingPath="ArtistName" YBindingPath="DimmCount" 
-                                                 Spacing="12" 
-                                                 Width="8">
+                                        <syncf:CategoryAxis.Title>
+                                            <syncf:ChartAxisTitle Text="Top Played Artists"/>
+                                        </syncf:CategoryAxis.Title>
+                                    </syncf:CategoryAxis>
+                                </syncf:SfCartesianChart.XAxes>
+                                <syncf:SfCartesianChart.YAxes>
+                                    <syncf:NumericalAxis ShowMajorGridLines="False" Interval="5"
+                                 >
+                                        <syncf:NumericalAxis.Title>
+                                            <syncf:ChartAxisTitle Text="Dimm Count"/>
+                                        </syncf:NumericalAxis.Title>
+                                    </syncf:NumericalAxis>
+                                </syncf:SfCartesianChart.YAxes>
 
-                                        </syncf:ColumnSeries>
-                                    </syncf:SfCartesianChart>
-                                </Grid>
-                            </syncf:SfEffectsView>
+                                <syncf:ColumnSeries ItemsSource="{Binding TopPlayedArtists}" EnableAnimation="True"
+                                                            ShowDataLabels="True" Spacing="50" Width="40"
+                                                            YBindingPath="DimmCount" EnableTooltip="True"
+                                                            >
+                                    <syncf:ColumnSeries.XBindingPath>
+                                        <x:String>ArtistName</x:String>
+                                    </syncf:ColumnSeries.XBindingPath>
+                                </syncf:ColumnSeries>
+                            </syncf:SfCartesianChart>
                         </Border>
                     </VerticalStackLayout>
                 </ScrollView>

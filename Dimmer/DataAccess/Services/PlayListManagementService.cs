@@ -67,18 +67,6 @@ public class PlayListManagementService : IPlaylistManagementService
             var checkExist = db.Find<PlaylistModel>(playlist.LocalDeviceId);
             if (IsAddSong)
             {
-                
-                if (checkExist is null)
-                {
-                    db.Write(() =>
-                    {
-                        db.Add(new PlaylistModel(playlist));
-                        if (playlistSongLink is not null)
-                        {
-                            db.Add(playlistSongLink);
-                        }
-                    });
-                }
                 db.Write(() =>
                 {
                     db.Add(new PlaylistModel(playlist), true);

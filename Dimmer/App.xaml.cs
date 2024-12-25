@@ -11,9 +11,6 @@ public partial class App : Application
         try
         {
             InitializeComponent();
-            SongsManagementService.InitializeParseClient();
-            SetupLastFM();
-
         }
         catch (Exception ex)
         {
@@ -24,24 +21,7 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
 
-        
-    }
-
-    private static void SetupLastFM()
-    {
-        AuthData.SetAPIData(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET);
-        AuthData.SetUNameAndUPass(APIKeys.USER, APIKeys.PASSWORD);
-        string localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-
-        // Step 1: Define the factory method
-        Func<string, string, IWebProxy, LastfmClient> factoryMethod = (apiKey, apiSecret, proxy) =>
-        {
-            return new LastfmClient(apiKey, apiSecret, proxy); // Replace with your LastfmClient's actual constructor
-        };
-
-        // Step 2: Configure the client
-        LastfmClient.Configure(factoryMethod, APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET);
+        APIKeys.SetupLastFM();
 
 
     }
@@ -52,7 +32,7 @@ public partial class App : Application
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //await home.ExitingApp();LogException(e.Exception);
+        LogException(e.Exception);
     }
     
     protected override Window CreateWindow(IActivationState? activationState)

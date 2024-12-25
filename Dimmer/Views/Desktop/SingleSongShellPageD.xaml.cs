@@ -23,14 +23,25 @@ public partial class SingleSongShellPageD : ContentPage
         ViewModel.CurrentPage = PageEnum.NowPlayingPage;
         DeviceDisplay.Current.KeepScreenOn = true;
         ViewModel.AssignSyncLyricsCV(LyricsColView);
+        switch (ViewModel.TemporarilyPickedSong.IsFavorite)
+        {
+            
+            case true:
+                RatingChipCtrl.SelectedItem = LoveRate;
+                break;
+            case false:
+                RatingChipCtrl.SelectedItem = HateRate;
+                break;
+            default:
+                break;
+        }
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         ViewModel.CurrentViewIndex = 0;
-        ViewModel.IsViewingDifferentSong = false;
-        SongShellTabView.SelectedIndex = 0;
+        ViewModel.IsViewingDifferentSong = false;        
     }
 
     private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -279,41 +290,82 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         emptyV.IsVisible = false;
     }
 
-
-    private async void SfChipGroup_ChipClicked(object sender, EventArgs e)
+    private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
     {
-        var send = sender as SfChip;
-        var newSelection = int.Parse(send.CommandParameter.ToString()!);
+        var selectedTab = StatsTabs.SelectedItem;
+        var send = (SfChipGroup)sender;
+        var selected = send.SelectedItem as SfChip;
+        if (selected is null)
+        {
+            return;
+        }
+        _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
 
-        // All grids
-        var grids = new Dictionary<int, View>
-    {
-        { 0, SyncedLyricGrid },
-        { 1, PlainLyricsGrid },
-        { 2, SearchLyricsGrid },
-        { 3, SongDetails },
-        //{ 4, ArtistDetails },
-        //{ 5, AlbumDetails },
-        //{ 6, SongStats }
-    };
+        switch (selectedStatView)
+        {
+            case 0:
 
-        // Ensure valid selection
-        if (!grids.ContainsKey(newSelection))
+                //GeneralStatsView front, rest back
+                break;
+            case 1:
+                //SongsStatsView front, rest back
+                //HomePageVM.GetNotListenedStreaks();
+                //HomePageVM.GetTopStreakTracks();
+
+                //HomePageVM.GetGoldenOldies();
+
+
+                //HomePageVM.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
+                //HomePageVM.GetStatisticalOutlierSongs();
+                //HomePageVM.GetDailyListeningVolume();
+                //HomePageVM.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //HomePageVM.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //HomePageVM.GetOngoingGapBetweenTracks();
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                ViewModel.CalculateGeneralSongStatistics(ViewModel.SelectedSongToOpenBtmSheet.LocalDeviceId);
+                
+                
+                break;
+            case 5:
+
+                break;
+            case 6:
+
+                break;
+            default:
+
+                break;
+        }
+
+        var viewss = new Dictionary<int, View>
+        {
+            {0, SyncedLyricGrid},
+            {1, PlainLyricsGrid},
+            {2, SearchLyricsGrid},
+            {3, SongDetails},
+            {4, SongStatsGrid},
+            
+        };
+        if (!viewss.ContainsKey(selectedStatView))
             return;
 
-        // Animate all grids
-        await Task.WhenAll(grids.Select(kvp =>
-            kvp.Key == newSelection
-                ? kvp.Value.AnimateFadeInFront()
-                : kvp.Value.AnimateFadeOutBack()));
+        await Task.WhenAll
+            (viewss.Select(kvp =>
+            kvp.Key == selectedStatView
+            ? kvp.Value.AnimateFadeInFront()
+            : kvp.Value.AnimateFadeOutBack()));
+        return;
     }
-
-
     private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
         var ee = (SfChip)sender;
 
-        ViewModel.RateSong(ee.CommandParameter.ToString());
+        ViewModel.RateSongCommand.Execute(ee.CommandParameter.ToString()!);
     }
 
     List<string> SelectedSongIds = new List<string>();
@@ -330,9 +382,9 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         SelectedSongIds = new List<string> { SelectedSong1Id };
         if (e.NewIndex == 6)
         {
-            ViewModel.GetPlayCompletionStatus(SelectedSongIds);
+            //ViewModel.GetPlayCompletionStatus(SelectedSongIds);
             //PeriodTabView.SelectedIndex = 0;
-            ViewModel.LoadDailyData(SelectedSongIds);
+            //ViewModel.LoadDailyData(SelectedSongIds);
         }
     }
 
@@ -342,7 +394,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         {
             FilterDates.Clear();
             FilterDates.Add(e.Date);
-            ViewModel.LoadDailyData(SelectedSongIds,FilterDates);
+            //ViewModel.LoadDailyData(SelectedSongIds,FilterDates);
         }
         else
         {
@@ -362,17 +414,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         var send = (View)sender;
         await send.DimmOut(300);
-
-    }
-
-    private void StatView_Loaded(object sender, EventArgs e)
-    {
-        var send = (View)sender;
-        _ = send.DimmOut(300);
-    }
-
-    private void SaveLastFMInfo_Clicked(object sender, EventArgs e)
-    {
 
     }
 
@@ -396,5 +437,24 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     private void SfChip_Clicked(object sender, EventArgs e)
     {
 
+    }
+
+    private async void FocusModePointerRec_PEntered(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.DimmIn(500);
+
+    }
+    private async void FocusModePointerRec_PExited(object sender, PointerEventArgs e)
+    {
+        var send = (View)sender;
+        await send.DimmOut(300);
+
+    }
+
+    private void StatView_Loaded(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        _ = send.DimmOut(300);
     }
 }
