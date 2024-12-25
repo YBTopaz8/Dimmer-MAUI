@@ -133,7 +133,7 @@ public partial class DimmerWindow : Window
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
     {
-        var send = (Microsoft.Maui.Controls.Image)sender;
-        send.IsAnimationPlaying = !send.IsAnimationPlaying;
+        
+        EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
     }
 }

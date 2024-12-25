@@ -48,7 +48,7 @@
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
                             TouchUp="SfEffectsView_TouchUp">
                         <Image  Source="christmas_tree.gif" x:Name="EventEmoji" IsVisible="True" 
-       WidthRequest="30" IsAnimationPlaying="True"/>
+       WidthRequest="30" IsAnimationPlaying="True" />
                     </syncf:SfEffectsView>
 
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"

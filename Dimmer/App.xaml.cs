@@ -21,7 +21,9 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
 
-        
+        APIKeys.SetupLastFM();
+
+
     }
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -30,7 +32,7 @@ public partial class App : Application
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
 
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        //await home.ExitingApp();LogException(e.Exception);
+        LogException(e.Exception);
     }
     
     protected override Window CreateWindow(IActivationState? activationState)

@@ -255,10 +255,11 @@ public partial class HomePageVM : ObservableObject
     {
         DisplayedSongsColView = cv;
 
-        APIKeys.SetupLastFM();
-        _ = APIKeys.LogInToLastFMWebsite();
-        SongsManagementService.InitializeParseClient();
-        CurrentUserOnline = await APIKeys.LogInParseOnline();
+        if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
+        {
+
+            CurrentUserOnline = await APIKeys.LogInParseOnline();
+        }
         if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
         {
             CurrentUser.IsAuthenticated = true;

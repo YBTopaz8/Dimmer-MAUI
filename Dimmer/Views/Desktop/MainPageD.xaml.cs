@@ -44,7 +44,7 @@ public partial class MainPageD : ContentPage
             }
             HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
             
-            //SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {

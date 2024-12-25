@@ -196,7 +196,7 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                             <VerticalStackLayout Grid.Row="0" Spacing="10" 
                  Margin="5" HorizontalOptions="Start">
 
-                                <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='{Full Path: {0}'}"/>
+                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath,StringFormat='Full Path: {0}'}"/>
                                 <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
                                 <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
                                 <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
@@ -348,8 +348,8 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                         </FlexLayout.GestureRecognizers>
                                         <Label Text="Date of First Dimm:" 
            FontSize="24" FontAttributes="Bold" />
-                                        <Label Text="{Binding DateOfFirstDimm,StringFormat='{0}'}" 
-           FontSize="24" FontAttributes="Bold" />
+                                        <!--<Label Text="{Binding DateOfFirstDimm,StringFormat='{0}'}" 
+           FontSize="24" FontAttributes="Bold" />-->
 
                                     </FlexLayout>
                                     
@@ -543,7 +543,7 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Update}"/>
                                         </Image.Source>
                                     </Image>
-                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>
+                                    <!--<Label Text="{Binding SelectedSongToOpenBtmSheet.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>-->
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
