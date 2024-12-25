@@ -9,6 +9,7 @@ public interface IPlaybackUtilsService
         double lastPosition = 0, int repeatMode = 0, 
         int repeatMaxCount = 0, bool IsUserSkipped = true,
         bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
+    Task<bool> PlaySongAsync(SongModelView song, bool isPreview=true);
     Task<bool> PlayNextSongAsync(bool IsUserSkipped=true); //to play next song
     Task<bool> PlayPreviousSongAsync(bool IsUserSkipped = true); //to play previous song
     Task<bool> StopSongAsync(); //to stop song

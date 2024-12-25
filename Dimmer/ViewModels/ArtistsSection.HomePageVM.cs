@@ -182,14 +182,14 @@ public partial class HomePageVM
     {
         if (AllArtistsAlbums is null)
         {
-            var selectedLink = AllLinks!.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
+            var selectedLink = AllLinks.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
             SelectedArtistOnArtistPage = AllArtists!.FirstOrDefault(artist => artist.LocalDeviceId == selectedLink?.ArtistId)!;
 
             
             List<string> allAlbums = new List<string>(); 
             if (SelectedArtistOnArtistPage != null)
             {
-                allAlbums = AllLinks!
+                allAlbums = AllLinks
                     .Where(link => link.ArtistId == SelectedArtistOnArtistPage.LocalDeviceId)
                     .Select(link => link.AlbumId)
                     .ToList();
@@ -233,7 +233,7 @@ public partial class HomePageVM
         {
             // Create a set of album IDs linked to the artist
             var albumIds = new HashSet<string>(
-                AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId)
+                 AllLinks.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId)
             );
             if (AllAlbums is null)
             {
@@ -255,7 +255,7 @@ public partial class HomePageVM
         {
             // Pre-build a HashSet of song IDs related to the album for quick lookup
             var songIds = new HashSet<string>(
-                AllLinks!.Where(link => link.ArtistId == artistId).Select(link => link.SongId)
+                AllLinks.Where(link => link.ArtistId == artistId).Select(link => link.SongId)
             );
 
             // Filter songs using the HashSet for O(1) lookups
@@ -274,7 +274,7 @@ public partial class HomePageVM
         {
             // Pre-build a HashSet of song IDs related to the album for quick lookup
             var songIds = new HashSet<string>(
-                AllLinks!.Where(link => link.AlbumId == albumId).Select(link => link.SongId)!
+                AllLinks.Where(link => link.AlbumId == albumId).Select(link => link.SongId)!
             );
 
             // Filter songs using the HashSet for O(1) lookups
@@ -288,7 +288,7 @@ public partial class HomePageVM
 
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
   {
-        var artistIds = AllLinks!
+        var artistIds = AllLinks
             .Where(link => link.SongId == songId)
             .Select(link => link.ArtistId!)
             .Distinct()
@@ -350,7 +350,7 @@ public partial class HomePageVM
 
     public ObservableCollection<ArtistModelView> GetAllArtistsFromAlbumID(string albumId)
     {
-        var artistIds = AllLinks!
+        var artistIds = AllLinks
             .Where(link => link.AlbumId == albumId && link.ArtistId != null)
             .Select(link => link.ArtistId!)
             .Distinct()
@@ -363,7 +363,7 @@ public partial class HomePageVM
 
     public ObservableCollection<SongModelView> GetAllSongsFromAlbumID(string albumId)
     {
-        var songIds = AllLinks!
+        var songIds = AllLinks
             .Where(link => link.AlbumId == albumId && link.SongId != null)
             .Select(link => link.SongId!)
             .Distinct()
@@ -376,7 +376,7 @@ public partial class HomePageVM
 
     public ObservableCollection<AlbumModelView> GetAllAlbumsFromArtistID(string artistId)
     {
-        var albumIds = AllLinks!
+        var albumIds = AllLinks
             .Where(link => link.ArtistId == artistId && link.AlbumId != null)
             .Select(link => link.AlbumId!)
             .Distinct()
@@ -388,7 +388,7 @@ public partial class HomePageVM
     }
     public ObservableCollection<SongModelView> GetAllSongsFromArtistID(string artistId)
     {
-        var songIds = AllLinks!
+        var songIds = AllLinks
             .Where(link => link.ArtistId == artistId && link.SongId != null)
             .Select(link => link.SongId!)
             .Distinct()
@@ -401,7 +401,7 @@ public partial class HomePageVM
 
     public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
-        if (artist is null)
+        if (artist is null && SelectedArtistOnArtistPage is null)
             return;
         SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         SelectedArtistOnArtistPage = artist;

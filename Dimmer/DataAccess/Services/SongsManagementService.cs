@@ -4,14 +4,18 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 {
     Realm db;
 
-    public IList<SongModelView> AllSongs { get; set; }
+    public List<SongModelView> AllSongs { get; set; }
+    public List<PlayDataLink> AllPlayDataLinks { get; set; }
+    
     HomePageVM ViewModel { get; set; }
-    public IList<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
-    public IList<PlayDateAndCompletionStateSongLinkView> AllPlayDataAndCompletionStateLinks { get; set; }
-    public IList<AlbumModelView> AllAlbums { get; set; }
-    public IList<ArtistModelView> AllArtists { get; set; }
-    public IList<GenreModelView> AllGenres { get; set; }
+
+
+    public List<AlbumModelView> AllAlbums { get; set; }
+    public List<ArtistModelView> AllArtists { get; set; }
+    public List<GenreModelView> AllGenres { get; set; }
     public IDataBaseService DataBaseService { get; }
+
+
     public SongsManagementService(IDataBaseService dataBaseService)
     {
         DataBaseService = dataBaseService;
@@ -22,22 +26,138 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     bool HasOnlineSyncOn;
     public ParseUser? CurrentUserOnline { get; set; }
     public void InitApp(HomePageVM vm)
-    {
-        //InitApp();
+    {        
         ViewModel = vm;
-        //GetSongs();
-        //isSyncingOnline = true;
-        //if (AllSongs?.Count<1)
-        //{
-        //    await FetchAllInitially();
-        //}
-        //else
-        //{
-        //    await GetOnlineDBLoaded();
-        //}
-        //isSyncingOnline = false;
+    }
+    public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
+
+    bool isSyncingOnline;
+    public void GetSongs()
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+
+
+
+            var realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
+            AllLinks = new List<AlbumArtistGenreSongLinkView>(realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link)));
+            AllLinks ??= Enumerable.Empty<AlbumArtistGenreSongLinkView>().ToList();
+            
+            AllSongs = new ();
+
+            AllSongs.Clear();
+
+            var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+            var realmPlayData = db.All<PlayDateAndCompletionStateSongLink>().ToList();
+
+            AllPlayDataLinks = new List<PlayDataLink>(realmPlayData
+                .Select(model => new PlayDataLink()
+                {
+                    LocalDeviceId = model.LocalDeviceId!,
+                    SongId = model.SongId,
+                    DateStarted = model.DatePlayed.LocalDateTime,
+                    DateFinished = model.DateFinished.LocalDateTime,
+                    WasPlayCompleted = model.WasPlayCompleted,
+                    PositionInSeconds = model.PositionInSeconds,
+                    PlayType = model.PlayType,
+                    
+        } ));
+
+            var groupedPlayData = realmPlayData.GroupBy(p => p.SongId)
+                
+            .ToDictionary(g => g.Key, g => g.ToList()); // Create a Dictionary
+
+            var tempSongViews = new List<SongModelView>();
+            foreach (var songModel in realmSongs)
+            {
+                if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
+                {
+                    tempSongViews.Add(new SongModelView(songModel, playDataForSong.ToObservableCollection()));
+                }
+                else
+                {
+                    // Handle the case where there's no play data for the song (optional)
+                    tempSongViews.Add(new SongModelView(songModel, null)); // Or an empty ObservableCollection
+                }
+            }
+
+
+            AllSongs = tempSongViews;
+
+            GetAlbums();
+            GetArtists();
+            GetGenres();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public void AddPlayData(string songId, PlayDataLink playData)
+    {
+        // 1. Add to the specific SongModelView's PlayDates
+        var songView = AllSongs.FirstOrDefault(s => s.LocalDeviceId == songId);
+        if (songView != null)
+        {
+            songView.PlayData.Add(playData);
+            songView.NumberOfTimesPlayed = songView.PlayData.Count;
+            songView.NumberOfTimesPlayedCompletely = songView.PlayData.Count(p => p.WasPlayCompleted);
+        }
+
+        // 2. Save to the database (Realm) separately
+        using (var realm = Realm.GetInstance(DataBaseService.GetRealm()))
+        {
+            realm.Write(() =>
+            {
+                realm.Add(new PlayDateAndCompletionStateSongLink
+                {
+                    LocalDeviceId = playData.LocalDeviceId,
+                    SongId = playData.SongId,
+                    DatePlayed = playData.DateStarted.ToUniversalTime(),
+                    DateFinished = playData.DateFinished.ToUniversalTime(),
+                    WasPlayCompleted = playData.WasPlayCompleted,
+                    PositionInSeconds = playData.PositionInSeconds,
+                    PlayType = playData.PlayType
+                });
+            });
+        }
+    }
+
+
+    public void GetGenres()
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        AllGenres?.Clear();
+        var realmSongs = db.All<GenreModel>().ToList();
+        AllGenres = new List<GenreModelView>(realmSongs.Select(genre => new GenreModelView(genre)));
+    }
+    public void GetArtists()
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            var realmArtists = db.All<ArtistModel>().ToList();
+
+            AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)));
+            AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting Artists: {ex.Message}");
+        }
+    }
+
+    public void GetAlbums()
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        AllAlbums?.Clear();
+        var realmAlbums = db.All<AlbumModel>().ToList();
+        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
 
     }
+
 
     #region Online Region
 
@@ -273,7 +393,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
         try
         {
-            _ = await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs,AllGenres,AllLinks, AllPlayDataAndCompletionStateLinks);
+            _ = await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs,AllGenres,AllLinks, AllPlayDataLinks);
         }
         catch (Exception ex)
         {
@@ -658,68 +778,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
     }
 
 
-    bool isSyncingOnline;
-    public void GetSongs()
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            AllSongs?.Clear();
-            var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-            AllSongs = new List<SongModelView>(realmSongs.Select(song => new SongModelView(song)));
-            AllSongs ??= Enumerable.Empty<SongModelView>().ToList();
-
-            var realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
-            AllLinks = new List<AlbumArtistGenreSongLinkView>(realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link)));
-            AllLinks ??= Enumerable.Empty<AlbumArtistGenreSongLinkView>().ToList();
-            
-            var realmLinkss = db.All<PlayDateAndCompletionStateSongLink>().ToList();
-            AllPlayDataAndCompletionStateLinks = new List<PlayDateAndCompletionStateSongLinkView>(realmLinkss.Select(link => new PlayDateAndCompletionStateSongLinkView(link)));
-            AllPlayDataAndCompletionStateLinks ??= Enumerable.Empty<PlayDateAndCompletionStateSongLinkView>().ToList();
-            
-
-            GetAlbums();
-            GetArtists();
-            GetGenres();
-            
-
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
-    }
-    public void GetGenres()
-    {
-        db = Realm.GetInstance(DataBaseService.GetRealm());
-        AllGenres?.Clear();
-        var realmSongs = db.All<GenreModel>().ToList();
-        AllGenres = new List<GenreModelView>(realmSongs.Select(genre => new GenreModelView(genre)));
-    }
-    public void GetArtists()
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var realmArtists = db.All<ArtistModel>().ToList();
-            AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)));
-            AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting Artists: {ex.Message}");
-        }
-    }
-
-    public void GetAlbums()
-    {
-        db = Realm.GetInstance(DataBaseService.GetRealm());
-        AllAlbums?.Clear();
-        var realmAlbums = db.All<AlbumModel>().ToList();
-        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
-
-    }
-
+   
     private bool IsRealmSpecificType(Type type)
     {
 
@@ -787,6 +846,10 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
                                     x.DurationInSeconds == songsModelView.DurationInSeconds &&
                                     x.ArtistName == songsModelView.ArtistName)
                         .ToList();
+                    if (existingSong is not null && existingSong.Count > 0)
+                    {
+                        return;
+                    }
                 }
 
 
@@ -872,7 +935,7 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
         }
     }
 
-    public async void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link)
+    public async void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link, bool SyncSave = false)
     {
         try
         {
@@ -885,6 +948,10 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
             {
                 AddOrUpdateSingleRealmItem(db,
                     link);
+            }
+            if (!SyncSave)
+            {
+                return;
             }
 
             if (string.IsNullOrEmpty(CurrentOfflineUser.UserIDOnline))
@@ -1392,12 +1459,12 @@ AddOrUpdateSingleRealmItem(
 
             var combinedList = new List<SongModelView>(AllSongs);
             combinedList.AddRange(songs!);
-            var allSongss = combinedList.ToObservableCollection();
-            AllSongs = allSongss;
-            AllArtists = allArtists.ToList();
-            AllAlbums = allAlbums.ToList();
-            AllGenres = allGenres.ToList();
-            AllLinks = allLinks.ToList();
+        
+            AllSongs = combinedList;
+            AllArtists = allArtists;
+            AllAlbums = allAlbums;
+            AllGenres = allGenres;
+            AllLinks=allLinks;
             ViewModel.SyncRefresh();
 
         List<SongModel> dbSongs = songs.Select(song => new SongModel(song)).ToList()!;
@@ -1535,6 +1602,24 @@ AddOrUpdateSingleRealmItem(
     }
     double percentComplete;
 
+    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model)
+    {
+
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            db.Write(() =>
+            {                
+                db.Add(model);
+            });
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            
+        }
+
+    }
 
     /// <summary>
     /// Syncs the provided data to the local Realm database
@@ -1553,7 +1638,7 @@ AddOrUpdateSingleRealmItem(
     IEnumerable<AlbumModelView> albumModels,
     IEnumerable<GenreModelView> genreModels,
     IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
-     IEnumerable<PlayDateAndCompletionStateSongLinkView>? PDaCSLink)
+     IEnumerable<PlayDataLink>? PDaCSLink)
     {
         try
         {
@@ -1607,12 +1692,6 @@ AddOrUpdateSingleRealmItem(
                 link => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null
             );
 
-            if (PDaCSLink is not null)
-            {
-                AddOrUpdateMultipleRealmItems(
-                PDaCSLink.Select(l => new PlayDateAndCompletionStateSongLink(l)),
-                link => db.Find<PlayDateAndCompletionStateSongLink>(link.LocalDeviceId) != null);
-            }
 
             Debug.WriteLine("All data synced to database.");
             return true;
@@ -1626,7 +1705,7 @@ AddOrUpdateSingleRealmItem(
 
     public async Task<bool> SyncPlayDataAndCompletionData()
     {
-        await SendMultipleObjectsToParse(AllPlayDataAndCompletionStateLinks, nameof(PlayDateAndCompletionStateSongLink));
+        await SendMultipleObjectsToParse(AllPlayDataLinks, nameof(PlayDateAndCompletionStateSongLink));
         return true;
     }
     public async Task<bool> SyncAllDataToOnlineAsync( //TRY NOT TO USE THIS FIRST. USE ADDSONG.....OnlineAsyc
@@ -1635,7 +1714,7 @@ AddOrUpdateSingleRealmItem(
         IEnumerable<AlbumModelView> albumModels,
         IEnumerable<GenreModelView> genreModels,
         IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
-        IEnumerable<PlayDateAndCompletionStateSongLinkView>? PDaCSLink)
+        IEnumerable<PlayDataLink>? PDaCSLink)
     {
         try
         {
@@ -1726,7 +1805,7 @@ AddOrUpdateSingleRealmItem(
      IEnumerable<SongModelView> songs,
      IEnumerable<GenreModelView> genreModels,
      IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
-     IEnumerable<PlayDateAndCompletionStateSongLinkView>? PDaCSLink)
+     IEnumerable<PlayDataLink>? PDaCSLink)
     {
         try
         {
@@ -1758,7 +1837,7 @@ AddOrUpdateSingleRealmItem(
      IEnumerable<SongModel> songs,
      IEnumerable<GenreModelView> genreModels,
      IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
-     IEnumerable<PlayDateAndCompletionStateSongLinkView>? PDaCSLink)
+     IEnumerable<PlayDataLink>? PDaCSLink)
     {
         await GetUserAccountOnline();
         try

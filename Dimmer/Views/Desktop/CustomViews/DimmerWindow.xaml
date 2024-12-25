@@ -36,18 +36,27 @@
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
                     
-                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin}" Size="20"/>
-                        </ImageButton.Source>
+                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}"
+                                 Source="pushpined.png" WidthRequest="30" HeightRequest="30">
+                        
                     </ImageButton>
-                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Pin_drop}" Size="20"/>
-                        </ImageButton.Source>
+                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked"
+                                 Source="pushpin.png" WidthRequest="30" HeightRequest="30">
+                        
                     </ImageButton>
 
+                    <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
+                            TouchUp="SfEffectsView_TouchUp">
+                        <Image  Source="christmas_tree.gif" x:Name="EventEmoji" IsVisible="True" 
+       WidthRequest="30" IsAnimationPlaying="True"/>
+                    </syncf:SfEffectsView>
 
+                    <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
+                            TouchUp="SfEffectsView_TouchUp">
+
+                        <Image Source="onlinecloud.gif" IsVisible="{Binding IsLoggedIn}"
+                   HeightRequest="30" HorizontalOptions="Start"/>
+                    </syncf:SfEffectsView>
                     <Image Source="syncingCloud.gif" x:Name="syncingCloud" IsVisible="{Binding IsSyncingSongs}" IsAnimationPlaying="{Binding IsSyncingSongs}"/>
                     <Image Source="onlineCloud.gif" x:Name="loggedInCloud" IsVisible="{Binding IsLoggedIn}"/>
                 </HorizontalStackLayout>                

@@ -32,6 +32,6 @@ public partial class SinglePlaylistPageM : ContentPage
         HomePageVM.CurrentQueue = 1;
         var view = (FlexLayout)sender;
         var song = view.BindingContext as SongModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
+        HomePageVM.PlaySong(song);
     }
 }

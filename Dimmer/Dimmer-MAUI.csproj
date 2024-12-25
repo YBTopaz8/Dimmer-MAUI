@@ -169,7 +169,7 @@
     
     <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
     <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.9.1" />
-    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="2.0.4" />
+    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.0.1" />
     
     <PackageReference Include="z440.atl.core" Version="6.9.0" />
 

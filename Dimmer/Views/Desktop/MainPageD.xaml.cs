@@ -13,7 +13,7 @@ public partial class MainPageD : ContentPage
     public HomePageVM HomePageVM { get; }
 
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         HomePageVM.CurrentPage = PageEnum.MainPage;
@@ -26,6 +26,7 @@ public partial class MainPageD : ContentPage
         }
 
         HomePageVM.AssignCV(SongsColView);
+        // use opportunity login to parse and last fm
     }
 
     protected override void OnDisappearing()

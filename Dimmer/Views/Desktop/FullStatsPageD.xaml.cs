@@ -1,5 +1,7 @@
+using Syncfusion.Maui.Toolkit.Charts;
 using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -9,23 +11,23 @@ public partial class FullStatsPageD : ContentPage
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        ViewModel = homePageVM;
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM ViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
         
-        if (HomePageVM.TemporarilyPickedSong is null)
+        if (ViewModel.TemporarilyPickedSong is null)
         {
             return;
         }
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+        ViewModel.CurrentPage = PageEnum.FullStatsPage;
         //HomePageVM.ShowGeneralTopXSongsCommand.Execute(null);
         StatsTabs.SelectedItem = StatsTabs.Children[0];
-        HomePageVM.LoadDailyData();
+        ViewModel.CallStats();
     }
 
     private async void StatsTabs_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
@@ -42,18 +44,12 @@ public partial class FullStatsPageD : ContentPage
         switch (selectedStatView)
         {
             case 0:
-                HomePageVM.GetDaysNeededForNextEddington();
-                HomePageVM.GetParetoPlayRatio();
-                HomePageVM.GetGiniPlayIndex();
-                HomePageVM.GetFibonacciPlayCount();
-                
+
                 //GeneralStatsView front, rest back
                 break;
             case 1:
+                
                 //SongsStatsView front, rest back
-                HomePageVM.GetLifetimeBingeSong();
-                HomePageVM.GetBiggestClimbers();
-                HomePageVM.GetMostDimmsPerDay(15);
                 //HomePageVM.GetNotListenedStreaks();
                 //HomePageVM.GetTopStreakTracks();
 
@@ -68,10 +64,10 @@ public partial class FullStatsPageD : ContentPage
                 //HomePageVM.GetOngoingGapBetweenTracks();
                 break;
             case 2:
-                HomePageVM.GetTopPlayedArtists();       
+                //ViewModel.
+                //ViewModel.InitializeDailyPlayEventData();
                 break;
             case 3:
-                HomePageVM.GetTopPlayedAlbums();
                 break;
             case 4:
                 break;
@@ -164,5 +160,34 @@ public partial class FullStatsPageD : ContentPage
     {
         var send = (View)sender;
         _ = send.DimmOut(300);
+    }
+
+    private async void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
+    {
+        Debug.WriteLine(sender.GetType());
+        Debug.WriteLine(e.NewIndexes.Count);
+        var send = sender as PieSeries;
+        var itemss = send.ItemsSource as ObservableCollection<DimmData>;
+        Debug.WriteLine(send.ItemsSource.GetType());
+        foreach (var item in e.NewIndexes)
+        {
+            Debug.WriteLine("ss "+item);
+            
+        }
+        var song = ViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+
+        ViewModel.SelectedSongToOpenBtmSheet = song;
+        if (ClickToPreview)
+        {
+            await ViewModel.PlaySong(song, true);
+        }        
+    }
+
+
+    public bool ClickToPreview { get; set; } = true;
+
+    private void CheckBox_CheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+        ClickToPreview = e.Value;
     }
 }

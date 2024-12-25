@@ -393,7 +393,7 @@ public partial class MonthlyStats : ObservableObject
 public partial class DailyStats : ObservableObject
 {
     [ObservableProperty]
-    ObservableCollection<PlayDateAndCompletionStateSongLinkView>? playDates;
+    ObservableCollection<PlayDataLink>? playDates;
 
     [ObservableProperty]
     double totalPlayTime;

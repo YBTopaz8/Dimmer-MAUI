@@ -2,8 +2,6 @@
 namespace Dimmer_MAUI.DataAccess.IServices;
 public interface ISongsManagementService
 {
-    IList<SongModelView> AllSongs { get; internal set; }
-    IList<AlbumArtistGenreSongLinkView> AllLinks { get; internal set; }    
     
     bool AddSongBatchAsync(IEnumerable<SongModelView> song);
     bool AddArtistsBatch(IEnumerable<ArtistModelView> artists);
@@ -16,13 +14,16 @@ public interface ISongsManagementService
     /// <param name="SongModelView"></param>
     /// <returns></returns>
     bool UpdateSongDetails(SongModelView songModelView);
-    void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link);
+    void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link, bool SyncSave=false);
 
     void Dispose();
 
-    IList<AlbumModelView> AllAlbums { get; internal set; }
-    IList<ArtistModelView> AllArtists { get; internal set; }
-    IList<GenreModelView> AllGenres { get; internal set; }
+    List<SongModelView> AllSongs { get; internal set; }
+    
+    List<AlbumModelView> AllAlbums { get; internal set; }
+    List<ArtistModelView> AllArtists { get; internal set; }
+    List<GenreModelView> AllGenres { get; internal set; }
+    List<AlbumArtistGenreSongLinkView> AllLinks { get; internal set; }
     void GetAlbums(); 
     void GetArtists(); 
     void GetGenres();
@@ -34,8 +35,7 @@ public interface ISongsManagementService
 
     UserModelView CurrentOfflineUser { get; internal set; }
     ParseUser? CurrentUserOnline { get; internal set; }
-    IList<PlayDateAndCompletionStateSongLinkView> AllPlayDataAndCompletionStateLinks { get; set; }
-
+    
 
     Task<UserModelView?> GetUserAccountOnline();
     void LogOutUser();
@@ -52,4 +52,8 @@ public interface ISongsManagementService
     void UpdateUserLoginDetails(ParseUser usrr);
     void InitApp(HomePageVM vm);
     Task<bool> SyncPlayDataAndCompletionData();
+
+    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model);
+    public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
+
 }

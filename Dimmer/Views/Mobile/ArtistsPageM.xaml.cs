@@ -53,7 +53,7 @@ public partial class ArtistsPageM : ContentPage
         HomePageVM.CurrentQueue = 1;
         var s = (View)sender;
         var song = s.BindingContext as SongModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
+        HomePageVM.PlaySong(song);
 
     }
 

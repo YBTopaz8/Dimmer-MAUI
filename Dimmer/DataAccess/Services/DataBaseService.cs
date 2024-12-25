@@ -21,7 +21,7 @@ public class DataBaseService : IDataBaseService
         //File.Delete(filePath);
         var config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 0
+            SchemaVersion = 1
         };
         
         return config;

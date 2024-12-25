@@ -67,6 +67,6 @@ public partial class AlbumPageM : ContentPage
         HomePageVM.CurrentQueue = 1;
 
         var song = e.Item as SongModelView;
-        HomePageVM.PlaySongCommand.Execute(song);
+        HomePageVM.PlaySong(song);
     }
 }
