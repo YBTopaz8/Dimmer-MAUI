@@ -20,9 +20,9 @@ public partial class App : Application
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
-
+#if DEBUG
         APIKeys.SetupLastFM();
-
+#endif
 
     }
 
