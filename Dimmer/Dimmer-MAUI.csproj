@@ -66,6 +66,7 @@
 
   <PropertyGroup>
     <RollForward>Major</RollForward>
+    <AndroidSigningKeyStore>YBTopaz8.keystore</AndroidSigningKeyStore>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
@@ -124,7 +125,18 @@
 
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android35.0|AnyCPU'">
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>aab</AndroidPackageFormat>
+    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->
@@ -163,9 +175,9 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.21" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.21" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.0.0" />
-    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     
     <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
     <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.9.1" />

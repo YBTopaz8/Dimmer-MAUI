@@ -254,17 +254,17 @@ public partial class HomePageVM : ObservableObject
     public async Task AssignCV(CollectionView cv)
     {
         DisplayedSongsColView = cv;
-
+#if DEBUG
         if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
         {
-
             CurrentUserOnline = await APIKeys.LogInParseOnline();
         }
         if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
         {
             CurrentUser.IsAuthenticated = true;
             CurrentUser.IsLoggedInLastFM = true;
-        }   
+        }
+#endif
     }
 
     CollectionView? SyncLyricsCV { get; set; }
