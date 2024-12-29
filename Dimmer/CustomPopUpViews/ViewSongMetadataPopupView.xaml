@@ -193,7 +193,7 @@
                             <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Track_changes}"/>
                         </Image.Source>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.SampleRate, StringFormat='{0} Hz'}"/>
+                    
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>

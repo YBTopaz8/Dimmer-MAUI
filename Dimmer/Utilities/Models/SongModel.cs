@@ -1,29 +1,30 @@
-﻿namespace Dimmer_MAUI.Utilities.Models;
+﻿using ATL;
+
+namespace Dimmer_MAUI.Utilities.Models;
 public partial class SongModel : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModel));
-    public string? Title { get; set; }
-    public string? ArtistName { get; set; }
-    public string? AlbumName { get; set; }
-    public string? Genre { get; set; }
-    public string? FilePath { get; set; }
+    public string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModel));
+    public string Title { get; set; } = string.Empty;
+    public string ArtistName { get; set; } = string.Empty;
+    public string AlbumName { get; set; } = string.Empty;
+    public string Genre { get; set; } = string.Empty;
+    public string FilePath { get; set; } = string.Empty;
     public double DurationInSeconds { get; set; }
     public int? ReleaseYear { get; set; }
     public int? TrackNumber { get; set; }
-    public string? FileFormat { get; set; }
+    public string FileFormat { get; set; } = string.Empty;
     public long FileSize { get; set; }
-    public int? BitRate { get; set; }
-    public double? SampleRate { get; set; }
+    public int? BitRate { get; set; }    
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
-    public string? SyncLyrics { get; set; }
-    public string? CoverImagePath { get; set; }
-    public string? UnSyncLyrics { get; set; }
+    public string SyncLyrics { get; set; }=string.Empty;
+    public string CoverImagePath { get; set; } = string.Empty;
+    public string UnSyncLyrics { get; set; } = string.Empty;
     public bool IsPlaying { get; set; }
     public bool IsFavorite { get; set; }
-    public string? Achievement { get; set; }
+    public string Achievement { get; set; } = string.Empty;
     public bool IsFileExists { get; set; } = true;
     public DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
     
@@ -42,12 +43,11 @@ public partial class SongModel : RealmObject
         ArtistName = model.ArtistName;
         Genre = model.GenreName;
         DurationInSeconds = model.DurationInSeconds;
-        ReleaseYear = model.ReleaseYear;
+        ReleaseYear = model.ReleaseYear ?? 0;
         TrackNumber = model.TrackNumber;
         FileFormat = model.FileFormat;
         FileSize = model.FileSize;
-        BitRate = model.BitRate;
-        SampleRate = model.SampleRate;
+        BitRate = model.BitRate ?? 0;   
         Rating = model.Rating;
         HasLyrics = model.HasLyrics;
         HasSyncedLyrics = model.HasSyncedLyrics;
@@ -58,7 +58,10 @@ public partial class SongModel : RealmObject
         IsFavorite = model.IsFavorite;
         Achievement = model.Achievement;
         IsFileExists = model.IsFileExists;
-        SyncLyrics = model.SyncLyrics?.Select(x => new LyricPhraseModel().TimeStampText).ToList().ToString();
+        var s = new Track();
+        LyricsInfo lyrics = new LyricsInfo();
+        lyrics.SynchronizedLyrics = model.SyncLyrics.Select(x => new LyricsPhrase(x.TimeStampMs, x.Text)).ToList();        
+        SyncLyrics= lyrics.FormatSynchToLRC();
     }
     public SongModel()
     {
@@ -72,19 +75,17 @@ public partial class SongModelView : ObservableObject
 {
 
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModelView));
-
-
+    public partial string LocalDeviceId { get; set; } =string.Empty;
     [ObservableProperty]
-    public partial string? Title {get;set;}
+    public partial string? Title {get;set;}=string.Empty;
     [ObservableProperty]
-    public partial string? FilePath {get;set;}
+    public partial string FilePath {get;set;}
     [ObservableProperty]
-    public partial string? ArtistName {get;set;}
+    public partial string ArtistName {get;set;}
     [ObservableProperty]
-    public partial string? AlbumName {get;set;}
+    public partial string AlbumName {get;set;}
     [ObservableProperty]
-    public partial string? GenreName {get;set;}
+    public partial string GenreName {get;set;}
     [ObservableProperty]
     public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
@@ -93,15 +94,15 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsDeleted {get;set;}
     [ObservableProperty]
-    public partial int? TrackNumber {get;set;}
+    public partial int TrackNumber {get;set;}
     [ObservableProperty]
-    public partial string? FileFormat {get;set;}
+    public partial string FileFormat {get;set;}
     [ObservableProperty]
     public partial long FileSize {get;set;}
     [ObservableProperty]
     public partial int? BitRate {get;set;}
     [ObservableProperty]
-    public partial double? SampleRate {get;set;}
+    public partial double SampleRate { get; set; } = 0;
     [ObservableProperty]
     public partial int Rating {get;set;} = 0;
 
@@ -112,9 +113,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
-    public partial string? CoverImagePath { get; set; } = null;
+    public partial string CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string? UnSyncLyrics {get;set;}
+    public partial string UnSyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
     public partial bool IsPlaying {get;set;}
 
@@ -127,17 +128,17 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsFileExists { get; set; } = true;
     [ObservableProperty]
-    public partial string? Achievement {get;set;}
+    public partial string Achievement {get;set;} = string.Empty;
     [ObservableProperty]
-    public partial string? SongWiki {get;set;}
+    public partial string SongWiki {get;set;} = string.Empty;
 
     public bool IsPlayedFromOutsideApp { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModel> SyncLyrics { get; set; } = new();
+    public partial ObservableCollection<LyricPhraseModel> SyncLyrics { get; set; } = Enumerable.Empty<LyricPhraseModel>().ToObservableCollection();
 
 
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> PlayData { get; set; } = new();
+    public partial List<PlayDataLink> PlayData { get; set; } = new();
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
@@ -158,11 +159,12 @@ public partial class SongModelView : ObservableObject
             FilePath = model.FilePath;
             DurationInSeconds = model.DurationInSeconds;
             ReleaseYear = model.ReleaseYear;
-            TrackNumber = model.TrackNumber;
+
+            TrackNumber = model.TrackNumber ?? 0; // Default to 0 if null
+
             FileFormat = model.FileFormat;
             FileSize = model.FileSize;
-            BitRate = model.BitRate;
-            SampleRate = model.SampleRate;
+            BitRate = model.BitRate;            
             Rating = model.Rating;
             HasLyrics = model.HasLyrics;
             CoverImagePath = model.CoverImagePath;
@@ -176,7 +178,14 @@ public partial class SongModelView : ObservableObject
             HasLyrics = model.HasLyrics;
             HasSyncedLyrics = model.HasSyncedLyrics;
             IsFileExists = model.IsFileExists;
-            
+            Track s = new Track();
+            s.Lyrics = new LyricsInfo();
+            if (model.SyncLyrics is not null)
+            {
+                s.Lyrics.ParseLRC(model.SyncLyrics);
+                IList<LyricsPhrase>? syncLyr = s.Lyrics.SynchronizedLyrics;
+                SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x)).ToObservableCollection();
+            }
         }
        
 
@@ -197,7 +206,7 @@ public partial class SongModelView : ObservableObject
                 WasPlayCompleted= x.WasPlayCompleted,
                 PositionInSeconds= x.PositionInSeconds,
                 
-            }).ToObservableCollection();
+            }).ToList();
             NumberOfTimesPlayed = PlayData.Count;
             NumberOfTimesPlayedCompletely = PlayData.Count(p => p.WasPlayCompleted);
         }
@@ -302,7 +311,6 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <item><term>5</term><description>Skipped</description></item>
     /// <item><term>6</term><description>Restarted</description></item>
     /// <item><term>7</term><description>SeekRestarted</description></item>
-    /// <item><term>8</term><description>SeekRestarted</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 

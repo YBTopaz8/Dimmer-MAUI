@@ -46,7 +46,7 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
                     <HorizontalStackLayout Spacing="10">
 
-                        <Button Text="testSync" Clicked="Button_Clicked" IsVisible="False"/>
+                        <Button Text="testSync" Clicked="Button_Clicked" IsVisible="True"/>
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
                                      Source="eyelocatedark.png">
                                      

@@ -307,19 +307,23 @@ public static class GeneralStaticUtilities
             AlbumName = albumName,
             ArtistName = artistName,
             GenreName = track.Genre,
-            ReleaseYear = track.Year,
+        
             SampleRate = track.SampleRate,
             FilePath = track.Path,
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             FileSize = fileInfo.Length,
-            TrackNumber = track.TrackNumber,
+            
             FileFormat = Path.GetExtension(filePath).TrimStart('.'),
             HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(filePath.Replace(Path.GetExtension(filePath), ".lrc")),
 
             CoverImagePath = GetCoverImagePath(track.Path),
         };
 
+        if (track.Year is not null)
+        {
+            song.ReleaseYear = (int)track.Year;
+        }
         return song;
     }
 

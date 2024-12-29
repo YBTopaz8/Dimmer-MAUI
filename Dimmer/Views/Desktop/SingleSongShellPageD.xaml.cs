@@ -41,7 +41,7 @@ public partial class SingleSongShellPageD : ContentPage
     {
         base.OnDisappearing();
         ViewModel.CurrentViewIndex = 0;
-        ViewModel.IsViewingDifferentSong = false;        
+        
     }
 
     private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -456,5 +456,23 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         var send = (View)sender;
         _ = send.DimmOut(300);
+
     }
+
+    public void ChangeFontSize()
+    {
+        
+        
+    }
+    Label CurrentLyrLabel { get; set; }
+    private void Label_Loaded(object sender, EventArgs e)
+    {
+        CurrentLyrLabel = (Label)sender;
+    }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
 }

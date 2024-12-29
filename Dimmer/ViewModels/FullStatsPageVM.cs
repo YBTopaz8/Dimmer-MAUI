@@ -9,7 +9,7 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<DimmData>? HourlyPlayEventDataPlot { get; set; }
 
-    public void InitializeHourlyPlayEventData(ObservableCollection<PlayDataLink> playData)
+    public void InitializeHourlyPlayEventData(List<PlayDataLink> playData)
     {           
         HourlyPlayEventDataPlot = playData
             .GroupBy(p => new { p.SongId, Hour = p.DateFinished.Hour })

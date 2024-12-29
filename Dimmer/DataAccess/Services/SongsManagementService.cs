@@ -62,10 +62,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     PositionInSeconds = model.PositionInSeconds,
                     PlayType = model.PlayType,
                     
-        } ));
+                }));
 
-            var groupedPlayData = realmPlayData.GroupBy(p => p.SongId)
-                
+            Dictionary<string?, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData = 
+                realmPlayData.GroupBy(p => p.SongId)
             .ToDictionary(g => g.Key, g => g.ToList()); // Create a Dictionary
 
             var tempSongViews = new List<SongModelView>();
@@ -855,75 +855,15 @@ public async Task<bool> ResendVerificationEmailAsync(string email)
 
                 SongModel song = new(songsModelView);
 
-                song.UserIDOnline = CurrentOfflineUser.UserIDOnline;
-
-                var newAction = new ActionPending()
-                {
-                    Actionn = 0,
-                    ActionSong = song,
-                    TargetType = 0,
-                    ApplyToAllThisDeviceOnly = true,
-                };
-                var existingAction = db.All<ActionPending>()
-                    .Where(x => x.LocalDeviceId == songsModelView.LocalDeviceId)
-                    .ToList();
-                bool actionExists = existingAction.Count > 0;
-
-                if (existingSong == null && existingSong?.Count < 1)
-                {
-                    if (!actionExists)
-                    {
-                        db.Add(newAction);
-                    }
-                }
+                song.UserIDOnline = CurrentUserOnline?.ObjectId;
 
 
-                // Handle song addition
-                if (existingSong is null || existingSong.Count < 1)
-                {
-                    var newSong = new SongModel(songsModelView);
+                
+                song.LocalDeviceId = existingSong.First().LocalDeviceId;
+                song.IsPlaying = false;
+                
 
-                    //if (newSong.DatesPlayedAndWasPlayCompleted.Last().WasPlayCompleted == true)
-                    //{
-                    //    var mainWindow = IPlatformApplication.Current!.Services.GetService<DimmerWindow>();
-                    //    // TODO: Ask the user if they want to add the song.
-                    //}
-                    newSong.IsPlaying = false;
-                    db.Add(newSong);
-
-                    if (actionExists)
-                    {
-                        db.Add(newAction, true);
-                    }
-                    else
-                    {
-                        //db.Add(newAction);
-                    }
-                    //link. = newSong.LocalDeviceId;
-
-                    return;
-                }
-
-                // Handle song deletion
-                if (songsModelView.IsDeleted)
-                {
-                    db.Remove(existingSong.First());
-                    if (!actionExists)
-                    {
-                        db.Add(newAction);
-                    }
-                    return;
-                }
-
-                SongModel updatedSong = new(songsModelView);
-                updatedSong.LocalDeviceId = existingSong.First().LocalDeviceId;
-                updatedSong.IsPlaying = false;
-
-
-                db.Add(updatedSong, update: true);
-
-
-
+                db.Add(song, update: true);
             });
 
             return true;

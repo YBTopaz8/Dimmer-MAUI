@@ -29,9 +29,9 @@ public partial class HomePageVM : ObservableObject, IDisposable
 
     public readonly Subject<(object ActionData, FilterAction Action)> _filterActionSubject = new();
 
-    private IObservable<ObservableCollection<PlayDataLink>> _filteredPlaysObservable;
+    private IObservable<List<PlayDataLink>> _filteredPlaysObservable;
     private IDisposable _filterSubscription;
-    private ObservableCollection<PlayDataLink> _allDimmData = new ObservableCollection<PlayDataLink>();
+    private List<PlayDataLink> _allDimmData = new List<PlayDataLink>();
     private List<FilterWithId> _currentFilters = new List<FilterWithId>(); // Keep track of filters with IDs
 
     public enum FilterAction
@@ -63,12 +63,12 @@ public partial class HomePageVM : ObservableObject, IDisposable
     private Dictionary<string, string>? _songIdToGenreMap = new();
     private Dictionary<string, int?>? _songIdToReleaseYearMap = new();
     private Dictionary<string, double> _songIdToDurationMap = new();
-    private Dictionary<string, ObservableCollection<PlayDataLink>> _playsBySongId
-        = new Dictionary<string, ObservableCollection<PlayDataLink>>(StringComparer.OrdinalIgnoreCase);
-    private Dictionary<DateTime, ObservableCollection<PlayDataLink>> _playsByDate 
-    = new Dictionary<DateTime, ObservableCollection<PlayDataLink>>();
-    private Dictionary<int, ObservableCollection<PlayDataLink>> _playsByPlayType
-    = new Dictionary<int, ObservableCollection<PlayDataLink>>();
+    private Dictionary<string, List<PlayDataLink>> _playsBySongId
+        = new Dictionary<string, List<PlayDataLink>>(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<DateTime, List<PlayDataLink>> _playsByDate 
+    = new Dictionary<DateTime, List<PlayDataLink>>();
+    private Dictionary<int, List<PlayDataLink>> _playsByPlayType
+    = new Dictionary<int, List<PlayDataLink>>();
 
     #endregion
 
@@ -126,7 +126,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
     #region Data Loading
     public void LoadData()
     {
-        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToObservableCollection();
+        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();
         AllLinks = SongsMgtService.AllLinks;
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
@@ -246,12 +246,12 @@ public partial class HomePageVM : ObservableObject, IDisposable
         }
         DaysSinceFirstDimm = (DateTime.Now.Date - DateOfFirstDimm).Days;       
         
-        SpecificSongPlaysStarted = singleSong.PlayData.Where(x => x.PlayType == 0).ToObservableCollection();
-        SpecificSongPlaysPaused = singleSong.PlayData.Where(x => x.PlayType == 1).ToObservableCollection();
-        SpecificSongPlaysResumed= singleSong.PlayData.Where(x => x.PlayType == 2).ToObservableCollection();
-        SpecificSongPlaysCompleted= singleSong.PlayData.Where(x => x.PlayType == 3).ToObservableCollection();
-        SpecificSongPlaysSeeked= singleSong.PlayData.Where(x => x.PlayType == 4).ToObservableCollection();
-        SpecificSongPlaysSkipped= singleSong.PlayData.Where(x => x.PlayType == 5).ToObservableCollection();
+        SpecificSongPlaysStarted = singleSong.PlayData.Where(x => x.PlayType == 0).ToList();
+        SpecificSongPlaysPaused = singleSong.PlayData.Where(x => x.PlayType == 1).ToList();
+        SpecificSongPlaysResumed= singleSong.PlayData.Where(x => x.PlayType == 2).ToList();
+        SpecificSongPlaysCompleted= singleSong.PlayData.Where(x => x.PlayType == 3).ToList();
+        SpecificSongPlaysSeeked= singleSong.PlayData.Where(x => x.PlayType == 4).ToList();
+        SpecificSongPlaysSkipped= singleSong.PlayData.Where(x => x.PlayType == 5).ToList();
 
         SpecificSongPlaysDailyCompletedCount = singleSong.PlayData.Where(x => x.PlayType == 3)
         .GroupBy(p => p.DateFinished.DayOfYear)
@@ -281,7 +281,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
     
     [ObservableProperty]
     public partial double SpecificSongGiniIndex { get; set; } = new();
-    private int CalculateEddingtonNumberInner(ObservableCollection<PlayDataLink> playData)
+    private int CalculateEddingtonNumberInner(List<PlayDataLink> playData)
     {
         var dailyPlaysBySong = playData
             .GroupBy(p => new { p.DateFinished.Date, p.SongId })
@@ -317,7 +317,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<DimmData> BiggestClimbers { get; set; }
-    public void GetBiggestClimbers(ObservableCollection<PlayDataLink> playData, int top = 20, bool isAscend = false, int month = 0, int year = 0)
+    public void GetBiggestClimbers(List<PlayDataLink> playData, int top = 20, bool isAscend = false, int month = 0, int year = 0)
     {
         if (playData == null || !playData.Any())
         {
@@ -382,7 +382,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
     }
 
 
-    public double CalculateShannonEntropy(ObservableCollection<PlayDataLink> playData)
+    public double CalculateShannonEntropy(List<PlayDataLink> playData)
     {
         if (playData == null || !playData.Any())
         {
@@ -413,7 +413,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
 
     }
 
-    public double CalculateGiniIndex(ObservableCollection<PlayDataLink> playData)
+    public double CalculateGiniIndex(List<PlayDataLink> playData)
     {
         if (playData == null || !playData.Any())
         {
@@ -446,7 +446,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
         return GiniPlayIndex;
     }
 
-    public double CalculateParetoRatio(ObservableCollection<PlayDataLink> playData)
+    public double CalculateParetoRatio(List<PlayDataLink> playData)
     {
         if (playData == null || !playData.Any())
         {
@@ -477,7 +477,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
         return ParetoPlayRatio;
     }
 
-    public double CalculateEddingtonNumber(ObservableCollection<PlayDataLink> playData)
+    public double CalculateEddingtonNumber(List<PlayDataLink> playData)
     {
         if (playData == null || !playData.Any())
         {
@@ -515,7 +515,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
     } 
     [ObservableProperty]
     public partial double EddingtonNumber { get; set; } = new();  
-    public ObservableCollection<DimmData> GetTopPlayedArtists(ObservableCollection<PlayDataLink>? PlayData,
+    public ObservableCollection<DimmData> GetTopPlayedArtists(List<PlayDataLink>? PlayData,
            int top = 25,
            List<DateTime>? filterDates = null,
            bool isAscend = false)
@@ -546,12 +546,12 @@ public partial class HomePageVM : ObservableObject, IDisposable
         return sortedArtists.Take(top).Select(kvp => new DimmData() { ArtistName = kvp.Key, DimmCount = kvp.Value }).ToObservableCollection();
     }
 
-    public void GetTopPlayedAlbums(ObservableCollection<PlayDataLink>? PlayData,
+    public void GetTopPlayedAlbums(List<PlayDataLink>? PlayData,
            int top = 50,
            List<DateTime>? filterDates = null,
            bool isAscend = false)
     {
-        ObservableCollection<PlayDataLink> filteredPlays = PlayData;
+        List<PlayDataLink> filteredPlays = PlayData;
         ConcurrentDictionary<string, int> albumPlayCounts = new ConcurrentDictionary<string, int>();
 
         Parallel.ForEach(filteredPlays, play =>
@@ -575,12 +575,12 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .ToObservableCollection();
 
     }
-    public void GetTopPlayedGenres(ObservableCollection<PlayDataLink> PlayData,
+    public void GetTopPlayedGenres(List<PlayDataLink> PlayData,
             int top = 25,
             List<DateTime>? filterDates = null,
             bool isAscend = false)
     {
-        ObservableCollection<PlayDataLink> filteredPlays = PlayData;
+        List<PlayDataLink> filteredPlays = PlayData;
         ConcurrentDictionary<string, int> genrePlayCounts = new ConcurrentDictionary<string, int>();
 
         Parallel.ForEach(filteredPlays, play =>
@@ -599,7 +599,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             Take(top).Select(kvp => new DimmData() { GenreName = kvp.Key, DimmCount = kvp.Value }).ToObservableCollection();
     }
 
-    public IEnumerable<DimmData> GetTopPlayedSongs(ObservableCollection<PlayDataLink> PlayData,
+    public IEnumerable<DimmData> GetTopPlayedSongs(List<PlayDataLink> PlayData,
             int top = 20,
             List<DateTime>? filterDates = null,
             bool isAscend = false)
@@ -636,7 +636,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
     [ObservableProperty]
     public partial DimmData? TopPlayedSong { get; set; } = new();
     public void GetStreaks(
-        ObservableCollection<PlayDataLink> Playdata,
+        List<PlayDataLink> Playdata,
         int top = 20,
         List<DateTime>? filterDates = null,
         bool isAscend = false)
@@ -732,7 +732,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
         return eddington;
     }
 
-    public ObservableCollection<DimmData> GetDailyPlayCountByUser(ObservableCollection<PlayDataLink> playEvents)
+    public ObservableCollection<DimmData> GetDailyPlayCountByUser(List<PlayDataLink> playEvents)
     {
         return playEvents
             .GroupBy(p => new { p.DateFinished.Date})
@@ -743,7 +743,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             })
             .ToObservableCollection();
     }
-    public ObservableCollection<DimmData> GetPlayCountDistributionByDayOfWeek(ObservableCollection<PlayDataLink> playEvents)
+    public ObservableCollection<DimmData> GetPlayCountDistributionByDayOfWeek(List<PlayDataLink> playEvents)
     {
         return playEvents
             .GroupBy(p => p.DateFinished.DayOfWeek)
@@ -755,7 +755,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .ToObservableCollection();
     }
 
-    public ObservableCollection<DimmData> GetTotalPlayTimeByUser(ObservableCollection<PlayDataLink> playEvents)
+    public ObservableCollection<DimmData> GetTotalPlayTimeByUser(List<PlayDataLink> playEvents)
     {
         return playEvents
             .GroupBy(p => p.DateFinished.Year)
@@ -767,7 +767,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .ToObservableCollection();
     }
 
-    public Dictionary<int, int> CalculatePlayFrequencyDistribution(ObservableCollection<PlayDataLink> playEvents)
+    public Dictionary<int, int> CalculatePlayFrequencyDistribution(List<PlayDataLink> playEvents)
     {
         return playEvents
             
@@ -776,7 +776,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .GroupBy(count => count)
             .ToDictionary(g => g.Key, g => g.Count());
     }
-    public double CalculateSharpeRatio(ObservableCollection<PlayDataLink> playEvents, double riskFreeRate = 0.01)
+    public double CalculateSharpeRatio(List<PlayDataLink> playEvents, double riskFreeRate = 0.01)
     {
         var playDurations = playEvents
             .Where(p => p.DateStarted != DateTime.MinValue && p.DateFinished != DateTime.MinValue)
@@ -795,7 +795,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
         return volatility == 0 ? 0 : excessReturn / volatility;
     }
 
-    public List<string> DetectUnusualPlayPatterns(ObservableCollection<PlayDataLink> playEvents, double threshold = 2.0)
+    public List<string> DetectUnusualPlayPatterns(List<PlayDataLink> playEvents, double threshold = 2.0)
     {
         var songPlayCounts = playEvents
             
@@ -816,21 +816,21 @@ public partial class HomePageVM : ObservableObject, IDisposable
     }
     
 
-        public double CalculateTotalCompletionRate(ObservableCollection<PlayDataLink> playEvents)
+        public double CalculateTotalCompletionRate(List<PlayDataLink> playEvents)
         {
             var totalStarts = SpecificSongPlaysStarted.Count;
         var totalCompletes = SpecificSongPlaysCompleted.Count;
             return totalStarts == 0 ? 0 : (double)totalCompletes / totalStarts * 100;
         }
 
-        public double CalculateSkipRate(ObservableCollection<PlayDataLink> playEvents)
+        public double CalculateSkipRate(List<PlayDataLink> playEvents)
         {
             var totalStarts = SpecificSongPlaysStarted.Count;
             var totalSkips = SpecificSongPlaysSkipped.Count;
             return totalStarts == 0 ? 0 : (double)totalSkips / totalStarts * 100;
         }
 
-        public int CalculateLongestListeningStreak(ObservableCollection<PlayDataLink> playEvents, string? songID = null)
+        public int CalculateLongestListeningStreak(List<PlayDataLink> playEvents, string? songID = null)
         {
             var dailyPlays = playEvents
                  .Where(p => songID == null || p.SongId == songID)
@@ -863,7 +863,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
 
             return maxStreak;
         }
-    public ObservableCollection<DimmData> GetTopStreakTracks(ObservableCollection<PlayDataLink> playEvents)
+    public ObservableCollection<DimmData> GetTopStreakTracks(List<PlayDataLink> playEvents)
     {
         var songStreaks = new Dictionary<string, TimeSpan>();
         var groupedBySong = playEvents
@@ -903,7 +903,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .ToObservableCollection();
     }
 
-    public ObservableCollection<DimmData> GetNewTracksInMonth(ObservableCollection<PlayDataLink> playEvents, int month, int year)
+    public ObservableCollection<DimmData> GetNewTracksInMonth(List<PlayDataLink> playEvents, int month, int year)
     {
         var monthStart = new DateTime(year, month, 1);
         var monthEnd = monthStart.AddMonths(1);
@@ -925,7 +925,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .Select(songId => new DimmData { SongId = songId, Date = monthStart })
             .ToObservableCollection();
     }
-    public ObservableCollection<DimmData> GetDailyListeningVolume(ObservableCollection<PlayDataLink> playEvents)
+    public ObservableCollection<DimmData> GetDailyListeningVolume(List<PlayDataLink> playEvents)
     {
         return playEvents
             .Where(p => p.DateStarted != DateTime.MinValue && p.DateFinished != DateTime.MinValue)
@@ -938,7 +938,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
             .OrderBy(d => d.Date)
             .ToObservableCollection();
     }
-    public double GetOngoingGapBetweenTracks(ObservableCollection<PlayDataLink> playEvents)
+    public double GetOngoingGapBetweenTracks(List<PlayDataLink> playEvents)
     {
         var orderedPlays = playEvents
               
@@ -975,17 +975,17 @@ public partial class HomePageVM : ObservableObject, IDisposable
     
     
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysSeeked { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysSeeked { get; set; } = new();
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysStarted { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysStarted { get; set; } = new();
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysResumed { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysResumed { get; set; } = new();
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysPaused { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysPaused { get; set; } = new();
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysSkipped { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysSkipped { get; set; } = new();
     [ObservableProperty]
-    public partial ObservableCollection<PlayDataLink> SpecificSongPlaysCompleted { get; set; } = new();
+    public partial List<PlayDataLink> SpecificSongPlaysCompleted { get; set; } = new();
     [ObservableProperty]
     public partial ObservableCollection<DimmData> SpecificSongPlaysDailyCompletedCount { get; set; } = new();
     

@@ -8,7 +8,7 @@ public class LyricsService : ILyricsService
     private BehaviorSubject<IList<LyricPhraseModel>> _synchronizedLyricsSubject = new([]);
     public IObservable<IList<LyricPhraseModel>> SynchronizedLyricsStream => _synchronizedLyricsSubject.AsObservable();
 
-    private BehaviorSubject<LyricPhraseModel> _currentLyricSubject = new BehaviorSubject<LyricPhraseModel>(new LyricPhraseModel(null));
+    private BehaviorSubject<LyricPhraseModel> _currentLyricSubject = new (new LyricPhraseModel(null));
     public IObservable<LyricPhraseModel> CurrentLyricStream => _currentLyricSubject.AsObservable();
 
     private BehaviorSubject<string> _unsyncedLyricsSubject = new("");

@@ -38,7 +38,7 @@ public partial class SingleSongShell : ContentPage
         base.OnDisappearing();
         
         DeviceDisplay.Current.KeepScreenOn = false;
-        HomePageVM.IsViewingDifferentSong = false;
+        
     }
 
     protected override bool OnBackButtonPressed()

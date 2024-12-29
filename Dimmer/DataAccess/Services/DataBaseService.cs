@@ -21,9 +21,25 @@ public class DataBaseService : IDataBaseService
         //File.Delete(filePath);
         var config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 1
+            SchemaVersion = 3,
+           MigrationCallback = (migration, oldSchemaVersion) =>
+           {
+               if (oldSchemaVersion < 3)
+               {
+                   var oldObjects = migration.OldRealm.DynamicApi.All("SongModel");
+                   var newObjects = migration.NewRealm.DynamicApi.All("SongModel");
+
+                   for (var i = 0; i < oldObjects.Count(); i++)
+                   {
+                       var oldObject = oldObjects.ElementAt(i);
+                       var newObject = newObjects.ElementAt(i);
+                       // Example of setting a new property
+                       
+                   }
+               }
+           }
         };
-        
+
         return config;
     }
 

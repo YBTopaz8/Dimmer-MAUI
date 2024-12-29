@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Parse;
+using Parse.LiveQuery;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -509,8 +511,26 @@ public partial class HomePageVM
         
     }
 
+    async Task RestoreAllData()
+    {
+        List<object> objs = new();
+        foreach (PlayDataLink item in AllPlayDataLinks)
+        {
+            objs.Add(ObjectMapper.ClassToDictionary(item));
+        }
+
+        Dictionary<string, object> dataToRestore = new Dictionary<string, object>();
+        dataToRestore.Add("PlayDataLink", objs);
+
+
+        var Links = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", dataToRestore);
+        
+        Debug.WriteLine(Links);
+    }
     public async Task GetAllData()
     {
+        await RestoreAllData();
+        return; 
          var Links=await  ParseClient.Instance.CallCloudCodeFunctionAsync<object>("testCodeWithAuth", new Dictionary<string, object>());
         var listOfDicts = (List<List<object>>)Links;
         var onlyLinks = listOfDicts[0];

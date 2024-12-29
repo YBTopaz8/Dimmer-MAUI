@@ -5,24 +5,24 @@ namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
     [ObservableProperty]
-    ObservableCollection<PlaylistModelView>? displayedPlaylists=[];
+    public partial ObservableCollection<PlaylistModelView> DisplayedPlaylists { get; set; } = Enumerable.Empty<PlaylistModelView>().ToObservableCollection();
     [ObservableProperty]
-    string? selectedPlaylistPageTitle;
+    public partial string? SelectedPlaylistPageTitle { get; set; }
 
     [ObservableProperty]
-    ObservableCollection<SongModelView>? displayedSongsFromPlaylist=[];
+    public partial ObservableCollection<SongModelView> DisplayedSongsFromPlaylist{get;set;}= Enumerable.Empty<SongModelView>().ToObservableCollection();
     [ObservableProperty]
-    PlaylistModelView? selectedPlaylistToOpenBtmSheet = new();
+    public partial PlaylistModelView SelectedPlaylistToOpenBtmSheet {get;set;}= new();
     [ObservableProperty]
-    SongModelView? selectedSongToOpenBtmSheet=new();
+    public partial SongModelView SelectedSongToOpenBtmSheet {get;set;}=new();
+    
+    [ObservableProperty]
+    public partial PlaylistModelView SelectedPlaylist {get;set;}=new();
     public void RefreshPlaylists()
     {
         DisplayedPlaylists?.Clear();
         DisplayedPlaylists = PlayBackService.GetAllPlaylists();
     }
-    [ObservableProperty]
-    PlaylistModelView? selectedPlaylist=new();
-
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(string PlaylistID)//string playlistName)
     {
