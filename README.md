@@ -32,6 +32,9 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Install the app
 - Run.
 
+# How to install on Apple Devices?
+- Sadly, I decided to stop supporting any [Apple Device At All](https://github.com/YBTopaz8/Dimmer-MAUI/discussions/158)
+
 # ScreenShots (Work in Progress...)
   
 | Windows | Android| 
