@@ -817,7 +817,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         Scrobble scr = new()
         {
-            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : ObservableCurrentlyPlayingSong.ArtistName,
+            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : GeneralStaticUtilities.GetTextBeforeComma(ObservableCurrentlyPlayingSong.ArtistName),
             Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
             Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
             Date = DateTime.Now - TimeSpan.FromSeconds(120)

@@ -1,6 +1,4 @@
-﻿using Parse;
-using Parse.LiveQuery;
-using System.Diagnostics;
+﻿using Parse.LiveQuery;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -95,7 +93,7 @@ public partial class HomePageVM
 #if WINDOWS && NET9_0
         if (IsPlaying)
         {
-            await this.PauseSong();
+            _= this.PauseSong();
         }
 #endif
         if (TemporarilyPickedSong is not null)
@@ -103,6 +101,7 @@ public partial class HomePageVM
             AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.LocalDeviceId);
         }
+        await APIKeys.LogoutDevice();
     }
     [ObservableProperty]
     bool iIsMultiSelectOn;
@@ -521,7 +520,7 @@ public partial class HomePageVM
 
         Dictionary<string, object> dataToRestore = new Dictionary<string, object>();
         dataToRestore.Add("PlayDataLink", objs);
-
+        dataToRestore.Add("owner", DeviceInfo.Name);
 
         var Links = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", dataToRestore);
         
@@ -554,14 +553,40 @@ public partial class HomePageVM
         //await RestoreAllData(allData); // Example: Restore immediately
 }
 
-public async Task RestoreAllData(List<List<Dictionary<string, object>>> backupData)
-{
-    var args = new Dictionary<string, object>
-        {
-            { "data", backupData }
-        };
+    public async Task RestoreAllData(List<List<Dictionary<string, object>>> backupData)
+    {
+        var args = new Dictionary<string, object>
+            {
+                { "data", backupData }
+            };
         
-    var result =  await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", args);
-    Debug.WriteLine("Restore result: " + result);
-}
+        var result =  await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", args);
+        Debug.WriteLine("Restore result: " + result);
+    }
+
+    [ObservableProperty]
+    public partial ObservableCollection<CurrentDeviceStatus> OtherConnectedDevices { get; set; } = Enumerable.Empty<CurrentDeviceStatus>().ToObservableCollection();
+    public async Task GetLoggedInDevicesForUser()
+    {
+        var user = CurrentUserOnline;
+        if (user == null)
+        {
+            return;
+        }
+        var query = ParseClient.Instance.GetQuery("DeviceStatus")
+            .WhereEqualTo("deviceOwner", user)
+            .WhereEqualTo("isOnline", true); // Assuming 'isOnline' field indicates current login status
+
+        var deviceObjects = await query.FindAsync();
+
+        ObservableCollection<CurrentDeviceStatus> devices = new ();
+
+        foreach (var device in deviceObjects)
+        {
+            var s = GeneralStaticUtilities.MapFromParseObjectToClassObject<CurrentDeviceStatus>(device);
+            devices.Add(s);
+        }
+        OtherConnectedDevices = devices;
+    }
+
 }

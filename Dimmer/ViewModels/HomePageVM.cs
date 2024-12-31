@@ -1,9 +1,6 @@
 ﻿using DevExpress.Maui.Controls;
-using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using Hqub.Lastfm.Cache;
 using Parse.LiveQuery;
-using System.Diagnostics;
-using System.Reflection;
 
 
 namespace Dimmer_MAUI.ViewModels;
@@ -13,7 +10,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial UserModelView CurrentUser { get; set; } =new();
     [ObservableProperty]
-    public partial ParseUser CurrentUserOnline { get; set; }
+    public partial ParseUser? CurrentUserOnline { get; set; }
 
     [ObservableProperty]
     public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;
@@ -262,6 +259,10 @@ public partial class HomePageVM : ObservableObject
         if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
         {
             CurrentUserOnline = await APIKeys.LogInParseOnline();
+            if (CurrentUserOnline is not null)
+            {
+                SetupLiveQueries();
+            }
         }
         if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
         {
@@ -981,7 +982,8 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribetoDisplayedSongsChanges()
     {
-        PlayBackService.NowPlayingSongs.Subscribe(songs =>
+        PlayBackService.NowPlayingSongs            
+            .Subscribe(songs =>
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
@@ -1273,6 +1275,10 @@ public partial class HomePageVM : ObservableObject
             LiveQueryClient = new();
             var SongQuery = ParseClient.Instance.GetQuery("SongModelView");
             var subscription = LiveQueryClient.Subscribe(SongQuery);
+            var DeviceStatusQuery = ParseClient.Instance.GetQuery("DeviceStatus");
+            var subToDeviceStatus = LiveQueryClient.Subscribe(DeviceStatusQuery); //added this, now i need to handle its updates too
+
+            
 
             LiveQueryClient.OnConnected.
                 Subscribe(_ =>
@@ -1294,13 +1300,20 @@ public partial class HomePageVM : ObservableObject
 
             LiveQueryClient.OnObjectEvent
                 .Where(e => e.evt == Subscription.Event.Update)
-                .Subscribe(async e =>
+                .Subscribe(e =>
                 {
-                    SongModelView song = new();
                     var objData = (e.objectData as Dictionary<string, object>);
+                    if (objData.TryGetValue("ClassName", out object classNamee ) && classNamee == "DeviceStatus")
+                    {
+                        Debug.WriteLine("Received DeviceStatus Update");
 
+                        var devStatus = ObjectMapper.MapFromDictionary<CurrentDeviceStatus>(objData!);
+                        
+                    }
+                    SongModelView song = new();
+                    
                     song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
-                    CurrentQueue=0;
+                    CurrentQueue = 0;
                     if (song.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)
                     {
                         _ = PauseSong();

@@ -38,7 +38,9 @@
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:PlaylistModelView">
+                        
                         <Border Stroke="Transparent">
+                            
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}"
                                 CommandParameter="{Binding Id}"/>

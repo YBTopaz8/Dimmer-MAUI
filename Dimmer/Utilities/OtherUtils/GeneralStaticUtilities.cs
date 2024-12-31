@@ -47,18 +47,18 @@ public static class GeneralStaticUtilities
         {
             return null;
         }
-        
+
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album.Trim()) ? track.Title : track.Album.Trim();
 
         AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
-        
+
         // Extract artist names
         var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
         string mainArtistName = string.Join(", ", artistNames);
-        
+
         var song = CreateSongModel(track, title, albumName, mainArtistName, file);
-        
+
         if (!string.IsNullOrEmpty(albumName))
         {
             album.AlbumImagePath = song.CoverImagePath;
@@ -91,6 +91,114 @@ public static class GeneralStaticUtilities
         return song;
     }
 
+
+
+    public static T MapFromParseObjectToClassObject<T>(ParseObject parseObject) where T : new()
+    {
+        var model = new T();
+        var properties = typeof(T).GetProperties();
+
+        foreach (var property in properties)
+        {
+            try
+            {
+                // Skip Realm-specific properties
+                if (IsRealmSpecificType(property.PropertyType))
+                {
+                    continue;
+                }
+
+                // Check if the ParseObject contains the property name
+                if (parseObject.ContainsKey(property.Name))
+                {
+                    var value = parseObject[property.Name];
+
+                    if (value != null)
+                    {
+                        // Handle special types like DateTimeOffset
+                        if (property.PropertyType == typeof(DateTimeOffset) && value is DateTime dateTime)
+                        {
+                            property.SetValue(model, new DateTimeOffset(dateTime));
+                            continue;
+                        }
+
+                        // Handle string as string
+                        if (property.PropertyType == typeof(string) && value is string objectIdStr)
+                        {
+                            property.SetValue(model, new string(objectIdStr));
+                            continue;
+                        }
+
+                        // For other types, directly set the value if the property has a setter
+                        //if (property.CanWrite && property.PropertyType.IsAssignableFrom(GetType()))
+                        //{
+                        //    property.SetValue(model, value);
+                        //}
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log and skip the property
+                Debug.WriteLine($"Error mapping property '{property.Name}': {ex.Message}");
+            }
+        }
+
+        return model;
+    }
+
+
+    public static bool IsRealmSpecificType(Type type)
+    {
+
+        return type.IsSubclassOf(typeof(RealmObject)) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RealmList<>) || type == typeof(DynamicObjectApi);
+    }
+    public static ParseObject MapToParseObject<T>(T model, string className)
+    {
+        var parseObject = new ParseObject(className);
+
+        // Get the properties of the class
+        var properties = typeof(T).GetProperties();
+
+        foreach (var property in properties)
+        {
+            try
+            {
+                var value = property.GetValue(model);
+
+                // Skip null values or Realm-specific/unsupported types
+                if (value == null || IsRealmSpecificType(property.PropertyType))
+                {
+                    continue;
+                }
+
+                // Handle special types like DateTimeOffset
+                if (property.PropertyType == typeof(DateTimeOffset))
+                {
+                    var val = (DateTimeOffset)value;
+                    parseObject[property.Name] = val.Date;
+                    continue;
+                }
+
+                // Handle string as string (required for Parse compatibility)
+                if (property.PropertyType == typeof(string))
+                {
+                    parseObject[property.Name] = value.ToString();
+                    continue;
+                }
+
+                // For other types, directly set the value
+                parseObject[property.Name] = value;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception for this particular property, but continue with the next one
+                Debug.WriteLine($"Error when mapping property '{property.Name}': {ex.Message}");
+            }
+        }
+
+        return parseObject;
+    }
 
 
     public static List<string> GetAllFiles(List<string> folderPaths)
@@ -307,13 +415,13 @@ public static class GeneralStaticUtilities
             AlbumName = albumName,
             ArtistName = artistName,
             GenreName = track.Genre,
-        
+
             SampleRate = track.SampleRate,
             FilePath = track.Path,
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             FileSize = fileInfo.Length,
-            
+
             FileFormat = Path.GetExtension(filePath).TrimStart('.'),
             HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(filePath.Replace(Path.GetExtension(filePath), ".lrc")),
 
@@ -405,7 +513,7 @@ public static class GeneralStaticUtilities
         //var taskbarInstance = Microsoft.WindowsAPICodePack.Taskbar.TaskbarManager.Instance;
         //taskbarInstance.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.Normal);
         //taskbarInstance.SetProgressValue((int)progress, maxProgressbarValue);
-        
+
         //if (progress >= maxProgressbarValue)
         //{
         //    taskbarInstance.SetProgressState(Microsoft.WindowsAPICodePack.Taskbar.TaskbarProgressBarState.NoProgress);
@@ -413,4 +521,24 @@ public static class GeneralStaticUtilities
 
     }
 #endif
+
+
+    public static string GetTextBeforeComma(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return string.Empty;
+        }
+
+        int commaIndex = input.IndexOf(',');
+        if (commaIndex == -1) // No comma found
+        {
+            return input;
+        }
+        else
+        {
+            return input.Substring(0, commaIndex);
+        }
+    }
+
 }

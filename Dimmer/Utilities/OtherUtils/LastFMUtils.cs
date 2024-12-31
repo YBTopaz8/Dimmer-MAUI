@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
 public class LastFMUtils
 {
 
@@ -24,7 +18,14 @@ public class LastFMUtils
     {
         _ = LastfmClient.Instance.Track.UnloveAsync(Song.Title, Song.ArtistName);
     }
-
+    
+    public static void SetNowListening(SongModelView Song)
+    {
+        if (LastfmClient.Instance.Session.Authenticated)
+        {
+            _ = LastfmClient.Instance.Track.UpdateNowPlayingAsync(Song.Title, Song.ArtistName);
+        }
+    }
 
     public static void RateSong(SongModelView Song, bool isLove)
     {

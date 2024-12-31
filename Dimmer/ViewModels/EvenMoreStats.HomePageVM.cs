@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {

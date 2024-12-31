@@ -20,11 +20,12 @@
     
     <VerticalStackLayout Padding="10,0" Spacing="15">
         <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
-        
-        <toolkit:Expander  x:Name="ShowHidePreferredFoldersExpander">
+
+        <toolkit:Expander  x:Name="ShowHidePreferredFoldersExpander" BackgroundColor="Transparent">
             <toolkit:Expander.Header>
                 <Grid ColumnDefinitions="Auto,*,Auto" >
-                    <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start">
+                    <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start"
+                                           BackgroundColor="Transparent">
                         <HorizontalStackLayout.GestureRecognizers>
                             <TapGestureRecognizer Tapped="ShowHidePreferredFoldersExpander_Tapped"/>
                         </HorizontalStackLayout.GestureRecognizers>
@@ -35,7 +36,7 @@
                         </Image>
 
                         <Label Text="Folders (Tap to view)" VerticalOptions="Center" FontSize="24" Grid.Column="1"
-                               />
+                               BackgroundColor="Transparent"/>
                     </HorizontalStackLayout>
 
                     <ImageButton Grid.Column="2" HorizontalOptions="End" Source="arrowdark.png">
@@ -79,55 +80,49 @@
                 </toolkit:Expander.Content>
             </toolkit:Expander>
 
-        <toolkit:Expander  x:Name="ShowHideConnectOnlineExpander">
-                <toolkit:Expander.Header>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start">
-                            <HorizontalStackLayout.GestureRecognizers>
+        <toolkit:Expander
+            BackgroundColor="Transparent"
+            x:Name="ShowHideConnectOnlineExpander">
+            <toolkit:Expander.Header>
+                <Grid ColumnDefinitions="Auto,*,Auto" BackgroundColor="Transparent">
+                    <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start"
+                                           BackgroundColor="Transparent">
+                        <HorizontalStackLayout.GestureRecognizers>
                             <TapGestureRecognizer x:Name="ShowHideConnectOnlineExpanderTap" />
-                            </HorizontalStackLayout.GestureRecognizers>
-                        
-                            <VerticalStackLayout Spacing="5">
+                        </HorizontalStackLayout.GestureRecognizers>
+
+                        <VerticalStackLayout Spacing="5" BackgroundColor="Transparent">
                             <HorizontalStackLayout Spacing="15">
 
                                 <Button Text="Log Out" Command="{Binding LogOutCommand}"/>
                                 <Label Text="{Binding CurrentUser.UserName}"/>
                                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                                 <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
-                            <!--<Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>-->
+                                <!--<Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>-->
 
                             </HorizontalStackLayout>
                             <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
-                                        IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
+                                    IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
                             <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
-                                    Clicked="SyncPDaCS_Clicked"/>
+                                Clicked="SyncPDaCS_Clicked"/>
                             <Button Text="ReconnectLQ" Clicked="Button_Clicked"/>
                             <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
 
-                                    <Label Text="Already Logged In!"/>
-                                </VerticalStackLayout>
-
-
+                                <Label Text="Already Logged In!"/>
                             </VerticalStackLayout>
-                        </HorizontalStackLayout>
-                            
-                            <!--<Image>
-                                <Image.Source>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Wifi}"/>
-                                </Image.Source>
-                            </Image>
 
-                            <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
-                        </HorizontalStackLayout>-->
 
-                        <ImageButton Grid.Column="2" HorizontalOptions="End">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
-                            </ImageButton.Source>
-                        </ImageButton>
-                    </Grid>
-                </toolkit:Expander.Header>
-                <toolkit:Expander.Content>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                    
+                    <ImageButton Grid.Column="2" HorizontalOptions="End">
+                        <ImageButton.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Grid>
+            </toolkit:Expander.Header>
+            <toolkit:Expander.Content>
                 <HorizontalStackLayout WidthRequest="500" HorizontalOptions="Center"
                     BackgroundColor="Transparent" VerticalOptions="Center"
                     HeightRequest="500">
@@ -140,18 +135,16 @@
 
                         <Entry Placeholder="User Name" x:Name="LoginUname"
                                Text="YBTopaz8"/>
-                        <Entry IsPassword="True"
-                               
+                        <Entry IsPassword="True"                               
                                Placeholder="Password" x:Name="LoginPass" />
+                        
                         <Button Text="Sign Up"  BackgroundColor="Transparent" HeightRequest="15"
-             FontSize="15" Clicked="LoginSignUpToggle_Click"/>
-                        <Button Text="Forgotten Password"  BackgroundColor="Transparent" HeightRequest="15"
-             FontSize="15"/>
+                                FontSize="15" Clicked="LoginSignUpToggle_Click"/>
+                        <Button Text="Forgotten Password"  BackgroundColor="Transparent" 
+                                HeightRequest="15" FontSize="15"/>
 
-                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
-                            
-                            <Button Text="Login" x:Name="LoginBtn"
-             Clicked="LoginBtn_Clicked"/>
+                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">                            
+                            <Button Text="Login" x:Name="LoginBtn" Clicked="LoginBtn_Clicked"/>                            
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
 
@@ -180,7 +173,8 @@
             </toolkit:Expander.Content>
             </toolkit:Expander>
 
-            
+        <Label Text="Already Logged into LastFM ☺️"
+               FontSize="42" x:Name="AlreadyInLastFM"/> 
 
         <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
             <Button Text="Reload All Covers" IsVisible="False" Command="{Binding ReloadCoverImageCommand}">

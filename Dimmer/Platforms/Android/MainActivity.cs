@@ -65,7 +65,7 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
     }
 
-    protected async override void OnStop()
+    protected override async void OnStop()
     {
         base.OnStop();
 

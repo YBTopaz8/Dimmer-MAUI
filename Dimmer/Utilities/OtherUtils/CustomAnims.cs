@@ -1,6 +1,4 @@
-﻿using Microsoft.Maui.Controls;
-
-namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class CustomAnimsExtensions
 {
    

@@ -1,7 +1,4 @@
-﻿
-using System.Net;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 
 public partial class App : Application
 {
@@ -20,9 +17,9 @@ public partial class App : Application
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
-#if DEBUG
-        APIKeys.SetupLastFM();
-#endif
+
+        APIKeys.SetupClientInitializations();
+
 
     }
 
@@ -30,7 +27,7 @@ public partial class App : Application
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
-
+        _ = APIKeys.LogoutDevice();
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         LogException(e.Exception);
     }

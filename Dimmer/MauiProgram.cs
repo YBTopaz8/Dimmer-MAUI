@@ -74,7 +74,7 @@ public static class MauiProgram
                                 {
                                     if (win.Title != "MyWin")
                                     {
-                                        await homeVM.ExitingApp();
+                                       await homeVM.ExitingApp();
 
                                         bool result = await win!.Page!.DisplayAlert(
                                             "Confirm Action",

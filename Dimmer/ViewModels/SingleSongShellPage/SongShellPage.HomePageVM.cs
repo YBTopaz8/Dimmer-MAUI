@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
-using DevExpress.Maui.Core;
+﻿using System.Collections.Concurrent;
 using DevExpress.Maui.Core.Internal;
-using Microsoft.VisualBasic;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -232,8 +221,8 @@ public partial class HomePageVM : ObservableObject, IDisposable
         {
             return;
         }
-        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-        SongModelView singleSong= DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
+        
+        SongModelView singleSong= SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
         
         var lastSongLink = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).LastOrDefault();
         if (singleSong.PlayData.LastOrDefault() != null)

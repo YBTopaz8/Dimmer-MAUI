@@ -85,7 +85,7 @@ public partial class UserModelView : ObservableObject
     }
 }
 
-public class UserModel : RealmObject
+public partial class UserModel : RealmObject
 {
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(UserModel));
@@ -104,7 +104,7 @@ public class UserModel : RealmObject
     public DateTimeOffset LastSessionDate { get; set; } = DateTimeOffset.UtcNow;
     public UserModel(UserModelView model)
     {
-        
+
         LocalDeviceId = model.LocalDeviceId;
         UserName = model.UserName;
         UserPassword = model.UserPassword;
@@ -114,15 +114,26 @@ public class UserModel : RealmObject
     }
     public UserModel()
     {
-        
+
     }
     public async Task SyncOnlineAsync()
     {
         await Task.CompletedTask;
     }
 
+}
+public partial class CurrentDeviceStatus : ObservableObject
+{
 
+    public ParseUser? DeviceOwner { get; set; }
 
+    public string? DeviceId { get; set; }
+
+    public string? DeviceType { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset LastLogin { get; set; }
+    [ObservableProperty]
+
+    public partial bool IsOnline { get; set; }
 
 }
-

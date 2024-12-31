@@ -1,7 +1,6 @@
 using Syncfusion.Maui.Toolkit.Charts;
 using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
-using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 

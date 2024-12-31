@@ -25,7 +25,7 @@ public partial class MainPageD : ContentPage
             SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
         }
 
-        HomePageVM.AssignCV(SongsColView);
+        await HomePageVM.AssignCV(SongsColView);
         // use opportunity login to parse and last fm
     }
 

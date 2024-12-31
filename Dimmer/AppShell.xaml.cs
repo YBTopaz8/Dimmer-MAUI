@@ -7,7 +7,6 @@ using Microsoft.UI.Input; // Required for KeyboardAccelerator
 using Microsoft.UI.Xaml.Input; // Required for KeyRoutedEventArgs
 using System.Collections.Generic; // Required for List<string> for navigation history
 #endif
-using System.Diagnostics;
 
 namespace Dimmer_MAUI;
 

@@ -128,15 +128,17 @@
     <AndroidPackageFormat>aab</AndroidPackageFormat>
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
-    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>aab</AndroidPackageFormat>
-    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->

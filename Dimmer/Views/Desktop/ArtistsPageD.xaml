@@ -91,7 +91,7 @@
 
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>                                        
+                                            <Setter Property="BackgroundColor" Value="OrangeRed"/>                                        
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -103,6 +103,7 @@
                                         <Setter Property="TextColor" Value="DarkSlateBlue"/>
                                         <Setter Property="FontSize" Value="20"/>
                                     </DataTrigger>
+                                    
                                     <DataTrigger TargetType="Label" Binding="{Binding IsCurrentlySelected}" Value="False">
                                         <Setter Property="TextColor" Value="White"/>
                                         <Setter Property="FontSize" Value="16"/>
