@@ -15,7 +15,11 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0
-      
+      - name: Install .NET MAUI Workload
+        run: |
+          dotnet workload install maui
+          dotnet workload install android ios macos windows
+          
       - name: Configure DevExpress NuGet Source
         run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
 
