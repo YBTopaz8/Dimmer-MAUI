@@ -50,7 +50,7 @@ public partial class HomePageVM
         //    .Count(d => d.DatePlayed.Date == selectedDay.Value.Date && d.WasPlayCompleted == true)
     })
     .OrderByDescending(s => s.PlayCount)
-    .Take(10)
+    .Take(15)
     .ToObservableCollection();
 
 
@@ -70,7 +70,7 @@ public partial class HomePageVM
     };
 
     [ObservableProperty]
-    SingleSongStatistics songPickedForStats;
+    public partial SingleSongStatistics SongPickedForStats { get; set; }
     [ObservableProperty]
     int numberOfTimesPlayed;
     [ObservableProperty]
