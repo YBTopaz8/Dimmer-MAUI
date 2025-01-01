@@ -18,8 +18,8 @@ jobs:
           dotnet-version: 9.0
 
       - name: Publish Windows Build
-        run: dotnet publish Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./windows-output
-        working-directory: Dimmer-MAUI/Dimmer # Corrected: added working directory
+        run: dotnet publish Dimmer.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./windows-output
+        working-directory: Dimmer-MAUI/Dimmer
 
       - name: Download and Install Inno Setup
         run: |
@@ -32,6 +32,7 @@ jobs:
         run: |
           # Pass the Windows output directory as a define and explicitly set the output directory
           ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePackaging/setup_dimmer.iss
+        working-directory: Dimmer-MAUI/Dimmer # Add working directory here too for consistency
 
       - name: Verify Installer Exists
         run: |
@@ -41,12 +42,13 @@ jobs:
           else
             echo "Installer file found: ./Output/Setup_Dimmer.exe"
           fi
+        working-directory: Dimmer-MAUI/Dimmer # Add working directory here too for consistency
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v3
         with:
           name: dimmer-windows-installer
-          path: ./Output/Setup_Dimmer.exe
+          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe # Update path to include the correct directory
     
   # build-android:
   #   name: Build Android APK
