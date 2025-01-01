@@ -3,9 +3,7 @@ name: Build and Release Dimmer
 on: push
 
 jobs:
-    
-
-    build-windows:
+  build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
 
@@ -47,7 +45,6 @@ jobs:
         with:
           name: dimmer-windows-installer
           path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
-
   
   # build-android:
   #   name: Build Android APK
