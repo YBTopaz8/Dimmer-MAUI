@@ -83,7 +83,8 @@ public partial class DimmerWindow : Window
                     var fSongs= HomepageVM.SongsMgtService.AllSongs
                         .Where(item => matchingTitles.Contains(item.LocalDeviceId)); // Or use the unique identifier
                     HomepageVM.filteredSongs= fSongs.ToList();
-                    // Update the ObservableCollection
+
+
                     foreach (var song in fSongs)
                     {
                         HomepageVM.DisplayedSongs.Add(song);
