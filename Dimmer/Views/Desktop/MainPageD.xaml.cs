@@ -60,7 +60,7 @@ public partial class MainPageD : ContentPage
     int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-        Debug.WriteLine("refreshes " + coon++);
+        
         if (SongsColView.IsLoaded && HomePageVM.TemporarilyPickedSong is not null)
         {
 

@@ -1,5 +1,4 @@
 ﻿using Parse.LiveQuery;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace Dimmer_MAUI.ViewModels;
 

@@ -663,9 +663,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
                 song.UserIDOnline = CurrentUserOnline?.ObjectId;
 
-
-                
-                song.LocalDeviceId = existingSong.First().LocalDeviceId;
+                var ex = existingSong.FirstOrDefault();
+                if (ex is not null)
+                {
+                    song.LocalDeviceId = ex.LocalDeviceId;
+                }
                 song.IsPlaying = false;
                 
 
