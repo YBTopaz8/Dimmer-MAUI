@@ -9,17 +9,21 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Restore NuGet Packages
-        run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
+      
       
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0
+      
+      - name: Configure DevExpress NuGet Source
+        run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
 
+      - name: Restore NuGet Packages
+        run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
+      
       - name: Publish Windows Build
-        run: dotnet publish Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o windows-output --verbosity detailed
+        run: dotnet publish ./Dimmer/Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./Dimmer/windows-output --verbosity detailed
 
       - name: Download and Install Inno Setup
         run: |
@@ -29,7 +33,7 @@ jobs:
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
 
       - name: Package with Inno Setup
-        run: ISCC.exe /dMySourceDir=windows-output /o Output ./releasePacking/setup_dimmer.iss
+        run: ISCC.exe /dMySourceDir=windows-output /o Output ./Dimmer/releasePacking/setup_dimmer.iss
         working-directory: Dimmer-MAUI/Dimmer
 
       - name: Verify Installer Exists
