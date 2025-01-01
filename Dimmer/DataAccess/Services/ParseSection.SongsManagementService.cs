@@ -13,9 +13,8 @@ public partial class SongsManagementService
     public void UpdateUserLoginDetails(ParseUser usrr)
     {
         CurrentUserOnline = usrr;
-        CurrentOfflineUser.UserEmail = usrr.Username;
-        CurrentOfflineUser.UserPassword = usrr.Password;
-        CurrentOfflineUser.LastSessionDate = (DateTimeOffset)usrr.UpdatedAt!;
+        CurrentOfflineUser.UserEmail = usrr.Username;        
+        CurrentOfflineUser.LastSessionDate = (DateTimeOffset)usrr.UpdatedAt!;        
         UserModel usr = new(CurrentOfflineUser);
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
@@ -23,29 +22,7 @@ public partial class SongsManagementService
             db.Add(usr, update: true);
         });
     }
-
-
-    /// <summary>
-    /// Creates a new ParseUser object and signs up the user online.
-    /// MAKE SURE YOU DID ALL VALIDATION BEFORE CALLING THIS METHOD
-    /// </summary>
-    /// <param name="email"></param>
-    /// <param name="password"></param>
-    /// <returns></returns>
-
-    public bool SignUpUserOnlineAsync(string email, string password)
-    {
-
-        ParseUser newUser = new ParseUser()
-        {
-            Email = email,
-            Password = password,
-
-        };
-
-        _ = ParseClient.Instance.SignUpWithAsync(newUser);
-        return true;
-    }
+    //delete
     public async Task<bool> LogUserOnlineAsync(string email, string password)
     {
         try

@@ -224,7 +224,7 @@ public partial class HomePageVM
     }
     partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView>? oldValue, ObservableCollection<AlbumModelView> newValue)
     {
-        Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
+        //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
     }
     public async Task GetAlbumsFromArtistIDAsync(string artistId)
     {

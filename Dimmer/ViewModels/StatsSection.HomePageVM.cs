@@ -5,47 +5,6 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial TimeSpan SelectedTimeSpanForStats { get; private set; }= TimeSpan.FromDays(7);
 
-    //[RelayCommand]
-    //public void LoadDailyUpdateForSpecificSong(DateTime? SelectedDate, DateTime? ComparativeDate=null)
-    //{
-    //    if (SelectedDate == null)
-    //    {
-    //        SelectedDate = DateTime.Now;
-    //    }
-    //    //AllPDaCStateLink 
-    //    //AllAlbums
-    //    //AllArtists
-    //    //AllSongs
-    //    //AllPlaylists
-
-    //    //I want to see have a collection of singleSongdailyStat having the info for a specific day.
-    //    // i want to see how how much I've play this song compared to other songs of same artist, album, and genre (respectively) for a specific day.
-    //    // I want to see how many times i've play AND completed the song for a specific day.
-    //    // I want to have the top 5 seeked position for the song for a specific day.
-    //    // I want the percentage listen in comparisong to another date (ComparativeDate)
-    //    // anyother stats you can think of for a specific day.
-    //}
-    //[RelayCommand]
-    //public void LoadWeeklyUpdateForSpecificSong(DateTime? SelectedDate)
-    //{
-    //    if (SelectedDate == null)
-    //    {
-    //        SelectedDate = DateTime.Now;
-    //    }
-    //    //AllPDaCStateLink 
-    //    //AllAlbums
-    //    //AllArtists
-    //    //AllSongs
-    //    //AllPlaylists
-    //    //I want to see have a collection of singleSongdailyStat having the info for a specific week.
-    //    // i want to see how how much I've play this song compared to other songs of same artist, album, and genre (respectively) for a specific week.
-    //    // I want to see how many times i've play AND completed the song for a specific week.
-    //    // I want to have the top 5 seeked position for the song for a specific week.
-    //    // I want to see a percentage listen to the song for the week (e.g. 50% of the song was played on monday, 20% on tuesday, 30% on wednesday etc)
-    //    // I want to see a percentage listen AND COMPLETED to the song for the week (e.g. 50% of the song was played on monday, 20% on tuesday, 30% on wednesday etc)
-    //    // anyother stats you can think of for a specific week.
-    //}
-
     
     [ObservableProperty]
     public partial ObservableCollection<SingleSongStatistics>? TopTenPlayedSongs { get; set; } = new();

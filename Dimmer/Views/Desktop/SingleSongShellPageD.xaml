@@ -131,13 +131,17 @@
 
 
                     <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                Clicked="ToggleFocusModeClicked"
+                                Clicked="ToggleFocusModeClicked" IsVisible="False"
                                  Source="dnd.gif">                        
                     </ImageButton>
 
-                    <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" BackgroundColor="Transparent"  x:Name="RatingChipCtrl"
-                                       ChipClicked="RatingChipCtrl_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
-                                       HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue" SelectedChipBackground="DarkSlateBlue"
+                    <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+                                       BackgroundColor="Transparent"  x:Name="RatingChipCtrl"
+                                       
+                                       ChipClicked="RatingChipCtrl_ChipClicked" 
+                                       ChipTextColor="White" SelectedChipTextColor="White"
+                                       HorizontalOptions="Start" SelectionIndicatorColor="DarkSlateBlue" 
+                                       SelectedChipBackground="DarkSlateBlue"
                                        >
                         <syncf:SfChipGroup.ChipLayout>
                             <HorizontalStackLayout Spacing="10" WidthRequest="300"
@@ -149,24 +153,33 @@
                         </syncf:SfChipGroup.Items>
                     </syncf:SfChipGroup>
 
-                    <HorizontalStackLayout HorizontalOptions="Center"
+                    <!--<HorizontalStackLayout HorizontalOptions="Center"
                                            Spacing="5">
                         <ImageButton Source="{AppThemeBinding Dark=minus_d.png,Light=minus_l.png}"                                     
                                      x:Name="ChangelyrFontSize"
                                      />
                         <ImageButton Source="{AppThemeBinding Dark=plus_d.png,Light=plus_l.png}"
                                      />
-                    </HorizontalStackLayout>
+                    </HorizontalStackLayout>-->
                     </VerticalStackLayout>
 
                 <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="5">
                     <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center"
-    ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
-       x:Name="StatsTabs" toolkit:DockLayout.DockPosition="Top">
+                                       ChipType="Choice" ChoiceMode="Single" ChipTextSize="30"
+                                       SelectionChanged="SongShellChip_SelectionChanged"
+                                       SelectionIndicatorColor="DarkSlateBlue"
+                                       x:Name="StatsTabs" toolkit:DockLayout.DockPosition="Top">
+                        <syncf:SfChipGroup.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="syncf:SfChip">
+                                    <Setter Property="FontSize" Value="30"/>
+                                </Style>
+                            </ResourceDictionary>
+                        </syncf:SfChipGroup.Resources>
                         <syncf:SfChip Text="Sync Lyrics" x:Name="SyncLyricsChip" CommandParameter="0"/>
-                        <syncf:SfChip Text="Plain Lyrics" x:Name="PlainLyricsChip"  CommandParameter="1"/>
+                        <syncf:SfChip Text="Plain Lyrics" x:Name="PlainLyricsChip"  CommandParameter="1" IsVisible="False"/>
                         <syncf:SfChip Text="Search Lyrics" x:Name="SearchLyricsChip"  CommandParameter="2"/>
-                        <syncf:SfChip Text="Details" x:Name="SongDetailsChip"  CommandParameter="3"/>
+                        <syncf:SfChip Text="Details" x:Name="SongDetailsChip"  CommandParameter="3" FontSize="30"/>
                         <syncf:SfChip Text="SongStats" x:Name="SongStatsChip"  CommandParameter="4"/>
                 
                     </syncf:SfChipGroup>
@@ -372,8 +385,8 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                         </FlexLayout.GestureRecognizers>
                                         <Label Text="Date of First Dimm:" 
            FontSize="24" FontAttributes="Bold" />
-                                        <!--<Label Text="{Binding DateOfFirstDimm,StringFormat='{0}'}" 
-           FontSize="24" FontAttributes="Bold" />-->
+                                        <Label Text="{Binding DateOfFirstDimm,StringFormat='{0}'}" 
+           FontSize="24" FontAttributes="Bold" />
 
                                     </FlexLayout>
                                     

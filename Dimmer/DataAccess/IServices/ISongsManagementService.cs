@@ -14,7 +14,7 @@ public interface ISongsManagementService
     /// <param name="SongModelView"></param>
     /// <returns></returns>
     bool UpdateSongDetails(SongModelView songModelView);
-    void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link, bool SyncSave=false);
+    Task AddPlayAndCompletionLinkAsync(PlayDateAndCompletionStateSongLink link, bool SyncSave=false);
 
     void Dispose();
 
@@ -44,7 +44,6 @@ public interface ISongsManagementService
     
     bool RequestPasswordResetAsync(string email);
     Task<bool> LogUserOnlineAsync(string email, string password);
-    bool SignUpUserOnlineAsync(string email, string password);
     
     Task GetAllDataFromOnlineAsync();
     UserModelView? GetUserAccount(ParseUser? usr = null);
@@ -54,6 +53,10 @@ public interface ISongsManagementService
     Task<bool> SyncPlayDataAndCompletionData();
 
     public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model);
+    public void RestoreAllOnlineData(List<PlayDateAndCompletionStateSongLink> playDataLinks, List<SongModel> songs,
+        List<AlbumModel> albums, List<GenreModel> allGenres,
+        List<PlaylistModel> allPlaylists, List<AlbumArtistGenreSongLink> otherLinks);
+
     public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
 
 }

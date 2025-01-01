@@ -12,7 +12,7 @@ public partial class MainPageD : ContentPage
     }
     public HomePageVM HomePageVM { get; }
 
-
+    bool isIniAssign;
     protected override async void OnAppearing()
     {
         base.OnAppearing();
@@ -24,8 +24,13 @@ public partial class MainPageD : ContentPage
         {
             SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
         }
+        if(!isIniAssign)
+        {
+            await HomePageVM.AssignCV(SongsColView);
+            isIniAssign = true;
+        }
 
-        await HomePageVM.AssignCV(SongsColView);
+
         // use opportunity login to parse and last fm
     }
 
@@ -295,9 +300,5 @@ public partial class MainPageD : ContentPage
 
     }
 
-    private async void Button_Clicked(object sender, EventArgs e)
-    {
-        await HomePageVM.GetAllData();
-    }
 }
 

@@ -30,11 +30,9 @@ public partial class HomePageVM
         SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
         DisplayedSongsFromPlaylist?.Clear();
         DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
-        //PlayListService.GetSongsFromPlaylistID
         
         SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;
-        //PlayBackService.UpdateCurrentQueue(, 1);
-        //PlayListService.
+        
 #if ANDROID
         await Shell.Current.GoToAsync(nameof(SinglePlaylistPageM), true);
 #endif

@@ -9,21 +9,42 @@ public class LastFMUtils
             _ = LastfmClient.Instance.Track.ScrobbleAsync(Scr);
         }
     }
+
+    public static void SetNowListeningOn(SongModelView Song)
+    {
+        if (LastfmClient.Instance.Session.Authenticated)
+        {
+            _ = LastfmClient.Instance.Track.UpdateNowPlayingAsync(Song.Title, Song.ArtistName);
+        }
+    }
+
     public static void LoveTrack(SongModelView Song)
     {
-        _ = LastfmClient.Instance.Track.LoveAsync(Song.Title, Song.ArtistName);
+        GeneralStaticUtilities.RunFireAndForget(LastfmClient.Instance.Track.LoveAsync(Song.Title, Song.ArtistName), ex =>
+        {
+            // Log or handle the exception as needed
+            Debug.WriteLine($"Task error: {ex.Message}");
+        });
 
     }
     public static void UnLoveTrack(SongModelView Song)
     {
-        _ = LastfmClient.Instance.Track.UnloveAsync(Song.Title, Song.ArtistName);
+        GeneralStaticUtilities.RunFireAndForget(LastfmClient.Instance.Track.UnloveAsync(Song.Title, Song.ArtistName), ex =>
+        {
+            // Log or handle the exception as needed
+            Debug.WriteLine($"Task error: {ex.Message}");
+        });
     }
     
     public static void SetNowListening(SongModelView Song)
     {
         if (LastfmClient.Instance.Session.Authenticated)
         {
-            _ = LastfmClient.Instance.Track.UpdateNowPlayingAsync(Song.Title, Song.ArtistName);
+            GeneralStaticUtilities.RunFireAndForget(LastfmClient.Instance.Track.UpdateNowPlayingAsync(Song.Title, Song.ArtistName), ex =>
+            {
+                // Log or handle the exception as needed
+                Debug.WriteLine($"Task error: {ex.Message}");
+            });
         }
     }
 
@@ -40,38 +61,50 @@ public class LastFMUtils
 
     }
 
-    public static async Task LogInToLastFMWebsite(string? lastFMUname = null, string? lastFMPass = null)
+    public static async Task<bool> LogInToLastFMWebsite(string lastFMUname, string lastFMPass, bool isSilent=true)
     {
-        if (string.IsNullOrEmpty(lastFMUname) || string.IsNullOrEmpty(lastFMPass))
-        {
-            lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
-            lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
-        }
-
-        if (string.IsNullOrEmpty(lastFMUname) || string.IsNullOrEmpty(lastFMPass))
-        {
-            
-        }
         var clientLastFM = LastfmClient.Instance;
-        if (!clientLastFM.Session.Authenticated)
+        if (clientLastFM.Session.Authenticated)
         {
-            //LoginBtn.IsEnabled = false;
-            if (string.IsNullOrWhiteSpace(lastFMUname) || string.IsNullOrWhiteSpace(lastFMPass))
+            return await GeneralLastFMLogin(lastFMUname, lastFMPass, isSilent);
+        }
+        return false;
+    }
+
+    private static async Task<bool> GeneralLastFMLogin(string? lastFMUname, string? lastFMPass, bool isSilent)
+    {
+        var clientLastFM = LastfmClient.Instance;
+        //LoginBtn.IsEnabled = false;
+        if (string.IsNullOrWhiteSpace(lastFMUname) || string.IsNullOrWhiteSpace(lastFMPass))
+        {
+            if (isSilent)
             {
-                _ = Shell.Current.DisplayAlert("Error when logging to lastfm", "Username and Password are required.", "OK");
-                return;
+                return false;
             }
-            await clientLastFM.AuthenticateAsync(lastFMUname, lastFMPass);
-            if (clientLastFM.Session.Authenticated)
-            {
-                await Shell.Current.DisplayAlert(lastFMUname, "Welcome Back !", "OK");
-                
-                var usr = await clientLastFM.User.GetInfoAsync(lastFMUname);
-                _ = SecureStorage.Default.SetAsync("LastFMUsername", usr.Name);
-                _ = SecureStorage.Default.SetAsync("LastFMPassWord", lastFMPass);
-            }
+            _ = Shell.Current.DisplayAlert("Error when logging to lastfm", "Username and Password are required.", "OK");
+            return false;
         }
 
+        await clientLastFM.AuthenticateAsync(lastFMUname, lastFMPass);
+        if (clientLastFM.Session.Authenticated && !isSilent)
+        {
+            await Shell.Current.DisplayAlert(lastFMUname, "Welcome Back !", "OK" );
 
+            var usr = await clientLastFM.User.GetInfoAsync(lastFMUname);
+            _ = SecureStorage.Default.SetAsync("LastFMUsername", usr.Name);
+            _ = SecureStorage.Default.SetAsync("LastFMPassWord", lastFMPass);
+            return true;
+        }
+        return false;
+    }
+
+
+    public static async Task<bool> QuickLoginToLastFM()
+    {
+
+        var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
+        var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
+
+        return await GeneralLastFMLogin(lastFMUname, lastFMPass, true);        
     }
 }

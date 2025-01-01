@@ -46,14 +46,13 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
                     <HorizontalStackLayout Spacing="10">
 
-                        <Button Text="testSync" Clicked="Button_Clicked" IsVisible="True"/>
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
                                      Source="eyelocatedark.png">
                                      
                         </ImageButton>
-                        <ImageButton HeightRequest="20" 
+                        <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
                                      Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
-                                     Source="sortdark.png">
+                                     Source="sort.png">
                         </ImageButton>
                       
                     </HorizontalStackLayout>

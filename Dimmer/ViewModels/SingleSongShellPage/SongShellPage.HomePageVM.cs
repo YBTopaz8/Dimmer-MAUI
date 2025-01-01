@@ -3,7 +3,7 @@ using DevExpress.Maui.Core.Internal;
 
 namespace Dimmer_MAUI.ViewModels;
 
-public partial class HomePageVM : ObservableObject, IDisposable
+public partial class HomePageVM : ObservableObject
 {
     public class FilterWithId
     {
@@ -227,7 +227,7 @@ public partial class HomePageVM : ObservableObject, IDisposable
         var lastSongLink = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).LastOrDefault();
         if (singleSong.PlayData.LastOrDefault() != null)
         {
-            DateOfFirstDimm = singleSong.PlayData.LastOrDefault()!.DateFinished;
+            DateOfFirstDimm = singleSong.PlayData.LastOrDefault(x=>x.PlayType==3)!.DateFinished;
         }
         if (lastSongLink is not null)
         {

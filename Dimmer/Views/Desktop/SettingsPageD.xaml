@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.SettingsPageD"
-             xmlns:SyncCtrls="http://schemas.syncfusion.com/maui/toolkit"     
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"     
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
@@ -15,195 +15,185 @@
         <ResourceDictionary>
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+
+            <Style TargetType="syncf:SfChip">
+                <Setter Property="FontSize" Value="23"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=Black}"/>
+            </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    
-    <VerticalStackLayout Padding="10,0" Spacing="15">
-        <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
+    <ScrollView>        
+        <VerticalStackLayout Padding="10,0" Spacing="15">
+            <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
+            
+            <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
+                               ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
+                               x:Name="SettingsTab" toolkit:DockLayout.DockPosition="Top">
+                <syncf:SfChip Text="Folders Management" CommandParameter="1"/>                
+                <syncf:SfChip Text="User Page" CommandParameter="0"/>
+                <syncf:SfChip Text="Online Login" CommandParameter="2"/>
 
-        <toolkit:Expander  x:Name="ShowHidePreferredFoldersExpander" BackgroundColor="Transparent">
-            <toolkit:Expander.Header>
-                <Grid ColumnDefinitions="Auto,*,Auto" >
-                    <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start"
-                                           BackgroundColor="Transparent">
-                        <HorizontalStackLayout.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="ShowHidePreferredFoldersExpander_Tapped"/>
-                        </HorizontalStackLayout.GestureRecognizers>
-                        <Image>
-                            <Image.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
-                            </Image.Source>
-                        </Image>
+                
+                <syncf:SfChip Text="LastFM Login"  CommandParameter="4"/>
+                <!--<syncf:SfChip Text="SongStats" x:Name="SongStatsChip"  CommandParameter="4"/>-->
+            </syncf:SfChipGroup>
 
-                        <Label Text="Folders (Tap to view)" VerticalOptions="Center" FontSize="24" Grid.Column="1"
-                               BackgroundColor="Transparent"/>
-                    </HorizontalStackLayout>
+            <VerticalStackLayout x:Name="AlreadyInView">
+                <VerticalStackLayout>
 
-                    <ImageButton Grid.Column="2" HorizontalOptions="End" Source="arrowdark.png">
-                    </ImageButton>
-                </Grid>
-            </toolkit:Expander.Header>
-            <toolkit:Expander.Content>
-                    <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
-                            Scale="0.9">
+                    <Label Text="Not Logged In 💔" IsVisible="{Binding CurrentUser.IsAuthenticated, Converter={x:StaticResource BoolToInverse}}"
+                           FontSize="56" HorizontalOptions="Center"/>
 
-                        <Button Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
-                     
-            BorderColor="DarkSlateBlue" TextColor="White" />
-
-                        <Button Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
-            BorderColor="DarkSlateBlue" TextColor="White" />
-                    <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
-        IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
-                    <Grid>
-                        <CollectionView ItemsSource="{Binding FolderPaths}"                                            
-                                            HeightRequest="340">
-                            <CollectionView.ItemsLayout>
-                                <LinearItemsLayout Orientation="Vertical"
-                                                    ItemSpacing="5"/>
-                            </CollectionView.ItemsLayout>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button 
-                                            BackgroundColor="Transparent"
-                                            BorderColor="DarkSlateBlue"
-                                            
-                                            BorderWidth="1"
-                                            Text="{Binding .}"  
-                                            x:DataType="sys:String"
-                                            TextColor="White" FontSize="18" Margin="20,0"/>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                    </Grid>
-                    </VerticalStackLayout>
-                </toolkit:Expander.Content>
-            </toolkit:Expander>
-
-        <toolkit:Expander
-            BackgroundColor="Transparent"
-            x:Name="ShowHideConnectOnlineExpander">
-            <toolkit:Expander.Header>
-                <Grid ColumnDefinitions="Auto,*,Auto" BackgroundColor="Transparent">
-                    <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start"
-                                           BackgroundColor="Transparent">
-                        <HorizontalStackLayout.GestureRecognizers>
-                            <TapGestureRecognizer x:Name="ShowHideConnectOnlineExpanderTap" />
-                        </HorizontalStackLayout.GestureRecognizers>
-
-                        <VerticalStackLayout Spacing="5" BackgroundColor="Transparent">
-                            <HorizontalStackLayout Spacing="15">
-
-                                <Button Text="Log Out" Command="{Binding LogOutCommand}"/>
-                                <Label Text="{Binding CurrentUser.UserName}"/>
-                                <Label Text="{Binding CurrentUser.UserEmail}"/>
-                                <Label Text="{Binding CurrentUser.DeviceFormFactor}"/>
-                                <!--<Label FontSize="24" Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUserOnline.IsAuthenticated}"/>-->
-
-                            </HorizontalStackLayout>
-                            <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn"
-                                    IsEnabled="{Binding IsLoadingSongs, Converter={StaticResource BoolToInverse}}"/>
-                            <Button Text="Sync PlayStats" x:Name="SyncPDaCS"
-                                Clicked="SyncPDaCS_Clicked"/>
-                            <Button Text="ReconnectLQ" Clicked="Button_Clicked"/>
-                            <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}">
-
-                                <Label Text="Already Logged In!"/>
-                            </VerticalStackLayout>
-
-
-                        </VerticalStackLayout>
-                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                
+                <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}"
+                                     Spacing="10">
                     
-                    <ImageButton Grid.Column="2" HorizontalOptions="End">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
-                        </ImageButton.Source>
-                    </ImageButton>
+                    <Label Text="{Binding CurrentUser.UserName,StringFormat='Welcome Back Online {0} ☁️'}"/>                    
+                    <Label Text="{Binding CurrentUser.DeviceFormFactor,StringFormat='Device Form: {0}'}"/>
+                    <Label Text="{Binding CurrentUser.DeviceName,StringFormat='Device Name: {0}'}"/>
+                    <Label Text="{Binding CurrentUser.IsAuthenticated,StringFormat='Device Name: {0}'}"/>
+                    <Label Text="Logged into LastFM Too!"
+                           IsVisible="{Binding CurrentUser.IsLoggedInLastFM}"/>
+                    <!--<syncf:SfChip Text="Sync All Data"
+                                  
+                                  Command="{Binding }"/>-->
+                    <syncf:SfChip Text="Backup All Data" Command="{Binding BackupAllUserDataCommand}"/>
+                    <syncf:SfChip Text="Restore All Data" Command="{Binding RestoreUserDataCommand}"/>
+
+                    <syncf:SfChip Clicked="SettingsAction" CommandParameter="0"
+                              Text="Log Out"/>
+
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="FoldersView" IsVisible="False"
+                Spacing="5" BackgroundColor="Transparent"
+                    Scale="0.9" >
+
+                <syncf:SfChip Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
+                        TextColor="White" />
+
+                <syncf:SfChip Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
+                        TextColor="White" />
+                <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
+                   IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                <Grid>
+                    <CollectionView ItemsSource="{Binding FolderPaths}"                                            
+                                        HeightRequest="340">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical"
+                                                ItemSpacing="5"/>
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <HorizontalStackLayout>
+                                    <syncf:SfChip Text="X" Clicked="SfChip_Clicked" 
+                                                  x:DataType="sys:String"
+                                                  CommandParameter="{Binding .}"/>
+                                    <Label BackgroundColor="Transparent" 
+                                           Text="{Binding .}"  x:DataType="sys:String"
+                                           TextColor="White" FontSize="18" Margin="20,0"/>
+                                    
+                                </HorizontalStackLayout>
+                                
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    
                 </Grid>
-            </toolkit:Expander.Header>
-            <toolkit:Expander.Content>
-                <HorizontalStackLayout WidthRequest="500" HorizontalOptions="Center"
-                    BackgroundColor="Transparent" VerticalOptions="Center"
-                    HeightRequest="500">
+            </VerticalStackLayout>
+        
+            <VerticalStackLayout x:Name="LoginParseUI" Spacing="20" IsVisible="False"
+                                 VerticalOptions="Center" WidthRequest="280">
+                <Label Text="User Login" FontSize="26"/>
 
-                    <VerticalStackLayout x:Name="LoginUI" Spacing="20" 
-                      VerticalOptions="Center"
-                      WidthRequest="280">
+                <Entry Placeholder="User Name" x:Name="LoginUname"
+                       Text="{Binding CurrentUser.UserName}" />
+                <Entry IsPassword="True"
+                       Text="{Binding CurrentUser.UserPassword}"
+                        Placeholder="Password" x:Name="LoginPass" />
 
-                        <Label Text="User Login" FontSize="26"/>
+                <VerticalStackLayout Spacing="10">
+                    <syncf:SfChip Text="Login" 
+                                   Clicked="SettingsAction" CommandParameter="1"
+                                  BackgroundColor="Transparent" FontSize="23"
+                                  FontAttributes="Bold"/>
+                    
+                    <syncf:SfChip Text="Forgotten Password" FontAttributes="Italic"
+                                   Clicked="SettingsAction" CommandParameter="4"
+                                  BackgroundColor="Transparent" 
+                                  FontSize="15"/>
+                </VerticalStackLayout>
 
-                        <Entry Placeholder="User Name" x:Name="LoginUname"
-                               Text="YBTopaz8"/>
-                        <Entry IsPassword="True"                               
-                               Placeholder="Password" x:Name="LoginPass" />
-                        
-                        <Button Text="Sign Up"  BackgroundColor="Transparent" HeightRequest="15"
-                                FontSize="15" Clicked="LoginSignUpToggle_Click"/>
-                        <Button Text="Forgotten Password"  BackgroundColor="Transparent" 
-                                HeightRequest="15" FontSize="15"/>
-
-                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">                            
-                            <Button Text="Login" x:Name="LoginBtn" Clicked="LoginBtn_Clicked"/>                            
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
-
-                    <VerticalStackLayout x:Name="SignUpUI" Spacing="15" 
-                      WidthRequest="280" VerticalOptions="Center"
-                      IsVisible="False">
-
-                        <Label Text="User Sign Up" FontSize="26"/>
-
-                        <Entry Placeholder="User Name" x:Name="SignUpUname"
-                               />
-                        <Entry Placeholder="Email" x:Name="SignUpEmail"/>
-                        <Entry Placeholder="Password" x:Name="SignUpPass" IsPassword="True"/>
-
-                        <Button Text="Login" Clicked="LoginSignUpToggle_Click" BackgroundColor="Transparent" HeightRequest="15"
-             FontSize="15" />
-
-                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
-                            
-                            <Button Text="Sign Up" x:Name="SignUpBtn" Clicked="SignUpBtn_Clicked"/>
-                        </HorizontalStackLayout>
-
-                    </VerticalStackLayout>
+                <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+                    <syncf:SfChip Text="Sign Up" x:Name="signUpBtn" BackgroundColor="Transparent" 
+                                  FontSize="15" 
+                                  Clicked="SignLoginUp_Clicked" CommandParameter="3"/>
 
                 </HorizontalStackLayout>
-            </toolkit:Expander.Content>
-            </toolkit:Expander>
+            </VerticalStackLayout>
 
-        <Label Text="Already Logged into LastFM ☺️"
-               FontSize="42" x:Name="AlreadyInLastFM"/> 
+            <VerticalStackLayout x:Name="SignUpParseUI" Spacing="15" IsVisible="False"
+                                 WidthRequest="280" VerticalOptions="Center">
 
-        <SyncCtrls:SfEffectsView TouchDownEffects="Ripple">
-            <Button Text="Reload All Covers" IsVisible="False" Command="{Binding ReloadCoverImageCommand}">
-                <Button.ImageSource>
-                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Image}"/>
-                </Button.ImageSource>
-            </Button>
+                <Label Text="User Sign Up" FontSize="26"/>
 
-        </SyncCtrls:SfEffectsView>
-       
-        <VerticalStackLayout HorizontalOptions="Center" Spacing="15">
+                <Entry Placeholder="User Name" x:Name="SignUpUname"
+                        Text="{Binding CurrentUser.UserName}"/>
+                <Entry Placeholder="Email" x:Name="SignUpEmail"
+                       Text="{Binding CurrentUser.UserEmail}"/>
+                <Entry Placeholder="Password" x:Name="SignUpPass" IsPassword="True"
+                       Text="{Binding CurrentUser.UserPassword}"/>
+                <syncf:SfChip Text="Sign Up" x:Name="SignUpBtn" 
+                               Clicked="SettingsAction" CommandParameter="2"
+                                  />
 
-            <Label Text="Log In LastFM" />
-            <Entry Text="{Binding LastFMUserName}" Placeholder="LastFM User Name"/>
-            <Entry Text="{Binding LastFMPassword}" Placeholder="LastFM Password"/>
+                <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+                    <syncf:SfChip Text="Login" Clicked="SignLoginUp_Clicked"
+                                  CommandParameter="2"
+                              BackgroundColor="Transparent" FontSize="15" />
 
-            <Button Text="Log In!" Clicked="Button_Clicked_1"/>
+                </HorizontalStackLayout>
 
-            <HorizontalStackLayout>
-                <Image>
-                    <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
-                    </Image.Source>
-                </Image>
-                <Label Text="Facing Issues!" FontSize="24" />
-            </HorizontalStackLayout>
-            <Button Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
-                 Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
-                 TextColor="White" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="LogInLastFMUI" IsVisible="False"
+                HorizontalOptions="Center" Spacing="15">
+                <Label 
+                    FontSize="35" HorizontalTextAlignment="Justify"
+                    Text="Last FM integration is coming around v1.5. It just stopped working the moment I wanted to release v1 🥲"/>
+                
+                <!--<VerticalStackLayout IsVisible="{Binding CurrentUser.IsLoggedInLastFM, Converter={x:StaticResource BoolToInverse}}">
+                    
+                <Label Text="Log In LastFM" />
+                <Entry Text="{Binding LastFMUserName}" Placeholder="LastFM User Name"/>
+                <Entry Text="{Binding LastFMPassword}" Placeholder="LastFM Password"/>
+
+                </VerticalStackLayout>
+                
+                <syncf:SfChip Text="Login" 
+                              Clicked="SettingsAction" CommandParameter="3"
+                              BackgroundColor="Transparent" FontSize="15" />
+
+                <VerticalStackLayout IsVisible="{Binding CurrentUser.IsLoggedInLastFM}">
+                    <Label Text="Already Logged Into LastFM"/>
+                    --><!--<syncf:SfChip Clicked=""--><!--
+                </VerticalStackLayout>-->
+                
+                <HorizontalStackLayout>
+                    <Image>
+                        <Image.Source>
+                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
+                        </Image.Source>
+                    </Image>
+                    <Label Text="Facing Issues!" FontSize="24" />
+                </HorizontalStackLayout>
+                
+                <syncf:SfChip Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
+                     Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
+                     TextColor="White" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
-    </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

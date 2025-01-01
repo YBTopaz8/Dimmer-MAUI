@@ -60,8 +60,11 @@ public partial class SongModel : RealmObject
         IsFileExists = model.IsFileExists;
         var s = new Track();
         LyricsInfo lyrics = new LyricsInfo();
-        lyrics.SynchronizedLyrics = model.SyncLyrics.Select(x => new LyricsPhrase(x.TimeStampMs, x.Text)).ToList();        
-        SyncLyrics= lyrics.FormatSynchToLRC();
+        if (model.SyncLyrics is not null && model.SyncLyrics.Count > 0)
+        {
+            lyrics.SynchronizedLyrics = model.SyncLyrics.Select(x => new LyricsPhrase(x.TimeStampMs, x.Text)).ToList();
+            SyncLyrics = lyrics.FormatSynchToLRC();
+        }
     }
     public SongModel()
     {

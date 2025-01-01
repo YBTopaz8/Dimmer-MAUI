@@ -8,18 +8,12 @@ public static class GeneralStaticUtilities
             throw new ArgumentNullException(nameof(CallerClass));
         }
 
-        Random random = Random.Shared;
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         char[] stringChars = new char[length];
         stringChars[0] = CallerClass[0];
         stringChars[1] = CallerClass[1];
 
-        for (int i = 2; i < length; i++)
-        {
-            stringChars[i] = chars[random.Next(chars.Length)];
-        }
 
-        return new string(stringChars);
+        return stringChars[0]+stringChars[1]+ Guid.NewGuid().ToString();
     }
 
     public static bool IsValidFile(string file)
@@ -539,6 +533,22 @@ public static class GeneralStaticUtilities
         {
             return input.Substring(0, commaIndex);
         }
+    }
+
+
+    public static void RunFireAndForget(Task task, Action<Exception>? onException = null)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
+                onException?.Invoke(ex);
+            }
+        });
     }
 
 }

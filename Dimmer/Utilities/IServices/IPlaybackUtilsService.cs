@@ -56,5 +56,7 @@ public interface IPlaybackUtilsService
     //Artist Section
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
+    void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false);
+
     ObservableCollection<ArtistModelView>? AllArtists { get; }
 }

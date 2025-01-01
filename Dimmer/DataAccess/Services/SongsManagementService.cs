@@ -6,7 +6,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public List<SongModelView> AllSongs { get; set; }
     public List<PlayDataLink> AllPlayDataLinks { get; set; }
-    
+    public List<PlaylistSongLink> AllPLSongLinks { get; set; }
     HomePageVM ViewModel { get; set; }
 
 
@@ -32,13 +32,30 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
 
     bool isSyncingOnline;
+
+    public void RestoreAllOnlineData(List<PlayDateAndCompletionStateSongLink> playDataLinks, List<SongModel> songs,
+        List<AlbumModel> albums, List<GenreModel> allGenres,
+        List<PlaylistModel> allPlaylists, List<AlbumArtistGenreSongLink> otherLinks)
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        
+        db.Write(() =>
+        {
+            db.Add(playDataLinks, update:true);
+            db.Add(songs, update: true);
+            db.Add(albums, update: true);
+            db.Add(allGenres, update: true);
+            db.Add(allPlaylists, update: true);
+            db.Add(otherLinks, update: true);
+        });
+
+        GetSongs();
+    }
     public void GetSongs()
     {
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-
-
 
             var realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
             AllLinks = new List<AlbumArtistGenreSongLinkView>(realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link)));
@@ -123,6 +140,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 });
             });
         }
+
+
     }
 
 
@@ -180,7 +199,13 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         try
         {
-            _ = await AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs,AllGenres,AllLinks, AllPlayDataLinks);
+
+            GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs, AllGenres, AllLinks, AllPlayDataLinks), ex =>
+            {
+                // Log or handle the exception as needed
+                Debug.WriteLine($"Task error: {ex.Message}");
+            });
+            
         }
         catch (Exception ex)
         {
@@ -651,12 +676,12 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error when updating song: " + ex.Message);
+            Debug.WriteLine("Error when updating songss: " + ex.Message);
             return false;
         }
     }
 
-    public async void AddPlayAndCompletionLink(PlayDateAndCompletionStateSongLink link, bool SyncSave = false)
+    public async Task AddPlayAndCompletionLinkAsync(PlayDateAndCompletionStateSongLink link, bool SyncSave = false)
     {
         try
         {
@@ -684,26 +709,26 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             {
                 return; //no account
             }
-            
-            if (! await CurrentUserOnline.IsAuthenticatedAsync())
+
+            if (!CurrentOfflineUser.IsAuthenticated)
             {
                 return; //no not authenticated lol
             }
 
             //copy code from chat to add as normal (not pending) then clear this comment and test
 
-            await SendSingleObjectToParse(nameof(PlayDateAndCompletionStateSongLink),link);
+            await SendSingleObjectToParse("PlayDataLink", link);
+
 
             
             return;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error when updating song: " + ex.Message);
+            Debug.WriteLine("Error when updating songasa: " + ex.Message);
             return;
         }
     }
-
 
     public bool AddArtistsBatch(IEnumerable<ArtistModelView> artistss)
     {
@@ -757,7 +782,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Error when updating song: " + ex.Message);
+            Debug.WriteLine("Error when updatingasd song: " + ex.Message);
 
         }
 
@@ -975,7 +1000,12 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
 
 
-        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null);
+        GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null), ex =>
+        {
+            // Log or handle the exception as needed
+            Debug.WriteLine($"Task error: {ex.Message}");
+        });
+        
         
         if (CurrentUserOnline is null || await CurrentUserOnline.IsAuthenticatedAsync())
         {
@@ -989,7 +1019,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             Debug.WriteLine("User authentication failed."); //todo to be reviewed, we can aske the user to login
             return false;
         }
-        _ = AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
+        GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null), ex => { Debug.WriteLine($"Task error: {ex.Message}"); });
        
 
         return true;

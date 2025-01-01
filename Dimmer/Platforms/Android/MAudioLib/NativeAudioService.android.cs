@@ -56,7 +56,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         get
         {
             if (mediaPlayer == null)
-                Console.WriteLine("media player is null in duration");
+                Debug.WriteLine("media player is null in duration");
             return mediaPlayer?.Duration / 1000 ?? 0;
         }
     }

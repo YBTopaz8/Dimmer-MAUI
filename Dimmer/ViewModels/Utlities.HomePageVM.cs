@@ -1,4 +1,5 @@
 ﻿using Parse.LiveQuery;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -8,11 +9,11 @@ public partial class HomePageVM
     #region HomePage MultiSelect's Logic
     public bool EnableContextMenuItems = true;
     [ObservableProperty]
-    ObservableCollection<SongModelView> multiSelectSongs;
+    public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = Enumerable.Empty<SongModelView>().ToObservableCollection();
     [ObservableProperty]
-    string multiSelectText;
+    public partial string MultiSelectText { get; set; } = string.Empty;
 
-   
+
 
     [RelayCommand]
     async Task MultiSelectUtilClicked(int SelectedBtn)
@@ -165,7 +166,7 @@ public partial class HomePageVM
         string filePath = string.Empty;
         if (CurrentPage == PageEnum.NowPlayingPage)
         {
-            filePath = PickedSong.FilePath;
+            filePath = SelectedSongToOpenBtmSheet.FilePath;
         }
         else
         {
@@ -476,7 +477,7 @@ public partial class HomePageVM
         await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
-    partial void OnCurrentUserOnlineChanged(ParseUser oldValue, ParseUser newValue)
+    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
     {
         if (newValue is not null)
         {
@@ -489,79 +490,192 @@ public partial class HomePageVM
         }
     }
 
-    [ObservableProperty]
-    bool isNotificationOn;
-    [ObservableProperty]
-    string notificationText = string.Empty;
 
-    private async Task ShowNotificationAsync(string message)
+    [RelayCommand]
+    public async Task BackupAllUserData()
     {
-        IsNotificationOn = true; // Turn on the notification
-        NotificationText = message;  // Set the notification message
+        if (!CurrentUser.IsAuthenticated)
+        {
+            await Shell.Current.DisplayAlert("Currently Offline", "Please Log in to Backup your data", "Ok");
+            return;
+        }
 
-        // Wait for 3 seconds
-        await Task.Delay(3000);
-
-        // Clear the notification
-        NotificationText = string.Empty;
-        IsNotificationOn = false;
-
-        // Notify the UI to re-render
-        
-    }
-
-    async Task RestoreAllData()
-    {
-        List<object> objs = new();
+        List<object> allPlayDatalinks = new();
         foreach (PlayDataLink item in AllPlayDataLinks)
         {
-            objs.Add(ObjectMapper.ClassToDictionary(item));
+            allPlayDatalinks.Add(ObjectHelper.ClassToDictionary(item));
         }
-
-        Dictionary<string, object> dataToRestore = new Dictionary<string, object>();
-        dataToRestore.Add("PlayDataLink", objs);
-        dataToRestore.Add("owner", DeviceInfo.Name);
-
-        var Links = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", dataToRestore);
         
-        Debug.WriteLine(Links);
-    }
-    public async Task GetAllData()
-    {
-        await RestoreAllData();
-        return; 
-         var Links=await  ParseClient.Instance.CallCloudCodeFunctionAsync<object>("testCodeWithAuth", new Dictionary<string, object>());
-        var listOfDicts = (List<List<object>>)Links;
-        var onlyLinks = listOfDicts[0];
-        List<PlayDateAndCompletionStateSongLink> listofLinks = new();
-        foreach (var item in onlyLinks)
+        List<object> AllAlbumModelView = new();
+        foreach (AlbumModelView item in AllAlbums)
         {
-            var link = ObjectMapper.MapFromDictionary<PlayDateAndCompletionStateSongLink>(item as IDictionary<string, object>);
-            listofLinks.Add(link);
-            SongsMgtService.AddPlayAndCompletionLink(link);
+            
+            AllAlbumModelView.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        List<object> AllGenresModelView = new();
+        foreach (GenreModelView item in SongsMgtService.AllGenres)
+        {
+            AllGenresModelView.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        
+        List<object> ArtistModelV = new();
+        foreach (ArtistModelView item in AllArtists)
+        {
+            ArtistModelV.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        List<object> AllLinkss = new();
+        foreach (AlbumArtistGenreSongLinkView item in AllLinks)
+        {
+            AllLinkss.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        
+        List<object> AllSongModelView = new();
+        foreach (SongModelView item in DisplayedSongs)
+        {
+            AllSongModelView.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        
+        List<object> AllPlayLists = new();
+        foreach (PlaylistModelView item in DisplayedPlaylists)
+        {
+            AllPlayLists.Add(ObjectHelper.ClassToDictionary(item));
+        }
+        
+
+        Dictionary<string, object> dataToBackUpToParseInitially = new Dictionary<string, object>
+        {
+            { "PlayDataLink", allPlayDatalinks },
+            { "SongModelView", AllSongModelView },
+            { "ArtistModelView", ArtistModelV },
+            { "AlbumModelView", AllAlbumModelView },
+            { "GenresModelView", AllGenresModelView },
+            { "AlbumArtistGenreSongLink", AllLinkss },
+            { "AllPlayLists", AllPlayLists }
+            
+        };
+        
+        bool overallSuccess = true;
+        Dictionary<string, object> allBackupErrors = new Dictionary<string, object>();
+
+        foreach (var dataPair in dataToBackUpToParseInitially)
+        {
+            string className = dataPair.Key;
+            object data = dataPair.Value;
+
+            Dictionary<string, object> singleClassBackupData = new Dictionary<string, object>
+            {
+                { className, data }
+            };
+
+            try
+            {
+                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("backupUserData", singleClassBackupData);
+
+                if (result != "Back Up Complete" && result.StartsWith("Failed on class"))
+                {
+                    overallSuccess = false;
+                    allBackupErrors[className] = result;
+                    Debug.WriteLine($"Backup Errors for {className}: {result}");
+                }
+                else
+                {
+                    Debug.WriteLine($"Backup for {className} successful!");
+                }
+            }
+            catch (Exception ex)
+            {
+                overallSuccess = false;
+                allBackupErrors[className] = new Dictionary<string, string> 
+                { 
+                    { 
+                        "Error", 
+                        ex.Message 
+                    } 
+                };
+                Debug.WriteLine($"Parse Exception during backup of {className}: {ex.Message}");
+            }
         }
 
-        
-
-        //Debug.WriteLine("Fetched data for all classes:" + allData.GetType());
-
-        //foreach (var item in allData as List<object>)
-        //{
-        //    Debug.WriteLine(item.GetType());
-        //}
-        // Store this data somewhere for future use
-        //await RestoreAllData(allData); // Example: Restore immediately
-}
-
-    public async Task RestoreAllData(List<List<Dictionary<string, object>>> backupData)
-    {
-        var args = new Dictionary<string, object>
+        if (overallSuccess)
+        {
+            Debug.WriteLine("Overall Backup Successful!");
+            await Shell.Current.DisplayAlert("Success!", "Backup Complete", "Ok");
+        }
+        else
+        {
+            Debug.WriteLine("Overall Backup Failed with Errors.");
+            // Display a more informative error message to the user, perhaps listing the classes with errors
+            string errorMessage = "Backup Failed for some data. See debug output for details.";
+            if (allBackupErrors.Count != 0)
             {
-                { "data", backupData }
-            };
-        
-        var result =  await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("restoreAllData", args);
-        Debug.WriteLine("Restore result: " + result);
+                errorMessage = "Backup Failed for the following data: " + string.Join(", ", allBackupErrors.Keys);
+            }
+            await Shell.Current.DisplayAlert("Error!", errorMessage, "Ok");
+        }
+    }
+
+    [RelayCommand]
+    public async Task RestoreUserData()
+    {
+        try
+        {
+            var response = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("restoreUserData", new Dictionary<string, object>());
+
+            if (response != null && response.ContainsKey("data"))
+            {
+                var data = response["data"] as Dictionary<string, object>;
+
+                if (data != null)
+                {
+                    // Extract and convert data for each class
+                    var songs = ExtractData<SongModelView>(data, "SongModelView");
+                    PlayBackService.LoadSongsWithSorting(songs.ToObservableCollection());
+
+                    var playDataLinks = ExtractData<PlayDateAndCompletionStateSongLink>(data, "PlayDataLink");
+
+                    var albums = ExtractData<AlbumModel>(data, "AlbumModelView");
+                    var allGenres = ExtractData<GenreModel>(data, "GenresModelView");
+                    var allPlaylists = ExtractData<PlaylistModel>(data, "AllPlayLists");
+                    var otherLinks = ExtractData<AlbumArtistGenreSongLink>(data, "AllLinks");
+                    var songsData = ExtractData<SongModel>(data, "SongModelView");
+
+                    // Call RestoreAllOnlineData with the extracted data
+                    SongsMgtService.RestoreAllOnlineData(playDataLinks, songsData, albums, allGenres, allPlaylists, otherLinks);
+
+                    RefreshPlaylists();
+                }
+                else
+                {
+                    Console.WriteLine("Data extraction failed, no valid data found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No data returned from cloud function.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"General Exception in RestoreUserData: {ex.Message}");
+        }
+    }
+
+    // Helper function to extract and convert data for a specific class
+    private List<T> ExtractData<T>(Dictionary<string, object> response, string className) where T : class
+    {
+        if (response.TryGetValue(className, out object? value))
+        {
+            if (value is List<object> dataList)
+            {
+                return dataList.Cast<IDictionary<string, object>>()
+                               .Select(item => ObjectHelper.MapFromDictionary<T>(item))
+                               .Where(item => item != null) // Filter out null items
+                               .ToList();
+            }
+        }
+
+        Console.WriteLine($"No data found for class: {className}");
+        return new List<T>(); // Return an empty list if the class data is not found
     }
 
     [ObservableProperty]
@@ -589,4 +703,147 @@ public partial class HomePageVM
         OtherConnectedDevices = devices;
     }
 
+
+    [RelayCommand]
+    public async Task<bool> ForgottenPassword()
+    {
+        string userEmail = await Shell.Current.DisplayPromptAsync("Password Reset", "Enter your email address to reset your password", "OK", "Cancel",keyboard:Keyboard.Email,initialValue:CurrentUser.UserEmail );
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            return false;
+        }
+
+        await ParseClient.Instance.RequestPasswordResetAsync(CurrentUser.UserEmail);
+
+        await Shell.Current.DisplayAlert("Confirm Passsword Reset!", "Please Verify Your Email!", "Ok");
+        return true;
+    }
+
+    [RelayCommand]
+    public async Task<bool> SignUpUserAsync()
+    {
+        if (string.IsNullOrEmpty(CurrentUser.UserEmail) || string.IsNullOrEmpty(CurrentUser.UserPassword))
+        {
+            await Shell.Current.DisplayAlert("Error!", "Please Enter Email and Password", "Ok");
+            return false;
+        }
+        try
+        {
+            ParseUser user = new ParseUser()
+            {
+                Username = CurrentUser.UserEmail,
+                Password = CurrentUser.UserPassword,
+                Email = CurrentUser.UserEmail
+            };
+
+            var usr = await ParseClient.Instance.SignUpWithAsync(user);
+
+            await Shell.Current.DisplayAlert("Last Step!", "Please Verify Your Email!", "Ok");
+            ParseClient.Instance.LogOut();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error when registering user: {ex.Message}");
+            return false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task<bool> LogInParseOnline(bool isSilent=true)
+    {
+
+        if (Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+        {
+            if (!isSilent)
+            {
+                await Shell.Current.DisplayAlert("Error!", "No Internet Connection", "Ok");
+
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+;
+        }
+        if (string.IsNullOrEmpty(CurrentUser.UserName) || string.IsNullOrEmpty(CurrentUser.UserPassword) )
+        {
+            if (!isSilent)
+            {
+                await Shell.Current.DisplayAlert("Error!", "Please Verify Email/Password", "Ok");
+
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        var currentParseUser = await ParseClient
+            .Instance
+            .LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
+
+        if (currentParseUser is null)
+        {
+            if (!isSilent)
+            {
+                await Shell.Current.DisplayAlert("Error!", "Invalid Username or Password", "Ok");
+                
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (!isSilent)
+        {
+            await Shell.Current.DisplayAlert("Success !", $"Welcome Back {currentParseUser.Username}!", "Thanks");
+        }
+        var query = ParseClient.Instance.GetQuery("DeviceStatus")
+            .WhereEqualTo("deviceOwner", currentParseUser.Email)
+            .WhereEqualTo("deviceName", DeviceInfo.Name);
+
+        var existingDevices = await query.FindAsync();
+        var existingDevice = existingDevices.FirstOrDefault();
+
+        if (existingDevice != null)
+        {
+            existingDevice["lastLogin"] = DateTime.Now;
+            existingDevice["isOnline"] = true;
+
+            await existingDevice.SaveAsync();
+        }
+        else
+        {
+            var newDevice = new ParseObject("DeviceStatus");
+            newDevice["deviceOwner"] = currentParseUser.Email;
+            newDevice["deviceName"] = DeviceInfo.Name;
+            newDevice["deviceType"] = DeviceInfo.Idiom.ToString();
+            newDevice["lastLogin"] = DateTime.Now;
+            newDevice["isOnline"] = true;
+            await newDevice.SaveAsync();
+        }
+        CurrentUserOnline = currentParseUser;
+        CurrentUser.IsAuthenticated = true;
+        CurrentUser.UserIDOnline = currentParseUser.ObjectId;
+
+        currentParseUser.Password= CurrentUser.UserPassword;
+        SongsMgtService.UpdateUserLoginDetails(currentParseUser);
+        return true;
+    }
+
+    [RelayCommand]
+    public async Task<bool> LogUserOut()
+    {
+        await APIKeys.LogoutDevice();
+        CurrentUser.IsAuthenticated = false;
+        CurrentUser.LastSessionDate = DateTime.Now;
+        CurrentUserOnline = null;
+        return true;
+    }
 }

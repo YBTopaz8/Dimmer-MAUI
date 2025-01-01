@@ -27,7 +27,7 @@ public partial class App : Application
     {
         Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
             $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
-        _ = APIKeys.LogoutDevice();
+        
         //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         LogException(e.Exception);
     }

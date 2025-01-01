@@ -324,6 +324,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Platforms\Android\CustomHandlers\" />
+    <Folder Include="Utilities\OtherUtils\ParseStaticUtils\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />

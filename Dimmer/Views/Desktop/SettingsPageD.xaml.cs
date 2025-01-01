@@ -1,3 +1,5 @@
+using Syncfusion.Maui.Toolkit.Chips;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SettingsPageD : ContentPage
@@ -17,42 +19,26 @@ public partial class SettingsPageD : ContentPage
         base.OnAppearing();
         if (LastfmClient.Instance.Session.Authenticated)
         {
-            ShowHideConnectOnlineExpander.IsVisible = false;
-            AlreadyInLastFM.IsVisible = true;
         }
         else
         {
             if (string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
             {
-                LoginPass.Text = ViewModel.CurrentUser.UserPassword;
-                LoginBtn_Clicked(null, null); //review this.
+                LoginPass.Text = ViewModel.CurrentUser.UserPassword;                
             }
             if (LastfmClient.Instance.Session.Authenticated)
             {
-                ShowHideConnectOnlineExpander.IsVisible = true;
-                AlreadyInLastFM.IsVisible = false;
+
             }
         }
 
-        ViewModel.GetLoggedInDevicesForUser();
+        _ = ViewModel.GetLoggedInDevicesForUser();
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
         var reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
 
         await Browser.Default.OpenAsync(reportingLink, BrowserLaunchMode.SystemPreferred);
-    }
-
-    private void ShowHidePreferredFoldersExpander_Tapped(object sender, TappedEventArgs e)
-    {
-        ShowHidePreferredFoldersExpander.IsExpanded = !ShowHidePreferredFoldersExpander.IsExpanded;
-    }
-
-
-    private void LoginSignUpToggle_Click(object sender, EventArgs e)
-    {
-        LoginUI.IsVisible = !LoginUI.IsVisible;
-        SignUpUI.IsVisible = !SignUpUI.IsVisible;
     }
 
     private async void SignUpBtn_Clicked(object sender, EventArgs e)
@@ -90,11 +76,6 @@ public partial class SettingsPageD : ContentPage
         }
     }
 
-    private async void LoginBtn_Clicked(object sender, EventArgs e)
-    {
-        await ViewModel.LogInToParseServer(LoginUname.Text, LoginPass.Text);
-    }
-
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
     {
         _= ViewModel.FullSync();
@@ -104,14 +85,145 @@ public partial class SettingsPageD : ContentPage
         await ViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
+
+    private void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
     {
-        ViewModel.SetupLiveQueries();
+        var selectedTab = SettingsTab.SelectedItem;
+        var send = (SfChipGroup)sender;
+        var selected = send.SelectedItem as SfChip;
+        if (selected is null)
+        {
+            return;
+        }
+        _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
+        GeneralStaticUtilities.RunFireAndForget(SwitchUI(selectedStatView), ex =>
+        {
+            Debug.WriteLine($"Task error: {ex.Message}");
+        });
+        return;
     }
 
-    private async void Button_Clicked_1(object sender, EventArgs e)
+    private async Task SwitchUI(int selectedStatView)
     {
-        await ViewModel.LogInToLastFMWebsite();
+        switch (selectedStatView)
+        {
+            case 0:
+
+                //GeneralStatsView front, rest back
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+            case 5:
+
+                break;
+            case 6:
+
+                break;
+            default:
+
+                break;
+        }
+
+        var viewss = new Dictionary<int, View>
+        {
+            {0, AlreadyInView},
+            {1, FoldersView},
+            {2, LoginParseUI},
+            {3, SignUpParseUI},
+            {4, LogInLastFMUI},
+
+        };
+        if (!viewss.ContainsKey(selectedStatView))
+            return;
+
+        await Task.WhenAll
+            (viewss.Select(kvp =>
+            kvp.Key == selectedStatView
+            ? kvp.Value.AnimateFadeInFront()
+            : kvp.Value.AnimateFadeOutBack()));
+    }
+
+    private void SignLoginUp_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        _ = int.TryParse(send.CommandParameter.ToString(), out int selectedStatView);
+        GeneralStaticUtilities.RunFireAndForget(SwitchUI(selectedStatView), ex =>
+        {
+            Debug.WriteLine($"Task error: {ex.Message}");
+        });
+    }
+    
+
+    private void SfChip_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        ViewModel.FolderPaths.Remove(send.CommandParameter as string);
+    }
+
+    private async void SettingsAction(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        _ = int.TryParse(send.CommandParameter.ToString(), out int selectedStatView);
+
+        switch (selectedStatView)
+        {
+            case 0: //Log out
+                if(await ViewModel.LogUserOut())
+                {
+                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
+                    {
+                        Debug.WriteLine($"Task error: {ex.Message}");
+                    });
+                }
+                break;
+            case 1: //Log in
+                if (await ViewModel.LogInParseOnline(false))
+                {
+                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
+                    {
+                        Debug.WriteLine($"Task error: {ex.Message}");
+                    });
+                }
+                break;
+            case 2: //Sign up
+                if(await ViewModel.SignUpUserAsync())
+                {
+                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
+                    {
+                        Debug.WriteLine($"Task error: {ex.Message}");
+                    });
+                }
+                break;
+            case 3: //LastFM
+                if(await ViewModel.LogInToLastFMWebsite(false))
+                {
+                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
+                    {
+                        Debug.WriteLine($"Task error: {ex.Message}");
+                    });
+                }
+                break;
+            case 4: //Forgotten password
+                if (await ViewModel.ForgottenPassword())
+                {
+                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
+                    {
+                        Debug.WriteLine($"Task error: {ex.Message}");
+                    });
+
+                }
+                break;
+            case 5: 
+                break;
+            default:
+                break;
+        }
     }
 }
 

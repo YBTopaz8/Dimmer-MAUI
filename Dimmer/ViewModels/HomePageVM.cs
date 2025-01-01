@@ -120,13 +120,34 @@ public partial class HomePageVM : ObservableObject
         //_ = GetSecuredData();
 
     }
+    public async Task AssignCV(CollectionView cv)
+    {
+        DisplayedSongsColView = cv;
 
+        if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
+        {
+            await LogInParseOnline(true);
+            CurrentUserOnline = await APIKeys.LogInParseOnline();
+            
+            //await LastFMUtils.QuickLoginToLastFM();
+            return;
+            /*
+            */
+        }
+        if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
+        {
+            CurrentUser.IsAuthenticated = true;
+            CurrentUser.IsLoggedInLastFM = true;
+            SetupLiveQueries();
+        }
+
+    }
     partial void OnTemporarilyPickedSongChanging(SongModelView oldValue, SongModelView newValue)
     {
-        Debug.WriteLine($"Old Ver {oldValue?.CoverImagePath} | New Ver {newValue?.CoverImagePath} , Song {TemporarilyPickedSong?.Title}");
+        
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
         {
-            newValue.CoverImagePath = null;
+            newValue.CoverImagePath = string.Empty;
         }
         if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
         {
@@ -145,13 +166,8 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel>? oldValue, ObservableCollection<LyricPhraseModel>? newValue)
+    partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel> oldValue, ObservableCollection<LyricPhraseModel> newValue)
     {
-        
-        if (oldValue is not null && oldValue.Count > 0)
-        {
-            
-        }
         if (newValue is not null && newValue.Count < 1)
         {
             MainThread.BeginInvokeOnMainThread(() =>
@@ -179,23 +195,6 @@ public partial class HomePageVM : ObservableObject
         }
         
     }
-    private IDisposable _allLinksSubscription;
-    private IDisposable _allPDaCStateLinkSubscription;
-
-
-    #region Dispose pattern to unsubscribe safely
-    public void Dispose()
-    {
-        _allLinksSubscription?.Dispose();
-        _allPDaCStateLinkSubscription?.Dispose();
-        _playerStateSubscription?.Dispose();
-
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-
-    }
-    #endregion
     public void SyncRefresh()
     {
        PlayBackService.FullRefresh();
@@ -252,25 +251,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial bool IsMultiSelectOn { get; set; }
     CollectionView DisplayedSongsColView { get; set; }
-    public async Task AssignCV(CollectionView cv)
-    {
-        DisplayedSongsColView = cv;
-#if DEBUG
-        if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
-        {
-            CurrentUserOnline = await APIKeys.LogInParseOnline();
-            if (CurrentUserOnline is not null)
-            {
-                SetupLiveQueries();
-            }
-        }
-        if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
-        {
-            CurrentUser.IsAuthenticated = true;
-            CurrentUser.IsLoggedInLastFM = true;
-        }
-#endif
-    }
+   
 
     CollectionView? SyncLyricsCV { get; set; }
     public void AssignSyncLyricsCV(CollectionView cv)
@@ -423,7 +404,7 @@ public partial class HomePageVM : ObservableObject
         {
             DeviceDisplay.Current.KeepScreenOn = true;
             IsLoadingSongs = true;
-            if (FolderPaths is null)
+            if (FolderPaths is null || FolderPaths.Count < 0)
             {
                 await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
                 IsLoadingSongs = false;
@@ -922,16 +903,15 @@ public partial class HomePageVM : ObservableObject
                             if (PickedSong is not null)
                             {
                                 PickedSong.IsPlaying = false;
-                                PickedSong.IsCurrentPlayingHighlight = false;
+                                PickedSong.IsCurrentPlayingHighlight = false;                                
+                                await ParseStaticUtils.UpdateSongStatusOnline(PickedSong, CurrentUser.IsAuthenticated);
                             }
-
                             PickedSong = TemporarilyPickedSong;
-                            PickedSong.IsPlaying = false;
-                            PickedSong.IsCurrentPlayingHighlight = false;
+                            
 
                             SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
 
-                            AllSyncLyrics = null;
+                            AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
                             splittedLyricsLines = null;
 
                             IsPlaying = true;
@@ -945,15 +925,16 @@ public partial class HomePageVM : ObservableObject
 
                             await FetchSongCoverImage();
 
-                            
+                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
 
                             break;
                         case MediaPlayerState.Paused:
+                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong ??= TemporarilyPickedSong;
 
                             IsPlaying = false;
-                            PlayPauseIcon = MaterialRounded.Play_arrow;
+                            //PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
                             //PickedSong = "Stopped";
@@ -962,12 +943,12 @@ public partial class HomePageVM : ObservableObject
 
                             break;
                         case MediaPlayerState.ShowPlayBtn:
-                            PlayPauseIcon = MaterialRounded.Play_arrow;
+                            //PlayPauseIcon = MaterialRounded.Play_arrow;
                             IsPlaying = false;
                             break;
                         case MediaPlayerState.ShowPauseBtn:
                             IsPlaying = true;
-                            PlayPauseIcon = MaterialRounded.Pause;
+                            //PlayPauseIcon = MaterialRounded.Pause;
                             break;
                         case MediaPlayerState.DoneScanningData:
                             SyncRefresh();
@@ -987,12 +968,21 @@ public partial class HomePageVM : ObservableObject
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
-            DisplayedSongs = songs;  //.Take(20).ToObservableCollection();
-            if (SongsMgtService.AllSongs is null)
+            MainThread.BeginInvokeOnMainThread( () =>
             {
-                return;
-            }
-            TotalNumberOfSongs = songs.Count;
+                DisplayedSongs = songs;
+                if (DisplayedSongs is null)
+                {
+                    return;
+                }
+                if (DisplayedSongsColView is null)
+                {
+                    return;
+                }
+                DisplayedSongsColView.ItemsSource = songs;
+                TotalNumberOfSongs = songs.Count;
+                //ReloadSizeAndDuration();
+            });
 
             //ReloadSizeAndDuration();
         });
@@ -1006,15 +996,12 @@ public partial class HomePageVM : ObservableObject
         Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
     }
 
-    [ObservableProperty]
-    public partial CollectionView DesktopColView { get; set; }
-
 
     private void SubscribeToSyncedLyricsChanges()
     {
         LyricsManagerService.SynchronizedLyricsStream.Subscribe(synchronizedLyrics =>
         {
-            SynchronizedLyrics = synchronizedLyrics?.ToObservableCollection();
+            SynchronizedLyrics = synchronizedLyrics.ToObservableCollection();
             if (TemporarilyPickedSong is not null)
             {
                 TemporarilyPickedSong.HasSyncedLyrics = SynchronizedLyrics is not null;
@@ -1192,14 +1179,6 @@ public partial class HomePageVM : ObservableObject
     public partial bool IsAnimatingFav { get; set; } = false;
    
 
-    public static async Task<bool> GetSecuredData()
-    {
-        _ = LastFMUtils.LogInToLastFMWebsite();
-        return true;
-    }
-
-
-
     [ObservableProperty]
     public partial BottomSheetState NowPlayBtmSheetState { get; set; } = BottomSheetState.Hidden;
     [RelayCommand]
@@ -1217,66 +1196,24 @@ public partial class HomePageVM : ObservableObject
     public partial string LastFMPassword { get; set; }
     LastfmClient clientLastFM;
     [RelayCommand]
-    public async Task LogInToLastFMWebsite()
+    public async Task<bool> LogInToLastFMWebsite(bool isSilent)
     {
-        await LastFMUtils.LogInToLastFMWebsite(LastFMUserName, LastFMPassword);
+        return await LastFMUtils.LogInToLastFMWebsite(LastFMUserName, LastFMPassword, isSilent);
         
-    }
-
-    public async Task LogInToParseServer(string uname, string password)
-    {
-        if (CurrentUserOnline is not null)
-        {
-            if (await CurrentUserOnline.IsAuthenticatedAsync())
-            {
-                return;
-            }
-        }
-        if (string.IsNullOrWhiteSpace(password))
-        {
-        }
-        //LoginBtn.IsEnabled = false;
-        if (string.IsNullOrWhiteSpace(uname) || string.IsNullOrWhiteSpace(password))
-        {
-            await Shell.Current.DisplayAlert("Error Online Logging", "Username and Password are required.", "OK");
-            return;
-        }
-
-        try
-        {
-
-            var oUser = await ParseClient.Instance.LogInWithAsync(uname.Trim(), password.Trim()).ConfigureAwait(false);
-            SongsMgtService.CurrentOfflineUser.UserPassword = password;
-            CurrentUserOnline = oUser;
-            CurrentUser.IsAuthenticated = true;
-            //await Shell.Current.DisplayAlert("Success !", $"Welcome Back !", "OK"); looks like an issue with parse funnily, I can't exactl reproduce it.
-
-            _ = SecureStorage.Default.SetAsync("ParseUsername", CurrentUserOnline.Username);
-            _ = SecureStorage.Default.SetAsync("ParsePassWord", password);
-            _ = SecureStorage.Default.SetAsync("ParseEmail", CurrentUser.UserEmail!);
-
-            //SetupLiveQueries();
-        }
-        catch (Exception ex)
-        {
-            CurrentUser!.IsAuthenticated = false;
-            await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
-
-        }
     }
 
     public ParseLiveQueryClient LiveQueryClient { get; set; }
 
     public void SetupLiveQueries()
     {
-        //return;
+        
         try
         {
-            LiveQueryClient = new();
+            LiveQueryClient = new ParseLiveQueryClient();
             var SongQuery = ParseClient.Instance.GetQuery("SongModelView");
             var subscription = LiveQueryClient.Subscribe(SongQuery);
-            var DeviceStatusQuery = ParseClient.Instance.GetQuery("DeviceStatus");
-            var subToDeviceStatus = LiveQueryClient.Subscribe(DeviceStatusQuery); //added this, now i need to handle its updates too
+            //var DeviceStatusQuery = ParseClient.Instance.GetQuery("DeviceStatus");
+            //var subToDeviceStatus = LiveQueryClient.Subscribe(DeviceStatusQuery); //added this, now i need to handle its updates too
 
             
 
@@ -1303,25 +1240,27 @@ public partial class HomePageVM : ObservableObject
                 .Subscribe(e =>
                 {
                     var objData = (e.objectData as Dictionary<string, object>);
-                    if (objData.TryGetValue("ClassName", out object classNamee ) && classNamee == "DeviceStatus")
-                    {
-                        Debug.WriteLine("Received DeviceStatus Update");
-
-                        var devStatus = ObjectMapper.MapFromDictionary<CurrentDeviceStatus>(objData!);
-                        
-                    }
+                    
                     SongModelView song = new();
                     
-                    song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
+                    song = ObjectHelper.MapFromDictionary<SongModelView>(objData!);
                     CurrentQueue = 0;
-                    if (song.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)
-                    {
-                        _ = PauseSong();
-                    }
-                    else
-                    {
-                        _ = PlaySong(song);
-                    }
+                    //if (song.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)
+                    //{
+                    //    GeneralStaticUtilities.RunFireAndForget(PauseSong(), ex =>
+                    //    {
+                    //        // Log or handle the exception as needed
+                    //        Debug.WriteLine($"Task error: {ex.Message}");
+                    //    });                        
+                    //}
+                    //else
+                    //{
+                    //    GeneralStaticUtilities.RunFireAndForget(PlaySong(song), ex =>
+                    //    {
+                    //        // Log or handle the exception as needed
+                    //        Debug.WriteLine($"Task error: {ex.Message}");
+                    //    });                        
+                    //}
 
                 });
         }

@@ -108,7 +108,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
 
-    private void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false)
+    public void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false)
     {
         if (songss == null || songss.Count < 1)
         {
@@ -550,7 +550,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     ObservableCurrentlyPlayingSong.DurationInSeconds = audioService.Duration;
                 }
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-                SongsMgtService.AddPlayAndCompletionLink(link);
+                await SongsMgtService.AddPlayAndCompletionLinkAsync(link);
                 _currentPositionSubject.OnNext(new PlaybackInfo());
 #if WINDOWS
                 GeneralStaticUtilities.UpdateTaskBarProgress(0);
@@ -687,7 +687,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             };
             SongsMgtService.AddPDaCStateLink(link);
             
-            SongsMgtService.AddPlayAndCompletionLink(link);
+            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
         }
         else //we are resuming
         {
@@ -723,7 +723,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             };
             SongsMgtService.AddPDaCStateLink(link);
             
-            SongsMgtService.AddPlayAndCompletionLink(link);
+            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
             ShowMiniPlayBackView();
         }
 
@@ -902,7 +902,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 WasPlayCompleted = false
 
             };
-            SongsMgtService.AddPlayAndCompletionLink(link);
+            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
         }
         if (ObservableCurrentlyPlayingSong is not null)
         {
@@ -949,7 +949,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 WasPlayCompleted = false
 
             };
-            SongsMgtService.AddPlayAndCompletionLink(link);
+            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
         }
 
 
