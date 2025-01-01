@@ -51,7 +51,7 @@
         </Grid.GestureRecognizers>
 
         <HorizontalStackLayout Grid.Column="0" IsVisible="{Binding IsFlyOutPaneOpen, Converter={StaticResource BoolToInverse}}"
-                               Spacing="5" Padding="5" >
+                               Spacing="5" Padding="5" ToolTipProperties.Text="Click To View">
             <HorizontalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer 
          Tapped="NavToSingleSongShell_Tapped"/>

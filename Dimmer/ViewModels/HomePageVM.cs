@@ -283,6 +283,10 @@ public partial class HomePageVM : ObservableObject
     {
         
         CurrentViewIndex = 0;
+        if (CurrentPage == PageEnum.NowPlayingPage)
+        {
+            return;
+        }
 #if WINDOWS
         
         await Shell.Current.GoToAsync(nameof(SingleSongShellPageD));
