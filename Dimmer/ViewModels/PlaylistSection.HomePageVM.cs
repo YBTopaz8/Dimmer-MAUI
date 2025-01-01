@@ -76,7 +76,7 @@ public partial class HomePageVM
         }
         else if (IsDeletePlaylist)
         {
-            PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.LocalDeviceId);
+            PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.LocalDeviceId!);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(PlaylistDeletedText, duration);
             await toast.Show(cts.Token);
