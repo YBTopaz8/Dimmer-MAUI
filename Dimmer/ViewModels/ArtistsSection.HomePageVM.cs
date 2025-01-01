@@ -209,7 +209,7 @@ public partial class HomePageVM
         {
             return;
         }
-        await GetSongsFromAlbumId(album.LocalDeviceId);
+        await GetSongsFromAlbumId(album.LocalDeviceId!);
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
 
         var song = AllArtistsAlbumSongs!.FirstOrDefault();
