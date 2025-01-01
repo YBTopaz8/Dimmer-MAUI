@@ -28,7 +28,7 @@ jobs:
 
       - name: Download and Install Inno Setup
         run: |
-          $innoSetupUrl = "https://files.jrsoftware.org/is/innosetup-6.2.2.exe"  # Update if newer version
+          $innoSetupUrl = "https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe"  # Update if newer version
           $installerPath = "innosetup.exe"
           Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
@@ -36,7 +36,7 @@ jobs:
       - name: Package with Inno Setup
         run: |
           # Pass the Windows output directory as a define and explicitly set the output directory
-          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePackaging/setup_dimmer.iss
+          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePacking/setup_dimmer.iss
 
       - name: Verify Installer Exists
         run: |
