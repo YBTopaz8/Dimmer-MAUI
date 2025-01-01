@@ -20,7 +20,8 @@ jobs:
           dotnet workload install maui
           dotnet workload install android
 
-      - name: Add Local NuGet Source
+      - name: Add Local NuGet Source 
+        run: |
           dotnet nuget add source $(pwd)/Dimmer/releasePacking --name local-release-packing
           
       - name: Configure DevExpress NuGet Source
