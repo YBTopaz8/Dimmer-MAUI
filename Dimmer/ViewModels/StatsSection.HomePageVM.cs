@@ -70,7 +70,7 @@ public partial class HomePageVM
     };
 
     [ObservableProperty]
-    SingleSongStatistics songPickedForStats;
+    public partial SingleSongStatistics SongPickedForStats { get; set; }
     [ObservableProperty]
     int numberOfTimesPlayed;
     [ObservableProperty]
