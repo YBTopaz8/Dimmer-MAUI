@@ -3,6 +3,7 @@ name: Build and Release Dimmer
 on: push
 
 jobs:
+    
   build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
@@ -18,6 +19,7 @@ jobs:
 
       - name: Publish Windows Build
         run: dotnet publish Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./windows-output
+        working-directory: Dimmer-MAUI/Dimmer # Corrected: added working directory
 
       - name: Download and Install Inno Setup
         run: |
@@ -45,7 +47,7 @@ jobs:
         with:
           name: dimmer-windows-installer
           path: ./Output/Setup_Dimmer.exe
-
+    
   # build-android:
   #   name: Build Android APK
   #   runs-on: ubuntu-latest
