@@ -1,10 +1,6 @@
 name: Build and Release Dimmer
 
-on:
-  release:
-    types: [published]
-  pull_request:
-    types: [opened, synchronize]
+on: push
 
 jobs:
     build-windows:
