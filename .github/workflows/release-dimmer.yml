@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build-windows:
+    build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
 
@@ -26,10 +26,12 @@ jobs:
           --self-contained=false -p:WindowsPackageType=None \
           -o ./windows-output
 
-      - name: Install Inno Setup
-        uses: jrsoftware/issrc-action@v1
-        with:
-          inno-setup-version: latest # or specify a version
+      - name: Download and Install Inno Setup
+        run: |
+          $innoSetupUrl = "https://files.jrsoftware.org/is/innosetup-6.2.2.exe"  # Update if newer version
+          $installerPath = "innosetup.exe"
+          Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath
+          Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
 
       - name: Package with Inno Setup
         run: |
@@ -44,6 +46,7 @@ jobs:
           else
             echo "Installer file found: ./Output/Setup_Dimmer.exe"
           fi
+
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v3
