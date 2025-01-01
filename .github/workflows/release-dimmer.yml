@@ -6,18 +6,20 @@ jobs:
   build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Restore NuGet Packages
+        run: dotnet restore Dimmer-MAUI.csproj
+      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0
 
       - name: Publish Windows Build
-        run: dotnet publish Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o Dimmer-MAUI/Dimmer/windows-output
+        run: dotnet publish Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o windows-output --verbosity detailed
 
       - name: Download and Install Inno Setup
         run: |
