@@ -21,7 +21,7 @@ jobs:
           dotnet workload install android
 
       - name: Add Local NuGet Source
-        run: dotnet nuget add source ./Dimmer/releasePacking --name local-release-packing
+          dotnet nuget add source $(pwd)/Dimmer/releasePacking --name local-release-packing
           
       - name: Configure DevExpress NuGet Source
         run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
