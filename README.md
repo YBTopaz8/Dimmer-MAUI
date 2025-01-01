@@ -3,6 +3,7 @@ Time Spent So Far... [![wakatime](https://wakatime.com/badge/user/20225675-04f6-
 
 # Dimmer A Cross Platform Music Player App built in .NET MAUI.
 
+# Dimmer now Has a Proper WearOs App [Here](https://github.com/YBTopaz8/DimmerWatchCompanion) ❤️
 Building this as a hobby and also because the music app I use on Windows (Dopamine) and on Android (Retro Music Player) are discontinued.
 
 ## Screenshots at bottom of the page
@@ -30,6 +31,9 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 - Download the release.apk package [Here](https://github.com/YBTopaz8/Dimmer-MAUI/releases)
 - Install the app
 - Run.
+
+# How to install on Apple Devices?
+- Sadly, I decided to stop supporting any [Apple Device At All](https://github.com/YBTopaz8/Dimmer-MAUI/discussions/158)
 
 # ScreenShots (Work in Progress...)
   
