@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
@@ -37,18 +39,18 @@ public partial class DimmerWindow : Window
     }
 
     private CancellationTokenSource _debounceTimer;
-
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (HomepageVM.CurrentPage != PageEnum.MainPage)
-            return; 
+            return;
+
         var searchBar = (SearchBar)sender;
         var txt = searchBar.Text;
 
-        // Cancel the previous task if it's still running
         _debounceTimer?.Cancel();
         _debounceTimer = new CancellationTokenSource();
         var token = _debounceTimer.Token;
+
         if (HomepageVM.SongsMgtService.AllSongs is null)
         {
             return;
@@ -57,6 +59,7 @@ public partial class DimmerWindow : Window
         {
             return;
         }
+
         try
         {
             await Task.Delay(300, token);
@@ -66,31 +69,24 @@ public partial class DimmerWindow : Window
                 if (txt.Length >= 1)
                 {
                     HomepageVM.IsOnSearchMode = true;
-
-
                     HomepageVM.DisplayedSongs.Clear();
 
-                    // Pre-build a HashSet of song IDs or Titles for efficient lookups
-                    var matchingTitles = new HashSet<string>(
-                        HomepageVM.SongsMgtService.AllSongs
-                        .Where(item =>
-                        item.Title!.Contains(txt, StringComparison.OrdinalIgnoreCase) || // Match by Title
-                        item.ArtistName!.Contains(txt, StringComparison.OrdinalIgnoreCase)) // Match by ArtistName
-                        .Select(item => item.LocalDeviceId)! // Use unique identifier
-                    );
+                    // Directly filter the songs based on the search text, with null checks
+                    var fSongs = HomepageVM.SongsMgtService.AllSongs
+                        .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
+                                       (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
+                                       (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(txt, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
 
-                    // Filter songs using the HashSet
-                    var fSongs= HomepageVM.SongsMgtService.AllSongs
-                        .Where(item => matchingTitles.Contains(item.LocalDeviceId)); // Or use the unique identifier
-                    HomepageVM.filteredSongs= fSongs.ToList();
-                    // Update the ObservableCollection
+                    HomepageVM.filteredSongs = fSongs;
+
                     foreach (var song in fSongs)
                     {
                         HomepageVM.DisplayedSongs.Add(song);
                     }
                     HomepageVM.CurrentQueue = 1;
 
-                    if (HomepageVM.DisplayedSongs.Count<1)
+                    if (HomepageVM.DisplayedSongs.Count < 1)
                     {
                         HomepageVM.DisplayedSongs.Clear();
                     }
@@ -101,22 +97,28 @@ public partial class DimmerWindow : Window
             else
             {
                 HomepageVM.IsOnSearchMode = false;
-            }
-            HomepageVM.DisplayedSongs.Clear();
+                HomepageVM.DisplayedSongs.Clear();
 
-            // Update the ObservableCollection
-            foreach (var song in HomepageVM.SongsMgtService.AllSongs)
-            {
-                HomepageVM.DisplayedSongs.Add(song);
+                // Repopulate with all songs when search is empty
+                if (HomepageVM.SongsMgtService.AllSongs != null)
+                {
+                    foreach (var song in HomepageVM.SongsMgtService.AllSongs)
+                    {
+                        HomepageVM.DisplayedSongs.Add(song);
+                    }
+                }
+                HomepageVM.CurrentQueue = 0;
             }
-            HomepageVM.CurrentQueue = 0;
         }
         catch (TaskCanceledException)
         {
-            // Handle task cancellation (optional, for debugging/logging)
+            // Expected if the debounce timer is cancelled
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
         }
     }
-
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         HomepageVM.ToggleStickToTopCommand.Execute(null);
