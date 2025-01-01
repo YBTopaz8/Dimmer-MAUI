@@ -169,8 +169,9 @@ public partial class HomePageVM : ObservableObject
         {
             var fSong = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == fDimm.SongId);
             FirstDimmSong= fSong;
-            DateOfFirstDimm = fSong.PlayData.OrderBy(x=>x.DateFinished).FirstOrDefault(x=>x.PlayType == 3)!.DateFinished;
-            DaysSinceFirstDimm = (DateTime.Now.Date - DateOfFirstDimm).Days;
+            var e= fSong.PlayData.OrderBy(x=>x.DateFinished).FirstOrDefault(x=>x.PlayType == 3);
+            DateOfFirstDimm = e.DateFinished.ToLongDateString();
+            DaysSinceFirstDimm = (DateTime.Now.Date - e.DateFinished).Days;
         }
         TotalNumberStartedDimms = AllPlayDataLinks.Where(p => p.PlayType == 0).Count();
         TotalNumberCompletedDimms = AllPlayDataLinks.Where(p => p.PlayType == 3).Count();
@@ -225,19 +226,24 @@ public partial class HomePageVM : ObservableObject
         SongModelView singleSong= SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
         
         var lastSongLink = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).LastOrDefault();
+        DateOfFirstDimm = "None Yet";
+        DaysSinceFirstDimm = 0;
+        //DateOfFirstDimm = "None Yet";
         if (singleSong.PlayData.LastOrDefault() != null)
         {
             var w= singleSong.PlayData.LastOrDefault(x=>x.PlayType==3);
             if (w is not null)
             {
-                DateOfFirstDimm = w.DateFinished;
+                DateOfFirstDimm = w.DateFinished.ToLongDateString();
+                DaysSinceFirstDimm = (DateTime.Now.Date - w.DateFinished).Days;
             }
         }
         if (lastSongLink is not null)
         {
-            DateOfLastDimm = lastSongLink.DateFinished;
+            DateOfLastDimm = lastSongLink.DateFinished.ToLongDateString();
+            
         }
-        DaysSinceFirstDimm = (DateTime.Now.Date - DateOfFirstDimm).Days;       
+        
         
         SpecificSongPlaysStarted = singleSong.PlayData.Where(x => x.PlayType == 0).ToList();
         SpecificSongPlaysPaused = singleSong.PlayData.Where(x => x.PlayType == 1).ToList();
@@ -993,7 +999,7 @@ public partial class HomePageVM : ObservableObject
     public partial int DaysSinceFirstDimm { get; set; }
 
     [ObservableProperty]
-    public partial DateTime DateOfFirstDimm { get; set; }
+    public partial string DateOfFirstDimm { get; set; }
 
     [ObservableProperty]
     public partial SongModelView FirstDimmSong { get; set; } = new();
@@ -1003,7 +1009,7 @@ public partial class HomePageVM : ObservableObject
     public partial string FirstDimmAlbum { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial DateTime DateOfLastDimm { get; set; }
+    public partial string DateOfLastDimm { get; set; }
     
 
     [ObservableProperty]

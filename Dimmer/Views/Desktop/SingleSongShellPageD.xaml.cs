@@ -21,7 +21,7 @@ public partial class SingleSongShellPageD : ContentPage
             return;
         }
         ViewModel.CurrentPage = PageEnum.NowPlayingPage;
-        DeviceDisplay.Current.KeepScreenOn = true;
+        
         ViewModel.AssignSyncLyricsCV(LyricsColView);
         switch (ViewModel.TemporarilyPickedSong.IsFavorite)
         {
@@ -35,13 +35,21 @@ public partial class SingleSongShellPageD : ContentPage
             default:
                 break;
         }
+
+
+        if (LyricsColView.SelectedItem is not null)
+        {
+            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+        }
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        ViewModel.CurrentViewIndex = 0;
-        
+        StatsTabs.SelectedItem = SyncLyricsChip;
+        ViewModel.LyricsSearchAlbumName = string.Empty;
+        ViewModel.LyricsSearchArtistName= string.Empty;
+        ViewModel.LyricsSearchSongTitle= string.Empty;
     }
 
     private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
@@ -213,10 +221,13 @@ public partial class SingleSongShellPageD : ContentPage
     {
         try
         {
-            if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
+            if (LyricsColView.ItemsSource is not null)
             {
-                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-            }
+                if (LyricsColView.SelectedItem is not null )
+                {
+                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                }
+            }            
          
         }
         catch (Exception ex)

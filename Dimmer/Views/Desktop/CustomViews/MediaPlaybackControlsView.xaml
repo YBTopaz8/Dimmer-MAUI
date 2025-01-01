@@ -88,15 +88,14 @@
                     HorizontalOptions="Center" Padding="10,0">
                 <Border>
                     <ImageButton Command="{Binding ToggleRepeatModeCommand}"
-                                 ToolTipProperties.Text="ToggleRepeat">
+                                 ToolTipProperties.Text="ToggleRepeat"
+                                 Source="{Binding RepeatModeImage}">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
-                        </ImageButton.Source>
                     </ImageButton>
                 </Border>
+
 
                 <Border >
                     <ImageButton Command="{Binding PlayPreviousSongCommand}" Source="backwardskipdark.png" 

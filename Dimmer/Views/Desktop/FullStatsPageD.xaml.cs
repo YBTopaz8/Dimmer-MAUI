@@ -181,6 +181,11 @@ public partial class FullStatsPageD : ContentPage
             await ViewModel.PlaySong(song, true);
         }        
     }
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        ViewModel.IsPreviewing=false;
+    }
 
 
     public bool ClickToPreview { get; set; } = true;

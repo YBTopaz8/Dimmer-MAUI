@@ -85,7 +85,7 @@ public class LastFMUtils
             return false;
         }
 
-        await clientLastFM.AuthenticateAsync(lastFMUname, lastFMPass);
+        //await clientLastFM.AuthenticateAsync(lastFMUname, lastFMPass);
         if (clientLastFM.Session.Authenticated && !isSilent)
         {
             await Shell.Current.DisplayAlert(lastFMUname, "Welcome Back !", "OK" );

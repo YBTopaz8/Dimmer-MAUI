@@ -208,6 +208,9 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
+        LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
+        LyricsSearchArtistName = SelectedSongToOpenBtmSheet.ArtistName;
+        LyricsSearchAlbumName = SelectedSongToOpenBtmSheet.AlbumName;
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         switch (CurrentPage)
         {
@@ -215,9 +218,6 @@ public partial class HomePageVM : ObservableObject
                 
                 break;
             case PageEnum.NowPlayingPage:
-                LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
-                LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
-                LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
                 LastfmTracks.Clear();
                 CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
                 switch (CurrentViewIndex)
@@ -239,7 +239,7 @@ public partial class HomePageVM : ObservableObject
             case PageEnum.PlaylistsPage:
                 break;
             case PageEnum.FullStatsPage:
-                ShowGeneralTopXSongs();
+                //ShowGeneralTopXSongs();
                 break;
             case PageEnum.AllAlbumsPage:
                 break;
@@ -467,13 +467,14 @@ public partial class HomePageVM : ObservableObject
 
 
     public List<SongModelView> filteredSongs = new();
-    bool isPreviewing = false;
+    [ObservableProperty]
+    public partial bool IsPreviewing { get; set; } = false;
     public async Task PlaySong(SongModelView SelectedSong, bool isPrevieww=false)
     {
         //_ = UpdateRelatedPlayingData(SelectedSong!);//always check if we already have the song's artist and other data loaded
         if (isPrevieww)
         {
-            isPreviewing = isPrevieww;
+            IsPreviewing = isPrevieww;
             CurrentPage = PageEnum.FullStatsPage;  
             CurrentQueue = 0;
             await PlayBackService.PlaySongAsync(SelectedSong, isPreview: true);
@@ -536,7 +537,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public async Task ResumeSong()
     {
-        if (isPreviewing)
+        if (IsPreviewing)
         {
             return;
         }
@@ -619,14 +620,14 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = MaterialRounded.Repeat_on;
+                RepeatModeImage = "repeatoffdark.png";
                 break;
             case 2:
             case 4:
-                RepeatModeImage = MaterialRounded.Repeat_one_on;
+                RepeatModeImage = "repeaton.png";
                 break;
             case 0:
-                RepeatModeImage = MaterialRounded.Repeat;
+                RepeatModeImage = "repeatone.png";
                 break;
             default:
                 break;
@@ -1020,11 +1021,11 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    public partial string? LyricsSearchSongTitle { get; set; }
+    public partial string LyricsSearchSongTitle { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string? LyricsSearchArtistName {get;set;}
+    public partial string LyricsSearchArtistName {get;set;} = string.Empty;
     [ObservableProperty]
-    public partial string? LyricsSearchAlbumName {get;set;}
+    public partial string LyricsSearchAlbumName {get;set;}=string.Empty;
     [ObservableProperty]
     public partial bool UseManualSearch { get; set; }
 

@@ -247,7 +247,7 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                     <HorizontalStackLayout>
 
                                     <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
-            Clicked="SearchLyricsOnLyrLib_Clicked">
+                                            Clicked="SearchLyricsOnLyrLib_Clicked">
                                         <Button.CommandParameter>
                                             <x:Boolean>True</x:Boolean>
                                         </Button.CommandParameter>

@@ -39,9 +39,9 @@ public partial class HomePageVM
     public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-        LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
-        LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
-        LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
+        LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
+        LyricsSearchArtistName= SelectedSongToOpenBtmSheet.ArtistName;
+        LyricsSearchAlbumName =SelectedSongToOpenBtmSheet.AlbumName;
 
         List<string> manualSearchFields =
         [
