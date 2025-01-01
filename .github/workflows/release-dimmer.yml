@@ -4,7 +4,8 @@ on: push
 
 jobs:
     
-  build-windows:
+
+    build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
 
@@ -18,8 +19,7 @@ jobs:
           dotnet-version: 9.0
 
       - name: Publish Windows Build
-        run: dotnet publish Dimmer.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./windows-output
-        working-directory: Dimmer-MAUI/Dimmer
+        run: dotnet publish Dimmer-MAUI/Dimmer/Dimmer.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o Dimmer-MAUI/Dimmer/windows-output
 
       - name: Download and Install Inno Setup
         run: |
@@ -29,9 +29,7 @@ jobs:
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
 
       - name: Package with Inno Setup
-        run: |
-          New-Item -ItemType Directory -Force -Path ./Output
-          ISCC.exe /dMySourceDir=./windows-output /o Output ./releasePackaging/setup_dimmer.iss
+        run: ISCC.exe /dMySourceDir=windows-output /o Output ./releasePacking/setup_dimmer.iss
         working-directory: Dimmer-MAUI/Dimmer
 
       - name: Verify Installer Exists
@@ -48,8 +46,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: dimmer-windows-installer
-          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe  
+          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
 
+  
   # build-android:
   #   name: Build Android APK
   #   runs-on: ubuntu-latest
