@@ -85,7 +85,7 @@ public partial class HomePageVM
         RefreshPlaylists();
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
-            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId);
+            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!);
         }
     }
     [RelayCommand]
