@@ -10,6 +10,8 @@ public static class ParseStaticUtils
 
     public static async Task UpdateSongStatusOnline(SongModelView Song, bool isUserAuthenticated)
     {
+        return;
+        //later!
         if (!isUserAuthenticated)
         {
             return;

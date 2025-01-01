@@ -620,11 +620,11 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = "repeatoffdark.png";
+                RepeatModeImage = "repeaton.png";
                 break;
             case 2:
             case 4:
-                RepeatModeImage = "repeaton.png";
+                RepeatModeImage = "repeatoffdark.png";
                 break;
             case 0:
                 RepeatModeImage = "repeatone.png";

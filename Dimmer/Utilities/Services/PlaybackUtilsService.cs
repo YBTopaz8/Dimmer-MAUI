@@ -363,7 +363,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         // Play the first song
         if (allSongs.Count > 0)
-            await PlaySongAsync(allSongs[0], 2, allSongs);
+        {
+            ObservableCurrentlyPlayingSong = allSongs.First();
+            await PlaySongAsync(ObservableCurrentlyPlayingSong, 2, allSongs);
+        }
 
         return true;
     }
@@ -484,7 +487,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     _nowPlayingSubject.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
                     return false;
                 }
-                ObservableCurrentlyPlayingSong = song!;
+                ObservableCurrentlyPlayingSong = song;
             }
 
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
@@ -501,10 +504,19 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             CurrentQueue = currentQueue;
             _playerStateSubject.OnNext(MediaPlayerState.LyricsLoad);
 
-            audioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
-            
+            if (CurrentQueue == 2)
+            {
+                audioService.Initialize(song, coverImage);
+                ObservableCurrentlyPlayingSong = new();
+                ObservableCurrentlyPlayingSong = song!;
+            }
+            else
+            {
+                audioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
+            }
+
             // Now, play the audio after initialization has completed
-            
+
 
             if (positionInSec > 0)
             {
@@ -910,8 +922,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
         if (CurrentRepeatMode == 0)
         {
-            await PlaySongAsync(currentQueue: CurrentQueue, IsUserSkipped: IsUserSkipped,  IsFromPreviousOrNext: true);
-            return true;
+            if (_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) == _nowPlayingSubject.Value.Count - 1 ||_nowPlayingSubject.Value.IndexOf(ObservableCurrentlyPlayingSong) == _nowPlayingSubject.Value.Count)
+            {
+                return true;
+            }
         }
         
         GetPrevAndNextSongs(isNext: true);

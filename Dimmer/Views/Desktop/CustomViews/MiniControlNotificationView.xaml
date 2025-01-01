@@ -64,17 +64,17 @@
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn" Source="backwardskipdark.png" >
+                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn" Source="playdark.png" >
                         
                     </ImageButton>
                     
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-                                 x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked" Source="backwardskipdark.png" >
+                                 x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked" Source="pausedark.png" >
                         
                     </ImageButton>
                     
                     <ImageButton Command="{Binding PlayNextSongCommand}"
-                                 Clicked="ImageButton_Clicked" Source="backwardskipdark.png" >
+                                 Clicked="ImageButton_Clicked" Source="forwarddark.png" >
                         
                     </ImageButton>
 
