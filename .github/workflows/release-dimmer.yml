@@ -19,10 +19,16 @@ jobs:
         run: |
           dotnet workload install maui
           dotnet workload install android
+
+      - name: Add Local NuGet Source
+        run: dotnet nuget add source ./Dimmer/releasePacking --name local-release-packing
           
       - name: Configure DevExpress NuGet Source
         run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
 
+      - name: Restore NuGet packages
+        run: dotnet restore Dimmer-MAUI.sln
+        
       - name: Restore NuGet Packages
         run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
       
