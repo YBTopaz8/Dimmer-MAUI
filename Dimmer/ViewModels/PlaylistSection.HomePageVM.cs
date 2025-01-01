@@ -66,7 +66,7 @@ public partial class HomePageVM
             SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
             if (SelectedPlaylist is not null)
             {
-                PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId);
+                PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId!);
                 var toast = Toast.Make(songDeletedFromPlaylistText, duration);
                 await toast.Show(cts.Token);
             }
