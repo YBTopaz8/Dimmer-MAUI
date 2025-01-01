@@ -30,26 +30,26 @@ jobs:
 
       - name: Package with Inno Setup
         run: |
-          # Pass the Windows output directory as a define and explicitly set the output directory
-          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePackaging/setup_dimmer.iss
-        working-directory: Dimmer-MAUI/Dimmer # Add working directory here too for consistency
+          New-Item -ItemType Directory -Force -Path ./Output
+          ISCC.exe /dMySourceDir=./windows-output /o Output ./releasePackaging/setup_dimmer.iss
+        working-directory: Dimmer-MAUI/Dimmer
 
       - name: Verify Installer Exists
         run: |
-          if [ ! -f "./Output/Setup_Dimmer.exe" ]; then
-            echo "Inno Setup did not create the installer file."
+          if (Test-Path -Path "./Output/Setup_Dimmer.exe") {
+            Write-Host "Success: Installer file found at ./Output/Setup_Dimmer.exe"
+          } else {
+            Write-Host "Error: Inno Setup did not create the installer file at ./Output/Setup_Dimmer.exe"
             exit 1
-          else
-            echo "Installer file found: ./Output/Setup_Dimmer.exe"
-          fi
-        working-directory: Dimmer-MAUI/Dimmer # Add working directory here too for consistency
+          }
+        working-directory: Dimmer-MAUI/Dimmer
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v3
         with:
           name: dimmer-windows-installer
-          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe # Update path to include the correct directory
-    
+          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe  
+
   # build-android:
   #   name: Build Android APK
   #   runs-on: ubuntu-latest
