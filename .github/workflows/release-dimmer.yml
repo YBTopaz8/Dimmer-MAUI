@@ -1,9 +1,13 @@
 name: Build and Release Dimmer
 
-on: push
+on:
+  release:
+    types: [published]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
-    build-windows:
+  build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
 
@@ -24,7 +28,7 @@ jobs:
 
       - name: Download and Install Inno Setup
         run: |
-          $innoSetupUrl = "https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe"  # Update if newer version
+          $innoSetupUrl = "https://files.jrsoftware.org/is/innosetup-6.2.2.exe" # Update if newer version
           $installerPath = "innosetup.exe"
           Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
@@ -32,7 +36,7 @@ jobs:
       - name: Package with Inno Setup
         run: |
           # Pass the Windows output directory as a define and explicitly set the output directory
-          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePacking/setup_dimmer.iss
+          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePackaging/setup_dimmer.iss
 
       - name: Verify Installer Exists
         run: |
@@ -42,7 +46,6 @@ jobs:
           else
             echo "Installer file found: ./Output/Setup_Dimmer.exe"
           fi
-
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v3
@@ -115,7 +118,7 @@ jobs:
         with:
           tag_name: ${{ github.event.release.tag_name }}
           release_name: ${{ github.event.release.name }}
-          body_path: .github/release-notes.md # Optional: Create a release notes file
+          body_path: .github/release-notes.md # Optional
           draft: false
           prerelease: ${{ github.event.release.prerelease }}
 
