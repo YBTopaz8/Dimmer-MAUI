@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Restore NuGet Packages
-        run: dotnet restore Dimmer-MAUI.csproj
+        run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
       
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
