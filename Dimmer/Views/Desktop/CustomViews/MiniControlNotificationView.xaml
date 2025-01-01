@@ -55,38 +55,27 @@
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding RepeatModeImage}"/>
-                        </ImageButton.Source>
+                        
                     </ImageButton>
 
                     <ImageButton Command="{Binding PlayPreviousSongCommand}" Clicked="ImageButton_Clicked"
-                                 ToolTipProperties.Text="Play Previous">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                        </ImageButton.Source>
+                                 ToolTipProperties.Text="Play Previous" Source="backwardskipdark.png" >
+                        
                     </ImageButton>
 
                     <ImageButton IsVisible="{Binding IsPlaying, ConverterParameter='playbtn', Converter={StaticResource BoolToInverse}}"
-                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
-                        </ImageButton.Source>
+                                 Clicked="playImgBtn_Clicked" x:Name="playImgBtn" Source="backwardskipdark.png" >
+                        
                     </ImageButton>
                     
                     <ImageButton IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToInverse}, ConverterParameter='pausebtn'}"
-                                 x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded"
-                     Glyph="{x:Static m:MaterialRounded.Play_circle}"/>
-                        </ImageButton.Source>
+                                 x:Name="pauseImgBtn" Clicked="pauseImgBtn_Clicked" Source="backwardskipdark.png" >
+                        
                     </ImageButton>
                     
                     <ImageButton Command="{Binding PlayNextSongCommand}"
-                                 Clicked="ImageButton_Clicked">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-                        </ImageButton.Source>
+                                 Clicked="ImageButton_Clicked" Source="backwardskipdark.png" >
+                        
                     </ImageButton>
 
                 </HorizontalStackLayout>

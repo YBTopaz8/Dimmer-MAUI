@@ -219,6 +219,7 @@ public partial class HomePageVM : ObservableObject
                 LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
                 LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
                 LastfmTracks.Clear();
+                CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
                 switch (CurrentViewIndex)
                 {
                     case 0:

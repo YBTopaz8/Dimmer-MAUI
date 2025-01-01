@@ -227,7 +227,11 @@ public partial class HomePageVM : ObservableObject
         var lastSongLink = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).LastOrDefault();
         if (singleSong.PlayData.LastOrDefault() != null)
         {
-            DateOfFirstDimm = singleSong.PlayData.LastOrDefault(x=>x.PlayType==3)!.DateFinished;
+            var w= singleSong.PlayData.LastOrDefault(x=>x.PlayType==3);
+            if (w is not null)
+            {
+                DateOfFirstDimm = w.DateFinished;
+            }
         }
         if (lastSongLink is not null)
         {

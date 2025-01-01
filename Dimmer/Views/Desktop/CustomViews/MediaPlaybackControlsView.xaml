@@ -87,7 +87,8 @@
             <HorizontalStackLayout Spacing="15" BackgroundColor="Transparent"
                     HorizontalOptions="Center" Padding="10,0">
                 <Border>
-                    <ImageButton Command="{Binding ToggleRepeatModeCommand}">
+                    <ImageButton Command="{Binding ToggleRepeatModeCommand}"
+                                 ToolTipProperties.Text="ToggleRepeat">
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>

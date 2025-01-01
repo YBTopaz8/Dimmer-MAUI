@@ -21,12 +21,12 @@ public partial class DimmerWindow : Window
         this.Width = 1200;
 
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v0.9-debug";
+        DimmerTitleBar.Subtitle = "v1.0-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v0.9-release";
+        DimmerTitleBar.Subtitle = "v1.0-release";
 #endif
 
         StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
