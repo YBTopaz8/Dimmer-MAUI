@@ -18,7 +18,7 @@ jobs:
       - name: Install .NET MAUI Workload
         run: |
           dotnet workload install maui
-          dotnet workload install android ios macos windows
+          dotnet workload install android
           
       - name: Configure DevExpress NuGet Source
         run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
