@@ -1,30 +1,39 @@
 name: Build and Release Dimmer
 
-on:
-  release:
-    types: [published]
-  pull_request:
-    types: [opened, synchronize]
+on: push
 
 jobs:
   build-windows:
     name: Build and Package Windows Installer
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
+      
+      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0
+      - name: Install .NET MAUI Workload
+        run: |
+          dotnet workload install maui
+          dotnet workload install android
 
+      - name: Add Local NuGet Source
+        run: dotnet nuget add source ./Dimmer/releasePacking --name local-release-packing
+          
+      - name: Configure DevExpress NuGet Source
+        run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
+
+      - name: Restore NuGet packages
+        run: dotnet restore Dimmer-MAUI.sln
+        
+      - name: Restore NuGet Packages
+        run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
+      
       - name: Publish Windows Build
-        run: dotnet publish Dimmer-MAUI.csproj \
-          -f net9.0-windows10.0.19041.0 -c Release -r win-x64 \
-          --self-contained=false -p:WindowsPackageType=None \
-          -o ./windows-output
+        run: dotnet publish ./Dimmer/Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./Dimmer/windows-output --verbosity detailed
 
       - name: Download and Install Inno Setup
         run: |
@@ -34,25 +43,25 @@ jobs:
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
 
       - name: Package with Inno Setup
-        run: |
-          # Pass the Windows output directory as a define and explicitly set the output directory
-          ISCC.exe /dMySourceDir=./windows-output /o./Output ./releasePackaging/setup_dimmer.iss
+        run: ISCC.exe /dMySourceDir=windows-output /o Output ./Dimmer/releasePacking/setup_dimmer.iss
+        working-directory: Dimmer-MAUI/Dimmer
 
       - name: Verify Installer Exists
         run: |
-          if [ ! -f "./Output/Setup_Dimmer.exe" ]; then
-            echo "Inno Setup did not create the installer file."
+          if (Test-Path -Path "./Output/Setup_Dimmer.exe") {
+            Write-Host "Success: Installer file found at ./Output/Setup_Dimmer.exe"
+          } else {
+            Write-Host "Error: Inno Setup did not create the installer file at ./Output/Setup_Dimmer.exe"
             exit 1
-          else
-            echo "Installer file found: ./Output/Setup_Dimmer.exe"
-          fi
+          }
+        working-directory: Dimmer-MAUI/Dimmer
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v3
         with:
           name: dimmer-windows-installer
-          path: ./Output/Setup_Dimmer.exe
-
+          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
+  
   # build-android:
   #   name: Build Android APK
   #   runs-on: ubuntu-latest
