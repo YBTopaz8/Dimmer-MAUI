@@ -3,7 +3,7 @@
 public partial class PlayCompletionStatusString:ObservableObject
 {
     [ObservableProperty]
-    public partial string PlayTypeDescription { get; set; }
+    public partial string? PlayTypeDescription { get; set; }
     [ObservableProperty]
     public partial bool IsPlayedCompletely { get; set; }
 }
@@ -11,7 +11,7 @@ public partial class PlayCompletionStatusString:ObservableObject
 public partial class PlayTypeSummaryCount : ObservableObject
 {
     [ObservableProperty]
-    public partial string PlayTypeDescription { get; set; }
+    public partial string? PlayTypeDescription { get; set; }
     [ObservableProperty]
     public partial int Count { get; set; }
     [ObservableProperty]

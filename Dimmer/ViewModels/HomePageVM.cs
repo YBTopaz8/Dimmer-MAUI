@@ -1,5 +1,5 @@
 ﻿using DevExpress.Maui.Controls;
-using Hqub.Lastfm.Cache;
+
 using Parse.LiveQuery;
 
 
@@ -8,7 +8,7 @@ public partial class HomePageVM : ObservableObject
 {
     //LastfmClient LastfmClient;
     [ObservableProperty]
-    public partial UserModelView CurrentUser { get; set; } =new();
+    public partial UserModelView? CurrentUser { get; set; }
     [ObservableProperty]
     public partial ParseUser? CurrentUserOnline { get; set; }
 
@@ -17,10 +17,10 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial bool IsFlyOutPaneOpen { get; set; } = false;
     [ObservableProperty]
-    public partial SongModelView PickedSong { get; set; } = new(); // I use this a lot with the collection view, mostly to scroll
+    public partial SongModelView? PickedSong { get; set; } = null;// I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    public partial SongModelView TemporarilyPickedSong { get; set; } = new();
+    public partial SongModelView? TemporarilyPickedSong { get; set; } = null;
 
     [ObservableProperty]
     public partial double CurrentPositionPercentage { get; set; }
@@ -46,7 +46,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModel> SynchronizedLyrics { get; set; } = Enumerable.Empty<LyricPhraseModel>().ToObservableCollection();
     [ObservableProperty]
-    public partial LyricPhraseModel CurrentLyricPhrase { get; set; } = new();
+    public partial LyricPhraseModel? CurrentLyricPhrase { get; set; } = null;
 
     [ObservableProperty]
     public partial int LoadingSongsProgress { get; set; }
@@ -201,8 +201,9 @@ public partial class HomePageVM : ObservableObject
         AllArtists = SongsMgtService.AllArtists.ToObservableCollection();
         AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
         
-        GetAllArtists();
-        GetAllAlbums();
+        AllLinks = SongsMgtService.AllLinks;
+        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks;
+
         RefreshPlaylists();        
     }
 
@@ -212,17 +213,23 @@ public partial class HomePageVM : ObservableObject
         LyricsSearchArtistName = SelectedSongToOpenBtmSheet.ArtistName;
         LyricsSearchAlbumName = SelectedSongToOpenBtmSheet.AlbumName;
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+
+        CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
+        AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
+        splittedLyricsLines = null;
+        
         switch (CurrentPage)
         {
             case PageEnum.MainPage:
                 
                 break;
             case PageEnum.NowPlayingPage:
-                LastfmTracks.Clear();
+                //LastfmTracks.Clear();
                 CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
                 switch (CurrentViewIndex)
                 {
                     case 0:
+
                         break;
                         
                     case 1:
@@ -308,7 +315,8 @@ public partial class HomePageVM : ObservableObject
 
             if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
             {        
-                SynchronizedLyrics?.Clear();        
+                SynchronizedLyrics?.Clear();
+                //LastfmTracks?.Clear();
             }      
         }
         if (SelectedSongToOpenBtmSheet.SyncLyrics is null || SelectedSongToOpenBtmSheet.SyncLyrics.Count < 1)
@@ -484,8 +492,8 @@ public partial class HomePageVM : ObservableObject
             await PlayBackService.PlaySongAsync(SelectedSong, isPreview: true);
             return;
         }
-
-        TemporarilyPickedSong ??= SelectedSong!;
+        TemporarilyPickedSong = null;
+        TemporarilyPickedSong = SelectedSong;
         TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         
         if (SelectedSong is not null)
@@ -620,22 +628,37 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
         }
-
         switch (CurrentRepeatMode)
         {
             case 1:
-                RepeatModeImage = "repeaton.png";
+                RepeatModeImage = MaterialRounded.Repeat_on;
                 break;
             case 2:
             case 4:
-                RepeatModeImage = "repeatoffdark.png";
+                RepeatModeImage = MaterialRounded.Repeat_one_on;
                 break;
             case 0:
-                RepeatModeImage = "repeatone.png";
+                RepeatModeImage = MaterialRounded.Repeat;
                 break;
             default:
                 break;
         }
+
+        //switch (CurrentRepeatMode)
+        //{
+        //    case 1:
+        //        RepeatModeImage = "repeaton.png";
+        //        break;
+        //    case 2:
+        //    case 4:
+        //        RepeatModeImage = "repeatoffdark.png";
+        //        break;
+        //    case 0:
+        //        RepeatModeImage = "repeatone.png";
+        //        break;
+        //    default:
+        //        break;
+        //}
 
     }
 
@@ -834,6 +857,10 @@ public partial class HomePageVM : ObservableObject
                     //ShowSingleSongStats(PickedSong);
                 }
                 break;
+            case MediaPlayerState.DoneScanningData:
+                //SyncRefresh();
+                //SetLoadingProgressValue(100);
+                break;
             default:
                 break;
         }
@@ -892,14 +919,16 @@ public partial class HomePageVM : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
-
+                
                 if (TemporarilyPickedSong is not null)
                 {
+                    
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
 
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
+                            SelectedSongToOpenBtmSheet = null;
 
                             if (PlayBackService.CurrentlyPlayingSong is null)
                                 break;
@@ -917,14 +946,10 @@ public partial class HomePageVM : ObservableObject
 
                             SelectedSongToOpenBtmSheet = TemporarilyPickedSong;
 
-                            AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
-                            splittedLyricsLines = null;
-
                             IsPlaying = true;
 
 
                             PlayPauseIcon = MaterialRounded.Pause;
-                            CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
@@ -932,12 +957,13 @@ public partial class HomePageVM : ObservableObject
                             await FetchSongCoverImage();
 
                             await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
-
+                            
                             break;
                         case MediaPlayerState.Paused:
                             await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-                            PickedSong ??= TemporarilyPickedSong;
+                            PickedSong = null;
+                            PickedSong = TemporarilyPickedSong;
 
                             IsPlaying = false;
                             //PlayPauseIcon = MaterialRounded.Play_arrow;
@@ -970,10 +996,19 @@ public partial class HomePageVM : ObservableObject
     private void SubscribetoDisplayedSongsChanges()
     {
         PlayBackService.NowPlayingSongs            
-            .Subscribe(songs =>
+        .Subscribe(songs =>
         {
             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
             DisplayedSongs?.Clear();
+            
+            if (AllLinks is null || AllLinks.Count < 0)
+            {
+                if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
+                {
+                    AllLinks = SongsMgtService.AllLinks;
+                }
+            
+            }
             MainThread.BeginInvokeOnMainThread( () =>
             {
                 DisplayedSongs = songs;
@@ -1007,6 +1042,11 @@ public partial class HomePageVM : ObservableObject
     {
         LyricsManagerService.SynchronizedLyricsStream.Subscribe(synchronizedLyrics =>
         {
+            if (SelectedSongToOpenBtmSheet is not null)
+            {
+                SelectedSongToOpenBtmSheet.HasSyncedLyrics = synchronizedLyrics.Count > 0;
+            }
+
             SynchronizedLyrics = synchronizedLyrics.ToObservableCollection();
             if (TemporarilyPickedSong is not null)
             {
@@ -1025,11 +1065,11 @@ public partial class HomePageVM : ObservableObject
     #endregion
 
     [ObservableProperty]
-    public partial string LyricsSearchSongTitle { get; set; } = string.Empty;
+    public partial string? LyricsSearchSongTitle { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string LyricsSearchArtistName {get;set;} = string.Empty;
+    public partial string? LyricsSearchArtistName {get;set;} = string.Empty;
     [ObservableProperty]
-    public partial string LyricsSearchAlbumName {get;set;}=string.Empty;
+    public partial string? LyricsSearchAlbumName {get;set;}=string.Empty;
     [ObservableProperty]
     public partial bool UseManualSearch { get; set; }
 
@@ -1193,20 +1233,19 @@ public partial class HomePageVM : ObservableObject
         NowPlayBtmSheetState = BottomSheetState.FullExpanded;
     }
 
-    [ObservableProperty]
-    public partial ObservableCollection<Hqub.Lastfm.Entities.Track> LastfmTracks { get; set; } = new();
+    //[ObservableProperty]
+    //public partial ObservableCollection<Hqub.Lastfm.Entities.Track> LastfmTracks { get; set; } = new();
 
-    [ObservableProperty]
-    public partial string LastFMUserName { get; set; }
-    [ObservableProperty]
-    public partial string LastFMPassword { get; set; }
-    LastfmClient clientLastFM;
-    [RelayCommand]
-    public async Task<bool> LogInToLastFMWebsite(bool isSilent)
-    {
-        return await LastFMUtils.LogInToLastFMWebsite(LastFMUserName, LastFMPassword, isSilent);
-        
-    }
+    //[ObservableProperty]
+    //public partial string? LastFMUserName { get; set; }
+    //[ObservableProperty]
+    //public partial string? LastFMPassword { get; set; }
+    //LastfmClient clientLastFM;
+    //[RelayCommand]
+    //public async Task<bool> LogInToLastFMWebsite(bool isSilent)
+    //{
+    //    return await LastFMUtils.LogInToLastFMWebsite(LastFMUserName, LastFMPassword, isSilent);        
+    //}
 
     public ParseLiveQueryClient LiveQueryClient { get; set; }
 
@@ -1277,59 +1316,59 @@ public partial class HomePageVM : ObservableObject
         }
     }
 
-    public void LogInToLastFMClientLocal()
-    {
-        var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    //public void LogInToLastFMClientLocal()
+    //{
+    //    var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
 
-        clientLastFM = new LastfmClient(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET)
-        {
-            Cache = new FileRequestCache(Path.Combine(localPath, "cache"))
-        };
+    //    clientLastFM = new LastfmClient(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET)
+    //    {
+    //        Cache = new FileRequestCache(Path.Combine(localPath, "cache"))
+    //    };
 
-        return;
+    //    return;
 
-    }
-    [ObservableProperty]
-    public partial Hqub.Lastfm.Entities.Track LastFMTrackInfoToSave { get; set; }
-    public async Task FetchOnLastFM() //0 == song, 1 == artist, 2 = album. will rework this
-    {
-        LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
-        LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
-        LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
-        //if (LastfmClient.Session.Authenticated)
-        //{
-        if (clientLastFM is null)
-        {
-            LogInToLastFMClientLocal();
-        }
+    //}
+    //[ObservableProperty]
+    //public partial Hqub.Lastfm.Entities.Track LastFMTrackInfoToSave { get; set; }
+    //public async Task FetchOnLastFM() //0 == song, 1 == artist, 2 = album. will rework this
+    //{
+    //    LyricsSearchSongTitle ??= SelectedSongToOpenBtmSheet.Title;
+    //    LyricsSearchArtistName ??= SelectedSongToOpenBtmSheet.ArtistName;
+    //    LyricsSearchAlbumName ??= SelectedSongToOpenBtmSheet.AlbumName;
+    //    //if (LastfmClient.Session.Authenticated)
+    //    //{
+    //    if (clientLastFM is null)
+    //    {
+    //        LogInToLastFMClientLocal();
+    //    }
 
-        PagedResponse<Hqub.Lastfm.Entities.Track>? tracks = await clientLastFM!.Track.SearchAsync(LyricsSearchSongTitle, LyricsSearchArtistName);
-        if (tracks != null && tracks.Count != 0)
-        {
-            LastfmTracks.Clear(); // Clear existing tracks
-            foreach (var track in tracks)
-            {
-                LastfmTracks.Add(track);
-            }
-        }
-        else
-        {
-            await Shell.Current.DisplayAlert("No Results", "No Results Found on Last FM", "OK");
-            // Handle no results found
-        }
+    //    PagedResponse<Hqub.Lastfm.Entities.Track>? tracks = await clientLastFM!.Track.SearchAsync(LyricsSearchSongTitle, LyricsSearchArtistName);
+    //    if (tracks != null && tracks.Count != 0)
+    //    {
+    //        LastfmTracks.Clear(); // Clear existing tracks
+    //        foreach (var track in tracks)
+    //        {
+    //            LastfmTracks.Add(track);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        await Shell.Current.DisplayAlert("No Results", "No Results Found on Last FM", "OK");
+    //        // Handle no results found
+    //    }
 
-        //}
-    }
-    public void SaveLastFMTrackInfo()
-    {
-        if (LastFMTrackInfoToSave is not null)
-        {
-            SelectedSongToOpenBtmSheet!.ArtistName = LastFMTrackInfoToSave.Artist.Name;
-            SelectedSongToOpenBtmSheet.Title = LastFMTrackInfoToSave.Name;
-            SelectedSongToOpenBtmSheet.AlbumName = LastFMTrackInfoToSave.Album.Name;
-            SelectedSongToOpenBtmSheet.SongWiki = LastFMTrackInfoToSave.Wiki.Summary;
-            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
-        }
-    }
+    //    //}
+    //}
+    //public void SaveLastFMTrackInfo()
+    //{
+    //    if (LastFMTrackInfoToSave is not null)
+    //    {
+    //        SelectedSongToOpenBtmSheet!.ArtistName = LastFMTrackInfoToSave.Artist.Name;
+    //        SelectedSongToOpenBtmSheet.Title = LastFMTrackInfoToSave.Name;
+    //        SelectedSongToOpenBtmSheet.AlbumName = LastFMTrackInfoToSave.Album.Name;
+    //        SelectedSongToOpenBtmSheet.SongWiki = LastFMTrackInfoToSave.Wiki.Summary;
+    //        SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+    //    }
+    //}
 }

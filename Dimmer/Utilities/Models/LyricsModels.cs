@@ -31,9 +31,9 @@ public partial class LyricPhraseModel : ObservableObject
     [ObservableProperty]
     public partial int TimeStampMs { get; set; } = 0;
     [ObservableProperty]
-    public partial string TimeStampText { get; set; } = string.Empty;
+    public partial string? TimeStampText { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string Text { get; set; } = string.Empty;
+    public partial string? Text { get; set; } = string.Empty;
     [ObservableProperty]
     public partial int NowPlayingLyricsFontSize { get; set; } = 21;
     // Constructor that accepts a LyricsInfo.LyricsPhrase object

@@ -34,14 +34,14 @@
                          HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}"
                    />
 
-            <!--<material:EditorField Title="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
-            <material:EditorField Title="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+            <Editor Placeholder="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
+            <Editor Placeholder="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
                          />
-            <material:EditorField Title="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
-            <material:EditorField Title="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
+            <Editor Placeholder="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
+            <Editor Placeholder="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
 
-            <material:EditorField Title="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }" 
-                         />-->
+            <Editor Placeholder="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }"
+                    />
       
             <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
                 <Button Text="Cancel" BackgroundColor="Red" Clicked="CancelBtn_Clicked"/>

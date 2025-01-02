@@ -21,20 +21,20 @@ public static class GeneralStaticUtilities
         FileInfo fileInfo = new(file);
         return fileInfo.Length > 1000;
     }
-    public static SongModelView? ProcessFile(
+    public static SongModel? ProcessFile(
     string file,
-    List<AlbumModelView> existingAlbums,
-    Dictionary<string, AlbumModelView> albumDict,
-    List<AlbumModelView> newAlbums,
-    List<SongModelView> oldSongs,
-    List<ArtistModelView> newArtists,
-    Dictionary<string, ArtistModelView> artistDict,
-    List<AlbumArtistGenreSongLinkView> newLinks,
-    List<AlbumArtistGenreSongLinkView> existingLinks,
-    List<ArtistModelView> existingArtists,
-    List<GenreModelView> newGenres,
-    Dictionary<string, GenreModelView> genreDict,
-    List<GenreModelView> existingGenres)
+    List<AlbumModel> existingAlbums,
+    Dictionary<string, AlbumModel> albumDict,
+    List<AlbumModel> newAlbums,
+    List<SongModel> oldSongs,
+    List<ArtistModel> newArtists,
+    Dictionary<string, ArtistModel> artistDict,
+    List<AlbumArtistGenreSongLink> newLinks,
+    List<AlbumArtistGenreSongLink> existingLinks,
+    List<ArtistModel> existingArtists,
+    List<GenreModel> newGenres,
+    Dictionary<string, GenreModel> genreDict,
+    List<GenreModel> existingGenres)
     {
         ATL.Track track = new(file);
         if (track == null)
@@ -45,7 +45,7 @@ public static class GeneralStaticUtilities
         string title = track.Title.Contains(';') ? track.Title.Split(';')[0].Trim() : track.Title;
         string albumName = string.IsNullOrEmpty(track.Album.Trim()) ? track.Title : track.Album.Trim();
 
-        AlbumModelView album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
+        AlbumModel album = GetOrCreateAlbum(albumName, existingAlbums, albumDict, newAlbums);
 
         // Extract artist names
         var artistNames = GetArtistNames(track.Artist, track.AlbumArtist);
@@ -55,7 +55,7 @@ public static class GeneralStaticUtilities
 
         if (!string.IsNullOrEmpty(albumName))
         {
-            album.AlbumImagePath = song.CoverImagePath;
+            album.ImagePath= song.CoverImagePath;
         }
 
         // Check if song already exists
@@ -286,18 +286,18 @@ public static class GeneralStaticUtilities
         return artistNamesSet.ToList();
     }
 
-    public static GenreModelView GetOrCreateGenre(
+    public static GenreModel GetOrCreateGenre(
     string genreName,
-    Dictionary<string, GenreModelView> genreDict,
-    List<GenreModelView> newGenres,
-    List<GenreModelView> existingGenres)
+    Dictionary<string, GenreModel> genreDict,
+    List<GenreModel> newGenres,
+    List<GenreModel> existingGenres)
     {
         if (!genreDict.TryGetValue(genreName, out var genre))
         {
             genre = existingGenres?.FirstOrDefault(g => g.Name!.Equals(genreName, StringComparison.OrdinalIgnoreCase));
             if (genre == null)
             {
-                genre = new GenreModelView
+                genre = new GenreModel
                 {
                     Name = genreName,
                 };
@@ -313,11 +313,11 @@ public static class GeneralStaticUtilities
         return genre;
     }
 
-    public static AlbumModelView GetOrCreateAlbum(
+    public static AlbumModel GetOrCreateAlbum(
       string albumName,
-      List<AlbumModelView> existingAlbums,
-      Dictionary<string, AlbumModelView> albumDict,
-      List<AlbumModelView> newAlbums)
+      List<AlbumModel> existingAlbums,
+      Dictionary<string, AlbumModel> albumDict,
+      List<AlbumModel> newAlbums)
     {
         // Assign "Unknown Album" if albumName is empty or null
         if (string.IsNullOrEmpty(albumName))
@@ -328,10 +328,10 @@ public static class GeneralStaticUtilities
         // Check if album already exists in dictionary
         if (!albumDict.TryGetValue(albumName, out var album))
         {
-            album = new AlbumModelView
+            album = new AlbumModel
             {
                 Name = albumName,
-                AlbumImagePath = null,
+                ImagePath = null,
             };
             albumDict[albumName] = album;
 
@@ -344,18 +344,18 @@ public static class GeneralStaticUtilities
 
         return album;
     }
-    public static ArtistModelView GetOrCreateArtist(
+    public static ArtistModel GetOrCreateArtist(
     string artistName,
-    Dictionary<string, ArtistModelView> artistDict,
-    List<ArtistModelView> newArtists,
-    List<ArtistModelView> existingArtists)
+    Dictionary<string, ArtistModel> artistDict,
+    List<ArtistModel> newArtists,
+    List<ArtistModel> existingArtists)
     {
         if (!artistDict.TryGetValue(artistName, out var artist))
         {
             artist = existingArtists?.FirstOrDefault(a => a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
             if (artist == null)
             {
-                artist = new ArtistModelView
+                artist = new ArtistModel
                 {
                     Name = artistName,
                     ImagePath = null,
@@ -369,14 +369,14 @@ public static class GeneralStaticUtilities
     }
 
     public static void CreateLinks(
-      ArtistModelView artist,
-      AlbumModelView album,
-      SongModelView song,
-      GenreModelView genre,
-      List<AlbumArtistGenreSongLinkView> newLinks,
-      List<AlbumArtistGenreSongLinkView> existingLinks)
+      ArtistModel artist,
+      AlbumModel album,
+      SongModel song,
+      GenreModel genre,
+      List<AlbumArtistGenreSongLink> newLinks,
+      List<AlbumArtistGenreSongLink> existingLinks)
     {
-        var newLink = new AlbumArtistGenreSongLinkView
+        var newLink = new AlbumArtistGenreSongLink
         {
             ArtistId = artist.LocalDeviceId,
             AlbumId = album.LocalDeviceId,
@@ -394,7 +394,7 @@ public static class GeneralStaticUtilities
         }
     }
 
-    public static SongModelView CreateSongModel(
+    public static SongModel CreateSongModel(
     Track track,
     string title,
     string albumName,
@@ -403,14 +403,13 @@ public static class GeneralStaticUtilities
     {
         FileInfo fileInfo = new(filePath);
 
-        var song = new SongModelView
+        var song = new SongModel
         {
             Title = title,
             AlbumName = albumName,
             ArtistName = artistName,
-            GenreName = track.Genre,
+            Genre = track.Genre,
 
-            SampleRate = track.SampleRate,
             FilePath = track.Path,
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
@@ -429,7 +428,7 @@ public static class GeneralStaticUtilities
         return song;
     }
 
-    public static ObservableCollection<SongModelView> CheckCoverImage(ObservableCollection<SongModelView> col)
+    public static ObservableCollection<SongModel> CheckCoverImage(ObservableCollection<SongModel> col)
     {
         foreach (var item in col)
         {

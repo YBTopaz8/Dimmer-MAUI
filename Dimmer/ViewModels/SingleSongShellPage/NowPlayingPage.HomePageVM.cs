@@ -69,7 +69,6 @@ public partial class HomePageVM
             AllSyncLyrics.Add(e.FirstOrDefault());
         }
 
-        await FetchOnLastFM();
 
         IsFetchSuccessful = result.IsSuccessful;
 
@@ -331,7 +330,7 @@ public partial class HomePageVM
 
         if (CurrentUser.IsLoggedInLastFM)
         {
-            LastFMUtils.RateSong(SelectedSongToOpenBtmSheet, willBeFav);
+            //LastFMUtils.RateSong(SelectedSongToOpenBtmSheet, willBeFav);
         }
 
     }

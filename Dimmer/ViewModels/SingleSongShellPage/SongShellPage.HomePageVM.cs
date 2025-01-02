@@ -999,21 +999,21 @@ public partial class HomePageVM : ObservableObject
     public partial int DaysSinceFirstDimm { get; set; }
 
     [ObservableProperty]
-    public partial string DateOfFirstDimm { get; set; }
+    public partial string? DateOfFirstDimm { get; set; }
 
     [ObservableProperty]
-    public partial SongModelView FirstDimmSong { get; set; } = new();
+    public partial SongModelView? FirstDimmSong { get; set; } = new();
     [ObservableProperty]
-    public partial string FirstDimmArtist { get; set; } = string.Empty;
+    public partial string? FirstDimmArtist { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string FirstDimmAlbum { get; set; } = string.Empty;
+    public partial string? FirstDimmAlbum { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string DateOfLastDimm { get; set; }
+    public partial string? DateOfLastDimm { get; set; }
     
 
     [ObservableProperty]
-    public partial string LastDimmSong { get; set; } = string.Empty;
+    public partial string? LastDimmSong { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial int TotalNumberOfArtists { get; set; }
@@ -1025,15 +1025,15 @@ public partial class HomePageVM : ObservableObject
     public partial ObservableCollection<DimmData> TopPlayedSongs { get; set; } = new();
 
     [ObservableProperty]
-    public partial string TopPlayedArtist { get; set; } = string.Empty;
+    public partial string? TopPlayedArtist { get; set; } = string.Empty;
     [ObservableProperty]
     public partial ObservableCollection<DimmData> TopPlayedArtists { get; set; } = new();
 
     [ObservableProperty]
-    public partial string TopPlayedAlbum { get; set; } = string.Empty;
+    public partial string? TopPlayedAlbum { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string TopPlayedGenre { get; set; } = string.Empty;
+    public partial string? TopPlayedGenre { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial ObservableCollection<DimmData> TopPlayedAlbums { get; set; } = new();

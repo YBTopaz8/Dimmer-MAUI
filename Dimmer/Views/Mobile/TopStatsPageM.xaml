@@ -70,7 +70,7 @@
                                 </VerticalStackLayout.GestureRecognizers>
                                 <Label Text="First Dimm: " FontSize="24" FontAttributes="Bold" />
                                 <HorizontalStackLayout>
-                                    <Label Text="{Binding FirstDimmSong,StringFormat='{0}'}" 
+                                    <Label Text="{Binding FirstDimmSong.Title,StringFormat='{0}'}" 
                                            FontSize="24" FontAttributes="Bold" />
                                     <Label Text="{Binding FirstDimmArtist,StringFormat=' by {0}'}" 
                                            FontSize="24" FontAttributes="Bold" />
@@ -125,8 +125,8 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Fibonacci Play Count:" FontSize="24" FontAttributes="Bold" />
-                                <Label Text="{Binding FibonacciPlay,StringFormat='{0}'}" 
+                                <Label Text="Pareto Play Count:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="{Binding ParetoPlayRatio,StringFormat='{0}'}" 
                                        FontSize="24" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
