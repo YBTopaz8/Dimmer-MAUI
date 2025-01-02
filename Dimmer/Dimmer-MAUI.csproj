@@ -164,7 +164,7 @@
     <None Remove="Resources\Images\youtube.svg" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="10.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.3" />
@@ -172,7 +172,7 @@
     <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
-    <PackageReference Include="Hqub.Last.fm" Version="2.5.0" />
+    
     <!--<PackageReference Include="Hqub.Last.fm" Version="2.5.0" />-->
     
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.21" />
@@ -182,12 +182,12 @@
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.0.0" />
     
-    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.9.1" />
-    <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.9.1" />
+    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.11.0" />
+    <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.11.0" />
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.0.3" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.9.0" />
+    <PackageReference Include="z440.atl.core" Version="6.11.0" />
 
   </ItemGroup>
 

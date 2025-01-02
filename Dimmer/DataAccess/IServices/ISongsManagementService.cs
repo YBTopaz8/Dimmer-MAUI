@@ -14,7 +14,7 @@ public interface ISongsManagementService
     /// <param name="SongModelView"></param>
     /// <returns></returns>
     bool UpdateSongDetails(SongModelView songModelView);
-    Task AddPlayAndCompletionLinkAsync(PlayDateAndCompletionStateSongLink link, bool SyncSave=false);
+    //Task AddPlayAndCompletionLinkAsync(PlayDateAndCompletionStateSongLink link, bool SyncSave=false);
 
     void Dispose();
 

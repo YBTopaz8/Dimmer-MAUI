@@ -27,7 +27,7 @@ public class PlaybackInfo
 public partial class DimmData : ObservableObject
 {
     [ObservableProperty]
-    public partial string TimeKey { get; set; }
+    public partial string? TimeKey { get; set; }
     [ObservableProperty]
     public partial string? SongId { get; set; }
     [ObservableProperty]
@@ -37,7 +37,7 @@ public partial class DimmData : ObservableObject
     [ObservableProperty]
     public partial double DimmCount { get; set; }
     [ObservableProperty]
-    public partial string PlayEventDescription { get; set; }
+    public partial string? PlayEventDescription { get; set; }
     [ObservableProperty]
     public partial int PlayEventCode { get; set; }
 
@@ -122,7 +122,7 @@ public partial class DimmData : ObservableObject
     [ObservableProperty]
     public partial double DoubleValue { get; set; }
     [ObservableProperty]
-    public partial string Description { get; set; }
+    public partial string? Description { get; set; }
     [ObservableProperty]
     public partial DayOfWeek DayOfWeekk { get; set; }
     public DimmData()

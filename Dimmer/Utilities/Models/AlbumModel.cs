@@ -22,8 +22,6 @@ public partial class AlbumModel : RealmObject
 
     public AlbumModel()
     {
-        
-        LocalDeviceId = (nameof(AlbumModel));
     }
 
     public AlbumModel(AlbumModelView model)

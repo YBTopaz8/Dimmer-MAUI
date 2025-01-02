@@ -27,8 +27,6 @@ global using DevExpress.Maui.Editors;
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;
 
-global using Hqub.Lastfm;
-global using Hqub.Lastfm.Entities;
 //global using SkiaSharp;
 //global using LiveChartsCore;
 //global using LiveChartsCore.SkiaSharpView;

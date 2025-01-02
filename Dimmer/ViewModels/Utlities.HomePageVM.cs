@@ -10,7 +10,7 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = Enumerable.Empty<SongModelView>().ToObservableCollection();
     [ObservableProperty]
-    public partial string MultiSelectText { get; set; } = string.Empty;
+    public partial string? MultiSelectText { get; set; } = string.Empty;
 
 
 

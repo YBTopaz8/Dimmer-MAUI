@@ -20,14 +20,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     BehaviorSubject<PlaybackInfo> _currentPositionSubject = new(new());
     System.Timers.Timer? _positionTimer;
 
-    [ObservableProperty]
-    private partial SongModelView ObservableCurrentlyPlayingSong { get; set; } = new();
+    
+    private SongModelView ObservableCurrentlyPlayingSong { get; set; } = new();
     public SongModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
     [ObservableProperty]
-    private partial SongModelView ObservablePreviouslyPlayingSong { get; set; } = new();
+    private partial SongModelView? ObservablePreviouslyPlayingSong { get; set; } = new();
     public SongModelView PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
     [ObservableProperty]
-    private partial SongModelView ObservableNextPlayingSong { get; set; } = new();
+    private partial SongModelView? ObservableNextPlayingSong { get; set; } = new();
     public SongModelView NextPlayingSong => ObservableNextPlayingSong;
 
     [ObservableProperty]
@@ -42,14 +42,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public IPlaylistManagementService PlaylistManagementService { get; }
     
     [ObservableProperty]
-    public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = Enumerable.Empty<PlaylistModelView>().ToObservableCollection();
+    public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } 
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView> AllArtists {get;set;} = Enumerable.Empty<ArtistModelView>().ToObservableCollection();
     [ObservableProperty]
     public partial ObservableCollection<AlbumModelView> AllAlbums {get;set;}=Enumerable.Empty<AlbumModelView>().ToObservableCollection();
 
     [ObservableProperty]
-    public partial string SelectedPlaylistName { get; set; }
+    public partial string? SelectedPlaylistName { get; set; }
 
     int _currentSongIndex;
 
@@ -488,6 +488,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     return false;
                 }
                 ObservableCurrentlyPlayingSong = song;
+
             }
 
             var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong!.FilePath, true);
@@ -562,7 +563,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                     ObservableCurrentlyPlayingSong.DurationInSeconds = audioService.Duration;
                 }
                 SongsMgtService.UpdateSongDetails(ObservableCurrentlyPlayingSong);
-                await SongsMgtService.AddPlayAndCompletionLinkAsync(link);
+                //await SongsMgtService.AddPlayAndCompletionLinkAsync(link);
                 _currentPositionSubject.OnNext(new PlaybackInfo());
 #if WINDOWS
                 GeneralStaticUtilities.UpdateTaskBarProgress(0);
@@ -699,7 +700,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             };
             SongsMgtService.AddPDaCStateLink(link);
             
-            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
+            //SongsMgtService.AddPlayAndCompletionLinkAsync(link);
         }
         else //we are resuming
         {
@@ -735,7 +736,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             };
             SongsMgtService.AddPDaCStateLink(link);
             
-            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
+            //SongsMgtService.AddPlayAndCompletionLinkAsync(link);
             ShowMiniPlayBackView();
         }
 
@@ -827,17 +828,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //SongsMgtService.AddPlayAndCompletionLink(link);
 
 
-        Scrobble scr = new()
-        {
-            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : GeneralStaticUtilities.GetTextBeforeComma(ObservableCurrentlyPlayingSong.ArtistName),
-            Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
-            Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
-            Date = DateTime.Now - TimeSpan.FromSeconds(120)
-        };
-        if (ViewModel.Value.CurrentUser.IsLoggedInLastFM)
-        {
-            LastFMUtils.ScrobbleTrack(scr);
-        }
 
         if (CurrentRepeatMode == 2) // Repeat the same song
         {
@@ -914,7 +904,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 WasPlayCompleted = false
 
             };
-            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
+            SongsMgtService.AddPDaCStateLink(link);
         }
         if (ObservableCurrentlyPlayingSong is not null)
         {
@@ -963,7 +953,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 WasPlayCompleted = false
 
             };
-            SongsMgtService.AddPlayAndCompletionLinkAsync(link);
+            SongsMgtService.AddPDaCStateLink(link);
         }
 
 
