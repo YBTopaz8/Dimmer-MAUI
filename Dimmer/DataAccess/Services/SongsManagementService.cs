@@ -1002,12 +1002,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId, x.GenreId }).ToList();
 
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
-
-        await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
-
-
-
-        await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null);
+                
+        await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
