@@ -71,8 +71,10 @@
                             </Border.GestureRecognizers>
 
                             <Label Text="{Binding Name}" x:DataType="models:PlaylistModelView"
-                                   Padding="10,5" Margin="0,5"/>
+                                   Padding="10,5" Margin="0,5"/>                            
+                            
                         </Border>
+                        
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
@@ -106,6 +108,21 @@
                             <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="TapGestureRecognizer_Tapped"/>
                         </Border.GestureRecognizers>
 
+
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border"
+                                         Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                <Setter Property="Stroke" Value="DarkSlateBlue" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Border"
+                                         Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                <Setter Property="Stroke" Value="Transparent" />
+                                <Setter Property="StrokeThickness" Value="1"/>
+
+                            </DataTrigger>
+                        </Border.Triggers>
                         <FlexLayout JustifyContent="SpaceBetween" Margin="10,0" BackgroundColor="Transparent">
                             <VerticalStackLayout>
                                 <Label Text="{Binding Title}" FontSize="18"/>

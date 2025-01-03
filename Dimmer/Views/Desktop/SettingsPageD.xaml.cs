@@ -17,21 +17,7 @@ public partial class SettingsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (LastfmClient.Instance.Session.Authenticated)
-        {
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(ViewModel.CurrentUser.UserIDOnline))
-            {
-                LoginPass.Text = ViewModel.CurrentUser.UserPassword;                
-            }
-            if (LastfmClient.Instance.Session.Authenticated)
-            {
-
-            }
-        }
-
+       
         _ = ViewModel.GetLoggedInDevicesForUser();
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)

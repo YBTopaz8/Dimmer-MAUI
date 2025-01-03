@@ -138,7 +138,7 @@ public partial class HomePageVM : ObservableObject
         {
             CurrentUser.IsAuthenticated = true;
             CurrentUser.IsLoggedInLastFM = true;
-            SetupLiveQueries();
+            //SetupLiveQueries();
         }
 
     }

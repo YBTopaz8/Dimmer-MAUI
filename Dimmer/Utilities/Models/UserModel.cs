@@ -46,7 +46,7 @@ public partial class UserModelView : ObservableObject
     [ObservableProperty]
     public partial string? UserName { get; set; } = "User_" + DeviceInfo.Idiom+DeviceInfo.Platform;
     [ObservableProperty]
-    public partial string? UserPassword{ get; set; } 
+    public partial string? UserPassword{ get; set; } =string.Empty;
     [ObservableProperty]
     public partial string? UserEmail{ get; set; } 
     [ObservableProperty]

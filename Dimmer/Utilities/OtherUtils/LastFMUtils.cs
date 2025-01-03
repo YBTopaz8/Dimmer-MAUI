@@ -50,19 +50,20 @@ public class LastFMUtils
 
     public static void RateSong(SongModelView Song, bool isLove)
     {
-        if (isLove)
-        {
-            LoveTrack(Song);
-        }
-        else
-        {
-            UnLoveTrack(Song);
-        }
+        //if (isLove)
+        //{
+        //    LoveTrack(Song);
+        //}
+        //else
+        //{
+        //    UnLoveTrack(Song);
+        //}
 
     }
 
     public static async Task<bool> LogInToLastFMWebsite(string lastFMUname, string lastFMPass, bool isSilent=true)
     {
+        return false;
         var clientLastFM = LastfmClient.Instance;
         if (clientLastFM.Session.Authenticated)
         {
@@ -73,6 +74,7 @@ public class LastFMUtils
 
     private static async Task<bool> GeneralLastFMLogin(string? lastFMUname, string? lastFMPass, bool isSilent)
     {
+        return false;
         var clientLastFM = LastfmClient.Instance;
         //LoginBtn.IsEnabled = false;
         if (string.IsNullOrWhiteSpace(lastFMUname) || string.IsNullOrWhiteSpace(lastFMPass))
@@ -101,7 +103,7 @@ public class LastFMUtils
 
     public static async Task<bool> QuickLoginToLastFM()
     {
-
+        return false;
         var lastFMUname = await SecureStorage.Default.GetAsync("LastFMUsername");
         var lastFMPass = await SecureStorage.Default.GetAsync("LastFMPassWord");
 

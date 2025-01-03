@@ -827,17 +827,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //SongsMgtService.AddPlayAndCompletionLink(link);
 
 
-        Scrobble scr = new()
-        {
-            Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : GeneralStaticUtilities.GetTextBeforeComma(ObservableCurrentlyPlayingSong.ArtistName),
-            Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
-            Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
-            Date = DateTime.Now - TimeSpan.FromSeconds(120)
-        };
-        if (ViewModel.Value.CurrentUser.IsLoggedInLastFM)
-        {
-            LastFMUtils.ScrobbleTrack(scr);
-        }
+        //Scrobble scr = new()
+        //{
+        //    Artist = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.ArtistName) ? string.Empty : GeneralStaticUtilities.GetTextBeforeComma(ObservableCurrentlyPlayingSong.ArtistName),
+        //    Track = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.Title) ? string.Empty : ObservableCurrentlyPlayingSong.Title,
+        //    Album = string.IsNullOrEmpty(ObservableCurrentlyPlayingSong.AlbumName) ? string.Empty : ObservableCurrentlyPlayingSong.AlbumName,
+        //    Date = DateTime.Now - TimeSpan.FromSeconds(120)
+        //};
+        //if (ViewModel.Value.CurrentUser.IsLoggedInLastFM)
+        //{
+        //    LastFMUtils.ScrobbleTrack(scr);
+        //}
 
         if (CurrentRepeatMode == 2) // Repeat the same song
         {

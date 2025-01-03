@@ -751,6 +751,10 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
+        if (string.IsNullOrEmpty(CurrentUser.UserPassword))
+        {
+            return false;
+        }
 
         if (Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
         {
@@ -780,10 +784,12 @@ public partial class HomePageVM
             }
 
         }
+        try
+        {
 
-        var currentParseUser = await ParseClient
-            .Instance
-            .LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
+            var currentParseUser = await ParseClient
+                .Instance
+                .LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
 
         if (currentParseUser is null)
         {
@@ -834,6 +840,11 @@ public partial class HomePageVM
         currentParseUser.Password= CurrentUser.UserPassword;
         SongsMgtService.UpdateUserLoginDetails(currentParseUser);
         return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 
     [RelayCommand]

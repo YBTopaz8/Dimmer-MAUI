@@ -131,7 +131,7 @@
 
 
                     <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                Clicked="ToggleFocusModeClicked" IsVisible="True"
+                                Clicked="ToggleFocusModeClicked" IsVisible="False"
                                  Source="dndd.png">                        
                     </ImageButton>
 

@@ -26,7 +26,7 @@ public partial class HomePageVM
 
         SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
         DisplayedSongsFromPlaylist?.Clear();
-        DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).ToObservableCollection();
+        DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).OrderBy(x => x.Title).ToObservableCollection();
         
         SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;
         

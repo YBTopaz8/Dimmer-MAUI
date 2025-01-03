@@ -331,7 +331,7 @@ public partial class HomePageVM
 
         if (CurrentUser.IsLoggedInLastFM)
         {
-            LastFMUtils.RateSong(SelectedSongToOpenBtmSheet, willBeFav);
+            //LastFMUtils.RateSong(SelectedSongToOpenBtmSheet, willBeFav);
         }
 
     }
