@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net9.0-android35.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
     <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
     <!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
@@ -28,7 +27,7 @@
     <ApplicationVersion>1</ApplicationVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">30.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -50,18 +49,17 @@
     <OutputType>Exe</OutputType>
 
     <LangVersion>preview</LangVersion>
-  </PropertyGroup>
+  
+</PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <AndroidKeyStore>False</AndroidKeyStore>
-    <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
-    <ApplicationTitle>Dimmer</ApplicationTitle>
+  
+  <PropertyGroup>
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -71,11 +69,6 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
   </PropertyGroup>
-
-
-
-
-
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
     <AndroidKeyStore>False</AndroidKeyStore>
@@ -106,14 +99,24 @@
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-
+       
   </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0-android35.0</TargetFrameworks>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23</SupportedOSPlatformVersion>
+    
+    <UseMaui>true</UseMaui>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android.0|AnyCPU'">
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android.0|AnyCPU'">
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
@@ -128,6 +131,8 @@
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
@@ -135,11 +140,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
   </PropertyGroup>
+  
+  
   <ItemGroup>
     <!-- App Icon -->
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />

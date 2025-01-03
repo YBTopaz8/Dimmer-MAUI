@@ -25,7 +25,7 @@
 
     <dx:DXScrollView>
         
-    <dx:DXDockLayout Padding="10,10">
+    <dx:DXDockLayout Padding="10,10" BackgroundColor="Black">
         
         <Label Text="Settings" FontSize="30" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
         <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" BackgroundColor="Transparent">

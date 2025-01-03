@@ -157,7 +157,10 @@
     </ContentPage.ToolbarItems>
     
     <VerticalStackLayout >
-    <dx:DXStackLayout BackgroundColor="Transparent" >
+        <Label Text="Hi Yvan ! This is Dimmer... On Your TV 😉" TextColor="White"
+               HorizontalOptions="Center" FontAttributes="Bold"
+               FontSize="25"/>
+        <dx:DXStackLayout BackgroundColor="Transparent" >
             <HorizontalStackLayout HeightRequest="30">
                 <Label Text="{Binding VisibleItemCount,Source={x:Reference SongsColView}, StringFormat='{0} Songs'}"
                        FontSize="18" TextColor="DarkSlateBlue" FontAttributes="Bold"/>

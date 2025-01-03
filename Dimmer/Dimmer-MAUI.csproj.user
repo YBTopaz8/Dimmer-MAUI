@@ -3,9 +3,9 @@
   <PropertyGroup>
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
     <ActiveDebugFramework>net9.0-android35.0</ActiveDebugFramework>
-    <ActiveDebugProfile>Pixel 4 XL - API 30 (Android 11.0 - API 30)</ActiveDebugProfile>
+    <ActiveDebugProfile>Television (1080p) - API 23 (Android 6.0 - API 23)</ActiveDebugProfile>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <DefaultDevice>pixel_4_xl_-_api_30</DefaultDevice>
+    <DefaultDevice>television_1080p_-_api_23</DefaultDevice>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
     <_LastSelectedProfileId>MSIX-win-x64.pubxml</_LastSelectedProfileId>

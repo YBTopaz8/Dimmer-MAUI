@@ -2,6 +2,9 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+
+using AndroidX.Core.App;
+using AndroidX.Core.Content;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
 
 namespace Dimmer_MAUI;
@@ -29,14 +32,33 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         var plate = DeviceInfo.Name.ToString();
         var platee = DeviceInfo.Manufacturer.ToString();
 
-        if (!Android.OS.Environment.IsExternalStorageManager)
-        {
-            Intent intent = new Intent();
-            intent.SetAction(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission);
-            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", this.PackageName!, null);
-            intent.SetData(uri);
-            StartActivity(intent);
-        }
+        //if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // Android 11 (API 30) and above
+        //{
+        //    // Check if the app has "all files access" permission
+        //    if (!Android.OS.Environment.IsExternalStorageManager)
+        //    {
+        //        // Request permission to manage all files (MANAGE_EXTERNAL_STORAGE)
+        //        Intent intent = new Intent();
+        //        intent.SetAction(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission);
+        //        Android.Net.Uri uri = Android.Net.Uri.FromParts("package", this.PackageName!, null);
+        //        intent.SetData(uri);
+        //        StartActivity(intent);
+        //    }
+        //}
+        //else
+        //{
+        //    // For devices below Android 11, you don't need MANAGE_EXTERNAL_STORAGE,
+        //    // Just request READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE as needed
+        //    if (ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.ReadExternalStorage) == Permission.Granted)
+        //    {
+        //        // Access files using scoped storage or MediaStore
+        //    }
+        //    else
+        //    {
+        //        ActivityCompat.RequestPermissions(this, new string[] { Android.Manifest.Permission.ReadExternalStorage }, 101);
+        //    }
+        //}
+
 
         //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
 #if RELEASE
@@ -54,6 +76,7 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
             MediaPlayerService mediaPlayerService = new MediaPlayerService();
             mediaPlayerService.MainAct = this;
             InitializeMedia();
+            
         }
 
     }
@@ -72,4 +95,5 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         var homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         await homeVM.ExitingApp();
     }
+
 }
