@@ -62,7 +62,7 @@ public class AppSettingsService : IAppSettingsService
 
         public static void SetLastPlayedSong(string songID)
         {
-            if (songID != string.Empty)
+            if (!string.IsNullOrEmpty(songID))
             {
                 LastPlayedSongId = songID.ToString();
             }
