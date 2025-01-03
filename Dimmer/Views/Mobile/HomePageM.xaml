@@ -61,7 +61,7 @@
                                 </dx:DXButton.Icon>
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="17"/>
 
                                     <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"

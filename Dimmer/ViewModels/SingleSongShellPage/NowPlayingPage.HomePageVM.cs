@@ -69,7 +69,6 @@ public partial class HomePageVM
             AllSyncLyrics.Add(e.FirstOrDefault());
         }
 
-        await FetchOnLastFM();
 
         IsFetchSuccessful = result.IsSuccessful;
 

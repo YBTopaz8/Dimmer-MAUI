@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.SingleSongShellPageD"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-            xmlns:entitys ="clr-namespace:Hqub.Lastfm.Entities;assembly=Hqub.Lastfm"
+            
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             x:DataType="vm:HomePageVM"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
@@ -60,7 +60,7 @@
     </ContentPage.Resources>
 
     <Grid>
-        <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Opacity="0.08"
+        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.08"
                 Aspect="AspectFill" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>
         <toolkit:DockLayout x:Name="NormalNowPlayingUI" BackgroundColor="Transparent">
@@ -230,7 +230,7 @@
                       IsVisible="False" Margin="10,0">
                     <Border>
                         <Grid BackgroundColor="Transparent"
-Margin="5,5" RowDefinitions="Auto, Auto,*">
+Margin="5,5" RowDefinitions="Auto, *">
                             <Grid.Resources>
                                 <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
@@ -283,31 +283,7 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                 </CollectionView>
                             </VerticalStackLayout>
 
-
-                            <CollectionView ItemsSource="{Binding LastfmTracks}" Grid.Row="1" 
-                                            HeightRequest="130" >
-                                <CollectionView.ItemsLayout>
-                                    <GridItemsLayout Span="1" Orientation="Horizontal"/>
-
-
-                                </CollectionView.ItemsLayout>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="entitys:Track">
-                                        <Border BackgroundColor="Transparent" Stroke="Transparent">
-                                            <VerticalStackLayout WidthRequest="200">
-                                                <Label Text="{Binding Name, StringFormat='Title: {0}'}"/>
-                                                    <Label Text="{Binding Artist.Name, StringFormat='Artist: {0}'}"/>
-                                                <!--<Label Text="{Binding UserPlayCount}"/>-->
-                                                    <Label Text="{Binding Statistics.Listeners, StringFormat='Total Global listeners: {0}'}"/>
-                                                
-                                                <!--<Button Text="Save To Song" x:Name="SaveLastFMInfo"/>-->
-                                            </VerticalStackLayout>
-                                        </Border>
-
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="2"
+                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
             x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>
                                     <ContentView>
@@ -384,9 +360,9 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                   PointerExited="FocusModePointerRec_PExited"/>
                                         </FlexLayout.GestureRecognizers>
                                         <Label Text="Date of First Dimm:" 
-           FontSize="24" FontAttributes="Bold" />
+                                               FontSize="24" FontAttributes="Bold" />
                                         <Label Text="{Binding DateOfFirstDimm,StringFormat='{0}'}" 
-           FontSize="24" FontAttributes="Bold" />
+                                              FontSize="24" FontAttributes="Bold" />
 
                                     </FlexLayout>
                                     
@@ -397,7 +373,7 @@ Margin="5,5" RowDefinitions="Auto, Auto,*">
                                         </FlexLayout.GestureRecognizers>
                                         <Label Text="Completed Dimms:" 
                                                FontSize="24" FontAttributes="Bold" />
-                                        <Label Text="{Binding SpecificSongPlaysCompleted.Count,StringFormat='{0} Days ago'}" 
+                                        <Label Text="{Binding SpecificSongPlaysCompleted.Count,StringFormat='{0}'}" 
                                                FontSize="24" FontAttributes="Bold" />
 
                                     </FlexLayout>

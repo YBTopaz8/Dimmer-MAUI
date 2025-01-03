@@ -180,7 +180,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task ShowSpecificArtistsSongsWithAlbum(AlbumModelView album)
     {
-        if (AllArtistsAlbums is null)
+        if (AllArtistsAlbums is null || AllArtistsAlbums?.Count<1)
         {
             var selectedLink = AllLinks.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
             SelectedArtistOnArtistPage = AllArtists!.FirstOrDefault(artist => artist.LocalDeviceId == selectedLink?.ArtistId)!;
@@ -202,7 +202,11 @@ public partial class HomePageVM
         }
         else
         {
-            SelectedArtistOnArtistPage = GetAllArtistsFromAlbumID(AllArtistsAlbums.FirstOrDefault()!.LocalDeviceId).First();
+            var selArt= GetAllArtistsFromAlbumID(AllArtistsAlbums.FirstOrDefault()!.LocalDeviceId).FirstOrDefault();
+            if (selArt is not null)
+            {
+                SelectedArtistOnArtistPage = selArt;
+            }
         }
         SelectedAlbumOnArtistPage = album;
         if (SelectedAlbumOnArtistPage is null)

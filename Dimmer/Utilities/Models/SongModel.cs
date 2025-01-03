@@ -36,8 +36,9 @@ public partial class SongModel : RealmObject
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     public string? UserIDOnline { get; set; } 
     public SongModel(SongModelView model)
-    {        
-        LocalDeviceId = model.LocalDeviceId;
+    {
+        LocalDeviceId = model.LocalDeviceId!;
+
         Title = model.Title;
         FilePath = model.FilePath;
         ArtistName = model.ArtistName;
@@ -78,17 +79,17 @@ public partial class SongModelView : ObservableObject
 {
 
     [ObservableProperty]
-    public partial string LocalDeviceId { get; set; } =string.Empty;
+    public partial string? LocalDeviceId { get; set; }
     [ObservableProperty]
     public partial string? Title {get;set;}=string.Empty;
     [ObservableProperty]
-    public partial string FilePath {get;set;}
+    public partial string? FilePath {get;set;}
     [ObservableProperty]
-    public partial string ArtistName {get;set;}
+    public partial string? ArtistName {get;set;}
     [ObservableProperty]
-    public partial string AlbumName {get;set;}
+    public partial string? AlbumName {get;set;}
     [ObservableProperty]
-    public partial string GenreName {get;set;}
+    public partial string? GenreName {get;set;}
     [ObservableProperty]
     public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
@@ -99,7 +100,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int TrackNumber {get;set;}
     [ObservableProperty]
-    public partial string FileFormat {get;set;}
+    public partial string? FileFormat {get;set;}
     [ObservableProperty]
     public partial long FileSize {get;set;}
     [ObservableProperty]
@@ -116,9 +117,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
-    public partial string CoverImagePath { get; set; } = string.Empty;
+    public partial string? CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial string UnSyncLyrics { get; set; } = string.Empty;
+    public partial string? UnSyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
     public partial bool IsPlaying {get;set;}
 
@@ -131,14 +132,13 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsFileExists { get; set; } = true;
     [ObservableProperty]
-    public partial string Achievement {get;set;} = string.Empty;
+    public partial string? Achievement {get;set;} = string.Empty;
     [ObservableProperty]
-    public partial string SongWiki {get;set;} = string.Empty;
+    public partial string? SongWiki {get;set;} = string.Empty;
 
     public bool IsPlayedFromOutsideApp { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModel> SyncLyrics { get; set; } = Enumerable.Empty<LyricPhraseModel>().ToObservableCollection();
-
 
     [ObservableProperty]
     public partial List<PlayDataLink> PlayData { get; set; } = new();
@@ -154,10 +154,11 @@ public partial class SongModelView : ObservableObject
     public partial int NumberOfTimesPlayedCompletely { get; set; }
     public SongModelView(SongModel model) 
     {
+        
         if (model is not null)
         {
-            
             LocalDeviceId = model.LocalDeviceId;
+            
             Title = model.Title;
             FilePath = model.FilePath;
             DurationInSeconds = model.DurationInSeconds;
@@ -230,11 +231,11 @@ public partial class SongModelView : ObservableObject
         return false;
     }
 
-    // Override GetHashCode to use string's hash code
     public override int GetHashCode()
     {
-        return LocalDeviceId!.GetHashCode();
+        return HashCode.Combine(LocalDeviceId);
     }
+
 }
 
 public partial class PlayDataLink : ObservableObject
@@ -290,10 +291,14 @@ public partial class PlayDataLink : ObservableObject
         PositionInSeconds = model.PositionInSeconds;
         PlayType = model.PlayType;
         
-        
-            EventDate = model.EventDate!.Value.LocalDateTime;
+        EventDate = model.EventDate!.Value.LocalDateTime;
         
     }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(LocalDeviceId);
+    }
+
 }
 
 public partial class PlayDateAndCompletionStateSongLink : RealmObject

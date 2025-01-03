@@ -17,7 +17,7 @@ public partial class SettingsPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-       
+
         _ = ViewModel.GetLoggedInDevicesForUser();
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
@@ -187,13 +187,13 @@ public partial class SettingsPageD : ContentPage
                 }
                 break;
             case 3: //LastFM
-                if(await ViewModel.LogInToLastFMWebsite(false))
-                {
-                    GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
-                    {
-                        Debug.WriteLine($"Task error: {ex.Message}");
-                    });
-                }
+                //if(await ViewModel.LogInToLastFMWebsite(false))
+                //{
+                //    GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
+                //    {
+                //        Debug.WriteLine($"Task error: {ex.Message}");
+                //    });
+                //}
                 break;
             case 4: //Forgotten password
                 if (await ViewModel.ForgottenPassword())

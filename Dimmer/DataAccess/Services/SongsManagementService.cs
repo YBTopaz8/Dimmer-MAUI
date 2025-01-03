@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -81,7 +84,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     
                 }));
 
-            Dictionary<string?, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData = 
+            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData = 
                 realmPlayData.GroupBy(p => p.SongId)
             .ToDictionary(g => g.Key, g => g.ToList()); // Create a Dictionary
 
@@ -176,7 +179,21 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
 
     }
-
+    List<AlbumModel>? realmAlbums { get; set; }
+    List<SongModel>? realmSongs { get; set; }
+    List<GenreModel>? realGenres { get; set; }
+    List<ArtistModel>? realmArtists { get; set; }
+    List<AlbumArtistGenreSongLink>? realmAAGSL { get; set; }
+    void GetInitialValues()
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        realmSongs = db.All<SongModel>().ToList();
+        realmAlbums = db.All<AlbumModel>().ToList();
+        realGenres = db.All<GenreModel>().ToList();
+        realmArtists = db.All<ArtistModel>().ToList();
+        realmAAGSL = db.All<AlbumArtistGenreSongLink>().ToList();
+        
+    }
 
     public async Task SendAllDataToServerAsInitialSync()
     {
@@ -200,11 +217,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         try
         {
 
-            GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs, AllGenres, AllLinks, AllPlayDataLinks), ex =>
-            {
-                // Log or handle the exception as needed
-                Debug.WriteLine($"Task error: {ex.Message}");
-            });
+            //GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs, AllGenres, AllLinks, AllPlayDataLinks), ex =>
+            //{
+            //    // Log or handle the exception as needed
+            //    Debug.WriteLine($"Task error: {ex.Message}");
+            //});
             
         }
         catch (Exception ex)
@@ -244,7 +261,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 await LoadAlbumToDBFromOnline();
                 await LoadPlaylistToDBFromOnline();
                 await LoadAAGSLinkViewToDBFromOnline();
-                await LoadPlayDateAndIsPlayCompletedModelToDBFromOnline();
+                await LoadPDaPCModelToDBFromOnline();
                 GetSongs();
                 ViewModel.SyncRefresh();
                 HasOnlineSyncOn = false;
@@ -311,7 +328,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             });
         }
     }
-    private async Task LoadPlayDateAndIsPlayCompletedModelToDBFromOnline()
+    private async Task LoadPDaPCModelToDBFromOnline()
     {
         var query = ParseClient.Instance.GetQuery("PlayDateAndCompletionStateSongLink")
             .WhereEqualTo("deviceName", CurrentOfflineUser.LocalDeviceId);
@@ -984,31 +1001,20 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         allGenres = allGenres.DistinctBy(x => x.Name).ToList();
         allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId, x.GenreId }).ToList();
 
-            var combinedList = new List<SongModelView>(AllSongs);
-            combinedList.AddRange(songs!);
-        
-            AllSongs = combinedList;
-            AllArtists = allArtists;
-            AllAlbums = allAlbums;
-            AllGenres = allGenres;
-            AllLinks=allLinks;
-            ViewModel.SyncRefresh();
+        AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
 
-        List<SongModel> dbSongs = songs.Select(song => new SongModel(song)).ToList()!;
+        await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
 
+
+
+        await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null);
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
         ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
 
 
-        GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, dbSongs, allGenres, allLinks, null), ex =>
-        {
-            // Log or handle the exception as needed
-            Debug.WriteLine($"Task error: {ex.Message}");
-        });
-        
-        
+
         if (CurrentUserOnline is null || await CurrentUserOnline.IsAuthenticatedAsync())
         {
                 //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
@@ -1021,7 +1027,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             Debug.WriteLine("User authentication failed."); //todo to be reviewed, we can aske the user to login
             return false;
         }
-        GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null), ex => { Debug.WriteLine($"Task error: {ex.Message}"); });
+        //GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(allArtists, allAlbums, songs, allGenres, allLinks, null), ex => { Debug.WriteLine($"Task error: {ex.Message}"); });
        
 
         return true;
@@ -1064,7 +1070,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
 
     private
-    (List<ArtistModelView>?, List<AlbumModelView>?, List<AlbumArtistGenreSongLinkView>?, List<SongModelView>?, List<GenreModelView>?)
+    (List<ArtistModel>?, List<AlbumModel>?, List<AlbumArtistGenreSongLink>?, List<SongModel>?, List<GenreModel>?)
     LoadSongsAsync(List<string> folderPaths)
     {
         var allFiles = GeneralStaticUtilities.GetAllFiles(folderPaths);
@@ -1073,27 +1079,27 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             return (null, null, null, null, null);
         }
-
+        GetInitialValues();
         // Fetch existing data from services
-        var existingArtists = AllArtists is null ? [] : AllArtists;
+        var existingArtists = realmArtists is null ? [] : realmArtists;
 
-        var existingLinks = AllLinks is null ? [] : AllLinks;
+        var existingLinks = realmAAGSL is null ? [] : realmAAGSL;
 
-        var existingAlbums = AllAlbums is null ? [] : AllAlbums;
+        var existingAlbums = realmAlbums is null ? [] : realmAlbums;
 
-        var existingGenres = AllGenres is null ? [] : AllGenres;
-        var oldSongs = AllSongs ?? new List<SongModelView>();
+        var existingGenres = realGenres is null ? [] : realGenres;
+        var oldSongs = realmSongs is null ? [] : realmSongs;
 
         // Initialize collections and dictionaries
-        var newArtists = new List<ArtistModelView>();
-        var newAlbums = new List<AlbumModelView>();
-        var newLinks = new List<AlbumArtistGenreSongLinkView>();
-        var newGenres = new List<GenreModelView>();
-        var allSongs = new List<SongModelView>();
+        var newArtists = new List<ArtistModel>();
+        var newAlbums = new List<AlbumModel>();
+        var newLinks = new List<AlbumArtistGenreSongLink>();
+        var newGenres = new List<GenreModel>();
+        var allSongs = new List<SongModel>();
 
-        var artistDict = new Dictionary<string, ArtistModelView>(StringComparer.OrdinalIgnoreCase);
-        var albumDict = new Dictionary<string, AlbumModelView>();
-        var genreDict = new Dictionary<string, GenreModelView>();
+        var artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
+        var albumDict = new Dictionary<string, AlbumModel>();
+        var genreDict = new Dictionary<string, GenreModel>();
 
         int totalFiles = allFiles.Count;
 
@@ -1101,9 +1107,9 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             if (GeneralStaticUtilities.IsValidFile(file))
             {
-                var songData = GeneralStaticUtilities.ProcessFile(file, existingAlbums.ToList(), albumDict, newAlbums, oldSongs.ToList(),
-                    newArtists, artistDict, newLinks, existingLinks.ToList(), existingArtists.ToList(),
-                    newGenres, genreDict, existingGenres.ToList());
+                var songData = GeneralStaticUtilities.ProcessFile(file, existingAlbums, albumDict, newAlbums, oldSongs,
+                    newArtists, artistDict, newLinks, existingLinks, existingArtists,
+                    newGenres, genreDict, existingGenres);
 
                 if (songData != null)
                 {
@@ -1159,10 +1165,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public bool SyncAllDataToDatabase(
     Realm db,
     IEnumerable<SongModel> songs,
-    IEnumerable<ArtistModelView> artistModels,
-    IEnumerable<AlbumModelView> albumModels,
-    IEnumerable<GenreModelView> genreModels,
-    IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
+    IEnumerable<ArtistModel> artistModels,
+    IEnumerable<AlbumModel> albumModels,
+    IEnumerable<GenreModel> genreModels,
+    IEnumerable<AlbumArtistGenreSongLink> AAGSLink,
      IEnumerable<PlayDataLink>? PDaCSLink)
     {
         try
@@ -1192,28 +1198,28 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             // Sync Artists
             AddOrUpdateMultipleRealmItems(
 
-                artistModels.Select(a => new ArtistModel(a)),
+                artistModels,
                 artist => db.All<ArtistModel>().Any(a => a.Name == artist.Name)
             );
 
             // Sync Albums
             AddOrUpdateMultipleRealmItems(
 
-                albumModels.Select(a => new AlbumModel(a)),
+                albumModels,
                 album => db.All<AlbumModel>().Any(a => a.Name == album.Name)
             );
 
             // Sync Genres
             AddOrUpdateMultipleRealmItems(
 
-                genreModels.Select(g => new GenreModel(g)),
+                genreModels,
                 genre => db.All<GenreModel>().Any(g => g.Name == genre.Name)
             );
 
             // Sync AlbumArtistGenreSongLinks
             AddOrUpdateMultipleRealmItems(
 
-                AAGSLink.Select(l => new AlbumArtistGenreSongLink(l)),
+                AAGSLink,
                 link => db.Find<AlbumArtistGenreSongLink>(link.LocalDeviceId) != null
             );
 
@@ -1324,26 +1330,26 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     /// <param name="PDaCSLink"></param>
     /// <returns></returns>
 
-    public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(
-     IEnumerable<ArtistModelView> artistModels,
-     IEnumerable<AlbumModelView> albumModels,
-     IEnumerable<SongModelView> songs,
-     IEnumerable<GenreModelView> genreModels,
-     IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
-     IEnumerable<PlayDataLink>? PDaCSLink)
-    {
-        try
-        {
-            await SyncAllDataToOnlineAsync(songs, artistModels, albumModels, genreModels, AAGSLink, PDaCSLink);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // Catch and log the top-level errors
-            Debug.WriteLine($"Exception when adding data: {ex.Message}");
-            return false;
-        }
-    }
+    //public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(
+    // IEnumerable<ArtistModelView> artistModels,
+    // IEnumerable<AlbumModelView> albumModels,
+    // IEnumerable<SongModelView> songs,
+    // IEnumerable<GenreModelView> genreModels,
+    // IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
+    // IEnumerable<PlayDataLink>? PDaCSLink)
+    //{
+    //    try
+    //    {
+    //        await SyncAllDataToOnlineAsync(songs, artistModels, albumModels, genreModels, AAGSLink, PDaCSLink);
+    //        return true;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        // Catch and log the top-level errors
+    //        Debug.WriteLine($"Exception when adding data: {ex.Message}");
+    //        return false;
+    //    }
+    //}
 
 
     /// <summary>
@@ -1356,19 +1362,23 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     /// <param name="AAGSLink"></param>
     /// <returns></returns>
     public async Task<bool> AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(
-     IEnumerable<ArtistModelView> artistModels,
-     IEnumerable<AlbumModelView> albumModels,
-     //IEnumerable<AlbumArtistGenreSongLinkView> albumArtistSongLink,
+     IEnumerable<ArtistModel> artistModels,
+     IEnumerable<AlbumModel> albumModels,
+     
      IEnumerable<SongModel> songs,
-     IEnumerable<GenreModelView> genreModels,
-     IEnumerable<AlbumArtistGenreSongLinkView> AAGSLink,
+     IEnumerable<GenreModel> genreModels,
+     IEnumerable<AlbumArtistGenreSongLink> AAGSLink,
      IEnumerable<PlayDataLink>? PDaCSLink)
     {
         await GetUserAccountOnline();
         try
         {
             SyncAllDataToDatabase(db, songs, artistModels, albumModels, genreModels, AAGSLink, null);
-            
+
+            GetSongs();
+
+            ViewModel.SyncRefresh();
+
             return true;
         }
         catch (Exception ex)
