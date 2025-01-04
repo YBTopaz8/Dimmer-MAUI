@@ -1,14 +1,14 @@
 ---
 name: Crash Report - Windows
 about: Create a Crash Report to help improve Dimmer
-title: "[CRASH]"
+title: "CRASH - Windows"
 labels: bug-windows
 assignees: YBTopaz8
 
 ---
 
 **Can you always reproduce it?**
-- [ ]  Yes/No
+- Yes/No
 
 Please upload the crashlog.txt file found in your PC under
 This PC/C:/Users/YOUR_PC_NAME/Documents/DimmerCrashLogs
@@ -23,19 +23,12 @@ Please Write down the steps from app startup till crash:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+ - OS: 10/11 ?
+ - CPU Brand & Name
+ - GPU Brand & Name
+ - Ram Capacity
+ - Light/Dark Mode?
 
 **Additional context**
 Add any other context about the problem here.
