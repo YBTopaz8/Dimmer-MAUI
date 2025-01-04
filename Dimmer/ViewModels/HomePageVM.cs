@@ -558,6 +558,11 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         await PlayBackService.PauseResumeSongAsync(CurrentPositionInSeconds);
+
+        if (TemporarilyPickedSong is not null)
+        {
+            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+        }
     }
     
 
