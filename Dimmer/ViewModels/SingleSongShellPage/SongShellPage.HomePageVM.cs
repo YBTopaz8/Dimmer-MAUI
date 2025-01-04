@@ -224,7 +224,10 @@ public partial class HomePageVM : ObservableObject
         }
         
         SongModelView singleSong= SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
-        
+        if (singleSong is null)
+        {
+            return;
+        }
         var lastSongLinkk = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).ToList();
         
         if (lastSongLinkk.Count > 0)
