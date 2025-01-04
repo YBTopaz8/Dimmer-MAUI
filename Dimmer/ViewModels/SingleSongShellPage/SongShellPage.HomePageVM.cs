@@ -225,7 +225,13 @@ public partial class HomePageVM : ObservableObject
         
         SongModelView singleSong= SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
         
-        var lastSongLink = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).LastOrDefault();
+        var lastSongLinkk = singleSong.PlayData.Where(x => x.DateFinished != DateTime.MinValue).ToList();
+        
+        if (lastSongLinkk.Count > 0)
+        {
+            PlayDataLink? lastSongLink = lastSongLinkk.LastOrDefault();
+            DateOfLastDimm = lastSongLink.DateFinished.ToLongDateString();
+        }
         DateOfFirstDimm = "None Yet";
         DaysSinceFirstDimm = 0;
         //DateOfFirstDimm = "None Yet";
@@ -238,12 +244,6 @@ public partial class HomePageVM : ObservableObject
                 DaysSinceFirstDimm = (DateTime.Now.Date - w.DateFinished).Days;
             }
         }
-        if (lastSongLink is not null)
-        {
-            DateOfLastDimm = lastSongLink.DateFinished.ToLongDateString();
-            
-        }
-        
         
         SpecificSongPlaysStarted = singleSong.PlayData.Where(x => x.PlayType == 0).ToList();
         SpecificSongPlaysPaused = singleSong.PlayData.Where(x => x.PlayType == 1).ToList();

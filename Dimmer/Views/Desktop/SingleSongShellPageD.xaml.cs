@@ -486,4 +486,24 @@ NoLyricsFoundMsg.AnimateFadeInFront());
 
     }
 
+    private async void NPSongImage_Tapped(object sender, TappedEventArgs e)
+    {
+        if (FocusModeUI.IsVisible)
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeOutBack(),
+            NormalNowPlayingUI.AnimateFadeInFront()
+
+            );
+
+            isOnFocusMode = false;
+        }
+        else
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeInFront(),
+            NormalNowPlayingUI.AnimateFadeOutBack());
+            isOnFocusMode = true;
+        }
+    }
 }

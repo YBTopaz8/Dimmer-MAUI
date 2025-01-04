@@ -405,9 +405,12 @@ public partial class HomePageVM
 
     public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
     {
-        if (artist is null && SelectedArtistOnArtistPage is null)
+        //if (artist is null SelectedArtistOnArtistPage is null)
+        if (artist is null)
             return;
-        SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+        if (SelectedArtistOnArtistPage is not null)
+            SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+
         SelectedArtistOnArtistPage = artist;
         SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         AllArtistsAlbums = GetAllAlbumsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);

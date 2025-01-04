@@ -49,7 +49,7 @@
 
                     <Label Text="{Binding Text}" Margin="0,5" 
                            HorizontalTextAlignment="Center" 
-                           FontSize="40" >
+                           FontSize="60" >
                         <Label.Triggers>
 
                         </Label.Triggers>
@@ -80,9 +80,13 @@
                 </Grid.Resources>
                 <VerticalStackLayout Grid.Column="0" Margin="10" BackgroundColor="Transparent"
                                     WidthRequest="250" Spacing="10" x:DataType="vm:HomePageVM">
-                    <Grid BackgroundColor="Transparent">
+                    <Grid BackgroundColor="Transparent" ToolTipProperties.Text="Click 😉">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="NPSongImage_Tapped"/>
+                        </Grid.GestureRecognizers>
                         <toolkit:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
-                        WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"/>
+                        WidthRequest="250" HeightRequest="250" BorderWidth="0" CornerRadius="25"
+                                            />
 
                         <!--<Image Source="red_heart.gif" HeightRequest="100" IsVisible="{Binding IsAnimatingFav}"
                                    WidthRequest="100" IsAnimationPlaying="False" ZIndex="1"/>-->

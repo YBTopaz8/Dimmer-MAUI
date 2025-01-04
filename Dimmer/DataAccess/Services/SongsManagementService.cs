@@ -83,14 +83,30 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     PlayType = model.PlayType,
                     
                 }));
+            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData =
+    new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
 
-            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData = 
-                realmPlayData.GroupBy(p => p.SongId)
-            .ToDictionary(g => g.Key, g => g.ToList()); // Create a Dictionary
+            foreach (var model in realmPlayData)
+            {
+                if (model.SongId is null)
+                    continue;
+
+                if (!groupedPlayData.ContainsKey(model.SongId))
+                {
+                    groupedPlayData[model.SongId] = new List<PlayDateAndCompletionStateSongLink>();
+                }
+
+                groupedPlayData[model.SongId].Add(model);
+            }
 
             var tempSongViews = new List<SongModelView>();
             foreach (var songModel in realmSongs)
             {
+                if (songModel.LocalDeviceId is null)
+                {
+                    //realmSongs.Remove(songModel);
+                    continue;
+                }
                 if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
                 {
                     tempSongViews.Add(new SongModelView(songModel, playDataForSong.ToObservableCollection()));
