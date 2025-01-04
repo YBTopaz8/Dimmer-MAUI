@@ -274,9 +274,12 @@ public partial class MainPageD : ContentPage
 
     private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
+        HomePageVM.TemporarilyPickedSong.IsCurrentPlayingHighlight=false;
+
+
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-
+        
         await HomePageVM.PlaySong(song);
     }
 
