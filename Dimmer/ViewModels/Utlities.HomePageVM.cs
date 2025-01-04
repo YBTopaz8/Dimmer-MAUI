@@ -721,7 +721,7 @@ public partial class HomePageVM
             return false;
         }
 
-        await ParseClient.Instance.RequestPasswordResetAsync(CurrentUser.UserEmail);
+        await ParseClient.Instance.RequestPasswordResetAsync(userEmail);
 
         await Shell.Current.DisplayAlert("Confirm Passsword Reset!", "Please Verify Your Email!", "Ok");
         return true;
