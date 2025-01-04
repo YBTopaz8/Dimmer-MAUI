@@ -87,7 +87,14 @@ FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
     VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
     x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset"
     Loaded="SongsColView_Loaded" Margin="5,0"
-    EmptyView="Nothing ..." >
+     >
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center">
+                            <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
+                                   HorizontalOptions="Center"
+                                   FontSize="25"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
 
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>

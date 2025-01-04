@@ -53,7 +53,10 @@ public partial class AppShell : Shell
         {
             case PageEnum.MainPage:
                 var mainPage = Current.CurrentPage as MainPageD;
-
+                if (Vm.DisplayedSongs.Count<1)
+                {
+                    return;
+                }
                 mainPage!.ToggleMultiSelect_Clicked(sender, e);
                 if (Vm.IsMultiSelectOn)
                 {

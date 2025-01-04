@@ -39,6 +39,11 @@ public partial class HomePageVM
     public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
+
+        if (SelectedSongToOpenBtmSheet is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+        {
+            return false;
+        }
         LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
         LyricsSearchArtistName= SelectedSongToOpenBtmSheet.ArtistName;
         LyricsSearchAlbumName =SelectedSongToOpenBtmSheet.AlbumName;
@@ -290,6 +295,10 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task RateSong(string value)
     {
+        if (SelectedSongToOpenBtmSheet is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+        {
+            return;
+        }
         bool willBeFav = false;
         var rateValue = int.Parse(value);
         switch (rateValue)

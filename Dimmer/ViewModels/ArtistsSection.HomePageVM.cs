@@ -128,6 +128,11 @@ public partial class HomePageVM
             }
             else
             {
+
+                if (string.IsNullOrEmpty(song.FilePath))
+                {
+                    return;
+                }
                 SongsMgtService.LoadSongsFromFolderAsync(new List<string>() { song.FilePath });
                 
                 //GeneralStaticUtilities.ProcessFile(song);

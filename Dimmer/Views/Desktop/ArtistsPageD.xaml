@@ -125,11 +125,8 @@
                 <FlexLayout JustifyContent="SpaceBetween">
                     <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
 
-                    <ImageButton Clicked="ImageButton_Clicked"
+                    <ImageButton Clicked="ImageButton_Clicked" Source="repeaton.png"
                                  ToolTipProperties.Text="Show All Artist Songs">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                        </ImageButton.Source>
                     </ImageButton>
                 </FlexLayout>
             </CollectionView.Header>

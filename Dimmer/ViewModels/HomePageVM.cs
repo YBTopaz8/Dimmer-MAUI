@@ -124,21 +124,23 @@ public partial class HomePageVM : ObservableObject
     {
         DisplayedSongsColView = cv;
 
-        if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username))
+        if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username) )
         {
-            await LogInParseOnline(true);
-            CurrentUserOnline = await APIKeys.LogInParseOnline();
+
+            if(await LogInParseOnline(true))
+            {
+                if (CurrentUser.IsAuthenticated)
+                {
+
+                    //SetupLiveQueries();
+                }
+
+            }            
             
             //await LastFMUtils.QuickLoginToLastFM();
             return;
             /*
             */
-        }
-        if (!string.IsNullOrEmpty(CurrentUserOnline.SessionToken))
-        {
-            CurrentUser.IsAuthenticated = true;
-            CurrentUser.IsLoggedInLastFM = true;
-            //SetupLiveQueries();
         }
 
     }
@@ -312,11 +314,13 @@ public partial class HomePageVM : ObservableObject
 #endif
         if (TemporarilyPickedSong is not null)
         {
-
+            if (string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+            {
+                return;
+            }
             if (SelectedSongToOpenBtmSheet != TemporarilyPickedSong)
             {        
                 SynchronizedLyrics?.Clear();
-                //LastfmTracks?.Clear();
             }      
         }
         if (SelectedSongToOpenBtmSheet.SyncLyrics is null || SelectedSongToOpenBtmSheet.SyncLyrics.Count < 1)

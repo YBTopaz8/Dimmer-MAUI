@@ -1299,6 +1299,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             songsinpl?.Clear();
             foreach (var song in songsFromPlaylist)
             {
+                if (song is null)
+                {
+                    continue;
+                }
                 if (songsIdsFromPL.Contains(song.LocalDeviceId))
                 {
                     songsinpl.Add(song);

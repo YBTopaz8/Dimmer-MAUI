@@ -89,7 +89,22 @@
                 <Border>
                     <ImageButton Command="{Binding ToggleRepeatModeCommand}"
                                  ToolTipProperties.Text="ToggleRepeat"
-                                 Source="{Binding RepeatModeImage}">
+                                 >
+                        <ImageButton.Triggers>
+                            <DataTrigger TargetType="ImageButton" Binding="{Binding CurrentRepeatMode}" Value="0">
+                                <Setter Property="Source" Value="repeatoffdark.png"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="ImageButton" Binding="{Binding CurrentRepeatMode}" Value="1">
+                                <Setter Property="Source" Value="repeaton.png"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="ImageButton" Binding="{Binding CurrentRepeatMode}" Value="2">
+                                <Setter Property="Source" Value="repeatoned.png"/>
+                                <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="ImageButton" Binding="{Binding CurrentRepeatMode}" Value="4">
+                                <Setter Property="Source" Value="repeaton.png"/>
+                            </DataTrigger>
+                        </ImageButton.Triggers>
                         <ImageButton.CommandParameter>
                             <x:Boolean>True</x:Boolean>
                         </ImageButton.CommandParameter>

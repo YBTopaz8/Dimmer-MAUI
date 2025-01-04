@@ -108,8 +108,10 @@
                                  VerticalOptions="Center" WidthRequest="280">
                 <Label Text="User Login" FontSize="26"/>
 
-                <Entry Placeholder="User Name" x:Name="LoginUname"
+                <Label Text="Online User Name" />
+                <Entry  x:Name="LoginUname"
                        Text="{Binding CurrentUser.UserName}" />
+                <Label Text="Online Password"/>
                 <Entry IsPassword="True"
                        Text="{Binding CurrentUser.UserPassword}"
                         Placeholder="Password" x:Name="LoginPass" />

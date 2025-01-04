@@ -164,6 +164,10 @@ public partial class HomePageVM : ObservableObject
 
     public void CallStats()
     {
+        if (AllPlayDataLinks is null || AllPlayDataLinks.Count<1)
+        {
+            return;
+        }
         var fDimm = AllPlayDataLinks.Where(p=>p.PlayType==3).OrderBy(p=>p.DateFinished).FirstOrDefault();
         if (fDimm != null)
         {

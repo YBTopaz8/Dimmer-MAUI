@@ -111,9 +111,9 @@ public partial class SongsManagementService
             {
                 CurrentOfflineUser = new UserModelView()
                 {
-                    UserName = "User",
-                    UserEmail = "user@dimmer.com",
-                    UserPassword = "1234",
+                    UserName = string.Empty,
+                    UserEmail = string.Empty,
+                    UserPassword = string.Empty,
                 };
             }
             if (CurrentUserOnline is null)

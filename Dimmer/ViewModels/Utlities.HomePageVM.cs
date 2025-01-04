@@ -108,6 +108,10 @@ public partial class HomePageVM
     [RelayCommand]
     async Task DeleteFile(SongModelView? song)
     {
+        if (song is null)
+        {
+            return;
+        }
 
         switch (IsMultiSelectOn)
         {
@@ -160,7 +164,12 @@ public partial class HomePageVM
     [RelayCommand]
     void OpenSongFolder() //SongModel SelectedSong)
     {
-        if(!EnableContextMenuItems) return;
+        if (SelectedSongToOpenBtmSheet is null)
+        {
+            return;
+        }
+
+        if (!EnableContextMenuItems) return;
 #if WINDOWS
         string filePath = string.Empty;
         if (CurrentPage == PageEnum.NowPlayingPage)

@@ -925,9 +925,9 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             CurrentOfflineUser = new UserModelView()
             {
-                UserName = "User",
-                UserEmail = "user@dimmer.com",
-                UserPassword = "1234",
+                UserName = string.Empty,
+                UserEmail = string.Empty,
+                UserPassword = string.Empty,
               
             };
             db = Realm.GetInstance(DataBaseService.GetRealm());

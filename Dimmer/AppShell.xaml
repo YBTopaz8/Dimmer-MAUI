@@ -74,7 +74,7 @@
                 <Label Text="Toggle MultiSelection"/>
             </syncf:SfEffectsView>
             </Border>
-            <Border >
+            <Border IsVisible="False">
                     <syncf:SfEffectsView TouchDownCommand="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}" >
                 <Label Text="Set Repeat Count"/>
             </syncf:SfEffectsView>
