@@ -41,8 +41,8 @@
             <VerticalStackLayout x:Name="AlreadyInView">
                 <VerticalStackLayout>
 
-                    <Label Text="Not Logged In 💔" IsVisible="{Binding CurrentUser.IsAuthenticated, Converter={x:StaticResource BoolToInverse}}"
-                           FontSize="56" HorizontalOptions="Center"/>
+                    <Label Text="Not Logged In Yet.. " IsVisible="{Binding CurrentUser.IsAuthenticated, Converter={x:StaticResource BoolToInverse}}"
+                           FontSize="46" HorizontalOptions="Center"/>
 
                 </VerticalStackLayout>
                 
@@ -109,10 +109,10 @@
                 <Label Text="User Login" FontSize="26"/>
 
                 <Label Text="Online User Name" />
-                <Entry  x:Name="LoginUname"
+                <Entry  x:Name="LoginUname" ClearButtonVisibility="WhileEditing"
                        Text="{Binding CurrentUser.UserName}" />
                 <Label Text="Online Password"/>
-                <Entry IsPassword="True"
+                <Entry IsPassword="True" ClearButtonVisibility="WhileEditing"
                        Text="{Binding CurrentUser.UserPassword}"
                         Placeholder="Password" x:Name="LoginPass" />
 
@@ -141,11 +141,12 @@
 
                 <Label Text="User Sign Up" FontSize="26"/>
 
-                <Entry Placeholder="User Name" x:Name="SignUpUname"
+                <Entry Placeholder="User Name" x:Name="SignUpUname" ClearButtonVisibility="WhileEditing"
                         Text="{Binding CurrentUser.UserName}"/>
-                <Entry Placeholder="Email" x:Name="SignUpEmail"
+                <Entry Placeholder="Email" x:Name="SignUpEmail" ClearButtonVisibility="WhileEditing"
                        Text="{Binding CurrentUser.UserEmail}"/>
-                <Entry Placeholder="Password" x:Name="SignUpPass" IsPassword="True"
+                <Entry Placeholder="Password" x:Name="SignUpPass" IsPassword="True" ClearButtonVisibility="WhileEditing"
+                       
                        Text="{Binding CurrentUser.UserPassword}"/>
                 <syncf:SfChip Text="Sign Up" x:Name="SignUpBtn" 
                                Clicked="SettingsAction" CommandParameter="2"

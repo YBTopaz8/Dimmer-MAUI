@@ -737,6 +737,11 @@ public partial class HomePageVM
         }
         try
         {
+            if (!CurrentUser.UserEmail.Contains("@"))
+            {
+                await Shell.Current.DisplayAlert("Error!", "Invalid Email", "Ok");
+                return false;
+            }
             ParseUser user = new ParseUser()
             {
                 Username = CurrentUser.UserEmail,
@@ -760,12 +765,14 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
-        if (string.IsNullOrEmpty(CurrentUser.UserPassword))
+        if ((string.IsNullOrEmpty(CurrentUser.UserPassword)||string.IsNullOrEmpty(CurrentUser.UserName)) && !isSilent)
         {
+            await Shell.Current.DisplayAlert("Error!", "Empty UserName/Password", "Ok");
+
             return false;
         }
 
-        if (Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+        if ((Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet) && !isSilent)  
         {
             if (!isSilent)
             {
@@ -779,7 +786,7 @@ public partial class HomePageVM
             }
 ;
         }
-        if (string.IsNullOrEmpty(CurrentUser.UserName) || string.IsNullOrEmpty(CurrentUser.UserPassword) )
+        if ((string.IsNullOrEmpty(CurrentUser.UserName) || string.IsNullOrEmpty(CurrentUser.UserPassword)) && !isSilent )
         {
             if (!isSilent)
             {
@@ -852,6 +859,11 @@ public partial class HomePageVM
         }
         catch (Exception ex)
         {
+            if(ex.Source == "System.Net.Http")
+            {
+                await Shell.Current.DisplayAlert("Error!", "Invalid Credentials", "Ok");
+                
+            }
             return false;
         }
     }
