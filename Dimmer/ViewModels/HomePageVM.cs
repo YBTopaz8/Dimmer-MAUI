@@ -1258,7 +1258,7 @@ public partial class HomePageVM : ObservableObject
 
     public ParseLiveQueryClient LiveQueryClient { get; set; }
 
-    public void SetupLiveQueries()
+    public async void SetupLiveQueries()
     {
         
         try
@@ -1320,8 +1320,7 @@ public partial class HomePageVM : ObservableObject
         }
         catch (Exception ex)
         {
-
-            throw;
+            
         }
     }
 

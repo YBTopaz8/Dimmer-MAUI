@@ -737,14 +737,14 @@ public partial class HomePageVM
         }
         try
         {
-            if (!CurrentUser.UserEmail.Contains("@"))
+            if (!CurrentUser.UserEmail.Contains('@'))
             {
                 await Shell.Current.DisplayAlert("Error!", "Invalid Email", "Ok");
                 return false;
             }
             ParseUser user = new ParseUser()
             {
-                Username = CurrentUser.UserEmail,
+                Username = CurrentUser.UserName,
                 Password = CurrentUser.UserPassword,
                 Email = CurrentUser.UserEmail
             };
