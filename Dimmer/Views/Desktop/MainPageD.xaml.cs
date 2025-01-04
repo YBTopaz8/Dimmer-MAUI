@@ -276,7 +276,7 @@ public partial class MainPageD : ContentPage
     {
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-
+        song.IsCurrentPlayingHighlight = false;
         await HomePageVM.PlaySong(song);
     }
 
