@@ -337,13 +337,13 @@ public partial class HomePageVM : ObservableObject
         int previousYear = currentMonth == 1 ? currentYear - 1 : currentYear;
 
         var currentMonthPlays = playData
-            .Where(p => p.DateFinished.Year == currentYear && p.DateFinished.Month == currentMonth)
+            .Where(p => p.DateFinished.Year == currentYear && p.DateFinished.Month == currentMonth && p.SongId != null)
             .GroupBy(p => p.SongId , StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() >= 3)
             .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
         var previousMonthPlays = playData
-            .Where(p => p.DateFinished.Year == previousYear && p.DateFinished.Month == previousMonth)
+            .Where(p => p.DateFinished.Year == previousYear && p.DateFinished.Month == previousMonth && p.SongId != null)
             .GroupBy(p => p.SongId, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() >= 5)
             .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);

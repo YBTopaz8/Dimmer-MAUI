@@ -1327,7 +1327,7 @@ public partial class HomePageVM : ObservableObject
     //public void LogInToLastFMClientLocal()
     //{
     //    var localPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
+    
 
     //    clientLastFM = new LastfmClient(APIKeys.LASTFM_API_KEY, APIKeys.LASTFM_API_SECRET)
     //    {
