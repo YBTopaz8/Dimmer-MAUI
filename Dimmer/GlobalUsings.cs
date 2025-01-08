@@ -7,6 +7,8 @@ global using Dimmer_MAUI.Views.Mobile;
 
 global using Parse;
 global using Parse.Infrastructure;
+global using Parse.LiveQuery;
+
 
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,6 +25,8 @@ global using Dimmer_MAUI.Views.Desktop.CustomViews;
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using DevExpress.Maui;
 global using DevExpress.Maui.Editors;
+global using DevExpress.Maui.Controls;
+
 
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;

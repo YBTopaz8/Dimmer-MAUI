@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
-    
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
     x:DataType="vm:HomePageVM"
     x:Name="myPage"

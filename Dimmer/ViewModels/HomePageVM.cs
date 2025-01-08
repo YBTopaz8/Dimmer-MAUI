@@ -1,9 +1,4 @@
-﻿using DevExpress.Maui.Controls;
-
-using Parse.LiveQuery;
-
-
-namespace Dimmer_MAUI.ViewModels;
+﻿namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     //LastfmClient LastfmClient;

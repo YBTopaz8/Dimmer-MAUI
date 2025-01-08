@@ -163,16 +163,9 @@ public partial class FullStatsPageD : ContentPage
 
     private async void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
-        Debug.WriteLine(sender.GetType());
-        Debug.WriteLine(e.NewIndexes.Count);
         var send = sender as PieSeries;
         var itemss = send.ItemsSource as ObservableCollection<DimmData>;
-        Debug.WriteLine(send.ItemsSource.GetType());
-        foreach (var item in e.NewIndexes)
-        {
-            Debug.WriteLine("ss "+item);
-            
-        }
+        
         var song = ViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
 
         ViewModel.SelectedSongToOpenBtmSheet = song;

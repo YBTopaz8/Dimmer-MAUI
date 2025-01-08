@@ -44,9 +44,10 @@ public partial class HomePageVM
         {
             return false;
         }
-        LyricsSearchSongTitle = SelectedSongToOpenBtmSheet.Title;
-        LyricsSearchArtistName= SelectedSongToOpenBtmSheet.ArtistName;
-        LyricsSearchAlbumName =SelectedSongToOpenBtmSheet.AlbumName;
+        LyricsSearchSongTitle = string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.Title : LyricsSearchSongTitle;
+        LyricsSearchArtistName= string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.ArtistName : LyricsSearchArtistName;
+        LyricsSearchAlbumName = string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.AlbumName : LyricsSearchAlbumName;
+        
 
         List<string> manualSearchFields =
         [
@@ -65,9 +66,9 @@ public partial class HomePageVM
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
         AllSyncLyrics = new();
-        (bool IsSuccessful, Content[]? contentData) result = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true, manualSearchFields);
+        (bool IsSuccessful, Content[]? contentData) = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true, manualSearchFields);
 
-        AllSyncLyrics = result.contentData.ToObservableCollection();
+        AllSyncLyrics = contentData.ToObservableCollection();
         (IsFetchSuccessful, var e) = await LyricsManagerService.FetchLyricsOnlineLyrist(SelectedSongToOpenBtmSheet.Title, TemporarilyPickedSong.ArtistName);
         if (e is not null)
         {
@@ -75,7 +76,7 @@ public partial class HomePageVM
         }
 
 
-        IsFetchSuccessful = result.IsSuccessful;
+        IsFetchSuccessful = IsSuccessful;
 
         //LyricsSearchSongTitle = null;
         //LyricsSearchArtistName = null;
@@ -88,7 +89,14 @@ public partial class HomePageVM
 
     public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
     {
-        var result = ((bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this)));
+        if (IsPlain)
+        {
+            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.PlainLyrics;
+            
+            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+            return;
+        }
+        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
         if (result)
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);

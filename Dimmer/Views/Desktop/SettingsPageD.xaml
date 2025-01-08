@@ -28,7 +28,7 @@
             
             <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
                                ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
-                               x:Name="SettingsTab" toolkit:DockLayout.DockPosition="Top">
+                               x:Name="SettingsTab">
                 <syncf:SfChip Text="Folders Management" CommandParameter="1"/>                
                 <syncf:SfChip Text="User Page" CommandParameter="0"/>
                 <syncf:SfChip Text="Online Login" CommandParameter="2"/>

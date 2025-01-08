@@ -49,7 +49,7 @@ public partial class ArtistsPageD : ContentPage
         {
             HomePageVM.GetAllArtistsAlbum();
         }
-        if (HomePageVM.SelectedSongToOpenBtmSheet is not null)
+        if (HomePageVM.SelectedArtistOnArtistPage is not null)
         {
             AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
             AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
