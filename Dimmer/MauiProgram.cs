@@ -1,6 +1,4 @@
-﻿using UraniumUI;
-
-namespace Dimmer_MAUI;
+﻿namespace Dimmer_MAUI;
 public static class MauiProgram
 {    
     public static MauiApp CreateMauiApp()
@@ -28,8 +26,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
-                fonts.AddMaterialSymbolsFonts();
-                fonts.AddFontAwesomeIconFonts();
+                
                 
             })
             
@@ -41,6 +38,8 @@ public static class MauiProgram
 #endif
 
 #if WINDOWS
+        builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+
         builder.ConfigureLifecycleEvents(events =>
         {
             events.AddWindows(wndLifeCycleBuilder =>
@@ -110,12 +109,15 @@ public static class MauiProgram
         });
 #endif
 
-
+#if ANDROID
+        builder.Services.AddSingleton<MediaPlayerService>(); // Register as singleton
+        builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+#endif
 
 #if ANDROID || WINDOWS
         builder.Services.AddSingleton<INativeAudioService, NativeAudioService>();
         builder.Services.AddSingleton<DimmerWindow>();
-        builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+        
 #endif
         builder.Services.AddSingleton(FolderPicker.Default);
         //builder.Services.AddSingleton(FilePicker.Default);
@@ -167,8 +169,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<AlbumPageM>();
         builder.Services.AddTransient<ShareSongPage>();
         builder.Services.AddSingleton<SettingsPageM>();
+        builder.Services.AddSingleton<FirstStepPage>();
         //builder.Services.AddSingleton<NowPlayingPage>();
-               
+
 
         return builder.Build();
     }

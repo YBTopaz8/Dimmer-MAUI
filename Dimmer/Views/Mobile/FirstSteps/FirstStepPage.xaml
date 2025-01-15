@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Mobile.FirstSteps.FirstStepPage"
+             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
+             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+             x:DataType="vm:HomePageVM"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
+             xmlns:dx="http://schemas.devexpress.com/maui"
+             >
+    <dx:DXStackLayout Orientation="Vertical" Margin="10,0">
+        <dx:DXStackLayout.Resources>
+            <Style TargetType="Label">
+                <Setter Property="FontSize" Value="26"/>
+            </Style>
+        </dx:DXStackLayout.Resources>
+        
+        <HorizontalStackLayout>
+            <Label Text="Welcome to " VerticalOptions="Center" 
+                   HorizontalOptions="Start" />
+            
+            <Label Text="Dimmer" TextColor="DarkSlateBlue"
+                   VerticalOptions="Center" FontAttributes="Bold"
+                   HorizontalOptions="Start"/>
+
+        </HorizontalStackLayout>
+        <BoxView HeightRequest="0.4" BackgroundColor="DarkSlateBlue"/>
+
+        <dx:DXBorder>
+            <dx:DXStackLayout>
+                <HorizontalStackLayout>
+                    <Label Text="1"/>
+                    <Label Text="Grant Accesses"/>
+                </HorizontalStackLayout>                
+                <dx:Chip Text="Grant Access"
+                         TapCommand="{Binding GrantPermissionsAndroidCommand}"/>
+                
+            </dx:DXStackLayout>
+        </dx:DXBorder>
+    </dx:DXStackLayout>
+</ContentPage>

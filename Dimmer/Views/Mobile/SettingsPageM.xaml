@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.SettingsPageM"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"               
@@ -61,19 +61,9 @@
                          
                         </HorizontalStackLayout>
                         <Label Text="Login/Sign Up (Tap to Reveal)"/>
-                        <!--<Image>
-                                <Image.Source>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Wifi}"/>
-                                </Image.Source>
-                            </Image>
-
-                            <Label Text="Folders" VerticalOptions="Center" FontSize="24" Grid.Column="1"/>
-                        </HorizontalStackLayout>-->
-
-                        <ImageButton Grid.Column="2" HorizontalOptions="End">
-                            <ImageButton.Source>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Arrow_downward}"/>
-                            </ImageButton.Source>
+                        <ImageButton Grid.Column="2" HorizontalOptions="End"
+                                     Source="arrowcircledown.png">
+                            
                         </ImageButton>
                     </VerticalStackLayout>
                 </toolkit:Expander.Header>
@@ -132,10 +122,8 @@
 
 
             <HorizontalStackLayout Spacing="5" BackgroundColor="Transparent">
-                <Image>
-                    <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Folder}"/>
-                    </Image.Source>
+                <Image Source="folder.png">
+                    
                 </Image>
                 <Label Text="Folders" FontSize="24" />
             </HorizontalStackLayout>
@@ -176,12 +164,9 @@
         <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"
                              Margin="10" BackgroundColor="Transparent">
             <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                <Image>
-                    <Image.Source>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
-                    </Image.Source>
-                </Image>
-                <Label Text="Facing Issues ?" FontSize="24" />
+                    <Image Source="issue.png"/>
+
+                    <Label Text="Facing Issues ?" FontSize="24" />
             </HorizontalStackLayout>
             <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
                          Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"

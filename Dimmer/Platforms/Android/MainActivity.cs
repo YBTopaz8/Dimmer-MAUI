@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
+using Dimmer_MAUI.Platforms.Android.MAudioLib;
 
 namespace Dimmer_MAUI;
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
@@ -11,13 +12,16 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
 {
     MediaPlayerServiceConnection mediaPlayerServiceConnection;
 
-    public MediaPlayerServiceBinder Binder { get; set; }
+    public MediaPlayerService MediaPlayerService { get; set; }
 
     public event StatusChangedEventHandler StatusChanged;
     public event CoverReloadedEventHandler CoverReloaded;
     public event PlayingEventHandler Playing;
     public event BufferingEventHandler Buffering;
 
+    public AndroidX.Media3.Session.IMediaController CustomMediController {get;set;}
+
+    HomePageVM ViewModel { get; set; }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
@@ -48,28 +52,28 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         ////Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
 
-        NotificationHelper.CreateNotificationChannel(Platform.AppContext);
-        if (mediaPlayerServiceConnection is null)
-        {
-            MediaPlayerService mediaPlayerService = new MediaPlayerService();
-            mediaPlayerService.MainAct = this;
-            InitializeMedia();
-        }
+        //NotificationHelper.CreateNotificationChannel(Platform.AppContext);
 
+        ViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        //var e = IPlatformApplication.Current!.Services.GetService<MediaPlayerService>()!;
+
+        //MediaPlayerService = e;
     }
 
-    private void InitializeMedia()
+    protected override void OnNewIntent(Intent? intent)
     {
-        mediaPlayerServiceConnection = new MediaPlayerServiceConnection(this);
-        var mediaPlayerServiceIntent = new Intent(Platform.AppContext, typeof(MediaPlayerService));
-        BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
+        base.OnNewIntent(intent);
+        //use this to do something when user taps notif bar
     }
-
     protected override async void OnStop()
     {
         base.OnStop();
 
         var homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         await homeVM.ExitingApp();
+    }
+    public void test()
+    {
+        
     }
 }

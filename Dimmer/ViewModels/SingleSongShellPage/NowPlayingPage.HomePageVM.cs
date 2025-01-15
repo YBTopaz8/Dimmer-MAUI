@@ -155,12 +155,12 @@ public partial class HomePageVM
     [ObservableProperty]
     ObservableCollection<LyricPhraseModel>? lyricsLines = new();
     [RelayCommand]
-    async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            await PlaySong(TemporarilyPickedSong);
+            PlaySong(TemporarilyPickedSong);
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);

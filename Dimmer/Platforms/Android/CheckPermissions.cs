@@ -10,7 +10,7 @@ public class CheckPermissions : Permissions.BasePlatformPermission
         get
         {
             var result = new List<(string androidPermission, bool isRuntime)>();
-            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
             {
                 result.Add((Manifest.Permission.PostNotifications, true));
                 result.Add((Manifest.Permission.ReadMediaAudio, true));
@@ -18,9 +18,8 @@ public class CheckPermissions : Permissions.BasePlatformPermission
                 result.Add((Manifest.Permission.ManageExternalStorage, true));
                 result.Add((Manifest.Permission.ReadExternalStorage, true));
                 result.Add((Manifest.Permission.WriteExternalStorage, true));
-
             }
-            return result.ToArray();
+            return [.. result];
         }
     }
 }

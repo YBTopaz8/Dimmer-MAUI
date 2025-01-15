@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.SingleSongShellPageD"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
             
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             x:DataType="vm:HomePageVM"
@@ -20,7 +20,7 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
@@ -479,11 +479,6 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     <syncf:SfEffectsView>
                                         
                                     <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Title}"/>
-                                                </Image.Source>
-                                            </Image>
                                             <Label Text="{Binding  SelectedSongToOpenBtmSheet.Title}"/>
                             
                                         </HorizontalStackLayout>
@@ -491,11 +486,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Person}"/>
-                                                </Image.Source>
-                                            </Image>
+                                            
                                             <Label Text="{Binding  SelectedSongToOpenBtmSheet.ArtistName}"/>
 
                                         </HorizontalStackLayout>
@@ -503,11 +494,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Album}"/>
-                                                </Image.Source>
-                                            </Image>
+                                            
                                             <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}"/>
 
                                         </HorizontalStackLayout>
@@ -515,11 +502,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Style}"/>
-                                                </Image.Source>
-                                            </Image>
+                                            
                                             <Label Text="{Binding SelectedSongToOpenBtmSheet.GenreName}"/>
 
                                         </HorizontalStackLayout>
@@ -527,11 +510,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Date_range}"/>
-                                                </Image.Source>
-                                            </Image>
+                                            
                                             <Label Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear}"/>
 
                                         </HorizontalStackLayout>
@@ -539,11 +518,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            <Image>
-                                                <Image.Source>
-                                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Numbers}"/>
-                                                </Image.Source>
-                                            </Image>
+                                            
                                             <Label Text="{Binding SelectedSongToOpenBtmSheet.TrackNumber}"/>
 
                                     </HorizontalStackLayout>
@@ -557,22 +532,14 @@ Margin="5,5" RowDefinitions="Auto, *">
 
                                     <syncf:SfEffectsView TouchUpCommand="{Binding OpenSongFolderCommand}">
                                         <HorizontalStackLayout>
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Directions}"/>
-                                            </Image.Source>
-                                        </Image>
+                                        
                                         <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath}" LineBreakMode="TailTruncation"/>
                                     </HorizontalStackLayout>
 
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Format_size}"/>
-                                            </Image.Source>
-                                        </Image>
+                                        
                                         <Label Text="{Binding SelectedSongToOpenBtmSheet.FileSize, Converter={StaticResource FileSizeConverter}}"/>
                                     </HorizontalStackLayout>
 
@@ -585,11 +552,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                     TextColor="DarkOrange"/>
                                     <syncf:SfEffectsView>
 <HorizontalStackLayout>
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Timer}"/>
-                                            </Image.Source>
-                                        </Image>
+                                        
                                         <Label 
                      Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     </HorizontalStackLayout>
@@ -597,26 +560,11 @@ Margin="5,5" RowDefinitions="Auto, *">
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Info}"/>
-                                            </Image.Source>
-                                        </Image>
+                                        
                                         <Label Text="{Binding SelectedSongToOpenBtmSheet.FileFormat}"/>
                                     </HorizontalStackLayout>
 
                                     </syncf:SfEffectsView>
-                                    <syncf:SfEffectsView>
-                                        <HorizontalStackLayout>
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Rate_review}"/>
-                                            </Image.Source>
-                                        </Image>
-                                        <Label Text="{Binding SelectedSongToOpenBtmSheet.BitRate, StringFormat='{0} kbps'}"/>
-                                    </HorizontalStackLayout>
-                                    </syncf:SfEffectsView>
-                                    
 
                                 </VerticalStackLayout>
 
@@ -658,9 +606,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                             <PointerGestureRecognizer PointerPressed="PointerGestureRecognizer_PointerPressed" 
                                        PointerReleased="PointerGestureRecognizer_PointerReleased"/>
                         </ImageButton.GestureRecognizers>
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                        </ImageButton.Source>
+                        
                     </ImageButton>
                     <Slider Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
                             MinimumTrackColor="DarkSlateBlue" x:Name="slid" 
@@ -671,9 +617,7 @@ Margin="5,5" RowDefinitions="Auto, *">
                     <ImageButton Command="{Binding PlayNextSongCommand}" toolkit:DockLayout.DockPosition="Right"
                   x:Name="rightImgBtn" ToolTipProperties.Text="Play Next"
                                  Grid.Column="2">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-                        </ImageButton.Source>
+                        
                     </ImageButton>
 
                 </Grid>

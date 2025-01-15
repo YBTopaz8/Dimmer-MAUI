@@ -11,15 +11,15 @@ public partial class EachPageNPFAB_Mobile : ContentView
     }
     public HomePageVM HomePageVM { get; }
 
-    private async void DXButton_Clicked(object sender, EventArgs e)
+    private void DXButton_Clicked(object sender, EventArgs e)
     {
         if (HomePageVM.IsPlaying)
         {
-            await HomePageVM.PauseSong();
+            HomePageVM.PauseSong();
         }
         else
         {
-            await HomePageVM.ResumeSong();
+            HomePageVM.ResumeSong();
         }
     }
 

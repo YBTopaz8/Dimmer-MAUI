@@ -1,3 +1,7 @@
+
+
+using CommunityToolkit.Maui.Core.Platform;
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : ContentPage
@@ -9,8 +13,6 @@ public partial class HomePageM : ContentPage
         this.HomePageVM = homePageVM;
         BindingContext = homePageVM;
         Shell.SetNavBarIsVisible(this, true);
-
-        
     }
 
 
@@ -28,9 +30,16 @@ public partial class HomePageM : ContentPage
     }
 
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
+        
+        if (HomePageVM.isFirstTimeOpeningApp)
+        {
+            await Shell.Current.GoToAsync(nameof(FirstStepPage));
+            return;
+        }
+
         if (HomePageVM.TemporarilyPickedSong is null)
         {
             return;
@@ -122,7 +131,7 @@ public partial class HomePageM : ContentPage
         return visibleItems;
     }
 
-    private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
         HomePageVM.CurrentQueue = 0;
         if (HomePageVM.IsOnSearchMode)
@@ -137,7 +146,7 @@ public partial class HomePageM : ContentPage
             HomePageVM.filteredSongs = filteredSongs;
 
         }
-        await HomePageVM.PlaySong(e.Item as SongModelView);
+        HomePageVM.PlaySong(e.Item as SongModelView);
     }
 
     private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -149,6 +158,7 @@ public partial class HomePageM : ContentPage
         if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
         {
             SongsMenuBtm.Show();
+            
         }
     }
 
@@ -166,6 +176,8 @@ public partial class HomePageM : ContentPage
     private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
     {
         SearchSongPopUp.Show();
+        
+        
     }
 
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
@@ -305,6 +317,7 @@ public partial class HomePageM : ContentPage
         SongsColView.FilterString = string.Empty;
         SongTitleTextEdit.Text = string.Empty;
         HomePageVM.IsOnSearchMode = false;  
+        SongTitleTextEdit.Focus();
     }
     
 
@@ -367,5 +380,10 @@ public partial class HomePageM : ContentPage
     private void GoToArtistBtn_Clicked_1(object sender, EventArgs e)
     {
 
+    }
+
+    private void ScrollToSong_Clicked(object sender, EventArgs e)
+    {
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 }

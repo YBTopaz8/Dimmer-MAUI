@@ -14,7 +14,13 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
     /// gets the class name for the component
     /// </summary>
     /// <value>The name of the component.</value>
-    public string ComponentName { get { return Class.Name; } }
+    public string ComponentName 
+    { 
+        get 
+        { 
+            return Class.Name; 
+        } 
+    }
 
     /// <Docs>The Context in which the receiver is running.</Docs>
     /// <summary>

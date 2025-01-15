@@ -4,7 +4,7 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
             x:DataType="vm:HomePageVM" VerticalOptions="End" HorizontalOptions="End"
              x:Class="Dimmer_MAUI.Views.Mobile.EachPageNPFAB_Mobile">
     <HorizontalStackLayout VerticalOptions="End" Spacing="10" BackgroundColor="Transparent"
@@ -17,14 +17,15 @@
                     <Style TargetType="dx:DXButton">
                         <Setter Property="WidthRequest" Value="60"/>
                         <Setter Property="HeightRequest" Value="60"/>
-                        <Setter Property="IconHeight" Value="60"/>
-                        <Setter Property="IconWidth" Value="60"/>
+                        <Setter Property="IconHeight" Value="45"/>
+                        <Setter Property="IconWidth" Value="45"/>
                         <Setter Property="BackgroundColor" Value="Transparent"/>
                         <Setter Property="IconWidth" Value="60"/>
                         <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
                     </Style>
                 </ResourceDictionary>
             </dx:DXExpander.Resources>
+            
             <dx:DXExpander.Content>
                 <Grid WidthRequest="270" HeightRequest="150" BackgroundColor="Transparent">
                     <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" BackgroundColor="Transparent"
@@ -42,25 +43,23 @@
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                         Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
-                                  IconColor="White">
-                            <dx:DXButton.Icon>
-
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_previous}"/>
-                            </dx:DXButton.Icon>
+                                  IconColor="White" Icon="stepbackward.png">
+                            
                         </dx:DXButton>
-                        <dx:DXButton IconColor="White" Clicked="DXButton_Clicked">
-                            <dx:DXButton.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{Binding PlayPauseIcon}"
-                                                  x:DataType="vm:HomePageVM"/>
-                            </dx:DXButton.Icon>
+                        <dx:DXButton IconColor="White" Clicked="DXButton_Clicked"
+                                     >
+                                <dx:DXButton.Triggers>
+                                    <DataTrigger TargetType="dx:DXButton" Value="True" Binding="{Binding IsPlaying}">
+                                        <Setter Property="Icon" Value="pause.png"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="dx:DXButton" Value="False" Binding="{Binding IsPlaying}">
+                                        <Setter Property="Icon" Value="play.png"/>
+                                    </DataTrigger>
+                                </dx:DXButton.Triggers>
                         </dx:DXButton>
 
                         <dx:DXButton Command="{Binding PlayNextSongCommand}"
-                                  IconColor="White">
-                            <dx:DXButton.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Skip_next}"/>
-
-                            </dx:DXButton.Icon>
+                                  IconColor="White" Icon="stepforward.png">
                         </dx:DXButton>
                     </HorizontalStackLayout>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 

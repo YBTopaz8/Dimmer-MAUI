@@ -6,7 +6,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:HomePageVM" 
              Shell.NavBarIsVisible="False"
@@ -185,10 +185,7 @@
                 </VerticalStackLayout>-->
                 
                 <HorizontalStackLayout>
-                    <Image>
-                        <Image.Source>
-                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Help}"/>
-                        </Image.Source>
+                    <Image Source="issue.png">                        
                     </Image>
                     <Label Text="Facing Issues!" FontSize="24" />
                 </HorizontalStackLayout>

@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Mobile.ArtistsPageM"
               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"       
@@ -16,7 +16,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
 
         </ResourceDictionary>
@@ -58,10 +58,8 @@
                         <dx:DXButton TapPressed="ResetSongs_TapPressed" x:Name="ResetSongs"
                                      BackgroundColor="Transparent" IconColor="White"
                                      PressedBackgroundColor="DarkSlateBlue"
-                                     >
-                            <dx:DXButton.Icon>
-                                <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Restart_alt}"/>
-                            </dx:DXButton.Icon> 
+                                     Icon="restart.png">
+                            
                         </dx:DXButton>
                     </FlexLayout>
                 </dx:DXCollectionView.Header>
@@ -76,30 +74,22 @@
                                 <VerticalStackLayout VerticalOptions="Center" 
                                      BackgroundColor="Transparent">
                                 <Label Text="{Binding Title}" WidthRequest="250" HeightRequest="30" />
-                                <Image WidthRequest="13" HorizontalOptions="Start"
-                                       IsVisible="{Binding IsCurrentPlayingHighlight}">
-                                    <Image.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" 
-                         Color="DarkSlateBlue"
-                         Glyph="{x:Static m:MaterialRounded.Play_arrow}"/>
-                                    </Image.Source>
-                                </Image>
-                            </VerticalStackLayout>
+                                    <Image WidthRequest="13" HorizontalOptions="Start"
+                                       IsVisible="{Binding IsCurrentPlayingHighlight}"
+                                       Source="play_circle.png"/>
+                                </VerticalStackLayout>
                             <dx:DXButton Grid.Column="1"  
-                                 IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton">
-                                <dx:DXButton.Icon>
-                                    <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
-                                </dx:DXButton.Icon>
+                                 IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton"
+                                         Icon="more.png">
+                                
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
 
                                     <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"
+                                           Source="composing.gif"
 >
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                        </Image.Source>
                                     </Image>
                                 </VerticalStackLayout>
                             </dx:DXButton>

@@ -346,6 +346,8 @@ public partial class AppShell : Shell
 
 public enum PageEnum
 {
+    SetupPage,
+    SettingsPage,
     MainPage,
     NowPlayingPage,
     PlaylistsPage,

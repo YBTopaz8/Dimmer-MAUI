@@ -66,15 +66,15 @@ public partial class MediaPlaybackControlsView : ContentView
     }
 
 
-    private async void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
+    private void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
     {
         if (vm.IsPlaying)
         {
-            await vm.PauseSong();
+            vm.PauseSong();
         }
         else
         {
-            await vm.ResumeSong();
+            vm.ResumeSong();
         }
     }
 

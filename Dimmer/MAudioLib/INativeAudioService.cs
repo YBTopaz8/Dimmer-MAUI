@@ -3,17 +3,18 @@ public interface INativeAudioService
 {
     public static INativeAudioService Current;
     
-    void Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
-    Task PlayAsync(bool IsFromPreviousOrNext = false);
-
-    Task PauseAsync();
-    Task ResumeAsync(double positionInSeconds);
+    void Initialize(SongModelView Song);
+    void Play(bool IsFromPreviousOrNext = false);
+    
+    void Pause();
+    void Resume(double positionInSeconds);
     ///<Summary>
     /// Set the current playback position (in seconds).
     ///</Summary>
-    Task SetCurrentTime(double value);
+    void SetCurrentTime(double value);
+    void SkipToNext();
+    void SkipToPrevious();
 
-    Task DisposeAsync();
     ///<Summary>
     /// Gets a value indicating whether the currently loaded audio file is playing.
     ///</Summary>
@@ -33,7 +34,7 @@ public interface INativeAudioService
     /// <summary>
     /// Gets or sets the playback volume muted. false means not mute; true means mute.
     /// </summary>
-    bool Muted { get; set; }
+    //bool Muted { get; set; }
 
     ///<Summary>
     /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
@@ -45,4 +46,5 @@ public interface INativeAudioService
     event EventHandler PlayNext;
     event EventHandler PlayPrevious;
     event EventHandler<long> IsSeekedFromNotificationBar;
+
 }

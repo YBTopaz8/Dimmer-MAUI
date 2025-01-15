@@ -23,7 +23,8 @@
                 <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"
                            
                            WidthRequest="500" Placeholder="Type To Search..." TextChanged="SearchSongSB_TextChanged" 
-                        IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}"   >
+                        IsVisible="{Binding CanSearch}">
+
                 </SearchBar>
             </TitleBar.Content>
 

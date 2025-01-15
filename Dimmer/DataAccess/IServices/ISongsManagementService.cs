@@ -5,7 +5,7 @@ public interface ISongsManagementService
     
     bool AddSongBatchAsync(IEnumerable<SongModelView> song);
     bool AddArtistsBatch(IEnumerable<ArtistModelView> artists);
-    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
+    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath, bool IsSilent=false);//to load songs from folder
     void GetSongs();
 
     /// <summary>

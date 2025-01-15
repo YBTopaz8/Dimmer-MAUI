@@ -113,9 +113,17 @@ public partial class HomePageVM : ObservableObject
         _songIdToAlbumMap = tempDictionary;
     }
     #endregion
+
+    public bool isFirstTimeOpeningApp = false;
+
     #region Data Loading
     public void LoadData()
     {
+        if (SongsMgtService.AllSongs.Count < 1)
+        {
+            isFirstTimeOpeningApp = true;
+        }
+
         AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();
         AllLinks = SongsMgtService.AllLinks;
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)

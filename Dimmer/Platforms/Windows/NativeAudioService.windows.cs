@@ -10,7 +10,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     static NativeAudioService current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
     HomePageVM? ViewModel { get; set; }
-    MediaPlayer  mediaPlayer;
+    MediaPlayer? DimmMediaPlayer { get; set; }
     MediaPlay? CurrentMedia { get; set; }
     private bool isPlaying;
     public bool IsPlaying
@@ -32,26 +32,26 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
-    public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
+    public double Duration => DimmMediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
+    public double CurrentPosition => DimmMediaPlayer?.Position.TotalSeconds ?? 0;
     public double Volume
     {
-        get => mediaPlayer?.Volume ?? 0;
+        get => DimmMediaPlayer?.Volume ?? 0;
 
         set
         {
-            if (mediaPlayer is not null)
+            if (DimmMediaPlayer is not null)
             {
-                mediaPlayer.Volume = Math.Clamp(value, 0, 1);
+                DimmMediaPlayer.Volume = Math.Clamp(value, 0, 1);
             }
         }
     }
     public bool Muted
     {
-        get => mediaPlayer?.IsMuted ?? false;
-        set => mediaPlayer.IsMuted = value;
+        get => DimmMediaPlayer?.IsMuted ?? false;
+        set => DimmMediaPlayer.IsMuted = value;
     }
-    public double Balance { get => mediaPlayer.AudioBalance; set => mediaPlayer.AudioBalance = Math.Clamp(value, -1, 1); }
+    public double Balance { get => DimmMediaPlayer.AudioBalance; set => DimmMediaPlayer.AudioBalance = Math.Clamp(value, -1, 1); }
 
     public event EventHandler<bool>? IsPlayingChanged;
     public event EventHandler? PlayEnded;
@@ -60,49 +60,49 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
 
-    public Task PauseAsync()
+    public void Pause()
     {
-        mediaPlayer?.Pause();
+        DimmMediaPlayer?.Pause();
         IsPlaying = false;
         IsPlayingChanged?.Invoke(this, false);
-        return Task.CompletedTask;
+        
     }
 
-    public Task ResumeAsync(double positionInSeconds)
+    public void Resume(double positionInSeconds)
     {
-        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
-        mediaPlayer.Play();
+        DimmMediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
+        DimmMediaPlayer.Play();
         IsPlaying = true;
         
-        return Task.CompletedTask;
+        
     }
-    public Task PlayAsync(bool IsFromPreviousOrNext = false)
+    public void Play(bool IsFromPreviousOrNext = false)
     {
-        if (mediaPlayer != null)
+        if (DimmMediaPlayer != null)
         {
-            mediaPlayer.Play();
+            DimmMediaPlayer.Play();
             IsPlaying = true;
             IsPlayingChanged?.Invoke(this, true);
         }
-        return Task.CompletedTask;
+        
         
     }
 
     
-    public Task SetCurrentTime(double positionInSec)
+    public void SetCurrentTime(double positionInSec)
     {
         
-        if (mediaPlayer == null)
+        if (DimmMediaPlayer == null)
         {
-            return Task.FromResult(false);
+            return;
         }
-        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
-        return Task.FromResult(true);
+        DimmMediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
+        return ;
     }
-    public Task DisposeAsync()
+    public void DisposeAsync()
     {
-        mediaPlayer?.Dispose();
-        return Task.CompletedTask;
+        DimmMediaPlayer?.Dispose();
+        
     }
 
 
@@ -158,9 +158,10 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
         }
     }
 
-    public void Initialize(SongModelView? media, byte[]? ImageBytes)
+    public void Initialize(SongModelView media)
     {
         CurrentMedia?.Stream?.Dispose();
+        
         if (media is not null)
         {
             // Directly use the file path to create a URI for local files
@@ -174,7 +175,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
                 Name = media.Title,
                 Author = media!.ArtistName!,
                 Stream = memStream,
-                ImageBytes = ImageBytes is not null ? ImageBytes : null,
+                ImagePath = media.CoverImagePath,
                 DurationInMs = (long)(media.DurationInSeconds * 1000),
             };
             
@@ -185,10 +186,10 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
             var curMedia = MediaPlaybackItem(CurrentMedia!);
             if (curMedia == null)
                 return;
-            if (mediaPlayer == null)
+            if (DimmMediaPlayer == null)
             {
 
-                mediaPlayer = new MediaPlayer()
+                DimmMediaPlayer = new MediaPlayer()
                 {
                     Source = curMedia,
                     AudioCategory = MediaPlayerAudioCategory.Media,
@@ -196,24 +197,24 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
 
                 
 
-                mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
-                mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                DimmMediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
+                DimmMediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                DimmMediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
                 
-                mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
-                mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                DimmMediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
+                DimmMediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
 
-                mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
+                DimmMediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
 
-                mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
-                mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
-                mediaPlayer.Volume = 1;
-                mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
+                DimmMediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
+                DimmMediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+                DimmMediaPlayer.Volume = 1;
+                DimmMediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
             }
             else
             {
-                PauseAsync();
-                mediaPlayer.Source = curMedia;
+                Pause();
+                DimmMediaPlayer.Source = curMedia;
             }
         }
         catch (Exception)
@@ -254,4 +255,15 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
         IsPlayingChanged?.Invoke(sender, true);
     }
 
+    public void SkipToNext()
+    {
+        return;
+        //throw new NotImplementedException();
+    }
+
+    public void SkipToPrevious()
+    {
+        return;
+        //throw new NotImplementedException();
+    }
 }

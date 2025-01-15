@@ -5,7 +5,7 @@
              
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"  
              BackgroundColor="Black"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
             
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters" 
@@ -57,10 +57,9 @@
                                 </VerticalStackLayout>
                                 <ImageButton HeightRequest="42" BackgroundColor="Transparent" 
                                      WidthRequest="30" HorizontalOptions="Center" 
-                                     Command="{Binding BindingContext.OpenPlaylistMenuBtmSheetCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.More_vert}"/>
-                                    </ImageButton.Source>
+                                     Command="{Binding BindingContext.OpenPlaylistMenuBtmSheetCommand, Source={x:Reference myPage}}" CommandParameter="{Binding .}"
+                                             Source="more1.png">
+                                    
                                 </ImageButton>
 
 

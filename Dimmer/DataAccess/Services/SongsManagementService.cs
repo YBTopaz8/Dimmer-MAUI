@@ -83,8 +83,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     PlayType = model.PlayType,
                     
                 }));
-            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData =
-    new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
+            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData = new();
 
             foreach (var model in realmPlayData)
             {
@@ -309,7 +308,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 {
                     try
                     {
-                        var duration = ((ParseObject)item)["DurationInSeconds"];
+                        var duration = item["DurationInSeconds"];
                         double dur = Convert.ToDouble(duration);
                         var itemmm = GeneralStaticUtilities.MapFromParseObjectToClassObject<SongModelView>((ParseObject)item); //duration is off
 
@@ -906,9 +905,9 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             return CurrentOfflineUser;
         }
         db = Realm.GetInstance(DataBaseService.GetRealm());
-        var dbUser = db.All<UserModel>().ToList().FirstOrDefault();
+        var dbUser = db.All<UserModel>().ToList();
 
-        if (dbUser == null)
+        if (dbUser == null || dbUser.Count<1)
         {
             if (usr is not null)
             {
@@ -938,7 +937,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             });
             return CurrentOfflineUser;
         }
-        CurrentOfflineUser = new(dbUser);
+        var e = dbUser.FirstOrDefault() is null? new():dbUser.First();
+        CurrentOfflineUser = new(e);
         return CurrentOfflineUser;
     }
        
@@ -999,7 +999,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
     }
     
-    public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)
+    public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths, bool IsSilent=false)
     {
         // Load songs from folders asynchronously without blocking the UI
         (var allArtists, var allAlbums, var allLinks, var songs, var allGenres) =
@@ -1021,8 +1021,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 
         await AddSongToArtistWithArtistIDAndAlbumAndGenreAsync(allArtists, allAlbums, songs, allGenres, allLinks, null);
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
-
-        await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
+        if (!IsSilent)
+        {
+            await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
+        }
+        
         ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
 
 

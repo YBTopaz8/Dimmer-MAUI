@@ -6,7 +6,7 @@
              
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+             
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"                            
@@ -25,7 +25,7 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
@@ -53,10 +53,8 @@
             <chart:SfTabView.Items >
 
                 <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
-                                 TextColor="Gray">
-                    <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Lyrics}"/>
-                    </chart:SfTabItem.ImageSource>
+                                 TextColor="Gray" ImageSource="lyrics.png">
+                    
                     <chart:SfTabItem.Content>
 
 
@@ -104,10 +102,9 @@
                     </chart:SfTabItem.Content>
                 </chart:SfTabItem>
 
-                <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray">
-                    <chart:SfTabItem.ImageSource>
-                        <FontImageSource FontFamily="MaterialRounded" Glyph="{Static m:MaterialRounded.Wifi}"/>
-                    </chart:SfTabItem.ImageSource>
+                <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray"
+                                 ImageSource="search.gif">
+                    
                     <chart:SfTabItem.Content>
                         <Grid Margin="5,5" RowDefinitions="*,Auto" BackgroundColor="Transparent">
                             <Grid.Resources>

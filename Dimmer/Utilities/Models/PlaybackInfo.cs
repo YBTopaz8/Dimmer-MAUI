@@ -15,6 +15,8 @@ public enum MediaPlayerState
     SyncingData,
     DoneScanningData,
     Previewing,
+
+
 }
 public class PlaybackInfo
 {

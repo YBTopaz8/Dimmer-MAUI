@@ -76,15 +76,15 @@ public partial class MiniControlNotificationView : ContentPage
         ResetTimer();
     }
 
-    private async void pauseImgBtn_Clicked(object sender, EventArgs e)
+    private void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
-        await vm.PauseSong();
+        vm.PauseSong();
         ResetTimer();
     }
 
     private async void playImgBtn_Clicked(object sender, EventArgs e)
     {
-        await vm.ResumeSong();
+        vm.ResumeSong();
         ResetTimer();
     }
 }

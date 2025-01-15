@@ -13,7 +13,6 @@ public partial class SettingsPageD : ContentPage
     public bool ToLogin { get; }
     public HomePageVM ViewModel { get; }
 
-    bool IsUserInLastFM;
     protected override void OnAppearing()
     {
         base.OnAppearing();

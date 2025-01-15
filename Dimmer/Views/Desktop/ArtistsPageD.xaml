@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Desktop.ArtistsPageD"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+            
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
@@ -16,7 +16,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
 
@@ -176,10 +176,9 @@
 
                             <VerticalStackLayout BackgroundColor="Transparent">
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                <Image WidthRequest="20" IsVisible="{Binding HasLyrics}">
-                                    <Image.Source>
-                                        <FontImageSource FontFamily="MaterialRounded" Glyph="{x:Static m:MaterialRounded.Lyrics}"/>
-                                    </Image.Source>
+                                <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+                                       Source="lyrics.png">
+                                    
                                 </Image>
                             </VerticalStackLayout>
                         </FlexLayout>
