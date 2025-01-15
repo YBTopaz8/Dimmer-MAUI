@@ -5,11 +5,12 @@
              
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-            
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"                
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:HomePageVM" BackgroundColor="#111111" Opacity="0.5"
              x:Name="myPage">
+    
     <ContentView.GestureRecognizers>
         <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"
                                   PointerExited="PointerGestureRecognizer_PointerExited"/>
@@ -43,9 +44,50 @@
             </Style>
         </ResourceDictionary>
     </ContentView.Resources>
+    <Grid ColumnDefinitions="Auto,*, Auto">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
+        </Grid.GestureRecognizers>
 
 
-<Grid ColumnDefinitions="Auto,*">
+        <HorizontalStackLayout Grid.Column="0" IsVisible="{Binding IsFlyOutPaneOpen, Converter={StaticResource BoolToInverse}}"
+                               Spacing="5" Padding="5" ToolTipProperties.Text="Click To View">
+            <HorizontalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer 
+         Tapped="NavToSingleSongShell_Tapped"/>
+            </HorizontalStackLayout.GestureRecognizers>
+
+            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" Stroke="LightCoral" StrokeThickness="2"
+         Text="{Binding TemporarilyPickedSong.Title}"
+         BorderWidth="0" CornerRadius="20">
+
+                <toolkit:AvatarView.Triggers>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                </toolkit:AvatarView.Triggers>
+            </toolkit:AvatarView>
+
+
+            <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
+                <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
+            LineBreakMode="HeadTruncation" FontSize="18"/>
+                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
+            LineBreakMode="TailTruncation"
+            Opacity="0.6" HorizontalOptions="Start"/>
+                <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
+        LineBreakMode="HeadTruncation"/>
+
+            </VerticalStackLayout>
+
+        </HorizontalStackLayout>
+
+    </Grid>
+
+    <!--<Grid ColumnDefinitions="Auto,*">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
         </Grid.GestureRecognizers>
@@ -79,7 +121,7 @@
             Opacity="0.6" HorizontalOptions="Start"/>
                 <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
         LineBreakMode="HeadTruncation"/>
-                <!--<Label Text="{Binding IsShuffleOn}"/>-->
+                
             </VerticalStackLayout>
         </HorizontalStackLayout>
 
@@ -183,6 +225,6 @@ DragCompleted="Slider_DragCompleted" Margin="15,0" >
             </Grid>
         </VerticalStackLayout>
     
-</Grid>
+</Grid>-->
      
 </ContentView>

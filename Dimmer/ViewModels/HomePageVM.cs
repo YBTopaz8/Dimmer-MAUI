@@ -16,6 +16,8 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial SongModelView? TemporarilyPickedSong { get; set; } = null;
+    [ObservableProperty]
+    public partial SongModelView? NextSong { get; set; } = null;
 
     [ObservableProperty]
     public partial double CurrentPositionPercentage { get; set; }
@@ -264,7 +266,7 @@ public partial class HomePageVM : ObservableObject
         SyncLyricsCV = cv;
     }
     [ObservableProperty]
-    string loadingSongsText;
+    public partial string LoadingSongsText { get; set; }
     public void SetLoadingProgressValue(double newValue)
     {
         if (newValue<100)
@@ -276,7 +278,7 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    public async void LoadLocalSongFromOutSideApp(List<string> filePath)
+    public void LoadLocalSongFromOutSideApp(List<string> filePath)
     {
         CurrentQueue = 2;
         PlayBackService.PlaySelectedSongsOutsideApp(filePath);
@@ -293,9 +295,9 @@ public partial class HomePageVM : ObservableObject
         }
 #if WINDOWS
         
-        Shell.Current.GoToAsync(nameof(SingleSongShellPageD));
+        await Shell.Current.GoToAsync(nameof(SingleSongShellPageD));
         
-        AfterSingleSongShellAppeared();
+        await AfterSingleSongShellAppeared();
         
         ToggleFlyout();
         
@@ -304,7 +306,7 @@ public partial class HomePageVM : ObservableObject
 
         if (currentPage.GetType() != typeof(SingleSongShell))
         {
-            Shell.Current.GoToAsync(nameof(SingleSongShell), true);
+            await Shell.Current.GoToAsync(nameof(SingleSongShell), true);
         }
 #endif
         if (TemporarilyPickedSong is not null)
@@ -418,7 +420,7 @@ public partial class HomePageVM : ObservableObject
             IsLoadingSongs = true;
             if (FolderPaths is null || FolderPaths.Count < 0)
             {
-                Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+                await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
                 IsLoadingSongs = false;
                 return;
             }
@@ -437,7 +439,7 @@ public partial class HomePageVM : ObservableObject
         }
         catch (Exception ex)
         {
-            Shell.Current.DisplayAlert("Error During Scanning",ex.Message, "Ok");
+            await Shell.Current.DisplayAlert("Error During Scanning",ex.Message, "Ok");
         }
         finally
         {
@@ -451,7 +453,7 @@ public partial class HomePageVM : ObservableObject
     #region Playback Control Region
 
 
-    async Task UpdateRelatedPlayingData(SongModelView song)
+    void UpdateRelatedPlayingData(SongModelView song)
     {
         var songArt = song.ArtistName;
         if (!string.IsNullOrEmpty(songArt))
@@ -577,7 +579,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    async Task PlayPreviousSong()
+    void PlayPreviousSong()
     {
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
@@ -661,13 +663,13 @@ public partial class HomePageVM : ObservableObject
     }
     #endregion
     [ObservableProperty]
-    ObservableCollection<string> searchFilters = new([ "Artist", "Album","Genre", "Rating"]);
+    public partial ObservableCollection<string> SearchFilters { get; set; } = new([ "Artist", "Album","Genre", "Rating"]);
     [ObservableProperty]
-    int achievement=0;
+    public partial int Achievement { get; set; } =0;
     
     [ObservableProperty]
-    string searchText;
-    
+    public partial string SearchText { get; set; }
+
     public void SearchSong(List<string> SelectedFilters)
     {
         PlayBackService.SearchSong(SearchText, SelectedFilters, Achievement);
@@ -688,7 +690,7 @@ public partial class HomePageVM : ObservableObject
         {
             if(SongsMgtService.UpdateSongDetails(song))
             {
-                Shell.Current.DisplayAlert("Sucess !", "Song Updated!", "Ok");
+                await Shell.Current.DisplayAlert("Sucess !", "Song Updated!", "Ok");
             }    
         }
     }
@@ -760,7 +762,7 @@ public partial class HomePageVM : ObservableObject
 
 
     [ObservableProperty]
-    ObservableCollection<SingleSongStatistics> lastFifteenPlayedSongs;
+    public partial ObservableCollection<SingleSongStatistics> LastFifteenPlayedSongs { get; set; }
 
     public static IEnumerable<SingleSongStatistics> GetLastXPlayedSongs(IEnumerable<SongModelView>? allSongs, int number = 15)
     {
@@ -806,7 +808,7 @@ public partial class HomePageVM : ObservableObject
 
     private IDisposable _playerStateSubscription;
     [ObservableProperty]
-    bool isPlaying = false;
+    public partial bool IsPlaying { get; set; } = false;
 
     MediaPlayerState currentPlayerState;
     public void SetPlayerState(MediaPlayerState? state)
@@ -883,7 +885,7 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribeToCurrentSongPosition()
     {
-        PlayBackService.CurrentPosition.Subscribe(async position =>
+        PlayBackService.CurrentPosition.Subscribe( position =>
         {
             if (position.CurrentPercentagePlayed != 0)
             {
@@ -894,7 +896,7 @@ public partial class HomePageVM : ObservableObject
                     PauseSong();
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        SaveLyricsToLrcAfterSyncing();
+                        await SaveLyricsToLrcAfterSyncing();
                     });
                 }
             }
@@ -920,7 +922,7 @@ public partial class HomePageVM : ObservableObject
                 {
                     
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-
+                    
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
@@ -935,7 +937,7 @@ public partial class HomePageVM : ObservableObject
                             {
                                 PickedSong.IsPlaying = false;
                                 PickedSong.IsCurrentPlayingHighlight = false;                                
-                                ParseStaticUtils.UpdateSongStatusOnline(PickedSong, CurrentUser.IsAuthenticated);
+                                
                             }
                             PickedSong = TemporarilyPickedSong;
                             
@@ -944,18 +946,22 @@ public partial class HomePageVM : ObservableObject
 
                             IsPlaying = true;
 
-
+                            if (DisplayedSongs?.Count > 1)
+                            {
+                                var ind = DisplayedSongs.IndexOf(TemporarilyPickedSong);
+                                NextSong = DisplayedSongs.ElementAtOrDefault(ind + 1);
+                            }
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
 
-                            FetchSongCoverImage();
+                            await FetchSongCoverImage();
 
-                            ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             
                             break;
                         case MediaPlayerState.Paused:
-                            ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong = null;
                             PickedSong = TemporarilyPickedSong;
@@ -1081,7 +1087,7 @@ public partial class HomePageVM : ObservableObject
         
         foreach (var song in SongsMgtService.AllSongs)
         {
-            FetchSongCoverImage(song);
+           await FetchSongCoverImage(song);
         }
         IsLoadingSongs = false;
     }
@@ -1211,7 +1217,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task NavigateToShareStoryPage()
     {
-        Shell.Current.GoToAsync(nameof(ShareSongPage));
+        await Shell.Current.GoToAsync(nameof(ShareSongPage));
     }
 
     [ObservableProperty]
@@ -1245,7 +1251,7 @@ public partial class HomePageVM : ObservableObject
 
     public ParseLiveQueryClient LiveQueryClient { get; set; }
 
-    public async void SetupLiveQueries()
+    public void SetupLiveQueries()
     {
         
         try
