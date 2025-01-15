@@ -76,7 +76,7 @@ namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 })]
 public class MediaPlayerService : MediaSessionService, IPlayerListener, IMediaController,
     AudioManager.IOnAudioFocusChangeListener, IMediaDescriptionAdapter, INotificationListener,
-    ICustomActionReceiver
+    ICustomActionReceiver, ICallback
 {
     //Actions
     public const string ActionPlay = "com.xamarin.action.PLAY";
@@ -200,6 +200,9 @@ public class MediaPlayerService : MediaSessionService, IPlayerListener, IMediaCo
                     .SetUri(Uri.FromFile(new Java.IO.File(item.FilePath)))
                     .SetMediaMetadata(metadataBuilder.Build())
                     .Build();
+                
+                
+                
                 mediaPlayer.AddMediaItem(itemMD);   
             }
 
@@ -321,43 +324,83 @@ public class MediaPlayerService : MediaSessionService, IPlayerListener, IMediaCo
                 .Build();
             mediaPlayer.AddListener(this);
         }
-        
-        
 
+
+
+        //if (mediaSession is null)
+        //{
+
+        //    Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
+
+        //    var mediaSessionBuilder = new MediaSession.Builder(Platform.AppContext, mediaPlayer);
+
+
+        //    var pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
+
+        //    var sCmd = new SessionCommand("com.xamarin.action.NEXT",null);
+
+        //    CommandButton commandButton = new CommandButton.Builder(global::Android.Resource.Drawable.IcDelete)
+        //        .SetDisplayName("Del")
+        //        .SetCustomIconResId(global::Android.Resource.Drawable.IcDelete)
+        //        .SetSessionCommand(sCmd)
+        //        .Build();
+        //    List<CommandButton> cBB = new();
+
+        //    var build2 = mediaSessionBuilder
+        //        .SetPeriodicPositionUpdateEnabledBuilder(true) as MediaSession.Builder;
+        //    MyCB = new MediaSessionCB(this);
+        //    build2.SetSessionActivity(pendingIntent);
+        //    //build2.SetCustomLayout(customLayout:cBB);
+        //    build2.SetCallback(this);
+        //    //build2.SetCommandButtonsForMediaItems(commandButtons: cBB);
+        //    //.Build();
+
+        //    //.SetAvailablePlayerCommands(null)
+        //    //.SetAvailableSessionCommands(null)
+        //    //.SetPeriodicPositionUpdateEnabled(true) ;
+
+        //    //.SetCallback(this);
+
+        //    mediaSession = build2.Build()!;
+        //    mediaSession.SetMediaButtonPreferences(mediaSession.ConnectedControllers[0], cBB);
+        //}
         if (mediaSession is null)
         {
-
             Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
-            var mediaSessionBuilder = new MediaSession.Builder(Platform.AppContext, mediaPlayer);
 
+            var mediaSessionBuilder = new MediaSession.Builder(Platform.AppContext, mediaPlayer);
 
             var pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
 
+            // Create a valid SessionCommand
+            var sCmd = new SessionCommand("com.xamarin.action.NEXT", null);
+
+            // Create a CommandButton with the SessionCommand
+            CommandButton commandButton = new CommandButton.Builder(global::Android.Resource.Drawable.IcDelete)
+                .SetDisplayName("Del")
+                .SetCustomIconResId(global::Android.Resource.Drawable.IcDelete)
+                .SetSessionCommand(sCmd)
+                .Build();
+
+            // Add CommandButton to the list
+            List<CommandButton> cBB = new();
+            cBB.Add(commandButton);
 
             var build2 = mediaSessionBuilder
-                .SetPeriodicPositionUpdateEnabledBuilder(false) as MediaSession.Builder;
-            MyCB = new MediaSessionCB(this);
+                .SetPeriodicPositionUpdateEnabledBuilder(true) as MediaSession.Builder;
+
             build2.SetSessionActivity(pendingIntent);
-            
-            build2.SetCallback(MyCB);
-            
-            //.Build();
-            
-            //.SetAvailablePlayerCommands(null)
-            //.SetAvailableSessionCommands(null)
-            //.SetPeriodicPositionUpdateEnabled(true) ;
+            build2.SetCustomLayout(customLayout: cBB); // Include custom layout
+            build2.SetCallback(this);    // Set your MediaSession.Callback
 
-            //.SetCallback(this);
-
+            // Build the MediaSession
             mediaSession = build2.Build()!;
-
+            SetupNotification();
+            //CreateNotificationChannel();
         }
-        SetupNotification();
-        //CreateNotificationChannel();
     }
 
     
-    MediaSessionCB MyCB;
     private void CreateNotificationChannel()
     {
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
@@ -492,6 +535,7 @@ public class MediaPlayerService : MediaSessionService, IPlayerListener, IMediaCo
 
             _playerNotificationManager.SetUseStopAction(true);
             */
+            
             _playerNotificationManager!.SetPlayer(mediaPlayer);
             _playerNotificationManager.SetMediaSessionToken(mediaSession.PlatformToken);
 
@@ -1163,7 +1207,6 @@ onEvents will also be called to report this event along with other events that h
             "com.xamarin.action.PAUSE",
             "com.xamarin.action.NEXT",
     "com.xamarin.action.PREVIOUS",
-            "com.xamarin.action.FAVORITE"
         };
         }
         else
@@ -1174,7 +1217,6 @@ onEvents will also be called to report this event along with other events that h
             "com.xamarin.action.PLAY",
             "com.xamarin.action.NEXT",
     "com.xamarin.action.PREVIOUS",
-            "com.xamarin.action.FAVORITE"
         };
         }
     }
