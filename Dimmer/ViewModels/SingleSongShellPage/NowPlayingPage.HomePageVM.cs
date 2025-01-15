@@ -160,7 +160,7 @@ public partial class HomePageVM
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-            await PlaySong(TemporarilyPickedSong);
+             PlaySong(TemporarilyPickedSong);
         }
 
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);

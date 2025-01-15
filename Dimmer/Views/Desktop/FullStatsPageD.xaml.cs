@@ -161,7 +161,7 @@ public partial class FullStatsPageD : ContentPage
         _ = send.DimmOut(300);
     }
 
-    private async void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
+    private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
         var send = sender as PieSeries;
         var itemss = send.ItemsSource as ObservableCollection<DimmData>;
@@ -171,7 +171,7 @@ public partial class FullStatsPageD : ContentPage
         ViewModel.SelectedSongToOpenBtmSheet = song;
         if (ClickToPreview)
         {
-            await ViewModel.PlaySong(song, true);
+            ViewModel.PlaySong(song, true);
         }        
     }
     protected override void OnDisappearing()

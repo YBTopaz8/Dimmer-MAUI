@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Desktop.FullStatsPageD"
-              xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+              
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
@@ -18,7 +18,7 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>

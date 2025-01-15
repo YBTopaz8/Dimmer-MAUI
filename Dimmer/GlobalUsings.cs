@@ -4,6 +4,7 @@ global using CommunityToolkit.Maui.Storage;
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
+global using Dimmer_MAUI.Views.Mobile.FirstSteps;
 
 global using Parse;
 global using Parse.Infrastructure;
@@ -14,9 +15,6 @@ global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 
-global using UraniumUI.Icons.MaterialSymbols;
-global using UraniumUI.Icons.FontAwesome;
-global using FontAw = UraniumUI.Icons.FontAwesome;
 global using Realms;
 
 global using Dimmer_MAUI.MAudioLib;

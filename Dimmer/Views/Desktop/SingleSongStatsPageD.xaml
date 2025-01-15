@@ -14,7 +14,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
-            <converters:BoolToImageConverter x:Key="BoolToImage"/>
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentPage.Resources>

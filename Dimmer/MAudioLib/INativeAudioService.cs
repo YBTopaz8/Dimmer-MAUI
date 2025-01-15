@@ -4,16 +4,16 @@ public interface INativeAudioService
     public static INativeAudioService Current;
     
     void Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
-    Task PlayAsync(bool IsFromPreviousOrNext = false);
+    void Play(bool IsFromPreviousOrNext = false);
 
-    Task PauseAsync();
-    Task ResumeAsync(double positionInSeconds);
+    void Pause();
+    void Resume(double positionInSeconds);
     ///<Summary>
     /// Set the current playback position (in seconds).
     ///</Summary>
-    Task SetCurrentTime(double value);
+    void SetCurrentTime(double value);
 
-    Task DisposeAsync();
+    void Dispose();
     ///<Summary>
     /// Gets a value indicating whether the currently loaded audio file is playing.
     ///</Summary>

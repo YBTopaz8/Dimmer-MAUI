@@ -4,15 +4,14 @@ namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
 {
-	public DimmerWindow(Lazy<HomePageVM> viewModel)
+	public DimmerWindow()
 	{
         InitializeComponent();
-        HomepageVM = viewModel.Value;
-        BindingContext = viewModel.Value;
+        
         
     }
 
-    public HomePageVM HomepageVM { get; }
+    public HomePageVM Homepagevm { get; set; }
 
     protected override void OnCreated()
     {
@@ -21,7 +20,6 @@ public partial class DimmerWindow : Window
         this.MinimumWidth = 1200;
         this.Height = 950;
         this.Width = 1200;
-
 #if DEBUG
         DimmerTitleBar.Subtitle = "v1.0e-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
@@ -31,17 +29,35 @@ public partial class DimmerWindow : Window
         DimmerTitleBar.Subtitle = "v1.0e-release";
 #endif
 
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
-        onlineCloud.IsVisible = HomepageVM.CurrentUser.IsAuthenticated;
+        if (!InitChecker())
+        {
+            return;
+        }
+        BindingContext = Homepagevm;
+        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
+        onlineCloud.IsVisible = Homepagevm.CurrentUser.IsAuthenticated;
 
 
     }
+    bool InitChecker()
+    {
+        Homepagevm ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
+        if (Homepagevm is null)
+        {
+            return false;
+        }
+        return true;
+    }
     private CancellationTokenSource _debounceTimer;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (HomepageVM.CurrentPage != PageEnum.MainPage)
+        if  (!InitChecker())
+        {
+            return;
+        }
+        if (Homepagevm.CurrentPage != PageEnum.MainPage)
             return;
 
         var searchBar = (SearchBar)sender;
@@ -51,11 +67,11 @@ public partial class DimmerWindow : Window
         _debounceTimer = new CancellationTokenSource();
         var token = _debounceTimer.Token;
 
-        if (HomepageVM.SongsMgtService.AllSongs is null)
+        if (Homepagevm.SongsMgtService.AllSongs is null)
         {
             return;
         }
-        if (HomepageVM.DisplayedSongs is null)
+        if (Homepagevm.DisplayedSongs is null)
         {
             return;
         }
@@ -68,46 +84,46 @@ public partial class DimmerWindow : Window
             {
                 if (txt.Length >= 1)
                 {
-                    HomepageVM.IsOnSearchMode = true;
-                    HomepageVM.DisplayedSongs.Clear();
+                    Homepagevm.IsOnSearchMode = true;
+                    Homepagevm.DisplayedSongs.Clear();
 
                     // Directly filter the songs based on the search text, with null checks
-                    var fSongs = HomepageVM.SongsMgtService.AllSongs
+                    var fSongs = Homepagevm.SongsMgtService.AllSongs
                         .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
                                        (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
                                        (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(txt, StringComparison.OrdinalIgnoreCase)))
                         .ToList();
 
-                    HomepageVM.filteredSongs = fSongs;
+                    Homepagevm.filteredSongs = fSongs;
 
                     foreach (var song in fSongs)
                     {
-                        HomepageVM.DisplayedSongs.Add(song);
+                        Homepagevm.DisplayedSongs.Add(song);
                     }
-                    HomepageVM.CurrentQueue = 1;
+                    Homepagevm.CurrentQueue = 1;
 
-                    if (HomepageVM.DisplayedSongs.Count < 1)
+                    if (Homepagevm.DisplayedSongs.Count < 1)
                     {
-                        HomepageVM.DisplayedSongs.Clear();
+                        Homepagevm.DisplayedSongs.Clear();
                     }
-                    OnPropertyChanged(nameof(HomepageVM.DisplayedSongs));
+                    OnPropertyChanged(nameof(Homepagevm.DisplayedSongs));
                     return;
                 }
             }
             else
             {
-                HomepageVM.IsOnSearchMode = false;
-                HomepageVM.DisplayedSongs.Clear();
+                Homepagevm.IsOnSearchMode = false;
+                Homepagevm.DisplayedSongs.Clear();
 
                 // Repopulate with all songs when search is empty
-                if (HomepageVM.SongsMgtService.AllSongs != null)
+                if (Homepagevm.SongsMgtService.AllSongs != null)
                 {
-                    foreach (var song in HomepageVM.SongsMgtService.AllSongs)
+                    foreach (var song in Homepagevm.SongsMgtService.AllSongs)
                     {
-                        HomepageVM.DisplayedSongs.Add(song);
+                        Homepagevm.DisplayedSongs.Add(song);
                     }
                 }
-                HomepageVM.CurrentQueue = 0;
+                Homepagevm.CurrentQueue = 0;
             }
         }
         catch (TaskCanceledException)
@@ -121,16 +137,24 @@ public partial class DimmerWindow : Window
     }
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+        if (!InitChecker())
+        {
+            return;
+        }
+        Homepagevm.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        HomepageVM.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = HomepageVM.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !HomepageVM.IsStickToTop;
+        if (!InitChecker())
+        {
+            return;
+        }
+        Homepagevm.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
     }
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)

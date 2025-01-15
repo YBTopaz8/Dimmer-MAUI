@@ -27,12 +27,12 @@ public partial class PlaylistsPageD : ContentPage
         HomePageVM.DisplayedSongsFromPlaylist.Clear();
     }
 
-    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
         var t = (Border)sender;
         var song = t.BindingContext as SongModelView;
-        await HomePageVM.PlaySong(song);        
+        HomePageVM.PlaySong(song);        
     }
 
     private void StateTrigger_IsActiveChanged(object sender, EventArgs e)

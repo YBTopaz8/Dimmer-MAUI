@@ -5,19 +5,19 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongModelView>> NowPlayingSongs { get; } //to display songs in queue
     IObservable<ObservableCollection<SongModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    Task<bool> PlaySongAsync(SongModelView? song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
+    bool PlaySong(SongModelView? song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
         double lastPosition = 0, int repeatMode = 0, 
         int repeatMaxCount = 0, bool IsUserSkipped = true,
         bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
-    Task<bool> PlaySongAsync(SongModelView song, bool isPreview=true);
-    Task<bool> PlayNextSongAsync(bool IsUserSkipped=true); //to play next song
-    Task<bool> PlayPreviousSongAsync(bool IsUserSkipped = true); //to play previous song
-    Task<bool> StopSongAsync(); //to stop song
-    Task<bool> PauseResumeSongAsync(double lastPosition, bool isPause=false); //to pause/resume song
+    bool PlaySong(SongModelView song, bool isPreview=true);
+    bool PlayNextSong(bool IsUserSkipped=true); //to play next song
+    bool PlayPreviousSong(bool IsUserSkipped = true); //to play previous song
+    bool StopSong(); //to stop song
+    bool PauseResumeSong(double lastPosition, bool isPause=false); //to pause/resume song
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     void RemoveSongFromQueue(SongModelView song); //to remove song from queue
     void AddSongToQueue(SongModelView song); //to add song to queue
-    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
+    bool LoadSongsFromFolder(List<string> folderPath);//to load songs from folder
 
     SongModelView? CurrentlyPlayingSong { get; }
     SongModelView PreviouslyPlayingSong { get; }
@@ -38,7 +38,7 @@ public interface IPlaybackUtilsService
     void UpdateSongToFavoritesPlayList(SongModelView song);
     int CurrentQueue { get; set; }
     void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1);
-    Task<bool> PlaySelectedSongsOutsideAppAsync(List<string> filePaths);
+    bool PlaySelectedSongsOutsideApp(List<string> filePaths);
     void FullRefresh();
     void DeleteSongFromHomePage(SongModelView song);
     Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);

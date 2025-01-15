@@ -99,42 +99,42 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
 
-    public Task PauseAsync()
+    public void Pause()
     {        
         instance.Binder.GetMediaPlayerService().Pause();        
         IsPlaying = false;
         ViewModel.SetPlayerState(MediaPlayerState.Playing);
         ViewModel.SetPlayerState(MediaPlayerState.ShowPlayBtn);
-        return Task.CompletedTask;
+        
     }
-    public async Task ResumeAsync(double positionInSeconds)
+    public void Resume(double positionInSeconds)
     {
         var posInMs = positionInSeconds * 1000;
         
-        await instance.Binder.GetMediaPlayerService().Play();
-        await instance.Binder.GetMediaPlayerService().Seek((int)posInMs);    
+        instance.Binder.GetMediaPlayerService().Play();
+        instance.Binder.GetMediaPlayerService().Seek((int)posInMs);    
         
     }
 
-    public async Task PlayAsync(bool IsFromPreviousOrNext = false)
+    public void Play(bool IsFromPreviousOrNext = false)
     {
-            await instance.Binder.GetMediaPlayerService().Play();
+            instance.Binder.GetMediaPlayerService().Play();
      
         IsPlaying = true;
         ViewModel.SetPlayerState(MediaPlayerState.Playing);
         ViewModel.SetPlayerState(MediaPlayerState.ShowPauseBtn);
     }
 
-    Task SetMuted(bool value)
+    void SetMuted(bool value)
     {
         muted = value;
         if (value)
             mediaPlayer.SetVolume(0, 0);
         else
             SetVolume(volume, balance);
-        return Task.CompletedTask;
+        
     }
-    Task SetVolume(double volume, double balance)
+    void SetVolume(double volume, double balance)
     {
 
         //mediaPlayer?.SetVolume((float)1, (float)1);
@@ -151,10 +151,10 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         //int scaledVolume = (int)Math.Round(volume);
         //aManager.SetStreamVolume(streamType, scaledVolume, VolumeNotificationFlags.RemoveSoundAndVibrate);
 
-        return Task.CompletedTask;
+        
     }
 
-    public async Task SetCurrentTime(double positionInSeconds)
+    public void SetCurrentTime(double positionInSeconds)
     {
         var posInMs = (int)(positionInSeconds * 1000);
         if (mediaPlayer is null)
@@ -162,16 +162,16 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             Debug.WriteLine("no media");
             return ;
         }
-        await instance.Binder.GetMediaPlayerService().Seek(posInMs);
+        instance.Binder.GetMediaPlayerService().Seek(posInMs);
         IsPlaying = true;
         return ;
 
     }
 
-    public Task DisposeAsync()
+    public void Dispose()
     {
         instance.Binder?.GetMediaPlayerService().Stop();
-        return Task.CompletedTask;
+        
     }
 
     public void Initialize(SongModelView media, byte[]? ImageBytes=null)
@@ -237,18 +237,16 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     private void OnPlayingChanged(object sender, bool isPlaying)
     {
-        Task.Run(async () =>
+        if (isPlaying)
         {
-            if (isPlaying)
-            {
-                await this.PlayAsync();
-                await this.SetCurrentTime(CurrentPosition);
-            }
-            else
-            {
-                await this.PauseAsync();
-            }
-        });
+            this.Play();
+            this.SetCurrentTime(CurrentPosition);
+        }
+        else
+        {
+            this.Pause();
+        }
+     
         IsPlayingChanged?.Invoke(this, isPlaying);
     }
 

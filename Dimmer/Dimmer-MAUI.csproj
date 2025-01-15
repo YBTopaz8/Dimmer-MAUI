@@ -182,8 +182,6 @@
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.0.0" />
     
-    <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.11.0" />
-    <PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.11.0" />
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.0.3" />
     
     
@@ -235,9 +233,6 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\CustomViews\MiniControlNotificationView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Desktop\CustomViews\PlayPauseView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Desktop\CustomViews\SongTagsView.xaml">

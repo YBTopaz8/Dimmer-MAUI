@@ -60,23 +60,23 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
 
-    public Task PauseAsync()
+    public void Pause()
     {
         mediaPlayer?.Pause();
         IsPlaying = false;
         IsPlayingChanged?.Invoke(this, false);
-        return Task.CompletedTask;
+        
     }
 
-    public Task ResumeAsync(double positionInSeconds)
+    public void Resume(double positionInSeconds)
     {
         mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
         mediaPlayer.Play();
         IsPlaying = true;
         
-        return Task.CompletedTask;
+        
     }
-    public Task PlayAsync(bool IsFromPreviousOrNext = false)
+    public void Play(bool IsFromPreviousOrNext = false)
     {
         if (mediaPlayer != null)
         {
@@ -84,25 +84,25 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
             IsPlaying = true;
             IsPlayingChanged?.Invoke(this, true);
         }
-        return Task.CompletedTask;
+        
         
     }
 
     
-    public Task SetCurrentTime(double positionInSec)
+    public void SetCurrentTime(double positionInSec)
     {
         
         if (mediaPlayer == null)
         {
-            return Task.FromResult(false);
+            return ;
         }
         mediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
-        return Task.FromResult(true);
+        return;
     }
-    public Task DisposeAsync()
+    public void Dispose()
     {
         mediaPlayer?.Dispose();
-        return Task.CompletedTask;
+        
     }
 
 
@@ -115,13 +115,13 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
 
             // Copy the byte stream to an InMemoryRandomAccessStream
             var randomAccessStream = new InMemoryRandomAccessStream();
-            using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
-            {
-                var buffer = new byte[media.Stream.Length];
-                _ = media.Stream.Read(buffer, 0, buffer.Length);
-                writer.WriteBytes(buffer);
-                writer.StoreAsync().GetResults();
-            }
+            //using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
+            //{
+            //    var buffer = new byte[media.Stream.Length];
+            //    _ = media.Stream.Read(buffer, 0, buffer.Length);
+            //    writer.WriteBytes(buffer);
+            //    writer.Store().GetResults();
+            //}
 
             // Create MediaSource from the InMemoryRandomAccessStream
             var mediaSource = MediaSource.CreateFromStream(randomAccessStream, string.Empty);
@@ -136,16 +136,18 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
                 props.MusicProperties.Artist = media.Author;
 
             // Set the thumbnail if available
-            if (media.ImageBytes != null)
-            {
+            
                 var thumbnailStream = new InMemoryRandomAccessStream();
                 using (var writer = new DataWriter(thumbnailStream.GetOutputStreamAt(0)))
                 {
                     writer.WriteBytes(media.ImageBytes);
-                    writer.StoreAsync().GetResults();
+                    
+                    writer.StoreAsync().GetAwaiter().GetResult();
+                    
+                    //writer.Store().GetResults();
                 }
                 props.Thumbnail = RandomAccessStreamReference.CreateFromStream(thumbnailStream);
-            }
+            
             mediaItem.AutoLoadedDisplayProperties = AutoLoadedDisplayPropertyKind.Music;
             
             mediaItem.ApplyDisplayProperties(props);
@@ -212,7 +214,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
             }
             else
             {
-                PauseAsync();
+                Pause();
                 mediaPlayer.Source = curMedia;
             }
         }

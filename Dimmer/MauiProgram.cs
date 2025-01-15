@@ -1,4 +1,4 @@
-﻿using UraniumUI;
+﻿
 
 namespace Dimmer_MAUI;
 public static class MauiProgram
@@ -28,8 +28,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("FA6Brands-Regular-400.otf", "FABrands");
-                fonts.AddMaterialSymbolsFonts();
-                fonts.AddFontAwesomeIconFonts();
+                
                 
             })
             

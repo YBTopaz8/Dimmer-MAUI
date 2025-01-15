@@ -21,15 +21,19 @@ public partial class AppShellMobile : Shell
         Routing.RegisterRoute(nameof(AlbumPageM), typeof(AlbumPageM));
         Routing.RegisterRoute(nameof(ShareSongPage), typeof(ShareSongPage));
         Routing.RegisterRoute(nameof(SettingsPageM), typeof(SettingsPageM));
+        Routing.RegisterRoute(nameof(FirstStepPage), typeof(FirstStepPage));
         //Routing.RegisterRoute(nameof(NowPlayingPage), typeof(NowPlayingPage));
 
         //this.Navigating += OnNavigating;
+
+        
     }
 
     private void OnNavigating(object? sender, ShellNavigatingEventArgs e)
     {
         //throw new NotImplementedException();
     }
+
 
     protected override bool OnBackButtonPressed()
     {

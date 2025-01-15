@@ -19,12 +19,12 @@ public partial class SpecificAlbumPage : ContentPage
         HomePageVM.CurrentPage = PageEnum.SpecificAlbumPage;
     }
 
-    private async void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         HomePageVM.CurrentQueue = 1;
         var s = (Border)sender;
         var song = s.BindingContext as SongModelView;
-        await HomePageVM.PlaySong(song);
+        HomePageVM.PlaySong(song);
     }
 
     private async void FetchAlbumCover_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)

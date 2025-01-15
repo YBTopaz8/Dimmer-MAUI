@@ -194,7 +194,7 @@ public class MediaPlayerService : Service,
             }
 
             mediaSession.Active = true;
-
+            
             mediaSession.SetCallback(new MediaSessionCallback((MediaPlayerServiceBinder)binder));
 
             mediaSession.SetFlags(MediaSessionFlags.HandlesMediaButtons | MediaSessionFlags.HandlesTransportControls);
@@ -239,7 +239,7 @@ public class MediaPlayerService : Service,
         return true;
     }
 
-    public async void OnCompletion(MediaPlayer mp)
+    public void OnCompletion(MediaPlayer mp)
     {
         IsPlayingChanged?.Invoke(this, false);
         TaskPlayEnded?.Invoke(this, EventArgs.Empty);
@@ -304,7 +304,7 @@ public class MediaPlayerService : Service,
             cover = value;
         }
     }
-    public static async Task<Bitmap?> GetBitmapFromFilePathAsync(string filePath)
+    public static Bitmap? GetBitmapFromFilePath(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -320,13 +320,13 @@ public class MediaPlayerService : Service,
     /// Intializes the player.
     /// </summary>
     int positionInMs = 0;
-    public async Task Play(int position = 0)
+    public void Play(int position = 0)
     {
         Console.WriteLine("Step 6 Play method from mediaplayerservice");
         if (mediaPlay.ImagePath is not null)
         {
-            //Cover = await GetImageBitmapFromBytesAsync(mediaPlay.ImageBytes);
-            Cover = await GetBitmapFromFilePathAsync(mediaPlay.ImagePath);
+            //Cover = GetImageBitmapFromBytes(mediaPlay.ImageBytes);
+            Cover = GetBitmapFromFilePath(mediaPlay.ImagePath);
         }
         positionInMs = position;
         if (mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
@@ -366,11 +366,11 @@ public class MediaPlayerService : Service,
 
         isCurrentEpisode = true;
         mediaPlayer?.Release();
-        await PrepareAndPlayMediaPlayerAsync();
+        PrepareAndPlayMediaPlayer();
         IsPlayingChanged?.Invoke(this, true);
     }
     
-    private async Task PrepareAndPlayMediaPlayerAsync()
+    private void PrepareAndPlayMediaPlayer()
     {
         try
         {
@@ -449,26 +449,14 @@ public class MediaPlayerService : Service,
     int failedCount = 0;
     int triedCount = 0;
     int triedAfterCount = 0;
-    private async Task<Bitmap> GetImageBitmapFromBytesAsync(byte[] imageBytes)
+   
+    public void Seek(int position = 0, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
     {
-        if (imageBytes == null || imageBytes.Length == 0)
-            return null;
-
-        // Use Task.Run to offload decoding to a background thread
-        return await Task.Run(() =>
-        {
-            return BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
-        });
-    }
-    public async Task Seek(int position = 0, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
-    {
-        await Task.Run(() =>
-        {
             positionInMs = position;
-            mediaPlayer?.SeekTo(position);
-            IsSeekedFromNotificationBar?.Invoke(this, position);
-            UpdatePlaybackState(MediaPlayerState, position);
-        });
+        mediaPlayer?.SeekTo(position);
+        IsSeekedFromNotificationBar?.Invoke(this, position);
+        UpdatePlaybackState(MediaPlayerState, position);
+        
         IsPlayingChanged?.Invoke(this, true);
 
     }
@@ -494,7 +482,7 @@ public class MediaPlayerService : Service,
         TaskPlayPrevious?.Invoke(this, EventArgs.Empty);
         //if (Position > 3000)
         //{
-        //    await Seek(0);
+        //    Seek(0);
         //}
         //else
         //{
@@ -507,38 +495,36 @@ public class MediaPlayerService : Service,
 
         UpdatePlaybackState(PlaybackStateCode.SkippingToPrevious);
 
-        //    await Play();
+        //    Play();
         //}
     }
 
-    public async Task PlayPause()
+    public void PlayPause()
     {
         if (mediaPlayer == null || mediaPlayer != null && MediaPlayerState == PlaybackStateCode.Paused)
         {
-            await Play();
+            Play();
         }
         else
         {
-            await Pause();
+            Pause();
         }
     }
 
-    public async Task Pause()
+    public void Pause()
     {
-        await Task.Run(() =>
-        {
             if (mediaPlayer == null)
                 return;
 
             if (mediaPlayer.IsPlaying)
                 mediaPlayer.Pause();
             UpdatePlaybackState(PlaybackStateCode.Paused);
-        });
+        
     }
 
-    public async Task Stop()
+    public void Stop()
     {
-        await Task.Run(() =>
+        Task.Run(() =>
         {
             if (mediaPlayer == null)
                 return;
@@ -751,7 +737,7 @@ public class MediaPlayerService : Service,
         }
     }
 
-    public async void OnAudioFocusChange(AudioFocus focusChange)
+    public void OnAudioFocusChange(AudioFocus focusChange)
     {
         Console.WriteLine($"Audio focus: {focusChange}");
         switch (focusChange)
@@ -768,13 +754,13 @@ public class MediaPlayerService : Service,
                 break;
             case AudioFocus.Loss:
                 //We have lost focus stop!
-                await Pause();
+                Pause();
                 IsPlayingChanged?.Invoke(this, false);
-                //await Stop();
+                //Stop();
                 break;
             case AudioFocus.LossTransient:
                 //We have lost focus for a short time, but likely to resume so pause
-                await Pause();
+                Pause();
                 IsPlayingChanged?.Invoke(this, false);
                 break;
             case AudioFocus.LossTransientCanDuck:
@@ -809,10 +795,10 @@ public class MediaPlayerService : Service,
             isPlaying = true;
         }
 
-        public override async void OnSkipToNext()
+        public override void OnSkipToNext()
         {
             Console.WriteLine("Step 1 Skip to next Callback Method");
-            await mediaPlayerService.GetMediaPlayerService().PlayNext();
+            mediaPlayerService.GetMediaPlayerService().PlayNext();
             base.OnSkipToNext();
         }
 
@@ -822,15 +808,15 @@ public class MediaPlayerService : Service,
             base.OnSkipToPrevious();
         }
 
-        public override async void OnStop()
+        public override void OnStop()
         {
-            await mediaPlayerService.GetMediaPlayerService().Stop();
+            mediaPlayerService.GetMediaPlayerService().Stop();
             base.OnStop();
         }
 
-        public override async void OnSeekTo(long pos)
+        public override void OnSeekTo(long pos)
         {
-            await mediaPlayerService.GetMediaPlayerService().Seek((int)pos);
+            mediaPlayerService.GetMediaPlayerService().Seek((int)pos);
             Console.WriteLine("From OnSeek Seeking to " + pos);
             //base.OnSeekTo(pos);
         }

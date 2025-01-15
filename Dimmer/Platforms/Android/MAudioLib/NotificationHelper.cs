@@ -79,6 +79,7 @@ public static class NotificationHelper
                .SetSmallIcon(Drawable.IcMediaPlay)
                .SetContentIntent(pendingIntent)
                .SetShowWhen(false)
+               
                //.SetTicker($"Now Playing {currentTrack.GetString(MediaMetadata.MetadataKeyTitle)}")
                .SetOngoing(isPlaying).SetVisibility(NotificationVisibility.Public);
             //builder.AddAction(GenerateActionCompat(context, Drawable.IcMediaPrevious, "Previous", MediaPlayerService.ActionPrevious));

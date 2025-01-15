@@ -76,7 +76,7 @@ public partial class HomePageVM
             // If the delay completed without cancellation, pause the song
             if (!cancellationToken.IsCancellationRequested && IsPlaying)
             {
-                await PauseSong();
+                PauseSong();
             }
         }
         catch (TaskCanceledException ex)
@@ -91,7 +91,7 @@ public partial class HomePageVM
 #if WINDOWS && NET9_0
         if (IsPlaying)
         {
-            _= this.PauseSong();
+            PauseSong();
         }
 #endif
         if (TemporarilyPickedSong is not null)
@@ -127,7 +127,7 @@ public partial class HomePageVM
                     }
                     if (MultiSelectSongs.Contains(TemporarilyPickedSong!))
                     {
-                        await PlayNextSong();
+                        PlayNextSong();
                     }
                     await PlayBackService.MultiDeleteSongFromHomePage(MultiSelectSongs);
 
@@ -149,7 +149,7 @@ public partial class HomePageVM
                     PlatSpecificUtils.DeleteSongFile(song);
                     if (song == TemporarilyPickedSong)
                     {
-                        await PlayNextSong();
+                        PlayNextSong();
                     }
                     DisplayedSongs?.Remove(song);
                     PlayBackService.DeleteSongFromHomePage(song);
