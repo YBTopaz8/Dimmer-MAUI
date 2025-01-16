@@ -72,6 +72,7 @@ global using Dimmer_MAUI.CustomPopUpViews;
 global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
 
+global using Colors = Microsoft.Maui.Graphics.Colors;
 
 global using Dimmer_MAUI.Utilities.Models;
 

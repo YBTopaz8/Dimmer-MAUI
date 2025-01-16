@@ -1,7 +1,7 @@
 ﻿using Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 using Microsoft.Maui.Controls.Shapes;
 using System.Windows.Input;
-using Colors = Microsoft.Maui.Graphics.Colors;
+
 
 namespace Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views;
 
