@@ -8,7 +8,7 @@
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
             xmlns:mobileViews="clr-namespace:Dimmer_MAUI.Views.Mobile"
             Padding="10,10" AllowedState="FullExpanded"
-                CornerRadius="8"
+            CornerRadius="8"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
@@ -42,10 +42,9 @@
                 <Grid ColumnDefinitions="Auto,*,auto" ColumnSpacing="0"
                       >
                     <dx:DXBorder CornerRadius="15" Grid.Column="0" WidthRequest="90" HeightRequest="90"
-                                 BackgroundColor="Green">
-                        <dx:DXImage Source="{Binding CoverImagePath}"  
-                          
-VerticalOptions="Start" HorizontalOptions="Start" />
+                                 >
+                        <dx:DXImage Source="{Binding CoverImagePath}"
+                                    VerticalOptions="Start" HorizontalOptions="Start" />
                     </dx:DXBorder>
                     
                     <dx:DXButton Grid.Column="1" HorizontalContentAlignment="Start"

@@ -26,12 +26,6 @@
                     <x:Boolean>True</x:Boolean>
                 </Button.CommandParameter>
             </Button>
-            <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
-                    IsVisible="False">
-                <Button.CommandParameter>
-                    <x:Boolean>True</x:Boolean>
-                </Button.CommandParameter>
-            </Button>
 
         </HorizontalStackLayout>
         <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1" 

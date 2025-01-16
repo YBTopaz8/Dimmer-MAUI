@@ -231,7 +231,7 @@ public class MediaPlayerService : Service,
 
     }
     
-    public bool OnError(MediaPlayer mp, MediaError what, int extra)
+    public bool OnError(MediaPlayer? mp, MediaError what, int extra)
     {
         UpdatePlaybackState(PlaybackStateCode.Error);
         Console.WriteLine(DateTime.Now.ToString() + "Step 8 ERROR on " + mediaPlay.Name + " What is " + what);
@@ -239,14 +239,14 @@ public class MediaPlayerService : Service,
         return true;
     }
 
-    public void OnCompletion(MediaPlayer mp)
+    public void OnCompletion(MediaPlayer? mp)
     {
         IsPlayingChanged?.Invoke(this, false);
         TaskPlayEnded?.Invoke(this, EventArgs.Empty);
         UpdatePlaybackState(PlaybackStateCode.Stopped);
     }
 
-    public void OnPrepared(MediaPlayer mp)
+    public void OnPrepared(MediaPlayer? mp)
     {
         try
         {
