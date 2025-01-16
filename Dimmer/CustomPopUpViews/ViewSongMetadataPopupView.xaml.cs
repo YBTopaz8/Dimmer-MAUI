@@ -25,6 +25,5 @@ public partial class ViewSongMetadataPopupView : Popup
     private async void ShareSongToStoryButton_Clicked(object sender, EventArgs e)
     {
         await this.CloseAsync();
-        HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
     }
 }

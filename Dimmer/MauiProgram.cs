@@ -6,12 +6,6 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseDevExpress(useLocalization: false)
-            .UseDevExpressCollectionView()
-            .UseDevExpressControls()
-            .UseDevExpressDataGrid()
-            .UseDevExpressEditors()
-            .UseDevExpressGauges()
 
             .UseMauiCommunityToolkit(options =>
             {
@@ -123,8 +117,6 @@ public static class MauiProgram
         //builder.Services.AddSingleton(FilePicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
 
-        builder.Services.AddSingleton<EachPageNPFAB_Mobile>();
-        builder.Services.AddTransient<NowPlayingBtmSheet>(); //btmsheet
         //builder.Services.AddSingleton<SongMenuBtmSheet>();
 
         /* Registering the DataAccess Services */
@@ -159,19 +151,6 @@ public static class MauiProgram
 
 
         /* Registering the Mobile Views */
-        builder.Services.AddSingleton<HomePageM>();
-        builder.Services.AddSingleton<SingleSongShell>();
-        builder.Services.AddSingleton<PlaylistsPageM>();
-        builder.Services.AddSingleton<SinglePlaylistPageM>();
-        builder.Services.AddSingleton<TopStatsPageM>();
-        builder.Services.AddSingleton<SingleSongStatsPageM>();
-        builder.Services.AddSingleton<ArtistsPageM>();
-        builder.Services.AddSingleton<AlbumsM>();
-        builder.Services.AddSingleton<SpecificAlbumPage>();
-        builder.Services.AddSingleton<AlbumPageM>();
-        builder.Services.AddTransient<ShareSongPage>();
-        builder.Services.AddSingleton<SettingsPageM>();
-        builder.Services.AddSingleton<FirstStepPage>();
         //builder.Services.AddSingleton<NowPlayingPage>();
 
 

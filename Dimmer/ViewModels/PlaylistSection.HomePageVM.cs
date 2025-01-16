@@ -29,10 +29,7 @@ public partial class HomePageVM
         DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).OrderBy(x => x.Title).ToObservableCollection();
         
         SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;
-        
-#if ANDROID
-        await Shell.Current.GoToAsync(nameof(SinglePlaylistPageM), true);
-#endif
+       
     }
 
     CancellationTokenSource cts = new();

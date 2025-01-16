@@ -293,22 +293,14 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-#if WINDOWS
+
         
         await Shell.Current.GoToAsync(nameof(SingleSongShellPageD));
         
         await AfterSingleSongShellAppeared();
         
         ToggleFlyout();
-        
-#elif ANDROID
-        var currentPage = Shell.Current.CurrentPage;
 
-        if (currentPage.GetType() != typeof(SingleSongShell))
-        {
-            await Shell.Current.GoToAsync(nameof(SingleSongShell), true);
-        }
-#endif
         if (TemporarilyPickedSong is not null)
         {
             if (string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
@@ -1214,11 +1206,7 @@ public partial class HomePageVM : ObservableObject
 
     
 
-    [RelayCommand]
-    async Task NavigateToShareStoryPage()
-    {
-        await Shell.Current.GoToAsync(nameof(ShareSongPage));
-    }
+
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> BackEndQ { get; set; }
@@ -1226,14 +1214,6 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial bool IsAnimatingFav { get; set; } = false;
    
-
-    [ObservableProperty]
-    public partial BottomSheetState NowPlayBtmSheetState { get; set; } = BottomSheetState.Hidden;
-    [RelayCommand]
-    void ShowNowPlayingBtmSheet()
-    {
-        NowPlayBtmSheetState = BottomSheetState.FullExpanded;
-    }
 
     //[ObservableProperty]
     //public partial ObservableCollection<Hqub.Lastfm.Entities.Track> LastfmTracks { get; set; } = new();

@@ -39,13 +39,10 @@ public partial class App : Application
 
         var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         //DimmerWindow.Page.
-#if WINDOWS
+
         DimmerWindow.Page = new AppShell(vm);
 
-#elif ANDROID
-        
-        DimmerWindow.Page = new AppShellMobile();
-#endif
+
 
         //win = base.CreateWindow(activationState);
         //this.MinimumHeight = 800;

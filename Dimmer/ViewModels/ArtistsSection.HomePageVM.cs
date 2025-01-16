@@ -47,7 +47,6 @@ public partial class HomePageVM
             .Sum(x => x.DurationInSeconds))
             .ToString(@"mm\:ss");
 
-        await Shell.Current.GoToAsync(nameof(SpecificAlbumPage));
         await ShowSpecificArtistsSongsWithAlbum(selectedAlbum);
     }
    
@@ -63,7 +62,6 @@ public partial class HomePageVM
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));
 #elif ANDROID
-        await Shell.Current.GoToAsync(nameof(ArtistsPageM));
         SelectedArtistOnArtistPage = GetAllArtistsFromSongID(SelectedSongToOpenBtmSheet!.LocalDeviceId!).First();
         GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
 #endif

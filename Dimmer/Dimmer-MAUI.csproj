@@ -166,13 +166,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="10.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.3" />
-    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
-    
+  
     <!--<PackageReference Include="Hqub.Last.fm" Version="2.5.0" />-->
     
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.21" />
@@ -193,9 +187,6 @@
 	  <PackageReference Include="WindowsAPICodePack" Version="8.0.4" />
 	</ItemGroup>-->
   <ItemGroup>
-    <MauiXaml Update="AppShellMobile.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -265,58 +256,10 @@
     <MauiXaml Update="Views\Desktop\SingleSongStatsPageD.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\Mobile\AlbumSection\AlbumPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\AlbumSection\SpecificAlbumPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\ArtistsPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\CustomViewsM\FetchLyricsResultsView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\CustomViewsM\SongStatView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\EachPageNPFAB_Mobile.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\SettingsPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\ShareSongPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\TopStatsPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\HomePageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\PlaylistsPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\SinglePlaylistPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\SingleSongShell.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="Views\Mobile\SingleSongStatsPageM.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Views\Desktop\FullStatsPageD.xaml.cs">
       <DependentUpon>FullStatsPageD.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Views\Mobile\AlbumSection\AlbumsM.xaml.cs">
-      <DependentUpon>AlbumsM.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Views\Mobile\TopStatsPageM.xaml.cs">
-      <DependentUpon>TopStatsPageM.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
