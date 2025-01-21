@@ -73,12 +73,21 @@ public partial class HomePageVM : ObservableObject
         Dictionary<string, string> tempDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (AlbumArtistGenreSongLinkView? link in AllLinks.Where(link => !string.IsNullOrEmpty(link.SongId) && !string.IsNullOrEmpty(link.ArtistId)))
         {
-            string artistName = AllArtists
-                .FirstOrDefault(artist => artist.LocalDeviceId.Equals(link.ArtistId, StringComparison.OrdinalIgnoreCase))?.Name ?? "Unknown";
-
+            string itemName = "Unknown";
+            foreach (var item in AllArtists)
+            {
+                if (item.LocalDeviceId is not null)
+                {
+                    if (item.LocalDeviceId.Equals(link.AlbumId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        itemName = item.Name;
+                        break;
+                    }
+                }
+            }
             if (!tempDictionary.ContainsKey(link.SongId.ToLower()))
             {
-                tempDictionary[link.SongId] = artistName.ToLower();
+                tempDictionary[link.SongId] = itemName.ToLower();
             }
         }
 
@@ -97,8 +106,18 @@ public partial class HomePageVM : ObservableObject
         Dictionary<string, string> tempDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (AlbumArtistGenreSongLinkView? link in AllLinks.Where(link => !string.IsNullOrEmpty(link.SongId) && !string.IsNullOrEmpty(link.AlbumId)))
         {
-            string albumName = AllAlbums
-                .FirstOrDefault(album => album.LocalDeviceId.Equals(link.AlbumId, StringComparison.OrdinalIgnoreCase))?.Name ?? "Unknown";
+            string albumName = "Unknown";
+            foreach (var album in AllAlbums)
+            {
+                if (album.LocalDeviceId is not null)
+                {
+                    if (album.LocalDeviceId.Equals(link.AlbumId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        albumName = album.Name;
+                        break;
+                    }
+                }
+            }
 
             if (!tempDictionary.TryGetValue(link.SongId.ToLower(), out string? value))
             {

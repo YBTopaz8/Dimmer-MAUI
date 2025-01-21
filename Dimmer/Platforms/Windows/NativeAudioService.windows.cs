@@ -133,9 +133,20 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
 
             soundOut.Stopped += (s, e) =>
             {
-                // Check if the playback ended naturally
-                bool isCompleted = currentWaveSource?.GetPosition() >= currentWaveSource?.GetLength();
-                Debug.WriteLine($"Playback stopped. Natural completion: {isCompleted}");
+                const double toleranceMs = 500; // 500 milliseconds tolerance
+                bool isCompleted = false;
+
+                if (currentWaveSource != null)
+                {
+                    var position = currentWaveSource.GetPosition();
+                    var length = currentWaveSource.GetLength();
+
+                    // Calculate the difference in milliseconds
+                    double differenceMs = (length - position).TotalMilliseconds;
+
+                    // Check if the playback ended naturally within the tolerance
+                    isCompleted = differenceMs <= toleranceMs;
+                }
 
 
                 // Invoke PlayEnded only if it completed naturally

@@ -8,12 +8,13 @@ public static class GeneralStaticUtilities
             throw new ArgumentNullException(nameof(CallerClass));
         }
 
-        char[] stringChars = new char[2];
+        char[] stringChars = new char[3];
         stringChars[0] = CallerClass[0];
         stringChars[1] = CallerClass[1];
+        stringChars[2] = CallerClass[2];
 
 
-        return stringChars[0]+stringChars[1]+ Guid.NewGuid().ToString();
+        return stringChars[0]+stringChars[1]+stringChars[2]+ Guid.NewGuid().ToString();
     }
 
     public static bool IsValidFile(string file)
@@ -299,6 +300,7 @@ public static class GeneralStaticUtilities
             {
                 genre = new GenreModel
                 {
+                    LocalDeviceId = GenerateLocalDeviceID("Genre"),
                     Name = genreName,
                 };
                 newGenres.Add(genre);
@@ -330,6 +332,7 @@ public static class GeneralStaticUtilities
         {
             album = new AlbumModel
             {
+                LocalDeviceId = GenerateLocalDeviceID("Album"),
                 Name = albumName,
                 ImagePath = null,
             };
@@ -357,6 +360,7 @@ public static class GeneralStaticUtilities
             {
                 artist = new ArtistModel
                 {
+                    LocalDeviceId = GenerateLocalDeviceID("Artist"),
                     Name = artistName,
                     ImagePath = null,
                 };
@@ -378,6 +382,7 @@ public static class GeneralStaticUtilities
     {
         var newLink = new AlbumArtistGenreSongLink
         {
+            LocalDeviceId = GenerateLocalDeviceID("Lnk"),
             ArtistId = artist.LocalDeviceId,
             AlbumId = album.LocalDeviceId,
             SongId = song.LocalDeviceId,
@@ -405,6 +410,7 @@ public static class GeneralStaticUtilities
 
         var song = new SongModel
         {
+            LocalDeviceId = Guid.NewGuid().ToString(),
             Title = title,
             AlbumName = albumName,
             ArtistName = artistName,

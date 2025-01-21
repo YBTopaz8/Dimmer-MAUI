@@ -384,7 +384,10 @@ public partial class HomePageVM
         SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault()!.AlbumImagePath;
         AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId!);
-        MySelectedSong.IsCurrentPlayingHighlight = true;
+        if (MySelectedSong is not null)
+        {
+            MySelectedSong.IsCurrentPlayingHighlight = true;
+        }
     }
 
     [RelayCommand]

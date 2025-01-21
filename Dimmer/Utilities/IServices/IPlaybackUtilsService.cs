@@ -14,7 +14,7 @@ public interface IPlaybackUtilsService
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     void RemoveSongFromQueue(SongModelView song); //to remove song from queue
     void AddSongToQueue(SongModelView song); //to add song to queue
-    bool LoadSongsFromFolder(List<string> folderPath); //to load songs from folder
+    Task<bool> LoadSongsFromFolder(List<string> folderPath); //to load songs from folder
 
     SongModelView? CurrentlyPlayingSong { get; }
     SongModelView PreviouslyPlayingSong { get; }
@@ -53,7 +53,7 @@ public interface IPlaybackUtilsService
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
     void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false);
-    void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = false);
+    void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true);
     void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = true);
 
     ObservableCollection<ArtistModelView>? AllArtists { get; }

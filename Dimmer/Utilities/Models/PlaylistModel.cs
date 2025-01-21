@@ -39,7 +39,7 @@ public partial class PlaylistSongLink : RealmObject
 public partial class PlaylistModelView : ObservableObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public string? LocalDeviceId { get; set; } = string.Empty;
 
     [ObservableProperty]
     string? name;

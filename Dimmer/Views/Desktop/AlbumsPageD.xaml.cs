@@ -50,7 +50,9 @@ public partial class AlbumsPageD : ContentPage
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
-        //var song = send.BindingContext! as SongModelView;
+     
+        var song = send.BindingContext! as SongModelView;
+        MyViewModel.SetContextMenuSong(song!);
 
         send.BackgroundColor = Colors.DarkSlateBlue;
         
@@ -197,4 +199,10 @@ public partial class AlbumsPageD : ContentPage
         }
     }
 
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        MyViewModel.AddNextInQueueCommand.Execute(song);
+    }
 }

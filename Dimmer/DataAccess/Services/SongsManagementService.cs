@@ -1153,7 +1153,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             if (model.LocalDeviceId is null)
             {
-                model.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID("PD");
+                model.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID("PDL");
             }
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>

@@ -471,7 +471,7 @@ public partial class PlaybackUtilsService : ObservableObject
     #endregion
 
     // Method to add songs to the playback queue
-    public void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = false)
+    public void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true)
     {
         var currentQueue = _playbackQueue.Value.ToList(); // Work with a copy
 

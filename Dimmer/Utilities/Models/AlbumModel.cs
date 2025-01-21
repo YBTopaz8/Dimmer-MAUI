@@ -38,7 +38,7 @@ public partial class AlbumModel : RealmObject
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; }
+    public partial string? LocalDeviceId { get; set; }=string.Empty;
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]

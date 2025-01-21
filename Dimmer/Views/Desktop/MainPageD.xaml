@@ -19,18 +19,15 @@
     <ContentPage.Resources>
 
         <ResourceDictionary>
+            <MenuFlyout x:Key="SongsContextMenu">
+                <MenuFlyoutItem Text="Play Next" 
+                    Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
+            </MenuFlyout>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
 
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
 
-            <MenuFlyout x:Key="ArtistAlbumSongsContextMenu" x:DataType="vm:HomePageVM">
-                <MenuFlyoutItem Text="Play Next" Command="{Binding AddNextInQueueCommand}"
-            />
-                <MenuFlyoutSeparator/>
-
-                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
-            </MenuFlyout>
         </ResourceDictionary>
 
     </ContentPage.Resources>
@@ -96,7 +93,8 @@
                 <Grid toolkit:DockLayout.DockPosition="Top" >
                     <CollectionView ItemsSource="{Binding DisplayedSongs}" 
  VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
- x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset"
+ x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset" 
+                                            
  Loaded="SongsColView_Loaded" Margin="5,0"
   >
                         <CollectionView.EmptyView>
@@ -112,8 +110,8 @@
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
-                                <syncf:SfEffectsView 
-                         TouchDown="SfEffectsView_TouchDown">
+                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"
+                         TouchDown="SfEffectsView_TouchDown" FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}"> 
                                     <Grid ColumnDefinitions="Auto,*,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="15">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -208,7 +206,7 @@
                                  VerticalOptions="Fill" RippleBackground="DarkSlateBlue" 
                                  BackgroundColor="Transparent">
                                     <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto" 
-                      BackgroundColor="#1e1e1e"
+                      BackgroundColor="#1e1e1e" 
                       ColumnSpacing="10">
                                         <Image Source="{Binding CoverImagePath}" HeightRequest="50" WidthRequest="50" 
                            Aspect="AspectFill" />

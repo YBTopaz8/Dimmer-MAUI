@@ -70,12 +70,12 @@ public partial class ArtistsPageD : ContentPage
     {
         MyViewModel.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
-    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {        
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+        MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
         //await MyViewModel.GetAllAlbumInfos(curSel);
         //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
@@ -97,7 +97,7 @@ public partial class ArtistsPageD : ContentPage
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
+        MyViewModel.AllArtistsAlbumSongs = MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
 
@@ -109,12 +109,18 @@ public partial class ArtistsPageD : ContentPage
 
         //artist.IsCurrentlySelected = true;
         MyViewModel.GetAllArtistAlbumFromArtistModel(artist);
-        
+
         //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
 
 
         //var AlbumArtist = MyViewModel.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
         //var album = MyViewModel.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
         //MyViewModel.GetAllArtistsAlbum(album: album, isFromSong: false);
+    }
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        MyViewModel.AddNextInQueueCommand.Execute(song);
     }
 }

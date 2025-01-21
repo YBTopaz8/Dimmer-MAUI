@@ -59,9 +59,9 @@
                     </syncf:SfEffectsView>
                 </Border>
             </DataTemplate>
-            <MenuFlyout x:Key="ArtistAlbumSongsContextMenu">
-                <MenuFlyoutItem Text="Play Next" Command="{Binding AddNextInQueueCommand}"
-                        />
+            <MenuFlyout x:Key="SongsContextMenu">
+                <MenuFlyoutItem Text="Play Next" 
+                                Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
 
                 <MenuFlyoutSeparator/>
 
@@ -82,7 +82,7 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                     x:Name="MediaPlayBackCW"/>
         <toolkit:DockLayout x:Name="MainBody" >
-            <Grid RowDefinitions="*,*">
+            <Grid RowDefinitions="Auto,*" >
                 <CollectionView x:Name="AlbumsColView" Grid.Row="0" HeightRequest="450"
                     ItemTemplate="{StaticResource itemTemplate}" 
                     ItemsSource="{Binding AllAlbums}"
@@ -144,7 +144,7 @@
 
                                 <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" 
                                             HeightRequest="90" 
-                                            FlyoutBase.ContextFlyout="{StaticResource ArtistAlbumSongsContextMenu}"
+                                            FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}"
                                             x:Name="AlbumSongsView" RippleAnimationDuration="550"
                                             FadeOutRipple="True" VerticalOptions="Fill"
                                             RippleBackground="DarkSlateBlue" BackgroundColor="Transparent">
@@ -174,9 +174,8 @@
 
                                     <VerticalStackLayout >
                                         <Label Text="{Binding Title}" FontSize="23"/>
-                                        <Label Text="{Binding IsCurrentPlayingHighlight}" />
-                                        <Label Text="{Binding TrackNumber, StringFormat='Track # : {0}'}" />
-                                    </VerticalStackLayout>
+                                        
+                                        </VerticalStackLayout>
                                 </syncf:SfEffectsView>
 
                             </DataTemplate>

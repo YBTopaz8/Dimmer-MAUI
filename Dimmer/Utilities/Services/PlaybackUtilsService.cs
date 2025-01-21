@@ -100,9 +100,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     #region Setups/Loadings Region
 
 
-    public bool LoadSongsFromFolder(List<string> folderPaths)
+    public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
     {
-        SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
+       await SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
 
         return true;
     }

@@ -447,7 +447,7 @@ public partial class HomePageVM : ObservableObject
                 IsLoadingSongs = false;
                 return;
             }
-            bool loadSongsResult = PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
             if (loadSongsResult)
             {
                 DisplayedSongs?.Clear();
@@ -477,7 +477,7 @@ public partial class HomePageVM : ObservableObject
     #region Playback Control Region
 
 
-    void UpdateRelatedPlayingData(SongModelView song)
+    async void UpdateRelatedPlayingData(SongModelView song)
     {
         var songArt = song.ArtistName;
         if (!string.IsNullOrEmpty(songArt))
@@ -490,7 +490,7 @@ public partial class HomePageVM : ObservableObject
                 {
                     List<string> load = [song.FilePath];
 
-                    if(PlayBackService.LoadSongsFromFolder(load))
+                    if(await PlayBackService.LoadSongsFromFolder(load))
                     {
                         string msg = $"Song {song.Title} remembered.";
                         //_ = ShowNotificationAsync(msg);
@@ -551,9 +551,7 @@ public partial class HomePageVM : ObservableObject
             }
             else // Default playing on the main page (HomePage)
             {
-                // You might want to ensure the full library is the queue here
-                var allSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic to get all songs
-                PlayBackService.ReplaceAndPlayQueue(allSongs, playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playFirst: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -1348,9 +1346,13 @@ public partial class HomePageVM : ObservableObject
     public partial ImageSource? RepeatImgSrc { get; set; }
 
     [RelayCommand]
-    public void AddNextInQueue(object song)
+    public void AddNextInQueue(SongModelView song)
     {
-        List<SongModelView> songs = [song as SongModelView];
+        List<SongModelView> songs = [song];
+        if (song is null)
+        {
+            return;
+        }
         PlayBackService.AddToImmediateNextInQueue(songs);
     }
 
