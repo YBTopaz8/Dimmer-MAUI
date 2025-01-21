@@ -40,13 +40,13 @@ public partial class HomePageVM
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
 
-        if (SelectedSongToOpenBtmSheet is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+        if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
             return false;
         }
-        LyricsSearchSongTitle = string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.Title : LyricsSearchSongTitle;
-        LyricsSearchArtistName= string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.ArtistName : LyricsSearchArtistName;
-        LyricsSearchAlbumName = string.IsNullOrEmpty(LyricsSearchSongTitle) ? SelectedSongToOpenBtmSheet.AlbumName : LyricsSearchAlbumName;
+        LyricsSearchSongTitle = string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.Title : LyricsSearchSongTitle;
+        LyricsSearchArtistName= string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.ArtistName : LyricsSearchArtistName;
+        LyricsSearchAlbumName = string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.AlbumName : LyricsSearchAlbumName;
         
 
         List<string> manualSearchFields =
@@ -56,8 +56,8 @@ public partial class HomePageVM
             LyricsSearchSongTitle,
         ];
 
-        (SelectedSongToOpenBtmSheet.HasSyncedLyrics, SelectedSongToOpenBtmSheet.SyncLyrics) = LyricsService.HasLyrics(SelectedSongToOpenBtmSheet);
-        if (SelectedSongToOpenBtmSheet.HasSyncedLyrics)
+        (MySelectedSong.HasSyncedLyrics, MySelectedSong.SyncLyrics) = LyricsService.HasLyrics(MySelectedSong);
+        if (MySelectedSong.HasSyncedLyrics)
         {
             IsFetchSuccessful = true;
 
@@ -66,14 +66,14 @@ public partial class HomePageVM
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
         AllSyncLyrics = new();
-        (bool IsSuccessful, Content[]? contentData) = await LyricsManagerService.FetchLyricsOnlineLrcLib(SelectedSongToOpenBtmSheet, true, manualSearchFields);
+        (bool IsSuccessful, Content[]? contentData) = await LyricsManagerService.FetchLyricsOnlineLrcLib(MySelectedSong, true, manualSearchFields);
 
         AllSyncLyrics = contentData.ToObservableCollection();
-        (IsFetchSuccessful, var e) = await LyricsManagerService.FetchLyricsOnlineLyrist(SelectedSongToOpenBtmSheet.Title, TemporarilyPickedSong.ArtistName);
-        if (e is not null)
-        {
-            AllSyncLyrics.Add(e.FirstOrDefault());
-        }
+        //(IsFetchSuccessful, var e) = await LyricsManagerService.FetchLyricsOnlineLyrist(MySelectedSong.Title, TemporarilyPickedSong.ArtistName);
+        //if (e is not null)
+        //{
+            //AllSyncLyrics.Add(e.FirstOrDefault());
+        //}
 
 
         IsFetchSuccessful = IsSuccessful;
@@ -91,9 +91,9 @@ public partial class HomePageVM
     {
         if (IsPlain)
         {
-            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.PlainLyrics;
+            MySelectedSong.UnSyncLyrics = cont.PlainLyrics;
             
-            SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+            SongsMgtService.UpdateSongDetails(MySelectedSong);
             return;
         }
         var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
@@ -101,7 +101,7 @@ public partial class HomePageVM
         {
             await SaveSelectedLyricsToFile(!IsPlain, cont);
             if (TemporarilyPickedSong is null)
-                TemporarilyPickedSong = SelectedSongToOpenBtmSheet;
+                TemporarilyPickedSong = MySelectedSong;
         }
     }
 
@@ -113,17 +113,17 @@ public partial class HomePageVM
 
         if (!isSync)
         {
-            SelectedSongToOpenBtmSheet.HasLyrics = true;
-            SelectedSongToOpenBtmSheet.UnSyncLyrics = cont.PlainLyrics;
+            MySelectedSong.HasLyrics = true;
+            MySelectedSong.UnSyncLyrics = cont.PlainLyrics;
 
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics, SelectedSongToOpenBtmSheet, isSync);
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics, MySelectedSong, isSync);
         }
         else
         {
-            SelectedSongToOpenBtmSheet.HasLyrics = false;
+            MySelectedSong.HasLyrics = false;
 
-            SelectedSongToOpenBtmSheet.HasSyncedLyrics = true;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics, SelectedSongToOpenBtmSheet, isSync);
+            MySelectedSong.HasSyncedLyrics = true;
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics, MySelectedSong, isSync);
         }
         if (isSavedSuccessfully)
         {
@@ -141,13 +141,13 @@ public partial class HomePageVM
             return;
         }
         LyricsManagerService.InitializeLyrics(cont.SyncedLyrics);
-        if (DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId) is not null)
+        if (DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId) is not null)
         {
-            DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == SelectedSongToOpenBtmSheet.LocalDeviceId)!.HasLyrics = true;
+            DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId)!.HasLyrics = true;
         }
         //if (PlayBackService.CurrentQueue != 2)
         //{
-        //    SongsMgtService.UpdateSongDetails(SelectedSongToOpenBtmSheet);
+        //    SongsMgtService.UpdateSongDetails(MySelectedSong);
         //}
 
     }
@@ -271,7 +271,7 @@ public partial class HomePageVM
         else
         {
             var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song.ArtistName, song.AlbumName, song);
-            SelectedSongToOpenBtmSheet.CoverImagePath = str;
+            MySelectedSong.CoverImagePath = str;
         }
 
     }
@@ -303,7 +303,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task RateSong(string value)
     {
-        if (SelectedSongToOpenBtmSheet is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+        if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
             return;
         }
@@ -325,29 +325,29 @@ public partial class HomePageVM
                 break;
         }
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
-        if (SelectedSongToOpenBtmSheet.IsFavorite && willBeFav)
+        if (MySelectedSong.IsFavorite && willBeFav)
         {
             return;
         }
-        else if (!SelectedSongToOpenBtmSheet.IsFavorite && !willBeFav)
+        else if (!MySelectedSong.IsFavorite && !willBeFav)
         {
             return;
         }
-        else if (SelectedSongToOpenBtmSheet.IsFavorite && !willBeFav) // UNLOVE
+        else if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
-            await UpdatePlayList(SelectedSongToOpenBtmSheet, IsRemoveSong: true, playlistModel: favPlaylist);
+            await UpdatePlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
             return;
         }
-        else if (!SelectedSongToOpenBtmSheet.IsFavorite && willBeFav) // LOVE
+        else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
-            await UpdatePlayList(SelectedSongToOpenBtmSheet, IsAddSong: true, playlistModel: favPlaylist);
+            await UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
             return;
         }
-        SelectedSongToOpenBtmSheet.IsFavorite = willBeFav;
+        MySelectedSong.IsFavorite = willBeFav;
 
         if (CurrentUser.IsLoggedInLastFM)
         {
-            //LastFMUtils.RateSong(SelectedSongToOpenBtmSheet, willBeFav);
+            //LastFMUtils.RateSong(MySelectedSong, willBeFav);
         }
 
     }

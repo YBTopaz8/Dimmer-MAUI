@@ -465,11 +465,11 @@ public class LyricsService : ILyricsService
                 return (false, Array.Empty<Content>());
             }
 
-            var potentialImages = await FetchLyricsOnlineLyrist(song.Title!, song.ArtistName!); ;
-            for (int i = 0; i < potentialImages.contentData?.Length; i++)
-            {
-                lyricsData[i].LinkToCoverImage = potentialImages.contentData[i].LinkToCoverImage;
-            }
+            //var potentialImages = await FetchLyricsOnlineLyrist(song.Title!, song.ArtistName!); ;
+            //for (int i = 0; i < potentialImages.contentData?.Length; i++)
+            //{
+            //    lyricsData[i].LinkToCoverImage = potentialImages.contentData[i].LinkToCoverImage;
+            //}
             return (true, lyricsData);
         }
         catch (HttpRequestException e)
@@ -525,61 +525,61 @@ public class LyricsService : ILyricsService
 
     #region Fetch Lyrics Online from Lyrist
 
-    public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(string songTitle, string songArtistName)
-    {
-        HttpClient client = new HttpClient();
-        try
-        {
-            Content[]? contentData = null;
-            contentData = await SearchLyricsByTitleAndArtistNameToLyrist(songTitle, songArtistName, client);
-            return (true, contentData);
-        }
-        catch (HttpRequestException e)
-        {
-            Debug.WriteLine($"Request error: {e.Message}");
-            return (false, null);
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine($"Unexpected error: {e.Message}");
-            return (false, null);
-        }
-        finally
-        {
-            client.Dispose();
-        }
-    }
+    //public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(string songTitle, string songArtistName)
+    //{
+    //    HttpClient client = new HttpClient();
+    //    try
+    //    {
+    //        Content[]? contentData = null;
+    //        contentData = await SearchLyricsByTitleAndArtistNameToLyrist(songTitle, songArtistName, client);
+    //        return (true, contentData);
+    //    }
+    //    catch (HttpRequestException e)
+    //    {
+    //        Debug.WriteLine($"Request error: {e.Message}");
+    //        return (false, null);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        Debug.WriteLine($"Unexpected error: {e.Message}");
+    //        return (false, null);
+    //    }
+    //    finally
+    //    {
+    //        client.Dispose();
+    //    }
+    //}
 
-    private async Task<Content[]> SearchLyricsByTitleAndArtistNameToLyrist(string songTitle, string songArtistName, HttpClient client)
-    {
+    //private async Task<Content[]> SearchLyricsByTitleAndArtistNameToLyrist(string songTitle, string songArtistName, HttpClient client)
+    //{
 
-        string trackName = Uri.EscapeDataString(songTitle);
-        string url = $"https://lyrist.vercel.app/api/{trackName}/{songArtistName}";
+    //    string trackName = Uri.EscapeDataString(songTitle);
+    //    string url = $"https://lyrist.vercel.app/api/{trackName}/{songArtistName}";
 
-        // Send the GET request
-        HttpResponseMessage response = await client.GetAsync(url);
-        response.EnsureSuccessStatusCode(); // Throw if not a success code
+    //    // Send the GET request
+    //    HttpResponseMessage response = await client.GetAsync(url);
+    //    //response.EnsureSuccessStatusCode(); // Throw if not a success code
 
-        // Read the response content
-        string content = await response.Content.ReadAsStringAsync();
+    //    // Read the response content
+    //    string content = await response.Content.ReadAsStringAsync();
 
-        var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
-        var lyrics = new Content();
-        if (string.IsNullOrEmpty(e.Lyrics))
-        {
-            return Array.Empty<Content>();
-        }
-        lyrics.TrackName = e.Title;
-        lyrics.ArtistName = e.Artist;
-        lyrics.PlainLyrics = e.Lyrics;
-        lyrics.ListOfLinksToCoverImages.Add(e.Image);
+    //    var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
+    //    var lyrics = new Content();
+    //    if (string.IsNullOrEmpty(e.Lyrics))
+    //    {
+    //        return Array.Empty<Content>();
+    //    }
+    //    lyrics.TrackName = e.Title;
+    //    lyrics.ArtistName = e.Artist;
+    //    lyrics.PlainLyrics = e.Lyrics;
+    //    lyrics.ListOfLinksToCoverImages.Add(e.Image);
         
-        lyrics.Id = 1;
-        List<Content> contentList = new();
-        contentList.Add(lyrics);
-        return contentList.ToArray();
+    //    lyrics.Id = 1;
+    //    List<Content> contentList = new();
+    //    contentList.Add(lyrics);
+    //    return contentList.ToArray();
 
-    }
+    //}
 
     static async Task<byte[]>? DownloadSongImage(string coverImageURL)//, HttpClient client)
     {
@@ -621,18 +621,18 @@ public class LyricsService : ILyricsService
                 }
 
             }
-            byte[]? ImageBytes = null;
-            (_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
-            if (apiResponse is null || apiResponse.Length < 1)
-            {
-                return string.Empty;
-            }
-            if (!string.IsNullOrEmpty(apiResponse[0]?.LinkToCoverImage))
-            {
-                ImageBytes = await DownloadSongImage(apiResponse[0]?.LinkToCoverImage!)!;
-                song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath!, ImageBytes);
-                SongsManagementService.UpdateSongDetails(song);
-            }
+            //byte[]? ImageBytes = null;
+            //(_, Content[]? apiResponse) = await FetchLyricsOnlineLyrist(stringSongTitle, songArtistName);
+            //if (apiResponse is null || apiResponse.Length < 1)
+            //{
+            //    return string.Empty;
+            //}
+            //if (!string.IsNullOrEmpty(apiResponse[0]?.LinkToCoverImage))
+            //{
+            //    ImageBytes = await DownloadSongImage(apiResponse[0]?.LinkToCoverImage!)!;
+            //    song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath!, ImageBytes);
+            //    SongsManagementService.UpdateSongDetails(song);
+            //}
 
             return string.IsNullOrEmpty(song.CoverImagePath) ? "NC" : song.CoverImagePath;
         

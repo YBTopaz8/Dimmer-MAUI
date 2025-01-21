@@ -2,7 +2,7 @@ namespace Dimmer_MAUI.CustomPopUpViews;
 
 public partial class SongToPlaylistPopup : Popup
 {
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     public SongToPlaylistPopup(HomePageVM homePageVM, IList<string> AllPlaylists)
 	{
@@ -10,7 +10,7 @@ public partial class SongToPlaylistPopup : Popup
 
         PlaylistsCV.ItemsSource = null;
         PlaylistsCV.ItemsSource = AllPlaylists;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
     }
 
     private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)
@@ -37,7 +37,7 @@ public partial class SongToPlaylistPopup : Popup
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
+        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
         this.Close();
     }
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)

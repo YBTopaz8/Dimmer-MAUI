@@ -14,7 +14,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
     double balance = 0;
     bool muted = false;
     MediaPlay CurrentMedia { get; set; }
-    private MediaPlayer mediaPlayer
+    private MediaPlayer? mediaPlayer
     {
         get
         {
@@ -93,11 +93,11 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 
     public event EventHandler<bool>? IsPlayingChanged;
     public event EventHandler? PlayEnded;
-    public event EventHandler? PlayNext;
-    public event EventHandler? PlayPrevious;
     public event EventHandler? NotificationTapped;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
+    public event EventHandler PlayPrevious;
+    public event EventHandler PlayNext;
 
     public void Pause()
     {        
@@ -174,7 +174,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         
     }
 
-    public void Initialize(SongModelView media, byte[]? ImageBytes=null)
+    public void Initialize(SongModelView? media, byte[]? ImageBytes=null)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentMedia = new();
@@ -185,9 +185,9 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
                 CurrentMedia = new MediaPlay()
                 {
                     SongId = media.LocalDeviceId!,
-                    Name = media.Title,
+                    Name = media.Title!,
                     Author = media!.ArtistName!,
-                    URL = media.FilePath,
+                    URL = media.FilePath!,
                     ImagePath = media.CoverImagePath,
                     DurationInMs = (long)(media.DurationInSeconds * 1000),
                 };
@@ -217,14 +217,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             mediaPlayerService.TaskPlayEnded -= PlayEnded;
             mediaPlayerService.TaskPlayNext -= PlayNext;
             mediaPlayerService.TaskPlayPrevious -= PlayPrevious;
+            mediaPlayerService.IsSeekedFromNotificationBar -= MediaPlayerService_IsSeekedFromNotificationBar;
 
             // Subscribe to events
             mediaPlayerService.IsPlayingChanged += IsPlayingChanged;
             mediaPlayerService.TaskPlayEnded += PlayEnded;
             mediaPlayerService.TaskPlayNext += PlayNext;
             mediaPlayerService.TaskPlayPrevious += PlayPrevious;
-
-            mediaPlayerService.PlayingChanged -= OnPlayingChanged; // Unsubscribe if previously subscribed
             mediaPlayerService.PlayingChanged += OnPlayingChanged;
             mediaPlayerService.IsSeekedFromNotificationBar += MediaPlayerService_IsSeekedFromNotificationBar;
         }

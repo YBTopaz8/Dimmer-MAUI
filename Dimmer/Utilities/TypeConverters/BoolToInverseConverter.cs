@@ -3,12 +3,12 @@ public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        var MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         switch (parameter)
         {
             
             case "playbtn":                
-                if (!vm.TemporarilyPickedSong.IsPlaying)
+                if (!MyViewModel.TemporarilyPickedSong.IsPlaying)
                 {
                     return false;
                 }
@@ -17,7 +17,7 @@ public class BoolToInverseConverter : IValueConverter
                     return false;
                 }
             case "pausebtn":
-                if (!vm.TemporarilyPickedSong.IsPlaying)
+                if (!MyViewModel.TemporarilyPickedSong.IsPlaying)
                 {
                     return true;
                 }

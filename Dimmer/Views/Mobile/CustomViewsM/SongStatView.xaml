@@ -46,16 +46,6 @@
                 </VerticalStackLayout>
             </Grid>
 
-            <ratingsView:RatingControl Value="{Binding SelectedSongToOpenBtmSheet.Rating}" Shape="Heart" 
-       HorizontalOptions="Center" Command="{Binding RateSongCommand}"
-       CommandParameter="{Binding .}" Size="30"
-       AllowRating="True" 
-       StrokeColor="DarkSlateBlue" 
-       Maximum="5" Fill="DarkSlateBlue"
-       >
-                <ratingsView:RatingControl.GestureRecognizers>
-                </ratingsView:RatingControl.GestureRecognizers>
-            </ratingsView:RatingControl>
         </VerticalStackLayout>
 
 

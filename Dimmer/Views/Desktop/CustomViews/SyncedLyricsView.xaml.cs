@@ -1,3 +1,5 @@
+using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
+
 namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class SyncedLyricsView : ContentView

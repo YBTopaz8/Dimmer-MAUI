@@ -5,28 +5,30 @@ using Windows.Storage;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.UI.Input; // Required for KeyboardAccelerator
 using Microsoft.UI.Xaml.Input; // Required for KeyRoutedEventArgs
-using System.Collections.Generic; // Required for List<string> for navigation history
+using System.Collections.Generic;
+using Syncfusion.Maui.Toolkit.Chips; // Required for List<string> for navigation history
 #endif
 
 namespace Dimmer_MAUI;
-
 public partial class AppShell : Shell
 {
 
     public AppShell(HomePageVM vm)
     {
+        MyViewModel = vm;
+        BindingContext = vm;
         InitializeComponent();
 
         Routing.RegisterRoute(nameof(MainPageD), typeof(MainPageD));
         Routing.RegisterRoute(nameof(SingleSongShellPageD), typeof(SingleSongShellPageD));
         Routing.RegisterRoute(nameof(PlaylistsPageD), typeof(PlaylistsPageD));
         Routing.RegisterRoute(nameof(ArtistsPageD), typeof(ArtistsPageD));
+        Routing.RegisterRoute(nameof(AlbumsPageD), typeof(AlbumsPageD));
         Routing.RegisterRoute(nameof(FullStatsPageD), typeof(FullStatsPageD));
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
         Routing.RegisterRoute(nameof(LandingPageD), typeof(LandingPageD));
 
-        Vm = vm;
         //#if WINDOWS
 
         //        // Subscribe to events
@@ -36,42 +38,41 @@ public partial class AppShell : Shell
         //        this.Unfocused += AppShell_Unfocused;
 
         //#endif
-        BindingContext = vm;
         //currentPage = Current.CurrentPage;
     }
 
-    public HomePageVM Vm { get; }
+    public HomePageVM MyViewModel { get; }
 
     private async void NavToSingleSongShell_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
     {
-        await Vm.NavToSingleSongShell();
+        await MyViewModel.NavToSingleSongShell();
     }
 
     private async void MultiSelect_TouchDown(object sender, EventArgs e)
     {
-        switch (Vm.CurrentPage)
+        switch (MyViewModel.CurrentPage)
         {
             case PageEnum.MainPage:
                 var mainPage = Current.CurrentPage as MainPageD;
-                if (Vm.DisplayedSongs.Count<1)
+                if (MyViewModel.DisplayedSongs.Count<1)
                 {
                     return;
                 }
                 mainPage!.ToggleMultiSelect_Clicked(sender, e);
-                if (Vm.IsMultiSelectOn)
+                if (MyViewModel.IsMultiSelectOn)
                 {
                     GoToSong.IsEnabled = false;
-                    Vm.ToggleFlyout(true);
+                    //MyViewModel.ToggleFlyout(true);
                     GoToSong.Opacity = 0.4;
                     await Task.WhenAll(
                      MultiSelectView.AnimateFadeInFront());
                 }
                 else
                 {
-                    Vm.MultiSelectText = string.Empty;
+                    MyViewModel.MultiSelectText = string.Empty;
                     GoToSong.IsEnabled = true;
                     GoToSong.Opacity = 1;
-                    Vm.ToggleFlyout(false);
+                    //MyViewModel.ToggleFlyout(false);
                     await Task.WhenAll(MultiSelectView.AnimateFadeOutBack());
                 }
                 break;
@@ -81,7 +82,7 @@ public partial class AppShell : Shell
                 break;
             case PageEnum.FullStatsPage:
                 break;
-            case PageEnum.AllAlbumsPage:
+            case PageEnum.AllArtistsPage:
                 break;
             case PageEnum.SpecificAlbumPage:
                 break;
@@ -141,7 +142,6 @@ public partial class AppShell : Shell
         }
     }
 
-    public HomePageVM HomePageVM { get; set; }
     Type[] targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsPageD), typeof(SettingsPageD) };
     Page currentPage = new();
 
@@ -302,7 +302,7 @@ public partial class AppShell : Shell
         var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
         if (vm != null)
         {
-            vm.CurrentAppState = AppState.OnForeGround;
+            MyViewModel.CurrentAppState = AppState.OnForeGround;
         }
         if (vmm != null)
         {
@@ -316,7 +316,7 @@ public partial class AppShell : Shell
         var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
         if (vm != null)
         {
-            vm.CurrentAppState = AppState.OnBackGround;
+            MyViewModel.CurrentAppState = AppState.OnBackGround;
         }
         if (vmm != null)
         {
@@ -341,7 +341,105 @@ public partial class AppShell : Shell
         }
 #endif
     }
+    private void PlayPauseBtn_Clicked(object sender, EventArgs e)
+    {
+        if (MyViewModel.IsPlaying)
+        {
+            MyViewModel.PauseSong();
+        }
+        else
+        {
+            MyViewModel.ResumeSong();
+        }
+    }
+    private void Slider_DragCompleted(object sender, EventArgs e)
+    {
+        MyViewModel.SeekSongPosition();
+        //if (_isThrottling)
+        //    return;
 
+        //_isThrottling = true;
+
+
+
+        //await Task.Delay(throttleDelay);
+        //_isThrottling = false;
+    }
+
+    private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        try
+        {
+            if (LyricsColView is not null && LyricsColView.ItemsSource is not null)
+            {
+                if (LyricsColView.SelectedItem is not null)
+                {
+                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private void SeekSongPosFromLyric_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        if (MyViewModel.IsPlaying)
+        {
+            var bor = (Border)sender;
+            var lyr = (LyricPhraseModel)bor.BindingContext;
+            MyViewModel.SeekSongPosition(lyr);
+        }
+    }
+
+    Label CurrentLyrLabel { get; set; }
+    private void Label_Loaded(object sender, EventArgs e)
+    {
+        CurrentLyrLabel = (Label)sender;
+    }
+
+    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+        switch (e.NewIndex)
+        {
+            case 0:
+                
+                break;
+            case 1:
+                
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void OpenCloseQBtmSheet_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.IsNowPlayingBtmSheetVisible  = !MyViewModel.IsNowPlayingBtmSheetVisible;
+    }
+
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        MyViewModel.CurrentQueue = 1;
+        var s = (Border)sender;
+        var song = s.BindingContext as SongModelView;
+        MyViewModel.PlaySong(song);
+    }
+    private void PointerGestureRecognizer_PointerEntered(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
+    {
+        var send = (View)sender;
+        var song = send.BindingContext! as SongModelView;
+
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        
+    }
+    private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);  
+    }
 }
 
 public enum PageEnum
@@ -352,6 +450,7 @@ public enum PageEnum
     NowPlayingPage,
     PlaylistsPage,
     FullStatsPage,
+    AllArtistsPage,
     AllAlbumsPage,
     SpecificAlbumPage
 }

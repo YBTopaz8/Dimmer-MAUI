@@ -9,7 +9,7 @@ public partial class SingleSongShell : ContentPage
     public SingleSongShell(HomePageVM homePageVM)
 	{
 		InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>();
@@ -19,7 +19,7 @@ public partial class SingleSongShell : ContentPage
     }
 
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
@@ -28,7 +28,7 @@ public partial class SingleSongShell : ContentPage
     {
         base.OnAppearing();
         DeviceDisplay.Current.KeepScreenOn = true;
-        await HomePageVM.AfterSingleSongShellAppeared();
+        await MyViewModel.AfterSingleSongShellAppeared();
         
     }
 
@@ -54,9 +54,9 @@ public partial class SingleSongShell : ContentPage
                 break;
             case 1:
                 emptyV.IsVisible = false;
-                if (HomePageVM.AllSyncLyrics is not null)
+                if (MyViewModel.AllSyncLyrics is not null)
                 {
-                    HomePageVM.AllSyncLyrics = new();
+                    MyViewModel.AllSyncLyrics = new();
                 }
                 break;
             case 2:
@@ -67,26 +67,26 @@ public partial class SingleSongShell : ContentPage
         }
         if (e.NewIndex == 2)
         {
-            HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SelectedSongToOpenBtmSheet);
+            MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.MySelectedSong);
         }
     }
 
 
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (HomePageVM.SelectedSongToOpenBtmSheet != HomePageVM.TemporarilyPickedSong)
+        if (MyViewModel.MySelectedSong != MyViewModel.TemporarilyPickedSong)
         {
             return;
         }
         try
         {
-            if (HomePageVM.SynchronizedLyrics?.Count < 1 || HomePageVM.SynchronizedLyrics is null)
+            if (MyViewModel.SynchronizedLyrics?.Count < 1 || MyViewModel.SynchronizedLyrics is null)
             {
                 return;
             }
             if (LyricsColView.IsLoaded && LyricsColView.ItemsSource is not null)
             {
-                LyricsColView.ScrollTo(LyricsColView.GetItemHandle(HomePageVM.SynchronizedLyrics!.IndexOf(HomePageVM.CurrentLyricPhrase!)), DXScrollToPosition.Start);
+                LyricsColView.ScrollTo(LyricsColView.GetItemHandle(MyViewModel.SynchronizedLyrics!.IndexOf(MyViewModel.CurrentLyricPhrase!)), DXScrollToPosition.Start);
             }
 
         }
@@ -101,11 +101,11 @@ public partial class SingleSongShell : ContentPage
 
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
-        if (HomePageVM.IsPlaying)
+        if (MyViewModel.IsPlaying)
         {
             var bor = (View)sender;
             var lyr = (LyricPhraseModel)bor.BindingContext;
-            HomePageVM.SeekSongPosition(lyr);
+            MyViewModel.SeekSongPosition(lyr);
         }
     }
 
@@ -118,7 +118,7 @@ NoLyricsFoundMsg.AnimateFadeOutBack());
         Lookgif.HeightRequest = 100;
         Lookgif.WidthRequest = 100;
         Lookgif.IsAnimationPlaying = true;
-        await HomePageVM.FetchLyrics(true);
+        await MyViewModel.FetchLyrics(true);
         Lookgif.HeightRequest = 0;
         Lookgif.WidthRequest = 0;
         await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
@@ -140,13 +140,13 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         if (title == "Synced Lyrics")
         {
 
-            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, false);
+            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, false);
         }
         else
         if (title == "Plain Lyrics")
         {
 
-            await HomePageVM.ShowSingleLyricsPreviewPopup(thisContent, true);
+            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, true);
         }
     }
 
@@ -162,13 +162,13 @@ NoLyricsFoundMsg.AnimateFadeInFront());
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
-        if (HomePageVM.IsPlaying)
+        if (MyViewModel.IsPlaying)
         {
-            HomePageVM.PauseSong();
+            MyViewModel.PauseSong();
         }
         else
         {
-            HomePageVM.ResumeSong();
+            MyViewModel.ResumeSong();
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer_MAUI.Utilities.CustomBehaviors;
+﻿namespace Dimmer_MAUI.Utilities.CustomBehaviors;
 public partial class SongPlayingStatusBehavior : Behavior<Border>
 {
     private Border _associatedBorder;

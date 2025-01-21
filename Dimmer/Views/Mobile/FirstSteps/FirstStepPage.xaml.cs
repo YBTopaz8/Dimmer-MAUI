@@ -2,11 +2,11 @@ namespace Dimmer_MAUI.Views.Mobile.FirstSteps;
 
 public partial class FirstStepPage : ContentPage
 {
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
     public FirstStepPage(HomePageVM homePageVM)
     {
             InitializeComponent();
-            this.HomePageVM = homePageVM;
+            this.MyViewModel = homePageVM;
             BindingContext = homePageVM;
             Shell.SetNavBarIsVisible(this, true);
     }
@@ -15,7 +15,7 @@ public partial class FirstStepPage : ContentPage
     {
         base.OnAppearing();
 #if ANDROID
-       await HomePageVM.GrantPermissionsAndroid();
+       await MyViewModel.GrantPermissionsAndroid();
 #endif
     }
 

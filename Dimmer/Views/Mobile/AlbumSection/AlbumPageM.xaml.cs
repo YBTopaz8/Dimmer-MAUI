@@ -6,14 +6,14 @@ public partial class AlbumPageM : ContentPage
     public AlbumPageM(HomePageVM homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current?.Services.GetService<NowPlayingBtmSheet>();
         //this.Attachments.Add(btmSheet);
     }
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
     
     string previousAlbID = string.Empty;
     private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
@@ -24,21 +24,21 @@ public partial class AlbumPageM : ContentPage
         {
             return;
         }
-        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album);
+        await MyViewModel.ShowSpecificArtistsSongsWithAlbum(album);
         previousAlbID = album.LocalDeviceId;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
-        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+        //AllAlbumsColView.SelectedItem = MyViewModel.SelectedAlbumOnArtistPage;
+        MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
 
-        if (HomePageVM.SelectedSongToOpenBtmSheet is null)
+        if (MyViewModel.MySelectedSong is null)
         {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong!;
+            MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong!;
         }
-        HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
+        MyViewModel.GetAllArtistsAlbum(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
@@ -49,7 +49,7 @@ public partial class AlbumPageM : ContentPage
     {
         var send = (View)sender;
         var album = send.BindingContext as AlbumModelView;
-        await HomePageVM.ShowSpecificArtistsSongsWithAlbum(album!);
+        await MyViewModel.ShowSpecificArtistsSongsWithAlbum(album!);
     }
 
     private void NowPlaySearchBtmSheet_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
@@ -64,9 +64,9 @@ public partial class AlbumPageM : ContentPage
 
     private void DXCollectionView_TapConfirmed(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        HomePageVM.CurrentQueue = 1;
+        MyViewModel.CurrentQueue = 1;
 
         var song = e.Item as SongModelView;
-        HomePageVM.PlaySong(song);
+        MyViewModel.PlaySong(song);
     }
 }

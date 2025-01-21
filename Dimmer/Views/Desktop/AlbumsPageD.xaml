@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.AlbumsPageD"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            x:DataType="vm:HomePageVM"
+             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"                
+             x:Name="myPage" 
+            Shell.FlyoutBehavior="Flyout"
+    
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="True">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+            <MenuFlyout x:Key="LyricsContentMenu">
+                <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}" CommandParameter="{Binding MySelectedSong}" x:DataType="vm:HomePageVM"/>
+                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
+            </MenuFlyout>
+
+            <DataTemplate x:Key="itemTemplate" x:DataType="models:AlbumModelView">
+
+                <Border StrokeShape="RoundRectangle 15" Padding="5"
+                        x:Name="SpecificAlbum" >
+                    <Border.Resources>
+                        <ResourceDictionary>
+                            <Style TargetType="Label">
+                                <Setter Property="FontSize" Value="16"/>
+                            </Style>
+                        </ResourceDictionary>
+                    </Border.Resources>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped" NumberOfTapsRequired="1"/>
+                        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
+                                                          PointerExited="PointerGestureRecognizer_PointerExited"/>
+                    </Border.GestureRecognizers>
+                    <syncf:SfEffectsView BackgroundColor="Transparent"
+                                         RippleAnimationDuration="300">
+                        <VerticalStackLayout >
+                            <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" 
+                               HeightRequest="130" WidthRequest="140" 
+                                            BorderWidth="0" CornerRadius="18"/>
+                            <Label Text="{Binding Name}"/>
+                            <Label Text="{Binding NumberOfTracks}"/>
+                            <Label Text="{Binding ReleaseYear}"/>
+                        </VerticalStackLayout>
+                    </syncf:SfEffectsView>
+                </Border>
+            </DataTemplate>
+            <MenuFlyout x:Key="ArtistAlbumSongsContextMenu">
+                <MenuFlyoutItem Text="Play Next" Command="{Binding AddNextInQueueCommand}"
+                        />
+
+                <MenuFlyoutSeparator/>
+
+                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
+            </MenuFlyout>
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <toolkit:DockLayout BackgroundColor="#1F1F1F" x:Name="mainDock"
+                    IsVisible="True">
+        <toolkit:DockLayout.GestureRecognizers >
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" DragOver="DropGestureRecognizer_DragOver"
+        DragLeave="DropGestureRecognizer_DragLeave"
+        Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
+
+        <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
+                    x:Name="MediaPlayBackCW"/>
+        <toolkit:DockLayout x:Name="MainBody" >
+            <Grid RowDefinitions="*,*">
+                <CollectionView x:Name="AlbumsColView" Grid.Row="0" HeightRequest="450"
+                    ItemTemplate="{StaticResource itemTemplate}" 
+                    ItemsSource="{Binding AllAlbums}"
+                    HorizontalScrollBarVisibility="Default"
+                    >
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Horizontal"
+                                Span="2" HorizontalItemSpacing="5"
+                                VerticalItemSpacing="5" />
+                    </CollectionView.ItemsLayout>
+                </CollectionView>
+                <!--<CollectionView.Header>
+<FlexLayout JustifyContent="SpaceBetween">
+    <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Songs'}"/>
+
+    <ImageButton Clicked="ImageButton_Clicked" Source="repeaton.png"
+            ToolTipProperties.Text="Show All Artist Songs">
+    </ImageButton>
+</FlexLayout>
+</CollectionView.Header>-->
+
+                <Grid ColumnDefinitions="*,Auto" Grid.Row="1"
+            ColumnSpacing="10" >
+
+                    <CollectionView Grid.Column="0" SelectionMode="Single" 
+                        x:Name="AlbumSongsCV" SelectedItem="{}" 
+                        ItemsSource="{Binding AllArtistsAlbumSongs}" 
+                        EmptyView="No Songs to display, Please Select an Album..."                            
+                        IsGrouped="False">
+
+                        <!--<CollectionView.GroupHeaderTemplate>
+                <DataTemplate x:DataType="models:SongsGroup">
+                    <Border >
+                        <syncf:SfEffectsView>
+                            <HorizontalStackLayout Padding="10" BackgroundColor="Transparent">
+                                <Label Text="{Binding GroupName}" FontAttributes="Bold" 
+                                        FontSize="20" />                                    
+                            </HorizontalStackLayout>
+                        </syncf:SfEffectsView>
+                    </Border>
+                       
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.GroupFooterTemplate>
+                <DataTemplate x:DataType="models:SongsGroup">
+                    <Border >
+                        <syncf:SfEffectsView>
+                            <HorizontalStackLayout Padding="10" BackgroundColor="Transparent">
+                                <Label Text="{Binding Songs.Count}" FontAttributes="Bold" 
+                    FontSize="20" />
+                            </HorizontalStackLayout>
+                        </syncf:SfEffectsView>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.GroupFooterTemplate>-->
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SongModelView">
+
+                                <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" 
+                                            HeightRequest="90" 
+                                            FlyoutBase.ContextFlyout="{StaticResource ArtistAlbumSongsContextMenu}"
+                                            x:Name="AlbumSongsView" RippleAnimationDuration="550"
+                                            FadeOutRipple="True" VerticalOptions="Fill"
+                                            RippleBackground="DarkSlateBlue" BackgroundColor="Transparent">
+
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal" >
+                                                <VisualState.Setters>
+                                                    <Setter Property="Scale" Value="0.95"/>
+                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+
+                                            <VisualState x:Name="PointerOver">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Scale" Value="1"/>
+                                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+
+                                    <syncf:SfEffectsView.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="2"/>
+                                        <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
+                                    </syncf:SfEffectsView.GestureRecognizers>
+
+                                    <VerticalStackLayout >
+                                        <Label Text="{Binding Title}" FontSize="23"/>
+                                        <Label Text="{Binding IsCurrentPlayingHighlight}" />
+                                        <Label Text="{Binding TrackNumber, StringFormat='Track # : {0}'}" />
+                                    </VerticalStackLayout>
+                                </syncf:SfEffectsView>
+
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <syncf:SfTabView x:Name="tabView"  Grid.Column="1" IsVisible="False"
+                        IndicatorPlacement="Top" SelectionChanged="tabView_SelectionChanged"
+                        TabBarPlacement="Top" ContentTransitionDuration="250">
+
+                        <syncf:SfTabView.Items>
+                            <syncf:SfTabItem IsVisible="False" TextColor="White" Header="Text"
+                                Loaded="SfTabItem_Loaded">
+                                <syncf:SfTabItem.Content>
+                                    <CollectionView ItemsSource="{Binding TopCompleted}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:PlaybackStats">
+                                                <VerticalStackLayout>
+                                                    <Label Text="{Binding SongTitle}" FontSize="23"/>
+                                                    <Label Text="{Binding TotalCompletedPlays, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
+                                                    <Label Text="{Binding TotalCompletedHours, StringFormat='{0}hrs'}" FontSize="18"/>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <!--<syncf:SfTabView x:Name="tabView" SelectionChanged="TabView_SelectionChanged"
+                            IndicatorPlacement="Top" Grid.Column="1"
+                            TabBarPlacement="Top" ContentTransitionDuration="250">
+                            <syncf:SfTabView.Items>
+                                <syncf:SfTabItem TextColor="White" Header="Top Completed"
+                                        Loaded="SfTabItem_Loaded">
+
+                                    <syncf:SfTabItem.Content>
+                                        <CollectionView ItemsSource="{Binding TopCompleted}">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:PlaybackStats">
+                                                    <VerticalStackLayout>
+                                                        <Label Text="{Binding SongTitle}" FontSize="23"/>
+                                                        <Label Text="{Binding TotalCompletedPlays, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
+                                                        <Label Text="{Binding TotalCompletedHours, StringFormat='{0}hrs'}" FontSize="18"/>
+                                                    </VerticalStackLayout>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                            
+                                    </syncf:SfTabItem.Content>
+                                </syncf:SfTabItem>
+
+                                <syncf:SfTabItem TextColor="White" Header="Top Skipped"
+                                        Loaded="SfTabItem_Loaded">
+                                    <syncf:SfTabItem.Content>
+                                        <CollectionView ItemsSource="{Binding TopSkipped}">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:PlaybackStats">
+                                                    <VerticalStackLayout>
+                                                        <Label Text="{Binding SongTitle}" FontSize="23"/>
+                                                        <Label Text="{Binding TotalSkips, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
+                                                        <Label Text="{Binding SkipTimes, StringFormat='{0}hrs'}" FontSize="18"/>
+                                                    </VerticalStackLayout>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                    </syncf:SfTabItem.Content>
+                                </syncf:SfTabItem>
+                                    
+                            </syncf:SfTabView.Items>
+                    </syncf:SfTabView>-->
+
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
+
+                            <syncf:SfTabItem Header="Chart" IsVisible="False">
+                                <syncf:SfTabItem.Content>
+
+                                    <syncf:SfCircularChart Grid.Row="0" BackgroundColor="Transparent" 
+                                                    HeightRequest="700" 
+                                                    Grid.Column="0" HorizontalOptions="Center">
+
+                                        <syncf:SfCircularChart.Resources>
+
+                                        </syncf:SfCircularChart.Resources>
+
+                                        <syncf:DoughnutSeries ItemsSource="{Binding TopCompleted}" ExplodeOnTouch="True"
+                                                    ShowDataLabels="True" EnableAnimation="True"
+                                                    YBindingPath="TotalCompletedPlays" EnableTooltip="True">
+                                            <syncf:DoughnutSeries.XBindingPath>
+                                                <x:String>SongTitle</x:String>
+                                            </syncf:DoughnutSeries.XBindingPath>
+
+                                            <syncf:DoughnutSeries.SelectionBehavior>
+                                                <syncf:DataPointSelectionBehavior Type="Single" 
+                            SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
+                            SelectionBrush="DarkSlateBlue"/>
+                                            </syncf:DoughnutSeries.SelectionBehavior>
+                                            <syncf:DoughnutSeries.DataLabelSettings>
+                                                <syncf:CircularDataLabelSettings LabelPosition="Inside" LabelPlacement="Inner" >
+                                                </syncf:CircularDataLabelSettings>
+                                            </syncf:DoughnutSeries.DataLabelSettings>
+
+                                            <syncf:DoughnutSeries.LabelTemplate>
+                                                <DataTemplate>
+                                                    <Label TextColor="White">
+                                                        <Label.Text>
+                                                            <MultiBinding StringFormat="{} {0}">
+                                                                <Binding Path="Item.SongTitle"/>
+                                                            </MultiBinding>
+                                                        </Label.Text>
+                                                    </Label>
+                                                </DataTemplate>
+                                            </syncf:DoughnutSeries.LabelTemplate>
+
+                                            <syncf:DoughnutSeries.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <VerticalStackLayout>
+
+                                                        <Label TextColor="White">
+                                                            <Label.Text>
+                                                                <MultiBinding StringFormat="{} Dimmed {0} Times">
+                                                                    <Binding Path="Item.SongTitle"/>
+                                                                </MultiBinding>
+                                                            </Label.Text>
+                                                        </Label>
+                                                    </VerticalStackLayout>
+
+                                                </DataTemplate>
+                                            </syncf:DoughnutSeries.TooltipTemplate>
+
+
+                                        </syncf:DoughnutSeries>
+
+                                        <syncf:SfCircularChart.TooltipBehavior>
+                                            <syncf:ChartTooltipBehavior Duration="5000"/>
+                                        </syncf:SfCircularChart.TooltipBehavior>
+                                    </syncf:SfCircularChart>
+
+
+                                </syncf:SfTabItem.Content>
+                            </syncf:SfTabItem>
+
+
+                        </syncf:SfTabView.Items>
+                    </syncf:SfTabView>
+
+
+
+                </Grid>
+
+                <syncf:SfBottomSheet x:Name="NowPlayingQBtmSheet" CornerRadius="15,15,0,0"
+                            IsOpen="False"
+                            IsVisible="{Binding IsNowPlayingBtmSheetVisible}" 
+                            Grid.Row="1" 
+                            BackgroundColor="Transparent"
+                            State="FullExpanded">
+                    <syncf:SfBottomSheet.BottomSheetContent>
+                        <Grid>
+                            <CollectionView SelectionMode="Single" 
+                                ItemsSource="{Binding NowPlayingSongsUI}" EmptyView="No Songs to display">
+                                <CollectionView.Header>
+                                    <FlexLayout JustifyContent="SpaceBetween">
+                                        <Label Text="{Binding NowPlayingSongsUI.Count, StringFormat='{0} Songs'}"/>
+
+                                    </FlexLayout>
+                                </CollectionView.Header>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:SongModelView">
+                                        <Border Stroke="Red" HorizontalOptions="Center" >
+                                            <VisualStateManager.VisualStateGroups>
+                                                <VisualStateGroup x:Name="CommonStates">
+                                                    <VisualState x:Name="Normal" />
+
+                                                    <VisualState x:Name="PointerOver">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+                                                </VisualStateGroup>
+                                            </VisualStateManager.VisualStateGroups>
+
+
+                                            <Border.Triggers>
+                                                <DataTrigger TargetType="Border"
+                                Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                                    <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Border"
+                                Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                                    <Setter Property="Stroke" Value="Transparent" />
+                                                    <Setter Property="StrokeThickness" Value="1"/>
+
+                                                </DataTrigger>
+                                            </Border.Triggers>
+
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="2"/>
+                                                <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
+                                            </Border.GestureRecognizers>
+                                            <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                                                <VerticalStackLayout BackgroundColor="Transparent">
+                                                    <Label Text="{Binding Title}" FontSize="18"/>
+                                                    <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+
+                                                </VerticalStackLayout>
+
+                                                <VerticalStackLayout BackgroundColor="Transparent">
+                                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+                            Source="lyrics.png">
+
+                                                    </Image>
+                                                </VerticalStackLayout>
+                                            </FlexLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </syncf:SfBottomSheet.BottomSheetContent>
+                </syncf:SfBottomSheet>
+            </Grid>
+        </toolkit:DockLayout>
+    </toolkit:DockLayout>
+    
+</ContentPage>

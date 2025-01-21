@@ -6,27 +6,27 @@ public partial class MainPageD : ContentPage
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM.Value;
+        MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
 
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     bool isIniAssign;
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.MainPage;
+        MyViewModel.CurrentPage = PageEnum.MainPage;
 
-        SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
+        SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
 
-        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != HomePageVM.DisplayedSongs?.Count)
+        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
         {
-            SongsColView.ItemsSource = HomePageVM.DisplayedSongs;
+            SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
         }
         if(!isIniAssign)
         {
-            await HomePageVM.AssignCV(SongsColView);
+            await MyViewModel.AssignCV(SongsColView);
             isIniAssign = true;
         }
 
@@ -43,13 +43,13 @@ public partial class MainPageD : ContentPage
     {
         try
         {
-            if (HomePageVM.PickedSong is null || HomePageVM.TemporarilyPickedSong is null)
+            if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
             {
                 return;
             }
-            HomePageVM.PickedSong = HomePageVM.TemporarilyPickedSong;
+            MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
             
-            SongsColView.ScrollTo(HomePageVM.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -61,7 +61,7 @@ public partial class MainPageD : ContentPage
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
         
-        if (SongsColView.IsLoaded && HomePageVM.TemporarilyPickedSong is not null)
+        if (SongsColView.IsLoaded && MyViewModel.TemporarilyPickedSong is not null)
         {
 
         }
@@ -91,7 +91,7 @@ public partial class MainPageD : ContentPage
 
     private async void NavToArtistClicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavigateToArtistsPage(1);
+        await MyViewModel.NavigateToArtistsPage(1);
     }
 
     bool isPointerEntered;
@@ -116,6 +116,9 @@ public partial class MainPageD : ContentPage
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
+        try
+        {
+
         if (!isAboutToDropFiles)
         {
             isAboutToDropFiles = true;
@@ -160,24 +163,43 @@ public partial class MainPageD : ContentPage
             }
 #endif
         }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+        //return Task.CompletedTask;
     }
 
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
-        isAboutToDropFiles = false;
-
-        SongsColView.Opacity = 1;
+        try
+        {
+            isAboutToDropFiles = false;
+            var send = sender as View;
+            if (send is null)
+            {
+                return;
+            }
+            send.Opacity = 1;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
+        supportedFilePaths ??= new();
         isAboutToDropFiles = false;
         SongsColView.Opacity = 1;
         var colView = (View)SongsColView;
         if (supportedFilePaths.Count > 0)
         {
             await colView.AnimateRippleBounce();
-            HomePageVM.LoadLocalSongFromOutSideApp(supportedFilePaths);
+            MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         }
     }
 
@@ -201,7 +223,7 @@ public partial class MainPageD : ContentPage
 
     private async void GoToSongOverviewClicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavToSingleSongShell();
+        await MyViewModel.NavToSingleSongShell();
     }
 
 
@@ -214,8 +236,8 @@ public partial class MainPageD : ContentPage
                 SongsColView.SelectionMode = SelectionMode.Multiple;
                 //NormalMiniUtilBar.IsVisible = false;
                 //MultiSelectUtilBar.IsVisible = true;
-                HomePageVM.EnableContextMenuItems = false;
-                HomePageVM.IsMultiSelectOn = true;
+                MyViewModel.EnableContextMenuItems = false;
+                MyViewModel.IsMultiSelectOn = true;
                 selectedSongs = new();
                 selectedSongsViews = new();
                 SongsColView.BackgroundColor = Color.Parse("#1D1932");
@@ -229,11 +251,11 @@ public partial class MainPageD : ContentPage
                     view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
                 SongsColView.SelectionMode = SelectionMode.None;
-                HomePageVM.IsMultiSelectOn = false;
+                MyViewModel.IsMultiSelectOn = false;
                 SongsColView.SelectedItems = null;
                 //NormalMiniUtilBar.IsVisible = true;
                 //MultiSelectUtilBar.IsVisible = false;
-                HomePageVM.EnableContextMenuItems = true;
+                MyViewModel.EnableContextMenuItems = true;
                 break;
             default:
                 break;
@@ -248,7 +270,7 @@ public partial class MainPageD : ContentPage
         View send = (View)sender;
         SongModelView song = (send.BindingContext as SongModelView)!;
 
-        if (HomePageVM.IsMultiSelectOn)
+        if (MyViewModel.IsMultiSelectOn)
         {
 
             if (selectedSongs.Contains(song))
@@ -263,39 +285,39 @@ public partial class MainPageD : ContentPage
                 selectedSongsViews.Add(send);
                 send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
             }
-            HomePageVM.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{HomePageVM.SongsMgtService.AllSongs.Count} Selected";
+            MyViewModel.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{MyViewModel.SongsMgtService.AllSongs.Count} Selected";
             return;
         }
         else
         {
-            HomePageVM.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
+            MyViewModel.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
         }
     }
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        HomePageVM.TemporarilyPickedSong.IsCurrentPlayingHighlight=false;
+        MyViewModel.TemporarilyPickedSong!.IsCurrentPlayingHighlight=false;
 
 
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         
-        HomePageVM.PlaySong(song);
+        MyViewModel.PlaySong(song);
     }
 
     private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
     {
-        if(HomePageVM.IsOnSearchMode)
+        if(MyViewModel.IsOnSearchMode)
         {
             return;
         }
-        //await HomePageVM.LoadSongsInBatchesAsync();
+        //await MyViewModel.LoadSongsInBatchesAsync();
 
     }
 
     private void SortBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.OpenSortingPopupCommand.Execute(null);
+        MyViewModel.OpenSortingPopupCommand.Execute(null);
     }
 
     private void Slider_OnValueChanged(object? sender, ValueChangedEventArgs e)
@@ -303,5 +325,17 @@ public partial class MainPageD : ContentPage
 
     }
 
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    {
+        MyViewModel.CurrentQueue = 1;
+        var s = (Border)sender;
+        var song = s.BindingContext as SongModelView;
+        MyViewModel.PlaySong(song);
+    }
+
+    private void SfChip_Clicked(object sender, EventArgs e)
+    {
+        NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
+    }
 }
 

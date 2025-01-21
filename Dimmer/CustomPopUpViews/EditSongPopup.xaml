@@ -30,23 +30,23 @@
         <VerticalStackLayout IsVisible="{Binding IsOnLyricsSyncMode, Converter={x:StaticResource BoolToInverse}}"
                       Spacing="10" Margin="10,0" Grid.Row="0">
 
-            <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+            <Image Source="{Binding MySelectedSong.CoverImagePath}"
                          HeightRequest="{OnPlatform Android=150}" WidthRequest="{OnPlatform WinUI=250, Android=150}"
                    />
 
-            <Editor Placeholder="Title" Text="{Binding SelectedSongToOpenBtmSheet.Title}"/>
-            <Editor Placeholder="Artist Name" Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+            <Editor Placeholder="Title" Text="{Binding MySelectedSong.Title}"/>
+            <Editor Placeholder="Artist Name" Text="{Binding MySelectedSong.ArtistName}" 
                          />
-            <Editor Placeholder="Album Name" Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}" />
-            <Editor Placeholder="Genre" Text="{Binding SelectedSongToOpenBtmSheet.GenreName}" />
+            <Editor Placeholder="Album Name" Text="{Binding MySelectedSong.AlbumName}" />
+            <Editor Placeholder="Genre" Text="{Binding MySelectedSong.GenreName}" />
 
-            <Editor Placeholder="Release Year" Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear }"
+            <Editor Placeholder="Release Year" Text="{Binding MySelectedSong.ReleaseYear }"
                     />
       
             <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
                 <Button Text="Cancel" BackgroundColor="Red" Clicked="CancelBtn_Clicked"/>
                 <Button Text="Update!" BackgroundColor="DarkSlateBlue" Command="{Binding UpdateSongToDBCommand}"
-                        CommandParameter="{Binding SelectedSongToOpenBtmSheet}" Clicked="CancelBtn_Clicked"/>
+                        CommandParameter="{Binding MySelectedSong}" Clicked="CancelBtn_Clicked"/>
             </HorizontalStackLayout>
         </VerticalStackLayout>
 

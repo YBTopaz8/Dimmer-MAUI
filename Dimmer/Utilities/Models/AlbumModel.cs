@@ -18,7 +18,7 @@ public partial class AlbumModel : RealmObject
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumModel));
+    public string? LocalDeviceId { get; set; }
 
     public AlbumModel()
     {
@@ -38,20 +38,19 @@ public partial class AlbumModel : RealmObject
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumModelView));
-
+    public partial string? LocalDeviceId { get; set; }
     [ObservableProperty]
-    string? name;
+    public partial string? Name { get; set; }
     [ObservableProperty]
-    int? releaseYear;
+    public partial int? ReleaseYear { get; set; }
     [ObservableProperty]
-    int numberOfTracks;
+    public partial int NumberOfTracks { get; set; }
     [ObservableProperty]
-    string? totalDuration;
+    public partial string? TotalDuration { get; set; }
     [ObservableProperty]
-    string? description;
+    public partial string? Description { get; set; }
     [ObservableProperty]
-    string? albumImagePath;
+    public partial string? AlbumImagePath { get; set; }
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;

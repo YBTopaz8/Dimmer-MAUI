@@ -4,12 +4,12 @@ namespace Dimmer_MAUI.CustomPopUpViews;
 
 public partial class SortingPopUp : Popup
 {
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
     int CurrentIndex;
     public SortingPopUp(HomePageVM homePageVM, SortingEnum currentSort)
 	{
 		InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
         CurrentIndex = (int)currentSort;
 

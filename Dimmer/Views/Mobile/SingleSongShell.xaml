@@ -41,7 +41,7 @@
     </ContentPage.Resources>
 
     <Grid Padding="0,0" BackgroundColor="Transparent">
-        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+        <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.1"
     IsVisible="True" Grid.Column="0" Aspect="Center"/>
         <chart:SfTabView x:Name="TabV" BackgroundColor="Transparent"
                         TabBarHeight="65" TabBarPlacement="Bottom" x:DataType="vm:HomePageVM"

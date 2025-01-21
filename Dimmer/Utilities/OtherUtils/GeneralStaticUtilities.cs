@@ -1,14 +1,14 @@
 ﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class GeneralStaticUtilities
 {
-    public static string GenerateRandomString(string CallerClass, int length = 12)
+    public static string GenerateLocalDeviceID(string CallerClass)
     {
         if (string.IsNullOrEmpty(CallerClass))
         {
             throw new ArgumentNullException(nameof(CallerClass));
         }
 
-        char[] stringChars = new char[length];
+        char[] stringChars = new char[2];
         stringChars[0] = CallerClass[0];
         stringChars[1] = CallerClass[1];
 

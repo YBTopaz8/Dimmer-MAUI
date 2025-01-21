@@ -8,14 +8,14 @@ public partial class SleepTimerSelectionPopup : Popup
 	{
 		InitializeComponent();
 		BindingContext = vm;
-        Vm = vm;
+        MyViewModel = vm;
     }
 
-    public HomePageVM Vm { get; }
+    public HomePageVM MyViewModel { get; }
 
     private async void Button_Clicked(object sender, EventArgs e)
     {
-        Vm.StartSleepTimerCommand.Execute(sleepSlider.Value);
+        MyViewModel.StartSleepTimerCommand.Execute(sleepSlider.Value);
         await this.CloseAsync();
     }
 }

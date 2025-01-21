@@ -5,12 +5,12 @@ public partial class MiniControlNotificationView : ContentPage
 {
    
     private Timer _closeTimer;
-    HomePageVM vm;
+    HomePageVM MyViewModel;
     public MiniControlNotificationView(string title, string artistName, string imagePath)
     {
 		InitializeComponent();
-        vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-        BindingContext = vm;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        BindingContext = MyViewModel;
 #if WINDOWS
         _closeTimer = new Timer(5000);
         _closeTimer.Elapsed += _closeTimer_Elapsed;
@@ -78,13 +78,18 @@ public partial class MiniControlNotificationView : ContentPage
 
     private void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
-        vm.PauseSong();
+        MyViewModel.PauseSong();
         ResetTimer();
     }
 
     private async void playImgBtn_Clicked(object sender, EventArgs e)
     {
-        vm.ResumeSong();
+        MyViewModel.ResumeSong();
         ResetTimer();
+    }
+
+    private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
     }
 }

@@ -55,14 +55,16 @@
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="ShowArtistAlbums_Tapped"/>
                         </Border.GestureRecognizers>
-                        <VerticalStackLayout Margin="5,5" ToolTipProperties.Text="{Binding Name}"
-                                             >
+                        <VerticalStackLayout Margin="5,5" 
+                                             ToolTipProperties.Text="{Binding Name}">
+                            
                             <toolkit:AvatarView ImageSource="{Binding AlbumImagePath}" HorizontalOptions="Center"
                                        HeightRequest="100" WidthRequest="100" 
                                         BorderWidth="0" CornerRadius="8"/>
                             
-                                <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
-                                       Padding="10,5" LineBreakMode="WordWrap" HorizontalOptions="Center"/>
+                            <Label Text="{Binding Name}" FontSize="14" HorizontalTextAlignment="Center"
+                                    Padding="10,5" LineBreakMode="WordWrap" HorizontalOptions="Center"/>
+                            
                         </VerticalStackLayout>
 
                     </Border>

@@ -70,6 +70,9 @@
     <MauiXaml Update="CustomPopUpViews\EditSongPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Views\Desktop\AlbumsPageD.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\Desktop\CustomViews\DimmerWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

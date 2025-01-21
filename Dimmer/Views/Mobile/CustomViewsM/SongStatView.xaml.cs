@@ -5,11 +5,11 @@ public partial class SongStatView : ContentView
 	public SongStatView()
     {
         InitializeComponent();
-        HomePageVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        BindingContext = HomePageVM;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        BindingContext = MyViewModel;
         
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     private async void ShareStatBtn_Clicked(object sender, EventArgs e)
     {

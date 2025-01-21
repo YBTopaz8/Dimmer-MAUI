@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 public partial class SongsManagementService
 {
 

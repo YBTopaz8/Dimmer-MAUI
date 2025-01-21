@@ -44,20 +44,20 @@
                     <!-- Album Cover -->
                     <toolkit:AvatarView x:Name="AlbumCover" 
                                     CornerRadius="15" BorderWidth="0"
-                                    ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                    ImageSource="{Binding MySelectedSong.CoverImagePath}"
                                     HeightRequest="300" WidthRequest="300"
                                     VerticalOptions="Center" HorizontalOptions="Center"
                                     Opacity="0.7" Stroke="Black">
                     </toolkit:AvatarView>
 
                     <Label x:Name="SongTitle" FontSize="28" LineBreakMode="TailTruncation" 
-                       FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+                       FontAttributes="Bold" Text="{Binding MySelectedSong.Title}"
                        TextColor="White" HorizontalOptions="Center" HorizontalTextAlignment="Justify"/>
                     <Label Text="by" TextColor="White" HorizontalOptions="Center"/>
                     <!-- Artist Name -->
                     <Label x:Name="ArtistName" FontSize="18"
                        TextColor="White" HorizontalOptions="Center"
-                       Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+                       Text="{Binding MySelectedSong.ArtistName}" 
                        VerticalOptions="Start"/>
 
                 </VerticalStackLayout>
@@ -82,20 +82,20 @@
                         <dx:DXBorder.Content>
                             <Grid ColumnDefinitions="Auto,*,Auto" BackgroundColor="White">
 
-                                <toolkit:AvatarView Grid.Column="0" ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}"
+                                <toolkit:AvatarView Grid.Column="0" ImageSource="{Binding MySelectedSong.CoverImagePath}"
                             WidthRequest="130" HeightRequest="130"
                             CornerRadius="10" HorizontalOptions="Start"/>
 
                                 <VerticalStackLayout Grid.ColumnSpan="2" BackgroundColor="Transparent"
                                                      Grid.Column="1" VerticalOptions="Center">
                                     <Label x:Name="SongTitlesmol" FontSize="23" 
-           FontAttributes="Bold" Text="{Binding SelectedSongToOpenBtmSheet.Title}"
+           FontAttributes="Bold" Text="{Binding MySelectedSong.Title}"
            TextColor="Black" HorizontalOptions="Center"/>
                                     <Label Text="by" TextColor="Black" HorizontalOptions="Center"/>
                                     <!-- Artist Name -->
                                     <Label x:Name="ArtistNamesmol" FontSize="17"
            TextColor="Black" HorizontalOptions="Center"
-           Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" 
+           Text="{Binding MySelectedSong.ArtistName}" 
            />
 
                                 </VerticalStackLayout>

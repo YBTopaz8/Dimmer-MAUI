@@ -8,52 +8,52 @@ public partial class ArtistsPageM : ContentPage
 	public ArtistsPageM(HomePageVM homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
+        MyViewModel.GetAllArtistsCommand.Execute(null);
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        if (HomePageVM.TemporarilyPickedSong is null)
+        if (MyViewModel.TemporarilyPickedSong is null)
         {
             return;
         }
 
-        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
+        //AllAlbumsColView.SelectedItem = MyViewModel.SelectedAlbumOnArtistPage;
 
-        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
+        MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
 
-        if (HomePageVM.SelectedSongToOpenBtmSheet is null)
+        if (MyViewModel.MySelectedSong is null)
         {
-            HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+            MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
         }
 
-        HomePageVM.GetAllArtistsAlbum(song: HomePageVM.SelectedSongToOpenBtmSheet, isFromSong: true);
+        MyViewModel.GetAllArtistsAlbum(song: MyViewModel.MySelectedSong, isFromSong: true);
     }
 
     private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        HomePageVM.GetAllArtistAlbumFromArtist(HomePageVM.SelectedArtistOnArtistPage);
+        MyViewModel.GetAllArtistAlbumFromArtistModel(MyViewModel.SelectedArtistOnArtistPage);
     }
 
-    private async void SingleAlbum_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    private void SingleAlbum_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
+        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
 
     private void SingleSongBtn_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.CurrentQueue = 1;
+        MyViewModel.CurrentQueue = 1;
         var s = (View)sender;
         var song = s.BindingContext as SongModelView;
-        HomePageVM.PlaySong(song);
+        MyViewModel.PlaySong(song);
 
     }
 
@@ -66,6 +66,6 @@ public partial class ArtistsPageM : ContentPage
 
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
+        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
 }

@@ -6,19 +6,19 @@ public partial class PlaylistsPageM : ContentPage
     public PlaylistsPageM(HomePageVM homePageVM)
     {
 		InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         BindingContext = homePageVM;
         btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
 
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
-        HomePageVM.RefreshPlaylists();
+        MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
+        MyViewModel.RefreshPlaylists();
     }
     protected override void OnDisappearing()
     {

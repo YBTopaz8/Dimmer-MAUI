@@ -6,20 +6,20 @@ public partial class AlbumsM : ContentPage
     public AlbumsM(HomePageVM homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
 
         btmSheet = IPlatformApplication.Current?.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
     }
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
     //private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     //{
-    //    HomePageVM.CurrentQueue = 1;
+    //    MyViewModel.CurrentQueue = 1;
     //    var s = (View)sender;
     //    var song = s.BindingContext as SongsModelView;
-    //    HomePageVM.PlaySong(song);
+    //    MyViewModel.PlaySong(song);
     //}
     string previousAlbID = string.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
@@ -30,15 +30,15 @@ public partial class AlbumsM : ContentPage
         {
             return;
         }
-        HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album.LocalDeviceId);
+        MyViewModel.NavigateToSpecificAlbumPageCommand.Execute(album.LocalDeviceId);
         previousAlbID = album.LocalDeviceId;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        HomePageVM.GetAllAlbums();
+        MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
+        MyViewModel.GetAllAlbums();
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
@@ -61,14 +61,14 @@ public partial class AlbumsM : ContentPage
         {
             if (txt.Length >= 1)
             {
-                HomePageVM.IsOnSearchMode = true;
+                MyViewModel.IsOnSearchMode = true;
                 // Setting the FilterString for SongsColView
                 AlbumsColView.FilterString = $"Contains([Name], '{AlbumNameTextEdit.Text}')";
                 
             }
             else
             {
-                HomePageVM.IsOnSearchMode = false;                
+                MyViewModel.IsOnSearchMode = false;                
             }
         }
     }
@@ -107,7 +107,7 @@ public partial class AlbumsM : ContentPage
     {
         var send = (View)sender;
         var album = send.BindingContext as AlbumModelView;
-        HomePageVM.CurrentQueue = 1;
-        HomePageVM.NavigateToSpecificAlbumPageCommand.Execute(album);
+        MyViewModel.CurrentQueue = 1;
+        MyViewModel.NavigateToSpecificAlbumPageCommand.Execute(album);
     }
 }

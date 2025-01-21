@@ -5,7 +5,7 @@ public partial class ArtistModel : RealmObject
 
 
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(ArtistModel));
+    public string? LocalDeviceId { get; set; }
     public string? Name { get; set; } = "Unknown Artist";
     public string? Bio { get; set; }
     public string? ImagePath { get; set; }
@@ -37,7 +37,7 @@ public partial class ArtistModel : RealmObject
 public partial class ArtistModelView : ObservableObject
 {
     [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(ArtistModelView));
+    string? localDeviceId;
     
     [ObservableProperty]
     string? name;
