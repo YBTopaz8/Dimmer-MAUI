@@ -19,12 +19,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.0e-debug";
+        DimmerTitleBar.Subtitle = "v1.1-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.0e-release";
+        DimmerTitleBar.Subtitle = "v1.1-release";
 #endif
 
         if (!InitChecker())
@@ -236,8 +236,7 @@ public partial class DimmerWindow : Window
     }
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
-    {
-        
-        EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
+    {        
+        //EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
     }
 }
