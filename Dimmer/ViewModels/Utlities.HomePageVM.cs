@@ -92,6 +92,7 @@ public partial class HomePageVM
         if (IsPlaying)
         {
             PauseSong();
+            GeneralStaticUtilities.ClearUp();   
         }
 #endif
         if (TemporarilyPickedSong is not null)

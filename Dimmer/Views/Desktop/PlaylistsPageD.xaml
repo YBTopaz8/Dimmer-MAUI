@@ -42,7 +42,7 @@
                                        ItemSpacing="4"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:PlaylistModelView">
+                    <DataTemplate>
                         <Border StrokeShape="RoundRectangle 5" Margin="10,10">
 
                             <VisualStateManager.VisualStateGroups>

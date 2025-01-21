@@ -7,15 +7,22 @@ using CSCore;
 namespace Dimmer_MAUI.Platforms.Windows;
 
 
-public partial class NativeAudioService : INativeAudioService, INotifyPropertyChanged
+public partial class NativeAudioService : INativeAudioService, INotifyPropertyChanged, IDisposable
 {
     static NativeAudioService? current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
     HomePageVM? ViewModel { get; set; }
 
-    private ISoundOut? soundOut;
+    private WasapiOut? soundOut;
     private IWaveSource? currentWaveSource;
     private Equalizer? equalizer;
+
+    public NativeAudioService()
+    {
+        Debug.WriteLine("NativeAudioService constructor called.");
+        Debug.WriteLine($"soundOut: {soundOut}, currentWaveSource: {currentWaveSource}");
+
+    }
 
     private bool isPlaying;
     public bool IsPlaying
@@ -59,6 +66,7 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     public event EventHandler? PlayPrevious;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
+    private readonly object resourceLock = new object();
 
     private void OnPropertyChanged(string propertyName)
     {
@@ -81,29 +89,60 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
         IsPlaying = true;
     }
 
-    public void Play(bool IsFromPreviousOrNext = false)
+    public void Play(bool s)
     {
-        soundOut?.Play();
-        IsPlaying = true;
+        lock (resourceLock)
+        {
+            soundOut?.Play();
+            IsPlaying = true;
+        }
     }
+
 
     public void Stop()
     {
-        soundOut?.Stop();
-        IsPlaying = false;
+        lock (resourceLock)
+        {
+            soundOut?.Stop();
+            IsPlaying = false;
+        }
     }
-
     public void SetCurrentTime(double positionInSec)
     {
         currentWaveSource?.SetPosition(TimeSpan.FromSeconds(positionInSec));
     }
 
+    private bool disposed = false;
+    
     public void Dispose()
     {
-        soundOut?.Dispose();
-        currentWaveSource?.Dispose();
-        equalizer?.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposed)
+            return; // Prevent multiple disposals
+
+        if (disposing)
+        {
+            // Clean up managed resources
+            soundOut?.Stop();
+            soundOut?.Dispose();
+            soundOut = null;
+
+            currentWaveSource?.Dispose();
+            currentWaveSource = null;
+
+            equalizer?.Dispose();
+            equalizer = null;
+        }
+
+        // Clean up unmanaged resources, if any
+        disposed = true;
+    }
+
     SongModelView? currentMedia;
     public void Initialize(SongModelView? media, byte[]? imageBytes)
     {
@@ -133,6 +172,12 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
 
             soundOut.Stopped += (s, e) =>
             {
+                lock (resourceLock)
+                {
+                    if (disposed)
+                        return; // Avoid operating on disposed objects
+                    
+                }
                 const double toleranceMs = 500; // 500 milliseconds tolerance
                 bool isCompleted = false;
 

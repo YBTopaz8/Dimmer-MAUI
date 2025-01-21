@@ -83,7 +83,11 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
+                                            
                                             Application.Current.CloseWindow(win);
+                                            Application.Current.Quit();
+                                            Environment.Exit(0); // Forcefully kill all threads
+
                                         }
                                     }
                                 }

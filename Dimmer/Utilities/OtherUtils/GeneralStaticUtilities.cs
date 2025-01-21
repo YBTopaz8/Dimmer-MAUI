@@ -556,4 +556,10 @@ public static class GeneralStaticUtilities
         });
     }
 
+    public static void ClearUp()
+    {
+        var nativeAudioService = IPlatformApplication.Current!.Services.GetService<INativeAudioService>() as NativeAudioService;
+        nativeAudioService?.Dispose();
+    }
+
 }
