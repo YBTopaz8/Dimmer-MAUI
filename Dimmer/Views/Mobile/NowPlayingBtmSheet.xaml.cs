@@ -1,4 +1,3 @@
-using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -9,8 +8,8 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
 
         InitializeComponent();
-        HomePageVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-        this.BindingContext = HomePageVM;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        this.BindingContext = MyViewModel;
 
         //Shell.SetTabBarIsVisible(this, false);
         AllowedState = BottomSheetAllowedState.FullExpanded;
@@ -25,18 +24,18 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         //{
         //    if(NPSlider.ItemsSource is null)
         //    {
-        //        NPSlider.ItemsSource = HomePageVM.SongsMgtService.AllSongs;
+        //        NPSlider.ItemsSource = MyViewModel.SongsMgtService.AllSongs;
         //    }
         //}
     }
 
-    HomePageVM HomePageVM { get; set; }
+    HomePageVM MyViewModel { get; set; }
 
     private async void ShowLyricsPage_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
+        MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
 
-        await HomePageVM.NavToSingleSongShell();
+        await MyViewModel.NavToSingleSongShell();
         await Task.Delay(500);
         this.State = BottomSheetState.Hidden;
 
@@ -45,12 +44,12 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private async void ShowSongAlbum_Tapped(object sender, TappedEventArgs e)
     {
-        if (HomePageVM.SongsMgtService.AllSongs.Count < 1)
+        if (MyViewModel.SongsMgtService.AllSongs.Count < 1)
         {
             return;
         }
-        HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong!;
-        await HomePageVM.NavigateToArtistsPage(0);
+        MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong!;
+        await MyViewModel.NavigateToArtistsPage(0);
         this.State = BottomSheetState.Hidden;
 
     }
@@ -64,13 +63,13 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        if (HomePageVM.IsPlaying)
+        if (MyViewModel.IsPlaying)
         {
-            HomePageVM.PauseSong();
+            MyViewModel.PauseSong();
         }
         else
         {
-            HomePageVM.ResumeSong();
+            MyViewModel.ResumeSong();
         }
 
         return;
@@ -78,12 +77,12 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private async void NavToSingleSongShell_Clicked(object sender, EventArgs e)
     {
-        await HomePageVM.NavToSingleSongShell();
+        await MyViewModel.NavToSingleSongShell();
     }
 
     private void lyricsCover_Clicked(object sender, EventArgs e)
     {
-        if (HomePageVM.SynchronizedLyrics?.Count < 1 || HomePageVM.SynchronizedLyrics is null)
+        if (MyViewModel.SynchronizedLyrics?.Count < 1 || MyViewModel.SynchronizedLyrics is null)
         {
             return;
         }
@@ -93,17 +92,17 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private void SyncLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
     {
-        if (HomePageVM.SynchronizedLyrics?.Count < 1 || HomePageVM.SynchronizedLyrics is null)
+        if (MyViewModel.SynchronizedLyrics?.Count < 1 || MyViewModel.SynchronizedLyrics is null)
         {
             return;
         }
-        SyncLyricsColView.ScrollTo(SyncLyricsColView.GetItemHandle(HomePageVM.SynchronizedLyrics!.IndexOf(HomePageVM.CurrentLyricPhrase!)), DXScrollToPosition.Start);
+        SyncLyricsColView.ScrollTo(SyncLyricsColView.GetItemHandle(MyViewModel.SynchronizedLyrics!.IndexOf(MyViewModel.CurrentLyricPhrase!)), DXScrollToPosition.Start);
     }
 
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
-        HomePageVM.CurrentPositionInSeconds = ProgressSlider.Value;
-        HomePageVM.SeekSongPosition();
+        MyViewModel.CurrentPositionInSeconds = ProgressSlider.Value;
+        MyViewModel.SeekSongPosition();
     }
 
     private void DXButton_Clicked(object sender, EventArgs e)
@@ -126,17 +125,17 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
             myPageView.ScrollTo(0, 180, true);
 #endif
 
-            myPage.AllowDismiss = false;
+            //myPage.AllowDismiss = false;
         }
         else
         {
             myPage.AllowDismiss = true;
         }
-        if (HomePageVM.SelectedSongToOpenBtmSheet is null)
+        if (MyViewModel.MySelectedSong is null)
         {
             return;
         }
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(HomePageVM.SelectedSongToOpenBtmSheet), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.MySelectedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
 
     }
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -145,8 +144,8 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         {
             return;
         }
-        HomePageVM.SelectedSongToOpenBtmSheet = song;
-        HomePageVM.PlaySong(song);
+        MyViewModel.MySelectedSong = song;
+        MyViewModel.PlaySong(song);
     }
 
     private void QuickPlaySong_Clicked(object sender, EventArgs e)
@@ -154,7 +153,13 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         var send = sender as DXButton;
         var song = send.BindingContext  as SongModelView;
 
-        HomePageVM.SelectedSongToOpenBtmSheet = song;
-        HomePageVM.PlaySong(song);
+        MyViewModel.MySelectedSong = song;
+        MyViewModel.PlaySong(song);
+    }
+
+    private void ToggleRepeat_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
+
     }
 }

@@ -359,5 +359,14 @@ public partial class HomePageVM
 
     [ObservableProperty]
     public partial ObservableCollection<DimmData> Z_ScoreOfListeningTimePlot { get; set; } = new();
+ 
     
+    [ObservableProperty]
+    public partial bool IsNowPlayingBtmSheetVisible { get; set; }
+
+    [RelayCommand]
+    public void ToggleNowPlayingBtmSheet()
+    {
+        IsNowPlayingBtmSheetVisible = !IsNowPlayingBtmSheetVisible;
+    }
 }

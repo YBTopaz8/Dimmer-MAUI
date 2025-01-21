@@ -3,7 +3,7 @@
 public partial class ActionPending : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(ActionPending));    
+    public string? LocalDeviceId { get; set; }
     public required int Actionn { get; set; }=0; // 0 for add, 1 for update, 2 for delete
     public required int TargetType { get; set; }= 0; // 0 for song, 1 for artist, 2 for album, 3 for genre, 4 playlist, 5 user, 6 AAGS link,7 DatePlayedAndWasCompletedSongLink
     public SongModel? ActionSong { get; set; }
@@ -37,8 +37,9 @@ public partial class ActionPending : RealmObject
 
 public partial class UserModelView : ObservableObject
 {
-    [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(UserModelView));   
+
+    [PrimaryKey]
+    public string? LocalDeviceId { get; set; }
     [ObservableProperty]
     public partial bool IsAuthenticated { get; set; }
     [ObservableProperty]
@@ -88,7 +89,7 @@ public partial class UserModelView : ObservableObject
 public partial class UserModel : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(UserModel));
+    public string? LocalDeviceId { get; set; }
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;

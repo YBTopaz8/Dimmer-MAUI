@@ -6,18 +6,18 @@ public partial class SingleSongStatsPageM : ContentPage
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
 
     }
 
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
-        HomePageVM.ShowSingleSongStatsCommand.Execute(HomePageVM.SongPickedForStats);
+        MyViewModel.CurrentPage = PageEnum.FullStatsPage;
+        MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.SongPickedForStats);
     }
 
   //  private async void CoverFlowV_ItemSwiped(CardsView view, PanCardView.EventArgs.ItemSwipedEventArgs args)
@@ -30,7 +30,7 @@ public partial class SingleSongStatsPageM : ContentPage
   //      {
   //          return;
   //      }
-  //      HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
+  //      MyViewModel.ShowSingleSongStatsCommand.Execute(song.Song);
 
   //      LineChartBor.WidthRequest = LineChartBor.Width + 1;
 

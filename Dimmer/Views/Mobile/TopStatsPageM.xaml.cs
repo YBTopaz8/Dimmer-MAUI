@@ -1,4 +1,3 @@
-using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -10,20 +9,20 @@ public partial class TopStatsPageM : ContentPage
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
 
         btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
 
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        HomePageVM.CurrentPage = PageEnum.FullStatsPage;
+        MyViewModel.CurrentPage = PageEnum.FullStatsPage;
         
-        //HomePageVM.LoadDailyData();
+        //MyViewModel.LoadDailyData();
     }
 
     private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
@@ -34,7 +33,7 @@ public partial class TopStatsPageM : ContentPage
         {
             return;
         }
-        HomePageVM.ShowSingleSongStatsCommand.Execute(song.Song);
+        MyViewModel.ShowSingleSongStatsCommand.Execute(song.Song);
 
     }
 
@@ -65,36 +64,36 @@ public partial class TopStatsPageM : ContentPage
         switch (selectedStatView)
         {
             case 0:
-                //HomePageVM.GetDaysNeededForNextEddington();
-                //HomePageVM.GetParetoPlayRatio();
-                //HomePageVM.GetGiniPlayIndex();
-                //HomePageVM.GetFibonacciPlayCount();
+                //MyViewModel.GetDaysNeededForNextEddington();
+                //MyViewModel.GetParetoPlayRatio();
+                //MyViewModel.GetGiniPlayIndex();
+                //MyViewModel.GetFibonacciPlayCount();
 
                 //GeneralStatsView front, rest back
                 break;
             case 1:
                 //SongsStatsView front, rest back
-                //HomePageVM.GetLifetimeBingeSong();
-                //HomePageVM.GetBiggestClimbers();
-                //HomePageVM.GetMostDimmsPerDay(15);
-                //HomePageVM.GetNotListenedStreaks();
-                //HomePageVM.GetTopStreakTracks();
+                //MyViewModel.GetLifetimeBingeSong();
+                //MyViewModel.GetBiggestClimbers();
+                //MyViewModel.GetMostDimmsPerDay(15);
+                //MyViewModel.GetNotListenedStreaks();
+                //MyViewModel.GetTopStreakTracks();
 
-                //HomePageVM.GetGoldenOldies();
+                //MyViewModel.GetGoldenOldies();
 
 
-                //HomePageVM.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetStatisticalOutlierSongs();
-                //HomePageVM.GetDailyListeningVolume();
-                //HomePageVM.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetOngoingGapBetweenTracks();
+                //MyViewModel.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetStatisticalOutlierSongs();
+                //MyViewModel.GetDailyListeningVolume();
+                //MyViewModel.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetOngoingGapBetweenTracks();
                 break;
             case 2:
-                //HomePageVM.GetTopPlayedArtists();
+                //MyViewModel.GetTopPlayedArtists();
                 break;
             case 3:
-                //HomePageVM.GetTopPlayedAlbums();
+                //MyViewModel.GetTopPlayedAlbums();
                 break;
             case 4:
                 break;

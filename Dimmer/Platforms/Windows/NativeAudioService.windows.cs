@@ -1,17 +1,22 @@
-﻿using Windows.Media;
-using Windows.Media.Core;
-using Windows.Media.Playback;
-using Windows.Storage.Streams;
+﻿using CSCore.Codecs;
+using CSCore.SoundOut;
+using CSCore.Streams.Effects;
+using CSCore;
+
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
+
 public partial class NativeAudioService : INativeAudioService, INotifyPropertyChanged
 {
-    static NativeAudioService current;
+    static NativeAudioService? current;
     public static INativeAudioService Current => current ??= new NativeAudioService();
     HomePageVM? ViewModel { get; set; }
-    MediaPlayer  mediaPlayer;
-    MediaPlay? CurrentMedia { get; set; }
+
+    private ISoundOut? soundOut;
+    private IWaveSource? currentWaveSource;
+    private Equalizer? equalizer;
+
     private bool isPlaying;
     public bool IsPlaying
     {
@@ -27,31 +32,26 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
         }
     }
 
-    private void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+    public double Duration => currentWaveSource?.GetLength().TotalSeconds ?? 0;
+    public double CurrentPosition => currentWaveSource?.GetPosition().TotalSeconds ?? 0;
 
-    public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
-    public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
     public double Volume
     {
-        get => mediaPlayer?.Volume ?? 0;
-
+        get => soundOut?.Volume ?? 0;
         set
         {
-            if (mediaPlayer is not null)
+            if (soundOut != null)
             {
-                mediaPlayer.Volume = Math.Clamp(value, 0, 1);
+                soundOut.Volume = Math.Clamp((float)value, 0f, 1f);
             }
         }
     }
-    public bool Muted
+
+    public double Balance
     {
-        get => mediaPlayer?.IsMuted ?? false;
-        set => mediaPlayer.IsMuted = value;
+        get => 0; // CSCore does not natively support balance
+        set { /* Implement if necessary using custom processing */ }
     }
-    public double Balance { get => mediaPlayer.AudioBalance; set => mediaPlayer.AudioBalance = Math.Clamp(value, -1, 1); }
 
     public event EventHandler<bool>? IsPlayingChanged;
     public event EventHandler? PlayEnded;
@@ -60,200 +60,110 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
 
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
     public void Pause()
     {
-        mediaPlayer?.Pause();
+        soundOut?.Pause();
         IsPlaying = false;
-        IsPlayingChanged?.Invoke(this, false);
-        
     }
 
     public void Resume(double positionInSeconds)
     {
-        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
-        mediaPlayer.Play();
+        if (currentWaveSource != null)
+        {
+            currentWaveSource.SetPosition(TimeSpan.FromSeconds(positionInSeconds));
+        }
+        soundOut?.Play();
         IsPlaying = true;
-        
-        
     }
+
     public void Play(bool IsFromPreviousOrNext = false)
     {
-        if (mediaPlayer != null)
-        {
-            mediaPlayer.Play();
-            IsPlaying = true;
-            IsPlayingChanged?.Invoke(this, true);
-        }
-        
-        
+        soundOut?.Play();
+        IsPlaying = true;
     }
 
-    
+    public void Stop()
+    {
+        soundOut?.Stop();
+        IsPlaying = false;
+    }
+
     public void SetCurrentTime(double positionInSec)
     {
-        
-        if (mediaPlayer == null)
-        {
-            return ;
-        }
-        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
-        return;
+        currentWaveSource?.SetPosition(TimeSpan.FromSeconds(positionInSec));
     }
+
     public void Dispose()
     {
-        mediaPlayer?.Dispose();
-        
+        soundOut?.Dispose();
+        currentWaveSource?.Dispose();
+        equalizer?.Dispose();
     }
-
-
-    private MediaPlaybackItem? MediaPlaybackItem(MediaPlay media)
+    SongModelView? currentMedia;
+    public void Initialize(SongModelView? media, byte[]? imageBytes)
     {
+        Dispose(); // Clean up any existing playback
+
+        if (media == null || string.IsNullOrEmpty(media.FilePath))
+        {
+            Debug.WriteLine("Invalid media file");
+            return;
+        }
+        currentMedia = media;
         try
         {
-            if (media == null || media.Stream == null)
-                return null;
+            // Create the WaveSource
+            var waveSource = CodecFactory.Instance.GetCodec(media.FilePath)
+                               .ToSampleSource()
+                               
+                               .ToStereo(); // Ensure it's stereo for effects
 
-            // Copy the byte stream to an InMemoryRandomAccessStream
-            var randomAccessStream = new InMemoryRandomAccessStream();
-            //using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
-            //{
-            //    var buffer = new byte[media.Stream.Length];
-            //    _ = media.Stream.Read(buffer, 0, buffer.Length);
-            //    writer.WriteBytes(buffer);
-            //    writer.Store().GetResults();
-            //}
+            // Add Equalizer
+            equalizer = Equalizer.Create10BandEqualizer(waveSource);
+            currentWaveSource = equalizer.ToWaveSource(16); // Convert back to WaveSource
 
-            // Create MediaSource from the InMemoryRandomAccessStream
-            var mediaSource = MediaSource.CreateFromStream(randomAccessStream, string.Empty);
-            var mediaItem = new MediaPlaybackItem(mediaSource);
+            // Initialize the SoundOut (playback engine)
+            soundOut = new WasapiOut();
+            soundOut.Initialize(currentWaveSource);
 
-            // Set properties for the media item
-            var props = mediaItem.GetDisplayProperties();
-            props.Type = MediaPlaybackType.Music;
-            if (!string.IsNullOrEmpty(media.Name))
-                props.MusicProperties.Title = media.Name;
-            if (!string.IsNullOrEmpty(media.Author))
-                props.MusicProperties.Artist = media.Author;
+            soundOut.Stopped += (s, e) =>
+            {
+                // Check if the playback ended naturally
+                bool isCompleted = currentWaveSource?.GetPosition() >= currentWaveSource?.GetLength();
+                Debug.WriteLine($"Playback stopped. Natural completion: {isCompleted}");
 
-            // Set the thumbnail if available
-            
-                var thumbnailStream = new InMemoryRandomAccessStream();
-                using (var writer = new DataWriter(thumbnailStream.GetOutputStreamAt(0)))
+
+                // Invoke PlayEnded only if it completed naturally
+                if (isCompleted && media == currentMedia)
                 {
-                    writer.WriteBytes(media.ImageBytes);
-                    
-                    writer.StoreAsync().GetAwaiter().GetResult();
-                    
-                    //writer.Store().GetResults();
+                    // Set playback state
+                    IsPlaying = false;
+                    PlayEnded?.Invoke(this, EventArgs.Empty);
                 }
-                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(thumbnailStream);
-            
-            mediaItem.AutoLoadedDisplayProperties = AutoLoadedDisplayPropertyKind.Music;
-            
-            mediaItem.ApplyDisplayProperties(props);
-            return mediaItem;
+            };
+
+
+            ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException?.Message}, stack {ex.StackTrace}, source {ex.Source}");
-            return null;
+            Debug.WriteLine($"Error initializing media: {ex.Message}");
         }
     }
 
-    public void Initialize(SongModelView? media, byte[]? ImageBytes)
+    public void ApplyEqualizerSettings(float[] bands)
     {
-        CurrentMedia?.Stream?.Dispose();
-        if (media is not null)
+        if (equalizer != null && bands.Length == equalizer.SampleFilters.Count)
         {
-            // Directly use the file path to create a URI for local files
-            using var fileStreamm = File.OpenRead(media.FilePath);
-            var memStream = new MemoryStream();
-            fileStreamm.CopyTo(memStream);
-            memStream.Position = 0;
-            CurrentMedia = new MediaPlay()
+            for (int i = 0; i < bands.Length; i++)
             {
-                SongId = media.LocalDeviceId,
-                Name = media.Title,
-                Author = media!.ArtistName!,
-                Stream = memStream,
-                ImageBytes = ImageBytes is not null ? ImageBytes : null,
-                DurationInMs = (long)(media.DurationInSeconds * 1000),
-            };
-            
-        }
-        try
-        {
-            ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
-            var curMedia = MediaPlaybackItem(CurrentMedia!);
-            if (curMedia == null)
-                return;
-            if (mediaPlayer == null)
-            {
-
-                mediaPlayer = new MediaPlayer()
-                {
-                    Source = curMedia,
-                    AudioCategory = MediaPlayerAudioCategory.Media,
-                };
-
-                
-
-                mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
-                mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                mediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-                
-                mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
-                mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-
-                mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
-
-                mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
-                mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
-                mediaPlayer.Volume = 1;
-                mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
-            }
-            else
-            {
-                Pause();
-                mediaPlayer.Source = curMedia;
+                equalizer.SampleFilters[i].AverageGainDB = bands[i];
             }
         }
-        catch (Exception)
-        {
-            Shell.Current.DisplayAlert("Oops! An Error Occured!", "This is a very very rare error but doesn't affect the app much, Carry On :D", "OK Thanks");
-        }
     }
-
-    private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
-    {
-        Debug.WriteLine(args.Error);
-        Debug.WriteLine(args.ErrorMessage);
-        Debug.WriteLine(args.ExtendedErrorCode);
-        
-        
-    }
-
-    private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
-    {
-        IsPlaying = false;
-        PlayEnded?.Invoke(sender, EventArgs.Empty);
-        //PlayNext?.Invoke(sender, EventArgs.Empty);
-    }
-    private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
-    {
-        PlayNext?.Invoke(sender, EventArgs.Empty);
-    }
-    private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)
-    {
-        PlayPrevious?.Invoke(sender, EventArgs.Empty);
-    }
-    private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
-    {
-        IsPlayingChanged?.Invoke(sender, false);
-    }
-    private void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
-    {
-        IsPlayingChanged?.Invoke(sender, true);
-    }
-
 }

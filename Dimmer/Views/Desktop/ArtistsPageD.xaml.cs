@@ -9,104 +9,95 @@ public partial class ArtistsPageD : ContentPage
     public ArtistsPageD(HomePageVM homePageVM)
     {
         InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
-        HomePageVM.GetAllArtistsCommand.Execute(null);
+        MyViewModel.GetAllArtistsCommand.Execute(null);
     }
 
   
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (HomePageVM.SelectedAlbumOnArtistPage is not null)
+        if (MyViewModel.SelectedAlbumOnArtistPage is not null)
         {
-            HomePageVM.SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
+            MyViewModel.SelectedAlbumOnArtistPage.IsCurrentlySelected = false;
         }
-        if (HomePageVM.SelectedArtistOnArtistPage is not null)
+        if (MyViewModel.SelectedArtistOnArtistPage is not null)
         {
-            HomePageVM.SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+            MyViewModel.SelectedArtistOnArtistPage.IsCurrentlySelected = false;
         }
        
 
-        //AllAlbumsColView.SelectedItem = HomePageVM.SelectedAlbumOnArtistPage;
+        //AllAlbumsColView.SelectedItem = MyViewModel.SelectedAlbumOnArtistPage;
 
-        HomePageVM.CurrentPage = PageEnum.AllAlbumsPage;
-        AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+        MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
+        AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
 
-        if (HomePageVM.SelectedSongToOpenBtmSheet is null)
+        if (MyViewModel.MySelectedSong is null)
         {
 
-            if (HomePageVM.TemporarilyPickedSong is not null)
+            if (MyViewModel.TemporarilyPickedSong is not null)
             {
-                HomePageVM.SelectedSongToOpenBtmSheet = HomePageVM.TemporarilyPickedSong;
-                HomePageVM.GetAllArtistsAlbum(song: HomePageVM.TemporarilyPickedSong, isFromSong: true);
+                MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
+                MyViewModel.GetAllArtistsAlbum(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
                 
             }
         }
         else
         {
-            HomePageVM.GetAllArtistsAlbum();
+            MyViewModel.GetAllArtistsAlbum();
         }
-        if (HomePageVM.SelectedArtistOnArtistPage is not null)
+        if (MyViewModel.SelectedArtistOnArtistPage is not null)
         {
-            AllArtistsColView.ScrollTo(HomePageVM.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
-            AllArtistsColView.SelectedItem = HomePageVM.SelectedArtistOnArtistPage;
+            AllArtistsColView.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
+            AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
         }
         
         
         
-    }
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
-    {
-        HomePageVM.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
-        HomePageVM.PlaySong(song);
     }
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)
     {
         var send = (MenuFlyoutItem)sender;
         var song = send.BindingContext as SongModelView;
-        await HomePageVM.SetSongCoverAsAlbumCover(song!);
+        await MyViewModel.SetSongCoverAsAlbumCover(song!);
     }
 
     private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
     {
-        HomePageVM.SearchArtistCommand.Execute(SearchArtistBar.Text);
+        MyViewModel.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
     private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {        
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        await HomePageVM.GetSongsFromAlbumId(curSel!.LocalDeviceId);
-        //await HomePageVM.GetAllAlbumInfos(curSel);
-        //await HomePageVM.ShowSpecificArtistsSongsWithAlbum(curSel);
+        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+        //await MyViewModel.GetAllAlbumInfos(curSel);
+        //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
 
-    private void AlbumSongsCV_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
-        //if (AlbumSongsCV.IsLoaded)
-        //{
-        //    AlbumSongsCV.ScrollTo(HomePageVM.PickedSong, ScrollToPosition.MakeVisible);
-        //}
+        MyViewModel.CurrentQueue = 1;
+        var s = (Border)sender;
+        var song = s.BindingContext as SongModelView;
+        MyViewModel.PlaySong(song);
     }
-
-    
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         var send = (Border)sender;
         var song = send.BindingContext! as SongModelView;
-        HomePageVM.SetContextMenuSong(song!);
+        MyViewModel.SetContextMenuSong(song!);
     }
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        HomePageVM.LoadSongsFromArtistId(HomePageVM.SelectedArtistOnArtistPage.LocalDeviceId);
+        MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
 
@@ -117,13 +108,13 @@ public partial class ArtistsPageD : ContentPage
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
         //artist.IsCurrentlySelected = true;
-        HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        MyViewModel.GetAllArtistAlbumFromArtistModel(artist);
         
-        //await HomePageVM.GetAllArtistAlbumFromArtist(artist);
+        //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
 
 
-        //var AlbumArtist = HomePageVM.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
-        //var album = HomePageVM.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
-        //HomePageVM.GetAllArtistsAlbum(album: album, isFromSong: false);
+        //var AlbumArtist = MyViewModel.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
+        //var album = MyViewModel.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
+        //MyViewModel.GetAllArtistsAlbum(album: album, isFromSong: false);
     }
 }

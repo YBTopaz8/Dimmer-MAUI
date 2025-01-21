@@ -57,45 +57,45 @@
                     <Label Text="Song Details" FontSize="25" Margin="0,0,0,8"
                        TextColor="DarkOrange" HorizontalOptions="Start"/>
                     <HorizontalStackLayout>
-                        <Label Text="{Binding  SelectedSongToOpenBtmSheet.Title}"/>
+                        <Label Text="{Binding  MySelectedSong.Title}"/>
                       
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout>
                         <Image>
                         </Image>
-                        <Label Text="{Binding  SelectedSongToOpenBtmSheet.ArtistName}"/>
+                        <Label Text="{Binding  MySelectedSong.ArtistName}"/>
 
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout>
                         <Image>
                         </Image>
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName}"/>
+                        <Label Text="{Binding MySelectedSong.AlbumName}"/>
 
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout>
                         <Image>
                         </Image>
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.GenreName}"/>
+                        <Label Text="{Binding MySelectedSong.GenreName}"/>
 
                     </HorizontalStackLayout>
                     <HorizontalStackLayout>
                         <Image>
                         </Image>
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.ReleaseYear}"/>
+                        <Label Text="{Binding MySelectedSong.ReleaseYear}"/>
 
                     </HorizontalStackLayout>
                     <HorizontalStackLayout>
                         <Image>
                         </Image>
-                        <Label Text="{Binding SelectedSongToOpenBtmSheet.TrackNumber}"/>
+                        <Label Text="{Binding MySelectedSong.TrackNumber}"/>
 
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
 
-                <mct:AvatarView ImageSource="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" 
+                <mct:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
                                 HeightRequest="{OnPlatform Android=105, WinUI=210}" BorderWidth="0" 
                                 WidthRequest="{OnPlatform WinUI=250, Android=105}"
                                 />
@@ -117,17 +117,17 @@
                 <HorizontalStackLayout>
                     <Image>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FilePath}" LineBreakMode="TailTruncation"/>
+                    <Label Text="{Binding MySelectedSong.FilePath}" LineBreakMode="TailTruncation"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FileSize, Converter={StaticResource FileSizeConverter}}"/>
+                    <Label Text="{Binding MySelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>
+                    <Label Text="{Binding MySelectedSong.DateCreated, Converter={StaticResource DateTimeOffsetConverter}}"/>
                 </HorizontalStackLayout>
             </VerticalStackLayout>
 
@@ -138,12 +138,12 @@
                     <Image>
                     </Image>
                     <Label 
-                        Text="{Binding SelectedSongToOpenBtmSheet.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                        Text="{Binding MySelectedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.FileFormat}"/>
+                    <Label Text="{Binding MySelectedSong.FileFormat}"/>
                 </HorizontalStackLayout>
                 <HorizontalStackLayout>
                     <Image>
@@ -153,7 +153,7 @@
                 <HorizontalStackLayout>
                     <Image>
                     </Image>
-                    <Label Text="{Binding SelectedSongToOpenBtmSheet.BitRate, StringFormat='{0} kbps'}"/>
+                    <Label Text="{Binding MySelectedSong.BitRate, StringFormat='{0} kbps'}"/>
                 </HorizontalStackLayout>
             </VerticalStackLayout>
 

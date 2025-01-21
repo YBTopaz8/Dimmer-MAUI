@@ -6,9 +6,9 @@ public partial class ViewSongMetadataPopupView : Popup
 	{
 		InitializeComponent();
         BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
 	}
-    HomePageVM HomePageVM { get; set; }
+    HomePageVM MyViewModel { get; set; }
     private void Button_Clicked(object sender, EventArgs e)
     {
         this.Close();
@@ -19,12 +19,12 @@ public partial class ViewSongMetadataPopupView : Popup
         this.Close();
         var send = (ImageButton)sender;
 
-        HomePageVM.CntxtMenuSearchCommand.Execute(send.CommandParameter);
+        MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
     }
 
     private async void ShareSongToStoryButton_Clicked(object sender, EventArgs e)
     {
         await this.CloseAsync();
-        HomePageVM.NavigateToShareStoryPageCommand.Execute(null);
+        MyViewModel.NavigateToShareStoryPageCommand.Execute(null);
     }
 }

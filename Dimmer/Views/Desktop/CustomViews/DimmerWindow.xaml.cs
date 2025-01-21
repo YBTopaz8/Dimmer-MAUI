@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
@@ -11,7 +9,7 @@ public partial class DimmerWindow : Window
         
     }
 
-    public HomePageVM Homepagevm { get; set; }
+    public HomePageVM MyViewModel { get; set; }
 
     protected override void OnCreated()
     {
@@ -21,30 +19,30 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.0e-debug";
+        DimmerTitleBar.Subtitle = "v1.1-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.0e-release";
+        DimmerTitleBar.Subtitle = "v1.1-release";
 #endif
 
         if (!InitChecker())
         {
             return;
         }
-        BindingContext = Homepagevm;
-        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
-        onlineCloud.IsVisible = Homepagevm.CurrentUser.IsAuthenticated;
+        
+        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+        onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
 
 
     }
     bool InitChecker()
     {
-        Homepagevm ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        MyViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
-        if (Homepagevm is null)
+        if (MyViewModel is null)
         {
             return false;
         }
@@ -57,9 +55,6 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        if (Homepagevm.CurrentPage != PageEnum.MainPage)
-            return;
-
         var searchBar = (SearchBar)sender;
         var txt = searchBar.Text;
 
@@ -67,73 +62,156 @@ public partial class DimmerWindow : Window
         _debounceTimer = new CancellationTokenSource();
         var token = _debounceTimer.Token;
 
-        if (Homepagevm.SongsMgtService.AllSongs is null)
+        switch (MyViewModel.CurrentPage)
         {
-            return;
-        }
-        if (Homepagevm.DisplayedSongs is null)
-        {
-            return;
-        }
+            case PageEnum.SetupPage:
+                break;
+            case PageEnum.SettingsPage:
+                break;
+            case PageEnum.MainPage:
 
-        try
-        {
-            await Task.Delay(300, token);
-
-            if (!string.IsNullOrEmpty(txt))
-            {
-                if (txt.Length >= 1)
+                if (MyViewModel.SongsMgtService.AllSongs is null)
                 {
-                    Homepagevm.IsOnSearchMode = true;
-                    Homepagevm.DisplayedSongs.Clear();
-
-                    // Directly filter the songs based on the search text, with null checks
-                    var fSongs = Homepagevm.SongsMgtService.AllSongs
-                        .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
-                                       (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
-                                       (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(txt, StringComparison.OrdinalIgnoreCase)))
-                        .ToList();
-
-                    Homepagevm.filteredSongs = fSongs;
-
-                    foreach (var song in fSongs)
-                    {
-                        Homepagevm.DisplayedSongs.Add(song);
-                    }
-                    Homepagevm.CurrentQueue = 1;
-
-                    if (Homepagevm.DisplayedSongs.Count < 1)
-                    {
-                        Homepagevm.DisplayedSongs.Clear();
-                    }
-                    OnPropertyChanged(nameof(Homepagevm.DisplayedSongs));
                     return;
                 }
-            }
-            else
-            {
-                Homepagevm.IsOnSearchMode = false;
-                Homepagevm.DisplayedSongs.Clear();
-
-                // Repopulate with all songs when search is empty
-                if (Homepagevm.SongsMgtService.AllSongs != null)
+                if (MyViewModel.DisplayedSongs is null)
                 {
-                    foreach (var song in Homepagevm.SongsMgtService.AllSongs)
+                    return;
+                }
+
+                try
+                {
+                    await Task.Delay(300, token);
+
+                    if (!string.IsNullOrEmpty(txt))
                     {
-                        Homepagevm.DisplayedSongs.Add(song);
+                        if (txt.Length >= 1)
+                        {
+                            MyViewModel.IsOnSearchMode = true;
+                            MyViewModel.DisplayedSongs.Clear();
+
+                            // Directly filter the songs based on the search text, with null checks
+                            var fSongs = MyViewModel.SongsMgtService.AllSongs
+                                .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
+                                               (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
+                                               (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(txt, StringComparison.OrdinalIgnoreCase)))
+                                .ToList();
+
+                            MyViewModel.FilteredSongs = fSongs;
+
+                            foreach (var song in fSongs)
+                            {
+                                MyViewModel.DisplayedSongs.Add(song);
+                            }
+                            MyViewModel.CurrentQueue = 1;
+
+                            OnPropertyChanged(nameof(MyViewModel.DisplayedSongs));
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        MyViewModel.IsOnSearchMode = false;
+                        MyViewModel.DisplayedSongs.Clear();
+
+                        // Repopulate with all songs when search is empty
+                        if (MyViewModel.SongsMgtService.AllSongs != null)
+                        {
+                            foreach (var song in MyViewModel.SongsMgtService.AllSongs)
+                            {
+                                MyViewModel.DisplayedSongs.Add(song);
+                            }
+                        }
+                        MyViewModel.CurrentQueue = 0;
                     }
                 }
-                Homepagevm.CurrentQueue = 0;
-            }
+                catch (TaskCanceledException)
+                {
+                    // Expected if the debounce timer is cancelled
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
+                }
+                break;
+            case PageEnum.NowPlayingPage:
+                break;
+            case PageEnum.PlaylistsPage:
+                break;
+            case PageEnum.FullStatsPage:
+                break;
+            case PageEnum.AllArtistsPage:
+                break;
+            case PageEnum.AllAlbumsPage:
+                if (MyViewModel.SongsMgtService.AllAlbums is null)
+                {
+                    return;
+                }
+                
+                if (MyViewModel.AllAlbums is null)
+                {
+                    return;
+                }
+                try
+                {
+                    await Task.Delay(3000);
+                    await Shell.Current.DisplayAlert("Info", "Search is Not Available ...Yet!", "Ok");
+                    return;
+                    await Task.Delay(300, token);
+
+                    if (!string.IsNullOrEmpty(txt))
+                    {
+                        if (txt.Length >= 1)
+                        {
+
+                            MyViewModel.AllAlbums.Clear();
+                            // Directly filter the songs based on the search text, with null checks
+                            var fAlbums = MyViewModel.SongsMgtService.AllAlbums
+                                .Where(item => (!string.IsNullOrEmpty(item.Name) && item.Name.Contains(txt, StringComparison.OrdinalIgnoreCase))).ToList();
+
+
+                            foreach (var song in fAlbums)
+                            {
+                                MyViewModel.AllAlbums.Add(song);
+                            }
+
+                            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        MyViewModel.IsOnSearchMode = false;
+                        MyViewModel.AllAlbums.Clear();
+
+                        // Repopulate with all songs when search is empty
+                        if (MyViewModel.SongsMgtService.AllAlbums != null)
+                        {
+                            foreach (var song in MyViewModel.SongsMgtService.AllAlbums)
+                            {
+                                MyViewModel.AllAlbums.Add(song);
+                            }
+                            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected if the debounce timer is cancelled
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
+                }
+                break;
+            case PageEnum.SpecificAlbumPage:
+                break;
+            default:
+                break;
         }
-        catch (TaskCanceledException)
-        {
-            // Expected if the debounce timer is cancelled
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
-        }
+        if (MyViewModel.CurrentPage != PageEnum.MainPage)
+            return;
+
     }
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
@@ -141,9 +219,9 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        Homepagevm.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
+        MyViewModel.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
@@ -152,14 +230,13 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        Homepagevm.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = Homepagevm.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !Homepagevm.IsStickToTop;
+        MyViewModel.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
     }
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
-    {
-        
-        EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
+    {        
+        //EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
     }
 }

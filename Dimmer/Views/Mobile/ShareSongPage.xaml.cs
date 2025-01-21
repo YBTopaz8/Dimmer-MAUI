@@ -1,5 +1,5 @@
 using DevExpress.Maui.Core;
-using Colors = Microsoft.Maui.Graphics.Colors;
+
 
 namespace Dimmer_MAUI.Views.Mobile;
 public partial class ShareSongPage : ContentPage
@@ -7,35 +7,35 @@ public partial class ShareSongPage : ContentPage
     public ShareSongPage()
     {
         InitializeComponent();
-        HomePageVM = IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
-        this.BindingContext = HomePageVM;
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
+        this.BindingContext = MyViewModel;
     }
     
     SongModelView currentsong;
-    HomePageVM HomePageVM { get; set; }
+    HomePageVM MyViewModel { get; set; }
     bool hasLyrics;
     ObservableCollection<LyricPhraseModel>? sharelyrics=new();
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (HomePageVM.TemporarilyPickedSong is null)
+        if (MyViewModel.TemporarilyPickedSong is null)
         {
             return;
         }
 
-        (hasLyrics, sharelyrics) = LyricsService.HasLyrics(HomePageVM.SelectedSongToOpenBtmSheet);
+        (hasLyrics, sharelyrics) = LyricsService.HasLyrics(MyViewModel.MySelectedSong);
 
         LyricsColView.ItemsSource = sharelyrics;
         if (sharelyrics?.Count > 1)
         {
             //addLyrText.IsVisible = true;
         }
-        string? str = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
+        string? str = MyViewModel.MySelectedSong.CoverImagePath;
         if (!string.IsNullOrEmpty(str))
         {            
-            currentsong = HomePageVM.SelectedSongToOpenBtmSheet;
+            currentsong = MyViewModel.MySelectedSong;
 
-           HomePageVM.ShareImgPath = str;
+           MyViewModel.ShareImgPath = str;
         }
         else
         {
@@ -162,7 +162,7 @@ public partial class ShareSongPage : ContentPage
                 if (ress)
                 {
                     customImgPath = string.Empty;
-                    //SharePageImg.Source = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath;
+                    //SharePageImg.Source = MyViewModel.MySelectedSong.CoverImagePath;
                     myPage.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 }
             };
@@ -179,7 +179,7 @@ public partial class ShareSongPage : ContentPage
     {
         if (sharelyrics?.Count < 1)
         {
-            sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(HomePageVM.SelectedSongToOpenBtmSheet.FilePath);
+            sharelyrics = LyricsService.LoadSynchronizedAndSortedLyrics(MyViewModel.MySelectedSong.FilePath);
 
             LyricsColView.ItemsSource = sharelyrics;
         }
@@ -303,7 +303,7 @@ public partial class ShareSongPage : ContentPage
                 break;
             case 1: //song cover as bg
                 customImgPath = string.Empty;
-                HomePageVM.ShareImgPath = HomePageVM.SelectedSongToOpenBtmSheet.CoverImagePath!;
+                MyViewModel.ShareImgPath = MyViewModel.MySelectedSong.CoverImagePath!;
                 
                 PageGrid.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
                 break;
@@ -319,7 +319,7 @@ public partial class ShareSongPage : ContentPage
                     });
                     if (res != null)
                     {
-                       HomePageVM.ShareImgPath = res.FullPath;
+                       MyViewModel.ShareImgPath = res.FullPath;
                     }
                 }
                 break;

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using DevExpress.Maui.Core.Internal;
 
 namespace Dimmer_MAUI.ViewModels;

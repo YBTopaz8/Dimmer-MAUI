@@ -122,10 +122,10 @@
 
 
             <HorizontalStackLayout Spacing="5" BackgroundColor="Transparent">
-                <Image Source="folder.png">
-                    
-                </Image>
-                <Label Text="Folders" FontSize="24" />
+                    <Image Source="folder.png" HeightRequest="30"/>
+
+
+                    <Label Text="Folders" FontSize="24" />
             </HorizontalStackLayout>
             
             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"

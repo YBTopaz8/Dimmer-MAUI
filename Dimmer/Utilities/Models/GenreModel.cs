@@ -2,7 +2,7 @@
 public partial class GenreModel : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(GenreModel));
+    public string? LocalDeviceId { get; set; } 
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
@@ -30,7 +30,7 @@ public partial class GenreModel : RealmObject
 public partial class AlbumArtistGenreSongLink : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumArtistGenreSongLink));
+    public string? LocalDeviceId { get; set; } 
     
     public string? SongId { get; set; }
     public string? AlbumId { get; set; }
@@ -64,9 +64,9 @@ public partial class AlbumArtistGenreSongLink : RealmObject
 
 public partial class AlbumArtistGenreSongLinkView: ObservableObject
 {
-    [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(AlbumArtistGenreSongLinkView));
-        
+    [PrimaryKey]
+    public string? LocalDeviceId { get; set; }
+
     public string? SongId { get; set; }
     public string? AlbumId { get; set; }
     public string? ArtistId { get; set; }
@@ -91,7 +91,7 @@ public partial class AlbumArtistGenreSongLinkView: ObservableObject
 public partial class GenreModelView : ObservableObject
 {
     [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(GenreModelView));
+    public partial string? LocalDeviceId { get; set; }
     
     [ObservableProperty]
     string? name;

@@ -1,5 +1,3 @@
-using Syncfusion.Maui.Toolkit.Chips;
-
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SettingsPageD : ContentPage

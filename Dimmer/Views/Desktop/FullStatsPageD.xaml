@@ -273,21 +273,21 @@
 
                                 <VerticalStackLayout Grid.Column="1" Grid.Row="0" x:DataType="vm:HomePageVM"
                                                      VerticalOptions="Center" >
-                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.Title, StringFormat='{0}'}" HorizontalOptions="Center"
+                                    <Label Text="{Binding MySelectedSong.Title, StringFormat='{0}'}" HorizontalOptions="Center"
                                            FontAttributes="Bold" FontSize="23" LineBreakMode="WordWrap" 
                                            ToolTipProperties.Text="Song Title" />
-                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName, StringFormat='by {0}'}" 
+                                    <Label Text="{Binding MySelectedSong.ArtistName, StringFormat='by {0}'}" 
                                            HorizontalOptions="Center" ToolTipProperties.Text="Artist Name"/>
-                                    <Label Text="{Binding SelectedSongToOpenBtmSheet.AlbumName, StringFormat='{0}'}"
+                                    <Label Text="{Binding MySelectedSong.AlbumName, StringFormat='{0}'}"
                                            HorizontalOptions="Center" ToolTipProperties.Text="Album Name"/>
 
                                     <Grid>
                                         <Image IsVisible="True"
-                                               Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.6"/>
+                                               Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.6"/>
 
                                     </Grid>
-                                    <Image Source="red_heart.gif" IsAnimationPlaying="{Binding SelectedSongToOpenBtmSheet.IsFavorite}"
-                                           WidthRequest="60" HeightRequest="60" IsVisible="{Binding SelectedSongToOpenBtmSheet.IsFavorite}"/>
+                                    <Image Source="red_heart.gif" IsAnimationPlaying="{Binding MySelectedSong.IsFavorite}"
+                                           WidthRequest="60" HeightRequest="60" IsVisible="{Binding MySelectedSong.IsFavorite}"/>
 
                                 </VerticalStackLayout>
 

@@ -20,10 +20,8 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"
-                           
-                           WidthRequest="500" Placeholder="Type To Search..." TextChanged="SearchSongSB_TextChanged" 
-                        IsVisible="{Binding CanSearch}">
+                <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"                           
+                           WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
 
                 </SearchBar>
             </TitleBar.Content>
@@ -48,8 +46,8 @@
 
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
                             TouchUp="SfEffectsView_TouchUp">
-                        <Image  Source="christmas_tree.gif" x:Name="EventEmoji" IsVisible="True" 
-       WidthRequest="30" IsAnimationPlaying="True" />
+                        <Image Source="newyear.png" x:Name="EventEmoji" IsVisible="True" 
+       WidthRequest="30" />
                     </syncf:SfEffectsView>
 
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"

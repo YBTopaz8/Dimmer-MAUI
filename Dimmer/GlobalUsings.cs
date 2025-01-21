@@ -9,6 +9,7 @@ global using Dimmer_MAUI.Views.Mobile.FirstSteps;
 global using Parse;
 global using Parse.Infrastructure;
 global using Parse.LiveQuery;
+global using Syncfusion.Maui.Toolkit.Charts;
 
 
 global using CommunityToolkit.Maui.Core.Extensions;
@@ -39,6 +40,8 @@ global using System.ComponentModel;
 //global using SkiaSharp.Views.Maui.Controls.Hosting;
 
 global using Microsoft.Maui.LifecycleEvents;
+
+global using Syncfusion.Maui.Toolkit.Chips;
 
 #if WINDOWS
 global using Dimmer_MAUI.Platforms.Windows;
@@ -72,6 +75,7 @@ global using Dimmer_MAUI.CustomPopUpViews;
 global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
 
+global using Colors = Microsoft.Maui.Graphics.Colors;
 
 global using Dimmer_MAUI.Utilities.Models;
 

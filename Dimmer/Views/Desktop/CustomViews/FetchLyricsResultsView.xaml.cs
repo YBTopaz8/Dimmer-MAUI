@@ -4,13 +4,13 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class FetchLyricsResultsView : ContentView
 {
-    HomePageVM VM { get; set; }
+    HomePageVM MyViewModel { get; set; }
     public FetchLyricsResultsView()
 	{
 		InitializeComponent();
 
         var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        VM = vm;
+        MyViewModel = vm;
         
 	}
 
@@ -22,12 +22,12 @@ public partial class FetchLyricsResultsView : ContentView
         if (title == "Synced Lyrics")
         {
 
-            await VM.ShowSingleLyricsPreviewPopup(thisContent, false);
+            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, false);
         }else
         if (title == "Plain Lyrics")
         {
 
-            await VM.ShowSingleLyricsPreviewPopup(thisContent, true);
+            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, true);
         }
     }
 
@@ -37,11 +37,11 @@ public partial class FetchLyricsResultsView : ContentView
     //    var cont = send.BindingContext as Content;
     //    if (!string.IsNullOrEmpty(cont.syncedLyrics))
     //    {
-    //       await VM.SaveSelectedLyricsToFile(true);
+    //       await MyViewModel.SaveSelectedLyricsToFile(true);
     //    }
     //    else
     //    {
-    //        await VM.SaveSelectedLyricsToFile(false);
+    //        await MyViewModel.SaveSelectedLyricsToFile(false);
     //    }
     //    //await Shell.Current.ShowPopupAsync(new ViewLyricsPopUp(cont, send.Text));
     //}

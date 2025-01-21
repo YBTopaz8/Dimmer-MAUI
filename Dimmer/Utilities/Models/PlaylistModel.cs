@@ -2,7 +2,7 @@
 public partial class PlaylistModel : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistModel));
+    public string? LocalDeviceId { get; set; } 
     
     public string? Name { get; set; } = "Unknown Playlist";
     public double TotalDuration { get; set; }
@@ -26,8 +26,7 @@ public partial class PlaylistModel : RealmObject
 public partial class PlaylistSongLink : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistSongLink));
-    
+    public string? LocalDeviceId { get; set; }
     public string? PlaylistId { get; set; }
     public string? SongId { get; set; }
     public PlaylistSongLink()
@@ -39,10 +38,9 @@ public partial class PlaylistSongLink : RealmObject
 
 public partial class PlaylistModelView : ObservableObject
 {
-    [ObservableProperty]
-    string? localDeviceId = GeneralStaticUtilities.GenerateRandomString(nameof(PlaylistModelView));
+    [PrimaryKey]
+    public string? LocalDeviceId { get; set; }
 
-    
     [ObservableProperty]
     string? name;
     [ObservableProperty]

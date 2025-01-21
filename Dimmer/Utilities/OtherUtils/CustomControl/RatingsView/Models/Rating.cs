@@ -1,17 +1,5 @@
 ﻿namespace Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Models;
 #nullable enable
-public class Rating
-{
-    /// <summary>
-    /// The value of the rating
-    /// </summary>
-    public double Value { get; set; }
-
-    /// <summary>
-    /// The additionnal data/ command param passed through
-    /// </summary>
-    public object? Parameter { get; set; }
-}
 internal class PathShapes
 {
     public const string Star = "M9 11.3l3.71 2.7-1.42-4.36L15 7h-4.55L9 2.5 7.55 7H3l3.71 2.64L5.29 14z";
@@ -24,6 +12,7 @@ internal class PathShapes
     public const string Dislike = "M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z";
     public const string Theaters = "M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z";
     public const string Problem = "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z";
+
 }
 public enum RatingShapes
 {

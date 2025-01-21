@@ -233,16 +233,16 @@ public partial class HomePageVM
         switch (CurrentNowPlayingStatsViewIndex)
         {
             case 0:
-                LoadDailyStats(SelectedSongToOpenBtmSheet);
+                LoadDailyStats(MySelectedSong);
                 break;
             case 1:
-                LoadWeeklyStats(SelectedSongToOpenBtmSheet);
+                LoadWeeklyStats(MySelectedSong);
                 break;
             case 2:
-                LoadMonthlyStats(SelectedSongToOpenBtmSheet);
+                LoadMonthlyStats(MySelectedSong);
                 break;
             case 3:
-                LoadYearlyStats(SelectedSongToOpenBtmSheet);
+                LoadYearlyStats(MySelectedSong);
                 break;
             default:
                 break;

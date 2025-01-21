@@ -2,37 +2,37 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class PlaylistsPageD : ContentPage
 {
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     public PlaylistsPageD(HomePageVM homePageVM)
     {
         InitializeComponent();
         BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
     }
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (HomePageVM.TemporarilyPickedSong is null)
+        if (MyViewModel.TemporarilyPickedSong is null)
         {
             return;
         }
-        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
-        HomePageVM.LoadFirstPlaylist();
+        MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
+        MyViewModel.LoadFirstPlaylist();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.DisplayedSongsFromPlaylist.Clear();
+        MyViewModel.DisplayedSongsFromPlaylist.Clear();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        HomePageVM.CurrentQueue = 1;
+        MyViewModel.CurrentQueue = 1;
         var t = (Border)sender;
         var song = t.BindingContext as SongModelView;
-        HomePageVM.PlaySong(song);        
+        MyViewModel.PlaySong(song);        
     }
 
     private void StateTrigger_IsActiveChanged(object sender, EventArgs e)

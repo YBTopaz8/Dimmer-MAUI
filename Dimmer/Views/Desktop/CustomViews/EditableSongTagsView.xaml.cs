@@ -2,11 +2,11 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class EditableSongTagsView : ContentView
 {
-	public HomePageVM? HomePageVM {  get; set; }
+	public HomePageVM? MyViewModel {  get; set; }
 	public EditableSongTagsView()
 	{		
 		InitializeComponent();
-        HomePageVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         BindingContext = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 	}
 

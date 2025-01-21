@@ -1,5 +1,3 @@
-using Syncfusion.Maui.Toolkit.Charts;
-using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
 
 namespace Dimmer_MAUI.Views.Desktop;
@@ -24,7 +22,7 @@ public partial class FullStatsPageD : ContentPage
             return;
         }
         ViewModel.CurrentPage = PageEnum.FullStatsPage;
-        //HomePageVM.ShowGeneralTopXSongsCommand.Execute(null);
+        //MyViewModel.ShowGeneralTopXSongsCommand.Execute(null);
         StatsTabs.SelectedItem = StatsTabs.Children[0];
         ViewModel.CallStats();
     }
@@ -49,18 +47,18 @@ public partial class FullStatsPageD : ContentPage
             case 1:
                 
                 //SongsStatsView front, rest back
-                //HomePageVM.GetNotListenedStreaks();
-                //HomePageVM.GetTopStreakTracks();
+                //MyViewModel.GetNotListenedStreaks();
+                //MyViewModel.GetTopStreakTracks();
 
-                //HomePageVM.GetGoldenOldies();
+                //MyViewModel.GetGoldenOldies();
 
 
-                //HomePageVM.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetStatisticalOutlierSongs();
-                //HomePageVM.GetDailyListeningVolume();
-                //HomePageVM.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //HomePageVM.GetOngoingGapBetweenTracks();
+                //MyViewModel.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetStatisticalOutlierSongs();
+                //MyViewModel.GetDailyListeningVolume();
+                //MyViewModel.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
+                //MyViewModel.GetOngoingGapBetweenTracks();
                 break;
             case 2:
                 //ViewModel.
@@ -168,7 +166,7 @@ public partial class FullStatsPageD : ContentPage
         
         var song = ViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
 
-        ViewModel.SelectedSongToOpenBtmSheet = song;
+        ViewModel.MySelectedSong = song;
         if (ClickToPreview)
         {
             ViewModel.PlaySong(song, true);

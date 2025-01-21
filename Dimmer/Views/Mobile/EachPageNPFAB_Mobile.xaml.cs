@@ -5,21 +5,21 @@ public partial class EachPageNPFAB_Mobile : ContentView
 	public EachPageNPFAB_Mobile()
 	{
 		InitializeComponent();
-		this.HomePageVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+		this.MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
 
-        this.BindingContext = this.HomePageVM;
+        this.BindingContext = this.MyViewModel;
     }
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
-        if (HomePageVM.IsPlaying)
+        if (MyViewModel.IsPlaying)
         {
-            HomePageVM.PauseSong();
+            MyViewModel.PauseSong();
         }
         else
         {
-            HomePageVM.ResumeSong();
+            MyViewModel.ResumeSong();
         }
     }
 

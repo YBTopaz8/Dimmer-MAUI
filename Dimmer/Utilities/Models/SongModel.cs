@@ -3,8 +3,9 @@
 namespace Dimmer_MAUI.Utilities.Models;
 public partial class SongModel : RealmObject
 {
+
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(SongModel));
+    public string? LocalDeviceId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string ArtistName { get; set; } = string.Empty;
     public string AlbumName { get; set; } = string.Empty;
@@ -219,11 +220,11 @@ public partial class SongModelView : ObservableObject
     {
         
     }
-    
 
-    // Override Equals to compare based on string
-    public override bool Equals(object? obj)
-    {
+    
+        // Override Equals to compare based on string
+        public override bool Equals(object? obj)
+        {
         if (obj is SongModelView other)
         {
             return this.LocalDeviceId == other.LocalDeviceId;
@@ -236,6 +237,67 @@ public partial class SongModelView : ObservableObject
         return HashCode.Combine(LocalDeviceId);
     }
 
+}
+
+public partial class SongsGroup : List<SongModelView>
+{
+    
+    public string GroupName { get ; set ;}
+    
+    public string? Description { get; set; }
+    
+    public string? IconUrl { get; set; }
+    
+    public int SortOrder { get; set; }
+    
+    public bool? IsExpanded { get; set; }
+    
+    public List<string>? Tags { get; set; }
+    
+    public ObservableCollection<SongModelView> Songs { get; private set; }
+
+    public SongsGroup(
+        string groupName,
+        List<SongModelView> songs,
+        string description = "",
+        string iconUrl = "",
+        int sortOrder = 0,
+        bool isExpanded = true,
+        List<string>? tags = null) :base(songs)
+    {
+        GroupName = groupName;
+        Description = description;
+        IconUrl = iconUrl;
+        SortOrder = sortOrder;
+        IsExpanded = isExpanded;
+        Tags = tags ?? new List<string>();
+        Songs = new ObservableCollection<SongModelView>(songs);
+    }
+
+    
+    public void AddSong(SongModelView song)
+    {
+        Songs.Add(song);
+        // Additional logic if needed
+    }
+
+    public bool RemoveSong(SongModelView song)
+    {
+        return Songs.Remove(song);
+    }
+}
+public class SongsCollection : ObservableCollection<SongsGroup>
+{
+    public SongsCollection() : base()
+    {
+    }
+
+    public void AddGroup(SongsGroup group)
+    {
+        this.Add(group);
+    }
+
+    // Additional methods to manage groups
 }
 
 public partial class PlayDataLink : ObservableObject
@@ -275,7 +337,7 @@ public partial class PlayDataLink : ObservableObject
     [ObservableProperty]
     public partial double PositionInSeconds { get; set; }
     [ObservableProperty]
-    public partial DateTime EventDate { get; internal set; }=DateTime.UtcNow;
+    public partial DateTime EventDate { get; set; }
 
     public PlayDataLink()
     {
@@ -304,8 +366,7 @@ public partial class PlayDataLink : ObservableObject
 public partial class PlayDateAndCompletionStateSongLink : RealmObject
 {
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateRandomString(nameof(PlayDateAndCompletionStateSongLink));
-    
+    public string? LocalDeviceId { get; set; }
     public string? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    
@@ -326,12 +387,12 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     public DateTimeOffset DateFinished { get; set; }
     public bool WasPlayCompleted { get; set; }
     public double PositionInSeconds { get; set; }
+    public DateTimeOffset? EventDate { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
     public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
-    public DateTimeOffset? EventDate { get; set; } = DateTimeOffset.UtcNow;
     public PlayDateAndCompletionStateSongLink()
     {
         

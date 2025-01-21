@@ -31,7 +31,7 @@
     <dx:DXDockLayout x:Name="tkDL" Margin="5,0">
         <Grid ColumnDefinitions="Auto,*,Auto" dx:DXDockLayout.Dock="Top">
 
-            <Label Text="{Binding SelectedSongToOpenBtmSheet.ArtistName}" HorizontalTextAlignment="Center"
+            <Label Text="{Binding MySelectedSong.ArtistName}" HorizontalTextAlignment="Center"
         VerticalTextAlignment="Center" FontAttributes="Bold" 
         FontSize="20" Grid.Column="0"/>
 

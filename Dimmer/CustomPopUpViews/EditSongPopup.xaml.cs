@@ -6,9 +6,9 @@ public partial class EditSongPopup : Popup
     {
         InitializeComponent();
         BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
     }
-    HomePageVM HomePageVM { get; set; }
+    HomePageVM MyViewModel { get; set; }
 
     private async void CancelBtn_Clicked(object sender, EventArgs e)
     {

@@ -11,7 +11,7 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial PlaylistModelView SelectedPlaylistToOpenBtmSheet {get;set;} = null;
     [ObservableProperty]
-    public partial SongModelView? SelectedSongToOpenBtmSheet {get;set;} = null;
+    public partial SongModelView? MySelectedSong {get;set;} = null;
 
     [ObservableProperty]
     public partial PlaylistModelView SelectedPlaylist {get;set;}
@@ -97,7 +97,7 @@ public partial class HomePageVM
             {
                 Name = PlaylistName,
             };
-            await UpdatePlayList(SelectedSongToOpenBtmSheet, newPlaylist, IsAddSong: true);
+            await UpdatePlayList(MySelectedSong, newPlaylist, IsAddSong: true);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             //await toast.Show(cts.Token);
@@ -135,7 +135,7 @@ public partial class HomePageVM
         {
             RefreshPlaylists();
         }
-        SelectedSongToOpenBtmSheet = PickedSong;
+        MySelectedSong = PickedSong;
         var allPlaylistNames = DisplayedPlaylists.Select(x => x.Name).ToList();
         _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames));
         

@@ -1,21 +1,5 @@
 ﻿namespace Dimmer_MAUI.Utilities.Models;
-public enum MediaPlayerState
-{
-    Initialized,
-    Playing,
-    Paused,
-    Stopped,
-    Ended,
-    LyricsLoad,
-    CoverImageDownload,
-    LoadingSongs,
-    ShowPlayBtn,
-    ShowPauseBtn,
-    RefreshStats,
-    SyncingData,
-    DoneScanningData,
-    Previewing,
-}
+
 public class PlaybackInfo
 {
     public double CurrentPercentagePlayed { get; set; }
@@ -161,4 +145,31 @@ public partial class DimmData : ObservableObject
         SongId = linkk.SongId;
     }
 
+}
+public partial class PlaybackStats : ObservableObject
+{
+    [ObservableProperty]
+    public partial string? SongId { get; set; }
+    [ObservableProperty]
+    public partial string? SongTitle { get; set; }
+    [ObservableProperty]
+    public partial string? SongArtist { get; set; }
+    [ObservableProperty]
+    public partial string? SongAlbum { get; set; }
+    [ObservableProperty]
+    public partial string? SongGenre { get; set; }
+    [ObservableProperty]
+    public partial int TotalCompletedPlays { get; set; } = 0;
+    [ObservableProperty]
+    public partial double TotalCompletedHours { get; set; } = 0.0;
+    [ObservableProperty]
+    public partial List<DateTime>? CompletedPlayTimes { get; set; }
+    [ObservableProperty]
+    public partial int TotalSkips { get; set; } = 0;
+    [ObservableProperty]
+    public partial List<DateTime>? SkipTimes { get; set; }
+    [ObservableProperty]
+    public partial int TotalPlays { get; set; } = 0;
+    [ObservableProperty]
+    public partial double TotalPlayHours { get; set; } = 0.0;
 }

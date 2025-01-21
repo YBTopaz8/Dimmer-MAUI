@@ -6,32 +6,32 @@ public partial class SinglePlaylistPageM : ContentPage
     public SinglePlaylistPageM(HomePageVM playlistsPageVM, HomePageVM homePageVM)
 	{
 		InitializeComponent();
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
         BindingContext = playlistsPageVM;
         btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
     }
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        this.Title = HomePageVM.SelectedPlaylistPageTitle;
-        HomePageVM.CurrentPage = PageEnum.PlaylistsPage;
+        this.Title = MyViewModel.SelectedPlaylistPageTitle;
+        MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        HomePageVM.DisplayedSongsFromPlaylist.Clear();
+        MyViewModel.DisplayedSongsFromPlaylist.Clear();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        HomePageVM.CurrentQueue = 1;
+        MyViewModel.CurrentQueue = 1;
         var view = (FlexLayout)sender;
         var song = view.BindingContext as SongModelView;
-        HomePageVM.PlaySong(song);
+        MyViewModel.PlaySong(song);
     }
 }

@@ -4,25 +4,28 @@ namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MediaPlaybackControlsView : ContentView
 {
-	HomePageVM vm { get; set; }
-	public MediaPlaybackControlsView()
-	{
+	HomePageVM MyViewModel { get; set; }
+	public MediaPlaybackControlsView() 
+    {
 		InitializeComponent();
-        //vm.PropertyChanged += OnPropertyChanged;
+        var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        MyViewModel = VM;
+        BindingContext = VM;
+        
         this.Loaded += MediaPlaybackControlsView_Loaded;
     }
 
     private void MediaPlaybackControlsView_Loaded(object? sender, EventArgs e)
     {
-        vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        BindingContext = vm;
+        MyViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>()!;
+        BindingContext = MyViewModel;
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName==nameof(vm.IsPlaying))
+        if (e.PropertyName==nameof(MyViewModel.IsPlaying))
         {
-            bool isPlaying = vm.IsPlaying;
+            bool isPlaying = MyViewModel.IsPlaying;
             if (isPlaying)
             {
                 
@@ -40,7 +43,7 @@ public partial class MediaPlaybackControlsView : ContentView
 
         _isThrottling = true;
 
-        vm.SeekSongPosition();
+        MyViewModel.SeekSongPosition();
 
         
         await Task.Delay(throttleDelay);
@@ -61,21 +64,25 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         var send = (View)sender;
         var song = send.BindingContext as SongModelView;
-        vm.SelectedSongToOpenBtmSheet = vm.TemporarilyPickedSong!;
-        await vm.NavToSingleSongShell();
+        MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong!;
+        await MyViewModel.NavToSingleSongShell();
     }
 
 
     private void PlayPauseBtn_Tapped(object sender, TappedEventArgs e)
     {
-        if (vm.IsPlaying)
+        if (MyViewModel.IsPlaying)
         {
-            vm.PauseSong();
+            MyViewModel.PauseSong();
         }
         else
         {
-            vm.ResumeSong();
+            MyViewModel.ResumeSong();
         }
     }
 
+    private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
+    }
 }

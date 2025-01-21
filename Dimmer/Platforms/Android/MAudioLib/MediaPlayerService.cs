@@ -707,13 +707,13 @@ public class MediaPlayerService : Service,
 
     IBinder binder;
 
-    public override IBinder OnBind(Intent intent)
+    public override IBinder OnBind(Intent? intent)
     {
         binder = new MediaPlayerServiceBinder(this);
         return binder;
     }
 
-    public override bool OnUnbind(Intent intent)
+    public override bool OnUnbind(Intent? intent)
     {
         NotificationHelper.StopNotification(Platform.AppContext);
         return base.OnUnbind(intent);

@@ -5,19 +5,16 @@ public interface IPlaybackUtilsService
     IObservable<ObservableCollection<SongModelView>> NowPlayingSongs { get; } //to display songs in queue
     IObservable<ObservableCollection<SongModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
     IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    bool PlaySong(SongModelView? song, int CurrentQueue = 0, ObservableCollection<SongModelView>? SecQueueSongs = null, 
-        double lastPosition = 0, int repeatMode = 0, 
-        int repeatMaxCount = 0, bool IsUserSkipped = true,
-        bool IsFromPreviousOrNext = false, AppState CurrentAppState = AppState.OnForeGround); //to play song
+    bool PlaySong(SongModelView? song, PlaybackSource source, double positionInSec = 0);
     bool PlaySong(SongModelView song, bool isPreview=true);
-    bool PlayNextSong(bool IsUserSkipped=true); //to play next song
-    bool PlayPreviousSong(bool IsUserSkipped = true); //to play previous song
+    void PlayNextSong(bool isUserInitiated = true); //to play next song
+    void PlayPreviousSong(bool isUserInitiated = true); //to play previous song
     bool StopSong(); //to stop song
     bool PauseResumeSong(double lastPosition, bool isPause=false); //to pause/resume song
     IObservable<MediaPlayerState> PlayerState { get; } //to update play/pause button
     void RemoveSongFromQueue(SongModelView song); //to remove song from queue
     void AddSongToQueue(SongModelView song); //to add song to queue
-    bool LoadSongsFromFolder(List<string> folderPath);//to load songs from folder
+    bool LoadSongsFromFolder(List<string> folderPath); //to load songs from folder
 
     SongModelView? CurrentlyPlayingSong { get; }
     SongModelView PreviouslyPlayingSong { get; }
@@ -28,7 +25,7 @@ public interface IPlaybackUtilsService
     int CurrentRepeatMode { get; set; }
     int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider
-    Task SeekTo(double positionInSec); // to set position from slider
+    void SeekTo(double positionInSec); // to set position from slider
     void ChangeVolume(double newVolumeValue);
     void SearchSong(string songTitleOrArtistName,List<string>? selectedFilters, int Rating); //to search song with title
     void DecreaseVolume();
@@ -41,10 +38,9 @@ public interface IPlaybackUtilsService
     bool PlaySelectedSongsOutsideApp(List<string> filePaths);
     void FullRefresh();
     void DeleteSongFromHomePage(SongModelView song);
-    Task MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
+    void MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
     
     //Playlist Section
-
     ObservableCollection<PlaylistModelView>? AllPlaylists { get; }
     void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);    
     void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
@@ -57,6 +53,8 @@ public interface IPlaybackUtilsService
     ObservableCollection<ArtistModelView> GetAllArtists();
     ObservableCollection<AlbumModelView> GetAllAlbums();
     void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false);
+    void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = false);
+    void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = true);
 
     ObservableCollection<ArtistModelView>? AllArtists { get; }
 }

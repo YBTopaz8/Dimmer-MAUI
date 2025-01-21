@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Dimmer_MAUI.DataAccess.Services;
+﻿namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -16,6 +13,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public List<AlbumModelView> AllAlbums { get; set; }
     public List<ArtistModelView> AllArtists { get; set; }
     public List<GenreModelView> AllGenres { get; set; }
+    public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
     public IDataBaseService DataBaseService { get; }
 
 
@@ -32,7 +30,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {        
         ViewModel = vm;
     }
-    public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
 
     bool isSyncingOnline;
 
@@ -130,6 +127,37 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             throw new Exception(ex.Message);
         }
     }
+    public void GetGenres()
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        AllGenres?.Clear();
+        var realmSongs = db.All<GenreModel>().ToList();
+        AllGenres = new List<GenreModelView>(realmSongs.Select(genre => new GenreModelView(genre)).OrderBy(x => x.Name));
+    }
+    public void GetArtists()
+    {
+        try
+        {
+            db = Realm.GetInstance(DataBaseService.GetRealm());
+            var realmArtists = db.All<ArtistModel>().ToList();
+
+            AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)).OrderBy(x => x.Name));
+            AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error getting Artists: {ex.Message}");
+        }
+    }
+
+    public void GetAlbums()
+    {
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        AllAlbums?.Clear();
+        var realmAlbums = db.All<AlbumModel>().ToList();
+        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)).OrderBy(x=>x.Name));
+
+    }
 
     public void AddPlayData(string songId, PlayDataLink playData)
     {
@@ -164,37 +192,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     }
 
 
-    public void GetGenres()
-    {
-        db = Realm.GetInstance(DataBaseService.GetRealm());
-        AllGenres?.Clear();
-        var realmSongs = db.All<GenreModel>().ToList();
-        AllGenres = new List<GenreModelView>(realmSongs.Select(genre => new GenreModelView(genre)));
-    }
-    public void GetArtists()
-    {
-        try
-        {
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            var realmArtists = db.All<ArtistModel>().ToList();
-
-            AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)));
-            AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error getting Artists: {ex.Message}");
-        }
-    }
-
-    public void GetAlbums()
-    {
-        db = Realm.GetInstance(DataBaseService.GetRealm());
-        AllAlbums?.Clear();
-        var realmAlbums = db.All<AlbumModel>().ToList();
-        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)));
-
-    }
     List<AlbumModel>? realmAlbums { get; set; }
     List<SongModel>? realmSongs { get; set; }
     List<GenreModel>? realGenres { get; set; }
@@ -806,11 +803,15 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 if (existingAlbum != null)
                 {
                     existingAlbum.ImagePath = album.AlbumImagePath;
+                    existingAlbum.NumberOfTracks = album.NumberOfTracks;
+                    existingAlbum.TotalDuration = album.TotalDuration;
+                    existingAlbum.Description = album.Description;
+                    db.Add(existingAlbum, update: true);
                 }
                 else
                 {
                     var newSong = new AlbumModel(album);
-                    db.Add(newSong, update: true);
+                    db.Add(newSong);
                 }
             });
 
@@ -1150,6 +1151,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
         try
         {
+            if (model.LocalDeviceId is null)
+            {
+                model.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID("PD");
+            }
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {                

@@ -22,7 +22,7 @@
           BackgroundColor="{OnPlatform Android=#171919}"
           RowDefinitions="*"
           ColumnDefinitions="*">
-        <Image Source="{Binding SelectedSongToOpenBtmSheet.CoverImagePath}" Opacity="0.1"
+        <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.1"
                IsVisible="{OnPlatform WinUI=false, Android=True}"
                Grid.Column="0" Aspect="Center"/>
 

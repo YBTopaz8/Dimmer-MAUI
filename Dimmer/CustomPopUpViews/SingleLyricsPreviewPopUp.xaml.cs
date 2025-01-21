@@ -6,7 +6,7 @@ public partial class SingleLyricsPreviewPopUp : Popup
 	{
 		InitializeComponent();
         BindingContext = homePageVM;
-        HomePageVM = homePageVM;
+        MyViewModel = homePageVM;
 
         ArtistNameLabel.Text = cont.ArtistName;
         SongTitleLabel.Text = " "+ cont.Name;
@@ -20,7 +20,7 @@ public partial class SingleLyricsPreviewPopUp : Popup
         }
     }
 
-    public HomePageVM HomePageVM { get; }
+    public HomePageVM MyViewModel { get; }
 
     private void CloseButton_Clicked(object sender, EventArgs e) => Close(false);
     private void OkButton_Clicked(object sender, EventArgs e) => Close(true);

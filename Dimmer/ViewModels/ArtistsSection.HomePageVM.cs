@@ -4,29 +4,34 @@ namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
+    [ObservableProperty]
+    public partial string? SearchPlaceHolder { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView> AllArtists { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView> AllAlbums{get;set;}= new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> AllArtistsAlbumSongs {get;set;}= new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> AllArtistsSongs {get;set;}= new();
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView> AllArtistsAlbums {get;set;}= new();
+    [ObservableProperty]
+    public partial string? SelectedArtistPageTitle { get; set; }
 
     [ObservableProperty]
-    ObservableCollection<ArtistModelView> allArtists=new();
+    public partial AlbumModelView? SelectedAlbumOnArtistPage { get; set; }
     [ObservableProperty]
-    ObservableCollection<AlbumModelView> allAlbums= new();
+    public partial ArtistModelView? SelectedArtistOnArtistPage { get; set; }
     [ObservableProperty]
-    ObservableCollection<SongModelView> allArtistsAlbumSongs = new();
+    public partial AlbumModelView? SelectedAlbumOnAlbumPage { get; set; }
     [ObservableProperty]
-    ObservableCollection<SongModelView> allArtistsSongs = new();
-    [ObservableProperty]
-    ObservableCollection<AlbumModelView> allArtistsAlbums = new();
-    [ObservableProperty]
-    string? selectedArtistPageTitle;
-
-    [ObservableProperty]
-    AlbumModelView? selectedAlbumOnArtistPage;
-    [ObservableProperty]
-    ArtistModelView? selectedArtistOnArtistPage;
+    public partial ArtistModelView? SelectedArtistOnAlbumPage { get; set; }
 
     [RelayCommand]
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongModelView song)
     {
-        SelectedSongToOpenBtmSheet = song;
+        MySelectedSong = song;
         var songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).First();
         
         await NavigateToSpecificAlbumPage(songAlbum);
@@ -57,15 +62,15 @@ public partial class HomePageVM
 
         if (callerID == 0)
         {
-            SelectedSongToOpenBtmSheet = TemporarilyPickedSong!;
+            MySelectedSong = TemporarilyPickedSong!;
         }
        
 #if WINDOWS
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));
 #elif ANDROID
         await Shell.Current.GoToAsync(nameof(ArtistsPageM));
-        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(SelectedSongToOpenBtmSheet!.LocalDeviceId!).First();
-        GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
+        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).First();
+        GetAllArtistAlbumFromArtistModel(SelectedArtistOnArtistPage);
 #endif
 
     }
@@ -176,7 +181,7 @@ public partial class HomePageVM
         }
 
         AllArtistsAlbums?.Clear();
-        GetAllArtistAlbumFromArtist(SelectedArtistOnArtistPage);
+        GetAllArtistAlbumFromArtistModel(SelectedArtistOnArtistPage);
         
         //await ShowSpecificArtistsSongsWithAlbum(SelectedAlbumOnArtistPage!);
         
@@ -218,7 +223,7 @@ public partial class HomePageVM
         {
             return;
         }
-        await GetSongsFromAlbumId(album.LocalDeviceId!);
+        AllArtistsAlbumSongs= GetAllSongsFromAlbumID(album.LocalDeviceId!);
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
 
         var song = AllArtistsAlbumSongs!.FirstOrDefault();
@@ -231,69 +236,10 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
-    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView>? oldValue, ObservableCollection<AlbumModelView> newValue)
+    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView> oldValue, ObservableCollection<AlbumModelView> newValue)
     {
         //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
     }
-    public async Task GetAlbumsFromArtistIDAsync(string artistId)
-    {
-        // Use asynchronous processing with deferred execution
-        await MainThread.InvokeOnMainThreadAsync(() =>
-        {
-            // Create a set of album IDs linked to the artist
-            var albumIds = new HashSet<string>(
-                 AllLinks.Where(link => link.ArtistId == artistId).Select(link => link.AlbumId)
-            );
-            if (AllAlbums is null)
-            {
-                AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
-            }
-            // Filter albums efficiently using the pre-built HashSet
-            var albums = SongsMgtService.AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId));
-
-            // Convert the result to an observable collection for UI binding
-            AllArtistsAlbums = albums.ToObservableCollection();
-        });
-    }
-
-    public async void LoadSongsFromArtistId(string artistId)
-    {
-
-        // Ensure the operation runs on the main thread
-        await MainThread.InvokeOnMainThreadAsync(() =>
-        {
-            // Pre-build a HashSet of song IDs related to the album for quick lookup
-            var songIds = new HashSet<string>(
-                AllLinks.Where(link => link.ArtistId == artistId).Select(link => link.SongId)
-            );
-
-            // Filter songs using the HashSet for O(1) lookups
-            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.LocalDeviceId!));
-
-            AllArtistsAlbumSongs = songs.ToObservableCollection();
-        });
-        
-    }
-
-
-    public async Task GetSongsFromAlbumId(string albumId)
-    {
-        // Ensure the operation runs on the main thread
-        await MainThread.InvokeOnMainThreadAsync(() =>
-        {
-            // Pre-build a HashSet of song IDs related to the album for quick lookup
-            var songIds = new HashSet<string>(
-                AllLinks.Where(link => link.AlbumId == albumId).Select(link => link.SongId)!
-            );
-
-            // Filter songs using the HashSet for O(1) lookups
-            var songs = SongsMgtService.AllSongs.Where(song => songIds.Contains(song.LocalDeviceId!));
-
-            AllArtistsAlbumSongs = songs.ToObservableCollection();
-        });
-
-    }
-
 
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
   {
@@ -404,11 +350,11 @@ public partial class HomePageVM
             .ToHashSet();
 
         return new ObservableCollection<SongModelView>(
-            DisplayedSongs.Where(song => songIds.Contains(song.LocalDeviceId))
+            SongsMgtService.AllSongs.Where(song => songIds.Contains(song.LocalDeviceId))
         );
     }
 
-    public void GetAllArtistAlbumFromArtist(ArtistModelView artist)
+    public void GetAllArtistAlbumFromArtistModel(ArtistModelView artist)
     {
         //if (artist is null SelectedArtistOnArtistPage is null)
         if (artist is null)
@@ -438,7 +384,7 @@ public partial class HomePageVM
         SelectedArtistOnArtistPage.IsCurrentlySelected = true;
         SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault()!.AlbumImagePath;
         AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId!);
-        SelectedSongToOpenBtmSheet.IsCurrentPlayingHighlight = true;
+        MySelectedSong.IsCurrentPlayingHighlight = true;
     }
 
     [RelayCommand]
@@ -474,4 +420,266 @@ public partial class HomePageVM
             AllArtistsAlbumSongs?.Clear();
         }
     }
+
+    public void ReCheckSongsBelongingToAlbum(string id)
+    {
+        AllArtistsAlbumSongs?.Clear();
+        var alb = AllAlbums.FirstOrDefault(x => x.LocalDeviceId == id);
+        //AllArtistsAlbumSongs = GetAllSongsFromAlbumID(id);
+        AllArtistsAlbumSongs= GetAllSongsFromAlbumID(id);
+        
+        if (alb is not null)
+        {
+            if (alb.NumberOfTracks != AllArtistsAlbumSongs.Count)
+            {
+                alb.NumberOfTracks = AllArtistsAlbumSongs.Count;
+                alb.TotalDuration = TimeSpan.FromSeconds(AllArtistsAlbumSongs.Sum(x => x.DurationInSeconds)).ToString(@"mm\:ss");
+                SongsMgtService.UpdateAlbum(alb);
+            }            
+        }
+       
+        //need a linq fxn to go through all this collection and fill this variable
+        //PopulateGroupedAlbumSongs(songs.ToList());
+        GetTopCompletedPlays(AllArtistsAlbumSongs);
+        /*
+        TopCompleted = GetTopCompletedPlays(DisplayedSongs);
+        TopSkipped = GetTopSkippedPlays(DisplayedSongs);
+        OverallStats = GetOverallPlaybackStats(DisplayedSongs);
+        RecentPlays = GetRecentlyPlayedSongs(DisplayedSongs, days: 30);
+        LeastPlayed = GetLeastPlayedSongs(DisplayedSongs);
+        RangeStatss = GetStatsInRange(DisplayedSongs, DateTime.UtcNow.AddMonths(-1), DateTime.UtcNow);
+        */
+    }
+    //// Method to populate SpecificAlbumGroupedSongs
+    //public void PopulateGroupedAlbumSongs(List<SongModelView> songs)
+    //{
+    //    // Dictionary for manual grouping
+    //    var groupDictionary = new Dictionary<string, List<SongModelView>>();
+
+    //    // Group songs manually
+    //    foreach (var song in songs)
+    //    {
+    //        if (song == null || string.IsNullOrWhiteSpace(song.Title))
+    //        {
+    //            Debug.WriteLine($"Skipping song with invalid title: {song?.Title}");
+    //            continue; // Skip invalid songs
+    //        }
+
+    //        // Get the grouping key
+    //        string key = GetGroupingKey(song.Title);
+
+    //        // Add the song to the appropriate group in the dictionary
+    //        if (!groupDictionary.TryGetValue(key, out List<SongModelView>? value))
+    //        {
+    //            value = new List<SongModelView>();
+    //            groupDictionary[key] = value;
+    //        }
+
+    //        value.Add(song);
+    //    }
+
+    //    // Clear the SpecificAlbumGroupedSongs collection
+    //    SpecificAlbumGroupedSongs.Clear();
+
+    //    // Process the grouped data and add to SpecificAlbumGroupedSongs
+    //    foreach (var kvp in groupDictionary)
+    //    {
+    //        string key = kvp.Key;
+    //        List<SongModelView> groupedSongs = kvp.Value;
+
+    //        var newGroup = new SongsGroup(
+    //            groupName: key,
+    //            songs: groupedSongs,
+    //            description: $"{groupedSongs.Count} song(s) starting with '{key}'"
+    //        );
+
+    //        SpecificAlbumGroupedSongs.Add(key, groupedSongs);
+
+    //    }
+    //}
+
+
+
+    /// <summary>
+    /// Determines the grouping key based on the first non-whitespace character of the title.
+    /// If the first character is not a letter, returns '#'.
+    /// </summary>
+    /// <param name="title">The title of the song.</param>
+    /// <returns>A single character string representing the group name.</returns>
+    private string GetGroupingKey(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return "#"; // Default group for invalid or empty titles
+
+        // Trim leading whitespace
+        string trimmedTitle = title.TrimStart();
+
+        if (string.IsNullOrEmpty(trimmedTitle))
+            return "#";
+
+        char firstChar = char.ToUpper(trimmedTitle[0]);
+
+        // Check if the first character is a letter
+        return char.IsLetter(firstChar) ? firstChar.ToString() : "#";
+    }
+
+
+    [ObservableProperty]
+    public partial SongsGroup? SubSongGroup { get; set; }
+    // Existing properties and methods
+
+    [ObservableProperty]
+    public partial ObservableCollection<SongsGroup> SpecificAlbumGroupedSongs { get; private set; } = new ObservableCollection<SongsGroup>();
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> TopCompleted { get; private set; } = new ObservableCollection<PlaybackStats>();
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> TopSkipped { get; private set; } = new ObservableCollection<PlaybackStats>();
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> OverallStats { get; private set; } = new ObservableCollection<PlaybackStats>();
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> RecentPlays { get; private set; } = new ObservableCollection<PlaybackStats>();
+    
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> LeastPlayed { get; private set; } = new ObservableCollection<PlaybackStats>();
+    [ObservableProperty]
+    public partial ObservableCollection<PlaybackStats> RangeStatss { get; private set; } = new ObservableCollection<PlaybackStats>();
+    public void GetTopCompletedPlays(IEnumerable<SongModelView> songs)
+    {
+        TopCompleted = songs.Select(song =>
+        {
+            var completedPlays = AllPlayDataLinks
+                .Where(p => p.SongId == song.LocalDeviceId && p.PlayType == 3)
+                .ToList();
+
+            return new PlaybackStats
+            {
+                SongId = song.LocalDeviceId,
+                SongTitle = song.Title,                
+                SongGenre = song.GenreName,
+                TotalCompletedPlays = completedPlays.Count,
+                //TotalCompletedHours = completedPlays.Sum(p => p.PositionInSeconds) / 3600.0,
+                TotalCompletedHours = (song.DurationInSeconds * completedPlays.Count) / 3600.0,
+                CompletedPlayTimes = completedPlays.Select(p => p.EventDate).ToList()
+            };
+        })
+        .Where(stat => stat.TotalCompletedPlays > 0) // Only include songs with completed plays
+        .OrderByDescending(stat => stat.TotalCompletedPlays)
+        .ToObservableCollection();
+
+        
+    }
+    public void GetTopSkippedPlays(IEnumerable<SongModelView> songs)
+    {
+        TopSkipped = songs.Select(song =>
+        {
+            var skippedPlays = AllPlayDataLinks
+                .Where(p => p.SongId == song.LocalDeviceId && p.PlayType == 5) // 5 = Skipped
+                .ToObservableCollection();
+
+            return new PlaybackStats
+            {
+                SongId = song.LocalDeviceId,
+                SongTitle = song.Title,
+                SongGenre = song.GenreName,
+                TotalSkips = skippedPlays.Count,
+                SkipTimes = skippedPlays.Select(p => p.EventDate).ToList()
+            };
+        })
+        .Where(stat => stat.TotalSkips > 0) // Only include songs with skips
+        .OrderByDescending(stat => stat.TotalSkips)
+        .ToObservableCollection();
+
+        
+    }
+    public ObservableCollection<PlaybackStats> GetOverallPlaybackStats(IEnumerable<SongModelView> songs)
+    {
+        OverallStats = songs.Select(song =>
+        {
+            var allPlays = AllPlayDataLinks
+                .Where(p => p.SongId == song.LocalDeviceId)
+                .ToObservableCollection();
+
+            return new PlaybackStats
+            {
+                SongId = song.LocalDeviceId,
+                SongTitle = song.Title,
+                SongGenre = song.GenreName,
+                TotalPlays = allPlays.Count,
+                TotalPlayHours = allPlays.Sum(p => p.PositionInSeconds) / 3600.0
+            };
+        })
+        .Where(stat => stat.TotalPlays > 0) // Only include songs with at least one play
+        .OrderByDescending(stat => stat.TotalPlays)
+        .ToObservableCollection();
+
+        return OverallStats;
+    }
+    public void GetRecentlyPlayedSongs(IEnumerable<SongModelView> songs, int days = 7)
+    {
+        var recentDate = DateTime.UtcNow.AddDays(-days);
+
+        RecentPlays = songs.Select(song =>
+        {
+            var recentPlays = AllPlayDataLinks
+                .Where(p => p.SongId == song.LocalDeviceId && p.EventDate >= recentDate)
+                .ToObservableCollection();
+
+            return new PlaybackStats
+            {
+                SongId = song.LocalDeviceId,
+                SongTitle = song.Title,
+                SongGenre = song.GenreName,
+                TotalPlays = recentPlays.Count,
+                TotalPlayHours = recentPlays.Sum(p => p.PositionInSeconds) / 3600.0
+            };
+        })
+        .Where(stat => stat.TotalPlays > 0)
+        .OrderByDescending(stat => stat.TotalPlays)
+        .ToObservableCollection();
+
+        
+    }
+    public void GetLeastPlayedSongs(IEnumerable<SongModelView> songs)
+    {
+        LeastPlayed = GetOverallPlaybackStats(songs)
+            .OrderBy(stat => stat.TotalPlays)
+            .ToObservableCollection();
+
+        
+    }
+    public void GetStatsInRange(IEnumerable<SongModelView> songs, DateTime? startDate, DateTime? endDate, bool includeSkips = true, bool includeCompletions = true)
+    {
+        startDate ??= DateTime.Now.AddDays(-14);
+        endDate ??= DateTime.Now;
+        var stats = songs.Select(song =>
+        {
+            var filteredPlays = AllPlayDataLinks
+                .Where(p => p.SongId == song.LocalDeviceId && p.EventDate >= startDate && p.EventDate <= endDate)
+                .ToObservableCollection();
+
+            var skippedPlays = includeSkips
+                ? filteredPlays.Where(p => p.PlayType == 5).ToObservableCollection()
+                : new ObservableCollection<PlayDataLink>();
+
+            var completedPlays = includeCompletions
+                ? filteredPlays.Where(p => p.WasPlayCompleted).ToObservableCollection()
+                : new ObservableCollection<PlayDataLink>();
+
+            return new PlaybackStats
+            {
+                SongId = song.LocalDeviceId,
+                SongTitle = song.Title,
+                SongGenre = song.GenreName,
+                TotalSkips = skippedPlays.Count,
+                SkipTimes = skippedPlays.Select(p => p.EventDate).ToList(),
+                TotalCompletedPlays = completedPlays.Count,
+                CompletedPlayTimes = completedPlays.Select(p => p.EventDate).ToList()
+            };
+        })
+        .Where(stat => stat.TotalSkips > 0 || stat.TotalCompletedPlays > 0)
+        .OrderByDescending(stat => stat.TotalCompletedPlays + stat.TotalSkips)
+        .ToObservableCollection();
+
+    }
+
 }
