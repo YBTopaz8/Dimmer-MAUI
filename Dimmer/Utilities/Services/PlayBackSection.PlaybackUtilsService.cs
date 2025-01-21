@@ -318,7 +318,7 @@ public partial class PlaybackUtilsService : ObservableObject
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Skipped);
         }
 
-        var currentQueue = _playbackQueue.Value;
+        var currentQueue = _playbackQueue.Value.Count == 0? SongsMgtService.AllSongs.ToObservableCollection() : _playbackQueue.Value;
         int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
 
         if (currentIndex < currentQueue.Count - 1)

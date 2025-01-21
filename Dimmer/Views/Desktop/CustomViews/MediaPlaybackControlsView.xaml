@@ -164,6 +164,14 @@
 
                         <ImageButton Command="{Binding ToggleShuffleStateCommand}"  Source="shuffledark.png"
                                      WidthRequest="15">
+                            <ImageButton.Triggers>
+                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffleOn}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffleOn}" Value="false">
+                                    <Setter Property="BackgroundColor" Value="Transparent"/>
+                                </DataTrigger>
+                            </ImageButton.Triggers>
                             <ImageButton.Behaviors>
                                 <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>
                             </ImageButton.Behaviors>
