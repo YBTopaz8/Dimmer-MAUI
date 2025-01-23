@@ -34,7 +34,10 @@ public partial class DimmerWindow : Window
         
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
-        onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
+        if(MyViewModel.CurrentUser is not null)
+        {
+            onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
+        }
 
 
     }

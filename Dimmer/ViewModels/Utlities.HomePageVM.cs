@@ -765,7 +765,10 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
-
+        if (CurrentUser is null)
+        {
+            return false;
+        }
         
         if ((string.IsNullOrEmpty(CurrentUser.UserPassword)||string.IsNullOrEmpty(CurrentUser.UserName)) && !isSilent)
         {

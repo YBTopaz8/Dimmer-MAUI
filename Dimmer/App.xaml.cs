@@ -50,9 +50,9 @@ public partial class App : Application
         // Print to Shell.Current
         if (Shell.Current != null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                Shell.Current.DisplayAlert("Unhandled Exception", errorDetails, "OK");
+              await Shell.Current.DisplayAlert("Unhandled Exception", errorDetails, "OK");
             });
         }
     }

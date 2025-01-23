@@ -47,7 +47,7 @@ public partial class AppShell : Shell
     {
         await MyViewModel.NavToSingleSongShell();
     }
-
+/*
     private async void MultiSelect_TouchDown(object sender, EventArgs e)
     {
         switch (MyViewModel.CurrentPage)
@@ -90,7 +90,7 @@ public partial class AppShell : Shell
                 break;
         }
     }
-
+    */
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
 
@@ -341,6 +341,8 @@ public partial class AppShell : Shell
         }
 #endif
     }
+
+    /*
     private void PlayPauseBtn_Clicked(object sender, EventArgs e)
     {
         if (MyViewModel.IsPlaying)
@@ -439,7 +441,7 @@ public partial class AppShell : Shell
     private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);  
-    }
+    }*/
 }
 
 public enum PageEnum

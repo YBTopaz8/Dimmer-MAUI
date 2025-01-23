@@ -127,8 +127,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public void FullRefresh()
     {
+
+        if (SongsMgtService.AllSongs is null)
+        {
+            return;
+        }
        
-       var songss = SongsMgtService.AllSongs.ToObservableCollection();
+        var songss = SongsMgtService.AllSongs.ToObservableCollection();
        
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
         var sortedSongs = AppSettingsService.ApplySorting(songss, CurrentSorting);
@@ -490,8 +495,17 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         try
         {
             var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
+            if (specificPlaylist is null)
+            {
+                return Enumerable.Empty<SongModelView>().ToList();
+            }
             var songsIdsFromPL = new HashSet<string>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.LocalDeviceId));
+            
             var songsFromPlaylist = SongsMgtService.AllSongs;
+            if (songsFromPlaylist is null)
+            {
+                return Enumerable.Empty<SongModelView>().ToList();
+            }
             List<SongModelView> songsinpl = new();
             songsinpl?.Clear();
             foreach (var song in songsFromPlaylist)

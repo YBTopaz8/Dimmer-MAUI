@@ -175,31 +175,14 @@ public partial class NativeAudioService : INativeAudioService, INotifyPropertyCh
                 lock (resourceLock)
                 {
                     if (disposed)
+                    {
+                        // Set playback state
+                        IsPlaying = false;
+                        PlayEnded?.Invoke(this, EventArgs.Empty);
+                    }
                         return; // Avoid operating on disposed objects
                     
-                }
-                const double toleranceMs = 500; // 500 milliseconds tolerance
-                bool isCompleted = false;
-
-                if (currentWaveSource != null)
-                {
-                    var position = currentWaveSource.GetPosition();
-                    var length = currentWaveSource.GetLength();
-
-                    // Calculate the difference in milliseconds
-                    double differenceMs = (length - position).TotalMilliseconds;
-
-                    // Check if the playback ended naturally within the tolerance
-                    isCompleted = differenceMs <= toleranceMs;
-                }
-
-
-                // Invoke PlayEnded only if it completed naturally
-                if (isCompleted && media == currentMedia)
-                {
-                    // Set playback state
-                    IsPlaying = false;
-                    PlayEnded?.Invoke(this, EventArgs.Empty);
+                
                 }
             };
 

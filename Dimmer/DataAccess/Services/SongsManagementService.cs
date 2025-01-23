@@ -9,7 +9,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public List<PlaylistSongLink> AllPLSongLinks { get; set; }
     HomePageVM ViewModel { get; set; }
 
-
     public List<AlbumModelView> AllAlbums { get; set; }
     public List<ArtistModelView> AllArtists { get; set; }
     public List<GenreModelView> AllGenres { get; set; }
@@ -21,7 +20,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         DataBaseService = dataBaseService;
 
-        GetUserAccount();
+        //GetUserAccount();
         GetSongs();
     }
     bool HasOnlineSyncOn;

@@ -134,10 +134,11 @@ public partial class HomePageVM : ObservableObject
     #region Data Loading
     public void LoadData()
     {
-        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();
-        AllLinks = SongsMgtService.AllLinks;
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
+
+        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();
+        AllLinks = SongsMgtService.AllLinks;
 
         _songIdToTitleMap = SongsMgtService.AllSongs
             .ToDictionary(s => s.LocalDeviceId!.ToLower(), s => s.Title, StringComparer.OrdinalIgnoreCase)!;

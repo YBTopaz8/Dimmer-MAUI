@@ -47,8 +47,10 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
+    
     [ObservableProperty]
     public partial int CurrentRepeatMode { get; set; }
+
     [ObservableProperty]
     public partial bool IsDRPCEnabled { get; set; }
     IFolderPicker FolderPicker { get; }
@@ -114,7 +116,10 @@ public partial class HomePageVM : ObservableObject
     public async Task AssignCV(CollectionView cv)
     {
         DisplayedSongsColView = cv;
-
+        if (CurrentUser is null)
+        {
+            return;
+        }
         if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username) )
         {
 
@@ -192,6 +197,10 @@ public partial class HomePageVM : ObservableObject
     List<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
     public void SyncRefresh()
     {
+        if (SongsMgtService.AllArtists is null || SongsMgtService.AllAlbums is null || SongsMgtService.AllLinks is null)
+        {
+            return;
+        }
        PlayBackService.FullRefresh();
         AllArtists = SongsMgtService.AllArtists.ToObservableCollection();
         AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
@@ -381,7 +390,7 @@ public partial class HomePageVM : ObservableObject
         if (!string.IsNullOrEmpty(MySelectedSong.CoverImagePath) && !File.Exists(MySelectedSong.CoverImagePath))
         {
             var coverImg = await LyricsManagerService
-                .FetchAndDownloadCoverImage(MySelectedSong.Title, MySelectedSong.ArtistName!, MySelectedSong.AlbumName!, MySelectedSong);
+                .FetchAndDownloadCoverImage(MySelectedSong.Title!, MySelectedSong.ArtistName!, MySelectedSong.AlbumName!, MySelectedSong);
             SongsMgtService.AllSongs
                 .FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId)!.CoverImagePath = coverImg;
             return;
@@ -737,12 +746,12 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongModelView> recentlyAddedSongs;
     public void LoadSongCoverImage()
     {
-        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-        if (DisplayedSongs is null)
+        
+        if (SongsMgtService.AllSongs is null || SongsMgtService.AllSongs.Count < 1)
         {
             return;
         }
-
+        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
         if (DisplayedSongs.Count < 1)
         {
             return;
@@ -996,11 +1005,18 @@ public partial class HomePageVM : ObservableObject
                             
                             await FetchSongCoverImage();
 
-                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            if (CurrentUser is not null)
+                            {
+                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+
+                            }
                             
                             break;
                         case MediaPlayerState.Paused:
-                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            if (CurrentUser is not null)
+                            {
+                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            }
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong = null;
                             PickedSong = TemporarilyPickedSong;

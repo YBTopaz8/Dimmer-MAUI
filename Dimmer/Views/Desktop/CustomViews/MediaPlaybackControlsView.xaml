@@ -99,17 +99,20 @@
                             
                             <DataTrigger TargetType="Image" Value="0" Binding="{Binding CurrentRepeatMode}">
                                 <Setter Property="Source" Value="repoff.png" />
-
                             </DataTrigger>
+                            
                             <DataTrigger TargetType="Image" Value="1" Binding="{Binding CurrentRepeatMode}">
                                 <Setter Property="Source" Value="repoff.png"/>
                             </DataTrigger>
+                            
                             <DataTrigger TargetType="Image" Value="2" Binding="{Binding CurrentRepeatMode}">
                                 <Setter Property="Source" Value="repone.png"/>
                             </DataTrigger>
+                            
                             <DataTrigger TargetType="Image" Value="4" Binding="{Binding CurrentRepeatMode}">
                                 <Setter Property="Source" Value="repone.png"/>
                             </DataTrigger>
+                            
                         </Image.Triggers>
                         <Image.Behaviors>
                             <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>

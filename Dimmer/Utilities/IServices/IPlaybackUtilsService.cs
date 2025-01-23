@@ -22,6 +22,7 @@ public interface IPlaybackUtilsService
     string TotalSongsSizes { get; }
     string TotalSongsDuration { get; }
     bool IsShuffleOn { get; set; }
+
     int CurrentRepeatMode { get; set; }
     int CurrentRepeatCount { get; set; }
     IObservable<PlaybackInfo> CurrentPosition { get; } //to read position and update slider

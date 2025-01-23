@@ -17,18 +17,11 @@
              >
 
     <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
 
-        <ResourceDictionary>
-            <MenuFlyout x:Key="SongsContextMenu">
-                <MenuFlyoutItem Text="Play Next" 
-                    Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
-            </MenuFlyout>
-            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
 
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-
-        </ResourceDictionary>
 
     </ContentPage.Resources>
 
@@ -111,8 +104,8 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"
-                         TouchDown="SfEffectsView_TouchDown" FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}"> 
-                                    <Grid ColumnDefinitions="Auto,*,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="15">
+                         TouchDown="SfEffectsView_TouchDown" > 
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="15">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -125,53 +118,35 @@
                                         <VerticalStackLayout Grid.Column="0" 
                                               VerticalOptions="Center">
 
-                                            <toolkit:AvatarView ImageSource="{Binding CoverImagePath}"  
-                                                                HeightRequest="50" HorizontalOptions="Start"
-                                                                BorderWidth="0"  CornerRadius="10" />
-
-
-                                            <Image WidthRequest="3" HeightRequest="3" HorizontalOptions="Start"  
-                                            IsVisible="{Binding HasLyrics}" 
-                                            Source="lyr2.png" Opacity="0.2">
-                                                <Image.Behaviors>
-                                                    <toolkit:IconTintColorBehavior TintColor="#A2B5E2"/>
-                                                </Image.Behaviors>
-
-                                            </Image>
-
-                                            <Image WidthRequest="13" HorizontalOptions="Start" 
-                                            IsVisible="False" Source="playdark.png">
-                                                <Image.Triggers>
-                                                    <DataTrigger TargetType="Image"
-                                      Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                                        <Setter Property="IsVisible" Value="True" />
-                                                    </DataTrigger>
-                                                    <DataTrigger TargetType="Image"
-                                      Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                                        <Setter Property="IsVisible" Value="False" />
-                                                    </DataTrigger>
-
-                                                </Image.Triggers>
-
-                                            </Image>
-
-                                        </VerticalStackLayout>
-
-                                        <Label Text="{Binding Title}" Grid.Column="1"
+                                            <Label Text="{Binding Title}" Grid.Column="1"
                                                    FontSize="18" 
                                                    LineBreakMode="TailTruncation"/>
 
-                                        <Label Grid.Column="2" 
+                                            <!--<toolkit:AvatarView ImageSource="{Binding CoverImagePath}"  
+                                                                HeightRequest="50" HorizontalOptions="Start"
+                                                                BorderWidth="0"  CornerRadius="10" />-->
+
+                                            <Image WidthRequest="13" HeightRequest="13" HorizontalOptions="Start"  
+                                                   IsVisible="{Binding HasLyrics}" Source="lyr2.png" Opacity="1">
+                                                <Image.Behaviors>
+                                                    <toolkit:IconTintColorBehavior TintColor="#A2B5E2"/>
+                                                </Image.Behaviors>
+                                            </Image>
+
+
+                                        </VerticalStackLayout>
+
+                                        <Label Grid.Column="1" 
                                             Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>
 
-                                        <Label Grid.Column="3" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" />
                                         
-                                        <Label Grid.Column="4" HorizontalOptions="Center" LineBreakMode="TailTruncation"
+                                        <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
                                         Text="{Binding GenreName}" />
 
-                                        <Label Grid.Column="5" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                                        <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                                     HorizontalOptions="Center" />
-                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding FileFormat}" />
+                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" />
 
                                     </Grid>
 
@@ -184,7 +159,7 @@
 
         </toolkit:DockLayout>
 
-        <btmSheet:SfBottomSheet x:Name="NowPlayingBtmSheet" CornerRadius="8,8,8,8"
+        <!--<btmSheet:SfBottomSheet x:Name="NowPlayingBtmSheet" CornerRadius="8,8,8,8"
                       ShowGrabber="False" IsModal="False" Background="#1e1e1e"
                       AllowedState="All" x:DataType="vm:HomePageVM">
 
@@ -225,7 +200,7 @@
                 
             </btmSheet:SfBottomSheet.BottomSheetContent>
 
-        </btmSheet:SfBottomSheet>
+        </btmSheet:SfBottomSheet>-->
     </Grid>
 
     <!--<Grid>

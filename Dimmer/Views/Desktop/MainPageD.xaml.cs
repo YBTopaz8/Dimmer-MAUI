@@ -338,7 +338,7 @@ public partial class MainPageD : ContentPage
 
     private void SfChip_Clicked(object sender, EventArgs e)
     {
-        NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
+        //NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
     }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
