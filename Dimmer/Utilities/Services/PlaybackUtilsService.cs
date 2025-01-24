@@ -4,7 +4,7 @@ namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
-    INativeAudioService AudioService;
+    IDimmerAudioService DimmerAudioService;
     public IObservable<ObservableCollection<SongModelView>> NowPlayingSongs => _playbackQueue.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _playbackQueue = new([]);
    
@@ -35,7 +35,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public int LoadingSongsProgressPercentage => ObservableLoadingSongsProgress;
 
     [ObservableProperty]
-    string totalSongsSizes;
+    private partial string TotalSongsSizes { get; set; }
+    [ObservableProperty]
+    public partial RepeatMode CurrentRepeatMode { get; set; }
+
     [ObservableProperty]
     string totalSongsDuration;
     ISongsManagementService SongsMgtService { get; }
@@ -55,32 +58,31 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
-    [ObservableProperty]
-    public partial int CurrentRepeatMode { get; set; }
+
     public int CurrentRepeatCount { get; set; } = 1;
     bool isSongPlaying;
 
     SortingEnum CurrentSorting;
     private Lazy<HomePageVM> ViewModel { get; set; }
 
-    public PlaybackUtilsService(INativeAudioService AudioService, ISongsManagementService SongsMgtService,
+    public PlaybackUtilsService(IDimmerAudioService DimmerAudioService, ISongsManagementService SongsMgtService,
         IPlaylistManagementService playlistManagementService, Lazy<HomePageVM> viewModel)
     {
         this.SongsMgtService = SongsMgtService;
         PlaylistManagementService = playlistManagementService;
 
-        this.AudioService = AudioService;
+        this.DimmerAudioService = DimmerAudioService;
 
-        this.AudioService.PlayPrevious += AudioService_PlayPrevious;
-        this.AudioService.PlayNext += AudioService_PlayNext;
-        this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
-        this.AudioService.PlayEnded += AudioService_PlayEnded;
-        this.AudioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
+        this.DimmerAudioService.PlayPrevious += DimmerAudioService_PlayPrevious;
+        this.DimmerAudioService.PlayNext += DimmerAudioService_PlayNext;
+        this.DimmerAudioService.IsPlayingChanged += DimmerAudioService_PlayingChanged;
+        this.DimmerAudioService.PlayEnded += DimmerAudioService_PlayEnded;
+        this.DimmerAudioService.IsSeekedFromNotificationBar += DimmerAudioService_IsSeekedFromNotificationBar;
 
         IsShuffleOn = AppSettingsService.ShuffleStatePreference.GetShuffleState();
-        CurrentRepeatMode = AppSettingsService.RepeatModePreference.GetRepeatState();
+        CurrentRepeatMode = (RepeatMode) AppSettingsService.RepeatModePreference.GetRepeatState();
 
-        CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
+        CurrentQueue = 0; //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue (though QueueNumber is now driven by PlaybackSource)
 
         LoadLastPlayedSong();
         LoadSongsWithSorting();
@@ -91,7 +93,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         this.ViewModel = viewModel;
     }
 
-    private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
+    private void DimmerAudioService_IsSeekedFromNotificationBar(object? sender, long e)
     {
         currentPositionInSec = e/1000;
     }
@@ -163,7 +165,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
                 return;
             }
             ObservableCurrentlyPlayingSong = lastPlayedSong!;
-            //audioService.Initialize(ObservableCurrentlyPlayingSong);
+            //DimmerAudioService.Initialize(ObservableCurrentlyPlayingSong);
             //_nowPlayingSubject.OnNext(ObservableCurrentlyPlayingSong);
             _currentSongIndex = SongsMgtService.AllSongs.IndexOf(ObservableCurrentlyPlayingSong);
         }
@@ -582,9 +584,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             _playbackQueue.OnNext(list.ToObservableCollection());
         }
 
-
         SongsMgtService.DeleteSongFromDB(song);
         _playbackQueue.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
+
     }
     public void MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs)
     {

@@ -22,7 +22,7 @@ public partial class AlbumsPageD : ContentPage
 
     }
     Border? SelectedBorderView { get; set; }
-    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
         if (SelectedBorderView != null) 
         {

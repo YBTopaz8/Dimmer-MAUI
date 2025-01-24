@@ -89,10 +89,6 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         IsPlaying = false;
-        //DisplayedPlaylists = PlayBackService.AllPlaylists;
-        TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
-        TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
-        IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
@@ -213,9 +209,11 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
-        LyricsSearchSongTitle = MySelectedSong.Title;
-        LyricsSearchArtistName = MySelectedSong.ArtistName;
-        LyricsSearchAlbumName = MySelectedSong.AlbumName;
+        CurrentPositionInSeconds = 0;
+        CurrentPositionPercentage = 0;
+        LyricsSearchSongTitle = MySelectedSong?.Title;
+        LyricsSearchArtistName = MySelectedSong?.ArtistName;
+        LyricsSearchAlbumName = MySelectedSong?.AlbumName;
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
 
         CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
@@ -486,7 +484,7 @@ public partial class HomePageVM : ObservableObject
     #region Playback Control Region
 
 
-    async void UpdateRelatedPlayingData(SongModelView song)
+    async Task UpdateRelatedPlayingData(SongModelView song)
     {
         var songArt = song.ArtistName;
         if (!string.IsNullOrEmpty(songArt))
@@ -672,7 +670,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
-        CurrentRepeatMode = PlayBackService.CurrentRepeatMode;
+        CurrentRepeatMode = (int)PlayBackService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
             CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
@@ -723,11 +721,6 @@ public partial class HomePageVM : ObservableObject
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
   
-    void ReloadSizeAndDuration()
-    {
-        TotalSongsDuration = PlayBackService.TotalSongsDuration;
-        TotalSongsSize = PlayBackService.TotalSongsSizes;
-    }
 
     [RelayCommand]
     async Task UpdateSongToDB(SongModelView song)

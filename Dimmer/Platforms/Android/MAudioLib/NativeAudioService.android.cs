@@ -4,10 +4,10 @@ using Java.Lang;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
-public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
+public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
 {
-    static NativeAudioService current;
-    public static INativeAudioService Current => current ??= new NativeAudioService();
+    static DimmerAudioService current;
+    public static IDimmerAudioService Current => current ??= new DimmerAudioService();
     HomePageVM ViewModel { get; set; }
     IAudioActivity instance;
     double volume = 1;
@@ -174,7 +174,7 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         
     }
 
-    public void Initialize(SongModelView? media, byte[]? ImageBytes=null)
+    public Task InitializeAsync(SongModelView? media, byte[]? ImageBytes=null)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentMedia = new();
@@ -227,6 +227,8 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
             mediaPlayerService.PlayingChanged += OnPlayingChanged;
             mediaPlayerService.IsSeekedFromNotificationBar += MediaPlayerService_IsSeekedFromNotificationBar;
         }
+
+        return Task.CompletedTask;
     }
 
     private void MediaPlayerService_IsSeekedFromNotificationBar(object? sender, long e)
@@ -249,4 +251,13 @@ public class NativeAudioService : INativeAudioService, INotifyPropertyChanged
         IsPlayingChanged?.Invoke(this, isPlaying);
     }
 
+    public void ApplyEqualizerSettings(float[] bands)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ApplyEqualizerPreset(EqualizerPresetName presetName)
+    {
+        throw new NotImplementedException();
+    }
 }

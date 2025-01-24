@@ -57,7 +57,7 @@ public partial class ArtistsPageM : ContentPage
 
     }
 
-    private async void ShowArtistAlbums_Tapped(object sender, EventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
         var curSel = send.BindingContext as AlbumModelView;

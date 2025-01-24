@@ -82,7 +82,7 @@ public partial class MiniControlNotificationView : ContentPage
         ResetTimer();
     }
 
-    private async void playImgBtn_Clicked(object sender, EventArgs e)
+    private void playImgBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ResumeSong();
         ResetTimer();

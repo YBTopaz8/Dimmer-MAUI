@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics;
+
 namespace Dimmer_MAUI;
 
 public partial class App : Application
@@ -50,9 +52,9 @@ public partial class App : Application
         // Print to Shell.Current
         if (Shell.Current != null)
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-              await Shell.Current.DisplayAlert("Unhandled Exception", errorDetails, "OK");
+                Debug.WriteLine($"Unhandled Exception HERE, {errorDetails}");              
             });
         }
     }

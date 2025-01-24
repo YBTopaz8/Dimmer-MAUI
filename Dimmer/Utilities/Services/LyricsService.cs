@@ -39,11 +39,11 @@ public class LyricsService : ILyricsService
             {
                 case MediaPlayerState.Initialized:
                     pState = MediaPlayerState.Initialized;
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    await LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     break;
                 case MediaPlayerState.Playing:
                     pState = MediaPlayerState.Playing;
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    await LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     //_currentLyricSubject.OnNext(new LyricPhraseModel() { Text = "No Lyrics" });
                     break;
                 case MediaPlayerState.Paused:
@@ -56,7 +56,7 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.LyricsLoad:
                     pState = MediaPlayerState.LyricsLoad;
-                    LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+                    await LoadLyrics(PlayBackService.CurrentlyPlayingSong);
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     pState = MediaPlayerState.CoverImageDownload;
@@ -72,7 +72,7 @@ public class LyricsService : ILyricsService
 
 
     #region Manage Loadings and Initializations
-    public async void LoadLyrics(SongModelView song)
+    public async Task LoadLyrics(SongModelView song)
     {
         try
         {            
@@ -741,7 +741,7 @@ public class LyricsService : ILyricsService
             track.Lyrics.ParseLRC(Lyrics);
             songObj.HasSyncedLyrics = IsSynched;
 
-            track.Save();
+            //track.Save();
             
             songObj.SyncLyrics = new ObservableCollection<LyricPhraseModel>(
                 track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase))
