@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"  
+            x:Class="Dimmer_MAUI.CustomPopUpViews.SongContextMenuPopupView"
+            CanBeDismissedByTappingOutsideOfPopup="True"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"     
+            xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"             
+            x:DataType="vm:HomePageVM"
+            x:Name="myPage" 
+            Color="Transparent">
+    
+    <ScrollView HorizontalOptions="Center" BackgroundColor="Transparent"
+                WidthRequest="400">
+        <Border StrokeShape="RoundRectangle 20,20,20,20" BackgroundColor="Transparent"
+         >
+            <VerticalStackLayout VerticalOptions="Center"
+                             Spacing="15" Padding="20"
+                             BackgroundColor="#1E1E1E">
+                
+                <Label Text="{Binding MySelectedSong.Title}" FontSize="Medium" HorizontalTextAlignment="Center" FontAttributes="Bold" />
+                <Label Text="By" HorizontalOptions="Center"/>
+                <Label Text="{Binding MySelectedSong.ArtistName}" FontSize="Medium" HorizontalTextAlignment="Center" FontAttributes="Bold" />
+            <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+                       
+           ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+           HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+                       >
+                <syncf:SfChipGroup.ChipLayout>
+                    <VerticalStackLayout Spacing="10" 
+                                 HorizontalOptions="Start"/>
+                </syncf:SfChipGroup.ChipLayout>
+                <syncf:SfChipGroup.Items>
+                    <syncf:SfChip Text="Play Next" CommandParameter="0" TextColor="White"/>
+                    <syncf:SfChip Text="Edit Song*" CommandParameter="1" TextColor="White"/>
+                    <syncf:SfChip Text="View Stats*" CommandParameter="2" TextColor="White"/>
+                        <syncf:SfChip Text="Delete Song" CommandParameter="3" TextColor="White"/>
+                        <syncf:SfChip Text="Go To Artist" CommandParameter="4" TextColor="White"/>
+                        <syncf:SfChip Text="Go To Album" CommandParameter="5" TextColor="White"/>
+                    </syncf:SfChipGroup.Items>
+            </syncf:SfChipGroup>
+
+                </VerticalStackLayout>
+            </Border>
+    </ScrollView>
+</mct:Popup>

@@ -335,12 +335,12 @@ public partial class HomePageVM
         }
         else if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
-            await UpdatePlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+            UpdatePlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
-            await UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+            UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
             return;
         }
         MySelectedSong.IsFavorite = willBeFav;

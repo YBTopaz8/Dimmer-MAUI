@@ -100,7 +100,7 @@ public partial class MainPageD : ContentPage
     {
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
-
+        MyViewModel.SetContextMenuSong(song!);
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         isPointerEntered = true;
     }
@@ -122,10 +122,15 @@ public partial class MainPageD : ContentPage
         if (!isAboutToDropFiles)
         {
             isAboutToDropFiles = true;
-            SongsColView.Opacity = 0.7;
 
+            var send = sender as View;
+            if (send is null)
+            {
+                return;
+            }
+            send.Opacity = 0.7;
 #if WINDOWS
-            var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
+                var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
             var dragUI = WindowsEventArgs.DragUIOverride;
             
 
@@ -194,12 +199,16 @@ public partial class MainPageD : ContentPage
     {
         supportedFilePaths ??= new();
         isAboutToDropFiles = false;
-        SongsColView.Opacity = 1;
-        var colView = (View)SongsColView;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
+        {
+            return;
+        }
+        send.Opacity = 1;
         if (supportedFilePaths.Count > 0)
         {
-            await colView.AnimateRippleBounce();
-            MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+            await send.AnimateRippleBounce();
         }
     }
 
@@ -296,7 +305,10 @@ public partial class MainPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.TemporarilyPickedSong!.IsCurrentPlayingHighlight=false;
+        if (MyViewModel.TemporarilyPickedSong is not null)        
+        {
+            MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        }
 
 
         var send = (View)sender;
@@ -335,7 +347,16 @@ public partial class MainPageD : ContentPage
 
     private void SfChip_Clicked(object sender, EventArgs e)
     {
-        NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
+        //NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
+    }
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
+    }
+
+    private async void SfEffectsView_TouchUp(object sender, EventArgs e)
+    {
+        await MyViewModel.ShowContextMenu();
     }
 }
 

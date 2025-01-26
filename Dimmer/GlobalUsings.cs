@@ -27,6 +27,7 @@ global using DevExpress.Maui.Editors;
 global using DevExpress.Maui.Controls;
 
 
+
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;
 
@@ -75,6 +76,8 @@ global using Dimmer_MAUI.CustomPopUpViews;
 global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
 
+global using SBtmState = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState;
+global using DBtmState = DevExpress.Maui.Controls.BottomSheetState;
 global using Colors = Microsoft.Maui.Graphics.Colors;
 
 global using Dimmer_MAUI.Utilities.Models;
@@ -87,6 +90,7 @@ global using Dimmer_MAUI.Views.CustomViews;
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;
 
+//global using SpotifyAPI.Web;
 
 
 namespace Dimmer_MAUI;

@@ -43,7 +43,7 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public async Task UpdatePlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public void UpdatePlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {
@@ -80,16 +80,16 @@ public partial class HomePageVM
         }
         song.IsFavorite = !song.IsFavorite;
     }
-    public async void LoadFirstPlaylist()
+    public void LoadFirstPlaylist()
     {
         RefreshPlaylists();
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
-            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!);
+            GeneralStaticUtilities.RunFireAndForget(OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!));
         }
     }
     [RelayCommand]
-    public async Task CreatePlaylistAndAddSong(string PlaylistName)
+    public void CreatePlaylistAndAddSong(string PlaylistName)
     {
         if (!string.IsNullOrEmpty(PlaylistName))
         {
@@ -97,7 +97,7 @@ public partial class HomePageVM
             {
                 Name = PlaylistName,
             };
-            await UpdatePlayList(MySelectedSong, newPlaylist, IsAddSong: true);
+            UpdatePlayList(MySelectedSong, newPlaylist, IsAddSong: true);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             //await toast.Show(cts.Token);
@@ -105,7 +105,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    public async Task DeletePlaylist()
+    public void DeletePlaylist()
     {
         PlayBackService.DeletePlaylistThroughID(SelectedPlaylistToOpenBtmSheet.LocalDeviceId);
         //DisplayedPlaylists = PlayListService.GetAllPlaylists();

@@ -17,6 +17,7 @@ public partial class FirstStepPage : ContentPage
 #if ANDROID
        await MyViewModel.GrantPermissionsAndroid();
 #endif
+        
     }
 
     protected override bool OnBackButtonPressed()

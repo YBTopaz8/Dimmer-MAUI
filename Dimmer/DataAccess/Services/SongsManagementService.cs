@@ -9,7 +9,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public List<PlaylistSongLink> AllPLSongLinks { get; set; }
     HomePageVM ViewModel { get; set; }
 
-
     public List<AlbumModelView> AllAlbums { get; set; }
     public List<ArtistModelView> AllArtists { get; set; }
     public List<GenreModelView> AllGenres { get; set; }
@@ -51,6 +50,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
         GetSongs();
     }
+
     public void GetSongs()
     {
         try
@@ -169,7 +169,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             songView.NumberOfTimesPlayed = songView.PlayData.Count;
             songView.NumberOfTimesPlayedCompletely = songView.PlayData.Count(p => p.WasPlayCompleted);
         }
-
+        
         // 2. Save to the database (Realm) separately
         using (var realm = Realm.GetInstance(DataBaseService.GetRealm()))
         {
@@ -1046,7 +1046,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         return true;
     }
 
-    public async void OpenConnectPopup()
+    public async Task OpenConnectPopup()
     {
         ConnectOnline();
 
@@ -1153,7 +1153,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             if (model.LocalDeviceId is null)
             {
-                model.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID("PD");
+                model.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID("PDL");
             }
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>

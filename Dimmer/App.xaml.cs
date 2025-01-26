@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics;
+
 namespace Dimmer_MAUI;
 
 public partial class App : Application
@@ -14,7 +16,7 @@ public partial class App : Application
         {
             Debug.WriteLine(ex.Message);
         }
-        
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => GeneralStaticUtilities.ClearUp();
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
@@ -24,41 +26,48 @@ public partial class App : Application
 
     }
 
+    
+
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
-       
-        Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
-            $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
-        
-        //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+                              $"Exception Type: {e.Exception.GetType()}\n" +
+                              $"Message: {e.Exception.Message}\n" +
+                              $"Source: {e.Exception.Source}\n" +
+                              $"Stack Trace: {e.Exception.StackTrace}\n";
+
+        if (e.Exception.InnerException != null)
+        {
+            errorDetails += "***** Inner Exception *****\n" +
+                            $"Message: {e.Exception.InnerException.Message}\n" +
+                            $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
+        }
+
+        // Print to Debug Console
+        Debug.WriteLine(errorDetails);
+
+        // Log to file
         LogException(e.Exception);
-    }
-    
-    protected override Window CreateWindow(IActivationState? activationState)
-    {
 
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-        //DimmerWindow.Page.
-#if WINDOWS
-        DimmerWindow.Page = new AppShell(vm);
-
-#elif ANDROID
-        
-        DimmerWindow.Page = new AppShellMobile();
-#endif
-
-        //win = base.CreateWindow(activationState);
-        //this.MinimumHeight = 800;
-        //this.MinimumWidth = 1200;
-        //this.Height = 900;
-        //this.Width = 1200;
-
-        return DimmerWindow;
+        // Print to Shell.Current
+        if (Shell.Current != null)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Debug.WriteLine($"Unhandled Exception HERE, {errorDetails}");              
+            });
+        }
     }
 
-    private static readonly Lock _logLock = new();
+    //private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    //{
 
-    public DimmerWindow DimmerWindow { get; }
+    //    Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
+    //        $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
+
+    //    //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+    //    LogException(e.Exception);
+    //}
 
     private void LogException(Exception ex)
     {
@@ -110,6 +119,32 @@ public partial class App : Application
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+
+        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        //DimmerWindow.Page.
+#if WINDOWS
+        DimmerWindow.Page = new AppShell(vm);
+
+#elif ANDROID
+        
+        DimmerWindow.Page = new AppShellMobile();
+#endif
+
+        //win = base.CreateWindow(activationState);
+        //this.MinimumHeight = 800;
+        //this.MinimumWidth = 1200;
+        //this.Height = 900;
+        //this.Width = 1200;
+
+        return DimmerWindow;
+    }
+
+    private static readonly Lock _logLock = new();
+
+    public DimmerWindow DimmerWindow { get; }
 
     public override void CloseWindow(Window window)
     {

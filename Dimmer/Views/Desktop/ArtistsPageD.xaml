@@ -20,22 +20,24 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
 
-            <MenuFlyout x:Key="ArtistAlbumSongsContextMenu">
-                <MenuFlyoutItem Text="Edit Song Details">
-                    <MenuFlyoutItem.CommandParameter>
-                        <x:Int32>3</x:Int32>
-                    </MenuFlyoutItem.CommandParameter>
-                </MenuFlyoutItem>
+            <MenuFlyout x:Key="SongsContextMenu">
+                <MenuFlyoutItem Text="Play Next" 
+                       Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
+
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Set Song Cover as Album Cover" 
-                                Clicked="SetSongCoverAsAlbumCover_Clicked"/>
-                
+
                 <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
             </MenuFlyout>
 
         </ResourceDictionary>
     </ContentPage.Resources>
     <toolkit:DockLayout>
+        <toolkit:DockLayout.GestureRecognizers >
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
+                           DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave"
+                           Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCV"/>
 
@@ -135,7 +137,8 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 
-                            FlyoutBase.ContextFlyout="{StaticResource ArtistAlbumSongsContextMenu}">
+                            FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}">
+                        
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />

@@ -1,5 +1,3 @@
-
-
 namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MediaPlaybackControlsView : ContentView
@@ -8,16 +6,16 @@ public partial class MediaPlaybackControlsView : ContentView
 	public MediaPlaybackControlsView() 
     {
 		InitializeComponent();
-        var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        MyViewModel = VM;
-        BindingContext = VM;
+        //var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        //MyViewModel = VM;
+        //BindingContext = VM;
         
         this.Loaded += MediaPlaybackControlsView_Loaded;
     }
 
     private void MediaPlaybackControlsView_Loaded(object? sender, EventArgs e)
     {
-        MyViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>()!;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         BindingContext = MyViewModel;
     }
 
@@ -57,13 +55,13 @@ public partial class MediaPlaybackControlsView : ContentView
 
     private async void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
-        await this.AnimateFocusModePointerExited(endScale:1);
+        await this.AnimateFocusModePointerExited(endOpacity:0.4, endScale:1);
     }
 
     private async void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = send.BindingContext as SongModelView;
+        //var send = (View)sender;
+        //var song = send.BindingContext as SongModelView;
         MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong!;
         await MyViewModel.NavToSingleSongShell();
     }

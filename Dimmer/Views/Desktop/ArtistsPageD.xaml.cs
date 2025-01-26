@@ -70,12 +70,12 @@ public partial class ArtistsPageD : ContentPage
     {
         MyViewModel.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
-    private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
+    private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {        
         var send = (View)sender;
 
         var curSel = send.BindingContext as AlbumModelView;
-        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+        MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
         //await MyViewModel.GetAllAlbumInfos(curSel);
         //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
@@ -97,7 +97,7 @@ public partial class ArtistsPageD : ContentPage
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
+        MyViewModel.AllArtistsAlbumSongs = MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
 
@@ -109,7 +109,7 @@ public partial class ArtistsPageD : ContentPage
 
         //artist.IsCurrentlySelected = true;
         MyViewModel.GetAllArtistAlbumFromArtistModel(artist);
-        
+
         //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
 
 
@@ -117,4 +117,110 @@ public partial class ArtistsPageD : ContentPage
         //var album = MyViewModel.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
         //MyViewModel.GetAllArtistsAlbum(album: album, isFromSong: false);
     }
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+        var send = (MenuFlyoutItem)sender;
+        var song = send.BindingContext as SongModelView;
+        MyViewModel.AddNextInQueueCommand.Execute(song);
+    }
+    List<string> supportedFilePaths;
+    bool isAboutToDropFiles = false;
+    private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
+    {
+        try
+        {
+
+            if (!isAboutToDropFiles)
+            {
+                isAboutToDropFiles = true;
+
+                var send = sender as View;
+                if (send is null)
+                {
+                    return;
+                }
+                send.Opacity = 0.7;
+#if WINDOWS
+                var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
+                var dragUI = WindowsEventArgs.DragUIOverride;
+
+
+                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
+                e.AcceptedOperation = DataPackageOperation.None;
+                supportedFilePaths = new List<string>();
+
+                if (items.Count > 0)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item is Windows.Storage.StorageFile file)
+                        {
+                            /// Check file extension
+                            string fileExtension = file.FileType.ToLower();
+                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                                fileExtension != ".wav" && fileExtension != ".m4a")
+                            {
+                                e.AcceptedOperation = DataPackageOperation.None;
+                                dragUI.IsGlyphVisible = true;
+                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
+                                continue;
+                                //break;  // If any invalid file is found, break the loop
+                            }
+                            else
+                            {
+                                dragUI.IsGlyphVisible = false;
+                                dragUI.Caption = "Drop to Play!";
+                                Debug.WriteLine($"File is {item.Path}");
+                                supportedFilePaths.Add(item.Path.ToLower());
+                            }
+                        }
+                    }
+
+                }
+#endif
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+        //return Task.CompletedTask;
+    }
+
+    private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
+    {
+        try
+        {
+            isAboutToDropFiles = false;
+            var send = sender as View;
+            if (send is null)
+            {
+                return;
+            }
+            send.Opacity = 1;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        supportedFilePaths ??= new();
+        isAboutToDropFiles = false;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
+        {
+            return;
+        }
+        send.Opacity = 1;
+        if (supportedFilePaths.Count > 0)
+        {
+            await send.AnimateRippleBounce();
+        }
+    }
+
 }

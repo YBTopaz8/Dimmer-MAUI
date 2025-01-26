@@ -1,9 +1,9 @@
 ﻿namespace Dimmer_MAUI.MAudioLib;
-public interface INativeAudioService
+public interface IDimmerAudioService
 {
-    public static INativeAudioService Current;
+    public static IDimmerAudioService Current;
     
-    void Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
+    Task Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
 
 
     ///<Summary>
@@ -47,10 +47,13 @@ public interface INativeAudioService
     /// Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
     ///</Summary>
     double Volume { get; set; }
-    
+
     ///<Summary>
     /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
     ///</Summary>
+
+    void ApplyEqualizerSettings(float[] bands);
+    void ApplyEqualizerPreset(EqualizerPresetName presetName);
     double Balance { get; set; }
 
     event EventHandler<bool> IsPlayingChanged;

@@ -179,6 +179,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.1" />
+    <!--<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />-->
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.1.0" />
@@ -204,6 +205,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SongContextMenuPopupView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">

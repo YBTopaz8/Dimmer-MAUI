@@ -47,8 +47,10 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
+    
     [ObservableProperty]
     public partial int CurrentRepeatMode { get; set; }
+
     [ObservableProperty]
     public partial bool IsDRPCEnabled { get; set; }
     IFolderPicker FolderPicker { get; }
@@ -87,10 +89,6 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         IsPlaying = false;
-        //DisplayedPlaylists = PlayBackService.AllPlaylists;
-        TotalSongsDuration = PlaybackManagerService.TotalSongsDuration;
-        TotalSongsSize = PlaybackManagerService.TotalSongsSizes;
-        IsPlaying = false;
         ToggleShuffleState();
         ToggleRepeatMode();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
@@ -114,7 +112,10 @@ public partial class HomePageVM : ObservableObject
     public async Task AssignCV(CollectionView cv)
     {
         DisplayedSongsColView = cv;
-
+        if (CurrentUser is null)
+        {
+            return;
+        }
         if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username) )
         {
 
@@ -192,6 +193,10 @@ public partial class HomePageVM : ObservableObject
     List<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
     public void SyncRefresh()
     {
+        if (SongsMgtService.AllArtists is null || SongsMgtService.AllAlbums is null || SongsMgtService.AllLinks is null)
+        {
+            return;
+        }
        PlayBackService.FullRefresh();
         AllArtists = SongsMgtService.AllArtists.ToObservableCollection();
         AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
@@ -204,9 +209,11 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
-        LyricsSearchSongTitle = MySelectedSong.Title;
-        LyricsSearchArtistName = MySelectedSong.ArtistName;
-        LyricsSearchAlbumName = MySelectedSong.AlbumName;
+        CurrentPositionInSeconds = 0;
+        CurrentPositionPercentage = 0;
+        LyricsSearchSongTitle = MySelectedSong?.Title;
+        LyricsSearchArtistName = MySelectedSong?.ArtistName;
+        LyricsSearchAlbumName = MySelectedSong?.AlbumName;
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
 
         CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
@@ -381,7 +388,7 @@ public partial class HomePageVM : ObservableObject
         if (!string.IsNullOrEmpty(MySelectedSong.CoverImagePath) && !File.Exists(MySelectedSong.CoverImagePath))
         {
             var coverImg = await LyricsManagerService
-                .FetchAndDownloadCoverImage(MySelectedSong.Title, MySelectedSong.ArtistName!, MySelectedSong.AlbumName!, MySelectedSong);
+                .FetchAndDownloadCoverImage(MySelectedSong.Title!, MySelectedSong.ArtistName!, MySelectedSong.AlbumName!, MySelectedSong);
             SongsMgtService.AllSongs
                 .FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId)!.CoverImagePath = coverImg;
             return;
@@ -447,7 +454,7 @@ public partial class HomePageVM : ObservableObject
                 IsLoadingSongs = false;
                 return;
             }
-            bool loadSongsResult = PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
             if (loadSongsResult)
             {
                 DisplayedSongs?.Clear();
@@ -477,7 +484,7 @@ public partial class HomePageVM : ObservableObject
     #region Playback Control Region
 
 
-    void UpdateRelatedPlayingData(SongModelView song)
+    async Task UpdateRelatedPlayingData(SongModelView song)
     {
         var songArt = song.ArtistName;
         if (!string.IsNullOrEmpty(songArt))
@@ -490,7 +497,7 @@ public partial class HomePageVM : ObservableObject
                 {
                     List<string> load = [song.FilePath];
 
-                    if(PlayBackService.LoadSongsFromFolder(load))
+                    if(await PlayBackService.LoadSongsFromFolder(load))
                     {
                         string msg = $"Song {song.Title} remembered.";
                         //_ = ShowNotificationAsync(msg);
@@ -551,9 +558,7 @@ public partial class HomePageVM : ObservableObject
             }
             else // Default playing on the main page (HomePage)
             {
-                // You might want to ensure the full library is the queue here
-                var allSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic to get all songs
-                PlayBackService.ReplaceAndPlayQueue(allSongs, playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playFirst: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -665,7 +670,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ToggleRepeatMode(bool IsCalledByUI = false)
     {
-        CurrentRepeatMode = PlayBackService.CurrentRepeatMode;
+        CurrentRepeatMode = (int)PlayBackService.CurrentRepeatMode;
         if (IsCalledByUI)
         {
             CurrentRepeatMode = PlayBackService.ToggleRepeatMode();
@@ -716,11 +721,6 @@ public partial class HomePageVM : ObservableObject
         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
     }
   
-    void ReloadSizeAndDuration()
-    {
-        TotalSongsDuration = PlayBackService.TotalSongsDuration;
-        TotalSongsSize = PlayBackService.TotalSongsSizes;
-    }
 
     [RelayCommand]
     async Task UpdateSongToDB(SongModelView song)
@@ -739,12 +739,12 @@ public partial class HomePageVM : ObservableObject
     ObservableCollection<SongModelView> recentlyAddedSongs;
     public void LoadSongCoverImage()
     {
-        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-        if (DisplayedSongs is null)
+        
+        if (SongsMgtService.AllSongs is null || SongsMgtService.AllSongs.Count < 1)
         {
             return;
         }
-
+        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
         if (DisplayedSongs.Count < 1)
         {
             return;
@@ -998,11 +998,18 @@ public partial class HomePageVM : ObservableObject
                             
                             await FetchSongCoverImage();
 
-                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            if (CurrentUser is not null)
+                            {
+                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+
+                            }
                             
                             break;
                         case MediaPlayerState.Paused:
-                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            if (CurrentUser is not null)
+                            {
+                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            }
                             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                             PickedSong = null;
                             PickedSong = TemporarilyPickedSong;
@@ -1348,9 +1355,13 @@ public partial class HomePageVM : ObservableObject
     public partial ImageSource? RepeatImgSrc { get; set; }
 
     [RelayCommand]
-    public void AddNextInQueue(object song)
+    public void AddNextInQueue(SongModelView song)
     {
-        List<SongModelView> songs = [song as SongModelView];
+        List<SongModelView> songs = [song];
+        if (song is null)
+        {
+            return;
+        }
         PlayBackService.AddToImmediateNextInQueue(songs);
     }
 

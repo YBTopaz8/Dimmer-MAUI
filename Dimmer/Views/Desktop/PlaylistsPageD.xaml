@@ -24,7 +24,12 @@
 
     
     <toolkit:DockLayout >
-
+        <toolkit:DockLayout.GestureRecognizers >
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
+                           DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave"
+                           Drop="DropGestureRecognizer_Drop"/>
+        </toolkit:DockLayout.GestureRecognizers>
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCV"/>
         <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Spacing="5"
@@ -42,7 +47,7 @@
                                        ItemSpacing="4"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:PlaylistModelView">
+                    <DataTemplate>
                         <Border StrokeShape="RoundRectangle 5" Margin="10,10">
 
                             <VisualStateManager.VisualStateGroups>

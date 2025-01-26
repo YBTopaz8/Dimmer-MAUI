@@ -16,3 +16,16 @@ public class MediaPlay
     /// </summary>
     public long DurationInMs { get; set; } = 0;
 }
+
+
+public enum EqualizerPresetName
+{
+    Flat,
+    Rock,
+    Pop,
+    Classical,
+    Jazz,
+    Dance,
+    BassBoost,
+    TrebleBoost
+}

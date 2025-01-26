@@ -112,7 +112,7 @@ public class AppSettingsService : IAppSettingsService
 
     public static class RepeatModePreference
     {
-        public const int repeatState = 0; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
+        public const int repeatState = 0; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE, 3 for repeat custom
         public static int RepeatState
         {
             get => Preferences.Default.Get(nameof(RepeatState), repeatState);
@@ -120,22 +120,9 @@ public class AppSettingsService : IAppSettingsService
         }
 
 
-        public static void ToggleRepeatState()
+        public static void ToggleRepeatState(int repMode)
         {
-            switch (RepeatState)
-            {
-                case 0:
-                    RepeatState = 1;
-                    break;
-                case 1:
-                    RepeatState = 2;
-                    break;
-                case 2:
-                    RepeatState = 0;
-                    break;
-                default:
-                    break;
-            }
+            RepeatState = repMode;
         }
         public static int GetRepeatState()
         {

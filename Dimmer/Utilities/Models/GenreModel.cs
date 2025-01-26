@@ -3,7 +3,6 @@ public partial class GenreModel : RealmObject
 {
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } 
-
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
@@ -64,8 +63,8 @@ public partial class AlbumArtistGenreSongLink : RealmObject
 
 public partial class AlbumArtistGenreSongLinkView: ObservableObject
 {
-    [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    [ObservableProperty]
+    public partial string? LocalDeviceId { get; set; } = string.Empty;
 
     public string? SongId { get; set; }
     public string? AlbumId { get; set; }
@@ -91,16 +90,15 @@ public partial class AlbumArtistGenreSongLinkView: ObservableObject
 public partial class GenreModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; }
-    
+    public partial string? LocalDeviceId { get; set; } = string.Empty;
     [ObservableProperty]
-    string? name;
+    public partial string? Name { get; set; }
     [ObservableProperty]
-    bool isCurrentlySelected;
+    public partial bool IsCurrentlySelected { get; set; }
     public GenreModelView(GenreModel model)
     {        
         LocalDeviceId = model.LocalDeviceId;
-        name = model.Name;
+        Name = model.Name;
     }
     public GenreModelView()
     {

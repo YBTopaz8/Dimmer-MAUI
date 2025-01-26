@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using Syncfusion.Maui.Toolkit.BottomSheet;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -92,6 +94,7 @@ public partial class HomePageVM
         if (IsPlaying)
         {
             PauseSong();
+            GeneralStaticUtilities.ClearUp();   
         }
 #endif
         if (TemporarilyPickedSong is not null)
@@ -101,8 +104,6 @@ public partial class HomePageVM
         }
         await APIKeys.LogoutDevice();
     }
-    [ObservableProperty]
-    bool iIsMultiSelectOn;
     [RelayCommand]
     async Task DeleteFile(SongModelView? song)
     {
@@ -160,7 +161,7 @@ public partial class HomePageVM
     }
 
     [RelayCommand]
-    void OpenSongFolder() //SongModel SelectedSong)
+    void OpenSongFolder()//SongModel SelectedSong)
     {
         if (MySelectedSong is null)
         {
@@ -211,7 +212,7 @@ public partial class HomePageVM
     public AppWindowPresenter AppWinPresenter { get; set; }
 #endif
     [ObservableProperty]
-    bool isStickToTop = false;
+    public partial bool IsStickToTop { get; set; } = false;
     [RelayCommand]
     void ToggleStickToTop()
     {       
@@ -358,7 +359,7 @@ public partial class HomePageVM
     #endregion
 
     [ObservableProperty]
-    bool isRetrievingCovers = true;
+    public partial bool IsRetrievingCovers { get; set; } = true;
     [RelayCommand]
     async Task ReloadCoverImageAsync()
     {
@@ -381,11 +382,11 @@ public partial class HomePageVM
 
 
     [ObservableProperty]
-    bool isTemporarySongNull = true;
+    public partial bool IsTemporarySongNull { get; set; } = true;
 
 
     [ObservableProperty]
-    bool isOnSearchMode = false;
+    public partial bool IsOnSearchMode { get; set; } = false;
 
 
     [RelayCommand]
@@ -396,7 +397,7 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    string shareImgPath = string.Empty;
+    public partial string ShareImgPath { get; set; } = string.Empty;
     
     public Color[] ShareColors { get; } = new Color[]{
             Color.FromArgb("#FF0000"),
@@ -466,10 +467,10 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    bool isSyncingSongs = false;    
+    public partial bool IsSyncingSongs { get; set; } = false;    
 
     [ObservableProperty]
-    bool isLoggedIn = false;    
+    public partial bool IsLoggedIn { get; set; } = false;    
     public async Task FullSync()
     {
         SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
@@ -764,7 +765,10 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
-
+        if (CurrentUser is null)
+        {
+            return false;
+        }
         
         if ((string.IsNullOrEmpty(CurrentUser.UserPassword)||string.IsNullOrEmpty(CurrentUser.UserName)) && !isSilent)
         {
@@ -881,4 +885,49 @@ public partial class HomePageVM
 
     [ObservableProperty]
     public partial List<string>? MiniPlayerPages { get; set; } = new List<string> { "Lyrics", "Album", "Details" };
+    [ObservableProperty]
+    public partial bool IsDesktopContextMenuOpened { get; set; } = false;
+    [ObservableProperty]
+    public partial DBtmState MobileBtmSheetState { get; set; }
+     
+    [RelayCommand]
+    public async Task ShowContextMenu()
+    {
+        
+        var result =await Shell.Current.ShowPopupAsync(new SongContextMenuPopupView(this, MySelectedSong!));
+        if (result is null)
+        {
+            return;
+        }
+        else if (result is int)
+        {
+            switch (result)
+            {
+                case 0:
+                    AddNextInQueue(MySelectedSong);
+                    break;
+
+                case 1:
+                    break;
+
+                case 2:
+                    break;
+
+                case 3:
+                    await DeleteFile(MySelectedSong);
+                    break;
+
+                case 4:
+                    await NavigateToArtistsPage(1);
+                    break;
+
+                case 5:
+                    await NavigateToAlbumsPage(1);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
 }

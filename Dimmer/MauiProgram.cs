@@ -38,13 +38,13 @@ public static class MauiProgram
 #endif
 
 #if WINDOWS
-        builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+        builder.Services.AddSingleton(IDimmerAudioService => DimmerAudioService.Current);
 
         builder.ConfigureLifecycleEvents(events =>
         {
             events.AddWindows(wndLifeCycleBuilder =>
             {
-                wndLifeCycleBuilder.OnWindowCreated(async window =>
+                wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
                     HomePageVM homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
 
@@ -83,7 +83,11 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
+                                            
                                             Application.Current.CloseWindow(win);
+                                            Application.Current.Quit();
+                                            Environment.Exit(0); // Forcefully kill all threads
+
                                         }
                                     }
                                 }
@@ -111,11 +115,11 @@ public static class MauiProgram
 
 #if ANDROID
         builder.Services.AddSingleton<MediaPlayerService>(); // Register as singleton
-        builder.Services.AddSingleton(INativeAudioService => NativeAudioService.Current);
+        builder.Services.AddSingleton(IDimmerAudioService => DimmerAudioService.Current);
 #endif
 
 #if ANDROID || WINDOWS
-        builder.Services.AddSingleton<INativeAudioService, NativeAudioService>();
+        builder.Services.AddSingleton<IDimmerAudioService, DimmerAudioService>();
         builder.Services.AddSingleton<DimmerWindow>();
 
 #endif

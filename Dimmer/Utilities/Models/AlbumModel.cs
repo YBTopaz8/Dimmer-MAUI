@@ -26,7 +26,6 @@ public partial class AlbumModel : RealmObject
 
     public AlbumModel(AlbumModelView model)
     {        
-        LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         ReleaseYear = model.ReleaseYear;
         NumberOfTracks = model.NumberOfTracks;
@@ -38,9 +37,9 @@ public partial class AlbumModel : RealmObject
 public partial class AlbumModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; }
-    [ObservableProperty]
     public partial string? Name { get; set; }
+    [ObservableProperty]
+    public partial string? LocalDeviceId { get; set; }
     [ObservableProperty]
     public partial int? ReleaseYear { get; set; }
     [ObservableProperty]
@@ -59,7 +58,7 @@ public partial class AlbumModelView : ObservableObject
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     [ObservableProperty]
-    bool isCurrentlySelected;
+    public partial bool IsCurrentlySelected { get; set; }
     public AlbumModelView(AlbumModel model)
     {   
         LocalDeviceId = model.LocalDeviceId;

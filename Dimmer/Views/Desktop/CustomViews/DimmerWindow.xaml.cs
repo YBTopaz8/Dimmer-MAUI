@@ -34,7 +34,10 @@ public partial class DimmerWindow : Window
         
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
-        onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
+        if(MyViewModel.CurrentUser is not null)
+        {
+            onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
+        }
 
 
     }
@@ -125,10 +128,10 @@ public partial class DimmerWindow : Window
                         MyViewModel.CurrentQueue = 0;
                     }
                 }
-                catch (TaskCanceledException)
-                {
-                    // Expected if the debounce timer is cancelled
-                }
+                //catch (TaskCanceledException)
+                //{
+                //    // Expected if the debounce timer is cancelled
+                //}
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
