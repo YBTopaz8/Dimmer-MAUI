@@ -59,6 +59,12 @@
     </ContentPage.Resources>
 
     <Grid>
+        <Grid.GestureRecognizers>
+            <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
+                           DragOver="DropGestureRecognizer_DragOver"
+                           DragLeave="DropGestureRecognizer_DragLeave"
+                           Drop="DropGestureRecognizer_Drop"/>
+        </Grid.GestureRecognizers>
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.08"
                 Aspect="AspectFill" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>

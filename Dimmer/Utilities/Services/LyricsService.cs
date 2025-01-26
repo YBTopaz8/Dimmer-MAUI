@@ -341,16 +341,16 @@ public class LyricsService : ILyricsService
         var sampleTime = 780;
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
             .Sample(TimeSpan.FromMilliseconds(sampleTime))
-            .Subscribe(position =>
+            .Subscribe (async position =>
             {
 
                 double currentTimeinsSecs = position.CurrentTimeInSeconds;
-                UpdateCurrentLyricIndex(currentTimeinsSecs);
-
+                await UpdateCurrentLyricIndex(currentTimeinsSecs);
+                
             }, error => { Debug.WriteLine($"Error in subscription: {error.Message}"); });
     }
 
-    public void UpdateCurrentLyricIndex(double currentPositionInSeconds)
+    public async Task UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
         var lyrics = _synchronizedLyricsSubject.Value;
         if (lyrics is null || lyrics?.Count < 1)
@@ -361,7 +361,7 @@ public class LyricsService : ILyricsService
                 return;
             }
 
-            LoadLyrics(PlayBackService.CurrentlyPlayingSong);
+            await LoadLyrics(PlayBackService.CurrentlyPlayingSong);
             if (hasSyncedLyrics)
             {
                 _synchronizedLyricsSubject.OnNext(songSyncLyrics);

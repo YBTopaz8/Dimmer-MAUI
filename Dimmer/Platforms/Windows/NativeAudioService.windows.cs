@@ -5,6 +5,8 @@ using CSCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSCore.Streams;
+using System.Windows.Interop;
+using Microsoft.Maui.Platform;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -18,6 +20,8 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     //private IWaveSource? _nextWaveSource;
     private Equalizer? equalizer;
 
+    private HwndSource? _hwndSource;
+    
     public DimmerAudioService()
     {
         soundOut = new WasapiOut();
@@ -179,14 +183,14 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
 
     //private SongModelView? _nextMedia; // To store the next media to be played
 
-
-    public void Initialize(SongModelView? media, byte[]? imageBytes)
+    public async Task Initialize(SongModelView? media, byte[]? imageBytes) // Changed to async void - be mindful of exceptions
     {
-        PrepareMedia(media); 
+        await PrepareMediaAsync(media); // Call the async version
     }
-    private void PrepareMedia(SongModelView? media) 
+
+    private async Task PrepareMediaAsync(SongModelView? media) // Made PrepareMedia async and returning Task
     {
-        Dispose(); 
+        Dispose();
 
         if (media == null || string.IsNullOrEmpty(media.FilePath))
         {
@@ -196,29 +200,155 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         currentMedia = media;
         try
         {
-            
-            var waveSource = CodecFactory.Instance.GetCodec(media.FilePath)
-                               .ToSampleSource()
-                               .ToStereo(); // Ensure it's stereo for effects
+            // **Move audio source creation to background thread**
+            IWaveSource? waveSource = await Task.Run(() => // Run the heavy lifting in a background thread
+            {
+                try
+                {
+                    var source = CodecFactory.Instance.GetCodec(media.FilePath)
+                                               .ToSampleSource()
+                                               .ToStereo();
+                    equalizer = Equalizer.Create10BandEqualizer(source);
+                    return equalizer.ToWaveSource(); // Return the WaveSource
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error creating wave source in background thread: {ex.Message}");
+                    return null; // Or throw the exception to be caught outside Task.Run
+                }
+            });
 
-            // Add Equalizer
-            equalizer = Equalizer.Create10BandEqualizer(waveSource);
-            currentWaveSource = equalizer.ToWaveSource(); // Convert back to WaveSource
+            if (waveSource == null) // Handle potential error during wave source creation
+            {
+                Debug.WriteLine("Failed to create wave source.");
+                return;
+            }
 
+            currentWaveSource = waveSource;
+
+            // Initialize WasapiOut and start playback (can likely stay on calling thread now)
             soundOut = new WasapiOut();
             soundOut.Initialize(currentWaveSource);
-            AttachStoppedHandler(); // Attach handler *inside* the Task.Run
-            soundOut.Play(); // Start playback *inside* the Task.Run
-            
+            AttachStoppedHandler();
+            Play(true); // Start playback
+            RegisterMediaKeys(); // Register media keys after successful initialization
+
             ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
+
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error initializing media: {ex.Message}");
         }
     }
+    private void RegisterMediaKeys()
+    {
+        if (_hwndSource != null)
+            return;
+
+        // Get the dispatcher of the window and check if its on the main thread
+        if (!MainThread.IsMainThread)
+        {
+            MainThread.BeginInvokeOnMainThread(() => RegisterMediaKeys());
+            return;
+        }
+
+        // Get the window from MAUI's IPlatformApplication
+        var mauiWindow = IPlatformApplication.Current?.Services.GetService<DimmerWindow>();
+        if (mauiWindow is null)
+        {
+            Debug.WriteLine($"Could not register media keys as window could not be found.");
+            return;
+        }
+
+        // Get the native window handle
+        var nativeWindowHandle = mauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+
+        if (nativeWindowHandle is null)
+        {
+            Debug.WriteLine($"Could not register media keys as handle could not be found.");
+            return;
+        }
+        // Create a HwndSource to get the handle of our main window.
+        var hwndSource = new HwndSource(new HwndSourceParameters
+        {
+            ParentWindow= nativeWindowHandle.GetWindowHandle(),
+            WindowStyle = 0
+        });
 
 
+        _hwndSource = hwndSource;
+        // Event listener for processing messages (including media key events).
+        hwndSource.AddHook(WndProc);
+
+    }
+    private void UnregisterMediaKeys()
+    {
+        if (_hwndSource == null)
+            return;
+
+        _hwndSource.RemoveHook(WndProc);
+        _hwndSource.Dispose();
+        _hwndSource = null;
+
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_APPCOMMAND = 0x0319;
+        const int APPCOMMAND_MEDIA_PLAY_PAUSE = 0x0E0000;
+        const int APPCOMMAND_MEDIA_STOP = 0x0E0001;
+        const int APPCOMMAND_MEDIA_NEXTTRACK = 0x0E000B;
+        const int APPCOMMAND_MEDIA_PREVIOUSTRACK = 0x0E000C;
+
+        if (msg == WM_APPCOMMAND)
+        {
+            int command = (int)(lParam.ToInt64() & 0xFFFF0000) >> 16;
+
+            switch (command)
+            {
+                case APPCOMMAND_MEDIA_PLAY_PAUSE:
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        if (IsPlaying)
+                        {
+                            Pause();
+                        }
+                        else
+                        {
+                            Resume(currentWaveSource?.GetPosition().TotalSeconds ?? 0);
+                        }
+                    });
+                    handled = true;
+                    break;
+
+                case APPCOMMAND_MEDIA_STOP:
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Stop();
+                    });
+                    handled = true;
+                    break;
+
+                case APPCOMMAND_MEDIA_NEXTTRACK:
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        PlayNext?.Invoke(this, EventArgs.Empty);
+                    });
+                    handled = true;
+                    break;
+                case APPCOMMAND_MEDIA_PREVIOUSTRACK:
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        PlayPrevious?.Invoke(this, EventArgs.Empty);
+                    });
+                    handled = true;
+                    break;
+            }
+
+        }
+        return IntPtr.Zero;
+    }
     private void AttachStoppedHandler() // Helper method to attach Stopped handler (for cleaner code)
     {
         if (soundOut != null)
@@ -281,16 +411,17 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
 
 
-    public void ApplyEqualizerSettings(float[] bands)
+public void ApplyEqualizerSettings(float[] bands)
+{
+    if (equalizer == null || bands.Length != equalizer.SampleFilters.Count)
+        throw new ArgumentException("Invalid equalizer settings.");
+
+    for (int i = 0; i < bands.Length; i++)
     {
-        if (equalizer != null && bands.Length == equalizer.SampleFilters.Count)
-        {
-            for (int i = 0; i < bands.Length; i++)
-            {
-                equalizer.SampleFilters[i].AverageGainDB = bands[i];
-            }
-        }
+        equalizer.SampleFilters[i].AverageGainDB = bands[i];
     }
+}
+
 
     #region Equalizer Presets
 

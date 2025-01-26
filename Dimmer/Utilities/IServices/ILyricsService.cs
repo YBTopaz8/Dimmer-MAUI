@@ -7,7 +7,7 @@ public interface ILyricsService
 
     Task LoadLyrics(SongModelView song);
     IList<LyricPhraseModel> GetSpecificSongLyrics(SongModelView song);
-    void UpdateCurrentLyricIndex(double currentPositionInSeconds);
+    Task UpdateCurrentLyricIndex(double currentPositionInSeconds);
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();
 

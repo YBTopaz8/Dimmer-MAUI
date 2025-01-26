@@ -8,6 +8,7 @@
              x:DataType="vm:HomePageVM"             
              x:Name="myPage"        
         >
+    
    
     <Window.TitleBar>
         <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" 

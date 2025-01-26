@@ -59,14 +59,7 @@
                     </syncf:SfEffectsView>
                 </Border>
             </DataTemplate>
-            <MenuFlyout x:Key="SongsContextMenu">
-                <MenuFlyoutItem Text="Play Next" 
-                                Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
-
-                <MenuFlyoutSeparator/>
-
-                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
-            </MenuFlyout>
+         
 
         </ResourceDictionary>
     </ContentPage.Resources>

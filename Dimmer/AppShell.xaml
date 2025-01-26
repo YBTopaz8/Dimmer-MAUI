@@ -23,6 +23,7 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Shell.NavBarIsVisible="False"     
     >
+    
 
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
@@ -157,9 +158,12 @@
 
                 </Border>
                 <Border>
-                    --><!--<syncf:SfEffectsView >
+                    -->
+    <!--<syncf:SfEffectsView >
                 <Label Text="Add To Playlist"/>
-            </syncf:SfEffectsView>--><!--
+            </syncf:SfEffectsView>-->
+    
+    <!--
                 </Border>
             </VerticalStackLayout>
 
@@ -222,7 +226,10 @@
             </VerticalStackLayout.Resources>
             <Image Source="onlinecloud.gif"  IsVisible="False"
                    HeightRequest="30" HorizontalOptions="Start"/>
-            --><!--IsVisible="{Binding IsLoggedIn}"--><!--
+            -->
+    <!--IsVisible="{Binding IsLoggedIn}"-->
+    
+    <!--
             
             <syncf:SfTabView x:Name="tabView" SelectionChanged="TabView_SelectionChanged"
                              IndicatorPlacement="Top" 
@@ -433,9 +440,12 @@ EmptyView="No Syncronized Lyrics ..." >
     </Shell.FlyoutFooter>-->
     
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar" >
+        
         <Tab Title="Home" x:Name="homeTab" Icon="house.png">
+            
             <ShellContent
                 ContentTemplate="{DataTemplate viewsD:MainPageD}">
+                
             </ShellContent>
         </Tab>
 

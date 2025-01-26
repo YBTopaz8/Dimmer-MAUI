@@ -75,6 +75,24 @@ public partial class HomePageVM
 
     }
     
+    [RelayCommand]
+    public async Task NavigateToAlbumsPage(int? callerID=0) //0 if called by else, 1 if called by homeD or homeM
+    {
+
+        if (callerID == 0)
+        {
+            MySelectedSong = TemporarilyPickedSong!;
+        }
+       
+#if WINDOWS
+        await Shell.Current.GoToAsync(nameof(AlbumsPageD));
+#elif ANDROID
+        await Shell.Current.GoToAsync(nameof(AlbumPageM));
+        
+#endif
+
+    }
+    
     public void GetAllAlbums()
     {
         AllAlbums = PlayBackService.GetAllAlbums();

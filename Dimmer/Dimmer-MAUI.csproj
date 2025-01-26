@@ -207,6 +207,9 @@
     <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SongContextMenuPopupView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

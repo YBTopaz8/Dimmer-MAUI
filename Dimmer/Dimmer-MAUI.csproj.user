@@ -55,6 +55,9 @@
     <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SongContextMenuPopupView.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongToPlaylistPopup.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
