@@ -100,5 +100,32 @@ public static class CustomAnimsExtensions
     }
 
 
+    public static async Task AnimateFontSizeTo(this Label view, double toFontSize, uint duration)
+    {
+        await view.AnimateAsync("fontSizeAnimation", (progress) =>
+        {
+            view.FontSize = 19 + (toFontSize - 19) * progress;
+        }, length: duration);
+    }
 
+    public static async Task AnimateTextColorTo(this Label view, Color toColor, uint duration)
+    {
+        Color fromColor = view.TextColor;
+        await view.AnimateAsync("textColorAnimation", (progress) =>
+        {
+            view.TextColor = Color.FromRgba(
+                (int)(fromColor.Red + (toColor.Red - fromColor.Red) * progress),
+                (int)(fromColor.Green + (toColor.Green - fromColor.Green) * progress),
+                (int)(fromColor.Blue + (toColor.Blue - fromColor.Blue) * progress),
+                fromColor.Alpha + (toColor.Alpha - fromColor.Alpha) * progress);
+        }, length: duration);
+    }
+
+    // IMPORTANT: This is the implementation of AnimateAsync
+    public static Task AnimateAsync(this IAnimatable element, string name, Action<double> callback, uint length, Easing easing = null)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        element.Animate(name, callback, 16, length, easing, (v, c) => tcs.SetResult(c), null);
+        return tcs.Task;
+    }
 }

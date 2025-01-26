@@ -32,6 +32,8 @@
                                     <Setter Property="Stroke" Value="Transparent"/>
                                 </VisualState.Setters>
                             </VisualState>
+                            
+                            
                             <VisualState Name="PointerOver">
                                 <VisualState.Setters>
                                     <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
@@ -54,22 +56,21 @@
         <HorizontalStackLayout Grid.Column="0" IsVisible="{Binding IsFlyOutPaneOpen, Converter={StaticResource BoolToInverse}}"
                                Spacing="5" Padding="5" ToolTipProperties.Text="Click To View">
             <HorizontalStackLayout.GestureRecognizers>
-                <TapGestureRecognizer 
-         Tapped="NavToSingleSongShell_Tapped"/>
+                <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped"/>
             </HorizontalStackLayout.GestureRecognizers>
             <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" Stroke="LightCoral" StrokeThickness="2"
                      Text="{Binding TemporarilyPickedSong.Title}"
                  WidthRequest="95" HeightRequest="95" Margin="2,0,0,0"
                      BorderWidth="0" CornerRadius="20">
 
-                <!--<toolkit:AvatarView.Triggers>
+                <toolkit:AvatarView.Triggers>
                     <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
                         <Setter Property="StrokeThickness" Value="0"/>
                     </DataTrigger>
                     <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
                         <Setter Property="StrokeThickness" Value="2"/>
                     </DataTrigger>
-                </toolkit:AvatarView.Triggers>-->
+                </toolkit:AvatarView.Triggers>
             </toolkit:AvatarView>
 
             <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
@@ -82,6 +83,9 @@
         LineBreakMode="HeadTruncation"/>
                 
             </VerticalStackLayout>
+            
+            <!--<ImageButton Source=""-->
+            
         </HorizontalStackLayout>
 
         <VerticalStackLayout HorizontalOptions="Fill" Grid.Column="1">

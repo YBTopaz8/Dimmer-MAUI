@@ -8,16 +8,14 @@ using CSCore.Streams;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
-
 public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged, IDisposable
 {
     static DimmerAudioService? current;
     public static IDimmerAudioService Current => current ??= new DimmerAudioService();
-    HomePageVM? ViewModel { get; set; }
 
     private WasapiOut soundOut;
     private IWaveSource? currentWaveSource;
-    private IWaveSource? _nextWaveSource;
+    //private IWaveSource? _nextWaveSource;
     private Equalizer? equalizer;
 
     public DimmerAudioService()
@@ -90,14 +88,17 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         get => 0; // CSCore does not natively support balance
         set { /* Implement if necessary using custom processing */ }
     }
-
+    private readonly object resourceLock = new();
+    private bool disposed = false;
+    private SongModelView? currentMedia;
+    private SemaphoreSlim semaphoreSlim = new(1, 1);
+    public HomePageVM? ViewModel { get; set; }
     public event EventHandler<bool>? IsPlayingChanged;
     public event EventHandler? PlayEnded;
     public event EventHandler? PlayNext;
     public event EventHandler? PlayPrevious;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
-    private readonly object resourceLock = new object();
 
     private void OnPropertyChanged(string propertyName)
     {
@@ -143,8 +144,7 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         currentWaveSource?.SetPosition(TimeSpan.FromSeconds(positionInSec));
     }
 
-    private bool disposed = false;
-    
+
     public void Dispose()
     {
         Dispose(true);
@@ -177,18 +177,16 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         disposed = true;
     }
 
-    SongModelView? currentMedia;
-    private SongModelView? _nextMedia; // To store the next media to be played
+    //private SongModelView? _nextMedia; // To store the next media to be played
 
-    private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-    public async Task InitializeAsync(SongModelView? media, byte[]? imageBytes)
+    public void Initialize(SongModelView? media, byte[]? imageBytes)
     {
-        await PrepareMediaAsync(media); // Use the new async method
+        PrepareMedia(media); 
     }
-    private async Task PrepareMediaAsync(SongModelView? media) // Make Initialize/Prepare async
+    private void PrepareMedia(SongModelView? media) 
     {
-        Dispose(); // Clean up any existing playback
+        Dispose(); 
 
         if (media == null || string.IsNullOrEmpty(media.FilePath))
         {
@@ -198,74 +196,20 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         currentMedia = media;
         try
         {
-            // Create the WaveSource
+            
             var waveSource = CodecFactory.Instance.GetCodec(media.FilePath)
-                               .ToSampleSource()                             
+                               .ToSampleSource()
                                .ToStereo(); // Ensure it's stereo for effects
 
             // Add Equalizer
             equalizer = Equalizer.Create10BandEqualizer(waveSource);
             currentWaveSource = equalizer.ToWaveSource(); // Convert back to WaveSource
 
-            await Task.Run(() =>
-            {
-                soundOut = new WasapiOut();
-                soundOut.Initialize(currentWaveSource);
-                AttachStoppedHandler(); // Attach handler *inside* the Task.Run
-                soundOut.Play(); // Start playback *inside* the Task.Run
-            });
-
-            soundOut.Stopped += async (s, e) =>
-            {
-                await semaphoreSlim.WaitAsync(); // Acquire the semaphore
-                try
-                {
-                    if (disposed)
-                    {
-                        // Set playback state
-                        IsPlaying = false;
-                        PlayEnded?.Invoke(this, EventArgs.Empty);
-                        return; // Avoid operating on disposed objects
-                    }
-
-                    // --- Gapless Transition Logic ---
-                    if (_nextWaveSource != null && _nextMedia != null) // Check if next song is pre-loaded
-                    {
-                        Debug.WriteLine("Starting gapless transition to next song.");
-
-                        // Dispose of resources from the previous song
-                        Stop(); // Stop current playback
-                        DisposeCurrentPlaybackResources(); // Helper method to dispose soundOut, currentWaveSource, etc.
-
-                        // Switch to the pre-loaded next song
-                        currentMedia = _nextMedia;
-                        currentWaveSource = _nextWaveSource;
-
-                        
-                        soundOut = new WasapiOut();
-                        soundOut.Initialize(currentWaveSource);
-                        AttachStoppedHandler(); // Attach handler inside the Task.Run
-                        soundOut.Play(); // Start playback inside the Task.Run
-                        
-
-                        PlayNext?.Invoke(this, EventArgs.Empty); // Trigger "Play Next" event
-                    }
-                    else
-                    {
-                        IsPlaying = false;
-                        PlayEnded?.Invoke(this, EventArgs.Empty); // Normal "Play Ended" when no next song
-                    }
-                }
-                finally
-                {
-                    semaphoreSlim.Release(); // Always release the semaphore
-                }
-
-                // After starting the next song (or if no next song), prepare the *next* next song in the background
-                PrepareNextMedia(); // Start pre-loading the *next* song asynchronously
-            };
-
-
+            soundOut = new WasapiOut();
+            soundOut.Initialize(currentWaveSource);
+            AttachStoppedHandler(); // Attach handler *inside* the Task.Run
+            soundOut.Play(); // Start playback *inside* the Task.Run
+            
             ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
         }
         catch (Exception ex)
@@ -290,40 +234,9 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
                         return;
                     }
 
-                    // --- Gapless Transition Logic ---
-                    if (_nextWaveSource != null && _nextMedia != null) // Check if next song is pre-loaded
-                    {
-                        Debug.WriteLine("Starting gapless transition to next song.");
-
-                        // 1. Dispose of resources from the *previous* song
-                        Stop(); // Stop current playback (already stopped by event, but just in case)
-                        DisposeCurrentPlaybackResources(); // Helper method to dispose soundOut, currentWaveSource, etc.
-
-                        // 2. Switch to the pre-loaded next song
-                        currentMedia = _nextMedia;
-                        currentWaveSource = _nextWaveSource;
-                        soundOut = new WasapiOut(); // Create a new WasapiOut instance
-                        soundOut.Initialize(currentWaveSource);
-                        AttachStoppedHandler(); // Re-attach the Stopped handler to the *new* soundOut
-
-                        // Clear the "next" song variables
-                        _nextMedia = null;
-                        _nextWaveSource = null;
-
-                        // 3. Start playback of the next song
-                        Play(true); // Resume playback immediately
-
-                        PlayNext?.Invoke(this, EventArgs.Empty); // If you want to trigger "Play Next" event
-                    }
-                    else
-                    {
-                        IsPlaying = false;
-                        PlayEnded?.Invoke(this, EventArgs.Empty); // Normal "Play Ended" when no next song
-                    }
+                    IsPlaying = false;
+                    PlayEnded?.Invoke(this, EventArgs.Empty); // Normal "Play Ended"
                 }
-
-                // After starting the next song (or if no next song), prepare the *next* next song in the background
-                PrepareNextMedia(); // Start pre-loading the *next* song asynchronously
             };
         }
     }
@@ -343,43 +256,7 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
 
 
-    private void PrepareNextMedia() // Asynchronously pre-load the next song
-    {
-        // --- Logic to determine the *next* song in your playlist ---
-        // This is a placeholder - you need to implement your playlist handling
-        SongModelView? nextMedia = GetNextMediaItemFromPlaylist(); // Replace with your playlist logic
 
-        if (nextMedia != null && nextMedia != _nextMedia) // Check if we have a valid next song and avoid re-loading the same one
-        {
-            Debug.WriteLine($"Pre-loading next media: {nextMedia.FilePath}");
-            try
-            {
-                // Prepare WaveSource for the *next* song (but don't initialize WasapiOut yet)
-                var nextWaveSourceBase = CodecFactory.Instance.GetCodec(nextMedia.FilePath)
-                                                   .ToSampleSource()
-                                                   .ToStereo();
-                var nextEqualizer = Equalizer.Create10BandEqualizer(nextWaveSourceBase); // Create a *new* equalizer for the next song if needed
-                _nextWaveSource = nextEqualizer.ToWaveSource(); // Store the WaveSource for the next song
-                _nextMedia = nextMedia; // Store the next media info
-
-                // --- Optional: Implement buffering of _nextWaveSource here if possible with CSCore ---
-                // (This is more advanced and might require deeper CSCore stream manipulation)
-                // For now, we are just pre-loading the WaveSource.
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error pre-loading next media: {ex.Message}");
-                _nextMedia = null; // Clear next media if pre-loading fails
-                _nextWaveSource = null;
-            }
-        }
-        else
-        {
-            _nextMedia = null; // Clear next media if no valid next song
-            _nextWaveSource = null;
-            Debug.WriteLine("No valid next media to pre-load.");
-        }
-    }
 
     // Placeholder - Implement your playlist logic to get the next song
     private SongModelView? GetNextMediaItemFromPlaylist()
@@ -418,16 +295,16 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     #region Equalizer Presets
 
     private static readonly Dictionary<EqualizerPresetName, float[]> EqualizerPresets = new Dictionary<EqualizerPresetName, float[]>
-    {
-        { EqualizerPresetName.Flat,      new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, // Flat EQ
-        { EqualizerPresetName.Rock,      new float[] { 4, 2, 0, 2, 4, 2, 0, 0, 2, 4 } }, // Rock - Boosted mids and highs
-        { EqualizerPresetName.Pop,       new float[] { 2, 3, 1, 0, 1, 2, 3, 2, 1, 0 } }, // Pop - Emphasized bass and treble slightly
-        { EqualizerPresetName.Classical, new float[] { 0, 0, 2, 4, 5, 4, 2, 0, 0, 0 } }, // Classical - Emphasized mids for clarity
-        { EqualizerPresetName.Jazz,      new float[] { 1, 2, 3, 2, 1, 0, 1, 2, 3, 2 } }, // Jazz - Warm, slightly boosted mids and highs
-        { EqualizerPresetName.Dance,     new float[] { 5, 3, 0, 0, 2, 4, 3, 2, 1, 0 } }, // Dance - Heavy bass and boosted highs
-        { EqualizerPresetName.BassBoost, new float[] { 8, 6, 4, 2, 0, 0, 0, 0, 0, 0 } }, // Bass Boost - Extreme bass boost
-        { EqualizerPresetName.TrebleBoost, new float[] { 0, 0, 0, 0, 0, 0, 2, 4, 6, 8 } }  // Treble Boost - Extreme treble boost
-    };
+{
+    { EqualizerPresetName.Flat,      new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, // Flat EQ
+    { EqualizerPresetName.Rock,      new float[] { 4, 2, 0, 2, 4, 2, 0, 0, 2, 4 } }, // Rock - Boosted mids and highs
+    { EqualizerPresetName.Pop,       new float[] { 2, 3, 1, 0, 1, 2, 3, 2, 1, 0 } }, // Pop - Emphasized bass and treble slightly
+    { EqualizerPresetName.Classical, new float[] { 0, 0, 2, 4, 5, 4, 2, 0, 0, 0 } }, // Classical - Emphasized mids for clarity
+    { EqualizerPresetName.Jazz,      new float[] { 1, 2, 3, 2, 1, 0, 1, 2, 3, 2 } }, // Jazz - Warm, slightly boosted mids and highs
+    { EqualizerPresetName.Dance,     new float[] { 5, 3, 0, 0, 2, 4, 3, 2, 1, 0 } }, // Dance - Heavy bass and boosted highs
+    { EqualizerPresetName.BassBoost, new float[] { 8, 6, 4, 2, 0, 0, 0, 0, 0, 0 } }, // Bass Boost - Extreme bass boost
+    { EqualizerPresetName.TrebleBoost, new float[] { 0, 0, 0, 0, 0, 0, 2, 4, 6, 8 } }  // Treble Boost - Extreme treble boost
+};
 
     public void ApplyEqualizerPreset(EqualizerPresetName presetName)
     {
@@ -447,6 +324,5 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
 
     #endregion Equalizer Presets
-
-
+    
 }

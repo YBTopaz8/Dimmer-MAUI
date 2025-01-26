@@ -132,6 +132,7 @@
                 <DataTemplate x:DataType="models:SongModelView">
                     <Border Stroke="Transparent" HorizontalOptions="Center" 
                             FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}">
+                        
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />

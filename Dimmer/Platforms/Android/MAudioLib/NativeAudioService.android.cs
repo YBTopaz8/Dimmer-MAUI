@@ -174,7 +174,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         
     }
 
-    public Task InitializeAsync(SongModelView? media, byte[]? ImageBytes=null)
+    public void Initialize(SongModelView? media, byte[]? ImageBytes=null)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentMedia = new();
@@ -228,7 +228,6 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
             mediaPlayerService.IsSeekedFromNotificationBar += MediaPlayerService_IsSeekedFromNotificationBar;
         }
 
-        return Task.CompletedTask;
     }
 
     private void MediaPlayerService_IsSeekedFromNotificationBar(object? sender, long e)

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SingleSongShellPageD : ContentPage
@@ -215,18 +217,39 @@ public partial class SingleSongShellPageD : ContentPage
     }
 
 
+
     private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
         try
         {
+            
             if (LyricsColView.ItemsSource is not null)
             {
-                if (LyricsColView.SelectedItem is not null )
+                if (LyricsColView.SelectedItem is not null)
                 {
                     LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
                 }
-            }            
-         
+            }
+
+            // --- Reset FontSize for Previously Selected Items ---
+            if (e.PreviousSelection != null && e.PreviousSelection.Count > 0)
+            {
+                foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
+                {
+                    oldItem.NowPlayingLyricsFontSize = 29; // Set FontSize to 19 for unselected
+                    //Debug.WriteLine($"Item unselected, set FontSize to 19: {oldItem?.Text}");
+                }
+            }
+
+            // --- Set FontSize for Currently Selected Items ---
+            if (e.CurrentSelection != null && e.CurrentSelection.Count > 0)
+            {
+                foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
+                {
+                    newItem.NowPlayingLyricsFontSize = 61; // Set FontSize to 21 for selected
+                    //Debug.WriteLine($"Item selected, set FontSize to 21: {newItem?.Text}");
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -234,11 +257,31 @@ public partial class SingleSongShellPageD : ContentPage
         }
     }
 
+
+    // Helper to find the visual element for an item
+    private View GetViewForItem(object item)
+    {
+        foreach (var cell in LyricsColView.GetVisualTreeDescendants().OfType<ViewCell>())
+        {
+            if (cell.BindingContext == item)
+                return cell.View;
+        }
+        return null;
+    }
+
+    // Animation helper
+    private async Task AnimateItem(View view, double targetScale)
+    {
+        if (view == null)
+            return;
+        await view.ScaleTo(targetScale, 250, Easing.SpringOut);
+    }
+
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (MyViewModel.IsPlaying)
         {
-            var bor = (Border)sender;
+            var bor = (Label)sender;
             var lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
@@ -473,11 +516,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         
         
     }
-    Label CurrentLyrLabel { get; set; }
-    private void Label_Loaded(object sender, EventArgs e)
-    {
-        CurrentLyrLabel = (Label)sender;
-    }
 
     private void ImageButton_Clicked(object sender, EventArgs e)
     {
@@ -503,5 +541,20 @@ NoLyricsFoundMsg.AnimateFadeInFront());
             NormalNowPlayingUI.AnimateFadeOutBack());
             isOnFocusMode = true;
         }
+    }
+
+    Label CurrentLyrLabel { get; set; }
+    private void Label_Loaded(object sender, EventArgs e)
+    {
+        CurrentLyrLabel = (Label)sender;
+    }
+    private void LyrBorder_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void LyrBorder_ParentChanged(object sender, EventArgs e)
+    {
+
     }
 }

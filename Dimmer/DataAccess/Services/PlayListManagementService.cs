@@ -69,9 +69,14 @@ public class PlayListManagementService : IPlaylistManagementService
             {
                 db.Write(() =>
                 {
+                    
                     db.Add(new PlaylistModel(playlist), true);
                     if (playlistSongLink is not null)
                     {
+                        if (playlistSongLink.LocalDeviceId is null)
+                        {
+                            playlistSongLink.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID(nameof(PlaylistModel));
+                        }
                         db.Add(playlistSongLink);
                     }
                 });

@@ -87,6 +87,7 @@ global using Dimmer_MAUI.Views.CustomViews;
 global using Dimmer_MAUI.Utilities.IServices;
 global using Dimmer_MAUI.Utilities.Services;
 
+//global using SpotifyAPI.Web;
 
 
 namespace Dimmer_MAUI;

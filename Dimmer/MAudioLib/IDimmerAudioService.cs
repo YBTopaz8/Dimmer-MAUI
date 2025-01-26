@@ -3,7 +3,7 @@ public interface IDimmerAudioService
 {
     public static IDimmerAudioService Current;
     
-    Task InitializeAsync(SongModelView? media = null, byte[]? ImageBytes=null);
+    void Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
 
 
     ///<Summary>

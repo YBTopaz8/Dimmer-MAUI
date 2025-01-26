@@ -128,10 +128,10 @@ public partial class DimmerWindow : Window
                         MyViewModel.CurrentQueue = 0;
                     }
                 }
-                catch (TaskCanceledException)
-                {
-                    // Expected if the debounce timer is cancelled
-                }
+                //catch (TaskCanceledException)
+                //{
+                //    // Expected if the debounce timer is cancelled
+                //}
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
