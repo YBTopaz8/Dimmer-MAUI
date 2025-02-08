@@ -231,6 +231,17 @@ public partial class HomePageVM
         PlatSpecificUtils.ToggleFullScreenMode(IsSleek, AppWinPresenter);
 #endif
     }
+    [ObservableProperty]
+    public partial View CurrentPageMainLayout { get; set; }
+
+    //public partial void OnCurrentPageChanging (PageEnum oldPage, PageEnum newPage)
+    //{
+    //    if (oldPage == PageEnum.NowPlayingPage)
+    //    {
+
+    //    }
+    //}
+
 
     #region Search Song On... ContextMenu Options
 
@@ -890,10 +901,27 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial DBtmState MobileBtmSheetState { get; set; }
      
-    [RelayCommand]
-    public async Task ShowContextMenu()
+    public async Task ShowContextMenu(ContextMenuPageCaller caller=ContextMenuPageCaller.MainPage)
     {
-        
+        switch (caller)
+        {
+            case ContextMenuPageCaller.MainPage:
+
+                break;
+            case ContextMenuPageCaller.ArtistPage:
+                break;
+            case ContextMenuPageCaller.AlbumPage:
+                break;
+            case ContextMenuPageCaller.PlaylistPage:
+                break;
+            case ContextMenuPageCaller.QueuePage:
+                break;
+            case ContextMenuPageCaller.MiniPlaybackBar:
+                MySelectedSong = TemporarilyPickedSong!;
+                break;
+            default:
+                break;
+        }
         var result =await Shell.Current.ShowPopupAsync(new SongContextMenuPopupView(this, MySelectedSong!));
         if (result is null)
         {

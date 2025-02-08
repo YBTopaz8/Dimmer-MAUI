@@ -8,23 +8,24 @@ public partial class FullStatsPageD : ContentPage
     {
         InitializeComponent();
         this.BindingContext = homePageVM;
-        ViewModel = homePageVM;
+        MyViewModel = homePageVM;
     }
-    public HomePageVM ViewModel { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
         
-        if (ViewModel.TemporarilyPickedSong is null)
+        if (MyViewModel.TemporarilyPickedSong is null)
         {
             return;
         }
-        ViewModel.CurrentPage = PageEnum.FullStatsPage;
+        MyViewModel.CurrentPage = PageEnum.FullStatsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
         //MyViewModel.ShowGeneralTopXSongsCommand.Execute(null);
         StatsTabs.SelectedItem = StatsTabs.Children[0];
-        ViewModel.CallStats();
+        MyViewModel.CallStats();
     }
 
     private async void StatsTabs_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
@@ -164,18 +165,18 @@ public partial class FullStatsPageD : ContentPage
         var send = sender as PieSeries;
         var itemss = send.ItemsSource as ObservableCollection<DimmData>;
         
-        var song = ViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+        var song = MyViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
 
-        ViewModel.MySelectedSong = song;
+        MyViewModel.MySelectedSong = song;
         if (ClickToPreview)
         {
-            ViewModel.PlaySong(song, true);
+            MyViewModel.PlaySong(song, true);
         }        
     }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        ViewModel.IsPreviewing=false;
+        MyViewModel.IsPreviewing=false;
     }
 
 

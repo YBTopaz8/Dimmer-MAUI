@@ -47,50 +47,84 @@ public partial class AppShell : Shell
     {
         await MyViewModel.NavToSingleSongShell();
     }
-/*
-    private async void MultiSelect_TouchDown(object sender, EventArgs e)
+
+
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        switch (MyViewModel.CurrentPage)
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
         {
-            case PageEnum.MainPage:
-                var mainPage = Current.CurrentPage as MainPageD;
-                if (MyViewModel.DisplayedSongs.Count<1)
-                {
-                    return;
-                }
-                mainPage!.ToggleMultiSelect_Clicked(sender, e);
-                if (MyViewModel.IsMultiSelectOn)
-                {
-                    GoToSong.IsEnabled = false;
-                    //MyViewModel.ToggleFlyout(true);
-                    GoToSong.Opacity = 0.4;
-                    await Task.WhenAll(
-                     MultiSelectView.AnimateFadeInFront());
-                }
-                else
-                {
-                    MyViewModel.MultiSelectText = string.Empty;
-                    GoToSong.IsEnabled = true;
-                    GoToSong.Opacity = 1;
-                    //MyViewModel.ToggleFlyout(false);
-                    await Task.WhenAll(MultiSelectView.AnimateFadeOutBack());
-                }
-                break;
-            case PageEnum.NowPlayingPage:
-                break;
-            case PageEnum.PlaylistsPage:
-                break;
-            case PageEnum.FullStatsPage:
-                break;
-            case PageEnum.AllArtistsPage:
-                break;
-            case PageEnum.SpecificAlbumPage:
-                break;
-            default:
-                break;
+            song.IsCurrentPlayingHighlight = false;
         }
+
+        MyViewModel.PlaySong(song);
     }
-    */
+
+    //private void SongsColView_Loaded(object sender, EventArgs e)
+    //{
+    //    try
+    //    {
+    //        if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
+    //        {
+    //            return;
+    //        }
+    //        MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
+
+    //        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Debug.WriteLine("Error when scrolling " + ex.Message);
+    //    }
+    //}
+
+
+    /*
+        private async void MultiSelect_TouchDown(object sender, EventArgs e)
+        {
+            switch (MyViewModel.CurrentPage)
+            {
+                case PageEnum.MainPage:
+                    var mainPage = Current.CurrentPage as MainPageD;
+                    if (MyViewModel.DisplayedSongs.Count<1)
+                    {
+                        return;
+                    }
+                    mainPage!.ToggleMultiSelect_Clicked(sender, e);
+                    if (MyViewModel.IsMultiSelectOn)
+                    {
+                        GoToSong.IsEnabled = false;
+                        //MyViewModel.ToggleFlyout(true);
+                        GoToSong.Opacity = 0.4;
+                        await Task.WhenAll(
+                         MultiSelectView.AnimateFadeInFront());
+                    }
+                    else
+                    {
+                        MyViewModel.MultiSelectText = string.Empty;
+                        GoToSong.IsEnabled = true;
+                        GoToSong.Opacity = 1;
+                        //MyViewModel.ToggleFlyout(false);
+                        await Task.WhenAll(MultiSelectView.AnimateFadeOutBack());
+                    }
+                    break;
+                case PageEnum.NowPlayingPage:
+                    break;
+                case PageEnum.PlaylistsPage:
+                    break;
+                case PageEnum.FullStatsPage:
+                    break;
+                case PageEnum.AllArtistsPage:
+                    break;
+                case PageEnum.SpecificAlbumPage:
+                    break;
+                default:
+                    break;
+            }
+        }
+        */
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
 
@@ -340,6 +374,16 @@ public partial class AppShell : Shell
             _navigationHistory.Push(args.Previous.Location.OriginalString);
         }
 #endif
+    }
+
+    private void Grid_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void Grid_Unloaded(object sender, EventArgs e)
+    {
+
     }
 
     /*

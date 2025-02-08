@@ -18,6 +18,7 @@ public partial class PlaylistsPageD : ContentPage
             return;
         }
         MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
         MyViewModel.LoadFirstPlaylist();
     }
 
@@ -27,12 +28,17 @@ public partial class PlaylistsPageD : ContentPage
         MyViewModel.DisplayedSongsFromPlaylist.Clear();
     }
 
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.CurrentQueue = 1;
-        var t = (Border)sender;
-        var song = t.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);        
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
     }
 
     private void StateTrigger_IsActiveChanged(object sender, EventArgs e)

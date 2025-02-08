@@ -22,7 +22,7 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <ScrollView>        
+    <ScrollView  x:Name="MainDock">        
         <VerticalStackLayout Padding="10,0" Spacing="15">
             <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
             

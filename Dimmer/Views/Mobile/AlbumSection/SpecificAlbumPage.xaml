@@ -15,7 +15,7 @@
               x:DataType="vm:HomePageVM"
              Shell.BackgroundColor="#151C1C"
              BackgroundColor="#151C1C"
-             Shell.NavBarIsVisible="False"
+             Shell.NavBarIsVisible="True"
 
               x:Name="myPage">
 
@@ -36,7 +36,7 @@
         VerticalTextAlignment="Center" FontAttributes="Bold" 
         FontSize="20" Grid.Column="0"/>
                 <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                Grid.Column="1" Source="sort.png">
+                Grid.Column="1" Source="sortvertical.png">
                     
                 </ImageButton>
             </Grid>
@@ -62,7 +62,7 @@
             <HorizontalStackLayout Grid.Row="1" HorizontalOptions="Center" >
                 <dx:DXButton BackgroundColor="Transparent"
             IconColor="White"  HorizontalOptions="Center"
-                             Icon="singer1.gif">
+                             Icon="usercircle.png">
                     <dx:DXButton.Content>
 
                         <Label Text="{Binding SelectedArtistOnArtistPage.Name}" 

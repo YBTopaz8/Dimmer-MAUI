@@ -166,7 +166,9 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="CSCore" Version="1.2.1.2" />
+    
+    <!--<PackageReference Include="CSCore" Version="1.2.1.2" />-->
+    
     <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.3" />
     <PackageReference Include="DevExpress.Maui.Core" Version="24.2.3" />
@@ -184,10 +186,10 @@
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.1.0" />
     
-    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.0.3" />
+    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.12.0" />
+    <PackageReference Include="z440.atl.core" Version="6.15.0" />
 
   </ItemGroup>
 

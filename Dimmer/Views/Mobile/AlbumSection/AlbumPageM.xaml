@@ -15,7 +15,7 @@
             Shell.BackgroundColor="#151C1C"
             BackgroundColor="#151C1C"   
             xmlns:dx="http://schemas.devexpress.com/maui"
-            Shell.NavBarIsVisible="False"
+            Shell.NavBarIsVisible="True"
              x:Name="myPage">
 
     <ContentPage.Resources>
@@ -37,7 +37,7 @@
 
             <ImageButton HeightRequest="30"
                Grid.Column="2"
-                         Source="sort.png">
+                         Source="sortvertical.png">
                 
             </ImageButton>
 

@@ -1,9 +1,11 @@
-﻿namespace Dimmer_MAUI.MAudioLib;
+﻿
+
+namespace Dimmer_MAUI.MAudioLib;
 public interface IDimmerAudioService
 {
     public static IDimmerAudioService Current;
     
-    Task Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
+    void Initialize(SongModelView? media = null, byte[]? ImageBytes=null);
 
 
     ///<Summary>
@@ -27,6 +29,7 @@ public interface IDimmerAudioService
     void SetCurrentTime(double value);
 
     void Dispose();
+    
 
     ///<Summary>
     /// Gets a value indicating whether the currently loaded audio file is playing.
@@ -52,8 +55,6 @@ public interface IDimmerAudioService
     /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
     ///</Summary>
 
-    void ApplyEqualizerSettings(float[] bands);
-    void ApplyEqualizerPreset(EqualizerPresetName presetName);
     double Balance { get; set; }
 
     event EventHandler<bool> IsPlayingChanged;

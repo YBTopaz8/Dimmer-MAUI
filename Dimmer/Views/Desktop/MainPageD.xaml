@@ -11,8 +11,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              x:DataType="vm:HomePageVM"
-             x:Name="myPage"
-             BackgroundColor="#191719"
+             x:Name="myPage"  
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              >
 
@@ -25,18 +24,18 @@
 
     </ContentPage.Resources>
 
-    <toolkit:DockLayout BackgroundColor="#1F1F1F" x:Name="mainDock"
-                    IsVisible="True" IsEnabled="True">
-        <toolkit:DockLayout.GestureRecognizers >
+    <Grid x:Name="MainDock" RowDefinitions="*,Auto"
+          IsEnabled="True">
+        <Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                                     DragOver="DropGestureRecognizer_DragOver"
                                     DragLeave="DropGestureRecognizer_DragLeave"
                                     Drop="DropGestureRecognizer_Drop"/>
-        </toolkit:DockLayout.GestureRecognizers>
+        </Grid.GestureRecognizers>
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
-                    x:Name="MediaPlayBackCW"/>
-        <toolkit:DockLayout x:Name="MainBody" >
+                    x:Name="MediaPlayBackCW" Grid.Row="1"/>
+        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" >
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
@@ -53,7 +52,7 @@
                         </ImageButton>
                         <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
                                 Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
-                                Source="sort.png">
+                                Source="sortvertical.png">
                         </ImageButton>
 
                     </HorizontalStackLayout>
@@ -85,11 +84,11 @@
             </VerticalStackLayout>
             <Grid toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
-VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
-x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset" 
-                                            
-Loaded="SongsColView_Loaded" Margin="5,0"
->
+                                VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" 
+                                RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
+                                x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset" 
+                                Loaded="SongsColView_Loaded" Margin="5,0">
+                    
                     <CollectionView.EmptyView>
                         <VerticalStackLayout HorizontalOptions="Center">
                             <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
@@ -103,7 +102,8 @@ Loaded="SongsColView_Loaded" Margin="5,0"
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
-                            <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"
+                            <Border>
+                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"
                         TouchDown="SfEffectsView_TouchDown" > 
                                 <Grid ColumnDefinitions="*,*,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="15">
                                     <Grid.GestureRecognizers>
@@ -113,15 +113,15 @@ Loaded="SongsColView_Loaded" Margin="5,0"
                                                 PointerExited="PointerGestureRecognizer_PointerExited"
                                                 />
                                     </Grid.GestureRecognizers>
-                                    <VerticalStackLayout Grid.Column="0" 
+                                    <VerticalStackLayout Grid.Column="0" Margin="5,0,0,0"
                                             VerticalOptions="Center">
 
                                         <Label Text="{Binding Title}" Grid.Column="1"
                                                 FontSize="18" 
                                                 LineBreakMode="TailTruncation"/>
 
-                                        <Image WidthRequest="13" HeightRequest="13" HorizontalOptions="Start"  
-                                                IsVisible="{Binding HasLyrics}" Source="lyr2.png" Opacity="1">
+                                        <Image WidthRequest="25" HeightRequest="25" HorizontalOptions="Start"  
+                                                IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1">
                                             <Image.Behaviors>
                                                 <toolkit:IconTintColorBehavior TintColor="#A2B5E2"/>
                                             </Image.Behaviors>
@@ -130,15 +130,12 @@ Loaded="SongsColView_Loaded" Margin="5,0"
 
                                     </VerticalStackLayout>
 
-                                    <syncf:SfEffectsView Grid.Column="1" BackgroundColor="Transparent" 
-                                                         TouchUp="SfEffectsView_TouchUp"
-                                                         RippleAnimationDuration="500" 
-                                                         Opacity="0.31"
+                                    <syncf:SfEffectsView Grid.Column="1" 
+                                                         TouchUp="ShowCntxtMenuBtn_Clicked"
+                                                         RippleAnimationDuration="500" BackgroundColor="Transparent"
+                                                         Opacity="0.31" WidthRequest="90"
                                                          ToolTipProperties.Text="View More">
-                                        <Image Source="more1.png" BackgroundColor="Transparent">
-                                            <Image.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="#DEDCEA"/>
-                                            </Image.Behaviors>
+                                            <Image Source="more1.png" Rotation="90" >                                            
                                         </Image>
                                     </syncf:SfEffectsView>
                                     <Label Grid.Column="2" 
@@ -156,13 +153,14 @@ Loaded="SongsColView_Loaded" Margin="5,0"
                                 </Grid>
 
                             </syncf:SfEffectsView>
+                            </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
         </toolkit:DockLayout>
 
-    </toolkit:DockLayout>
+    </Grid>
 
 
 
@@ -194,7 +192,7 @@ Loaded="SongsColView_Loaded" Margin="5,0"
                         </ImageButton>
                         <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
                                      Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
-                                     Source="sort.png">
+                                     Source="sortvertical.png">
                         </ImageButton>
                       
                     </HorizontalStackLayout>

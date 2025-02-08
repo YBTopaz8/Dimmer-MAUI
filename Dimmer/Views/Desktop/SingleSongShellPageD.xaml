@@ -23,42 +23,11 @@
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
             <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
             <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
-            <MenuFlyout x:Key="LyricsContentMenu">
-                <MenuFlyoutItem Text="Download Song Cover" Command="{Binding FetchSongCoverImageCommand}" CommandParameter="{Binding MySelectedSong}" x:DataType="vm:HomePageVM"/>
-                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding OpenSongFolderCommand}"/>
-            </MenuFlyout>
-
-            <!--<DataTemplate x:Key="SyncLyricsColView" x:DataType="models:LyricPhraseModel">
-                <Border Stroke="Transparent" Margin="5,0" x:Name="LyrBorder">
-                    <VisualStateManager.VisualStateGroups>
-                        <VisualStateGroup Name="CommonStates">
-                            <VisualState Name="Normal">
-                                <VisualState.Setters>
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </VisualState.Setters>
-                            </VisualState>
-                        </VisualStateGroup>
-                    </VisualStateManager.VisualStateGroups>
-
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                    </Border.GestureRecognizers>
-
-                    <Label Text="{Binding Text}" Margin="0,5" 
-                           HorizontalTextAlignment="Center" 
-                           FontSize="60" >
-                        <Label.Triggers>
-
-                        </Label.Triggers>
-                    </Label>
-                </Border>
-            </DataTemplate>-->
-
-            
+         
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
+    <Grid x:Name="MainDock">
         <Grid.GestureRecognizers>
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                            DragOver="DropGestureRecognizer_DragOver"
@@ -193,13 +162,7 @@
                 
                     </syncf:SfChipGroup>
                 
-                <Grid x:Name="SyncedLyricGrid" Grid.Row="1" 
-                      IsVisible="True" Margin="10,0">
-
-                        <!--
-                                Style="{StaticResource LyricLabelStyle}"
-                        -->
-
+                    <Grid x:Name="SyncedLyricGrid" Grid.Row="1" IsVisible="True" Margin="10,0">
                         <CollectionView x:Name="LyricsColView" ItemsSource="{Binding MySelectedSong.SyncLyrics}"
                                         SelectionChanged="LyricsColView_SelectionChanged" SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
                                         EmptyView="No Syncronized Lyrics ...">
@@ -222,18 +185,18 @@
 
                     </Grid>
                     
-                <Grid x:Name="PlainLyricsGrid" Grid.Row="1" IsVisible="False" Margin="10,0">
-                    <Border>
-                        <ScrollView>
-                            <Label Text="{Binding MySelectedSong.UnSyncLyrics}"/>
-                        </ScrollView>
-                    </Border>
-                </Grid>
+                    <Grid x:Name="PlainLyricsGrid" Grid.Row="1" IsVisible="False" Margin="10,0">
+                        <Border>
+                            <ScrollView>
+                                <Label Text="{Binding MySelectedSong.UnSyncLyrics}"/>
+                            </ScrollView>
+                        </Border>
+                    </Grid>
 
-                <Grid x:Name="SearchLyricsGrid" Grid.Row="1" 
-                      IsVisible="False" Margin="10,0">
-                    <Border>
-                        <Grid BackgroundColor="Transparent" Margin="5,5" RowDefinitions="Auto, *">
+                    <Grid x:Name="SearchLyricsGrid" Grid.Row="1" 
+                          IsVisible="False" Margin="10,0">
+                        <Border>
+                            <Grid BackgroundColor="Transparent" Margin="5,5" RowDefinitions="Auto, *">
                             <Grid.Resources>
                                 <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
@@ -340,8 +303,9 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </Grid>
-                    </Border>
-                </Grid>
+                        </Border>
+                    </Grid>
+                    
                     <Grid x:Name="SongStatsGrid" Grid.Row="1" IsVisible="False" Margin="10,0" >
                         <Border >
 
@@ -441,7 +405,7 @@
                                 
                             </ScrollView>
                         </Border>
-                </Grid>
+                    </Grid>
 
                     <Grid x:Name="SongDetails" Grid.Row="1"
                           IsVisible="False" Margin="10,0">
@@ -472,12 +436,14 @@
                                     <Label Text="Information" FontSize="26"/>
                                 </HorizontalStackLayout>
                                 <VerticalStackLayout>
-
-                                        <Label Text="Song Details" FontSize="28" Margin="0,0,0,8"
+                                    <ImageButton Source="textroundit.png"/>
+                                    <Label Text="Song Details" FontSize="28" Margin="0,0,0,8"
                                                TextColor="DarkOrange" HorizontalOptions="Start"/>
                                     <syncf:SfEffectsView>
-                                        
-                                    <HorizontalStackLayout>
+
+                                        <HorizontalStackLayout>
+                                            
+                                            <ImageButton Source="textfieldfocus.png"/>
                                             <Label Text="{Binding  MySelectedSong.Title}"/>
                             
                                         </HorizontalStackLayout>

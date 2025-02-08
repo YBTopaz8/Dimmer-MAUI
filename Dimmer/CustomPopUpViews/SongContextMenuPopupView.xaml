@@ -9,20 +9,27 @@
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"             
             x:DataType="vm:HomePageVM"
-            x:Name="myPage" 
+            x:Name="myPage"
             Color="Transparent">
-    
-    <ScrollView HorizontalOptions="Center" BackgroundColor="Transparent"
-                WidthRequest="400">
-        <Border StrokeShape="RoundRectangle 20,20,20,20" BackgroundColor="Transparent"
-         >
+
+    <Border StrokeShape="RoundRectangle 20,20,20,20" BackgroundColor="Transparent">
+
+        <Grid>
+        <Image Source="{Binding MySelectedSong.CoverImagePath}"
+               Opacity="0.2"/>
+        
+        <ScrollView HorizontalOptions="Center" BackgroundColor="Transparent"
+                WidthRequest="450">
+            
             <VerticalStackLayout VerticalOptions="Center"
                              Spacing="15" Padding="20"
-                             BackgroundColor="#1E1E1E">
+                             BackgroundColor="Transparent">
                 
-                <Label Text="{Binding MySelectedSong.Title}" FontSize="Medium" HorizontalTextAlignment="Center" FontAttributes="Bold" />
-                <Label Text="By" HorizontalOptions="Center"/>
-                <Label Text="{Binding MySelectedSong.ArtistName}" FontSize="Medium" HorizontalTextAlignment="Center" FontAttributes="Bold" />
+                <Label Text="{Binding MySelectedSong.Title}" FontSize="Medium" HorizontalTextAlignment="Center" 
+                       FontAttributes="Bold" />                
+                <Label Text="{Binding MySelectedSong.ArtistName}" FontSize="Small" 
+                       
+                       HorizontalTextAlignment="Center" FontAttributes="Italic" />
             <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
                        
            ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
@@ -43,6 +50,9 @@
             </syncf:SfChipGroup>
 
                 </VerticalStackLayout>
-            </Border>
-    </ScrollView>
+        </ScrollView>
+
+
+        </Grid>
+    </Border>
 </mct:Popup>

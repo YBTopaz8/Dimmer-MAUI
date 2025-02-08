@@ -28,7 +28,7 @@
 
         </Tab>
         <Tab Title="Favorites" x:Name="albumTawb"
-             Icon="heart.png">
+             Icon="heartangle.png">
             <ShellContent ContentTemplate="{DataTemplate viewsM:AlbumsM}"/>
 
         </Tab>

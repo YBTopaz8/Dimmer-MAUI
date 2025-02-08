@@ -17,5 +17,6 @@ public partial class SingleSongStatsPageD : ContentPage
             return;
         }
         MyViewModel.CurrentPage = PageEnum.FullStatsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
     }
 }

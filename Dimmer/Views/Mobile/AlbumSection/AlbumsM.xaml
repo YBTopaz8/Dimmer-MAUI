@@ -56,7 +56,7 @@
            FontSize="20" Grid.Column="0"/>
 
                 <ImageButton Command="{Binding OpenSortingPopupCommand}" HeightRequest="30"
-                  Grid.Column="1" Source="sort.png">
+                  Grid.Column="1" Source="sortvertical.png">
                 </ImageButton>
                 <ImageButton Command="{Binding DummyFuncCommand}" HeightRequest="30" 
                   Grid.Column="2"

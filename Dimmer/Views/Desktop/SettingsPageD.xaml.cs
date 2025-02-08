@@ -6,16 +6,17 @@ public partial class SettingsPageD : ContentPage
     {
         InitializeComponent();
         BindingContext = ViewModel;
-        this.ViewModel = ViewModel;
+        this.MyViewModel = ViewModel;
     }
     public bool ToLogin { get; }
-    public HomePageVM ViewModel { get; }
+    public HomePageVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        _ = ViewModel.GetLoggedInDevicesForUser();
+        _ = MyViewModel.GetLoggedInDevicesForUser();
+        MyViewModel.CurrentPageMainLayout = MainDock;
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -61,11 +62,11 @@ public partial class SettingsPageD : ContentPage
 
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
     {
-        _= ViewModel.FullSync();
+        _= MyViewModel.FullSync();
     }
     private async void SyncPDaCS_Clicked(object sender, EventArgs e)
     {
-        await ViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+        await MyViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
     }
 
 
@@ -146,7 +147,7 @@ public partial class SettingsPageD : ContentPage
     private void SfChip_Clicked(object sender, EventArgs e)
     {
         var send = (SfChip)sender;
-        ViewModel.FolderPaths.Remove(send.CommandParameter as string);
+        MyViewModel.FolderPaths.Remove(send.CommandParameter as string);
     }
 
     private async void SettingsAction(object sender, EventArgs e)
@@ -157,7 +158,7 @@ public partial class SettingsPageD : ContentPage
         switch (selectedStatView)
         {
             case 0: //Log out
-                if(await ViewModel.LogUserOut())
+                if(await MyViewModel.LogUserOut())
                 {
                     GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
                     {
@@ -166,7 +167,7 @@ public partial class SettingsPageD : ContentPage
                 }
                 break;
             case 1: //Log in
-                if (await ViewModel.LogInParseOnline(false))
+                if (await MyViewModel.LogInParseOnline(false))
                 {
                     GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
                     {
@@ -175,7 +176,7 @@ public partial class SettingsPageD : ContentPage
                 }
                 break;
             case 2: //Sign up
-                if(await ViewModel.SignUpUserAsync())
+                if(await MyViewModel.SignUpUserAsync())
                 {
                     GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
                     {
@@ -193,7 +194,7 @@ public partial class SettingsPageD : ContentPage
                 //}
                 break;
             case 4: //Forgotten password
-                if (await ViewModel.ForgottenPassword())
+                if (await MyViewModel.ForgottenPassword())
                 {
                     GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
                     {

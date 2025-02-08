@@ -6,11 +6,10 @@
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-    x:DataType="vm:HomePageVM"
-    
+    x:DataType="vm:HomePageVM"         
     x:Name="myPage"
     Shell.FlyoutBehavior="Flyout"
-    FlyoutIsPresented="False"
+    FlyoutIsPresented="{Binding IsFlyoutPresented, Mode=TwoWay}"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
     xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
     xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models" 
@@ -42,15 +41,60 @@
                    FontSize="12"/>
         </VerticalStackLayout>
     </Shell.FlyoutHeader>
-    <Shell.FlyoutContent>
-        <Grid               RowDefinitions="Auto,auto">
+    -->
+    
+    
+    <!--<Shell.FlyoutContent>
 
-            <VerticalStackLayout Grid.Row="0" IsVisible="False"
+            <Grid RowDefinitions="Auto" IsVisible="{Binding IsFlyoutPresented}"
+              x:Name="FlyoutBody"
+              >
+            <Grid.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+
+            </Grid.Resources>
+            <CollectionView ItemsSource="{Binding DisplayedSongs}" Margin="5,0"
+                            VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15"  
+                            x:Name="SongsColView" Loaded="SongsColView_Loaded" 
+>
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                        <Border>
+                            <syncf:SfEffectsView TouchDownEffects="Ripple">
+                                <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                                    <VerticalStackLayout BackgroundColor="Transparent">
+                                        <Label Text="{Binding Title}" FontSize="18"/>
+                                        <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout BackgroundColor="Transparent">
+                                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                        <Image WidthRequest="20" IsVisible="{Binding HasLyrics}" 
+                                               Source="lyrics.png" BackgroundColor="White">
+
+                                        </Image>
+                                    </VerticalStackLayout>
+                                </FlexLayout>
+                            </syncf:SfEffectsView>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
             
-            Spacing="10" Padding="10"
-                             >
+            <VerticalStackLayout Grid.Row="0" 
+                                 Spacing="10" Padding="10"
+                                 >
                 <VerticalStackLayout.Resources>
                     <ResourceDictionary>
+                        
                         <Style TargetType="syncf:SfEffectsView">
                             <Setter Property="TouchDownEffects" Value="Ripple"/>
 
@@ -58,10 +102,11 @@
                             <Setter Property="RippleAnimationDuration" Value="350"/>
 
                         </Style>
+                        
                         <Style TargetType="Label">
                             <Setter Property="Margin" Value="10" />
-
                         </Style>
+                        
                         <Style TargetType="Border">
 
                             <Setter Property="BackgroundColor" Value="#1D1932"/>
@@ -70,22 +115,27 @@
                         </Style>
                     </ResourceDictionary>
                 </VerticalStackLayout.Resources>
+                
+                
                 <Border x:Name="GoToSong">
                     <syncf:SfEffectsView TouchDownCommand="{Binding NavToSingleSongShellCommand}">
                         <Label Text="Song Overview" />
                     </syncf:SfEffectsView>
                 </Border>
+                
                 <Border x:Name="MultiSelect">
                     <syncf:SfEffectsView TouchUpEffects="Selection,Ripple"
                     TouchDown="MultiSelect_TouchDown">
                         <Label Text="Toggle MultiSelection"/>
                     </syncf:SfEffectsView>
                 </Border>
+                
                 <Border IsVisible="False">
                     <syncf:SfEffectsView TouchDownCommand="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}" >
                         <Label Text="Set Repeat Count"/>
                     </syncf:SfEffectsView>
                 </Border>
+                
                 <Border>
                     <toolkit:Expander x:Name="UtilsExp">
                         <toolkit:Expander.Header>
@@ -118,6 +168,7 @@
                     </toolkit:Expander>
 
                 </Border>
+                
                 <Border>
                     <toolkit:Expander>
                         <toolkit:Expander.Header>
@@ -157,14 +208,12 @@
                     </toolkit:Expander>
 
                 </Border>
-                <Border>
-                    -->
-    <!--<syncf:SfEffectsView >
+                <Border>    
+                    <syncf:SfEffectsView >
                 <Label Text="Add To Playlist"/>
-            </syncf:SfEffectsView>-->
-    
-    <!--
+            </syncf:SfEffectsView>    
                 </Border>
+                
             </VerticalStackLayout>
 
             <FlexLayout JustifyContent="SpaceBetween" Grid.Row="1" x:Name="MultiSelectView"
@@ -179,11 +228,15 @@
                 </Button>
             </FlexLayout>
             
-           
-        </Grid>
 
-    </Shell.FlyoutContent>
+    </Grid>
 
+
+    </Shell.FlyoutContent>-->
+
+    
+    
+    <!--
     <Shell.FlyoutFooter>
         <VerticalStackLayout VerticalOptions="End" 
                              IsVisible="True">
@@ -226,10 +279,8 @@
             </VerticalStackLayout.Resources>
             <Image Source="onlinecloud.gif"  IsVisible="False"
                    HeightRequest="30" HorizontalOptions="Start"/>
-            -->
-    <!--IsVisible="{Binding IsLoggedIn}"-->
     
-    <!--
+    
             
             <syncf:SfTabView x:Name="tabView" SelectionChanged="TabView_SelectionChanged"
                              IndicatorPlacement="Top" 
@@ -449,10 +500,10 @@ EmptyView="No Syncronized Lyrics ..." >
             </ShellContent>
         </Tab>
 
-        <Tab Title="Artists" x:Name="ArtistTab" Icon="artistdark.png">
+        <Tab Title="Artists" x:Name="ArtistTab" Icon="lyricist.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
-        <Tab Title="Albums" x:Name="albumTab" Icon="albums11.png">
+        <Tab Title="Albums" x:Name="albumTab" Icon="musicalbum.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:AlbumsPageD}"/>
         </Tab>
 
@@ -462,7 +513,7 @@ EmptyView="No Syncronized Lyrics ..." >
                 Route="PlaylistsPageD"/>
             
         </Tab>
-        <Tab Title="Stats" x:Name="statsTab" Icon="stats.png">
+        <Tab Title="Stats" x:Name="statsTab" Icon="chart.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>

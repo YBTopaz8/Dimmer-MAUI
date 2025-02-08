@@ -33,6 +33,7 @@ public partial class ArtistsPageD : ContentPage
         //AllAlbumsColView.SelectedItem = MyViewModel.SelectedAlbumOnArtistPage;
 
         MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
         AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
 
         if (MyViewModel.MySelectedSong is null)
@@ -80,11 +81,16 @@ public partial class ArtistsPageD : ContentPage
         //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
 
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
         MyViewModel.PlaySong(song);
     }
 

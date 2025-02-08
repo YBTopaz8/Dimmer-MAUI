@@ -1,7 +1,11 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     //LastfmClient LastfmClient;
+    [ObservableProperty]
+    public partial bool IsFlyoutPresented { get; set; } = false;
     [ObservableProperty]
     public partial UserModelView? CurrentUser { get; set; }
     [ObservableProperty]
@@ -23,8 +27,8 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double CurrentPositionPercentage { get; set; }
     
-    //[ObservableProperty]
-    //public partial ObservableCollection<SongModelView> PrevCurrNextSongsCollection { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> PartOfNowPlayingSongs { get; set; } = new();
     [ObservableProperty]
     public partial SortingEnum CurrentSortingOption { get; set; }
     [ObservableProperty]
@@ -214,8 +218,11 @@ public partial class HomePageVM : ObservableObject
         LyricsSearchSongTitle = MySelectedSong?.Title;
         LyricsSearchArtistName = MySelectedSong?.ArtistName;
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
+        
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
-
+        PartOfNowPlayingSongs?.Clear(); 
+        
+        UpdateContextMenuData(MySelectedSong);
         CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
         AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
         splittedLyricsLines = null;
@@ -264,6 +271,91 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
+    void UpdateContextMenuData(SongModelView? mySelectedSong)
+    {
+        if (DisplayedSongs == null || DisplayedSongs.Count == 0 || mySelectedSong == null)
+        {
+            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            return;
+        }
+
+        // **1. Check if mySelectedSong is already in PartOfNowPlayingSongs AND get its index**
+        int selectedSongIndexInCurrentList = -1;
+        if (PartOfNowPlayingSongs != null) // Check if PartOfNowPlayingSongs is not null
+        {
+            for (int i = 0; i < PartOfNowPlayingSongs.Count; i++)
+            {
+                if (PartOfNowPlayingSongs[i] == mySelectedSong) // Again, ensure proper Equals or unique ID comparison
+                {
+                    selectedSongIndexInCurrentList = i;
+                    break;
+                }
+            }
+        }
+
+        // **2. Check if index is in the "edge" ranges (0-10 or 90-101, assuming max 101 size)**
+        bool shouldRecenter = false;
+        int edgeMargin = 10; // Define the margin for "edge" (0-10 and from 101-10 down)
+        int listSize = PartOfNowPlayingSongs?.Count ?? 0; // Get current list size, handle null case
+
+        if (selectedSongIndexInCurrentList != -1 && listSize > 0) // Song is in the current list
+        {
+            if (selectedSongIndexInCurrentList <= edgeMargin || selectedSongIndexInCurrentList >= Math.Max(0, listSize - 1 - edgeMargin))
+            {
+                shouldRecenter = true; // Yes, re-center because it's at the edge
+            }
+        }
+
+        if (!shouldRecenter && PartOfNowPlayingSongs?.Count > 0)
+        {
+            // **Early Exit: No need to recalculate if not at the edge**
+            Debug.WriteLine("MySelectedSong is within the center range of the context menu list. No need to re-center.");
+            return; // Just return, no need to regenerate the list
+        }
+
+
+        // **3. (If shouldRecenter is true) -  Regenerate PartOfNowPlayingSongs (the original logic)**
+        int selectedSongIndex = -1; // Index in the *full* DisplayedSongs list
+        for (int i = 0; i < DisplayedSongs.Count; i++)
+        {
+            if (DisplayedSongs[i] == mySelectedSong)
+            {
+                selectedSongIndex = i;
+                break;
+            }
+        }
+
+        if (selectedSongIndex == -1)
+        {
+            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            Debug.WriteLine("Warning: MySelectedSong not found in DisplayedSongs list (even in re-center logic!).");
+            return;
+        }
+
+        int desiredChunkSize = 101;
+        int centerIndex = desiredChunkSize / 2;
+
+        int startIndex = Math.Max(0, selectedSongIndex - centerIndex);
+        int endIndex = Math.Min(DisplayedSongs.Count - 1, startIndex + desiredChunkSize - 1);
+
+        int actualChunkSize = endIndex - startIndex + 1;
+        if (actualChunkSize < desiredChunkSize)
+        {
+            int difference = desiredChunkSize - actualChunkSize;
+            startIndex = Math.Max(0, startIndex - difference);
+            endIndex = Math.Min(DisplayedSongs.Count - 1, startIndex + desiredChunkSize - 1);
+        }
+
+
+        PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+        for (int i = startIndex; i <= endIndex; i++)
+        {
+            PartOfNowPlayingSongs.Add(DisplayedSongs[i]);
+        }
+
+        Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+    }
+    public CollectionView? QueueCV { get; set; }
 
     private void LoadAlbumsPage()
     {
@@ -639,7 +731,7 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial double CurrentPositionInSeconds { get; set; }
-    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null)
+    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null, double currPos=0)
     {
         if (lryPhrase is not null)
         {
@@ -650,7 +742,11 @@ public partial class HomePageVM : ObservableObject
         }
         if (TemporarilyPickedSong is null)
             return;
-        CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
+
+        if (CurrentPositionPercentage == 0)
+        {
+            CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
+        }
         PlayBackService.SeekTo(CurrentPositionInSeconds);
     }
 
@@ -659,6 +755,41 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.ChangeVolume(VolumeSliderValue);
     }
+    [ObservableProperty]
+    public partial bool IsContextMenuOpened { get; set; } = false;
+    [ObservableProperty]
+    public partial int ContextMenuOpenedHeight { get; set; } = 0;
+    public async Task ShowHideContextMenuFromBtmBar(View callerView) // Pass callerView as a parameter
+    {
+        double windowHeight = Shell.Current.Window?.Height ?? DeviceDisplay.MainDisplayInfo.Height;
+        double targetTranslationYPageCaller = -windowHeight * 0.5; // Target translation for pageCaller (move up - you can adjust or remove this if only height animation is desired)
+        double desiredCallerViewHeight = 50; // **Define your desired full height for callerView here (e.g., 50)**
+        double collapsedCallerViewHeight = 0; // Height when context menu is closed (collapsed)
+
+        
+        var pageCaller = CurrentPageMainLayout; // Assuming CurrentPageMainLayout is your pageCaller ContentView
+
+        if (pageCaller == null || callerView == null)
+        {
+            Debug.WriteLine("Error: pageCaller or callerView is null. Make sure they are properly referenced.");
+            return; // Exit if either view is not found
+        }
+
+        if (IsContextMenuOpened)
+        {
+            callerView.HeightRequest = 105;
+            IsContextMenuOpened = false;
+            ContextMenuOpenedHeight = 0;
+        }
+        else
+        {
+            callerView.HeightRequest = 605;
+            IsContextMenuOpened = true;
+            ContextMenuOpenedHeight = 400;
+        }
+        
+    }
+
 
     /// <summary>
     /// Toggles repeat mode between 0, 1, and 2
@@ -736,7 +867,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> recentlyAddedSongs;
+    public partial ObservableCollection<SongModelView> RecentlyAddedSongs { get; set; }
     public void LoadSongCoverImage()
     {
         
@@ -744,24 +875,24 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-        if (DisplayedSongs.Count < 1)
+        if (DisplayedSongs is null || DisplayedSongs.Count < 1)
         {
-            return;
+            DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
+            if (DisplayedSongs.Count < 1)
+            {
+                return;
+            }
         }
-        RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
+        //RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
 
         if (DisplayedSongs is not null && DisplayedSongs.Count > 0)
         {
-            LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+            //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         }
 
 
         if (TemporarilyPickedSong is not null)
-        {
-            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-            PickedSong = TemporarilyPickedSong;
-            MySelectedSong = TemporarilyPickedSong;
+        {            
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
 
@@ -780,14 +911,20 @@ public partial class HomePageVM : ObservableObject
             {
                 TemporarilyPickedSong= DisplayedSongs!.First();
             }
-            
+
         }
+        PickedSong = TemporarilyPickedSong;
+        PickedSong.IsCurrentPlayingHighlight = true;
+        MySelectedSong = TemporarilyPickedSong;
         //TemporarilyPickedSong.CoverImagePath = FetchSongCoverImage();
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
 
         SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
         SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
+
+
+        UpdateContextMenuData(MySelectedSong);
     }
 
     private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
@@ -1365,6 +1502,11 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.AddToImmediateNextInQueue(songs);
     }
 
+
+    partial void OnIsFlyoutPresentedChanging(bool oldValue, bool newValue)
+    {
+        Debug.WriteLine("flyout is opened? "+newValue);
+    }
 
 
 

@@ -35,7 +35,13 @@ public static class CustomAnimsExtensions
             bounceHeight *= 0.5; // Diminishes like a ripple
         }
     }
-
+    public static async Task AnimateHeight(this View view, double targetHeight, uint duration = 250, Easing? easing = null)
+    {
+        var animation = new Animation(v => view.HeightRequest = v, view.HeightRequest, targetHeight);
+        animation.Commit(view, "HeightAnimation", 16, duration, easing, null, null);
+        
+        await Task.Delay((int)duration);        
+    }
     public static async Task AnimateFocusModePointerEnter(this View element,double duration=250, double endScale = 1)
     {
         // Animate scale-up to 1.2 and opacity to 1 with a smooth transition

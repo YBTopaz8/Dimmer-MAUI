@@ -174,7 +174,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         
     }
 
-    public Task Initialize(SongModelView? media, byte[]? ImageBytes=null)
+    public void Initialize(SongModelView? media, byte[]? ImageBytes=null)
     {
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         CurrentMedia = new();
@@ -228,7 +228,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
             mediaPlayerService.IsSeekedFromNotificationBar += MediaPlayerService_IsSeekedFromNotificationBar;
         }
 
-        return Task.CompletedTask;
+        
     }
 
     private void MediaPlayerService_IsSeekedFromNotificationBar(object? sender, long e)
@@ -257,6 +257,16 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
     }
 
     public void ApplyEqualizerPreset(EqualizerPresetName presetName)
+    {
+        throw new NotImplementedException();
+    }
+
+    //public AudioDeviceModel? GetCurrentOutputDeviceAsync()
+    //{
+    //    throw new NotImplementedException();
+    //}
+
+    public Task<bool> SetOutputDeviceAsync(string deviceId)
     {
         throw new NotImplementedException();
     }

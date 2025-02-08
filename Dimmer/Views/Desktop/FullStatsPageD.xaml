@@ -31,8 +31,8 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Test 1"/>
     </ContentPage.ToolbarItems>
-    
-    <toolkit:DockLayout Padding="10,0">
+
+    <toolkit:DockLayout Padding="10,0"  x:Name="MainDock">
         <toolkit:DockLayout.Resources>
             <ResourceDictionary>
                 <Style TargetType="Label">
@@ -286,7 +286,7 @@
                                                Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.6"/>
 
                                     </Grid>
-                                    <Image Source="red_heart.gif" IsAnimationPlaying="{Binding MySelectedSong.IsFavorite}"
+                                    <Image Source="heartangle.png" IsAnimationPlaying="{Binding MySelectedSong.IsFavorite}"
                                            WidthRequest="60" HeightRequest="60" IsVisible="{Binding MySelectedSong.IsFavorite}"/>
 
                                 </VerticalStackLayout>

@@ -17,7 +17,7 @@ public partial class MainPageD : ContentPage
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
-
+        MyViewModel.CurrentPageMainLayout = MainDock;
         SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
 
         if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
@@ -60,10 +60,19 @@ public partial class MainPageD : ContentPage
     int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-        
-        if (SongsColView.IsLoaded && MyViewModel.TemporarilyPickedSong is not null)
+        try
         {
+            if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
+            {
+                return;
+            }
+            MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error when scrolling " + ex.Message);
         }
     }
 
@@ -313,7 +322,11 @@ public partial class MainPageD : ContentPage
 
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-        
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
         MyViewModel.PlaySong(song);
     }
 
@@ -354,9 +367,18 @@ public partial class MainPageD : ContentPage
         MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
     }
 
-    private async void SfEffectsView_TouchUp(object sender, EventArgs e)
+    private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.ShowContextMenu();
+        await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
 }
 
+public enum ContextMenuPageCaller
+{
+    MainPage,
+    ArtistPage,
+    AlbumPage,
+    PlaylistPage,
+    QueuePage,
+    MiniPlaybackBar
+}

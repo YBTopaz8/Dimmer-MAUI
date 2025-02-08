@@ -41,7 +41,7 @@
                         
                     </ImageButton>
                     <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked"
-                                 Source="pushpin.png" WidthRequest="30" HeightRequest="30">
+                                 Source="pin.png" WidthRequest="30" HeightRequest="30">
                         
                     </ImageButton>
 

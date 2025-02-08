@@ -19,6 +19,7 @@ public partial class AlbumsPageD : ContentPage
         await Task.Delay(1500);
         Shell.Current.FlyoutIsPresented = false;
         MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
 
     }
     Border? SelectedBorderView { get; set; }

@@ -35,7 +35,7 @@
                     <HorizontalStackLayout Margin="55,0" BackgroundColor="Transparent"
                                            VerticalOptions="Center"
                                            >
-                        <Image Source="play_circle.png">
+                        <Image Source="playcircle.png">
                             
                         </Image>
                         <Label Text="Dimmer" VerticalTextAlignment="Center"  FontSize="28"

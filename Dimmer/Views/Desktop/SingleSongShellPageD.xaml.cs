@@ -21,7 +21,7 @@ public partial class SingleSongShellPageD : ContentPage
             return;
         }
         MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
-        
+        MyViewModel.CurrentPageMainLayout = MainDock;
         MyViewModel.AssignSyncLyricsCV(LyricsColView);
         switch (MyViewModel.TemporarilyPickedSong.IsFavorite)
         {
