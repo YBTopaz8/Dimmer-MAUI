@@ -1,7 +1,7 @@
 ---
 name: Feature Request Windows
 about: Suggest an idea for Dimmer
-title: ''
+title: "Feature Request \U0001F4BB:"
 labels: Features-Suggestion-Windows
 assignees: YBTopaz8
 
