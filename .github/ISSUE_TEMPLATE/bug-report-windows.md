@@ -1,6 +1,6 @@
 ---
 name: Bug Report Windows
-about: Create a report to help us improve
+about: 'Create a report to help improve Dimmer '
 title: "Broken Feature \U0001F4BB: "
 labels: bug-windows
 assignees: YBTopaz8
