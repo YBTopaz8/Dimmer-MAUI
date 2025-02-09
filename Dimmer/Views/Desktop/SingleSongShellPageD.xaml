@@ -106,14 +106,9 @@
                     </HorizontalStackLayout>
 
                     <Image HeightRequest="25" HorizontalOptions="Center" IsVisible="{Binding MySelectedSong.HasSyncedLyrics}"
-                           Source="musicnote.gif">                        
+                           Source="lyrics.png">                        
                     </Image>
 
-
-                    <ImageButton HeightRequest="45" HorizontalOptions="Center"
-                                Clicked="ToggleFocusModeClicked" IsVisible="False"
-                                 Source="dndd.png">                        
-                    </ImageButton>
 
                     <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
                                        BackgroundColor="Transparent"  x:Name="RatingChipCtrl"
@@ -124,12 +119,18 @@
                                        SelectedChipBackground="DarkSlateBlue"
                                        >
                         <syncf:SfChipGroup.ChipLayout>
-                            <HorizontalStackLayout Spacing="10" WidthRequest="300"
-                              HorizontalOptions="Start" x:Name="ratingHSL"/>
+                            <HorizontalStackLayout Spacing="10"                                                    
+                              HorizontalOptions="Center" x:Name="ratingHSL"/>
+                            
                         </syncf:SfChipGroup.ChipLayout>
                         <syncf:SfChipGroup.Items>
-                            <syncf:SfChip Text="Love It" x:Name="LoveRate" CommandParameter="4" Clicked="RatingChipCtrl_ChipClicked"/>
-                            <syncf:SfChip Text="Hate it" x:Name="HateRate" CommandParameter="2" Clicked="RatingChipCtrl_ChipClicked"/>
+                            <syncf:SfChip Text="❤️" x:Name="LoveRate" CommandParameter="5" Clicked="RatingChipCtrl_ChipClicked"
+                                          ToolTipProperties.Text="Love It" TextColor="DarkSlateBlue"/>
+                            <syncf:SfChip Text="🤖" x:Name="NeutralRate" CommandParameter="0" Clicked="RatingChipCtrl_ChipClicked"
+                                          ToolTipProperties.Text="Neutral"/>
+                            <syncf:SfChip Text="💔" x:Name="HateRate" CommandParameter="1" Clicked="RatingChipCtrl_ChipClicked"
+                                          TextColor="White"
+                                          ToolTipProperties.Text="Dislike It"/>
                         </syncf:SfChipGroup.Items>
                     </syncf:SfChipGroup>
 
@@ -433,7 +434,7 @@
                             <VerticalStackLayout >
                                 <HorizontalStackLayout>
                                     <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center"
-                                       Source="musicnote.gif">
+                                       Source="lyrics.png">
                                     </Image>
                                     <Label Text="Information" FontSize="26"/>
                                 </HorizontalStackLayout>

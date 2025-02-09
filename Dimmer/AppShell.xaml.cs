@@ -49,19 +49,6 @@ public partial class AppShell : Shell
     }
 
 
-    private void PlaySong_Tapped(object sender, TappedEventArgs e)
-    {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-
-        if (song is not null)
-        {
-            song.IsCurrentPlayingHighlight = false;
-        }
-
-        MyViewModel.PlaySong(song);
-    }
-
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
         try
@@ -100,8 +87,7 @@ public partial class AppShell : Shell
                     GoToSong.IsEnabled = false;
                     //MyViewModel.ToggleFlyout(true);
                     GoToSong.Opacity = 0.4;
-                    await Task.WhenAll(
-                     MultiSelectView.AnimateFadeInFront());
+                    await Task.WhenAll(MultiSelectView.AnimateFadeInFront());
                 }
                 else
                 {
@@ -386,7 +372,26 @@ public partial class AppShell : Shell
     private void Grid_Unloaded(object sender, EventArgs e)
     {
 
+    } 
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    {
+        if (MyViewModel.TemporarilyPickedSong is not null)
+        {
+            MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        }
+
+
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
     }
+
+
 
     /*
     private void PlayPauseBtn_Clicked(object sender, EventArgs e)
@@ -488,6 +493,37 @@ public partial class AppShell : Shell
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);  
     }*/
+
+    private void UserHoverOnSongInColView(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
+    {
+        try
+        {
+            if (MyViewModel.MySelectedSong is null || MyViewModel.TemporarilyPickedSong is null)
+            {
+                return;
+            }
+            MyViewModel.PickedSong = MyViewModel.MySelectedSong;
+
+            SongsColView.ScrollTo(MyViewModel.MySelectedSong, position: ScrollToPosition.Start, animate: true);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error when scrolling " + ex.Message);
+        }
+        var send = (View)sender;
+        var song = send.BindingContext! as SongModelView;
+        MyViewModel.SetContextMenuSong(song!);
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        //isPointerEntered = true;
+        //isPointerEntered = true;
+    }
+
+    private void UserHoverOutSongInColView(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
+    {
+        var send = (View)sender;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+
+    }
 }
 
 public enum PageEnum

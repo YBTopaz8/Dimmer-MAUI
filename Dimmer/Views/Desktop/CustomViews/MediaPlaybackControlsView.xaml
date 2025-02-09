@@ -405,7 +405,7 @@
                                 <VerticalStackLayout >
                                     <HorizontalStackLayout>
                                         <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center"
-                                       Source="musicnote.gif">
+                                       Source="lyrics.png">
                                         </Image>
                                         <Label Text="Information" FontSize="26"/>
                                     </HorizontalStackLayout>

@@ -48,7 +48,7 @@
                     <HorizontalStackLayout Spacing="10">
 
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
-                            Source="eyelocatedark.png">
+                            Source="eye.png">
 
                         </ImageButton>
                         <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
@@ -88,8 +88,8 @@
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
                             VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" 
                             RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
-                            x:Name="SongsColView" ItemsUpdatingScrollMode="KeepScrollOffset" 
-                            Loaded="SongsColView_Loaded" Margin="5,0">
+                            x:Name="SongsColView" Loaded="SongsColView_Loaded" 
+                            Margin="5,0">
 
                     <CollectionView.EmptyView>
                         <VerticalStackLayout HorizontalOptions="Center">
@@ -105,20 +105,20 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
                             <Border>
-                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"
-                    TouchDown="SfEffectsView_TouchDown" >
-                                    <Grid ColumnDefinitions="*,*,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="15">
+                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
+                                                     TouchDownEffects="Ripple,Selection">
+                                    <Grid ColumnDefinitions="*,40,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
-                                            <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered" 
-                                            PointerExited="PointerGestureRecognizer_PointerExited"
-                                            />
+                                            <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" 
+                                                                      PointerExited="UserHoverOutSongInColView"/>
+                                            
                                         </Grid.GestureRecognizers>
-                                        <VerticalStackLayout Grid.Column="0" Margin="5,0,0,0"
+                                        <VerticalStackLayout Grid.Column="0" Margin="5,0,0,0" 
                                         VerticalOptions="Center">
 
-                                            <Label Text="{Binding Title}" Grid.Column="1"
+                                            <Label Text="{Binding Title}" Grid.Column="1" 
                                             FontSize="18" 
                                             LineBreakMode="TailTruncation"/>
 
@@ -132,10 +132,10 @@
 
                                         </VerticalStackLayout>
 
-                                        <syncf:SfEffectsView Grid.Column="1" 
+                                        <syncf:SfEffectsView Grid.Column="1"  
                                                         TouchUp="ShowCntxtMenuBtn_Clicked"
-                                                        RippleAnimationDuration="500" BackgroundColor="Transparent"
-                                                        Opacity="0.31" WidthRequest="90"
+                                                        RippleAnimationDuration="500" 
+                                                        Opacity="0.31" 
                                                         ToolTipProperties.Text="View More">
                                             <Image Source="more1.png" Rotation="90" >
                                             </Image>
@@ -150,7 +150,8 @@
 
                                         <Label Grid.Column="5" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" />
-                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding FileFormat}" />
+                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding ReleaseYear}" />
+                                        <!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />-->
 
                                     </Grid>
 

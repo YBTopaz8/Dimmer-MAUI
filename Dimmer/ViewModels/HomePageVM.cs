@@ -212,8 +212,8 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
-        CurrentPositionInSeconds = 0;
-        CurrentPositionPercentage = 0;
+        //CurrentPositionInSeconds = 0;
+        //CurrentPositionPercentage = 0;
         LyricsSearchSongTitle = MySelectedSong?.Title;
         LyricsSearchArtistName = MySelectedSong?.ArtistName;
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
@@ -1101,7 +1101,7 @@ public partial class HomePageVM : ObservableObject
                     PickedSong ??= new SongModelView();
                     MySelectedSong??= new SongModelView();
 
-                    if (MySelectedSong == TemporarilyPickedSong)
+                    if (MySelectedSong != TemporarilyPickedSong)
                     {
                         CurrentPositionInSeconds = 0;
                         CurrentPositionPercentage = 0;
@@ -1511,7 +1511,8 @@ public partial class HomePageVM : ObservableObject
 
     partial void OnIsFlyoutPresentedChanging(bool oldValue, bool newValue)
     {
-        Debug.WriteLine("flyout is opened? "+newValue);
+        //PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong,null, ScrollToPosition.Center, true);
+
     }
 
 

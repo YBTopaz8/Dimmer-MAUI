@@ -16,33 +16,62 @@ public partial class SingleSongShellPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (MyViewModel.TemporarilyPickedSong is null)
+        if (MyViewModel.MySelectedSong is null)
         {
             return;
         }
         MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
         MyViewModel.AssignSyncLyricsCV(LyricsColView);
-        switch (MyViewModel.TemporarilyPickedSong.IsFavorite)
+        switch (MyViewModel.MySelectedSong.IsFavorite)
         {
             
             case true:
                 RatingChipCtrl.SelectedItem = LoveRate;
                 break;
             case false:
-                RatingChipCtrl.SelectedItem = HateRate;
+                switch (MyViewModel.MySelectedSong.Rating)
+                {
+                    case 0:
+                        RatingChipCtrl.SelectedItem = NeutralRate;
+                        break;
+                    case 1:
+                        //RatingChipCtrl.SelectedItem = LikeRate;
+                        break;
+                    case 2:
+                        RatingChipCtrl.SelectedItem = LoveRate;
+                        break;
+                    case 3:
+                        //RatingChipCtrl.SelectedItem = DislikeRate;
+                        break;
+                    case 4:
+                        //RatingChipCtrl.SelectedItem = HateRate;
+                        break;
+                    case 5:
+                        RatingChipCtrl.SelectedItem = HateRate;
+                        break;
+                            
+
+                    default:
+                        break;
+                }
+                RatingChipCtrl.SelectedItem = NeutralRate;
                 break;
             default:
                 break;
         }
 
+    }
+
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
 
         if (LyricsColView.SelectedItem is not null)
         {
-            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
         }
     }
-
     protected override void OnDisappearing()
     {
         base.OnDisappearing();

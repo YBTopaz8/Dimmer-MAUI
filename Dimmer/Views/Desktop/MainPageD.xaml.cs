@@ -29,7 +29,7 @@ public partial class MainPageD : ContentPage
             await MyViewModel.AssignCV(SongsColView);
             isIniAssign = true;
         }
-
+        ScrollToSong_Clicked(this, EventArgs.Empty);
 
         // use opportunity login to parse and last fm
     }
@@ -47,8 +47,7 @@ public partial class MainPageD : ContentPage
             {
                 return;
             }
-            MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
-            
+                        
             SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
@@ -105,7 +104,7 @@ public partial class MainPageD : ContentPage
 
     bool isPointerEntered;
 
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
@@ -114,7 +113,7 @@ public partial class MainPageD : ContentPage
         isPointerEntered = true;
     }
 
-    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    private void UserHoverOutSongInColView(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
@@ -314,9 +313,13 @@ public partial class MainPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        if (MyViewModel.TemporarilyPickedSong is not null)        
+        if (MyViewModel.TemporarilyPickedSong is not null )        
         {
             MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        }
+        if (MyViewModel.PickedSong is not null )        
+        {
+            MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
         }
 
 
@@ -369,6 +372,7 @@ public partial class MainPageD : ContentPage
 
     private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
+        MyViewModel.ToggleFlyout();
         await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
 
