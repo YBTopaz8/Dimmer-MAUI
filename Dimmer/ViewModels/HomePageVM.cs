@@ -27,6 +27,7 @@ public partial class HomePageVM : ObservableObject
     
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> PartOfNowPlayingSongs { get; set; } = new();
+    public CollectionView PartOfNowPlayingSongsCV { get; set; } 
     [ObservableProperty]
     public partial SortingEnum CurrentSortingOption { get; set; }
     [ObservableProperty]
@@ -729,7 +730,7 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial double CurrentPositionInSeconds { get; set; }
-    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null, double currPos=0)
+    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null, double currPosPer=0)
     {
         if (lryPhrase is not null)
         {
@@ -740,10 +741,9 @@ public partial class HomePageVM : ObservableObject
         }
         if (TemporarilyPickedSong is null)
             return;
-
-        if (CurrentPositionPercentage == 0)
+        if (currPosPer !=0 )
         {
-            CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
+            CurrentPositionInSeconds = currPosPer * TemporarilyPickedSong.DurationInSeconds;
         }
         PlayBackService.SeekTo(CurrentPositionInSeconds);
     }

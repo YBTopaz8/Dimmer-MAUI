@@ -101,7 +101,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
-        MyViewModel.SeekSongPosition(currPos:ProgressSlider.Value);
+        MyViewModel.SeekSongPosition(currPosPer:ProgressSlider.Value);
     }
 
     private void DXButton_Clicked(object sender, EventArgs e)

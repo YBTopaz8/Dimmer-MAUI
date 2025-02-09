@@ -41,8 +41,9 @@ public partial class MediaPlaybackControlsView : ContentView
             return;
 
         _isThrottling = true;
-
-        MyViewModel.SeekSongPosition();
+        var send = (Slider)sender;
+        var s = send.Value;
+        MyViewModel.SeekSongPosition(currPosPer:s);
 
         
         await Task.Delay(throttleDelay);

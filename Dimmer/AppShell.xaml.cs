@@ -73,6 +73,8 @@ public partial class AppShell : Shell
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
             SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+
+            MyViewModel.PartOfNowPlayingSongsCV = SongsColView;
         }
         catch (Exception ex)
         {

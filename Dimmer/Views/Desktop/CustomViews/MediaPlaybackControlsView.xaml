@@ -202,7 +202,7 @@
                 Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
                    />
                     <Slider Grid.Column="1" 
-                Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
+                Value="{Binding CurrentPositionPercentage}" 
     MinimumTrackColor="DarkSlateBlue" x:Name="slid" VerticalOptions="Start"
     DragCompleted="Slider_DragCompleted" Margin="15,0" >
                     </Slider>
