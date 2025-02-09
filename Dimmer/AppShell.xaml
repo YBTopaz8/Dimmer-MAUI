@@ -44,11 +44,10 @@
     -->
     
     
-    <!--<Shell.FlyoutContent>
+    <Shell.FlyoutContent>
 
-            <Grid RowDefinitions="Auto" IsVisible="{Binding IsFlyoutPresented}"
-              x:Name="FlyoutBody"
-              >
+            <Grid RowDefinitions="Auto,*" x:Name="FlyoutBody" >
+    
             <Grid.Resources>
                 <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
 
@@ -56,13 +55,16 @@
                 <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
 
             </Grid.Resources>
-            <CollectionView ItemsSource="{Binding DisplayedSongs}" Margin="5,0"
+
+            <CollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" Margin="5,5" Grid.Row="1"
+                            HeightRequest="450" Header="Songs Queue" VerticalOptions="End"
                             VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15"  
-                            x:Name="SongsColView" Loaded="SongsColView_Loaded" 
->
+                            x:Name="SongsColView" Loaded="SongsColView_Loaded">
+    
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
                 </CollectionView.ItemsLayout>
+    
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
                         <Border>
@@ -89,7 +91,7 @@
             </CollectionView>
 
             
-            <VerticalStackLayout Grid.Row="0" 
+            <VerticalStackLayout Grid.Row="0" IsVisible="True"
                                  Spacing="10" Padding="10"
                                  >
                 <VerticalStackLayout.Resources>
@@ -232,7 +234,7 @@
     </Grid>
 
 
-    </Shell.FlyoutContent>-->
+    </Shell.FlyoutContent>
 
     
     

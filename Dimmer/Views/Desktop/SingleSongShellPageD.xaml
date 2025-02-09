@@ -37,7 +37,9 @@
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.08"
                 Aspect="AspectFill" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>
+        
         <toolkit:DockLayout x:Name="NormalNowPlayingUI" BackgroundColor="Transparent">
+            
 
             <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                     x:Name="MediaPlayBackCW" IsVisible="True"/>

@@ -371,6 +371,11 @@ public partial class MainPageD : ContentPage
     {
         await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
+
+    private void ToggleDrawer_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleFlyout();
+    }
 }
 
 public enum ContextMenuPageCaller

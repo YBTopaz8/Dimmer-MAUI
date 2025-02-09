@@ -12,9 +12,7 @@ public partial class HomePageVM : ObservableObject
     public partial ParseUser? CurrentUserOnline { get; set; }
 
     [ObservableProperty]
-    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;
-    [ObservableProperty]
-    public partial bool IsFlyOutPaneOpen { get; set; } = false;
+    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;    
     
     [ObservableProperty]
     public partial SongModelView? PickedSong { get; set; } = null;// I use this a lot with the collection view, mostly to scroll
@@ -1097,10 +1095,18 @@ public partial class HomePageVM : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
-                
+
                 if (TemporarilyPickedSong is not null)
                 {
-                    
+                    PickedSong ??= new SongModelView();
+                    MySelectedSong??= new SongModelView();
+
+                    if (MySelectedSong == TemporarilyPickedSong)
+                    {
+                        CurrentPositionInSeconds = 0;
+                        CurrentPositionPercentage = 0;
+                    }
+
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                     
                     switch (state)
@@ -1477,7 +1483,7 @@ public partial class HomePageVM : ObservableObject
                     
                     SongModelView song = new();
                     
-                    song = ObjectHelper.MapFromDictionary<SongModelView>(objData!);
+                    song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
                     CurrentQueue = 0;
                    
                 });

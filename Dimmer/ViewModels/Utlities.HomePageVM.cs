@@ -1,5 +1,5 @@
 ﻿using Syncfusion.Maui.Toolkit.BottomSheet;
-
+using Parse.LiveQuery;
 namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
@@ -444,35 +444,27 @@ public partial class HomePageVM
     }
 
 
-    //public void ToggleFlyout(bool isOpenFlyout=false)
-    //{
-    //    IsFlyOutPaneOpen = false;
-    //    if (Shell.Current == null)
-    //    {
-    //        return;
-    //    }
-    //    if (isOpenFlyout)
-    //    {
-    //        if(Shell.Current.FlyoutBehavior != FlyoutBehavior.Locked)
-    //        {
-    //            IsFlyOutPaneOpen = true;
-    //            Shell.Current.FlyoutBehavior = FlyoutBehavior.Locked;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        if (Shell.Current.FlyoutBehavior != FlyoutBehavior.Flyout)
-    //        {
-    //            IsFlyOutPaneOpen = false;
-    //            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
-    //            _ = Task.Delay(500);
-    //            Shell.Current.FlyoutIsPresented = true;
-    //        }
-    //    }
-    //}
+    public void ToggleFlyout()
+    {
+        IsFlyoutPresented = !IsFlyoutPresented;
+        if (Shell.Current == null)
+        {
+            return;
+        }
+        if (IsFlyoutPresented)
+        {
+            IsFlyoutPresented = true;            
+        }
+        else
+        {
+            IsFlyoutPresented = false;
+            _ = Task.Delay(500);
+            Shell.Current.FlyoutIsPresented = true;            
+        }
+    }
 
     [RelayCommand]
-    void LogOut()
+    static void LogOut()
     {
         ParseClient.Instance.LogOut();
     }
@@ -522,42 +514,42 @@ public partial class HomePageVM
         List<object> allPlayDatalinks = new();
         foreach (PlayDataLink item in AllPlayDataLinks)
         {
-            allPlayDatalinks.Add(ObjectHelper.ClassToDictionary(item));
+            allPlayDatalinks.Add( ObjectMapper.ClassToDictionary(item));
         }
         
         List<object> AllAlbumModelView = new();
         foreach (AlbumModelView item in AllAlbums)
         {
             
-            AllAlbumModelView.Add(ObjectHelper.ClassToDictionary(item));
+            AllAlbumModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
         List<object> AllGenresModelView = new();
         foreach (GenreModelView item in SongsMgtService.AllGenres)
         {
-            AllGenresModelView.Add(ObjectHelper.ClassToDictionary(item));
+            AllGenresModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
         
         List<object> ArtistModelV = new();
         foreach (ArtistModelView item in AllArtists)
         {
-            ArtistModelV.Add(ObjectHelper.ClassToDictionary(item));
+            ArtistModelV.Add(ObjectMapper.ClassToDictionary(item));
         }
         List<object> AllLinkss = new();
         foreach (AlbumArtistGenreSongLinkView item in AllLinks)
         {
-            AllLinkss.Add(ObjectHelper.ClassToDictionary(item));
+            AllLinkss.Add(ObjectMapper.ClassToDictionary(item));
         }
         
         List<object> AllSongModelView = new();
         foreach (SongModelView item in DisplayedSongs)
         {
-            AllSongModelView.Add(ObjectHelper.ClassToDictionary(item));
+            AllSongModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
         
         List<object> AllPlayLists = new();
         foreach (PlaylistModelView item in DisplayedPlaylists)
         {
-            AllPlayLists.Add(ObjectHelper.ClassToDictionary(item));
+            AllPlayLists.Add(ObjectMapper.ClassToDictionary(item));
         }
         
 
@@ -687,7 +679,7 @@ public partial class HomePageVM
             if (value is List<object> dataList)
             {
                 return dataList.Cast<IDictionary<string, object>>()
-                               .Select(item => ObjectHelper.MapFromDictionary<T>(item))
+                               .Select(item => ObjectMapper.MapFromDictionary<T>(item))
                                .Where(item => item != null) // Filter out null items
                                .ToList();
             }
@@ -847,10 +839,8 @@ public partial class HomePageVM
 
         var existingDevices = await query.FindAsync();
         var existingDevice = existingDevices.FirstOrDefault();
-
         if (existingDevice != null)
         {
-            existingDevice["lastLogin"] = DateTime.Now;
             existingDevice["isOnline"] = true;
 
             await existingDevice.SaveAsync();
@@ -861,7 +851,6 @@ public partial class HomePageVM
             newDevice["deviceOwner"] = currentParseUser.Email;
             newDevice["deviceName"] = DeviceInfo.Name;
             newDevice["deviceType"] = DeviceInfo.Idiom.ToString();
-            newDevice["lastLogin"] = DateTime.Now;
             newDevice["isOnline"] = true;
             await newDevice.SaveAsync();
         }

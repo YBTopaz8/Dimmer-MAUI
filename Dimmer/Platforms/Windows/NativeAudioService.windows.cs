@@ -16,7 +16,7 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     public static IDimmerAudioService Current => current ??= new DimmerAudioService();
 
     HomePageVM? ViewModel { get; set; }
-    MediaPlayer mediaPlayer;
+    MediaPlayer? mediaPlayer;
     MediaPlay? CurrentMedia { get; set; }
     public DimmerAudioService()
     {
