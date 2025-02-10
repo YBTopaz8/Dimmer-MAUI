@@ -308,7 +308,7 @@
                                                 <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
 
                                                     <Button Text="Plain Lyrics" HorizontalOptions="Center" 
-                                        Clicked="ViewLyricsBtn_Clicked" BackgroundColor="DarkOrange"
+                                        Clicked="ViewLyricsBtn_Clicked" BackgroundColor="#5A4CA3"
                                         IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"/>
 
                                                     <Button Text="Synced Lyrics" HorizontalOptions="Center" 
@@ -447,29 +447,21 @@
                                 </ResourceDictionary>
                             </ScrollView.Resources>
                             <VerticalStackLayout >
-                                <HorizontalStackLayout>
-                                    <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center"
-                                       Source="lyrics.png">
-                                    </Image>
-                                    <Label Text="Information" FontSize="26"/>
-                                </HorizontalStackLayout>
-                                <VerticalStackLayout>
-                                    <ImageButton Source="textroundit.png"/>
-                                    <Label Text="Song Details" FontSize="28" Margin="0,0,0,8"
-                                               TextColor="DarkOrange" HorizontalOptions="Start"/>
+                                <VerticalStackLayout>                                    
                                     <syncf:SfEffectsView>
 
-                                        <HorizontalStackLayout>
+                                        <HorizontalStackLayout >
                                             
-                                            <ImageButton Source="textfieldfocus.png"/>
-                                            <Label Text="{Binding  MySelectedSong.Title}"/>
+                                            <ImageButton Source="textfieldfocus.png" WidthRequest="30"/>
+                                            <Label Text="{Binding  MySelectedSong.Title}"
+                                                   VerticalOptions="Center"/>
                             
                                         </HorizontalStackLayout>
 
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            
+                                            <Image Source="lyricist.png" WidthRequest="30"/>
                                             <Label Text="{Binding  MySelectedSong.ArtistName}"/>
 
                                         </HorizontalStackLayout>
@@ -477,7 +469,7 @@
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
                                         <HorizontalStackLayout>
-                                            
+                                            <Image Source="musicalbum.png" WidthRequest="30"/>
                                             <Label Text="{Binding MySelectedSong.AlbumName}"/>
 
                                         </HorizontalStackLayout>
@@ -511,7 +503,7 @@
 
                                 <VerticalStackLayout>
                                     <Label Text="File Details" FontSize="28" 
-                    TextColor="DarkOrange" HorizontalOptions="Start"/>
+                    TextColor="#5A4CA3" HorizontalOptions="Start"/>
 
                                     <syncf:SfEffectsView TouchUpCommand="{Binding OpenSongFolderCommand}">
                                         <HorizontalStackLayout>
@@ -532,7 +524,7 @@
 
                                 <VerticalStackLayout>
                                     <Label Text="Audio Details" FontSize="25" 
-                    TextColor="DarkOrange"/>
+                    TextColor="#5A4CA3"/>
                                     <syncf:SfEffectsView>
 <HorizontalStackLayout>
                                         

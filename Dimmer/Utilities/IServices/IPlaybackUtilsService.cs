@@ -54,7 +54,7 @@ public interface IPlaybackUtilsService
     ObservableCollection<AlbumModelView> GetAllAlbums();
     void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false);
     void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true);
-    void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = true);
+    void ReplaceAndPlayQueue(List<SongModelView> songs, bool playImmediately = false);
     ObservableCollection<SongModelView> GetCurrentQueue();
     //void ApplyEqualizerPreset(EqualizerPresetName presetName);
     //void SetEqualizerSettings(float[] bands);

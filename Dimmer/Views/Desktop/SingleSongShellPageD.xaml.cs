@@ -355,8 +355,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         var selectedTab = StatsTabs.SelectedItem;
         var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
-        if (selected is null)
+        if (send.SelectedItem is not SfChip selected)
         {
             return;
         }

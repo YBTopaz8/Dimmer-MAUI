@@ -234,34 +234,6 @@ BindableProperty.Create(nameof(IsReadOnly), typeof(bool), typeof(MyTableView), f
     public static readonly BindableProperty CellStyleProperty =
         BindableProperty.Create(nameof(CellStyle), typeof(Style), typeof(MyTableView), null);
 
-
-    //// Provide internal methods to raise the events
-    //internal void RaiseLoaded(RoutedEventArgs e) => Loaded?.Invoke(this, e);
-    //internal void RaiseUnloaded(RoutedEventArgs e) => Unloaded?.Invoke(this, e);
-    //internal void RaiseDoubleTapped(DoubleTappedRoutedEventArgs e) => DoubleTapped?.Invoke(this, e);
-    //internal void RaisePointerEntered(PointerRoutedEventArgs e) => PointerEntered?.Invoke(this, e);
-    //internal void RaisePointerExited(PointerRoutedEventArgs e) => PointerExited?.Invoke(this, e);
-    //internal void RaisePointerMoved(PointerRoutedEventArgs e) => PointerMoved?.Invoke(this, e);
-    //internal void RaisePointerPressed(PointerRoutedEventArgs e) => PointerPressed?.Invoke(this, e);
-    //internal void RaisePointerReleased(PointerRoutedEventArgs e) => PointerReleased?.Invoke(this, e);
-    //internal void RaisePointerWheelChanged(PointerRoutedEventArgs e) => PointerWheelChanged?.Invoke(this, e);
-    //internal void RaiseRightTapped(RightTappedRoutedEventArgs e) => RightTapped?.Invoke(this, e);
-    //internal void RaiseTapped(TappedRoutedEventArgs e) => Tapped?.Invoke(this, e);
-    //internal void RaiseCharacterReceived(CharacterReceivedRoutedEventArgs e) => CharacterReceived?.Invoke(null, e);
-    //internal void RaiseContextRequested(ContextRequestedEventArgs e) => ContextRequested?.Invoke(null, e);
-    //internal void RaiseDataContextChanged(DataContextChangedEventArgs e) => DataContextChanged?.Invoke(null, e);
-    //internal void RaiseHolding(HoldingRoutedEventArgs e) => Holding?.Invoke(this, e);
-    //internal void RaiseKeyDown(KeyRoutedEventArgs e) => KeyDown?.Invoke(this, e);
-    //internal void RaiseKeyUp(KeyRoutedEventArgs e) => KeyUp?.Invoke(this, e);
-    //internal void RaiseManipulationCompleted(ManipulationCompletedRoutedEventArgs e) => ManipulationCompleted?.Invoke(this, e);
-    //internal void RaiseManipulationDelta(ManipulationDeltaRoutedEventArgs e) => ManipulationDelta?.Invoke(this, e);
-    //internal void RaiseManipulationInertiaStarting(ManipulationInertiaStartingRoutedEventArgs e) => ManipulationInertiaStarting?.Invoke(this, e);
-    //internal void RaiseManipulationStarted(ManipulationStartedRoutedEventArgs e) => ManipulationStarted?.Invoke(this, e);
-    //internal void RaiseManipulationStarting(ManipulationStartingRoutedEventArgs e) => ManipulationStarting?.Invoke(this, e);
-    //internal void RaisePointerCanceled(PointerRoutedEventArgs e) => PointerCanceled?.Invoke(this, e);
-    //internal void RaisePointerCaptureLost(PointerRoutedEventArgs e) => PointerCaptureLost?.Invoke(this, e);
-
-
     public double HeaderRowHeight { get => (double)GetValue(HeaderRowHeightProperty); set => SetValue(HeaderRowHeightProperty, value); }
     public double RowHeight { get => (double)GetValue(RowHeightProperty); set => SetValue(RowHeightProperty, value); }
     public double RowMaxHeight { get => (double)GetValue(RowMaxHeightProperty); set => SetValue(RowMaxHeightProperty, value); }

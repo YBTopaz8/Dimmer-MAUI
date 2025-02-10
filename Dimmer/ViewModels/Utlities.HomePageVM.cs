@@ -454,12 +454,11 @@ public partial class HomePageVM
         }
         if (IsFlyoutPresented)
         {
-            IsFlyoutPresented = true;
+            
             PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
         }
         else
         {
-            IsFlyoutPresented = false;
             _ = Task.Delay(500);
             Shell.Current.FlyoutIsPresented = true;            
         }

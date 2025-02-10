@@ -196,6 +196,9 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         {
             if (ItemsSource != null)
                 _tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
+            _tableView.Columns.Clear();
+            TableViewColumnsCollection cols = new();
+            
             _tableView.AutoGenerateColumns = AutoGenerateColumns;
         }
     }

@@ -260,23 +260,33 @@
                                     </ResourceDictionary>
                                 </VerticalStackLayout.Resources>
 
-                                <Grid ColumnDefinitions="*,*" Grid.Row="1" x:Name="MultiSelectView"
-                                      
-    VerticalOptions="End" IsVisible="False" HeightRequest="75" Padding="10,5" >
+                                <Grid ColumnDefinitions="*,*" 
+                                      Grid.Row="1" x:Name="MultiSelectView"
+                                      VerticalOptions="End" IsVisible="False" 
+                                      HeightRequest="75" Padding="10,5">
 
                                     <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"
                                            Grid.Column="0"/>
 
-                                    <Button x:Name="DltImgBtn" HorizontalOptions="End" Text="Delete"
+                                    <Button Text="Delete"
+                                            x:Name="DltImgBtn" 
+                                            HorizontalOptions="End"                                             
                                             Grid.Column="1" HeightRequest="40"
-Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding MySelectedSong}">
+                                            Command="{Binding DeleteFileCommand}"  
+                                            CommandParameter="{Binding MySelectedSong}">
 
                                     </Button>
                                 </Grid>
 
-                                <Border x:Name="AddPlayNext">
+                                    <Border x:Name="AddPlayNext">
+                                        <ToolTipProperties.Text>
+                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                <Binding Path="MySelectedSong.Title"/>
+                                                <Binding Path="MySelectedSong.ArtistName"/>
+                                            </MultiBinding>
+                                        </ToolTipProperties.Text>
                                         <syncf:SfEffectsView x:Name="AddPlayNextEff" TouchDown="AddPlayNextEff_TouchDown">
-                                        <Label Text="Play Next" />
+                                        <Label Text="Play Next"/>
                                     </syncf:SfEffectsView>
                                 </Border>
 

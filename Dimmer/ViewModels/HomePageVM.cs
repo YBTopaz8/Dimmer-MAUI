@@ -273,7 +273,7 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
-    public void UpdateContextMenuData(SongModelView? mySelectedSong)
+    public void UpdateContextMenuData(SongModelView? mySelectedSong, ObservableCollection<SongModelView>? MiniQueue=null)
     {
         if (DisplayedSongs == null || DisplayedSongs.Count == 0 || mySelectedSong == null)
         {
@@ -308,19 +308,17 @@ public partial class HomePageVM : ObservableObject
             }
         }
 
-        if (!shouldRecenter && PartOfNowPlayingSongs?.Count > 0)
-        {
-            // **Early Exit: No need to recalculate if not at the edge**
-            Debug.WriteLine("MySelectedSong is within the center range of the context menu list. No need to re-center.");
-            return; // Just return, no need to regenerate the list
-        }
 
+        if (MiniQueue is null)
+        {
+            MiniQueue = DisplayedSongs;
+        }
 
         // **3. (If shouldRecenter is true) -  Regenerate PartOfNowPlayingSongs (the original logic)**
         int selectedSongIndex = -1; // Index in the *full* DisplayedSongs list
-        for (int i = 0; i < DisplayedSongs.Count; i++)
+        for (int i = 0; i < MiniQueue.Count; i++)
         {
-            if (DisplayedSongs[i] == mySelectedSong)
+            if (MiniQueue[i] == mySelectedSong)
             {
                 selectedSongIndex = i;
                 break;
@@ -330,7 +328,7 @@ public partial class HomePageVM : ObservableObject
         if (selectedSongIndex == -1)
         {
             PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
-            Debug.WriteLine("Warning: MySelectedSong not found in DisplayedSongs list (even in re-center logic!).");
+            Debug.WriteLine("Warning: MySelectedSong not found in MiniQueue list (even in re-center logic!).");
             return;
         }
 
@@ -338,21 +336,21 @@ public partial class HomePageVM : ObservableObject
         int centerIndex = desiredChunkSize / 2;
 
         int startIndex = Math.Max(0, selectedSongIndex - centerIndex);
-        int endIndex = Math.Min(DisplayedSongs.Count - 1, startIndex + desiredChunkSize - 1);
+        int endIndex = Math.Min(MiniQueue.Count - 1, startIndex + desiredChunkSize - 1);
 
         int actualChunkSize = endIndex - startIndex + 1;
         if (actualChunkSize < desiredChunkSize)
         {
             int difference = desiredChunkSize - actualChunkSize;
             startIndex = Math.Max(0, startIndex - difference);
-            endIndex = Math.Min(DisplayedSongs.Count - 1, startIndex + desiredChunkSize - 1);
+            endIndex = Math.Min(MiniQueue.Count - 1, startIndex + desiredChunkSize - 1);
         }
 
 
         PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
         for (int i = startIndex; i <= endIndex; i++)
         {
-            PartOfNowPlayingSongs.Add(DisplayedSongs[i]);
+            PartOfNowPlayingSongs.Add(MiniQueue[i]);
         }
         if (PartOfNowPlayingSongsCV is not null)
         {
@@ -641,29 +639,29 @@ public partial class HomePageVM : ObservableObject
 
             if (CurrentPage == PageEnum.PlaylistsPage && DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playFirst: false); // Set the queue
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playImmediately: false); // Set the queue
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
             {
                 // Assuming TopTenPlayedSongs is available
                 var topTenSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic
-                PlayBackService.ReplaceAndPlayQueue(topTenSongs, playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(topTenSongs, playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or a more appropriate source
             }
             else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or Album source
             }
             else if (IsOnSearchMode && FilteredSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage); // Or Search source
             }
             else // Default playing on the main page (HomePage)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -1141,11 +1139,6 @@ public partial class HomePageVM : ObservableObject
 
                             IsPlaying = true;
 
-                            if (DisplayedSongs?.Count > 1)
-                            {
-                                var ind = DisplayedSongs.IndexOf(TemporarilyPickedSong);
-                                NextSong = DisplayedSongs.ElementAtOrDefault(ind + 1);
-                            }
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
@@ -1202,7 +1195,12 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.NowPlayingSongs.Subscribe(songs =>
         {
-            UpdateContextMenuData(TemporarilyPickedSong);
+            //UpdateContextMenuData(TemporarilyPickedSong, songs);
+            //PartOfNowPlayingSongs = songs.ToObservableCollection();
+            //if (PartOfNowPlayingSongsCV is not null)
+            //{
+            //    PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            //}
             //TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
 
 
@@ -1510,19 +1508,33 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public void AddNextInQueue(SongModelView song)
     {
-        List<SongModelView> songs = [song];
+
+        var ind = PartOfNowPlayingSongs.IndexOf(TemporarilyPickedSong);
+        if (ind == 0)
+        {
+            return;
+        }
+        PartOfNowPlayingSongs.Insert(ind + 1, song);
+        if (PartOfNowPlayingSongsCV is not null)
+        {
+            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+        }
+        var songs = PartOfNowPlayingSongs.ToList();
         if (song is null)
         {
             return;
         }
-     
-        PlayBackService.AddToImmediateNextInQueue(songs);
+        PlayBackService.ReplaceAndPlayQueue(songs);
     }
 
 
     partial void OnIsFlyoutPresentedChanging(bool oldValue, bool newValue)
     {
-        //PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong,null, ScrollToPosition.Center, true);
+        if (newValue)
+        {
+            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+        }
 
     }
 

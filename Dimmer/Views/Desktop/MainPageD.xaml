@@ -64,7 +64,8 @@
             
         </viewsD:MyTableView>-->
 
-        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True">
+        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
+                            Loaded="MainBody_Loaded" Unloaded="MainBody_Unloaded">
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
@@ -144,7 +145,7 @@
                                             <Setter Property="BackgroundColor" Value="Transparent" />
                                         </DataTrigger>
                                     </syncf:SfEffectsView.Triggers>-->
-                                    <Grid ColumnDefinitions="*,40,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -185,25 +186,17 @@
 
                                         </VerticalStackLayout>
 
-                                        <syncf:SfEffectsView Grid.Column="1"  BackgroundColor="#0F1011"
-                                                        TouchUp="ShowCntxtMenuBtn_Clicked"
-                                                        RippleAnimationDuration="500" 
-                                                        Opacity="0.31" 
-                                                        ToolTipProperties.Text="View More">
-                                            <Image Source="more1.png" Rotation="90" >
-                                            </Image>
-                                        </syncf:SfEffectsView>
-                                        <Label Grid.Column="2" 
+                                        <Label Grid.Column="1" 
                                     Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>
 
-                                        <Label Grid.Column="3" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" />
 
-                                        <Label Grid.Column="4" HorizontalOptions="Center" LineBreakMode="TailTruncation"
+                                        <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
                                 Text="{Binding GenreName}" />
 
-                                        <Label Grid.Column="5" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                                        <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" />
-                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding ReleaseYear}" />
+                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding ReleaseYear}" />
                                         <!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />-->
 
                                     </Grid>

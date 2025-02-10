@@ -85,11 +85,11 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
     }
-    private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
+    private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
         var thiss = this as View;
         var par = thiss.Parent as View;
-
+        MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
         MyViewModel.ToggleFlyout();
 
 

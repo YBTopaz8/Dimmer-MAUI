@@ -1,3 +1,5 @@
+using Microsoft.Maui.Platform;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
@@ -381,7 +383,69 @@ public partial class MainPageD : ContentPage
             await send.AnimateRippleBounce();
         }
     }
+
 #if WINDOWS
+    private void MainBody_Unloaded(object sender, EventArgs e)
+    {
+        var send = sender as View;
+
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
+
+        mainLayout.PointerPressed -= S_PointerPressed;
+    }
+    private void MainBody_Loaded(object sender, EventArgs e)
+    {
+        var send = sender as View;
+
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
+        
+        mainLayout.PointerPressed += S_PointerPressed;
+    }
+
+    private void S_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            var nativeElement = this.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+            if (nativeElement == null)
+                return;
+
+            var properties = e.GetCurrentPoint(nativeElement).Properties;
+
+            if (properties != null)
+            {
+                if (properties.IsRightButtonPressed)
+                {
+                    
+                    MyViewModel.ToggleFlyout();
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+        //throw new NotImplementedException();
+    }
+
+    private void S_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
+
+    private void S_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
+
+    private void S_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+
+    }
+
 
 #endif
 }

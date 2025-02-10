@@ -5,8 +5,7 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-        
-        
+
     }
 
     public HomePageVM MyViewModel { get; set; }
@@ -157,9 +156,6 @@ public partial class DimmerWindow : Window
                 }
                 try
                 {
-                    await Task.Delay(3000);
-                    await Shell.Current.DisplayAlert("Info", "Search is Not Available ...Yet!", "Ok");
-                    return;
                     await Task.Delay(300, token);
 
                     if (!string.IsNullOrEmpty(txt))

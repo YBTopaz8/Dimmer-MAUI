@@ -6,7 +6,8 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM"             
-             x:Name="myPage"        
+             x:Name="myPage"     
+        
         >
     
    
@@ -21,7 +22,9 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <SearchBar Text="{Binding SearchText}" x:Name="SearchSongSB" HeightRequest="30"                           
+                <SearchBar Text="{Binding SearchText}" 
+                           
+                           x:Name="SearchSongSB" HeightRequest="30"                           
                            WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
 
                 </SearchBar>
