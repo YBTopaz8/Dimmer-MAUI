@@ -1,4 +1,5 @@
 using Microsoft.Maui.Platform;
+using System.Diagnostics;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -52,8 +53,10 @@ public partial class MainPageD : ContentPage
             {
                 return;
             }
-                        
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+
+            if (SongsColView is null)
+                return;
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -71,6 +74,8 @@ public partial class MainPageD : ContentPage
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
+            if (SongsColView is null)
+                return;
             SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
@@ -384,24 +389,28 @@ public partial class MainPageD : ContentPage
         }
     }
 
-#if WINDOWS
+
     private void MainBody_Unloaded(object sender, EventArgs e)
     {
+#if WINDOWS
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
 
         mainLayout.PointerPressed -= S_PointerPressed;
+#endif
     }
     private void MainBody_Loaded(object sender, EventArgs e)
     {
+#if WINDOWS
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
         
         mainLayout.PointerPressed += S_PointerPressed;
+#endif
     }
-
+#if WINDOWS
     private void S_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         try
@@ -414,10 +423,37 @@ public partial class MainPageD : ContentPage
 
             if (properties != null)
             {
+                Debug.WriteLine("Delta: " + properties.MouseWheelDelta);
+                Debug.WriteLine("UPdate Kind: " + properties.PointerUpdateKind);
+                Debug.WriteLine("Pressure: "+ properties.Pressure);
+
+                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " +e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
-                {
-                    
+                {                    
                     MyViewModel.ToggleFlyout();
+
+                    Debug.WriteLine("Right Mouse was Clicked!");
+                }
+                if (properties.IsXButton1Pressed)
+                {
+                    Debug.WriteLine("mouse 4 click!");
+                }
+                if (properties.IsXButton2Pressed)
+                {
+                    Debug.WriteLine("mouse 5!");
+                }
+                if (properties.IsEraser)
+                {
+                    Debug.WriteLine("eraser use!");
+
+                }
+                if (properties.IsMiddleButtonPressed)
+                {
+                    Debug.WriteLine("mouse wheel click!");
+                }
+                if (properties.IsHorizontalMouseWheel)
+                {
+                    Debug.WriteLine("idk..");
                 }
             }
 

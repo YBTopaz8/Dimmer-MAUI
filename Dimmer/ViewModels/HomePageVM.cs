@@ -48,6 +48,10 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double VolumeSliderValue { get; set; } = 1;
 
+    partial void OnVolumeSliderValueChanging(double oldValue, double newValue)
+    {
+        PlayBackService.ChangeVolume(newValue);
+    }
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
     
@@ -187,7 +191,11 @@ public partial class HomePageVM : ObservableObject
                 {
                     SyncLyricsCV!.ItemsSource = null;
                     SyncLyricsCV.ItemsSource = newValue;
-                    SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+
+                    if (SyncLyricsCV is not null)
+                    {
+                        SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                    }
                 }
 
             });
@@ -223,7 +231,7 @@ public partial class HomePageVM : ObservableObject
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         PartOfNowPlayingSongs?.Clear(); 
         
-        UpdateContextMenuData(MySelectedSong);
+        
         CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
         AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
         splittedLyricsLines = null;
@@ -352,10 +360,19 @@ public partial class HomePageVM : ObservableObject
         {
             PartOfNowPlayingSongs.Add(MiniQueue[i]);
         }
-        if (PartOfNowPlayingSongsCV is not null)
+        try
         {
-            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
-            Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+
+            if (PartOfNowPlayingSongsCV is not null && PartOfNowPlayingSongsCV.IsLoaded)
+            {
+                PartOfNowPlayingSongsCV.ItemsSource = PartOfNowPlayingSongs;
+                PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+                Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Weird bug "+ex.Message);
         }
     }
     public CollectionView? QueueCV { get; set; }
@@ -719,14 +736,28 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.PlayNextSong(true);
     }
 
-    [RelayCommand]
-    void PlayPreviousSong()
-    {
-        IsOnLyricsSyncMode = false;
-        SynchronizedLyrics?.Clear();
-        PlayBackService.PlayPreviousSong(true);
-    }
+    
+    private int _backPressCount = 0;
 
+    [RelayCommand]
+    async Task PlayPreviousSong()
+    {
+        _backPressCount++;
+        if (_backPressCount == 1)
+        {
+            await Task.Delay(300);
+            if (_backPressCount == 1)
+                PlaySong(TemporarilyPickedSong);  // Single press: restart song.
+            _backPressCount = 0;
+        }
+        else if (_backPressCount == 2)
+        {
+            _backPressCount = 0;
+            IsOnLyricsSyncMode = false;
+            SynchronizedLyrics?.Clear();
+            PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
+        }
+    }
     [RelayCommand]
     void DecreaseVolume()
     {
@@ -1533,7 +1564,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (newValue)
         {
-            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            UpdateContextMenuData(MySelectedSong);            
         }
 
     }

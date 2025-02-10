@@ -88,7 +88,7 @@ public partial class MyTableView : View, ITableView
     public event PointerEventHandler PointerReleased;
     public event PointerEventHandler PointerWheelChanged;
     public event RightTappedEventHandler RightTapped;
-    public event EventHandler<TappedEventArgs> TappedEventArgs;
+    //public event EventHandler<TappedEventArgs> TappedEventArgs;
     public event TappedEventHandler Tapped;
     public event HoldingEventHandler Holding;
     public event KeyEventHandler KeyDown;

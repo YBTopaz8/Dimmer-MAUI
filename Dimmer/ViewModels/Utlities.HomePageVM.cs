@@ -454,7 +454,8 @@ public partial class HomePageVM
         }
         if (IsFlyoutPresented)
         {
-            
+            if (PartOfNowPlayingSongsCV is null)
+                return;
             PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
         }
         else

@@ -58,7 +58,7 @@
 
     <Grid >
 
-        <Grid ColumnDefinitions="Auto,*" BackgroundColor="#191919">
+        <Grid ColumnDefinitions="Auto,*,200" BackgroundColor="#191919">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
             </Grid.GestureRecognizers>
@@ -213,6 +213,14 @@
 
                 </Grid>
             </VerticalStackLayout>
+
+            <syncf:SfEffectsView Grid.Column="2" BackgroundColor="Transparent">
+                <VerticalStackLayout VerticalOptions="Center">
+                    <Label Text="Volume" HorizontalOptions="Center"/>
+                    <Slider Value="{Binding VolumeSliderValue}" VerticalOptions="End"
+                            MinimumTrackColor="DarkSlateBlue"/>
+                </VerticalStackLayout>
+            </syncf:SfEffectsView>
         </Grid>
         
     </Grid>

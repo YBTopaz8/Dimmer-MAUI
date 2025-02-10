@@ -341,7 +341,7 @@ public partial class PlaybackUtilsService : ObservableObject
             SongsMgtService.AddPDaCStateLink(links);
         }
     }
-    public void ChangeVolume(double newPercentageValue)
+    public void ChangeVolume(double newVolumeOver1)
     {
         try
         {
@@ -349,9 +349,9 @@ public partial class PlaybackUtilsService : ObservableObject
             {
                 return;
             }
-            DimmerAudioService.Volume = newPercentageValue;
+            DimmerAudioService.Volume = newVolumeOver1;
 
-            AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newPercentageValue);
+            AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newVolumeOver1);
         }
         catch (Exception ex)
         {

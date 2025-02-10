@@ -59,7 +59,10 @@ public partial class AppShell : Shell
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            if (SongsColView is not null)
+            {
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            }
             
             MyViewModel.PartOfNowPlayingSongsCV = SongsColView;
 

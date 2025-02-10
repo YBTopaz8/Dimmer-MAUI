@@ -196,7 +196,7 @@
 
                                         <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" />
-                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding ReleaseYear}" />
+                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" />
                                         <!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />-->
 
                                     </Grid>

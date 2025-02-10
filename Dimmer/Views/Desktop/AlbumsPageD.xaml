@@ -36,9 +36,9 @@
                         x:Name="SpecificAlbum" >
                     <Border.Resources>
                         <ResourceDictionary>
-                            <Style TargetType="Label">
+                            <!--<Style TargetType="Label">
                                 <Setter Property="FontSize" Value="16"/>
-                            </Style>
+                            </Style>-->
                         </ResourceDictionary>
                     </Border.Resources>
                     <Border.GestureRecognizers>
@@ -173,145 +173,6 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-
-                    <syncf:SfTabView x:Name="tabView"  Grid.Column="1" IsVisible="False"
-                        IndicatorPlacement="Top" SelectionChanged="TabView_SelectionChanged"
-                        TabBarPlacement="Top" ContentTransitionDuration="250">
-
-                        <syncf:SfTabView.Items>
-                            <syncf:SfTabItem IsVisible="False" TextColor="White" Header="Text"
-                                Loaded="SfTabItem_Loaded">
-                                <syncf:SfTabItem.Content>
-                                    <CollectionView ItemsSource="{Binding TopCompleted}">
-                                        <CollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:PlaybackStats">
-                                                <VerticalStackLayout>
-                                                    <Label Text="{Binding SongTitle}" FontSize="23"/>
-                                                    <Label Text="{Binding TotalCompletedPlays, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
-                                                    <Label Text="{Binding TotalCompletedHours, StringFormat='{0}hrs'}" FontSize="18"/>
-                                                </VerticalStackLayout>
-                                            </DataTemplate>
-                                        </CollectionView.ItemTemplate>
-                                    </CollectionView>
-
-                                    <!--<syncf:SfTabView x:Name="tabView" SelectionChanged="TabView_SelectionChanged"
-                            IndicatorPlacement="Top" Grid.Column="1"
-                            TabBarPlacement="Top" ContentTransitionDuration="250">
-                            <syncf:SfTabView.Items>
-                                <syncf:SfTabItem TextColor="White" Header="Top Completed"
-                                        Loaded="SfTabItem_Loaded">
-
-                                    <syncf:SfTabItem.Content>
-                                        <CollectionView ItemsSource="{Binding TopCompleted}">
-                                            <CollectionView.ItemTemplate>
-                                                <DataTemplate x:DataType="models:PlaybackStats">
-                                                    <VerticalStackLayout>
-                                                        <Label Text="{Binding SongTitle}" FontSize="23"/>
-                                                        <Label Text="{Binding TotalCompletedPlays, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
-                                                        <Label Text="{Binding TotalCompletedHours, StringFormat='{0}hrs'}" FontSize="18"/>
-                                                    </VerticalStackLayout>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
-                                            
-                                    </syncf:SfTabItem.Content>
-                                </syncf:SfTabItem>
-
-                                <syncf:SfTabItem TextColor="White" Header="Top Skipped"
-                                        Loaded="SfTabItem_Loaded">
-                                    <syncf:SfTabItem.Content>
-                                        <CollectionView ItemsSource="{Binding TopSkipped}">
-                                            <CollectionView.ItemTemplate>
-                                                <DataTemplate x:DataType="models:PlaybackStats">
-                                                    <VerticalStackLayout>
-                                                        <Label Text="{Binding SongTitle}" FontSize="23"/>
-                                                        <Label Text="{Binding TotalSkips, StringFormat='Dimmed {0} Times'}" FontSize="18"/>
-                                                        <Label Text="{Binding SkipTimes, StringFormat='{0}hrs'}" FontSize="18"/>
-                                                    </VerticalStackLayout>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
-
-                                    </syncf:SfTabItem.Content>
-                                </syncf:SfTabItem>
-                                    
-                            </syncf:SfTabView.Items>
-                    </syncf:SfTabView>-->
-
-                                </syncf:SfTabItem.Content>
-                            </syncf:SfTabItem>
-
-                            <syncf:SfTabItem Header="Chart" IsVisible="False">
-                                <syncf:SfTabItem.Content>
-
-                                    <syncf:SfCircularChart Grid.Row="0" BackgroundColor="Transparent" 
-                                                    HeightRequest="700" 
-                                                    Grid.Column="0" HorizontalOptions="Center">
-
-                                        <syncf:SfCircularChart.Resources>
-
-                                        </syncf:SfCircularChart.Resources>
-
-                                        <syncf:DoughnutSeries ItemsSource="{Binding TopCompleted}" ExplodeOnTouch="True"
-                                                    ShowDataLabels="True" EnableAnimation="True"
-                                                    YBindingPath="TotalCompletedPlays" EnableTooltip="True">
-                                            <syncf:DoughnutSeries.XBindingPath>
-                                                <x:String>SongTitle</x:String>
-                                            </syncf:DoughnutSeries.XBindingPath>
-
-                                            <syncf:DoughnutSeries.SelectionBehavior>
-                                                <syncf:DataPointSelectionBehavior Type="Single" 
-                            SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
-                            SelectionBrush="DarkSlateBlue"/>
-                                            </syncf:DoughnutSeries.SelectionBehavior>
-                                            <syncf:DoughnutSeries.DataLabelSettings>
-                                                <syncf:CircularDataLabelSettings LabelPosition="Inside" LabelPlacement="Inner" >
-                                                </syncf:CircularDataLabelSettings>
-                                            </syncf:DoughnutSeries.DataLabelSettings>
-
-                                            <syncf:DoughnutSeries.LabelTemplate>
-                                                <DataTemplate>
-                                                    <Label TextColor="White">
-                                                        <Label.Text>
-                                                            <MultiBinding StringFormat="{} {0}">
-                                                                <Binding Path="Item.SongTitle"/>
-                                                            </MultiBinding>
-                                                        </Label.Text>
-                                                    </Label>
-                                                </DataTemplate>
-                                            </syncf:DoughnutSeries.LabelTemplate>
-
-                                            <syncf:DoughnutSeries.TooltipTemplate>
-                                                <DataTemplate>
-                                                    <VerticalStackLayout>
-
-                                                        <Label TextColor="White">
-                                                            <Label.Text>
-                                                                <MultiBinding StringFormat="{} Dimmed {0} Times">
-                                                                    <Binding Path="Item.SongTitle"/>
-                                                                </MultiBinding>
-                                                            </Label.Text>
-                                                        </Label>
-                                                    </VerticalStackLayout>
-
-                                                </DataTemplate>
-                                            </syncf:DoughnutSeries.TooltipTemplate>
-
-
-                                        </syncf:DoughnutSeries>
-
-                                        <syncf:SfCircularChart.TooltipBehavior>
-                                            <syncf:ChartTooltipBehavior Duration="5000"/>
-                                        </syncf:SfCircularChart.TooltipBehavior>
-                                    </syncf:SfCircularChart>
-
-
-                                </syncf:SfTabItem.Content>
-                            </syncf:SfTabItem>
-
-
-                        </syncf:SfTabView.Items>
-                    </syncf:SfTabView>
 
 
 
