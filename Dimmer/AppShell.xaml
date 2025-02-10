@@ -16,19 +16,36 @@
     xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models" 
     Shell.ForegroundColor="DarkSlateBlue"
     Shell.TabBarTitleColor="White"    
-    BackgroundColor="Red"
     
     Shell.TabBarUnselectedColor="Gray"
     Shell.FlyoutWidth="350"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Shell.NavBarIsVisible="False"     
+    
     >
     
 
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
-    <Shell.FlyoutHeader >
-        <VerticalStackLayout VerticalOptions="End" Spacing="10" 
+    <Shell.FlyoutHeader>
+        <Grid x:Name="HeaderGrid" HeightRequest="240" WidthRequest="240">
+            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
+              Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.3"
+              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Width, Source={x:Reference HeaderGrid}}"  
+              BorderWidth="0" CornerRadius="15">
+                <toolkit:AvatarView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>
+                </toolkit:AvatarView.GestureRecognizers>
+                <toolkit:AvatarView.Triggers>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                </toolkit:AvatarView.Triggers>
+            </toolkit:AvatarView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="10" 
                                    Margin="10,0">
             <VerticalStackLayout.Resources>
                 <ResourceDictionary>
@@ -37,7 +54,7 @@
 
                     <Style TargetType="Label">
                         <Setter Property="HorizontalTextAlignment" Value="Center"/>
-                        <Setter Property="FontSize" Value="16"/>
+                        <Setter Property="FontSize" Value="26"/>
                     </Style>
 
                     <Style TargetType="Border">
@@ -54,7 +71,6 @@
                                     </VisualState>
                                     <VisualState Name="PointerOver">
                                         <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
                                             <Setter Property="Stroke" Value="DarkSlateBlue"/>
                                         </VisualState.Setters>
                                     </VisualState>
@@ -67,22 +83,7 @@
 
                 </ResourceDictionary>
             </VerticalStackLayout.Resources>
-            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                          Text="{Binding TemporarilyPickedSong.Title}" 
-                          WidthRequest="245" HeightRequest="215" 
-                          BorderWidth="0" CornerRadius="15">
-                <toolkit:AvatarView.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>
-                </toolkit:AvatarView.GestureRecognizers>
-                <toolkit:AvatarView.Triggers>
-                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
-                        <Setter Property="StrokeThickness" Value="0"/>
-                    </DataTrigger>
-                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
-                        <Setter Property="StrokeThickness" Value="2"/>
-                    </DataTrigger>
-                </toolkit:AvatarView.Triggers>
-            </toolkit:AvatarView>
+            
 
             <Label Text="{Binding TemporarilyPickedSong.Title}" 
       LineBreakMode="HeadTruncation" FontSize="13"/>
@@ -92,7 +93,8 @@
              LineBreakMode="HeadTruncation"/>
 
 
-        </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
     </Shell.FlyoutHeader>
     
     
@@ -100,7 +102,7 @@
     <Shell.FlyoutContent>
 
         <Grid RowDefinitions="450" x:Name="FlyoutBody"
-              >
+              BackgroundColor="Black">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -117,7 +119,7 @@
             </Grid.Resources>
 
             <CollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" Margin="5,5" Grid.Row="1"
-                            HeightRequest="450" Header="Songs Queue" VerticalOptions="End" 
+                            Header="Songs Queue" VerticalOptions="End" 
                             VerticalScrollBarVisibility="Never" RemainingItemsThreshold="15"  
                             x:Name="SongsColView" Loaded="SongsColView_Loaded">
     
@@ -136,8 +138,10 @@
 
                                     </FlexLayout.GestureRecognizers>
                                     <VerticalStackLayout BackgroundColor="Transparent">
-                                        <Label Text="{Binding Title}" FontSize="18"/>
-                                        <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+                                        <Label Text="{Binding Title}" FontSize="18" WidthRequest="275" 
+                                               HorizontalOptions="Start"/>
+                                        <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"
+                                               WidthRequest="275"/>
 
                                     </VerticalStackLayout>
 
@@ -146,6 +150,18 @@
                                         <Image WidthRequest="20" IsVisible="{Binding HasLyrics}" 
                                                Source="lyrics.png" >
 
+                                        </Image>
+                                        <Image Source="songc.png"
+                                                   WidthRequest="25"
+                                                   HorizontalOptions="Start">
+                                            <Image.Triggers>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </Image.Triggers>
                                         </Image>
                                     </VerticalStackLayout>
                                 </FlexLayout>
@@ -159,9 +175,6 @@
 
 
     </Shell.FlyoutContent>
-
-    
-    
     
     <Shell.FlyoutFooter>
         <VerticalStackLayout VerticalOptions="End" IsVisible="True">
@@ -189,7 +202,7 @@
                                     </VisualState>
                                     <VisualState Name="PointerOver">
                                         <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
                                             <Setter Property="Stroke" Value="DarkSlateBlue"/>
                                         </VisualState.Setters>
                                     </VisualState>
@@ -207,7 +220,7 @@
 
 
 
-            <syncf:SfTabView x:Name="tabView" IndicatorPlacement="Top"  HeightRequest="310"
+            <syncf:SfTabView x:Name="tabView" IndicatorPlacement="Top"  HeightRequest="320"
                              TabBarPlacement="Bottom" ContentTransitionDuration="250">
                 <syncf:SfTabView.Items>
                     <syncf:SfTabItem TextColor="White" Header="Over View">
@@ -215,7 +228,7 @@
                         <syncf:SfTabItem.Content>
                             <ScrollView>
                                 
-                            <VerticalStackLayout Grid.Row="0" IsVisible="True" BackgroundColor="Red"
+                            <VerticalStackLayout Grid.Row="0" IsVisible="True" 
                                  Spacing="10" Padding="10"  
                                  >
                                 <VerticalStackLayout.Resources>
@@ -243,8 +256,7 @@
                                 </VerticalStackLayout.Resources>
 
                                 <FlexLayout JustifyContent="SpaceBetween" Grid.Row="1" x:Name="MultiSelectView"
-    VerticalOptions="End" IsVisible="False"
-    Padding="10,5">
+    VerticalOptions="End" IsVisible="False" HeightRequest="75" Padding="10,5">
 
                                     <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"/>
 

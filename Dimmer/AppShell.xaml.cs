@@ -504,7 +504,7 @@ public partial class AppShell : Shell
             }
             MyViewModel.PickedSong = MyViewModel.MySelectedSong;
 
-            SongsColView.ScrollTo(MyViewModel.MySelectedSong, position: ScrollToPosition.Start, animate: true);
+            //SongsColView.ScrollTo(MyViewModel.MySelectedSong, position: ScrollToPosition.Start, animate: true);
         }
         catch (Exception ex)
         {
@@ -513,7 +513,7 @@ public partial class AppShell : Shell
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
         MyViewModel.SetContextMenuSong(song!);
-        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
         //isPointerEntered = true;
         //isPointerEntered = true;
     }

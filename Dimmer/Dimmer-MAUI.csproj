@@ -188,7 +188,7 @@
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.15.0" />
+    <PackageReference Include="z440.atl.core" Version="6.16.0" />
 
   </ItemGroup>
 
@@ -334,6 +334,11 @@
   <ItemGroup>
     <Folder Include="Platforms\Android\CustomHandlers\" />
     <Folder Include="Utilities\OtherUtils\ParseStaticUtils\" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
+    <PackageReference Include="WinUI.TableView">
+      <Version>1.2.2</Version>
+    </PackageReference>
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

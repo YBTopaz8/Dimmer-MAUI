@@ -432,6 +432,10 @@ public partial class HomePageVM : ObservableObject
 #endif
         if (TemporarilyPickedSong is not null)
         {
+            if (MySelectedSong is null)
+            {
+                MySelectedSong = TemporarilyPickedSong;
+            }
             if (string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
             {
                 return;
@@ -440,6 +444,10 @@ public partial class HomePageVM : ObservableObject
             {        
                 SynchronizedLyrics?.Clear();
             }      
+        }
+        if (MySelectedSong is null)
+        {
+            return;
         }
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics.Count < 1)
         {            

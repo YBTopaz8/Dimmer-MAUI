@@ -9,6 +9,7 @@ public partial class MainPageD : ContentPage
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
 
+
     }
     public HomePageVM MyViewModel { get; }
 
@@ -48,7 +49,7 @@ public partial class MainPageD : ContentPage
                 return;
             }
                         
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -380,6 +381,65 @@ public partial class MainPageD : ContentPage
     {
         MyViewModel.ToggleFlyout();
     }
+#if WINDOWS
+    private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        if (e.OriginalSource.GetType() != typeof(Microsoft.UI.Xaml.Controls.Grid))
+        {
+
+        }
+    }
+
+    private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    {
+    }
+
+#endif
 }
 
 public enum ContextMenuPageCaller

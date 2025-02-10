@@ -13,6 +13,7 @@
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
              xmlns:sys="clr-namespace:System;assembly=netstandard"
+             xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
              >
 
     <ContentPage.Resources>
@@ -36,7 +37,34 @@
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                 x:Name="MediaPlayBackCW" Grid.Row="1"/>
-        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" >
+
+        <!--<viewsD:MyTableView SelectionMode="None" 
+                            KeyDown="MyTable_KeyDown"
+                            KeyUp="MyTable_KeyUp"
+                            PointerEntered="MyTable_PointerEntered"
+                            PointerExited="MyTable_PointerExited"   
+                            PointerMoved="MyTable_PointerMoved"
+                            PointerPressed="MyTable_PointerPressed"
+                            PointerReleased="MyTable_PointerReleased"
+                            PointerWheelChanged="MyTable_PointerWheelChanged"    
+            x:Name="MyTable" DoubleTapped="MyTable_DoubleTapped"
+                            IsReadOnly="True"
+                            IsItemClickEnabled="True"
+                            SelectionUnit="Row"
+                            ShowExportOptions="True"
+                            Tapped="MyTable_Tapped"
+                            RightTapped="MyTable_RightTapped"
+                            
+            ItemsSource="{Binding DisplayedSongs}"
+            AutoGenerateColumns="True"
+            >
+            <viewsD:MyTableView.Columns>
+                
+            </viewsD:MyTableView.Columns>
+            
+        </viewsD:MyTableView>-->
+
+        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True">
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
@@ -107,7 +135,7 @@
                             <Border>
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection">
-                                    <Grid ColumnDefinitions="*,40,*,*,*,*,*" RowDefinitions="70" ColumnSpacing="5">
+                                    <Grid ColumnDefinitions="*,40,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -122,13 +150,26 @@
                                             FontSize="18" 
                                             LineBreakMode="TailTruncation"/>
 
-                                            <Image WidthRequest="25" HeightRequest="25" HorizontalOptions="Start"  
-                                            IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1">
+                                            <Image WidthRequest="35" HeightRequest="35" HorizontalOptions="Start"  
+                                            IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
+                                                   BackgroundColor="Transparent">
                                                 <Image.Behaviors>
                                                     <toolkit:IconTintColorBehavior TintColor="#A2B5E2"/>
                                                 </Image.Behaviors>
                                             </Image>
 
+                                            <Image Source="songc.png"
+                                                   WidthRequest="25"
+                                                   HorizontalOptions="Start">
+                                                <Image.Triggers>
+                                                    <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                        <Setter Property="IsVisible" Value="True" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                </Image.Triggers>
+                                            </Image>
 
                                         </VerticalStackLayout>
 
