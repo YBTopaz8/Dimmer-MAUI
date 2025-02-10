@@ -113,6 +113,16 @@
 
                 </FlexLayout>
             </VerticalStackLayout>
+            <Grid ColumnDefinitions="*,*,*,*,*,*"
+                  Margin="10,0,0,0"
+                  RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
+                <Label Text="Title" Grid.Column="0" FontSize="25"/>
+                <Label Text="Artist Name" Grid.Column="1" FontSize="25"/>
+                <Label Text="Album Name" Grid.Column="2" FontSize="25"/>
+                <Label Text="Genre" Grid.Column="3" FontSize="25" HorizontalOptions="Center"/>
+                <Label Text="Duration" Grid.Column="4" FontSize="25" HorizontalOptions="Center"/>
+                <Label Text="Format" Grid.Column="5" FontSize="25" HorizontalOptions="Center"/>
+            </Grid>
             <Grid toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
                             VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" 
@@ -157,10 +167,10 @@
                                         VerticalOptions="Center">
 
                                             <Label Text="{Binding Title}" Grid.Column="1" 
-                                            FontSize="18" 
+                                            FontSize="20" 
                                             LineBreakMode="TailTruncation"/>
 
-                                            <Image WidthRequest="35" HeightRequest="35" HorizontalOptions="Start"  
+                                            <Image WidthRequest="20" HeightRequest="20" HorizontalOptions="Start"  
                                             IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
                                                    BackgroundColor="Transparent">
                                                 <Image.Behaviors>
@@ -186,17 +196,19 @@
 
                                         </VerticalStackLayout>
 
-                                        <Label Grid.Column="1" 
+                                        <Label Grid.Column="1" FontSize="18" 
                                     Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>
 
-                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" />
+                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" 
+                                               FontSize="18" />
 
                                         <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
-                                Text="{Binding GenreName}" />
+                                Text="{Binding GenreName}" 
+                                               FontSize="16" />
 
                                         <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
-                            HorizontalOptions="Center" />
-                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" />
+                            HorizontalOptions="Center" FontSize="16"/>
+                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
                                         <!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />-->
 
                                     </Grid>

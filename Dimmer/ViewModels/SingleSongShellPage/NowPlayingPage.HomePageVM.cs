@@ -328,8 +328,11 @@ public partial class HomePageVM
             default:
                 break;
         }
-        
+        MySelectedSong.IsFavorite = willBeFav;
+        MySelectedSong.Rating = rateValue;
         SongsMgtService.UpdateSongDetails(MySelectedSong);
+
+
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
@@ -348,10 +351,7 @@ public partial class HomePageVM
         {
             UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
             return;
-        }
-        MySelectedSong.IsFavorite = willBeFav;
-        MySelectedSong.Rating = rateValue;
-        SongsMgtService.UpdateSongDetails(MySelectedSong);
+        };
         if (CurrentUser.IsLoggedInLastFM)
         {
             //LastFMUtils.RateSong(MySelectedSong, willBeFav);

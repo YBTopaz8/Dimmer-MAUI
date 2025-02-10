@@ -140,12 +140,6 @@ public partial class MainPageD : ContentPage
         {
             isAboutToDropFiles = true;
 
-            var send = sender as View;
-            if (send is null)
-            {
-                return;
-            }
-            send.Opacity = 0.7;
 #if WINDOWS
                 var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
             var dragUI = WindowsEventArgs.DragUIOverride;
