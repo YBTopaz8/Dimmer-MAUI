@@ -10,15 +10,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
       
-      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0
+
       - name: Install .NET MAUI Workload
         run: |
           dotnet workload install maui
           dotnet workload install android
+
       - name: Add Local NuGet Source 
         run: |
           dotnet nuget add source "$(Get-Location)\Dimmer\releasePacking" --name local-release-packing
@@ -38,6 +39,7 @@ jobs:
           $installerPath = "innosetup.exe"
           Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+
       - name: Package with Inno Setup
         run: ISCC.exe /dMySourceDir=windows-output /o Output ./Dimmer/releasePacking/setup_dimmer.iss
         working-directory: Dimmer-MAUI/Dimmer
@@ -53,50 +55,14 @@ jobs:
         working-directory: Dimmer-MAUI/Dimmer
 
       - name: Upload Windows Installer Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dimmer-windows-installer
           path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
   
-  # build-android:
-  #   name: Build Android APK
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v3
-
-  #     - name: Setup .NET
-  #       uses: actions/setup-dotnet@v3
-  #       with:
-  #         dotnet-version: 9.0
-
-  #     - name: Restore NuGet packages
-  #       run: dotnet restore Dimmer-MAUI.csproj
-
-  #     - name: Build Android APK
-  #       run: dotnet publish Dimmer-MAUI.csproj -f net9.0-android -c Release /p:AndroidKeyStorePath=${{ secrets.KEYSTORE_PATH }} /p:AndroidKeyStorePassword=${{ secrets.KEYSTORE_PASSWORD }} /p:AndroidKeyAlias=${{ secrets.KEYSTORE_ALIAS }} /p:AndroidKeyPassword=${{ secrets.KEY_PASSWORD }} -o ./android-output
-
-  #     - name: Sign APK (using apksigner)
-  #       run: |
-  #         apk_path=$(find ./android-output -name "*.apk")
-  #         apksigner sign --ks ${{ secrets.KEYSTORE_PATH }} --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" --key-pass pass:"${{ secrets.KEY_PASSWORD }}" --ks-key-alias "${{ secrets.KEYSTORE_ALIAS }}" --out ./android-output/Dimmer-Signed.apk $apk_path
-
-  #     - name: Align APK
-  #       run: |
-  #         aligned_apk_path="./android-output/Dimmer-Aligned.apk"
-  #         unsigned_apk_path=$(find ./android-output -name "*.apk" ! -name "*-Aligned.apk" ! -name "*-Signed.apk")
-  #         zipalign -v 4 "$unsigned_apk_path" "$aligned_apk_path"
-
-  #     - name: Upload Android APK Artifact
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: dimmer-android-apk
-  #         path: ./android-output/Dimmer-Aligned.apk
-
   release:
     name: Create GitHub Release
-    needs: [build-windows] # Only needs the Windows build for now
+    needs: [build-windows]
     runs-on: ubuntu-latest
 
     steps:
@@ -104,16 +70,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download Windows Installer Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.1.0
         with:
           name: dimmer-windows-installer
           path: ./release-assets/windows
-
-      # - name: Download Android APK Artifact
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: dimmer-android-apk
-      #     path: ./release-assets/android
 
       - name: Create Release
         id: create_release
@@ -123,7 +83,7 @@ jobs:
         with:
           tag_name: ${{ github.event.release.tag_name }}
           release_name: ${{ github.event.release.name }}
-          body_path: .github/release-notes.md # Optional
+          body_path: .github/release-notes.md
           draft: false
           prerelease: ${{ github.event.release.prerelease }}
 
@@ -136,13 +96,3 @@ jobs:
           asset_path: ./release-assets/windows/Setup_Dimmer.exe
           asset_name: Setup_Dimmer.exe
           asset_content_type: application/x-msdownload
-
-      # - name: Upload Android APK to Release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./release-assets/android/Dimmer-Aligned.apk
-      #     asset_name: Dimmer.apk
-      #     asset_content_type: application/vnd.android.package-archive
