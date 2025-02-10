@@ -13,12 +13,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 9.0
+          dotnet-version: 9.0.101
 
       - name: Install .NET MAUI Workload
         run: |
           dotnet workload install maui
-          dotnet workload install android
+          dotnet workload install android          
+          dotnet workload install microsoft-net-sdk-workloadautoimportpropslocator
 
       - name: Add Local NuGet Source 
         run: |
