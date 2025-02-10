@@ -18,8 +18,7 @@ jobs:
       - name: Install .NET MAUI Workload
         run: |
           dotnet workload install maui
-          dotnet workload install android          
-          dotnet workload install microsoft-net-sdk-workloadautoimportpropslocator
+          dotnet workload install android
 
       - name: Add Local NuGet Source 
         run: |
