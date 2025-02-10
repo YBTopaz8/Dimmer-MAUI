@@ -29,7 +29,13 @@ public static class MauiProgram
 
 
             })
-
+            .ConfigureMauiHandlers(handlers =>
+            {
+#if WINDOWS
+                TableViewHandler.ConfigureTableViewHandler(handlers);
+#endif
+                //handlers.AddHandler(typeof(TableView), typeof(TableViewHandler));
+            })
             .ConfigureSyncfusionToolkit();
 
 

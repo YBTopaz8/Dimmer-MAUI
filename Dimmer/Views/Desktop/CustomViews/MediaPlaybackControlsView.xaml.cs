@@ -6,10 +6,10 @@ public partial class MediaPlaybackControlsView : ContentView
 	public MediaPlaybackControlsView() 
     {
 		InitializeComponent();
-        //var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-        //MyViewModel = VM;
+        var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        MyViewModel = VM;
         //BindingContext = VM;
-        
+
         this.Loaded += MediaPlaybackControlsView_Loaded;
     }
 
@@ -17,6 +17,7 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         BindingContext = MyViewModel;
+        //MyViewModel.QueueCV = NowPlayingPlaylistView;
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -40,8 +41,9 @@ public partial class MediaPlaybackControlsView : ContentView
             return;
 
         _isThrottling = true;
-
-        MyViewModel.SeekSongPosition();
+        var send = (Slider)sender;
+        var s = send.Value;
+        MyViewModel.SeekSongPosition(currPosPer:s);
 
         
         await Task.Delay(throttleDelay);
@@ -83,4 +85,87 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
     }
+    private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
+    {
+        var thiss = this as View;
+        var par = thiss.Parent as View;
+        MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
+        MyViewModel.ToggleFlyout();
+
+
+        //await MyViewModel.ShowHideContextMenuFromBtmBar(thiss);
+    }
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
+    }
+
+
+    //private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    //{
+    //    var selectedTab = StatsTabs.SelectedItem;
+    //    var send = (SfChipGroup)sender;
+    //    var selected = send.SelectedItem as SfChip;
+    //    if (selected is null)
+    //    {
+    //        return;
+    //    }
+    //    _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
+
+    //    switch (selectedStatView)
+    //    {
+    //        case 0:
+
+    //            //GeneralStatsView front, rest back
+    //            break;
+    //        case 1:
+    //            break;
+    //        case 2:
+    //            break;
+    //        case 3:
+    //            break;
+    //        case 4:
+    //            MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
+
+
+    //            break;
+    //        case 5:
+
+    //            break;
+    //        case 6:
+
+    //            break;
+    //        default:
+
+    //            break;
+    //    }
+
+    //    var viewss = new Dictionary<int, View>
+    //    {
+    //        {0, NowPlayingPlaylist},
+    //        {1, SongAlbumSongs},
+    //        {2, SongArtistSongs},
+    //        {3, SongInfo},
+    //        //{4, SongStatsGrid},
+
+    //    };
+    //    if (!viewss.ContainsKey(selectedStatView))
+    //        return;
+
+    //    await Task.WhenAll
+    //        (viewss.Select(kvp =>
+    //        kvp.Key == selectedStatView
+    //        ? kvp.Value.AnimateFadeInFront()
+    //        : kvp.Value.AnimateFadeOutBack()));
+    //    return;
+    //}
+
 }

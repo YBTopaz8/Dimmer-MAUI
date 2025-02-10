@@ -4,7 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Mobile.ArtistsPageM"
               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-            
+            Shell.NavBarIsVisible="True"
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:viewsM="clr-namespace:Dimmer_MAUI.Views.Mobile"       
@@ -37,8 +37,8 @@
             <dx:DXCollectionView ItemsSource="{Binding AllArtistsAlbums}" HeightRequest="150" Orientation="Horizontal">
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:AlbumModelView">
-                        <dx:DXButton BackgroundColor="Transparent" Clicked="ShowArtistAlbums_Tapped" CommandParameter="{Binding .}"
-                                     PressedBackgroundColor="DarkSlateBlue">
+                        <dx:DXButton BackgroundColor="Transparent" Clicked="ShowArtistAlbums_Tapped" 
+                                     CommandParameter="{Binding .}" PressedBackgroundColor="DarkSlateBlue">
                             <dx:DXButton.Content>
                                 <VerticalStackLayout BackgroundColor="Transparent">
                                     <Image Source="{Binding AlbumImagePath}" HeightRequest="50"/>
@@ -58,7 +58,7 @@
                         <dx:DXButton TapPressed="ResetSongs_TapPressed" x:Name="ResetSongs"
                                      BackgroundColor="Transparent" IconColor="White"
                                      PressedBackgroundColor="DarkSlateBlue"
-                                     Icon="restart.png">
+                                     Icon="repeat.png">
                             
                         </dx:DXButton>
                     </FlexLayout>
@@ -76,11 +76,11 @@
                                 <Label Text="{Binding Title}" WidthRequest="250" HeightRequest="30" />
                                     <Image WidthRequest="13" HorizontalOptions="Start"
                                        IsVisible="{Binding IsCurrentPlayingHighlight}"
-                                       Source="play_circle.png"/>
+                                       Source="playcircle.png"/>
                                 </VerticalStackLayout>
                             <dx:DXButton Grid.Column="1"  
                                  IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton"
-                                         Icon="more.png">
+                                         Icon="more1.png">
                                 
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
@@ -88,7 +88,7 @@
 
                                     <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"
-                                           Source="composing.gif"
+                                           Source="musicfile.png"
 >
                                     </Image>
                                 </VerticalStackLayout>

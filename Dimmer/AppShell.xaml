@@ -6,187 +6,182 @@
     xmlns:local="clr-namespace:Dimmer_MAUI"
     xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"    
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
-    x:DataType="vm:HomePageVM"
-    
+    x:DataType="vm:HomePageVM"         
     x:Name="myPage"
+    
     Shell.FlyoutBehavior="Flyout"
-    FlyoutIsPresented="False"
+    FlyoutIsPresented="{Binding IsFlyoutPresented, Mode=TwoWay}"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
     xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
     xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models" 
     Shell.ForegroundColor="DarkSlateBlue"
     Shell.TabBarTitleColor="White"    
-    BackgroundColor="Red"
     
     Shell.TabBarUnselectedColor="Gray"
     Shell.FlyoutWidth="350"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Shell.NavBarIsVisible="False"     
+    
     >
     
 
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
-    <!--<Shell.FlyoutHeader >
-        <VerticalStackLayout >
+    <Shell.FlyoutHeader>
+        <Grid x:Name="HeaderGrid" HeightRequest="240" >
+            <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
+              Text="{Binding MySelectedSong.Title}" Opacity="0.3"
+              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Width, Source={x:Reference HeaderGrid}}"  
+              BorderWidth="0" CornerRadius="15">
+                <toolkit:AvatarView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>
+                </toolkit:AvatarView.GestureRecognizers>
+                <toolkit:AvatarView.Triggers>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
+                        <Setter Property="StrokeThickness" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
+                        <Setter Property="StrokeThickness" Value="2"/>
+                    </DataTrigger>
+                </toolkit:AvatarView.Triggers>
+            </toolkit:AvatarView>
+        <VerticalStackLayout VerticalOptions="Center" Spacing="10" 
+                                   Margin="10,0">
             <VerticalStackLayout.Resources>
                 <ResourceDictionary>
+                    <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+                    <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+
                     <Style TargetType="Label">
-                        <Setter Property="TextColor" Value="Grey" />
+                        <Setter Property="HorizontalTextAlignment" Value="Center"/>
+                        <Setter Property="FontSize" Value="26"/>
                     </Style>
+
+                    <Style TargetType="Border">
+                        <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
+                        <Setter Property="HeightRequest" Value="50"/>
+                        <Setter Property="VisualStateManager.VisualStateGroups">
+                            <VisualStateGroupList>
+                                <VisualStateGroup Name="CommonStates">
+                                    <VisualState Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                            <Setter Property="Stroke" Value="Transparent"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </Setter>
+
+                    </Style>
+
+
                 </ResourceDictionary>
             </VerticalStackLayout.Resources>
-            <Label Text="{Binding MySelectedSong.Title}" HorizontalOptions="Center" FontSize="18"
-                   FontAttributes="Bold"/>
-            <Label Text="{Binding MySelectedSong.ArtistName}" HorizontalOptions="Center"
-                   FontSize="12"/>
-        </VerticalStackLayout>
-    </Shell.FlyoutHeader>
-    <Shell.FlyoutContent>
-        <Grid               RowDefinitions="Auto,auto">
-
-            <VerticalStackLayout Grid.Row="0" IsVisible="False"
             
-            Spacing="10" Padding="10"
-                             >
-                <VerticalStackLayout.Resources>
-                    <ResourceDictionary>
-                        <Style TargetType="syncf:SfEffectsView">
-                            <Setter Property="TouchDownEffects" Value="Ripple"/>
 
-                            <Setter Property="RippleBackground" Value="DarkSlateBlue"/>
-                            <Setter Property="RippleAnimationDuration" Value="350"/>
+            <Label Text="{Binding MySelectedSong.Title}" 
+      LineBreakMode="HeadTruncation" FontSize="35"/>
+            
+            <Label Text="{Binding MySelectedSong.ArtistName}" 
+      LineBreakMode="TailTruncation" Opacity="0.6" 
+                   FontSize="22"/>
+            
+            <Label Text="{Binding MySelectedSong.AlbumName}" 
+             LineBreakMode="HeadTruncation"
+                   FontSize="15"/>
 
-                        </Style>
-                        <Style TargetType="Label">
-                            <Setter Property="Margin" Value="10" />
 
-                        </Style>
-                        <Style TargetType="Border">
-
-                            <Setter Property="BackgroundColor" Value="#1D1932"/>
-                            <Setter Property="Stroke" Value="Transparent"/>
-                            <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
-                        </Style>
-                    </ResourceDictionary>
-                </VerticalStackLayout.Resources>
-                <Border x:Name="GoToSong">
-                    <syncf:SfEffectsView TouchDownCommand="{Binding NavToSingleSongShellCommand}">
-                        <Label Text="Song Overview" />
-                    </syncf:SfEffectsView>
-                </Border>
-                <Border x:Name="MultiSelect">
-                    <syncf:SfEffectsView TouchUpEffects="Selection,Ripple"
-                    TouchDown="MultiSelect_TouchDown">
-                        <Label Text="Toggle MultiSelection"/>
-                    </syncf:SfEffectsView>
-                </Border>
-                <Border IsVisible="False">
-                    <syncf:SfEffectsView TouchDownCommand="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}" >
-                        <Label Text="Set Repeat Count"/>
-                    </syncf:SfEffectsView>
-                </Border>
-                <Border>
-                    <toolkit:Expander x:Name="UtilsExp">
-                        <toolkit:Expander.Header>
-                            <syncf:SfEffectsView 
-                            TouchDownEffects="Highlight" BackgroundColor="#1D1932"
-                            HighlightBackground="DarkSlateBlue">
-
-                                <Label Text="Utilities" HorizontalOptions="Start"
-                            HeightRequest="20" FontAttributes="Bold"/>
-                            </syncf:SfEffectsView>
-                        </toolkit:Expander.Header>
-                        <toolkit:Expander.Content>
-
-                            <VerticalStackLayout>
-
-                                <syncf:SfEffectsView TouchDownCommand="{Binding OpenEditSongPopupCommand}">
-                                    <Label Text="Edit Song" />
-                                </syncf:SfEffectsView>
-                                <syncf:SfEffectsView TouchDownCommand="{Binding DeleteFileCommand}"  
-                                        TouchDownCommandParameter="{Binding MySelectedSong}">
-                                    <Label Text="Remove From Device"/>
-                                </syncf:SfEffectsView>
-                                <syncf:SfEffectsView TouchDownCommand="{Binding OpenSongFolderCommand}">
-                                    <Label Text="View File Explorer"/>
-                                </syncf:SfEffectsView>
-                            </VerticalStackLayout>
-
-                        </toolkit:Expander.Content>
-
-                    </toolkit:Expander>
-
-                </Border>
-                <Border>
-                    <toolkit:Expander>
-                        <toolkit:Expander.Header>
-                            <syncf:SfEffectsView
-                            TouchDownEffects="Highlight"
-                            BackgroundColor="#1D1932"
-                            HighlightBackground="DarkSlateBlue">
-                                <Label Text="Search On...*" FontAttributes="Bold"/>
-                            </syncf:SfEffectsView>
-                        </toolkit:Expander.Header>
-                        <toolkit:Expander.Content>
-
-                            <VerticalStackLayout>
-
-                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
-                                    <syncf:SfEffectsView.TouchDownCommandParameter>
-                                        <x:Int32>0</x:Int32>
-                                    </syncf:SfEffectsView.TouchDownCommandParameter>
-                                    <Label Text="Google"/>
-                                </syncf:SfEffectsView>
-                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
-                                    <syncf:SfEffectsView.TouchDownCommandParameter>
-                                        <x:Int32>1</x:Int32>
-                                    </syncf:SfEffectsView.TouchDownCommandParameter>
-                                    <Label Text="YouTube"/>
-                                </syncf:SfEffectsView>
-                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
-                                    <syncf:SfEffectsView.TouchDownCommandParameter>
-                                        <x:Int32>2</x:Int32>
-                                    </syncf:SfEffectsView.TouchDownCommandParameter>
-                                    <Label Text="Spotify"/>
-                                </syncf:SfEffectsView>
-                            </VerticalStackLayout>
-
-                        </toolkit:Expander.Content>
-
-                    </toolkit:Expander>
-
-                </Border>
-                <Border>
-                    -->
-    <!--<syncf:SfEffectsView >
-                <Label Text="Add To Playlist"/>
-            </syncf:SfEffectsView>-->
-    
-    <!--
-                </Border>
             </VerticalStackLayout>
-
-            <FlexLayout JustifyContent="SpaceBetween" Grid.Row="1" x:Name="MultiSelectView"
-                        VerticalOptions="End" IsVisible="False"
-                        Padding="10,5">
-
-                <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"/>
-
-                <Button x:Name="DltImgBtn" HorizontalOptions="End" Text="Delete"
-                    Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding MySelectedSong}">
-
-                </Button>
-            </FlexLayout>
-            
-           
         </Grid>
+    </Shell.FlyoutHeader>
+    
+    
+    
+    <Shell.FlyoutContent>
+
+        <Grid RowDefinitions="450" x:Name="FlyoutBody"
+              BackgroundColor="Black">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+
+                <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" 
+                               />
+
+            </Grid.GestureRecognizers>
+            <Grid.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+
+            </Grid.Resources>
+
+            <CollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" Margin="5,5" Grid.Row="1"
+                            Header="Songs Queue" VerticalOptions="End" 
+                            VerticalScrollBarVisibility="Never" RemainingItemsThreshold="15"  
+                            x:Name="SongsColView" Loaded="SongsColView_Loaded">
+    
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+                </CollectionView.ItemsLayout>
+    
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                        <Border>
+                            <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
+                                                 TouchDownEffects="Ripple,Selection" TouchDownCommandParameter="{Binding .}">
+                                <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                                    <FlexLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+
+                                    </FlexLayout.GestureRecognizers>
+                                    <VerticalStackLayout BackgroundColor="Transparent">
+                                        <Label Text="{Binding Title}" FontSize="18" WidthRequest="275" 
+                                               HorizontalOptions="Start"/>
+                                        <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"
+                                               WidthRequest="275"/>
+
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout BackgroundColor="Transparent">
+                                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                        <Image WidthRequest="20" IsVisible="{Binding HasLyrics}" 
+                                               Source="lyrics.png" >
+
+                                        </Image>
+                                        <Image Source="songc.png"
+                                                   WidthRequest="25"
+                                                   HorizontalOptions="Start">
+                                            <Image.Triggers>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </Image.Triggers>
+                                        </Image>
+                                    </VerticalStackLayout>
+                                </FlexLayout>
+                            </syncf:SfEffectsView>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+    </Grid>
+
 
     </Shell.FlyoutContent>
-
+    
     <Shell.FlyoutFooter>
-        <VerticalStackLayout VerticalOptions="End" 
-                             IsVisible="True">
+        <VerticalStackLayout VerticalOptions="End" IsVisible="True">
             <VerticalStackLayout.Resources>
                 <ResourceDictionary>
                     <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
@@ -211,7 +206,7 @@
                                     </VisualState>
                                     <VisualState Name="PointerOver">
                                         <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
                                             <Setter Property="Stroke" Value="DarkSlateBlue"/>
                                         </VisualState.Setters>
                                     </VisualState>
@@ -226,191 +221,190 @@
             </VerticalStackLayout.Resources>
             <Image Source="onlinecloud.gif"  IsVisible="False"
                    HeightRequest="30" HorizontalOptions="Start"/>
-            -->
-    <!--IsVisible="{Binding IsLoggedIn}"-->
-    
-    <!--
-            
-            <syncf:SfTabView x:Name="tabView" SelectionChanged="TabView_SelectionChanged"
-                             IndicatorPlacement="Top" 
-                             TabBarPlacement="Bottom" ContentTransitionDuration="250">
+
+
+
+            <syncf:SfTabView x:Name="TabView" IndicatorPlacement="Top"  HeightRequest="320"
+                             TabBarPlacement="Bottom" ContentTransitionDuration="250"
+                             SelectionChanged="TabView_SelectionChanged">
                 <syncf:SfTabView.Items>
                     <syncf:SfTabItem TextColor="White" Header="Over View">
 
                         <syncf:SfTabItem.Content>
-                            <VerticalStackLayout VerticalOptions="End" Spacing="10" 
-                                                 Margin="10,0">
+                            <ScrollView>
                                 
-                                <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                                        Text="{Binding TemporarilyPickedSong.Title}" 
-                                        WidthRequest="245" HeightRequest="215" 
-                                        BorderWidth="0" CornerRadius="15">
-                                    <toolkit:AvatarView.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>
-                                    </toolkit:AvatarView.GestureRecognizers>
-                                    <toolkit:AvatarView.Triggers>
-                                        <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="0">
-                                            <Setter Property="StrokeThickness" Value="0"/>
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="toolkit:AvatarView" Binding="{Binding CurrentQueue}" Value="1">
-                                            <Setter Property="StrokeThickness" Value="2"/>
-                                        </DataTrigger>
-                                    </toolkit:AvatarView.Triggers>
-                                </toolkit:AvatarView>
+                            <VerticalStackLayout Grid.Row="0" IsVisible="True" 
+                                 Spacing="10" Padding="10"  
+                                 >
+                                <VerticalStackLayout.Resources>
+                                    <ResourceDictionary>
 
-                                <Label Text="{Binding TemporarilyPickedSong.Title}" 
-                    LineBreakMode="HeadTruncation" FontSize="13"/>
-                                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
-                    LineBreakMode="TailTruncation" Opacity="0.6" />
-                                <Label Text="{Binding TemporarilyPickedSong.AlbumName}" 
-                           LineBreakMode="HeadTruncation"/>
+                                        <Style TargetType="syncf:SfEffectsView">
+                                            <Setter Property="TouchDownEffects" Value="Ripple"/>
 
-                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="10,0" >
+                                            <Setter Property="RippleBackground" Value="DarkSlateBlue"/>
+                                            <Setter Property="RippleAnimationDuration" Value="350"/>
 
-                                    <Label Grid.Column="0" VerticalOptions="Center" 
-                                           Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                    
-                                    <Slider Grid.Column="1" DragCompleted="Slider_DragCompleted" 
-                                            Value="{Binding CurrentPositionPercentage, Mode=TwoWay}" 
-                                            MinimumTrackColor="DarkSlateBlue" x:Name="slid" VerticalOptions="Start" 
-                                            Margin="15,0" >
-                                    </Slider>
+                                        </Style>
 
-                                    <Label Grid.Column="2" VerticalOptions="Center" 
-                                           Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
-                                           Opacity="0.6"/>
+                                        <Style TargetType="Label">
+                                            <Setter Property="Margin" Value="10" />
+                                        </Style>
 
+                                        <Style TargetType="Border">
+
+                                            <Setter Property="BackgroundColor" Value="#1D1932"/>
+                                            <Setter Property="Stroke" Value="Transparent"/>
+                                            <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
+                                        </Style>
+                                    </ResourceDictionary>
+                                </VerticalStackLayout.Resources>
+
+                                <Grid ColumnDefinitions="*,*" 
+                                      Grid.Row="1" x:Name="MultiSelectView"
+                                      VerticalOptions="End" IsVisible="False" 
+                                      HeightRequest="75" Padding="10,5">
+
+                                    <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"
+                                           Grid.Column="0"/>
+
+                                    <Button Text="Delete"
+                                            x:Name="DltImgBtn" 
+                                            HorizontalOptions="End"                                             
+                                            Grid.Column="1" HeightRequest="40"
+                                            Command="{Binding DeleteFileCommand}"  
+                                            CommandParameter="{Binding MySelectedSong}">
+
+                                    </Button>
                                 </Grid>
 
-                                <HorizontalStackLayout Spacing="15"
-                                                       Margin="0,0,0,15"
-                                                       BackgroundColor="Transparent"
-              HorizontalOptions="Center" >
-                                    <Border WidthRequest="55" StrokeShape="RoundRectangle 30" 
->
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer x:Name="ToggleRepeat" Tapped="ToggleRepeat_Tapped">
-                                                <TapGestureRecognizer.CommandParameter>
-                                                    <x:Boolean>True</x:Boolean>
-                                                </TapGestureRecognizer.CommandParameter>
-                                            </TapGestureRecognizer>
-                                        </Border.GestureRecognizers>
+                                    <Border x:Name="AddPlayNext">
+                                        <ToolTipProperties.Text>
+                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                <Binding Path="MySelectedSong.Title"/>
+                                                <Binding Path="MySelectedSong.ArtistName"/>
+                                            </MultiBinding>
+                                        </ToolTipProperties.Text>
+                                        <syncf:SfEffectsView x:Name="AddPlayNextEff" TouchDown="AddPlayNextEff_TouchDown">
+                                        <Label Text="Play Next"/>
+                                    </syncf:SfEffectsView>
+                                </Border>
 
-                                        <Image>
-                                            <Image.Triggers>
-                                                <DataTrigger TargetType="Image" Value="0" Binding="{Binding CurrentRepeatMode}">
-                                                    <Setter Property="Source" Value="repoff.png" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Image" Value="1" Binding="{Binding CurrentRepeatMode}">
-                                                    <Setter Property="Source" Value="repoff.png"/>
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Image" Value="2" Binding="{Binding CurrentRepeatMode}">
-                                                    <Setter Property="Source" Value="repone.png"/>
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Image" Value="4" Binding="{Binding CurrentRepeatMode}">
-                                                    <Setter Property="Source" Value="repone.png"/>
-                                                </DataTrigger>
-                                            </Image.Triggers>
+                                <Border x:Name="GoToSong">
+                                    <syncf:SfEffectsView TouchDownCommand="{Binding NavToSingleSongShellCommand}">
+                                        <Label Text="Song Overview" />
+                                    </syncf:SfEffectsView>
+                                </Border>
 
-                                            <Image.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>
-                                            </Image.Behaviors>
-                                        </Image>
-                                    </Border>
-
-                                    <Border >
-                                        <ImageButton Command="{Binding PlayPreviousSongCommand}" Source="stepbackward.png" 
-                                     ToolTipProperties.Text="Play Previous">
-
-                                            <ImageButton.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="White" />
-                                            </ImageButton.Behaviors>
-                                        </ImageButton>
-
-                                    </Border>
-
-                                    <Border WidthRequest="55" StrokeShape="RoundRectangle 30" 
-           >
-                                        <Border.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding PlayPauseSongCommand}">
+                                <Border x:Name="MultiSelect">
+                                    
+                                    <syncf:SfEffectsView TouchUpEffects="Selection,Ripple"
+                    TouchDown="MultiSelect_TouchDown">
+                                            <syncf:SfEffectsView.Triggers> 
                                                 
-                                            </TapGestureRecognizer>
-                                        </Border.GestureRecognizers>
+                                            </syncf:SfEffectsView.Triggers>
+                                        <Label Text="Toggle MultiSelection"/>
+                                    </syncf:SfEffectsView>
+                                </Border>
 
-                                        <Image>
-                                            <Image.Triggers>
-                                                <DataTrigger TargetType="Image" Value="True" Binding="{Binding IsPlaying}">
-                                                    <Setter Property="Source" Value="pauseicon.png"/>
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Image" Value="False" Binding="{Binding IsPlaying}">
-                                                    <Setter Property="Source" Value="playdark.png"/>
-                                                </DataTrigger>
-                                            </Image.Triggers>
+                                <Border IsVisible="False">
+                                    <syncf:SfEffectsView TouchDownCommand="{Binding BindingContext.OpenRepeatSetterPopupCommand, Source={x:Reference myPage}}" >
+                                        <Label Text="Set Repeat Count"/>
+                                    </syncf:SfEffectsView>
+                                </Border>
 
-                                            <Image.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>
-                                            </Image.Behaviors>
-                                        </Image>
-                                    </Border>
+                                <Border>
+                                    <toolkit:Expander x:Name="UtilsExp">
+                                        <toolkit:Expander.Header>
+                                            <syncf:SfEffectsView 
+                            TouchDownEffects="Highlight" BackgroundColor="#1D1932"
+                            HighlightBackground="DarkSlateBlue">
 
-                                    <Border WidthRequest="55" StrokeShape="RoundRectangle 30"
-                                            HeightRequest="55" Padding="5,0,2,0">
+                                                <Label Text="Utilities" HorizontalOptions="Start"
+                            HeightRequest="20" FontAttributes="Bold"/>
+                                            </syncf:SfEffectsView>
+                                        </toolkit:Expander.Header>
+                                        <toolkit:Expander.Content>
 
-                                        <ImageButton Source="playdark.png" Clicked="PlayPauseBtn_Clicked" x:Name="PlayPauseBtn">
-                                           
-                                            <ImageButton.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="White" />
-                                            </ImageButton.Behaviors>
-                                        </ImageButton>
-                                    </Border>
+                                            <VerticalStackLayout>
 
-                                    <Border>
-                                        <ImageButton Command="{Binding PlayNextSongCommand}"
-                  ToolTipProperties.Text="Play Next" Source="stepforward.png">
-                                            <ImageButton.Behaviors>
-                                                <toolkit:IconTintColorBehavior TintColor="White" />
-                                            </ImageButton.Behaviors>
-                                        </ImageButton>
-                                    </Border>
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding OpenEditSongPopupCommand}">
+                                                    <Label Text="Edit Song" />
+                                                </syncf:SfEffectsView>
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding DeleteFileCommand}"  
+                                        TouchDownCommandParameter="{Binding MySelectedSong}">
+                                                    <Label Text="Remove From Device"/>
+                                                </syncf:SfEffectsView>
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding OpenSongFolderCommand}">
+                                                    <Label Text="View File Explorer"/>
+                                                </syncf:SfEffectsView>
+                                            </VerticalStackLayout>
 
-                                    <Border>
-                                        <Border.Triggers>
-                                            <DataTrigger TargetType="Border" Binding="{Binding IsShuffleOn}" Value="True">
-                                                <Setter Property="Stroke" Value="DarkSlateBlue"/>
-                                                <Setter Property="StrokeThickness" Value="3"/>
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Border" Binding="{Binding IsShuffleOn}" Value="False">
-                                                <Setter Property="Stroke" Value="Transparent"/>
-                                            </DataTrigger>
-                                        </Border.Triggers>
-                                        <VerticalStackLayout>
+                                        </toolkit:Expander.Content>
 
-                                            <ImageButton Command="{Binding ToggleShuffleStateCommand}"  Source="shuffledark.png"
-                               WidthRequest="15">
-                                                <ImageButton.Behaviors>
-                                                    <toolkit:IconTintColorBehavior TintColor="White" />
-                                                </ImageButton.Behaviors>
-                                                <ImageButton.CommandParameter>
-                                                    <x:Boolean>True</x:Boolean>
-                                                </ImageButton.CommandParameter>
-                                            </ImageButton>
+                                    </toolkit:Expander>
 
-                                        </VerticalStackLayout>
-                                    </Border>
-                                </HorizontalStackLayout>
-                                <syncf:SfChip Command="{Binding ToggleNowPlayingBtmSheetCommand}" IsVisible="False"
-              Text="Queue" x:Name="OpenCloseQBtmSheet"/>
+                                </Border>
+
+                                <Border>
+                                    <toolkit:Expander>
+                                        <toolkit:Expander.Header>
+                                            <syncf:SfEffectsView
+                            TouchDownEffects="Highlight"
+                            BackgroundColor="#1D1932"
+                            HighlightBackground="DarkSlateBlue">
+                                                <Label Text="Search On...*" FontAttributes="Bold"/>
+                                            </syncf:SfEffectsView>
+                                        </toolkit:Expander.Header>
+                                        <toolkit:Expander.Content>
+
+                                            <VerticalStackLayout>
+
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                                        <x:Int32>0</x:Int32>
+                                                    </syncf:SfEffectsView.TouchDownCommandParameter>
+                                                    <Label Text="Google"/>
+                                                </syncf:SfEffectsView>
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                                        <x:Int32>1</x:Int32>
+                                                    </syncf:SfEffectsView.TouchDownCommandParameter>
+                                                    <Label Text="YouTube"/>
+                                                </syncf:SfEffectsView>
+                                                <syncf:SfEffectsView TouchDownCommand="{Binding CntxtMenuSearchCommand}">
+                                                    <syncf:SfEffectsView.TouchDownCommandParameter>
+                                                        <x:Int32>2</x:Int32>
+                                                    </syncf:SfEffectsView.TouchDownCommandParameter>
+                                                    <Label Text="Spotify"/>
+                                                </syncf:SfEffectsView>
+                                            </VerticalStackLayout>
+
+                                        </toolkit:Expander.Content>
+
+                                    </toolkit:Expander>
+
+                                </Border>
+                                <Border>
+                                    <syncf:SfEffectsView >
+                                        <Label Text="Add To Playlist"/>
+                                    </syncf:SfEffectsView>
+                                </Border>
+
                             </VerticalStackLayout>
+
+                            </ScrollView>
+
                         </syncf:SfTabItem.Content>
                     </syncf:SfTabItem>
                     
-                    <syncf:SfTabItem Header="Lyrics">
+                    <syncf:SfTabItem Header="Lyrics" IsVisible="False">
                         <syncf:SfTabItem.Content>
                             <Grid>
                                 <CollectionView x:Name="LyricsColView" IsVisible="True" HeightRequest="500"
     
 ItemsSource="{Binding MySelectedSong.SyncLyrics}" 
-SelectionChanged="LyricsColView_SelectionChanged"  SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
 EmptyView="No Syncronized Lyrics ..." >
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="models:LyricPhraseModel">
@@ -428,7 +422,61 @@ EmptyView="No Syncronized Lyrics ..." >
                         </syncf:SfTabItem.Content>
                     </syncf:SfTabItem>
 
-                    
+
+                    <syncf:SfTabItem Header="Utils" IsVisible="True">
+                        <syncf:SfTabItem.Content>
+                            <VerticalStackLayout>
+                                <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
+    RadiusX="15" Margin="0,10"/>
+
+                                <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="True" Spacing="10"
+              Margin="20,5">
+                                    <Label Text="Choose A Playlist"/>
+                                    <CollectionView x:Name="PlaylistsCV" HeightRequest="150" 
+                  VerticalScrollBarVisibility="Always">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+
+                                                <Border Margin="0,10" StrokeThickness="0.8"
+                            Stroke="Transparent" Padding="0,5"
+                        StrokeShape="RoundRectangle, 8">
+
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                Tapped="CloseBtmSheet_Tapped"
+                                Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
+                                CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
+                                                    <Label Text="{Binding .}" x:DataType="x:String"
+                               FontSize="25" TextColor="White"/>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="10" VerticalOptions="End">
+
+                                        <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
+         TextColor="Red"/>
+                                        <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+              Spacing="10" Margin="10,5">
+                                    <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                                        <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
+                                        <Button Text="Create" x:Name="CreatePlaylistBtn" 
+         Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+         Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+
                 </syncf:SfTabView.Items>
             </syncf:SfTabView>
          
@@ -437,7 +485,7 @@ EmptyView="No Syncronized Lyrics ..." >
         </VerticalStackLayout>
         
         
-    </Shell.FlyoutFooter>-->
+    </Shell.FlyoutFooter>
     
     <FlyoutItem FlyoutDisplayOptions="AsSingleItem" x:Name="shelltabbar" >
         
@@ -449,10 +497,10 @@ EmptyView="No Syncronized Lyrics ..." >
             </ShellContent>
         </Tab>
 
-        <Tab Title="Artists" x:Name="ArtistTab" Icon="artistdark.png">
+        <Tab Title="Artists" x:Name="ArtistTab" Icon="lyricist.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:ArtistsPageD}"/>
         </Tab>
-        <Tab Title="Albums" x:Name="albumTab" Icon="albums11.png">
+        <Tab Title="Albums" x:Name="albumTab" Icon="musicalbum.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:AlbumsPageD}"/>
         </Tab>
 
@@ -462,7 +510,7 @@ EmptyView="No Syncronized Lyrics ..." >
                 Route="PlaylistsPageD"/>
             
         </Tab>
-        <Tab Title="Stats" x:Name="statsTab" Icon="stats.png">
+        <Tab Title="Stats" x:Name="statsTab" Icon="chart.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>

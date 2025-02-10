@@ -17,10 +17,10 @@
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <VerticalStackLayout Spacing="10" Margin="5,5"
+    <VerticalStackLayout Spacing="10" Margin="5,5" 
                          x:DataType="vm:HomePageVM">
         
-        <FlexLayout JustifyContent="SpaceBetween">
+        <FlexLayout JustifyContent="SpaceBetween" >
 
 
             <ImageButton x:Name="ImagePathh" WidthRequest="140"
@@ -64,7 +64,7 @@
                             </TapGestureRecognizer>
                         </Border.GestureRecognizers>
 
-                        <Image>
+                        <Image BackgroundColor="White">
                             <Image.Triggers>
                                 <DataTrigger TargetType="Image" Value="0" Binding="{Binding CurrentRepeatMode}">
                                     <Setter Property="Source" Value="repoff.png" />
@@ -81,7 +81,7 @@
                             </Image.Triggers>
 
                             <Image.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>
+                                <toolkit:IconTintColorBehavior TintColor="White"/>
                             </Image.Behaviors>
                         </Image>
                     </Border>

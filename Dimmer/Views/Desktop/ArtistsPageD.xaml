@@ -19,19 +19,10 @@
             
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:EmptyStringToMessageConverter x:Key="EmptyStringToMsg"/>
-
-            <MenuFlyout x:Key="SongsContextMenu">
-                <MenuFlyoutItem Text="Play Next" 
-                       Clicked="PlayNext_Clicked" x:Name="PlayNext"/>
-
-                <MenuFlyoutSeparator/>
-
-                <MenuFlyoutItem Text="Show File in Folder" Command="{Binding BindingContext.OpenSongFolderCommand,  Source={x:Reference myPage}}"/>
-            </MenuFlyout>
-
+            
         </ResourceDictionary>
     </ContentPage.Resources>
-    <toolkit:DockLayout>
+    <toolkit:DockLayout  x:Name="MainDock">
         <toolkit:DockLayout.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                            DragOver="DropGestureRecognizer_DragOver"
@@ -87,7 +78,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
                     <Border HorizontalOptions="Center">                        
-                    <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" 
+                    <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" RippleAnimationDuration="500"
                             x:Name="ArtistView" TouchDown="ArtistView_TouchDown">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
@@ -95,7 +86,7 @@
 
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="OrangeRed"/>                                        
+                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>                                        
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -104,7 +95,7 @@
                             <Label Text="{Binding Name}" HeightRequest="40">
                                 <Label.Triggers>
                                     <DataTrigger TargetType="Label" Binding="{Binding IsCurrentlySelected}" Value="True">
-                                        <Setter Property="TextColor" Value="DarkSlateBlue"/>
+                                        <Setter Property="TextColor" Value="#B197FC"/>
                                         <Setter Property="FontSize" Value="20"/>
                                     </DataTrigger>
                                     
@@ -136,8 +127,7 @@
             </CollectionView.Header>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
-                    <Border Stroke="Transparent" HorizontalOptions="Center" 
-                            FlyoutBase.ContextFlyout="{StaticResource SongsContextMenu}">
+                    <Border Stroke="Transparent" HorizontalOptions="Center">
                         
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
@@ -156,7 +146,7 @@
                         <Border.Triggers>
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                <Setter Property="BackgroundColor" Value="Transparent" />
                                 <Setter Property="Stroke" Value="DarkSlateBlue" />
                             </DataTrigger>
                             <DataTrigger TargetType="Border"
@@ -169,10 +159,13 @@
                         </Border.Triggers>
                         
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="SongInAlbumFromArtistPage_TappedToPlay" NumberOfTapsRequired="2"/>
+                            <TapGestureRecognizer Tapped="PlaySong_Tapped" NumberOfTapsRequired="2"/>
                             <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
                         </Border.GestureRecognizers>
-                        <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                        
+                        
+                        <syncf:SfEffectsView TouchDownEffects="Ripple" BackgroundColor="Transparent">                            
+                            <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                             <VerticalStackLayout BackgroundColor="Transparent">
                                 <Label Text="{Binding Title}" FontSize="18"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
@@ -186,7 +179,8 @@
                                     
                                 </Image>
                             </VerticalStackLayout>
-                        </FlexLayout>
+                            </FlexLayout>
+                        </syncf:SfEffectsView>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

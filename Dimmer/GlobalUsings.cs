@@ -26,7 +26,7 @@ global using DevExpress.Maui;
 global using DevExpress.Maui.Editors;
 global using DevExpress.Maui.Controls;
 
-
+global using TappedEventArgs = Microsoft.Maui.Controls.TappedEventArgs;
 
 global using Dimmer_MAUI.Utilities.OtherUtils;
 global using System.ComponentModel;

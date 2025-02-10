@@ -522,76 +522,7 @@ public class LyricsService : ILyricsService
     }
 
     #endregion
-
     #region Fetch Lyrics Online from Lyrist
-
-    //public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLyrist(string songTitle, string songArtistName)
-    //{
-    //    HttpClient client = new HttpClient();
-    //    try
-    //    {
-    //        Content[]? contentData = null;
-    //        contentData = await SearchLyricsByTitleAndArtistNameToLyrist(songTitle, songArtistName, client);
-    //        return (true, contentData);
-    //    }
-    //    catch (HttpRequestException e)
-    //    {
-    //        Debug.WriteLine($"Request error: {e.Message}");
-    //        return (false, null);
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        Debug.WriteLine($"Unexpected error: {e.Message}");
-    //        return (false, null);
-    //    }
-    //    finally
-    //    {
-    //        client.Dispose();
-    //    }
-    //}
-
-    //private async Task<Content[]> SearchLyricsByTitleAndArtistNameToLyrist(string songTitle, string songArtistName, HttpClient client)
-    //{
-
-    //    string trackName = Uri.EscapeDataString(songTitle);
-    //    string url = $"https://lyrist.vercel.app/api/{trackName}/{songArtistName}";
-
-    //    // Send the GET request
-    //    HttpResponseMessage response = await client.GetAsync(url);
-    //    //response.EnsureSuccessStatusCode(); // Throw if not a success code
-
-    //    // Read the response content
-    //    string content = await response.Content.ReadAsStringAsync();
-
-    //    var e = JsonSerializer.Deserialize<LyristApiResponse>(content);
-    //    var lyrics = new Content();
-    //    if (string.IsNullOrEmpty(e.Lyrics))
-    //    {
-    //        return Array.Empty<Content>();
-    //    }
-    //    lyrics.TrackName = e.Title;
-    //    lyrics.ArtistName = e.Artist;
-    //    lyrics.PlainLyrics = e.Lyrics;
-    //    lyrics.ListOfLinksToCoverImages.Add(e.Image);
-        
-    //    lyrics.Id = 1;
-    //    List<Content> contentList = new();
-    //    contentList.Add(lyrics);
-    //    return contentList.ToArray();
-
-    //}
-
-    static async Task<byte[]>? DownloadSongImage(string coverImageURL)//, HttpClient client)
-    {
-        HttpClient client = new HttpClient();
-        HttpResponseMessage response = await client.GetAsync(coverImageURL);
-        response.EnsureSuccessStatusCode(); // Throw if not a success code
-
-        // Read the response content
-        byte[] ImageBytes = await response.Content.ReadAsByteArrayAsync();
-        client.Dispose();
-        return ImageBytes;
-    }
 
     public async Task<string> FetchAndDownloadCoverImage(string songTitle, string songArtistName, string albumName, SongModelView? song =null)
     {

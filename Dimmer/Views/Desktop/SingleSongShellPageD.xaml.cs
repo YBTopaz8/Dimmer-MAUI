@@ -16,33 +16,62 @@ public partial class SingleSongShellPageD : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        if (MyViewModel.TemporarilyPickedSong is null)
+        if (MyViewModel.MySelectedSong is null)
         {
             return;
         }
         MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
-        
+        MyViewModel.CurrentPageMainLayout = MainDock;
         MyViewModel.AssignSyncLyricsCV(LyricsColView);
-        switch (MyViewModel.TemporarilyPickedSong.IsFavorite)
+        switch (MyViewModel.MySelectedSong.IsFavorite)
         {
             
             case true:
                 RatingChipCtrl.SelectedItem = LoveRate;
                 break;
             case false:
-                RatingChipCtrl.SelectedItem = HateRate;
+                switch (MyViewModel.MySelectedSong.Rating)
+                {
+                    case 0:
+                        RatingChipCtrl.SelectedItem = NeutralRate;
+                        break;
+                    case 1:
+                        //RatingChipCtrl.SelectedItem = LikeRate;
+                        break;
+                    case 2:
+                        RatingChipCtrl.SelectedItem = LoveRate;
+                        break;
+                    case 3:
+                        //RatingChipCtrl.SelectedItem = DislikeRate;
+                        break;
+                    case 4:
+                        //RatingChipCtrl.SelectedItem = HateRate;
+                        break;
+                    case 5:
+                        RatingChipCtrl.SelectedItem = HateRate;
+                        break;
+                            
+
+                    default:
+                        break;
+                }
+                RatingChipCtrl.SelectedItem = NeutralRate;
                 break;
             default:
                 break;
         }
 
-
-        if (LyricsColView.SelectedItem is not null)
-        {
-            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-        }
     }
 
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+
+        if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
+        {
+            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
+        }
+    }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -246,7 +275,7 @@ public partial class SingleSongShellPageD : ContentPage
             {
                 foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
                 {
-                    newItem.NowPlayingLyricsFontSize = 61; // Set FontSize to 21 for selected
+                    newItem.NowPlayingLyricsFontSize = 65; // Set FontSize to 21 for selected
                     //Debug.WriteLine($"Item selected, set FontSize to 21: {newItem?.Text}");
                 }
             }
@@ -255,26 +284,6 @@ public partial class SingleSongShellPageD : ContentPage
         {
             Debug.WriteLine(ex.Message);
         }
-    }
-
-
-    // Helper to find the visual element for an item
-    private View GetViewForItem(object item)
-    {
-        foreach (var cell in LyricsColView.GetVisualTreeDescendants().OfType<ViewCell>())
-        {
-            if (cell.BindingContext == item)
-                return cell.View;
-        }
-        return null;
-    }
-
-    // Animation helper
-    private async Task AnimateItem(View view, double targetScale)
-    {
-        if (view == null)
-            return;
-        await view.ScaleTo(targetScale, 250, Easing.SpringOut);
     }
 
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
@@ -346,8 +355,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         var selectedTab = StatsTabs.SelectedItem;
         var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
-        if (selected is null)
+        if (send.SelectedItem is not SfChip selected)
         {
             return;
         }
@@ -639,12 +647,43 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         supportedFilePaths ??= new();
         isAboutToDropFiles = false;
-        
-        
+
+
         if (supportedFilePaths.Count > 0)
-        {            
+        {
             MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         }
     }
 
+    private void ImageButton_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void ToggleFullScreen_Clicked(object sender, EventArgs e)
+    {
+        if (FocusModeUI.IsVisible)
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeOutBack(),
+            NormalNowPlayingUI.AnimateFadeInFront()
+
+            );
+
+            isOnFocusMode = false;
+        }
+        else
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeInFront(),
+            NormalNowPlayingUI.AnimateFadeOutBack());
+            isOnFocusMode = true;
+        }
+    }
+
+    private void ToggleShellPane_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleFlyout();
+
+    }
 }

@@ -1,16 +1,18 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
     //LastfmClient LastfmClient;
+    [ObservableProperty]
+    public partial bool IsFlyoutPresented { get; set; } = false;
     [ObservableProperty]
     public partial UserModelView? CurrentUser { get; set; }
     [ObservableProperty]
     public partial ParseUser? CurrentUserOnline { get; set; }
 
     [ObservableProperty]
-    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;
-    [ObservableProperty]
-    public partial bool IsFlyOutPaneOpen { get; set; } = false;
+    public partial FlyoutBehavior ShellFlyoutBehavior { get; set; } = FlyoutBehavior.Disabled;    
     
     [ObservableProperty]
     public partial SongModelView? PickedSong { get; set; } = null;// I use this a lot with the collection view, mostly to scroll
@@ -23,8 +25,9 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double CurrentPositionPercentage { get; set; }
     
-    //[ObservableProperty]
-    //public partial ObservableCollection<SongModelView> PrevCurrNextSongsCollection { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> PartOfNowPlayingSongs { get; set; } = new();
+    public CollectionView PartOfNowPlayingSongsCV { get; set; } 
     [ObservableProperty]
     public partial SortingEnum CurrentSortingOption { get; set; }
     [ObservableProperty]
@@ -45,6 +48,10 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double VolumeSliderValue { get; set; } = 1;
 
+    partial void OnVolumeSliderValueChanging(double oldValue, double newValue)
+    {
+        PlayBackService.ChangeVolume(newValue);
+    }
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
     
@@ -112,6 +119,7 @@ public partial class HomePageVM : ObservableObject
     public async Task AssignCV(CollectionView cv)
     {
         DisplayedSongsColView = cv;
+        
         if (CurrentUser is null)
         {
             return;
@@ -136,13 +144,14 @@ public partial class HomePageVM : ObservableObject
         }
 
     }
-    partial void OnTemporarilyPickedSongChanging(SongModelView oldValue, SongModelView newValue)
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
     {
         
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
         {
             newValue.CoverImagePath = string.Empty;
         }
+
         if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
         {
             if (newValue.CoverImagePath == oldValue?.CoverImagePath)
@@ -182,7 +191,11 @@ public partial class HomePageVM : ObservableObject
                 {
                     SyncLyricsCV!.ItemsSource = null;
                     SyncLyricsCV.ItemsSource = newValue;
-                    SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+
+                    if (SyncLyricsCV is not null)
+                    {
+                        SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                    }
                 }
 
             });
@@ -209,13 +222,16 @@ public partial class HomePageVM : ObservableObject
 
     void DoRefreshDependingOnPage()
     {
-        CurrentPositionInSeconds = 0;
-        CurrentPositionPercentage = 0;
+        //CurrentPositionInSeconds = 0;
+        //CurrentPositionPercentage = 0;
         LyricsSearchSongTitle = MySelectedSong?.Title;
         LyricsSearchArtistName = MySelectedSong?.ArtistName;
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
+        
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
-
+        PartOfNowPlayingSongs?.Clear(); 
+        
+        
         CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
         AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
         splittedLyricsLines = null;
@@ -224,6 +240,7 @@ public partial class HomePageVM : ObservableObject
         {
             case PageEnum.MainPage:
                 SearchPlaceHolder = "Type to search...";
+                DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
@@ -264,6 +281,101 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
+    public void UpdateContextMenuData(SongModelView? mySelectedSong, ObservableCollection<SongModelView>? MiniQueue=null)
+    {
+        if (DisplayedSongs == null || DisplayedSongs.Count == 0 || mySelectedSong == null)
+        {
+            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            return;
+        }
+
+        // **1. Check if mySelectedSong is already in PartOfNowPlayingSongs AND get its index**
+        int selectedSongIndexInCurrentList = -1;
+        if (PartOfNowPlayingSongs != null) // Check if PartOfNowPlayingSongs is not null
+        {
+            for (int i = 0; i < PartOfNowPlayingSongs.Count; i++)
+            {
+                if (PartOfNowPlayingSongs[i] == mySelectedSong) // Again, ensure proper Equals or unique ID comparison
+                {
+                    selectedSongIndexInCurrentList = i;
+                    break;
+                }
+            }
+        }
+
+        // **2. Check if index is in the "edge" ranges (0-10 or 90-101, assuming max 101 size)**
+        bool shouldRecenter = false;
+        int edgeMargin = 10; // Define the margin for "edge" (0-10 and from 101-10 down)
+        int listSize = PartOfNowPlayingSongs?.Count ?? 0; // Get current list size, handle null case
+
+        if (selectedSongIndexInCurrentList != -1 && listSize > 0) // Song is in the current list
+        {
+            if (selectedSongIndexInCurrentList <= edgeMargin || selectedSongIndexInCurrentList >= Math.Max(0, listSize - 1 - edgeMargin))
+            {
+                shouldRecenter = true; // Yes, re-center because it's at the edge
+            }
+        }
+
+
+        if (MiniQueue is null)
+        {
+            MiniQueue = DisplayedSongs;
+        }
+
+        // **3. (If shouldRecenter is true) -  Regenerate PartOfNowPlayingSongs (the original logic)**
+        int selectedSongIndex = -1; // Index in the *full* DisplayedSongs list
+        for (int i = 0; i < MiniQueue.Count; i++)
+        {
+            if (MiniQueue[i] == mySelectedSong)
+            {
+                selectedSongIndex = i;
+                break;
+            }
+        }
+
+        if (selectedSongIndex == -1)
+        {
+            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            Debug.WriteLine("Warning: MySelectedSong not found in MiniQueue list (even in re-center logic!).");
+            return;
+        }
+
+        int desiredChunkSize = 101;
+        int centerIndex = desiredChunkSize / 2;
+
+        int startIndex = Math.Max(0, selectedSongIndex - centerIndex);
+        int endIndex = Math.Min(MiniQueue.Count - 1, startIndex + desiredChunkSize - 1);
+
+        int actualChunkSize = endIndex - startIndex + 1;
+        if (actualChunkSize < desiredChunkSize)
+        {
+            int difference = desiredChunkSize - actualChunkSize;
+            startIndex = Math.Max(0, startIndex - difference);
+            endIndex = Math.Min(MiniQueue.Count - 1, startIndex + desiredChunkSize - 1);
+        }
+
+
+        PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+        for (int i = startIndex; i <= endIndex; i++)
+        {
+            PartOfNowPlayingSongs.Add(MiniQueue[i]);
+        }
+        try
+        {
+
+            if (PartOfNowPlayingSongsCV is not null && PartOfNowPlayingSongsCV.IsLoaded)
+            {
+                PartOfNowPlayingSongsCV.ItemsSource = PartOfNowPlayingSongs;
+                PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+                Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Weird bug "+ex.Message);
+        }
+    }
+    public CollectionView? QueueCV { get; set; }
 
     private void LoadAlbumsPage()
     {
@@ -341,6 +453,10 @@ public partial class HomePageVM : ObservableObject
 #endif
         if (TemporarilyPickedSong is not null)
         {
+            if (MySelectedSong is null)
+            {
+                MySelectedSong = TemporarilyPickedSong;
+            }
             if (string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
             {
                 return;
@@ -349,6 +465,10 @@ public partial class HomePageVM : ObservableObject
             {        
                 SynchronizedLyrics?.Clear();
             }      
+        }
+        if (MySelectedSong is null)
+        {
+            return;
         }
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics.Count < 1)
         {            
@@ -536,29 +656,29 @@ public partial class HomePageVM : ObservableObject
 
             if (CurrentPage == PageEnum.PlaylistsPage && DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playFirst: false); // Set the queue
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playImmediately: false); // Set the queue
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
             {
                 // Assuming TopTenPlayedSongs is available
                 var topTenSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic
-                PlayBackService.ReplaceAndPlayQueue(topTenSongs, playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(topTenSongs, playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or a more appropriate source
             }
             else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or Album source
             }
             else if (IsOnSearchMode && FilteredSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage); // Or Search source
             }
             else // Default playing on the main page (HomePage)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playFirst: false);
+                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -616,14 +736,28 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.PlayNextSong(true);
     }
 
-    [RelayCommand]
-    void PlayPreviousSong()
-    {
-        IsOnLyricsSyncMode = false;
-        SynchronizedLyrics?.Clear();
-        PlayBackService.PlayPreviousSong(true);
-    }
+    
+    private int _backPressCount = 0;
 
+    [RelayCommand]
+    async Task PlayPreviousSong()
+    {
+        _backPressCount++;
+        if (_backPressCount == 1)
+        {
+            await Task.Delay(300);
+            if (_backPressCount == 1)
+                PlaySong(TemporarilyPickedSong);  // Single press: restart song.
+            _backPressCount = 0;
+        }
+        else if (_backPressCount == 2)
+        {
+            _backPressCount = 0;
+            IsOnLyricsSyncMode = false;
+            SynchronizedLyrics?.Clear();
+            PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
+        }
+    }
     [RelayCommand]
     void DecreaseVolume()
     {
@@ -639,7 +773,7 @@ public partial class HomePageVM : ObservableObject
 
     [ObservableProperty]
     public partial double CurrentPositionInSeconds { get; set; }
-    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null)
+    public void SeekSongPosition(LyricPhraseModel? lryPhrase = null, double currPosPer=0)
     {
         if (lryPhrase is not null)
         {
@@ -650,7 +784,10 @@ public partial class HomePageVM : ObservableObject
         }
         if (TemporarilyPickedSong is null)
             return;
-        CurrentPositionInSeconds = CurrentPositionPercentage * TemporarilyPickedSong.DurationInSeconds;
+        if (currPosPer !=0 )
+        {
+            CurrentPositionInSeconds = currPosPer * TemporarilyPickedSong.DurationInSeconds;
+        }
         PlayBackService.SeekTo(CurrentPositionInSeconds);
     }
 
@@ -659,6 +796,41 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.ChangeVolume(VolumeSliderValue);
     }
+    [ObservableProperty]
+    public partial bool IsContextMenuOpened { get; set; } = false;
+    [ObservableProperty]
+    public partial int ContextMenuOpenedHeight { get; set; } = 0;
+    public async Task ShowHideContextMenuFromBtmBar(View callerView) // Pass callerView as a parameter
+    {
+        double windowHeight = Shell.Current.Window?.Height ?? DeviceDisplay.MainDisplayInfo.Height;
+        double targetTranslationYPageCaller = -windowHeight * 0.5; // Target translation for pageCaller (move up - you can adjust or remove this if only height animation is desired)
+        double desiredCallerViewHeight = 50; // **Define your desired full height for callerView here (e.g., 50)**
+        double collapsedCallerViewHeight = 0; // Height when context menu is closed (collapsed)
+
+        
+        var pageCaller = CurrentPageMainLayout; // Assuming CurrentPageMainLayout is your pageCaller ContentView
+
+        if (pageCaller == null || callerView == null)
+        {
+            Debug.WriteLine("Error: pageCaller or callerView is null. Make sure they are properly referenced.");
+            return; // Exit if either view is not found
+        }
+
+        if (IsContextMenuOpened)
+        {
+            callerView.HeightRequest = 105;
+            IsContextMenuOpened = false;
+            ContextMenuOpenedHeight = 0;
+        }
+        else
+        {
+            callerView.HeightRequest = 605;
+            IsContextMenuOpened = true;
+            ContextMenuOpenedHeight = 400;
+        }
+        
+    }
+
 
     /// <summary>
     /// Toggles repeat mode between 0, 1, and 2
@@ -736,7 +908,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [ObservableProperty]
-    ObservableCollection<SongModelView> recentlyAddedSongs;
+    public partial ObservableCollection<SongModelView> RecentlyAddedSongs { get; set; }
     public void LoadSongCoverImage()
     {
         
@@ -744,24 +916,24 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
-        if (DisplayedSongs.Count < 1)
+        if (DisplayedSongs is null || DisplayedSongs.Count < 1)
         {
-            return;
+            DisplayedSongs = SongsMgtService.AllSongs.ToObservableCollection();
+            if (DisplayedSongs.Count < 1)
+            {
+                return;
+            }
         }
-        RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
+        //RecentlyAddedSongs = GetXRecentlyAddedSongs(DisplayedSongs);
 
         if (DisplayedSongs is not null && DisplayedSongs.Count > 0)
         {
-            LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+            //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         }
 
 
         if (TemporarilyPickedSong is not null)
-        {
-            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-            PickedSong = TemporarilyPickedSong;
-            MySelectedSong = TemporarilyPickedSong;
+        {            
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
 
@@ -780,14 +952,19 @@ public partial class HomePageVM : ObservableObject
             {
                 TemporarilyPickedSong= DisplayedSongs!.First();
             }
-            
+
         }
+        PickedSong = TemporarilyPickedSong;
+        PickedSong.IsCurrentPlayingHighlight = true;
+        MySelectedSong = TemporarilyPickedSong;
         //TemporarilyPickedSong.CoverImagePath = FetchSongCoverImage();
         SongPickedForStats ??= new SingleSongStatistics();
         SongPickedForStats.Song = TemporarilyPickedSong;
 
         SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
         SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
+
+
     }
 
     private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
@@ -862,7 +1039,7 @@ public partial class HomePageVM : ObservableObject
             
                 PickedSong = TemporarilyPickedSong;
                 MySelectedSong = TemporarilyPickedSong;
-                AllSyncLyrics = null;
+                AllSyncLyrics.Clear();
                 splittedLyricsLines = null;
 
                 IsPlaying = true;
@@ -948,8 +1125,6 @@ public partial class HomePageVM : ObservableObject
 
     private bool IsLoading = false;
 
-    [ObservableProperty]
-    public partial ImageSource? PlayPauseImg { get; set; }
 
     void SubscribeToPlayerStateChanges()
     {
@@ -960,10 +1135,18 @@ public partial class HomePageVM : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
-                
+
                 if (TemporarilyPickedSong is not null)
                 {
-                    
+                    PickedSong ??= new SongModelView();
+                    MySelectedSong??= new SongModelView();
+
+                    if (MySelectedSong != TemporarilyPickedSong)
+                    {
+                        CurrentPositionInSeconds = 0;
+                        CurrentPositionPercentage = 0;
+                    }
+
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                     
                     switch (state)
@@ -987,11 +1170,6 @@ public partial class HomePageVM : ObservableObject
 
                             IsPlaying = true;
 
-                            if (DisplayedSongs?.Count > 1)
-                            {
-                                var ind = DisplayedSongs.IndexOf(TemporarilyPickedSong);
-                                NextSong = DisplayedSongs.ElementAtOrDefault(ind + 1);
-                            }
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
@@ -1010,13 +1188,12 @@ public partial class HomePageVM : ObservableObject
                             {
                                 await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             }
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong = null;
                             PickedSong = TemporarilyPickedSong;
 
                             IsPlaying = false;
 
-                            PlayPauseImg = ImageSource.FromFile("pausedark.svg");
                             //PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
@@ -1047,41 +1224,46 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribetoDisplayedSongsChanges()
     {
-        //PlayBackService.NowPlayingSongs            
-        //.Subscribe(songs =>
-        //{
-        //    TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-            
-            
-        //    if (AllLinks is null || AllLinks.Count < 0)
-        //    {
-        //        if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
-        //        {
-        //            AllLinks = SongsMgtService.AllLinks;
-        //        }
-            
-        //    }
-        //    MainThread.BeginInvokeOnMainThread( () =>
-        //    {
-        //        NowPlayingSongsUI= songs;
-        //        if (DisplayedSongs is null)
-        //        {
-        //            return;
-        //        }
-        //        if (DisplayedSongsColView is null)
-        //        {
-        //            return;
-        //        }
-        //        DisplayedSongsColView.ItemsSource = songs;
-        //        TotalNumberOfSongs = songs.Count;
-        //        //ReloadSizeAndDuration();
-        //    });
+        PlayBackService.NowPlayingSongs.Subscribe(songs =>
+        {
+            //UpdateContextMenuData(TemporarilyPickedSong, songs);
+            //PartOfNowPlayingSongs = songs.ToObservableCollection();
+            //if (PartOfNowPlayingSongsCV is not null)
+            //{
+            //    PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            //}
+            //TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
 
-        //    //ReloadSizeAndDuration();
-        //});
-        //IsLoadingSongs = false;
 
-      
+            //if (AllLinks is null || AllLinks.Count < 0)
+            //{
+            //    if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
+            //    {
+            //        AllLinks = SongsMgtService.AllLinks;
+            //    }
+
+            //}
+            //MainThread.BeginInvokeOnMainThread(() =>
+            //{
+            //    NowPlayingSongsUI = songs;
+            //    if (DisplayedSongs is null)
+            //    {
+            //        return;
+            //    }
+            //    if (DisplayedSongsColView is null)
+            //    {
+            //        return;
+            //    }
+            //    DisplayedSongsColView.ItemsSource = songs;
+            //    TotalNumberOfSongs = songs.Count;
+            //    //ReloadSizeAndDuration();
+            //});
+
+            //ReloadSizeAndDuration();
+        });
+        IsLoadingSongs = false;
+
+
     }
 
     //partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
@@ -1340,7 +1522,7 @@ public partial class HomePageVM : ObservableObject
                     
                     SongModelView song = new();
                     
-                    song = ObjectHelper.MapFromDictionary<SongModelView>(objData!);
+                    song = ObjectMapper.MapFromDictionary<SongModelView>(objData!);
                     CurrentQueue = 0;
                    
                 });
@@ -1357,14 +1539,35 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public void AddNextInQueue(SongModelView song)
     {
-        List<SongModelView> songs = [song];
+
+        var ind = PartOfNowPlayingSongs.IndexOf(TemporarilyPickedSong);
+        if (ind == 0)
+        {
+            return;
+        }
+        PartOfNowPlayingSongs.Insert(ind + 1, song);
+        if (PartOfNowPlayingSongsCV is not null)
+        {
+            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+        }
+        var songs = PartOfNowPlayingSongs.ToList();
         if (song is null)
         {
             return;
         }
-        PlayBackService.AddToImmediateNextInQueue(songs);
+        PlayBackService.ReplaceAndPlayQueue(songs);
     }
 
+
+    partial void OnIsFlyoutPresentedChanging(bool oldValue, bool newValue)
+    {
+        if (newValue)
+        {
+            UpdateContextMenuData(MySelectedSong);            
+        }
+
+    }
 
 
 

@@ -2,7 +2,7 @@
 <dx:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.NowPlayingBtmSheet"
-             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLightL}, Dark={StaticResource BackgroundDark}}"
+             
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:containerr="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
@@ -24,7 +24,7 @@
                 <Setter Property="BackgroundColor" Value="Transparent" />
             </Style>
             <Style TargetType="Label">
-                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+                <Setter Property="TextColor" Value="White"/>
             </Style>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
@@ -68,26 +68,13 @@
                         </dx:DXButton.Content>
                     </dx:DXButton>
                     
-                    <dx:DXButton Grid.Column="2" IconHeight="40" IconWidth="40" IconPlacement="Right" 
+                    <!--<dx:DXButton Grid.Column="2" IconHeight="40" IconWidth="40" IconPlacement="Right" 
                                  ShowContent="False" IconColor="Gray" VerticalOptions="Center"
                                  x:DataType="vm:HomePageVM" HeightRequest="50" WidthRequest="50"
                                  HorizontalOptions="End"
                                  Icon="heart2.png">
                         
-                        <!--<ImageButton.Triggers>
-                            <DataTrigger TargetType="ImageButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="True">
-                                <Setter Property="Source" Value="heart1a.png"/>
-                                
-                                <Setter Property="BackgroundColor" Value="Transparent"/>
-                            </DataTrigger>
-                            <DataTrigger TargetType="ImageButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="False">
-                                <Setter Property="Source" Value="heart2.png"/>
-                                
-                                <Setter Property="BackgroundColor" Value="Transparent"/>
-                            </DataTrigger>
-                        </ImageButton.Triggers>-->
-                        
-                    </dx:DXButton>
+                    </dx:DXButton>-->
                     
 
                   
@@ -95,18 +82,17 @@
 
             </dx:DXBorder>
 
-
         </DataTemplate>
     </dx:BottomSheet.Resources>
 
     <dx:DXScrollView Orientation="Vertical" x:Name="myPageView"                     
-                      BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundLightL}, Dark={StaticResource BackgroundDark}}">
+                      >
     <dx:DXStackLayout Orientation="Vertical" >
             <Grid ColumnDefinitions="*,*" >
             <dx:DXButton Icon="caretdown.png" Grid.Column="0" HorizontalOptions="Start" PressedBackgroundColor="DarkSlateBlue"
                          PressedIconColor="White" AnimationDuration="400"
                          WidthRequest="50" HeightRequest="50" IconHeight="40" IconWidth="40" IconIndent="0"
-                         BackgroundColor="Transparent" IconColor="White" Clicked="DXButton_Clicked"
+                         BackgroundColor="Transparent"  Clicked="DXButton_Clicked"
                          />
 
             </Grid>
@@ -122,7 +108,7 @@
 
                         <dx:DXStackLayout VerticalOptions="Center" >
                             <dx:DXCollectionView ItemsSource="{Binding SynchronizedLyrics}" BackgroundColor="Transparent"
-                                                ItemSpacing="5" SelectionMode="Single" HeightRequest="150" VerticalOptions="Center"
+                                                ItemSpacing="5" SelectionMode="Single" HeightRequest="350" VerticalOptions="Center"
                                                 SelectionChanged="SyncLyricsColView_SelectionChanged" x:Name="SyncLyricsColView"
                                                 SelectedItem="{Binding CurrentLyricPhrase}" >
                                 <dx:DXCollectionView.ItemTemplate>
@@ -152,12 +138,16 @@
                 <dx:DXButton Grid.Column="1">
                     <dx:DXButton.Triggers>
                         <DataTrigger TargetType="dx:DXButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="True">
-                            <Setter Property="Icon" Value="red_heart.gif"/>
+                            <Setter Property="IconWidth" Value="40"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="Icon" Value="heart2.png"/>
                             <Setter Property="IconColor" Value="DarkSlateBlue"/>
                             <Setter Property="BackgroundColor" Value="Transparent"/>
                         </DataTrigger>
                         <DataTrigger TargetType="dx:DXButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="False">
-                            <Setter Property="Icon" Value="heart.png"/>
+                            <Setter Property="Icon" Value="heartbroken.png"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="IconWidth" Value="40"/>
                             <Setter Property="IconColor" Value="White"/>
                             <Setter Property="BackgroundColor" Value="Transparent"/>
                         </DataTrigger>
@@ -172,8 +162,7 @@
                          x:Name="ProgressSlider"
                          TapReleased="ProgressSlider_TapReleased"
                          ValueStep="1"
-                         
-                Value="{Binding CurrentPositionInSeconds, Mode=TwoWay}" 
+                         Value="{Binding CurrentPositionInSeconds, Mode=TwoWay}" 
                          MaxValue="{Binding TemporarilyPickedSong.DurationInSeconds}">
 
                     <dx:DXSlider.TooltipAppearance>
@@ -220,13 +209,41 @@
                 </Grid.ColumnDefinitions>
 
                 <dx:DXButton Grid.Column="0" 
-                         IconColor="White" Icon="repeatoff1.png"
             x:Name="ToggleRepeat" Clicked="ToggleRepeat_Clicked">
-                    
+
+                    <dx:DXButton.Triggers>
+                        <DataTrigger TargetType="dx:DXButton" Value="0" Binding="{Binding CurrentRepeatMode}">
+                            
+                            <Setter Property="Icon" Value="repoff.png" />
+                            <Setter Property="IconHeight" Value="40" />
+                            <Setter Property="IconWidth" Value="40" />
+                        </DataTrigger>
+
+                        <DataTrigger TargetType="dx:DXButton" Value="1" Binding="{Binding CurrentRepeatMode}">
+                            
+                            <Setter Property="Icon" Value="repeat.png"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="IconWidth" Value="40"/>
+                        </DataTrigger>
+
+                        <DataTrigger TargetType="dx:DXButton" Value="2" Binding="{Binding CurrentRepeatMode}">
+                            
+                            <Setter Property="Icon" Value="repone.png"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="IconWidth" Value="40"/>
+                        </DataTrigger>
+
+                        <DataTrigger TargetType="dx:DXButton" Value="4" Binding="{Binding CurrentRepeatMode}">
+                            <Setter Property="Icon" Value="repone.png"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="IconWidth" Value="40"/>
+                        </DataTrigger>
+                    </dx:DXButton.Triggers>
                 </dx:DXButton>
 
-                <dx:DXButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}" IconColor="White" BackgroundColor="Transparent"
-                              Icon="stepbackward.png"/>
+                <dx:DXButton Grid.Column="1" Command="{Binding PlayPreviousSongCommand}"  
+                             BackgroundColor="Transparent" Icon="skipprevious.png"
+                             IconWidth="40" IconHeight="40" />
 
                 <dx:DXButton BackgroundColor="Transparent" x:Name="NowPlayingBtn"
         CornerRadius="40" Grid.Column="2"
@@ -235,17 +252,19 @@
                     <dx:DXButton.Content>
                         <dx:RadialProgressBar  WidthRequest="80" HeightRequest="80" 
                                     Grid.Column="2" ValueIndicatorFill="Transparent"
-                Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="6" Thickness="0" AllowAnimation="True"
+                Value="{Binding CurrentPositionPercentage}" ValueIndicatorThickness="6" 
+                                               
+                                               Thickness="0" AllowAnimation="True"
 Fill="Transparent" StartAngle="-180" SweepAngle="360">
                             <dx:RadialProgressBar.Content>
-                                <dx:DXImage HeightRequest="30" Opacity="0.8" >
+                                <dx:DXImage HeightRequest="45" Opacity="0.8" >
                                     <dx:DXImage.Triggers>
 
                                         <DataTrigger TargetType="dx:DXImage" Value="True" Binding="{Binding IsPlaying}">
-                                            <Setter Property="Source" Value="{AppThemeBinding Light=pauseicon.png, Dark=pausedark.png}"/>
+                                            <Setter Property="Source" Value="pause.png"/>
                                         </DataTrigger>
                                         <DataTrigger TargetType="dx:DXImage" Value="False" Binding="{Binding IsPlaying}">
-                                            <Setter Property="Source" Value="{AppThemeBinding Light=playicon.png, Dark=playdark.png}"/>
+                                            <Setter Property="Source" Value="playcircle.png"/>
                                         </DataTrigger>
 
                                     </dx:DXImage.Triggers>
@@ -260,13 +279,15 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
 
 
                 <dx:DXButton Grid.Column="3" Command="{Binding PlayNextSongCommand}" 
-                    IconColor="White" Icon="stepforward.png" BackgroundColor="Transparent">
+                     Icon="skipnext.png" BackgroundColor="Transparent" IconWidth="40" IconHeight="40" >
                 </dx:DXButton>
                 <dx:DXButton Grid.Column="4" Command="{Binding ToggleShuffleStateCommand}"
-                    IconColor="White" Icon="shuffleon.png" BackgroundColor="Transparent">
+                     Icon="shuffle.png" IconWidth="40" IconHeight="40" BackgroundColor="Transparent">
                     <dx:DXButton.Triggers>
                         <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:DXButton">
                             <Setter Property="Icon" Value="Darkslateblue"/>
+                            <Setter Property="IconHeight" Value="40"/>
+                            <Setter Property="IconWidth" Value="40"/>
                         </DataTrigger>
                     </dx:DXButton.Triggers>
                     <dx:DXButton.CommandParameter>
@@ -287,8 +308,8 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                              HorizontalOptions="Start" 
                              Icon="lyrics.png" VerticalOptions="Start"
                          BackgroundColor="Transparent"
-                         IconColor="White"
-                         IconHeight="30" IconWidth="30"
+                         
+                         IconHeight="40" IconWidth="40"
                          Grid.Column="0">
 
                 </dx:DXButton>
@@ -324,43 +345,12 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                         </dx:DXButton.Content>
                     </dx:DXButton>
                   
-                <dx:DXButton IconHeight="50" WidthRequest="50"  IconColor="White"
+                <dx:DXButton IconHeight="50" WidthRequest="50"  
                              
     ShowContent="False" IconPlacement="Left" Clicked="ShowMoreActionsContextMenuBtn_Clicked" VerticalOptions="Start"
     IconWidth="40" x:Name="ShowMoreActionsContextMenuBtn" Grid.Column="2"
-      IsVisible="True"       Icon="more.png" />
-                <!--<VerticalStackLayout Spacing="15"  HorizontalOptions="End">
-                    <VerticalStackLayout.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="dx:DXButton">
-                                <Setter Property="WidthRequest" Value="40"/>
-                                <Setter Property="Padding" Value="-2"/>
-                            </Style>
-                        </ResourceDictionary>
-                    </VerticalStackLayout.Resources>-->
-
-                    <!--<VerticalStackLayout BackgroundColor="Pink" HeightRequest="300"  WidthRequest="200">
-                        <dx:DXButton IconHeight="50" WidthRequest="50" BackgroundColor="Blue" IconColor="White"
-                            ShowContent="False" IconPlacement="Left" Clicked="ShowMoreActionsContextMenuBtn_Clicked"
-                            IconWidth="40" x:Name="ShowMoreActionsContextMenuBtn"
-                              IsVisible="False"       Icon="more.png">-->
-
-                            <!--<dx:DXExpander x:Name="ShowMoreActionsContextMenuExpander"
-                            IsExpanded="True" AllowStartupAnimation="True"
-                                           BackgroundColor="Pink"
-                            HorizontalExpandMode="FromCenter"
-                            VerticalExpandMode="FromStartToEnd">
-
-                                <dx:DXExpander.Content>-->
-                                   
-                                <!--</dx:DXExpander.Content>
-                            </dx:DXExpander>-->
-
-                        <!--</dx:DXButton>
-                    </VerticalStackLayout>-->
-
-
-                <!--</VerticalStackLayout>-->
+      IsVisible="True"       Icon="more1.png" />
+              
 
             </Grid>
             <dx:DXExpander IsExpanded="False" 

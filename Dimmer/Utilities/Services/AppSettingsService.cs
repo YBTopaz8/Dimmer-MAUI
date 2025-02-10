@@ -156,6 +156,7 @@ public class AppSettingsService : IAppSettingsService
 
     public static ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode)
     {
+        colToSort = colToSort.ToObservableCollection();
         switch (mode)
         {
             case SortingEnum.TitleAsc:

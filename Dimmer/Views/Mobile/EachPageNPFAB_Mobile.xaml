@@ -29,7 +29,7 @@
             <dx:DXExpander.Content>
                 <Grid WidthRequest="270" HeightRequest="150" BackgroundColor="Transparent">
                     <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" BackgroundColor="Transparent"
-                           Opacity="0.60" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
+                           Opacity="0.30" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
                     <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
                                BackgroundColor="Transparent" 
                                CornerRadius="25" VerticalOptions="Center"
@@ -43,23 +43,22 @@
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                         Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
-                                  IconColor="White" Icon="stepbackward.png">
+                                  Icon="stepbackward.png">
                             
                         </dx:DXButton>
-                        <dx:DXButton IconColor="White" Clicked="DXButton_Clicked"
+                        <dx:DXButton Clicked="DXButton_Clicked"
                                      >
                                 <dx:DXButton.Triggers>
                                     <DataTrigger TargetType="dx:DXButton" Value="True" Binding="{Binding IsPlaying}">
                                         <Setter Property="Icon" Value="pause.png"/>
                                     </DataTrigger>
                                     <DataTrigger TargetType="dx:DXButton" Value="False" Binding="{Binding IsPlaying}">
-                                        <Setter Property="Icon" Value="play.png"/>
+                                        <Setter Property="Icon" Value="playcircle.png"/>
                                     </DataTrigger>
                                 </dx:DXButton.Triggers>
                         </dx:DXButton>
 
-                        <dx:DXButton Command="{Binding PlayNextSongCommand}"
-                                  IconColor="White" Icon="stepforward.png">
+                        <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="stepforward.png">
                         </dx:DXButton>
                     </HorizontalStackLayout>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 

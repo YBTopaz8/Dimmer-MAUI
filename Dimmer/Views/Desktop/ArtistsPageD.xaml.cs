@@ -33,6 +33,7 @@ public partial class ArtistsPageD : ContentPage
         //AllAlbumsColView.SelectedItem = MyViewModel.SelectedAlbumOnArtistPage;
 
         MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
+        MyViewModel.CurrentPageMainLayout = MainDock;
         AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
 
         if (MyViewModel.MySelectedSong is null)
@@ -80,11 +81,16 @@ public partial class ArtistsPageD : ContentPage
         //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
     }
 
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
         MyViewModel.PlaySong(song);
     }
 
@@ -100,8 +106,6 @@ public partial class ArtistsPageD : ContentPage
         MyViewModel.AllArtistsAlbumSongs = MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
-
-    ArtistModelView currentlySelectedArtist;
     private void ArtistView_TouchDown(object sender, EventArgs e)
     {
         SfEffectsView view = (SfEffectsView)sender;
@@ -187,6 +191,22 @@ public partial class ArtistsPageD : ContentPage
         }
         //return Task.CompletedTask;
     }
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        supportedFilePaths ??= new();
+        isAboutToDropFiles = false;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
+        {
+            return;
+        }
+        send.Opacity = 1;
+        if (supportedFilePaths.Count > 0)
+        {
+            await send.AnimateRippleBounce();
+        }
+    }
 
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
@@ -206,21 +226,7 @@ public partial class ArtistsPageD : ContentPage
         }
     }
 
-    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
-    {
-        supportedFilePaths ??= new();
-        isAboutToDropFiles = false;
-        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
-        if (send is null)
-        {
-            return;
-        }
-        send.Opacity = 1;
-        if (supportedFilePaths.Count > 0)
-        {
-            await send.AnimateRippleBounce();
-        }
-    }
+    
+    
 
 }

@@ -1,12 +1,12 @@
-﻿using CSCore.Codecs;
-using CSCore.SoundOut;
-using CSCore.Streams.Effects;
-using CSCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CSCore.Streams;
+﻿using Windows.Media;
+using Windows.Media.Core;
+using Windows.Media.Playback;
+using Windows.Storage.Streams;
 using System.Windows.Interop;
 using Microsoft.Maui.Platform;
+using System.Windows.Media;
+using MediaPlayer = Windows.Media.Playback.MediaPlayer;
+using MediaPlayers = System.Windows.Media.MediaPlayer;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -15,46 +15,11 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     static DimmerAudioService? current;
     public static IDimmerAudioService Current => current ??= new DimmerAudioService();
 
-    private WasapiOut soundOut;
-    private IWaveSource? currentWaveSource;
-    //private IWaveSource? _nextWaveSource;
-    private Equalizer? equalizer;
-
-    private HwndSource? _hwndSource;
-    
+    HomePageVM? ViewModel { get; set; }
+    MediaPlayer? mediaPlayer;
+    MediaPlay? CurrentMedia { get; set; }
     public DimmerAudioService()
     {
-        soundOut = new WasapiOut();
-
-        Debug.WriteLine("DimmerAudioService constructor called.");
-        Debug.WriteLine($"soundOut: {soundOut}, currentWaveSource: {currentWaveSource}");
-
-    }
-
-    private LoopStream? _loopStream;
-    private bool _isLoopingSong = false;
-
-    public bool IsLoopingSong
-    {
-        get => _isLoopingSong;
-        set
-        {
-            _isLoopingSong = value;
-            if (_isLoopingSong)
-            {
-                _loopStream = new LoopStream(currentWaveSource);
-                currentWaveSource = _loopStream; // Replace currentWaveSource
-                                                 // Re-initialize WasapiOut with the new looped wave source (if needed)
-            }
-            else
-            {
-                // Revert back to non-looped wave source (if needed) - more complex to implement cleanly
-                // ... (You might need to store the original non-looped wave source) ...
-                _loopStream?.Dispose();
-                _loopStream = null;
-                // ... Re-initialize WasapiOut with the original wave source ...
-            }
-        }
     }
 
     private bool isPlaying;
@@ -72,21 +37,26 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         }
     }
 
-    public double Duration => currentWaveSource?.GetLength().TotalSeconds ?? 0;
-    public double CurrentPosition => currentWaveSource?.GetPosition().TotalSeconds ?? 0;
 
+    public double Duration => mediaPlayer?.NaturalDuration.TotalSeconds ?? 0;
+    public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
     public double Volume
     {
-        get => soundOut?.Volume ?? 0;
+        get => mediaPlayer?.Volume ?? 0;
+
         set
         {
-            if (soundOut != null)
+            if (mediaPlayer is not null)
             {
-                soundOut.Volume = Math.Clamp((float)value, 0f, 1f);
+                mediaPlayer.Volume = Math.Clamp(value, 0, 1);
             }
         }
     }
-
+    public bool Muted
+    {
+        get => mediaPlayer?.IsMuted ?? false;
+        set => mediaPlayer.IsMuted = value;
+    }
     public double Balance
     {
         get => 0; // CSCore does not natively support balance
@@ -94,9 +64,8 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
     private readonly object resourceLock = new();
     private bool disposed = false;
-    private SongModelView? currentMedia;
     private SemaphoreSlim semaphoreSlim = new(1, 1);
-    public HomePageVM? ViewModel { get; set; }
+    
     public event EventHandler<bool>? IsPlayingChanged;
     public event EventHandler? PlayEnded;
     public event EventHandler? PlayNext;
@@ -111,41 +80,37 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
 
     public void Pause()
     {
-        soundOut?.Pause();
+        mediaPlayer?.Pause();
         IsPlaying = false;
+        IsPlayingChanged?.Invoke(this, false);
+        
     }
 
     public void Resume(double positionInSeconds)
     {
-        if (currentWaveSource != null)
-        {
-            currentWaveSource.SetPosition(TimeSpan.FromSeconds(positionInSeconds));
-        }
-        soundOut?.Play();
+        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
+        mediaPlayer.Play();
         IsPlaying = true;
     }
 
     public void Play(bool s)
     {
-        lock (resourceLock)
+        if (mediaPlayer != null)
         {
-            soundOut?.Play();
+            mediaPlayer.Play();
             IsPlaying = true;
+            IsPlayingChanged?.Invoke(this, true);
         }
     }
 
 
-    public void Stop()
-    {
-        lock (resourceLock)
-        {
-            soundOut?.Stop();
-            IsPlaying = false;
-        }
-    }
     public void SetCurrentTime(double positionInSec)
     {
-        currentWaveSource?.SetPosition(TimeSpan.FromSeconds(positionInSec));
+        if (mediaPlayer == null)
+        {
+            return;
+        }
+        mediaPlayer.Position = TimeSpan.FromSeconds(positionInSec);
     }
 
 
@@ -160,300 +125,171 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         if (disposed)
             return; // Prevent multiple disposals
 
-        if (disposing)
-        {
-            // ... In Dispose() ...
-            _loopStream?.Dispose();
-            _loopStream = null;
-            // Clean up managed resources
-            soundOut?.Stop();
-            soundOut?.Dispose();
-            soundOut = new();
-
-            currentWaveSource?.Dispose();
-            currentWaveSource = null;
-
-            equalizer?.Dispose();
-            equalizer = null;
-        }
 
         // Clean up unmanaged resources, if any
         disposed = true;
     }
 
-    //private SongModelView? _nextMedia; // To store the next media to be played
 
-    public async Task Initialize(SongModelView? media, byte[]? imageBytes) // Changed to async void - be mindful of exceptions
+    private MediaPlaybackItem? MediaPlaybackItem(MediaPlay media)
     {
-        await PrepareMediaAsync(media); // Call the async version
-    }
-
-    private async Task PrepareMediaAsync(SongModelView? media) // Made PrepareMedia async and returning Task
-    {
-        Dispose();
-
-        if (media == null || string.IsNullOrEmpty(media.FilePath))
-        {
-            Debug.WriteLine("Invalid media file");
-            return;
-        }
-        currentMedia = media;
         try
         {
-            // **Move audio source creation to background thread**
-            IWaveSource? waveSource = await Task.Run(() => // Run the heavy lifting in a background thread
-            {
-                try
-                {
-                    var source = CodecFactory.Instance.GetCodec(media.FilePath)
-                                               .ToSampleSource()
-                                               .ToStereo();
-                    equalizer = Equalizer.Create10BandEqualizer(source);
-                    return equalizer.ToWaveSource(); // Return the WaveSource
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error creating wave source in background thread: {ex.Message}");
-                    return null; // Or throw the exception to be caught outside Task.Run
-                }
-            });
+            if (media == null || media.Stream == null)
+                return null;
 
-            if (waveSource == null) // Handle potential error during wave source creation
+            // Copy the byte stream to an InMemoryRandomAccessStream
+            var randomAccessStream = new InMemoryRandomAccessStream();
+            using (var writer = new DataWriter(randomAccessStream.GetOutputStreamAt(0)))
             {
-                Debug.WriteLine("Failed to create wave source.");
-                return;
+                var buffer = new byte[media.Stream.Length];
+                _ = media.Stream.Read(buffer, 0, buffer.Length);
+                writer.WriteBytes(buffer);
+                writer.StoreAsync().GetResults();
             }
 
-            currentWaveSource = waveSource;
+            // Create MediaSource from the InMemoryRandomAccessStream
+            var mediaSource = MediaSource.CreateFromStream(randomAccessStream, string.Empty);
+            var mediaItem = new MediaPlaybackItem(mediaSource);
 
-            // Initialize WasapiOut and start playback (can likely stay on calling thread now)
-            soundOut = new WasapiOut();
-            soundOut.Initialize(currentWaveSource);
-            AttachStoppedHandler();
-            Play(true); // Start playback
-            RegisterMediaKeys(); // Register media keys after successful initialization
+            // Set properties for the media item
+            var props = mediaItem.GetDisplayProperties();
+            props.Type = MediaPlaybackType.Music;
+            if (!string.IsNullOrEmpty(media.Name))
+                props.MusicProperties.Title = media.Name;
+            if (!string.IsNullOrEmpty(media.Author))
+                props.MusicProperties.Artist = media.Author;
 
-            ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
+            // Set the thumbnail if available
+            if (media.ImageBytes != null)
+            {
+                var thumbnailStream = new InMemoryRandomAccessStream();
+                using (var writer = new DataWriter(thumbnailStream.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(media.ImageBytes);
+                    writer.StoreAsync().GetResults();
+                }
+                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(thumbnailStream);
+            }
+            mediaItem.AutoLoadedDisplayProperties = AutoLoadedDisplayPropertyKind.Music;
 
+            mediaItem.ApplyDisplayProperties(props);
+            return mediaItem;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error initializing media: {ex.Message}");
+            Debug.WriteLine($"Something happened here {ex.Message} inter {ex.InnerException?.Message}, stack {ex.StackTrace}, source {ex.Source}");
+            return null;
         }
     }
-    private void RegisterMediaKeys()
+
+
+    //private SongModelView? _nextMedia; // To store the next media to be played
+
+    public void Initialize(SongModelView? media, byte[]? ImageBytes) // Changed to async void - be mindful of exceptions
     {
-        if (_hwndSource != null)
-            return;
-
-        // Get the dispatcher of the window and check if its on the main thread
-        if (!MainThread.IsMainThread)
+        CurrentMedia?.Stream?.Dispose();
+        if (media is not null)
         {
-            MainThread.BeginInvokeOnMainThread(() => RegisterMediaKeys());
-            return;
-        }
-
-        // Get the window from MAUI's IPlatformApplication
-        var mauiWindow = IPlatformApplication.Current?.Services.GetService<DimmerWindow>();
-        if (mauiWindow is null)
-        {
-            Debug.WriteLine($"Could not register media keys as window could not be found.");
-            return;
-        }
-
-        // Get the native window handle
-        var nativeWindowHandle = mauiWindow.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
-
-        if (nativeWindowHandle is null)
-        {
-            Debug.WriteLine($"Could not register media keys as handle could not be found.");
-            return;
-        }
-        // Create a HwndSource to get the handle of our main window.
-        var hwndSource = new HwndSource(new HwndSourceParameters
-        {
-            ParentWindow= nativeWindowHandle.GetWindowHandle(),
-            WindowStyle = 0
-        });
-
-
-        _hwndSource = hwndSource;
-        // Event listener for processing messages (including media key events).
-        hwndSource.AddHook(WndProc);
-
-    }
-    private void UnregisterMediaKeys()
-    {
-        if (_hwndSource == null)
-            return;
-
-        _hwndSource.RemoveHook(WndProc);
-        _hwndSource.Dispose();
-        _hwndSource = null;
-
-    }
-
-    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        const int WM_APPCOMMAND = 0x0319;
-        const int APPCOMMAND_MEDIA_PLAY_PAUSE = 0x0E0000;
-        const int APPCOMMAND_MEDIA_STOP = 0x0E0001;
-        const int APPCOMMAND_MEDIA_NEXTTRACK = 0x0E000B;
-        const int APPCOMMAND_MEDIA_PREVIOUSTRACK = 0x0E000C;
-
-        if (msg == WM_APPCOMMAND)
-        {
-            int command = (int)(lParam.ToInt64() & 0xFFFF0000) >> 16;
-
-            switch (command)
+            // Directly use the file path to create a URI for local files
+            using var fileStreamm = File.OpenRead(media.FilePath);
+            var memStream = new MemoryStream();
+            fileStreamm.CopyTo(memStream);
+            memStream.Position = 0;
+            CurrentMedia = new MediaPlay()
             {
-                case APPCOMMAND_MEDIA_PLAY_PAUSE:
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        if (IsPlaying)
-                        {
-                            Pause();
-                        }
-                        else
-                        {
-                            Resume(currentWaveSource?.GetPosition().TotalSeconds ?? 0);
-                        }
-                    });
-                    handled = true;
-                    break;
-
-                case APPCOMMAND_MEDIA_STOP:
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        Stop();
-                    });
-                    handled = true;
-                    break;
-
-                case APPCOMMAND_MEDIA_NEXTTRACK:
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        PlayNext?.Invoke(this, EventArgs.Empty);
-                    });
-                    handled = true;
-                    break;
-                case APPCOMMAND_MEDIA_PREVIOUSTRACK:
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        PlayPrevious?.Invoke(this, EventArgs.Empty);
-                    });
-                    handled = true;
-                    break;
-            }
-
-        }
-        return IntPtr.Zero;
-    }
-    private void AttachStoppedHandler() // Helper method to attach Stopped handler (for cleaner code)
-    {
-        if (soundOut != null)
-        {
-            soundOut.Stopped += async (s, e) => // Re-attach the Stopped handler to the *new* soundOut
-            {
-                lock (resourceLock)
-                {
-                    if (disposed)
-                    {
-                        IsPlaying = false;
-                        PlayEnded?.Invoke(this, EventArgs.Empty);
-                        return;
-                    }
-
-                    IsPlaying = false;
-                    PlayEnded?.Invoke(this, EventArgs.Empty); // Normal "Play Ended"
-                }
+                SongId = media.LocalDeviceId,
+                Name = media.Title,
+                Author = media!.ArtistName!,
+                Stream = memStream,
+                ImageBytes = ImageBytes is not null ? ImageBytes : null,
+                DurationInMs = (long)(media.DurationInSeconds * 1000),
             };
+
+        }
+        try
+        {
+            ViewModel ??= IPlatformApplication.Current?.Services.GetService<HomePageVM>()!;
+            var curMedia = MediaPlaybackItem(CurrentMedia!);
+            if (curMedia == null)
+                return;
+            if (mediaPlayer == null)
+            {
+
+                mediaPlayer = new MediaPlayer()
+                {
+                    Source = curMedia,
+                    AudioCategory = MediaPlayerAudioCategory.Media,
+                };
+
+
+
+                mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
+                mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+                mediaPlayer.CommandManager.ShuffleBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+
+                mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
+                mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+
+                mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
+
+                mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
+                mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+                //mediaPlayer.Volume = 1;
+                mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
+            }
+            else
+            {
+                Pause();
+                mediaPlayer.Source = curMedia;
+            }
+        }
+        catch (Exception)
+        {
+            Shell.Current.DisplayAlert("Oops! An Error Occured!", "This is a very very rare error but doesn't affect the app much, Carry On :D", "OK Thanks");
         }
     }
 
-
-    private void DisposeCurrentPlaybackResources() // Helper method to dispose soundOut, currentWaveSource, etc.
+    private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
     {
-        soundOut?.Stop();
-        soundOut?.Dispose();
-        soundOut = null;
+        Debug.WriteLine(args.Error);
+        Debug.WriteLine(args.ErrorMessage);
+        Debug.WriteLine(args.ExtendedErrorCode);
 
-        currentWaveSource?.Dispose();
-        currentWaveSource = null;
 
-        equalizer?.Dispose(); // Dispose equalizer as well in transition
-        equalizer = null;
     }
 
-
-
-
-    // Placeholder - Implement your playlist logic to get the next song
-    private SongModelView? GetNextMediaItemFromPlaylist()
+    private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
     {
-
-        //if (ViewModel?.CurrentPlaylist == null || ViewModel.CurrentPlaylist.Count <= 1 || currentMediaItem == null)
-        //{
-        //    return null; // No playlist or only one song, or no current song
-        //}
-
-        //// --- Example Playlist Logic (Sequential Playback) ---
-        //int currentIndex = ViewModel.CurrentPlaylist.IndexOf(currentMediaItem);
-        //if (currentIndex != -1 && currentIndex < ViewModel.CurrentPlaylist.Count - 1)
-        //{
-        //    return ViewModel.CurrentPlaylist[currentIndex + 1]; // Get the next song in the list
-        //}
-        //else
-        //{
-        //    return null; // Reached end of playlist (or error) - you might want to loop back to the beginning here if desired
-        //}
-        return null;
+        IsPlaying = false;
+        PlayEnded?.Invoke(sender, EventArgs.Empty);
+        //PlayNext?.Invoke(sender, EventArgs.Empty);
+    }
+    private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
+    {
+        PlayNext?.Invoke(sender, EventArgs.Empty);
+    }
+    private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)
+    {
+        PlayPrevious?.Invoke(sender, EventArgs.Empty);
+    }
+    private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
+    {
+        IsPlayingChanged?.Invoke(sender, false);
+    }
+    private void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
+    {
+        IsPlayingChanged?.Invoke(sender, true);
     }
 
-
-public void ApplyEqualizerSettings(float[] bands)
-{
-    if (equalizer == null || bands.Length != equalizer.SampleFilters.Count)
-        throw new ArgumentException("Invalid equalizer settings.");
-
-    for (int i = 0; i < bands.Length; i++)
+    public void ApplyEqualizerSettings(float[] bands)
     {
-        equalizer.SampleFilters[i].AverageGainDB = bands[i];
+        throw new NotImplementedException();
     }
-}
-
-
-    #region Equalizer Presets
-
-    private static readonly Dictionary<EqualizerPresetName, float[]> EqualizerPresets = new Dictionary<EqualizerPresetName, float[]>
-{
-    { EqualizerPresetName.Flat,      new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, // Flat EQ
-    { EqualizerPresetName.Rock,      new float[] { 4, 2, 0, 2, 4, 2, 0, 0, 2, 4 } }, // Rock - Boosted mids and highs
-    { EqualizerPresetName.Pop,       new float[] { 2, 3, 1, 0, 1, 2, 3, 2, 1, 0 } }, // Pop - Emphasized bass and treble slightly
-    { EqualizerPresetName.Classical, new float[] { 0, 0, 2, 4, 5, 4, 2, 0, 0, 0 } }, // Classical - Emphasized mids for clarity
-    { EqualizerPresetName.Jazz,      new float[] { 1, 2, 3, 2, 1, 0, 1, 2, 3, 2 } }, // Jazz - Warm, slightly boosted mids and highs
-    { EqualizerPresetName.Dance,     new float[] { 5, 3, 0, 0, 2, 4, 3, 2, 1, 0 } }, // Dance - Heavy bass and boosted highs
-    { EqualizerPresetName.BassBoost, new float[] { 8, 6, 4, 2, 0, 0, 0, 0, 0, 0 } }, // Bass Boost - Extreme bass boost
-    { EqualizerPresetName.TrebleBoost, new float[] { 0, 0, 0, 0, 0, 0, 2, 4, 6, 8 } }  // Treble Boost - Extreme treble boost
-};
 
     public void ApplyEqualizerPreset(EqualizerPresetName presetName)
     {
-        if (equalizer != null && EqualizerPresets.TryGetValue(presetName, out float[]? value))
-        {
-            ApplyEqualizerSettings(value);
-        }
-        else
-        {
-            Debug.WriteLine($"Equalizer not initialized or Preset '{presetName}' not found.");
-        }
+        throw new NotImplementedException();
     }
-
-    public List<string> GetEqualizerPresetNames()
-    {
-        return EqualizerPresets.Keys.Select(key => key.ToString()).ToList();
-    }
-
-    #endregion Equalizer Presets
-    
 }
+    

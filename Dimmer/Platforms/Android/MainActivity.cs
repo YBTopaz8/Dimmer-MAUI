@@ -33,19 +33,18 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         {
             Intent intent = new Intent();
             intent.SetAction(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission);
-            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", this.PackageName!, null);
+            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", this.PackageName!, null)!;
             intent.SetData(uri);
             StartActivity(intent);
         }
 
         //Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#000000"));
 #if RELEASE
-        Window.SetStatusBarColor(Android.Graphics.Color.Black);
+        Window.SetStatusBarColor(Android.Graphics.Color.DarkSlateBlue);
 #elif DEBUG
         Window.SetStatusBarColor(Android.Graphics.Color.ParseColor("#861B2D"));
 #endif
-        Window.SetNavigationBarColor(Android.Graphics.Color.Black);
-        ////Window.SetNavigationBarColor(Android.Graphics.Color.ParseColor("#0C0E0D"));
+        
         CrossCurrentActivity.Current.Init(this, savedInstanceState);
 
         NotificationHelper.CreateNotificationChannel(Platform.AppContext);

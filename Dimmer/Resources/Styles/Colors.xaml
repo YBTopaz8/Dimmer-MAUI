@@ -18,7 +18,7 @@
     <!-- Muted Light Blue -->
     <Color x:Key="SecondaryLight">#A2B5E2</Color>
     <!-- Hover state for secondary -->
-    <Color x:Key="Secondary">#3A1AC4</Color>
+    <Color x:Key="Secondary">#B197FC</Color>
     <!-- Dark gray for hover effect -->
     <Color x:Key="SecondaryText">#D3D3D3</Color>
     <!-- Light Gray for secondary text -->

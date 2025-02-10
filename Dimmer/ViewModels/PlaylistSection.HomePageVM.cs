@@ -136,8 +136,8 @@ public partial class HomePageVM
             RefreshPlaylists();
         }
         MySelectedSong = PickedSong;
-        var allPlaylistNames = DisplayedPlaylists.Select(x => x.Name).ToList();
-        _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames));
+        var allPlaylistNames = DisplayedPlaylists?.Select(x => x.Name).ToList();
+        _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames!));
         
     }
 

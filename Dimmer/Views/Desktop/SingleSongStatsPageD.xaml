@@ -19,7 +19,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <toolkit:DockLayout Margin="5,0">
+    <toolkit:DockLayout Margin="5,0"  x:Name="MainDock">
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCW"/>

@@ -5,8 +5,7 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-        
-        
+
     }
 
     public HomePageVM MyViewModel { get; set; }
@@ -19,12 +18,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.1-debug";
-        DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        DimmerTitleBar.Subtitle = "v1.2-debug";
+        DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.1-release";
+        DimmerTitleBar.Subtitle = "v1.2-release";
 #endif
 
         if (!InitChecker())
@@ -157,9 +156,6 @@ public partial class DimmerWindow : Window
                 }
                 try
                 {
-                    await Task.Delay(3000);
-                    await Shell.Current.DisplayAlert("Info", "Search is Not Available ...Yet!", "Ok");
-                    return;
                     await Task.Delay(300, token);
 
                     if (!string.IsNullOrEmpty(txt))

@@ -35,7 +35,13 @@ public static class CustomAnimsExtensions
             bounceHeight *= 0.5; // Diminishes like a ripple
         }
     }
-
+    public static async Task AnimateHeight(this View view, double targetHeight, uint duration = 250, Easing? easing = null)
+    {
+        var animation = new Animation(v => view.HeightRequest = v, view.HeightRequest, targetHeight);
+        animation.Commit(view, "HeightAnimation", 16, duration, easing, null, null);
+        
+        await Task.Delay((int)duration);        
+    }
     public static async Task AnimateFocusModePointerEnter(this View element,double duration=250, double endScale = 1)
     {
         // Animate scale-up to 1.2 and opacity to 1 with a smooth transition
@@ -88,17 +94,6 @@ public static class CustomAnimsExtensions
         await element.TranslateTo(0, 0, 250, Easing.CubicInOut);
         element.HeightRequest = element.Height + heightToSlide;
     }
-
-    // Helper method to animate HeightRequest smoothly
-    private static async Task AnimateHeightRequest(this View element, double targetHeight, uint duration)
-    {
-        var initialHeight = element.Height;
-        var heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight);
-
-        heightAnimation.Commit(element, "HeightRequestAnimation", length: duration, easing: Easing.CubicInOut);
-        await Task.Delay((int)duration); // Wait for the animation to complete
-    }
-
 
     public static async Task AnimateFontSizeTo(this Label view, double toFontSize, uint duration)
     {

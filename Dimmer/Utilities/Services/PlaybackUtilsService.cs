@@ -106,7 +106,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
        await SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
 
-        return true;
+    return true;
     }
 
 

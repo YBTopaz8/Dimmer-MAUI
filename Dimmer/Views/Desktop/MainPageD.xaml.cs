@@ -1,3 +1,6 @@
+using Microsoft.Maui.Platform;
+using System.Diagnostics;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
@@ -9,6 +12,7 @@ public partial class MainPageD : ContentPage
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
 
+
     }
     public HomePageVM MyViewModel { get; }
 
@@ -17,7 +21,7 @@ public partial class MainPageD : ContentPage
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
-
+        MyViewModel.CurrentPageMainLayout = MainDock;
         SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
 
         if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
@@ -26,10 +30,12 @@ public partial class MainPageD : ContentPage
         }
         if(!isIniAssign)
         {
+            
             await MyViewModel.AssignCV(SongsColView);
+            
             isIniAssign = true;
         }
-
+        ScrollToSong_Clicked(this, EventArgs.Empty);
 
         // use opportunity login to parse and last fm
     }
@@ -47,9 +53,10 @@ public partial class MainPageD : ContentPage
             {
                 return;
             }
-            MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
-            
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+
+            if (SongsColView is null)
+                return;
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -57,13 +64,23 @@ public partial class MainPageD : ContentPage
         }
     }
 
-    int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
-        
-        if (SongsColView.IsLoaded && MyViewModel.TemporarilyPickedSong is not null)
+        try
         {
+            if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
+            {
+                return;
+            }
+            MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
+            if (SongsColView is null)
+                return;
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error when scrolling " + ex.Message);
         }
     }
 
@@ -96,7 +113,7 @@ public partial class MainPageD : ContentPage
 
     bool isPointerEntered;
 
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
@@ -105,7 +122,7 @@ public partial class MainPageD : ContentPage
         isPointerEntered = true;
     }
 
-    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    private void UserHoverOutSongInColView(object sender, PointerEventArgs e)
     {
         var send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
@@ -194,24 +211,6 @@ public partial class MainPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
-
-    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
-    {
-        supportedFilePaths ??= new();
-        isAboutToDropFiles = false;
-        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
-        if (send is null)
-        {
-            return;
-        }
-        send.Opacity = 1;
-        if (supportedFilePaths.Count > 0)
-        {
-            await send.AnimateRippleBounce();
-        }
-    }
-
 
     private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
@@ -305,15 +304,23 @@ public partial class MainPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        if (MyViewModel.TemporarilyPickedSong is not null)        
+        if (MyViewModel.TemporarilyPickedSong is not null )        
         {
             MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        }
+        if (MyViewModel.PickedSong is not null )        
+        {
+            MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
         }
 
 
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-        
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
         MyViewModel.PlaySong(song);
     }
 
@@ -354,9 +361,137 @@ public partial class MainPageD : ContentPage
         MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
     }
 
-    private async void SfEffectsView_TouchUp(object sender, EventArgs e)
+    private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.ShowContextMenu();
+        MyViewModel.ToggleFlyout();
+        
+        //await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
+
+    private void ToggleDrawer_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleFlyout();
+    }
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        supportedFilePaths ??= new();
+        isAboutToDropFiles = false;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
+        {
+            return;
+        }
+        send.Opacity = 1;
+        if (supportedFilePaths.Count > 0)
+        {
+            await send.AnimateRippleBounce();
+        }
+    }
+
+
+    private void MainBody_Unloaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var send = sender as View;
+
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
+
+        mainLayout.PointerPressed -= S_PointerPressed;
+#endif
+    }
+    private void MainBody_Loaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var send = sender as View;
+
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
+        
+        mainLayout.PointerPressed += S_PointerPressed;
+#endif
+    }
+#if WINDOWS
+    private void S_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            var nativeElement = this.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+            if (nativeElement == null)
+                return;
+
+            var properties = e.GetCurrentPoint(nativeElement).Properties;
+
+            if (properties != null)
+            {
+                Debug.WriteLine("Delta: " + properties.MouseWheelDelta);
+                Debug.WriteLine("UPdate Kind: " + properties.PointerUpdateKind);
+                Debug.WriteLine("Pressure: "+ properties.Pressure);
+
+                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " +e.KeyModifiers);
+                if (properties.IsRightButtonPressed)
+                {                    
+                    MyViewModel.ToggleFlyout();
+
+                    Debug.WriteLine("Right Mouse was Clicked!");
+                }
+                if (properties.IsXButton1Pressed)
+                {
+                    Debug.WriteLine("mouse 4 click!");
+                }
+                if (properties.IsXButton2Pressed)
+                {
+                    Debug.WriteLine("mouse 5!");
+                }
+                if (properties.IsEraser)
+                {
+                    Debug.WriteLine("eraser use!");
+
+                }
+                if (properties.IsMiddleButtonPressed)
+                {
+                    Debug.WriteLine("mouse wheel click!");
+                }
+                if (properties.IsHorizontalMouseWheel)
+                {
+                    Debug.WriteLine("idk..");
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+        //throw new NotImplementedException();
+    }
+
+    private void S_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
+
+    private void S_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
+
+    private void S_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+
+    }
+
+
+#endif
 }
 
+public enum ContextMenuPageCaller
+{
+    MainPage,
+    ArtistPage,
+    AlbumPage,
+    PlaylistPage,
+    QueuePage,
+    MiniPlaybackBar
+}
