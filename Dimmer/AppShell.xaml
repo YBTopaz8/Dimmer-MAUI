@@ -290,6 +290,30 @@
                                     </syncf:SfEffectsView>
                                 </Border>
 
+                                    <Border x:Name="GoToArtistPage">
+                                        <ToolTipProperties.Text>
+                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                <Binding Path="MySelectedSong.Title"/>
+                                                <Binding Path="MySelectedSong.ArtistName"/>
+                                            </MultiBinding>
+                                        </ToolTipProperties.Text>
+                                        <syncf:SfEffectsView x:Name="GoToArtistPageEff" TouchDown="GoToArtistPageEff_TouchDown">
+                                        <Label Text="Go to Song's Artist"/>
+                                    </syncf:SfEffectsView>
+                                </Border>
+
+                                    <!--<Border x:Name="GoToAlbumPage">
+                                        <ToolTipProperties.Text>
+                                            <MultiBinding StringFormat="{}{0} by {1}">
+                                                <Binding Path="MySelectedSong.Title"/>
+                                                <Binding Path="MySelectedSong.ArtistName"/>
+                                            </MultiBinding>
+                                        </ToolTipProperties.Text>
+                                        <syncf:SfEffectsView x:Name="GoToAlbumPageEff" TouchDown="GoToAlbumPageEff_TouchDown">
+                                        <Label Text="Delete Song"/>
+                                    </syncf:SfEffectsView>
+                                </Border>-->
+
                                 <Border x:Name="GoToSong">
                                     <syncf:SfEffectsView TouchDownCommand="{Binding NavToSingleSongShellCommand}">
                                         <Label Text="Song Overview" />
@@ -387,7 +411,7 @@
                                 </Border>
                                 <Border>
                                     <syncf:SfEffectsView >
-                                        <Label Text="Add To Playlist"/>
+                                        <Label Text="Add To Playlist" IsVisible="False"/>
                                     </syncf:SfEffectsView>
                                 </Border>
 
@@ -423,7 +447,7 @@ EmptyView="No Syncronized Lyrics ..." >
                     </syncf:SfTabItem>
 
 
-                    <syncf:SfTabItem Header="Utils" IsVisible="True">
+                    <syncf:SfTabItem Header="Utils" IsVisible="False">
                         <syncf:SfTabItem.Content>
                             <VerticalStackLayout>
                                 <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"

@@ -6,8 +6,21 @@ public partial class DimmerWindow : Window
 	{
         InitializeComponent();
 
+        
     }
 
+    protected override void OnActivated()
+    {
+        base.OnActivated();
+        MyViewModel.CurrentAppState = AppState.OnForeGround;
+        
+    }
+
+    protected override void OnDeactivated()
+    {
+        base.OnDeactivated();
+        MyViewModel.CurrentAppState = AppState.OnBackGround;
+    }
     public HomePageVM MyViewModel { get; set; }
 
     protected override void OnCreated()
@@ -23,7 +36,7 @@ public partial class DimmerWindow : Window
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.2-release";
+        DimmerTitleBar.Subtitle = "v1.2.1-release";
 #endif
 
         if (!InitChecker())

@@ -192,7 +192,7 @@ public partial class HomePageVM : ObservableObject
                     SyncLyricsCV!.ItemsSource = null;
                     SyncLyricsCV.ItemsSource = newValue;
 
-                    if (SyncLyricsCV is not null)
+                    if (SyncLyricsCV is not null && CurrentAppState == AppState.OnForeGround)
                     {
                         SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
                     }
@@ -240,7 +240,7 @@ public partial class HomePageVM : ObservableObject
         {
             case PageEnum.MainPage:
                 SearchPlaceHolder = "Type to search...";
-                DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+               
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
@@ -363,7 +363,7 @@ public partial class HomePageVM : ObservableObject
         try
         {
 
-            if (PartOfNowPlayingSongsCV is not null && PartOfNowPlayingSongsCV.IsLoaded)
+            if (PartOfNowPlayingSongsCV is not null && CurrentAppState == AppState.OnForeGround)
             {
                 PartOfNowPlayingSongsCV.ItemsSource = PartOfNowPlayingSongs;
                 PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
@@ -1546,7 +1546,7 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         PartOfNowPlayingSongs.Insert(ind + 1, song);
-        if (PartOfNowPlayingSongsCV is not null)
+        if (PartOfNowPlayingSongsCV is not null && CurrentAppState == AppState.OnForeGround)
         {
             PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
             Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");

@@ -953,51 +953,52 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public static bool InitializeParseClient()
     {
-        try
-        {
-            // Check for internet connection
-            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
-            {
-                Debug.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
-                return false;
-            }
+        return false;
+        //try
+        //{
+        //    // Check for internet connection
+        //    if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+        //    {
+        //        Debug.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
+        //        return false;
+        //    }
 
-            // Validate API Keys
-            if (string.IsNullOrEmpty(APIKeys.ApplicationId) ||
-                string.IsNullOrEmpty(APIKeys.ServerUri) ||
-                string.IsNullOrEmpty(APIKeys.DotNetKEY))
-            {
-                Debug.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
-                return false;
-            }
+        //    // Validate API Keys
+        //    if (string.IsNullOrEmpty(APIKeys.ApplicationId) ||
+        //        string.IsNullOrEmpty(APIKeys.ServerUri) ||
+        //        string.IsNullOrEmpty(APIKeys.DotNetKEY))
+        //    {
+        //        Debug.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
+        //        return false;
+        //    }
 
-            // Create ParseClient
-            ParseClient client = new ParseClient(new ServerConnectionData
-            {
-                ApplicationID = APIKeys.ApplicationId,
-                ServerURI = APIKeys.ServerUri,
-                Key = APIKeys.DotNetKEY,
-            }
-            );
+        //    // Create ParseClient
+        //    ParseClient client = new ParseClient(new ServerConnectionData
+        //    {
+        //        ApplicationID = APIKeys.ApplicationId,
+        //        ServerURI = APIKeys.ServerUri,
+        //        Key = APIKeys.DotNetKEY,
+        //    }
+        //    );
 
-            HostManifestData manifest = new HostManifestData()
-            {
-                Version = "1.0.0",
-                Identifier = "com.yvanbrunel.dimmer",
-                Name = "Dimmer",
-            };
+        //    HostManifestData manifest = new HostManifestData()
+        //    {
+        //        Version = "1.0.0",
+        //        Identifier = "com.yvanbrunel.dimmer",
+        //        Name = "Dimmer",
+        //    };
 
-            client.Publicize();
+        //    client.Publicize();
 
 
-            Debug.WriteLine("ParseClient initialized successfully.");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error initializing ParseClient: {ex.Message}");
-            return false;
-        }
+        //    Debug.WriteLine("ParseClient initialized successfully.");
+        //    return true;
+        //}
+        //catch (Exception ex)
+        //{
+        //    Debug.WriteLine($"Error initializing ParseClient: {ex.Message}");
+        //    return false;
+        //}
     }
     
     public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths)

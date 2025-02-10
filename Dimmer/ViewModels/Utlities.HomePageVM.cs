@@ -102,7 +102,7 @@ public partial class HomePageVM
             AppSettingsService.LastPlayedSongPositionPref.SetLastPosition(CurrentPositionPercentage);
             AppSettingsService.LastPlayedSongSettingPreference.SetLastPlayedSong(TemporarilyPickedSong.LocalDeviceId);
         }
-        await APIKeys.LogoutDevice();
+        //await APIKeys.LogoutDevice();
     }
     [RelayCommand]
     async Task DeleteFile(SongModelView? song)
@@ -770,6 +770,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
+        return false;
         if (CurrentUser is null)
         {
             return false;
@@ -878,7 +879,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogUserOut()
     {
-        await APIKeys.LogoutDevice();
+        //await APIKeys.LogoutDevice();
         CurrentUser.IsAuthenticated = false;
         CurrentUser.LastSessionDate = DateTime.Now;
         CurrentUserOnline = null;

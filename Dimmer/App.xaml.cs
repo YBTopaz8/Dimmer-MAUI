@@ -21,7 +21,7 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
 
-        APIKeys.SetupClientInitializations();
+        //APIKeys.SetupClientInitializations();
 
 
     }

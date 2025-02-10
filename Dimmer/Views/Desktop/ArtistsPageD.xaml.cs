@@ -50,7 +50,7 @@ public partial class ArtistsPageD : ContentPage
         {
             MyViewModel.GetAllArtistsAlbum();
         }
-        if (MyViewModel.SelectedArtistOnArtistPage is not null)
+        if (MyViewModel.SelectedArtistOnArtistPage is not null && MyViewModel.CurrentAppState == AppState.OnForeGround)
         {
             AllArtistsColView.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
             AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;

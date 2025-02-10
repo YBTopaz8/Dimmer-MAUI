@@ -59,7 +59,7 @@ public partial class AppShell : Shell
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
-            if (SongsColView is not null)
+            if (SongsColView is not null && MyViewModel.CurrentAppState == AppState.OnForeGround)
             {
                 SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
             }
@@ -501,6 +501,21 @@ public partial class AppShell : Shell
         {
             MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.MySelectedSong);
         }
+    }
+
+    private void DeleteSongEff_TouchDown(object sender, EventArgs e)
+    {
+        MyViewModel.DeleteFileCommand.Execute(MyViewModel.MySelectedSong);
+    }
+
+    private void GoToArtistPageEff_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+
+    private void GoToAlbumPageEff_TouchDown(object sender, EventArgs e)
+    {
+
     }
 }
 
