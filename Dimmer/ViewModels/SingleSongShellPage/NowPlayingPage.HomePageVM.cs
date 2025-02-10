@@ -111,19 +111,23 @@ public partial class HomePageVM
     {
         bool isSavedSuccessfully;
 
+        if (MySelectedSong is null)
+        {
+            return;
+        }
         if (!isSync)
         {
-            MySelectedSong.HasLyrics = true;
+            MySelectedSong!.HasLyrics = true;
             MySelectedSong.UnSyncLyrics = cont.PlainLyrics;
 
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics, MySelectedSong, isSync);
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.PlainLyrics!, MySelectedSong, isSync);
         }
         else
         {
             MySelectedSong.HasLyrics = false;
 
             MySelectedSong.HasSyncedLyrics = true;
-            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics, MySelectedSong, isSync);
+            isSavedSuccessfully = LyricsManagerService.WriteLyricsToLyricsFile(cont.SyncedLyrics!, MySelectedSong, isSync);
         }
         if (isSavedSuccessfully)
         {
@@ -140,7 +144,7 @@ public partial class HomePageVM
         {
             return;
         }
-        LyricsManagerService.InitializeLyrics(cont.SyncedLyrics);
+        LyricsManagerService.InitializeLyrics(cont.SyncedLyrics!);
         if (DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId) is not null)
         {
             DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId)!.HasLyrics = true;
@@ -153,9 +157,9 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    ObservableCollection<LyricPhraseModel>? lyricsLines = new();
+    public partial ObservableCollection<LyricPhraseModel>? LyricsLines { get; set; } = new();
     [RelayCommand]
-    async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
@@ -324,6 +328,8 @@ public partial class HomePageVM
             default:
                 break;
         }
+        
+        SongsMgtService.UpdateSongDetails(MySelectedSong);
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
@@ -344,7 +350,8 @@ public partial class HomePageVM
             return;
         }
         MySelectedSong.IsFavorite = willBeFav;
-
+        MySelectedSong.Rating = rateValue;
+        SongsMgtService.UpdateSongDetails(MySelectedSong);
         if (CurrentUser.IsLoggedInLastFM)
         {
             //LastFMUtils.RateSong(MySelectedSong, willBeFav);

@@ -27,7 +27,9 @@ public partial class MainPageD : ContentPage
         }
         if(!isIniAssign)
         {
+            
             await MyViewModel.AssignCV(SongsColView);
+            
             isIniAssign = true;
         }
         ScrollToSong_Clicked(this, EventArgs.Empty);
@@ -57,7 +59,6 @@ public partial class MainPageD : ContentPage
         }
     }
 
-    int coon;
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
         try
@@ -203,24 +204,6 @@ public partial class MainPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
-
-    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
-    {
-        supportedFilePaths ??= new();
-        isAboutToDropFiles = false;
-        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
-        if (send is null)
-        {
-            return;
-        }
-        send.Opacity = 1;
-        if (supportedFilePaths.Count > 0)
-        {
-            await send.AnimateRippleBounce();
-        }
-    }
-
 
     private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
@@ -371,73 +354,34 @@ public partial class MainPageD : ContentPage
         MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
     }
 
-    private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
+    private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleFlyout();
-        await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
+        
+        //await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
 
     private void ToggleDrawer_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleFlyout();
     }
-#if WINDOWS
-    private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        if (e.OriginalSource.GetType() != typeof(Microsoft.UI.Xaml.Controls.Grid))
+        supportedFilePaths ??= new();
+        isAboutToDropFiles = false;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
         {
-
+            return;
+        }
+        send.Opacity = 1;
+        if (supportedFilePaths.Count > 0)
+        {
+            await send.AnimateRippleBounce();
         }
     }
-
-    private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-    {
-    }
+#if WINDOWS
 
 #endif
 }

@@ -29,7 +29,6 @@ public partial class App : Application
     
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
-    
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +

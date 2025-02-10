@@ -17,7 +17,7 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         BindingContext = MyViewModel;
-        MyViewModel.QueueCV = NowPlayingPlaylistView;
+        //MyViewModel.QueueCV = NowPlayingPlaylistView;
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -90,7 +90,10 @@ public partial class MediaPlaybackControlsView : ContentView
         var thiss = this as View;
         var par = thiss.Parent as View;
 
-        await MyViewModel.ShowHideContextMenuFromBtmBar(thiss);
+        MyViewModel.ToggleFlyout();
+
+
+        //await MyViewModel.ShowHideContextMenuFromBtmBar(thiss);
     }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
@@ -106,63 +109,63 @@ public partial class MediaPlaybackControlsView : ContentView
     }
 
 
-    private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
-    {
-        var selectedTab = StatsTabs.SelectedItem;
-        var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
-        if (selected is null)
-        {
-            return;
-        }
-        _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
+    //private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    //{
+    //    var selectedTab = StatsTabs.SelectedItem;
+    //    var send = (SfChipGroup)sender;
+    //    var selected = send.SelectedItem as SfChip;
+    //    if (selected is null)
+    //    {
+    //        return;
+    //    }
+    //    _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
 
-        switch (selectedStatView)
-        {
-            case 0:
+    //    switch (selectedStatView)
+    //    {
+    //        case 0:
 
-                //GeneralStatsView front, rest back
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
+    //            //GeneralStatsView front, rest back
+    //            break;
+    //        case 1:
+    //            break;
+    //        case 2:
+    //            break;
+    //        case 3:
+    //            break;
+    //        case 4:
+    //            MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
 
 
-                break;
-            case 5:
+    //            break;
+    //        case 5:
 
-                break;
-            case 6:
+    //            break;
+    //        case 6:
 
-                break;
-            default:
+    //            break;
+    //        default:
 
-                break;
-        }
+    //            break;
+    //    }
 
-        var viewss = new Dictionary<int, View>
-        {
-            {0, NowPlayingPlaylist},
-            {1, SongAlbumSongs},
-            {2, SongArtistSongs},
-            {3, SongInfo},
-            //{4, SongStatsGrid},
+    //    var viewss = new Dictionary<int, View>
+    //    {
+    //        {0, NowPlayingPlaylist},
+    //        {1, SongAlbumSongs},
+    //        {2, SongArtistSongs},
+    //        {3, SongInfo},
+    //        //{4, SongStatsGrid},
 
-        };
-        if (!viewss.ContainsKey(selectedStatView))
-            return;
+    //    };
+    //    if (!viewss.ContainsKey(selectedStatView))
+    //        return;
 
-        await Task.WhenAll
-            (viewss.Select(kvp =>
-            kvp.Key == selectedStatView
-            ? kvp.Value.AnimateFadeInFront()
-            : kvp.Value.AnimateFadeOutBack()));
-        return;
-    }
+    //    await Task.WhenAll
+    //        (viewss.Select(kvp =>
+    //        kvp.Key == selectedStatView
+    //        ? kvp.Value.AnimateFadeInFront()
+    //        : kvp.Value.AnimateFadeOutBack()));
+    //    return;
+    //}
 
 }

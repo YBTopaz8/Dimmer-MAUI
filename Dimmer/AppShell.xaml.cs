@@ -6,7 +6,8 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.UI.Input; // Required for KeyboardAccelerator
 using Microsoft.UI.Xaml.Input; // Required for KeyRoutedEventArgs
 using System.Collections.Generic;
-using Syncfusion.Maui.Toolkit.Chips; // Required for List<string> for navigation history
+using Syncfusion.Maui.Toolkit.Chips;
+using Syncfusion.Maui.Toolkit.EffectsView; // Required for List<string> for navigation history
 #endif
 
 namespace Dimmer_MAUI;
@@ -48,7 +49,6 @@ public partial class AppShell : Shell
         await MyViewModel.NavToSingleSongShell();
     }
 
-
     private void SongsColView_Loaded(object sender, EventArgs e)
     {
         try
@@ -59,9 +59,12 @@ public partial class AppShell : Shell
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
-
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            
             MyViewModel.PartOfNowPlayingSongsCV = SongsColView;
+
+            MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
+
         }
         catch (Exception ex)
         {
@@ -115,7 +118,13 @@ public partial class AppShell : Shell
 
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
+#if WINDOWS
+        var send = (SfEffectsView)sender;
+        var song = send.TouchDownCommandParameter as SongModelView; 
 
+        MyViewModel.MySelectedSong = song;
+
+#endif
     }
 
 #if WINDOWS
@@ -393,106 +402,6 @@ public partial class AppShell : Shell
 
 
 
-    /*
-    private void PlayPauseBtn_Clicked(object sender, EventArgs e)
-    {
-        if (MyViewModel.IsPlaying)
-        {
-            MyViewModel.PauseSong();
-        }
-        else
-        {
-            MyViewModel.ResumeSong();
-        }
-    }
-    private void Slider_DragCompleted(object sender, EventArgs e)
-    {
-        MyViewModel.SeekSongPosition();
-        //if (_isThrottling)
-        //    return;
-
-        //_isThrottling = true;
-
-
-
-        //await Task.Delay(throttleDelay);
-        //_isThrottling = false;
-    }
-
-    private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
-    {
-        try
-        {
-            if (LyricsColView is not null && LyricsColView.ItemsSource is not null)
-            {
-                if (LyricsColView.SelectedItem is not null)
-                {
-                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-                }
-            }
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-    private void SeekSongPosFromLyric_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
-    {
-        if (MyViewModel.IsPlaying)
-        {
-            var bor = (Border)sender;
-            var lyr = (LyricPhraseModel)bor.BindingContext;
-            MyViewModel.SeekSongPosition(lyr);
-        }
-    }
-
-    Label CurrentLyrLabel { get; set; }
-    private void Label_Loaded(object sender, EventArgs e)
-    {
-        CurrentLyrLabel = (Label)sender;
-    }
-
-    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
-    {
-        switch (e.NewIndex)
-        {
-            case 0:
-                
-                break;
-            case 1:
-                
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void OpenCloseQBtmSheet_Clicked(object sender, EventArgs e)
-    {
-        MyViewModel.IsNowPlayingBtmSheetVisible  = !MyViewModel.IsNowPlayingBtmSheetVisible;
-    }
-
-    private void SongInAlbumFromArtistPage_TappedToPlay(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
-    {
-        MyViewModel.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);
-    }
-    private void PointerGestureRecognizer_PointerEntered(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
-    {
-        var send = (View)sender;
-        var song = send.BindingContext! as SongModelView;
-
-        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-        
-    }
-    private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
-    {
-        MyViewModel.ToggleRepeatModeCommand.Execute(true);  
-    }*/
 
     private void UserHoverOnSongInColView(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
     {
@@ -512,7 +421,7 @@ public partial class AppShell : Shell
         }
         var send = (View)sender;
         var song = send.BindingContext! as SongModelView;
-        MyViewModel.SetContextMenuSong(song!);
+        //MyViewModel.SetContextMenuSong(song!);
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
         //isPointerEntered = true;
         //isPointerEntered = true;
@@ -523,6 +432,72 @@ public partial class AppShell : Shell
         var send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
+    }
+
+    private void AddPlayNextEff_TouchDown(object sender, EventArgs e)
+    {
+        MyViewModel.AddNextInQueue(MyViewModel.MySelectedSong);
+    }
+
+    private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)
+    {
+        CreateNewPlayListPageBtmSheet.IsVisible = false;
+        AddSongToPlayListPageBtmSheet.IsVisible = true;
+    }
+    private void ShowPlaylistCreationBtmPage_Clicked(object sender, EventArgs e)
+    {
+        AddSongToPlayListPageBtmSheet.IsVisible = false;
+        CreateNewPlayListPageBtmSheet.IsVisible = true;
+    }
+
+    private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
+    {
+        //this.Close();
+    }
+
+    private void CancelCreateNewPlaylist_Clicked(object sender, EventArgs e)
+    {
+        CreateNewPlayListPageBtmSheet.IsVisible = false;
+        AddSongToPlayListPageBtmSheet.IsVisible = true;
+    }
+
+    private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        //this.Close();
+    }
+    private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)
+    {
+        //this.Close();
+    }
+
+    private void PlaylistsCV_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+
+    }
+
+    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    {
+        switch (e.NewIndex)
+        {
+            case 0:
+                break;
+            case 1:
+                if (MyViewModel.AllSyncLyrics is not null)
+                {
+                    MyViewModel.AllSyncLyrics = new();
+                }
+                break;
+            case 2:
+                break;
+            default:
+
+                break;
+        }
+        if (e.NewIndex == 2)
+        {
+            MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.MySelectedSong);
+        }
     }
 }
 

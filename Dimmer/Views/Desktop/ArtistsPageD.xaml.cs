@@ -106,8 +106,6 @@ public partial class ArtistsPageD : ContentPage
         MyViewModel.AllArtistsAlbumSongs = MyViewModel.GetAllSongsFromArtistID(MyViewModel.SelectedArtistOnArtistPage.LocalDeviceId);
     }
 
-
-    ArtistModelView currentlySelectedArtist;
     private void ArtistView_TouchDown(object sender, EventArgs e)
     {
         SfEffectsView view = (SfEffectsView)sender;
@@ -193,6 +191,22 @@ public partial class ArtistsPageD : ContentPage
         }
         //return Task.CompletedTask;
     }
+    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
+    {
+        supportedFilePaths ??= new();
+        isAboutToDropFiles = false;
+        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
+        var send = sender as View;
+        if (send is null)
+        {
+            return;
+        }
+        send.Opacity = 1;
+        if (supportedFilePaths.Count > 0)
+        {
+            await send.AnimateRippleBounce();
+        }
+    }
 
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
@@ -212,21 +226,7 @@ public partial class ArtistsPageD : ContentPage
         }
     }
 
-    private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
-    {
-        supportedFilePaths ??= new();
-        isAboutToDropFiles = false;
-        MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
-        if (send is null)
-        {
-            return;
-        }
-        send.Opacity = 1;
-        if (supportedFilePaths.Count > 0)
-        {
-            await send.AnimateRippleBounce();
-        }
-    }
+    
+    
 
 }

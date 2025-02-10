@@ -44,7 +44,7 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         UpdateTableView();
     }
 
-    public object ItemsSource
+    public object? ItemsSource
     {
         get => _tableView.ItemsSource;
         set
@@ -200,7 +200,7 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

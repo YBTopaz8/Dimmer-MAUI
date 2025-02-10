@@ -84,7 +84,7 @@
                             Source="sortvertical.png">
                         </ImageButton>
 
-                        <Button Text="Toggle Drawer" x:Name="toggleDrawer" Clicked="ToggleDrawer_Clicked" />
+                        <Button Text="Toggle Drawer" x:Name="toggleDrawer" Clicked="ToggleDrawer_Clicked" IsVisible="False"/>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
@@ -132,9 +132,18 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
-                            <Border>
+                            <Border BackgroundColor="Transparent" Padding="2">
+                                
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
-                                                     TouchDownEffects="Ripple,Selection">
+                                                     TouchDownEffects="Ripple,Selection" >
+                                    <!--<syncf:SfEffectsView.Triggers>
+                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#B197FC" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                            <Setter Property="BackgroundColor" Value="Transparent" />
+                                        </DataTrigger>
+                                    </syncf:SfEffectsView.Triggers>-->
                                     <Grid ColumnDefinitions="*,40,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -159,7 +168,7 @@
                                             </Image>
 
                                             <Image Source="songc.png"
-                                                   WidthRequest="25"
+                                                   WidthRequest="25" Opacity="1"
                                                    HorizontalOptions="Start">
                                                 <Image.Triggers>
                                                     <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
@@ -169,11 +178,14 @@
                                                         <Setter Property="IsVisible" Value="False" />
                                                     </DataTrigger>
                                                 </Image.Triggers>
+                                                <Image.Behaviors>
+                                                    <toolkit:IconTintColorBehavior TintColor="#B197FC"/>
+                                                </Image.Behaviors>
                                             </Image>
 
                                         </VerticalStackLayout>
 
-                                        <syncf:SfEffectsView Grid.Column="1"  
+                                        <syncf:SfEffectsView Grid.Column="1"  BackgroundColor="#0F1011"
                                                         TouchUp="ShowCntxtMenuBtn_Clicked"
                                                         RippleAnimationDuration="500" 
                                                         Opacity="0.31" 

@@ -127,7 +127,6 @@ public partial class PlaylistsPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
-
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
         supportedFilePaths ??= new();

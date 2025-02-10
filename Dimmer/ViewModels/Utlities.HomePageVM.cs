@@ -446,6 +446,7 @@ public partial class HomePageVM
 
     public void ToggleFlyout()
     {
+
         IsFlyoutPresented = !IsFlyoutPresented;
         if (Shell.Current == null)
         {
@@ -453,7 +454,8 @@ public partial class HomePageVM
         }
         if (IsFlyoutPresented)
         {
-            IsFlyoutPresented = true;            
+            IsFlyoutPresented = true;
+            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
         }
         else
         {

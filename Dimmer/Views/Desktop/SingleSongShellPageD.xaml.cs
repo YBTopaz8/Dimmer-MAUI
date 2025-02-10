@@ -67,7 +67,7 @@ public partial class SingleSongShellPageD : ContentPage
     {
         base.OnNavigatedTo(args);
 
-        if (LyricsColView.SelectedItem is not null)
+        if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
         {
             LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
         }
@@ -275,7 +275,7 @@ public partial class SingleSongShellPageD : ContentPage
             {
                 foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
                 {
-                    newItem.NowPlayingLyricsFontSize = 61; // Set FontSize to 21 for selected
+                    newItem.NowPlayingLyricsFontSize = 65; // Set FontSize to 21 for selected
                     //Debug.WriteLine($"Item selected, set FontSize to 21: {newItem?.Text}");
                 }
             }
@@ -284,26 +284,6 @@ public partial class SingleSongShellPageD : ContentPage
         {
             Debug.WriteLine(ex.Message);
         }
-    }
-
-
-    // Helper to find the visual element for an item
-    private View GetViewForItem(object item)
-    {
-        foreach (var cell in LyricsColView.GetVisualTreeDescendants().OfType<ViewCell>())
-        {
-            if (cell.BindingContext == item)
-                return cell.View;
-        }
-        return null;
-    }
-
-    // Animation helper
-    private async Task AnimateItem(View view, double targetScale)
-    {
-        if (view == null)
-            return;
-        await view.ScaleTo(targetScale, 250, Easing.SpringOut);
     }
 
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
@@ -668,12 +648,43 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         supportedFilePaths ??= new();
         isAboutToDropFiles = false;
-        
-        
+
+
         if (supportedFilePaths.Count > 0)
-        {            
+        {
             MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         }
     }
 
+    private void ImageButton_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void ToggleFullScreen_Clicked(object sender, EventArgs e)
+    {
+        if (FocusModeUI.IsVisible)
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeOutBack(),
+            NormalNowPlayingUI.AnimateFadeInFront()
+
+            );
+
+            isOnFocusMode = false;
+        }
+        else
+        {
+            await Task.WhenAll(
+            FocusModeUI.AnimateFadeInFront(),
+            NormalNowPlayingUI.AnimateFadeOutBack());
+            isOnFocusMode = true;
+        }
+    }
+
+    private void ToggleShellPane_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleFlyout();
+
+    }
 }

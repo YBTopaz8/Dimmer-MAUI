@@ -175,7 +175,7 @@
                     </CollectionView>
 
                     <syncf:SfTabView x:Name="tabView"  Grid.Column="1" IsVisible="False"
-                        IndicatorPlacement="Top" SelectionChanged="tabView_SelectionChanged"
+                        IndicatorPlacement="Top" SelectionChanged="TabView_SelectionChanged"
                         TabBarPlacement="Top" ContentTransitionDuration="250">
 
                         <syncf:SfTabView.Items>

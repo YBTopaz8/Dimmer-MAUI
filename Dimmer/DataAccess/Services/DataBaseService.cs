@@ -26,10 +26,5 @@ public class DataBaseService : IDataBaseService
 
         return config;
     }
-
-    private string GetGenreNameFromFile(string filePath)
-    {
-        return new Track(filePath).Genre;
-    }
 }
 

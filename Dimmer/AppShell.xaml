@@ -28,9 +28,9 @@
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
     <Shell.FlyoutHeader>
-        <Grid x:Name="HeaderGrid" HeightRequest="240" WidthRequest="240">
-            <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" 
-              Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.3"
+        <Grid x:Name="HeaderGrid" HeightRequest="240" >
+            <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
+              Text="{Binding MySelectedSong.Title}" Opacity="0.3"
               WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Width, Source={x:Reference HeaderGrid}}"  
               BorderWidth="0" CornerRadius="15">
                 <toolkit:AvatarView.GestureRecognizers>
@@ -85,12 +85,16 @@
             </VerticalStackLayout.Resources>
             
 
-            <Label Text="{Binding TemporarilyPickedSong.Title}" 
-      LineBreakMode="HeadTruncation" FontSize="13"/>
-            <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
-      LineBreakMode="TailTruncation" Opacity="0.6" />
-            <Label Text="{Binding TemporarilyPickedSong.AlbumName}" 
-             LineBreakMode="HeadTruncation"/>
+            <Label Text="{Binding MySelectedSong.Title}" 
+      LineBreakMode="HeadTruncation" FontSize="35"/>
+            
+            <Label Text="{Binding MySelectedSong.ArtistName}" 
+      LineBreakMode="TailTruncation" Opacity="0.6" 
+                   FontSize="22"/>
+            
+            <Label Text="{Binding MySelectedSong.AlbumName}" 
+             LineBreakMode="HeadTruncation"
+                   FontSize="15"/>
 
 
             </VerticalStackLayout>
@@ -131,7 +135,7 @@
                     <DataTemplate x:DataType="models:SongModelView">
                         <Border>
                             <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
-                                                 TouchDownEffects="Ripple,Selection">
+                                                 TouchDownEffects="Ripple,Selection" TouchDownCommandParameter="{Binding .}">
                                 <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                                     <FlexLayout.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -220,8 +224,9 @@
 
 
 
-            <syncf:SfTabView x:Name="tabView" IndicatorPlacement="Top"  HeightRequest="320"
-                             TabBarPlacement="Bottom" ContentTransitionDuration="250">
+            <syncf:SfTabView x:Name="TabView" IndicatorPlacement="Top"  HeightRequest="320"
+                             TabBarPlacement="Bottom" ContentTransitionDuration="250"
+                             SelectionChanged="TabView_SelectionChanged">
                 <syncf:SfTabView.Items>
                     <syncf:SfTabItem TextColor="White" Header="Over View">
 
@@ -255,16 +260,25 @@
                                     </ResourceDictionary>
                                 </VerticalStackLayout.Resources>
 
-                                <FlexLayout JustifyContent="SpaceBetween" Grid.Row="1" x:Name="MultiSelectView"
-    VerticalOptions="End" IsVisible="False" HeightRequest="75" Padding="10,5">
+                                <Grid ColumnDefinitions="*,*" Grid.Row="1" x:Name="MultiSelectView"
+                                      
+    VerticalOptions="End" IsVisible="False" HeightRequest="75" Padding="10,5" >
 
-                                    <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"/>
+                                    <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"
+                                           Grid.Column="0"/>
 
                                     <Button x:Name="DltImgBtn" HorizontalOptions="End" Text="Delete"
+                                            Grid.Column="1" HeightRequest="40"
 Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding MySelectedSong}">
 
                                     </Button>
-                                </FlexLayout>
+                                </Grid>
+
+                                <Border x:Name="AddPlayNext">
+                                        <syncf:SfEffectsView x:Name="AddPlayNextEff" TouchDown="AddPlayNextEff_TouchDown">
+                                        <Label Text="Play Next" />
+                                    </syncf:SfEffectsView>
+                                </Border>
 
                                 <Border x:Name="GoToSong">
                                     <syncf:SfEffectsView TouchDownCommand="{Binding NavToSingleSongShellCommand}">
@@ -273,8 +287,12 @@ Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding MySelectedSong
                                 </Border>
 
                                 <Border x:Name="MultiSelect">
+                                    
                                     <syncf:SfEffectsView TouchUpEffects="Selection,Ripple"
                     TouchDown="MultiSelect_TouchDown">
+                                            <syncf:SfEffectsView.Triggers> 
+                                                
+                                            </syncf:SfEffectsView.Triggers>
                                         <Label Text="Toggle MultiSelection"/>
                                     </syncf:SfEffectsView>
                                 </Border>
@@ -370,7 +388,7 @@ Command="{Binding DeleteFileCommand}"  CommandParameter="{Binding MySelectedSong
                         </syncf:SfTabItem.Content>
                     </syncf:SfTabItem>
                     
-                    <syncf:SfTabItem Header="Lyrics">
+                    <syncf:SfTabItem Header="Lyrics" IsVisible="False">
                         <syncf:SfTabItem.Content>
                             <Grid>
                                 <CollectionView x:Name="LyricsColView" IsVisible="True" HeightRequest="500"
@@ -394,7 +412,61 @@ EmptyView="No Syncronized Lyrics ..." >
                         </syncf:SfTabItem.Content>
                     </syncf:SfTabItem>
 
-                    
+
+                    <syncf:SfTabItem Header="Utils" IsVisible="True">
+                        <syncf:SfTabItem.Content>
+                            <VerticalStackLayout>
+                                <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
+    RadiusX="15" Margin="0,10"/>
+
+                                <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="True" Spacing="10"
+              Margin="20,5">
+                                    <Label Text="Choose A Playlist"/>
+                                    <CollectionView x:Name="PlaylistsCV" HeightRequest="150" 
+                  VerticalScrollBarVisibility="Always">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+
+                                                <Border Margin="0,10" StrokeThickness="0.8"
+                            Stroke="Transparent" Padding="0,5"
+                        StrokeShape="RoundRectangle, 8">
+
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                Tapped="CloseBtmSheet_Tapped"
+                                Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
+                                CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
+                                                    <Label Text="{Binding .}" x:DataType="x:String"
+                               FontSize="25" TextColor="White"/>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="10" VerticalOptions="End">
+
+                                        <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
+         TextColor="Red"/>
+                                        <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+              Spacing="10" Margin="10,5">
+                                    <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                                        <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
+                                        <Button Text="Create" x:Name="CreatePlaylistBtn" 
+         Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+         Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+
                 </syncf:SfTabView.Items>
             </syncf:SfTabView>
          

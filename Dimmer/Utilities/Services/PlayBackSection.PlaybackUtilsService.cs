@@ -98,24 +98,12 @@ public partial class PlaybackUtilsService : ObservableObject
         }
     }
 
-
-    bool isLoadingSongs;
-    private void ShowMiniPlayBackView()
-    {
-#if WINDOWS
-
-        MiniPlayBackControlNotif.ShowUpdateMiniView(ObservableCurrentlyPlayingSong!);
-
-#endif
-    }
-
     public AppState CurrentAppState = AppState.OnForeGround;
 
 
     private Random random = Random.Shared;  // Reuse the same Random instance
-    bool isTrueShuffle = false;  // Set this based on whether shuffle is enabled
 
-    
+
     private void UpdateActiveQueue()
     {
         if (IsShuffleOn)
@@ -410,9 +398,6 @@ public partial class PlaybackUtilsService : ObservableObject
     }
 
     double currentPositionInSec = 0;
-    PlaybackInfo CurrentPlayBackInfo;
-    
-    double currentPosition = 0;
     #endregion
 
     // Method to add songs to the playback queuenext

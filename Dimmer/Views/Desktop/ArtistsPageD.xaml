@@ -95,7 +95,7 @@
                             <Label Text="{Binding Name}" HeightRequest="40">
                                 <Label.Triggers>
                                     <DataTrigger TargetType="Label" Binding="{Binding IsCurrentlySelected}" Value="True">
-                                        <Setter Property="TextColor" Value="OrangeRed"/>
+                                        <Setter Property="TextColor" Value="#B197FC"/>
                                         <Setter Property="FontSize" Value="20"/>
                                     </DataTrigger>
                                     

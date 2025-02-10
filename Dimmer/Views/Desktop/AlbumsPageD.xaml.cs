@@ -109,7 +109,7 @@ public partial class AlbumsPageD : ContentPage
         
     }
 
-    private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
+    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
 
     }
@@ -203,7 +203,6 @@ public partial class AlbumsPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
-
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
         supportedFilePaths ??= new();
@@ -220,5 +219,4 @@ public partial class AlbumsPageD : ContentPage
             await send.AnimateRippleBounce();
         }
     }
-
 }

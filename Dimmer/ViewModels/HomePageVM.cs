@@ -115,6 +115,7 @@ public partial class HomePageVM : ObservableObject
     public async Task AssignCV(CollectionView cv)
     {
         DisplayedSongsColView = cv;
+        
         if (CurrentUser is null)
         {
             return;
@@ -139,13 +140,14 @@ public partial class HomePageVM : ObservableObject
         }
 
     }
-    partial void OnTemporarilyPickedSongChanging(SongModelView oldValue, SongModelView newValue)
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
     {
         
         if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
         {
             newValue.CoverImagePath = string.Empty;
         }
+
         if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
         {
             if (newValue.CoverImagePath == oldValue?.CoverImagePath)
@@ -230,6 +232,7 @@ public partial class HomePageVM : ObservableObject
         {
             case PageEnum.MainPage:
                 SearchPlaceHolder = "Type to search...";
+                DisplayedSongsColView.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
@@ -270,7 +273,7 @@ public partial class HomePageVM : ObservableObject
                 break;
         }
     }
-    void UpdateContextMenuData(SongModelView? mySelectedSong)
+    public void UpdateContextMenuData(SongModelView? mySelectedSong)
     {
         if (DisplayedSongs == null || DisplayedSongs.Count == 0 || mySelectedSong == null)
         {
@@ -351,8 +354,11 @@ public partial class HomePageVM : ObservableObject
         {
             PartOfNowPlayingSongs.Add(DisplayedSongs[i]);
         }
-
-        Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+        if (PartOfNowPlayingSongsCV is not null)
+        {
+            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
+        }
     }
     public CollectionView? QueueCV { get; set; }
 
@@ -930,7 +936,6 @@ public partial class HomePageVM : ObservableObject
         SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
 
 
-        UpdateContextMenuData(MySelectedSong);
     }
 
     private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
@@ -1005,7 +1010,7 @@ public partial class HomePageVM : ObservableObject
             
                 PickedSong = TemporarilyPickedSong;
                 MySelectedSong = TemporarilyPickedSong;
-                AllSyncLyrics = null;
+                AllSyncLyrics.Clear();
                 splittedLyricsLines = null;
 
                 IsPlaying = true;
@@ -1091,8 +1096,6 @@ public partial class HomePageVM : ObservableObject
 
     private bool IsLoading = false;
 
-    [ObservableProperty]
-    public partial ImageSource? PlayPauseImg { get; set; }
 
     void SubscribeToPlayerStateChanges()
     {
@@ -1161,13 +1164,12 @@ public partial class HomePageVM : ObservableObject
                             {
                                 await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             }
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                             PickedSong = null;
                             PickedSong = TemporarilyPickedSong;
 
                             IsPlaying = false;
 
-                            PlayPauseImg = ImageSource.FromFile("pausedark.svg");
                             //PlayPauseIcon = MaterialRounded.Play_arrow;
                             break;
                         case MediaPlayerState.Stopped:
@@ -1198,41 +1200,41 @@ public partial class HomePageVM : ObservableObject
     }
     private void SubscribetoDisplayedSongsChanges()
     {
-        //PlayBackService.NowPlayingSongs            
-        //.Subscribe(songs =>
-        //{
-        //    TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-            
-            
-        //    if (AllLinks is null || AllLinks.Count < 0)
-        //    {
-        //        if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
-        //        {
-        //            AllLinks = SongsMgtService.AllLinks;
-        //        }
-            
-        //    }
-        //    MainThread.BeginInvokeOnMainThread( () =>
-        //    {
-        //        NowPlayingSongsUI= songs;
-        //        if (DisplayedSongs is null)
-        //        {
-        //            return;
-        //        }
-        //        if (DisplayedSongsColView is null)
-        //        {
-        //            return;
-        //        }
-        //        DisplayedSongsColView.ItemsSource = songs;
-        //        TotalNumberOfSongs = songs.Count;
-        //        //ReloadSizeAndDuration();
-        //    });
+        PlayBackService.NowPlayingSongs.Subscribe(songs =>
+        {
+            UpdateContextMenuData(TemporarilyPickedSong);
+            //TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
 
-        //    //ReloadSizeAndDuration();
-        //});
-        //IsLoadingSongs = false;
 
-      
+            //if (AllLinks is null || AllLinks.Count < 0)
+            //{
+            //    if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
+            //    {
+            //        AllLinks = SongsMgtService.AllLinks;
+            //    }
+
+            //}
+            //MainThread.BeginInvokeOnMainThread(() =>
+            //{
+            //    NowPlayingSongsUI = songs;
+            //    if (DisplayedSongs is null)
+            //    {
+            //        return;
+            //    }
+            //    if (DisplayedSongsColView is null)
+            //    {
+            //        return;
+            //    }
+            //    DisplayedSongsColView.ItemsSource = songs;
+            //    TotalNumberOfSongs = songs.Count;
+            //    //ReloadSizeAndDuration();
+            //});
+
+            //ReloadSizeAndDuration();
+        });
+        IsLoadingSongs = false;
+
+
     }
 
     //partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
@@ -1513,6 +1515,7 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
+     
         PlayBackService.AddToImmediateNextInQueue(songs);
     }
 

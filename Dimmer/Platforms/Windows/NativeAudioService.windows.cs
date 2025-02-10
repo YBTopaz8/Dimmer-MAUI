@@ -22,10 +22,6 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     {
     }
 
-
-    private bool _isLoopingSong = false;
-
-
     private bool isPlaying;
     public bool IsPlaying
     {
@@ -68,7 +64,6 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
     private readonly object resourceLock = new();
     private bool disposed = false;
-    private SongModelView? currentMedia;
     private SemaphoreSlim semaphoreSlim = new(1, 1);
     
     public event EventHandler<bool>? IsPlayingChanged;

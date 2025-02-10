@@ -95,17 +95,6 @@ public static class CustomAnimsExtensions
         element.HeightRequest = element.Height + heightToSlide;
     }
 
-    // Helper method to animate HeightRequest smoothly
-    private static async Task AnimateHeightRequest(this View element, double targetHeight, uint duration)
-    {
-        var initialHeight = element.Height;
-        var heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight);
-
-        heightAnimation.Commit(element, "HeightRequestAnimation", length: duration, easing: Easing.CubicInOut);
-        await Task.Delay((int)duration); // Wait for the animation to complete
-    }
-
-
     public static async Task AnimateFontSizeTo(this Label view, double toFontSize, uint duration)
     {
         await view.AnimateAsync("fontSizeAnimation", (progress) =>
