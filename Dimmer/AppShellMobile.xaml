@@ -40,7 +40,7 @@
        Route="AlbumM"/>
         </Tab>
         <Tab Title="Profile" x:Name="playlistsTab"
-             Icon="usermusic.png">            
+             Icon="usercircle.png">            
             <ShellContent Title="Playlists"
                ContentTemplate="{DataTemplate viewsM:PlaylistsPageM}"
                Route="PlaylistsM"/>

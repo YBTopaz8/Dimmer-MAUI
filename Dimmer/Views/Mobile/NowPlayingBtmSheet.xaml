@@ -362,7 +362,7 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                             x:Name="SongsColView" 
                             UseRippleEffect="True"
                             RippleColor="DarkSlateBlue"                            
-                            ItemsSource="{Binding DisplayedSongs}"
+                            ItemsSource="{Binding PartOfNowPlayingSongs}"
                             SelectedItem="{Binding TemporarilyPickedSong}"
                             ItemSpacing="5" 
                                          

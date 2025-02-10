@@ -56,7 +56,7 @@
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
@@ -131,6 +131,9 @@
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
+    <EnableLLVM>True</EnableLLVM>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
     <AndroidUseAapt2>True</AndroidUseAapt2>
@@ -139,6 +142,7 @@
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
+    <EnableLLVM>True</EnableLLVM>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->

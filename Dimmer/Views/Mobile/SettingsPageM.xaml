@@ -62,7 +62,7 @@
                         </HorizontalStackLayout>
                         <Label Text="Login/Sign Up (Tap to Reveal)"/>
                         <ImageButton Grid.Column="2" HorizontalOptions="End"
-                                     Source="arrowcircledown.png">
+                                     Source="roundaltarrowdown.png">
                             
                         </ImageButton>
                     </VerticalStackLayout>

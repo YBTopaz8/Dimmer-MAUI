@@ -43,7 +43,7 @@
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                         Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
-                                  Icon="stepbackward.png">
+                                  Icon="skipprevious.png">
                             
                         </dx:DXButton>
                         <dx:DXButton Clicked="DXButton_Clicked"
@@ -58,7 +58,7 @@
                                 </dx:DXButton.Triggers>
                         </dx:DXButton>
 
-                        <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="stepforward.png">
+                            <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="skipnext.png">
                         </dx:DXButton>
                     </HorizontalStackLayout>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 

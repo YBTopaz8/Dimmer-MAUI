@@ -17,7 +17,7 @@
             Shell.FlyoutItemIsVisible="True"
             Shell.TabBarIsVisible="True"
             Shell.NavBarIsVisible="False">
-    
+
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
@@ -115,26 +115,22 @@
         </ToolbarItem>
     </ContentPage.ToolbarItems>-->
     
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,*"
-            BackgroundColor="#192347" Padding="10,10">
-            <Label Grid.Column="0" Text="Yvan"/>
-
-            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
-                
-            <dx:DXButton Icon="settings.png"
-                        IconColor="AliceBlue"
-                         WidthRequest="40" HeightRequest="40"
-                         IconHeight="30" IconWidth="30"
-                         BackgroundColor="Transparent"
-                HorizontalOptions="End" Clicked="GoToSettingsPage"/>
-            </HorizontalStackLayout>
-        </Grid>
-        
-    </Shell.TitleView>
     <Grid>
         <dx:DXStackLayout Orientation="Vertical" Margin="10,0" ItemSpacing="8" >
-            
+            <Grid ColumnDefinitions="*,*"
+     BackgroundColor="#192347" Padding="10,10">
+                <Label Grid.Column="0" Text="Yvan"/>
+
+                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+
+                    <dx:DXButton Icon="settingssliders.png"
+                 IconColor="AliceBlue"
+                  WidthRequest="40" HeightRequest="40"
+                  IconHeight="30" IconWidth="30"
+                  BackgroundColor="Transparent"
+         HorizontalOptions="End" Clicked="GoToSettingsPage"/>
+                </HorizontalStackLayout>
+            </Grid>
             <Label Text="Welcome Back!" FontSize="25" FontAttributes="Bold"/>
             <Label Text="What Kind of music do you want to listen to today?"
                FontSize="13" TextColor="Gray"/>
@@ -148,7 +144,7 @@
                 <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}"
                     FontSize="18" TextColor="DarkSlateBlue" FontAttributes="Bold"/>
 
-                <dx:DXButton Icon="eyelocate.png"
+                <dx:DXButton Icon="eye.png"
                         Grid.Column="1" BackgroundColor="Transparent" 
                         WidthRequest="40" IconHeight="40" IconWidth="30"
                         x:Name="ScrollToSong" Clicked="ScrollToSong_Clicked"

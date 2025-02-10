@@ -170,12 +170,10 @@
                                             FontSize="20" 
                                             LineBreakMode="TailTruncation"/>
 
-                                            <Image WidthRequest="20" HeightRequest="20" HorizontalOptions="Start"  
+                                            <Image WidthRequest="30" HeightRequest="30" HorizontalOptions="Start"  
                                             IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
                                                    BackgroundColor="Transparent">
-                                                <Image.Behaviors>
-                                                    <toolkit:IconTintColorBehavior TintColor="#A2B5E2"/>
-                                                </Image.Behaviors>
+                                                
                                             </Image>
 
                                             <Image Source="songc.png"
@@ -189,9 +187,6 @@
                                                         <Setter Property="IsVisible" Value="False" />
                                                     </DataTrigger>
                                                 </Image.Triggers>
-                                                <Image.Behaviors>
-                                                    <toolkit:IconTintColorBehavior TintColor="#B197FC"/>
-                                                </Image.Behaviors>
                                             </Image>
 
                                         </VerticalStackLayout>
