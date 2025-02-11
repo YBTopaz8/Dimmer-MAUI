@@ -37,8 +37,9 @@ jobs:
         run: |
           $innoSetupUrl = "https://files.jrsoftware.org/is/6/innosetup-6.4.0.exe"
           $installerPath = "innosetup.exe"
-          Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath -Headers @{ "User-Agent" = "Mozilla/5.0" }
+          Start-BitsTransfer -Source $innoSetupUrl -Destination $installerPath
           Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+
 
 
       - name: Package with Inno Setup
