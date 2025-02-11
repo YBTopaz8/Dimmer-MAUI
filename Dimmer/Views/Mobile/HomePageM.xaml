@@ -12,10 +12,9 @@
             x:DataType="vm:HomePageVM"
             xmlns:dx="http://schemas.devexpress.com/maui"
             x:Name="myPage" 
-            Shell.BackgroundColor="#192347"
-            BackgroundColor="#192347"
             Shell.FlyoutItemIsVisible="True"
             Shell.TabBarIsVisible="True"
+             
             Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
@@ -55,15 +54,29 @@
 
                             <dx:DXButton Grid.Column="1"  Clicked="SingleSongCxtMenuArea_Clicked"
                                  IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton">
-                                
+                                <dx:DXButton.Triggers>
+                                    <DataTrigger TargetType="dx:DXButton" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="dx:DXButton" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                    </DataTrigger>
+                                </dx:DXButton.Triggers>
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
+                                    
                                     <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
 
                                     <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"
 >
                                     </Image>
+                                    <dx:DXImage WidthRequest="20" HeightRequest="20" HorizontalOptions="End"  
+ IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1" TintColor="White"
+        BackgroundColor="Transparent">
+
+                                    </dx:DXImage>
+
                                 </VerticalStackLayout>
                             </dx:DXButton>
                         </Grid>
@@ -114,8 +127,8 @@
             
         </ToolbarItem>
     </ContentPage.ToolbarItems>-->
-    
-    <Grid>
+
+    <Grid BackgroundColor="#192347">
         <dx:DXStackLayout Orientation="Vertical" Margin="10,0" ItemSpacing="8" >
             <Grid ColumnDefinitions="*,*"
      BackgroundColor="#192347" Padding="10,10">

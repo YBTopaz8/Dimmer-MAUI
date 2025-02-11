@@ -700,6 +700,11 @@ public partial class HomePageVM : ObservableObject
         }
         else
         {
+            if (CurrentPositionPercentage >= 0.98)
+            {
+                PlaySong(TemporarilyPickedSong);
+                return;
+            }
             ResumeSong();
         }
     }
@@ -783,10 +788,19 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         if (TemporarilyPickedSong is null)
-            return;
+        {
+            if (MySelectedSong is not null)
+            {
+                TemporarilyPickedSong = MySelectedSong;
+            }
+        }
         if (currPosPer !=0 )
         {
+#if WINDOWS
             CurrentPositionInSeconds = currPosPer * TemporarilyPickedSong.DurationInSeconds;
+#elif ANDROID
+            CurrentPositionInSeconds = currPosPer;
+#endif
         }
         PlayBackService.SeekTo(CurrentPositionInSeconds);
     }
@@ -878,7 +892,7 @@ public partial class HomePageVM : ObservableObject
         }
     
     }
-    #endregion
+#endregion
     [ObservableProperty]
     public partial ObservableCollection<string> SearchFilters { get; set; } = new([ "Artist", "Album","Genre", "Rating"]);
     [ObservableProperty]
@@ -1181,7 +1195,10 @@ public partial class HomePageVM : ObservableObject
                                 await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
 
                             }
-                            
+                            if (TemporarilyPickedSong == null && MySelectedSong != null)
+                            {
+                                TemporarilyPickedSong = MySelectedSong;
+                            }
                             break;
                         case MediaPlayerState.Paused:
                             if (CurrentUser is not null)

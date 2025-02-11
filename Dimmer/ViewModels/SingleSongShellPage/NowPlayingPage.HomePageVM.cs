@@ -261,13 +261,13 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task FetchSongCoverImage(SongModelView? song = null)
     {
-        if (song is null)
+        if (song is null && MySelectedSong is not null)
         {
-            if (!string.IsNullOrEmpty(TemporarilyPickedSong.CoverImagePath))
+            if (!string.IsNullOrEmpty(MySelectedSong.CoverImagePath))
             {
-                if (!File.Exists(TemporarilyPickedSong.CoverImagePath))
+                if (!File.Exists(MySelectedSong.CoverImagePath))
                 {
-                    TemporarilyPickedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName, TemporarilyPickedSong.AlbumName, TemporarilyPickedSong);
+                    MySelectedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName, TemporarilyPickedSong.AlbumName, TemporarilyPickedSong);
                 }
             }
             return;

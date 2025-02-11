@@ -13,7 +13,7 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-            x:DataType="vm:HomePageVM" ShowGrabber="False"
+            x:DataType="vm:HomePageVM" ShowGrabber="False" AllowDismiss="False"
             State="{Binding NowPlayBtmSheetState}"
             x:Name="myPage">
 
@@ -57,9 +57,11 @@
                             
                         <dx:DXStackLayout Orientation="Vertical" 
                                           >
-                            <Label Text="{Binding Title}" FontSize="20" 
-                                   LineBreakMode="TailTruncation" HorizontalOptions="Start"
-                                   />
+                                <dx:Chip Text="{Binding Title}" HorizontalOptions="Start"
+                                         WidthRequest="200" FontSize="21"/>
+                                <dx:Chip Text="{Binding ArtistName}" HorizontalOptions="Start"
+                                         WidthRequest="100" FontSize="16"/>
+
 
                             <Label Text="{Binding ArtistName}" FontSize="16" Opacity="0.55"
                      />
@@ -132,10 +134,14 @@
             </dx:DXButton>
             <Grid ColumnDefinitions="*,Auto" >
                 <VerticalStackLayout Grid.Column="0" >
-                    <Label Text="{Binding TemporarilyPickedSong.Title}" FontSize="19" FontAttributes="Bold" TextColor="#E4EDFB" />
-                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" FontSize="19" TextColor="#ACB1C1" />
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start" BorderColor="Transparent"
+         WidthRequest="200" FontSize="21"  TextColor="#E4EDFB" 
+                             />
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Start"
+         WidthRequest="200" FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent"/>
+
                 </VerticalStackLayout>
-                <dx:DXButton Grid.Column="1">
+                <dx:DXButton Grid.Column="1" IsVisible="False">
                     <dx:DXButton.Triggers>
                         <DataTrigger TargetType="dx:DXButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="True">
                             <Setter Property="IconWidth" Value="40"/>
@@ -285,9 +291,10 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                      Icon="shuffle.png" IconWidth="40" IconHeight="40" BackgroundColor="Transparent">
                     <dx:DXButton.Triggers>
                         <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:DXButton">
-                            <Setter Property="Icon" Value="Darkslateblue"/>
-                            <Setter Property="IconHeight" Value="40"/>
-                            <Setter Property="IconWidth" Value="40"/>
+                            <Setter Property="BackgroundColor" Value="#B197FC"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="dx:DXButton" Binding="{Binding IsShuffleOn}" Value="False">
+                            <Setter Property="BackgroundColor" Value="Transparent"/>
                         </DataTrigger>
                     </dx:DXButton.Triggers>
                     <dx:DXButton.CommandParameter>
@@ -335,8 +342,9 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                                     </Grid.Resources>
                                     <Label Text="{Binding NextSong.Title}" Grid.Column="0" HorizontalOptions="Start"
                                            WidthRequest="80" LineBreakMode="CharacterWrap"/>
-                                <Label Text="{Binding NextSong.ArtistName}" Grid.Column="1" HorizontalOptions="Center"
-                                           WidthRequest="100" />
+                                <dx:Chip Text="{Binding NextSong.ArtistName}" Grid.Column="1" HorizontalOptions="Center"
+                                           WidthRequest="100" BorderColor="Transparent" />
+                                
                                 <Label Text="{Binding NextSong.DurationInSeconds, Converter={StaticResource DurationConverter}}" Grid.Column="2"
                                            HorizontalOptions="End" FontSize="14"/>
                                 </Grid>
