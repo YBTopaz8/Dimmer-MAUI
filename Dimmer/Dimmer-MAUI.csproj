@@ -70,6 +70,7 @@
   <PropertyGroup>
     <RollForward>Major</RollForward>
     <AndroidSigningKeyStore>YBTopaz8.keystore</AndroidSigningKeyStore>
+    <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>

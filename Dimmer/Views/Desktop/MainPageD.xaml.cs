@@ -22,22 +22,22 @@ public partial class MainPageD : ContentPage
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
+        //SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
 
-        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
+        //if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
+        //{
+        //    SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
+        //}
+        if (!isIniAssign)
         {
-            SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
-        }
-        if(!isIniAssign)
-        {
-            
-            await MyViewModel.AssignCV(SongsColView);
-            
+
+            //await MyViewModel.AssignCV(SongsColView);
+
             isIniAssign = true;
         }
         ScrollToSong_Clicked(this, EventArgs.Empty);
 
-        // use opportunity login to parse and last fm
+
     }
 
     protected override void OnDisappearing()
@@ -54,9 +54,9 @@ public partial class MainPageD : ContentPage
                 return;
             }
 
-            if (SongsColView is null)
-                return;
-                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            //if (SongsColView is null)
+            //    return;
+            //SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -74,9 +74,9 @@ public partial class MainPageD : ContentPage
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
-            if (SongsColView is null)
-                return;
-            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            //if (SongsColView is null)
+            //    return;
+            //SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -128,7 +128,7 @@ public partial class MainPageD : ContentPage
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
-    
+
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
@@ -136,49 +136,49 @@ public partial class MainPageD : ContentPage
         try
         {
 
-        if (!isAboutToDropFiles)
-        {
-            isAboutToDropFiles = true;
+            if (!isAboutToDropFiles)
+            {
+                isAboutToDropFiles = true;
 
 #if WINDOWS
                 var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
-            var dragUI = WindowsEventArgs.DragUIOverride;
-            
+                var dragUI = WindowsEventArgs.DragUIOverride;
 
-            var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
-            e.AcceptedOperation = DataPackageOperation.None;
-            supportedFilePaths = new List<string>();
 
-            if (items.Count > 0)
-            {
-                foreach (var item in items)
+                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
+                e.AcceptedOperation = DataPackageOperation.None;
+                supportedFilePaths = new List<string>();
+
+                if (items.Count > 0)
                 {
-                    if (item is Windows.Storage.StorageFile file)
+                    foreach (var item in items)
                     {
-                        /// Check file extension
-                        string fileExtension = file.FileType.ToLower();
-                        if (fileExtension != ".mp3" && fileExtension != ".flac" &&
-                            fileExtension != ".wav" && fileExtension != ".m4a")
+                        if (item is Windows.Storage.StorageFile file)
                         {
-                            e.AcceptedOperation = DataPackageOperation.None;
-                            dragUI.IsGlyphVisible = true;
-                            dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
-                            continue;
-                            //break;  // If any invalid file is found, break the loop
-                        }
-                        else
-                        {
-                            dragUI.IsGlyphVisible = false;
-                            dragUI.Caption = "Drop to Play!";
-                            Debug.WriteLine($"File is {item.Path}");
-                            supportedFilePaths.Add(item.Path.ToLower());
+                            /// Check file extension
+                            string fileExtension = file.FileType.ToLower();
+                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                                fileExtension != ".wav" && fileExtension != ".m4a")
+                            {
+                                e.AcceptedOperation = DataPackageOperation.None;
+                                dragUI.IsGlyphVisible = true;
+                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
+                                continue;
+                                //break;  // If any invalid file is found, break the loop
+                            }
+                            else
+                            {
+                                dragUI.IsGlyphVisible = false;
+                                dragUI.Caption = "Drop to Play!";
+                                Debug.WriteLine($"File is {item.Path}");
+                                supportedFilePaths.Add(item.Path.ToLower());
+                            }
                         }
                     }
-                }
 
-            }
+                }
 #endif
-        }
+            }
 
         }
         catch (Exception ex)
@@ -232,6 +232,7 @@ public partial class MainPageD : ContentPage
     SelectionMode currentSelectionMode;
     public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
     {
+        /*
         switch (SongsColView.SelectionMode)
         {
             case SelectionMode.None:
@@ -324,7 +325,6 @@ public partial class MainPageD : ContentPage
         {
             return;
         }
-        //await MyViewModel.LoadSongsInBatchesAsync();
 
     }
 
@@ -480,6 +480,64 @@ public partial class MainPageD : ContentPage
 #endif
 }
 
+    */
+    }
+
+    private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+
+    }
+}
 public enum ContextMenuPageCaller
 {
     MainPage,

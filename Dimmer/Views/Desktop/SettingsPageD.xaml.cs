@@ -158,7 +158,7 @@ public partial class SettingsPageD : ContentPage
         switch (selectedStatView)
         {
             case 0: //Log out
-                if(await MyViewModel.LogUserOut())
+                if(MyViewModel.LogUserOut())
                 {
                     GeneralStaticUtilities.RunFireAndForget(SwitchUI(2), ex =>
                     {

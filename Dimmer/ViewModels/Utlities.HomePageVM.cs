@@ -876,8 +876,8 @@ public partial class HomePageVM
         }
     }
 
-    [RelayCommand]
-    public async Task<bool> LogUserOut()
+    
+    public bool LogUserOut()
     {
         //await APIKeys.LogoutDevice();
         CurrentUser.IsAuthenticated = false;

@@ -28,19 +28,21 @@
     
     <Grid x:Name="MainDock" RowDefinitions="*,Auto"
         IsEnabled="True">
-        <Grid.GestureRecognizers >
+        <!--<Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                                 DragOver="DropGestureRecognizer_DragOver"
                                 DragLeave="DropGestureRecognizer_DragLeave"
                                 Drop="DropGestureRecognizer_Drop"/>
-        </Grid.GestureRecognizers>
+        </Grid.GestureRecognizers>-->
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                 x:Name="MediaPlayBackCW" Grid.Row="1"/>
 
-        <!--<viewsD:MyTableView SelectionMode="None" 
+        <viewsD:MyTableView SelectionMode="None" 
+                            AutoGenerateColumns="True"
                             KeyDown="MyTable_KeyDown"
                             KeyUp="MyTable_KeyUp"
+                            IsRightClickEnabled="False"
                             PointerEntered="MyTable_PointerEntered"
                             PointerExited="MyTable_PointerExited"   
                             PointerMoved="MyTable_PointerMoved"
@@ -56,15 +58,13 @@
                             RightTapped="MyTable_RightTapped"
                             
             ItemsSource="{Binding DisplayedSongs}"
-            AutoGenerateColumns="True"
-            >
-            <viewsD:MyTableView.Columns>
-                
-            </viewsD:MyTableView.Columns>
             
-        </viewsD:MyTableView>-->
+            >
+            
+            
+        </viewsD:MyTableView>
 
-        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
+        <!--<toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
                             Loaded="MainBody_Loaded" Unloaded="MainBody_Unloaded">
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
@@ -147,14 +147,14 @@
                                 
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection" >
-                                    <!--<syncf:SfEffectsView.Triggers>
+                                    --><!--<syncf:SfEffectsView.Triggers>
                                         <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                             <Setter Property="BackgroundColor" Value="#B197FC" />
                                         </DataTrigger>
                                         <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                             <Setter Property="BackgroundColor" Value="Transparent" />
                                         </DataTrigger>
-                                    </syncf:SfEffectsView.Triggers>-->
+                                    </syncf:SfEffectsView.Triggers>--><!--
                                     <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -204,7 +204,7 @@
                                         <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" FontSize="16"/>
                                         <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
-                                        <!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />-->
+                                        --><!--<Label Grid.Column="7" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />--><!--
 
                                     </Grid>
 
@@ -214,7 +214,7 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-        </toolkit:DockLayout>
+        </toolkit:DockLayout>-->
 
     </Grid>
         

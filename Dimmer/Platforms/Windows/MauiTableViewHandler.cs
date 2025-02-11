@@ -13,10 +13,12 @@ using Microsoft.UI.Xaml.Media.Animation;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using static Dimmer_MAUI.Platforms.Windows.PlatSpecificUtils;
 using Microsoft.UI.Xaml.Input;
+using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
-public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
+public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
 {
     private WinUITableview _tableView;
     private bool _autoGenerateColumns;
@@ -26,6 +28,7 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         _tableView = new WinUITableview();
 
         AutoGenerateColumns = true;
+
         ItemsSource = null;
         Children.Add(_tableView);
 
@@ -49,9 +52,10 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         get => _tableView.ItemsSource;
         set
         {
-            _tableView.ItemsSource = (System.Collections.IList?)value;
-            OnPropertyChanged(nameof(ItemsSource));
             UpdateTableView();
+            //_tableView.ItemsSource = (System.Collections.IList?)value;
+            OnPropertyChanged(nameof(ItemsSource));
+            
         }
     }
 
@@ -189,18 +193,117 @@ public class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.SingleSelectionFollowsFocus = value; OnPropertyChanged(nameof(SingleSelectionFollowsFocus)); }
     }
 
+    
 
     private void UpdateTableView()
     {
         if (_tableView != null)
         {
+            _tableView.IsReadOnly = true;
+
             if (ItemsSource != null)
-                _tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
-            _tableView.Columns.Clear();
-            TableViewColumnsCollection cols = new();
+            {
+                
+                ObservableCollection<SongModelView> mySongs = (ObservableCollection<SongModelView>)ItemsSource;
+                ObservableCollection <SongModelView> disSongs = new ObservableCollection<SongModelView>();
+                foreach (SongModelView song in mySongs)
+                {
+                    SongModelView myMini = new SongModelView
+                    {
+                        Title = song.Title,
+                        ArtistName = song.ArtistName,
+                        AlbumName = song.AlbumName,
+                        GenreName = song.GenreName,
+                        DurationInSeconds = song.DurationInSeconds,
+                        FileFormat = song.FileFormat,
+                        LocalDeviceId = song.LocalDeviceId
+                    };
+                    disSongs.Add(myMini);
+                }
+                _tableView.ItemsSource = (ObservableCollection<SongModelView>)disSongs;
+
+                //    _tableView.Columns.Clear();
+                _tableView.AutoGeneratingColumn += _tableView_AutoGeneratingColumn;
+
+                //_tableView = (System.Collections.IList?)ItemsSource;
+            }
+                //_tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
+            //_tableView.Columns.Clear();
+            ////TableViewColumnsCollection cols = new();
             
-            _tableView.AutoGenerateColumns = AutoGenerateColumns;
+            //_tableView.AutoGenerateColumns = AutoGenerateColumns;
+            
+            //foreach (var col in _tableView.Columns)
+            //{
+            //    Debug.WriteLine(col.);
+            //}   
+            Debug.WriteLine(_tableView);
         }
+    }
+
+    private void _tableView_AutoGeneratingColumn(object? sender, TableViewAutoGeneratingColumnEventArgs e)
+    {
+        var viewModel = (object)((WinUITableview)sender).DataContext;
+        var boundColumn = (TableViewBoundColumn)e.Column;
+
+        /*
+        switch (e.PropertyName)
+        {
+            case nameof(SongModelView.Id):
+                e.Column.Width = new GridLength(60);
+                break;
+            case nameof(SongModelView.FirstName):
+                e.Column.Width = new GridLength(110);
+                break;
+            case nameof(SongModelView.LastName):
+                e.Column.Width = new GridLength(110);
+                break;
+            case nameof(SongModelView.Email):
+                e.Column.Width = new GridLength(270);
+                break;
+            case nameof(SongModelView.Gender):
+                e.Column = new TableViewComboBoxColumn
+                {
+                    Binding = boundColumn.Binding,
+                    Header = boundColumn.Header,
+                    Width = new GridLength(120),
+                    ItemsSource = viewModel.Genders
+                };
+                break;
+            case nameof(SongModelView.Dob):
+                e.Column.Width = new GridLength(110);
+                break;
+            case nameof(SongModelView.ActiveAt):
+                e.Column.Width = new GridLength(110);
+                break;
+            case nameof(SongModelView.IsActive):
+                e.Column.Width = new GridLength(100);
+                break;
+            case nameof(SongModelView.Department):
+                e.Column = new TableViewComboBoxColumn
+                {
+                    Binding = boundColumn.Binding,
+                    Header = boundColumn.Header,
+                    Width = new GridLength(200),
+                    ItemsSource = viewModel.Departments
+                };
+                break;
+            case nameof(SongModelView.Designation):
+                e.Column = new TableViewComboBoxColumn
+                {
+                    Binding = boundColumn.Binding,
+                    Header = boundColumn.Header,
+                    Width = new GridLength(200),
+                    ItemsSource = viewModel.Designations
+                };
+                break;
+            case nameof(SongModelView.Address):
+                e.Column.Width = new GridLength(200);
+                break;
+            default:
+                break;
+        }
+        */
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -631,6 +734,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
                 CanReorderItems = VirtualView.CanReorderItems,
                 DataFetchSize = VirtualView.DataFetchSize,
                 Footer = VirtualView.Footer,
+                
                 //FooterTemplate = VirtualView.FooterTemplate,
                 FooterTransitions = VirtualView.FooterTransitions,
                 Header = VirtualView.Header,
@@ -642,6 +746,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
                 IsItemClickEnabled = VirtualView.IsItemClickEnabled,
                 IsMultiSelectCheckBoxEnabled = VirtualView.IsMultiSelectCheckBoxEnabled,
                 IsSwipeEnabled = VirtualView.IsSwipeEnabled,
+                IsRightTapEnabled= VirtualView.IsRightClickEnabled,
                 IsZoomedInView = VirtualView.IsZoomedInView,
                 ReorderMode = VirtualView.ReorderMode,
                 SelectionMode = VirtualView.SelectionMode,
