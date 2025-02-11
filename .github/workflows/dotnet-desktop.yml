@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -20,46 +20,48 @@ jobs:
           dotnet workload install maui
           dotnet workload install android
 
-      - name: Add Local NuGet Source 
+      - name: Add Local NuGet Source
         run: |
           dotnet nuget add source "$(Get-Location)\Dimmer\releasePacking" --name local-release-packing
-          
+
       - name: Configure DevExpress NuGet Source
         run: dotnet nuget add source ${{ secrets.DEVEXPRESS_FEED_URL }} -n DevExpress
-        
+
       - name: Restore NuGet Packages
         run: dotnet restore ./Dimmer/Dimmer-MAUI.csproj
-      
+
       - name: Publish Windows Build
         run: dotnet publish ./Dimmer/Dimmer-MAUI.csproj -f net9.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained=false -p:WindowsPackageType=None -o ./Dimmer/windows-output --verbosity detailed
 
       - name: Download and Install Inno Setup
+        shell: powershell  # Specify PowerShell as the shell
         run: |
-          $innoSetupUrl = "https://files.jrsoftware.org/is/6/innosetup-6.4.0.exe"
+          $innoSetupUrl = "https://files.jrsoftware.org/is/innosetup-6.4.0.exe"
           $installerPath = "innosetup.exe"
           Invoke-WebRequest -Uri $innoSetupUrl -OutFile $installerPath
-          Start-Process -Wait -FilePath $installerPath -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+          Start-Process -FilePath $installerPath -ArgumentList "/SILENT /SUPPRESSMSGBOXES /NORESTART" -Wait  # Corrected arguments
 
       - name: Package with Inno Setup
-        run: ISCC.exe /dMySourceDir=windows-output /o Output ./Dimmer/releasePacking/setup_dimmer.iss
-        working-directory: Dimmer-MAUI/Dimmer
+        run: |
+          .\ISCC.exe /dMySourceDir=".\windows-output" /o ".\Output" ".\Dimmer\releasePacking\setup_dimmer.iss" # Corrected paths
+        working-directory: ./Dimmer-MAUI/Dimmer  # Correct working directory
 
       - name: Verify Installer Exists
         run: |
-          if (Test-Path -Path "./Output/Setup_Dimmer.exe") {
-            Write-Host "Success: Installer file found at ./Output/Setup_Dimmer.exe"
+          if (Test-Path -Path ".\Output\Setup_Dimmer.exe") {
+            Write-Host "Success: Installer file found at .\Output\Setup_Dimmer.exe"
           } else {
-            Write-Host "Error: Inno Setup did not create the installer file at ./Output/Setup_Dimmer.exe"
+            Write-Host "Error: Inno Setup did not create the installer file at .\Output\Setup_Dimmer.exe"
             exit 1
           }
-        working-directory: Dimmer-MAUI/Dimmer
+        working-directory: ./Dimmer-MAUI/Dimmer
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v4
         with:
           name: dimmer-windows-installer
-          path: Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
-  
+          path: ./Dimmer-MAUI/Dimmer/Output/Setup_Dimmer.exe
+
   release:
     name: Create GitHub Release
     needs: [build-windows]
