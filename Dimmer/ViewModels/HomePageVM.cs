@@ -1155,12 +1155,6 @@ public partial class HomePageVM : ObservableObject
                     PickedSong ??= new SongModelView();
                     MySelectedSong??= new SongModelView();
 
-                    if (MySelectedSong != TemporarilyPickedSong)
-                    {
-                        CurrentPositionInSeconds = 0;
-                        CurrentPositionPercentage = 0;
-                    }
-
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                     
                     switch (state)
@@ -1239,6 +1233,8 @@ public partial class HomePageVM : ObservableObject
             });
 
     }
+
+    
     private void SubscribetoDisplayedSongsChanges()
     {
         PlayBackService.NowPlayingSongs.Subscribe(songs =>

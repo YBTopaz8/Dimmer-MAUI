@@ -22,16 +22,16 @@ public partial class MainPageD : ContentPage
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        //SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
+        SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
 
-        //if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
-        //{
-        //    SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
-        //}
+        if (SongsColView.ItemsSource is ICollection<SongModelView> itemssource && itemssource.Count != MyViewModel.DisplayedSongs?.Count)
+        {
+            SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
+        }
         if (!isIniAssign)
         {
 
-            //await MyViewModel.AssignCV(SongsColView);
+            await MyViewModel.AssignCV(SongsColView);
 
             isIniAssign = true;
         }
@@ -54,9 +54,9 @@ public partial class MainPageD : ContentPage
                 return;
             }
 
-            //if (SongsColView is null)
-            //    return;
-            //SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            if (SongsColView is null)
+                return;
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -74,9 +74,9 @@ public partial class MainPageD : ContentPage
             }
             MyViewModel.PickedSong = MyViewModel.TemporarilyPickedSong;
 
-            //if (SongsColView is null)
-            //    return;
-            //SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
+            if (SongsColView is null)
+                return;
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Center, animate: false);
         }
         catch (Exception ex)
         {
@@ -232,13 +232,13 @@ public partial class MainPageD : ContentPage
     SelectionMode currentSelectionMode;
     public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
     {
-        /*
+
         switch (SongsColView.SelectionMode)
         {
             case SelectionMode.None:
                 SongsColView.SelectionMode = SelectionMode.Multiple;
-                //NormalMiniUtilBar.IsVisible = false;
-                //MultiSelectUtilBar.IsVisible = true;
+                NormalMiniUtilBar.IsVisible = false;
+                MultiSelectUtilBar.IsVisible = true;
                 MyViewModel.EnableContextMenuItems = false;
                 MyViewModel.IsMultiSelectOn = true;
                 selectedSongs = new();
@@ -256,8 +256,8 @@ public partial class MainPageD : ContentPage
                 SongsColView.SelectionMode = SelectionMode.None;
                 MyViewModel.IsMultiSelectOn = false;
                 SongsColView.SelectedItems = null;
-                //NormalMiniUtilBar.IsVisible = true;
-                //MultiSelectUtilBar.IsVisible = false;
+                NormalMiniUtilBar.IsVisible = true;
+                MultiSelectUtilBar.IsVisible = false;
                 MyViewModel.EnableContextMenuItems = true;
                 break;
             default:
@@ -299,11 +299,11 @@ public partial class MainPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        if (MyViewModel.TemporarilyPickedSong is not null )        
+        if (MyViewModel.TemporarilyPickedSong is not null)
         {
             MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         }
-        if (MyViewModel.PickedSong is not null )        
+        if (MyViewModel.PickedSong is not null)
         {
             MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
         }
@@ -321,7 +321,7 @@ public partial class MainPageD : ContentPage
 
     private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
     {
-        if(MyViewModel.IsOnSearchMode)
+        if (MyViewModel.IsOnSearchMode)
         {
             return;
         }
@@ -346,10 +346,6 @@ public partial class MainPageD : ContentPage
         MyViewModel.PlaySong(song);
     }
 
-    private void SfChip_Clicked(object sender, EventArgs e)
-    {
-        //NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
-    }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
         MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
@@ -358,7 +354,7 @@ public partial class MainPageD : ContentPage
     private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleFlyout();
-        
+
         //await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
 
@@ -400,7 +396,7 @@ public partial class MainPageD : ContentPage
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
-        
+
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
@@ -419,11 +415,11 @@ public partial class MainPageD : ContentPage
             {
                 Debug.WriteLine("Delta: " + properties.MouseWheelDelta);
                 Debug.WriteLine("UPdate Kind: " + properties.PointerUpdateKind);
-                Debug.WriteLine("Pressure: "+ properties.Pressure);
+                Debug.WriteLine("Pressure: " + properties.Pressure);
 
-                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " +e.KeyModifiers);
+                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
-                {                    
+                {
                     MyViewModel.ToggleFlyout();
 
                     Debug.WriteLine("Right Mouse was Clicked!");
@@ -457,17 +453,17 @@ public partial class MainPageD : ContentPage
 
             throw;
         }
-        //throw new NotImplementedException();
+        
     }
 
     private void S_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        //throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
     private void S_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        //throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
     private void S_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
@@ -478,10 +474,6 @@ public partial class MainPageD : ContentPage
 
 
 #endif
-}
-
-    */
-    }
 
     private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {

@@ -35,6 +35,7 @@ public partial class MiniControlNotificationView : ContentPage
 
             if (window != null)
             {
+                
                 Application.Current?.CloseWindow(window);
             }
         });

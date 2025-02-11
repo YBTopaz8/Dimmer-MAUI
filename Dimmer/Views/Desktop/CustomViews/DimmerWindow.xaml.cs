@@ -1,3 +1,6 @@
+using System.Drawing;
+using System.Runtime.InteropServices;
+
 namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
@@ -225,6 +228,58 @@ public partial class DimmerWindow : Window
             return;
 
     }
+
+
+#if WINDOWS
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    private const int SW_HIDE = 0;
+
+
+
+
+    private TrayIconHelper _trayIconHelper;
+    private const int SW_SHOW = 5;
+
+    // For hooking the native window procedure.
+    private WndProcDelegate _newWndProcDelegate;
+    private IntPtr _oldWndProc = IntPtr.Zero;
+    private const int GWL_WNDPROC = -4;
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, WndProcDelegate newProc);  
+    // Overload for unhooking (passing an IntPtr)
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr newProc);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+
+    private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        // Check if this is our tray icon callback.
+        if (msg == TrayIconHelper.WM_TRAYICON)
+        {
+            int lParamInt = lParam.ToInt32();
+
+            // Check for WM_LBUTTONUP (0x0202) or WM_LBUTTONDBLCLK (0x0203)
+            if (lParamInt == 0x0202 || lParamInt == 0x0203)
+            {
+                ShowWindow(hWnd, SW_SHOW);
+                SetWindowLongPtr(hWnd, GWL_WNDPROC, _oldWndProc);
+                return IntPtr.Zero;
+            }
+        }
+        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+    }
+
+#endif
+
+
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         if (!InitChecker())
@@ -250,5 +305,36 @@ public partial class DimmerWindow : Window
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
     {        
         //EventEmoji.IsAnimationPlaying = !EventEmoji.IsAnimationPlaying;
+    }
+
+
+    private void Minimize_Clicked(object sender, EventArgs e)
+    {
+
+#if WINDOWS
+        // Get the native window from the MAUI Window.
+        var nativeWindow = (Microsoft.UI.Xaml.Window)App.Current.Windows[0].Handler.PlatformView;
+        IntPtr hwnd = WindowNative.GetWindowHandle(nativeWindow);
+
+        // Hook the window procedure to capture tray icon messages.
+        _newWndProcDelegate = new WndProcDelegate(WndProc);
+        _oldWndProc = SetWindowLongPtr(hwnd, GWL_WNDPROC, _newWndProcDelegate);
+
+
+        // Get an icon handle (using the app's executable icon).
+        Icon appIcon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        IntPtr iconHandle = appIcon.Handle;
+
+
+        // Create the tray icon.
+        _trayIconHelper = new TrayIconHelper();
+        _trayIconHelper.CreateTrayIcon(hwnd, "My MAUI App", iconHandle);
+
+        // Hide the main window.
+        ShowWindow(hwnd, SW_HIDE);
+        this.OnDeactivated();
+#endif
+
+        return;
     }
 }

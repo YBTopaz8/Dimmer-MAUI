@@ -52,10 +52,9 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         get => _tableView.ItemsSource;
         set
         {
-            UpdateTableView();
-            //_tableView.ItemsSource = (System.Collections.IList?)value;
+            _tableView.ItemsSource = (System.Collections.IList?)value;
             OnPropertyChanged(nameof(ItemsSource));
-            
+            UpdateTableView();
         }
     }
 
@@ -194,6 +193,9 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
     }
 
     
+    public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
+    {
+    }
 
     private void UpdateTableView()
     {
@@ -201,38 +203,40 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         {
             _tableView.IsReadOnly = true;
 
-            if (ItemsSource != null)
-            {
-                
                 ObservableCollection<SongModelView> mySongs = (ObservableCollection<SongModelView>)ItemsSource;
-                ObservableCollection <SongModelView> disSongs = new ObservableCollection<SongModelView>();
-                foreach (SongModelView song in mySongs)
-                {
-                    SongModelView myMini = new SongModelView
-                    {
-                        Title = song.Title,
-                        ArtistName = song.ArtistName,
-                        AlbumName = song.AlbumName,
-                        GenreName = song.GenreName,
-                        DurationInSeconds = song.DurationInSeconds,
-                        FileFormat = song.FileFormat,
-                        LocalDeviceId = song.LocalDeviceId
-                    };
-                    disSongs.Add(myMini);
-                }
-                _tableView.ItemsSource = (ObservableCollection<SongModelView>)disSongs;
-
-                //    _tableView.Columns.Clear();
-                _tableView.AutoGeneratingColumn += _tableView_AutoGeneratingColumn;
-
-                //_tableView = (System.Collections.IList?)ItemsSource;
+            if (ItemsSource is null)
+            {
+                return;
             }
-                //_tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
+                //ObservableCollection <SongModelView> disSongs = new ObservableCollection<SongModelView>();
+                //foreach (SongModelView song in mySongs)
+                //{
+                //    SongModelView myMini = new SongModelView
+                //    {
+                //        Title = song.Title,
+                //        ArtistName = song.ArtistName,
+                //        AlbumName = song.AlbumName,
+                //        GenreName = song.GenreName,
+                //        DurationInSeconds = song.DurationInSeconds,
+                //        FileFormat = song.FileFormat,
+                //        LocalDeviceId = song.LocalDeviceId
+                //    };
+                //    disSongs.Add(myMini);
+                //}
+                //_tableView.Columns.Clear();
+            //_tableView.ItemsSource = (lis) ItemsSource;
+
+            //    _tableView.Columns.Clear();
+
+
+            //_tableView = (System.Collections.IList?)ItemsSource;
+
+            _tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
             //_tableView.Columns.Clear();
             ////TableViewColumnsCollection cols = new();
-            
+
             //_tableView.AutoGenerateColumns = AutoGenerateColumns;
-            
+
             //foreach (var col in _tableView.Columns)
             //{
             //    Debug.WriteLine(col.);

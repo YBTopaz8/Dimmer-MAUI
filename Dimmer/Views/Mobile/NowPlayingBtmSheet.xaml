@@ -134,11 +134,12 @@
             </dx:DXButton>
             <Grid ColumnDefinitions="*,Auto" >
                 <VerticalStackLayout Grid.Column="0" >
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start" BorderColor="Transparent"
-         WidthRequest="200" FontSize="21"  TextColor="#E4EDFB" 
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" 
+                             HorizontalOptions="Center" BorderColor="Transparent"
+         FontSize="21"  TextColor="#E4EDFB" 
                              />
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Start"
-         WidthRequest="200" FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent"/>
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Center"
+         FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent"/>
 
                 </VerticalStackLayout>
                 <dx:DXButton Grid.Column="1" IsVisible="False">
