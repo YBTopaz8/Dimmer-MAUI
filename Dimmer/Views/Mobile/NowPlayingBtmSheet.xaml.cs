@@ -96,7 +96,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
         {
             return;
         }
-        //SyncLyricsColView.ScrollTo(SyncLyricsColView.GetItemHandle(MyViewModel.SynchronizedLyrics!.IndexOf(MyViewModel.CurrentLyricPhrase!)), DXScrollToPosition.Start);
+        SyncLyricsColView.ScrollTo(SyncLyricsColView.GetItemHandle(MyViewModel.SynchronizedLyrics!.IndexOf(MyViewModel.CurrentLyricPhrase!)), DXScrollToPosition.Start);
     }
 
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
@@ -117,24 +117,24 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     private async void ShowMoreActionsContextMenuBtn_Clicked(object sender, EventArgs e)
     {
         HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-        //UpcomingSongsExp.Commands.ToggleExpandState.Execute(null);
-        //if (UpcomingSongsExp.IsExpanded)
-        //{
+        UpcomingSongsExp.Commands.ToggleExpandState.Execute(null);
+        if (UpcomingSongsExp.IsExpanded)
+        {
 
-        //    myPageView.ScrollTo(0, 180, true);
+            myPageView.ScrollTo(0, 180, true);
 
 
-        //    //myPage.AllowDismiss = false;
-        //}
-        //else
-        //{
-        //    myPage.AllowDismiss = true;
-        //}
-        //if (MyViewModel.MySelectedSong is null)
-        //{
-        //    return;
-        //}
-        //SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.MySelectedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
+            //myPage.AllowDismiss = false;
+        }
+        else
+        {
+            myPage.AllowDismiss = true;
+        }
+        if (MyViewModel.MySelectedSong is null)
+        {
+            return;
+        }
+        SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.MySelectedSong), DevExpress.Maui.Core.DXScrollToPosition.End);
 
     }
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)

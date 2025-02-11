@@ -30,7 +30,7 @@
 
     <Grid>
         <VerticalStackLayout Margin="5,0">
-            <Label Text="Playlists"  FontSize="24"
+            <Label Text="Playlists"  FontSize="16"
            TextColor="DarkSlateBlue"/>
             <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="PlaylistsColView" >
                 <CollectionView.EmptyView>

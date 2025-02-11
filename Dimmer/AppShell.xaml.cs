@@ -387,12 +387,6 @@ public partial class AppShell : Shell
     } 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        if (MyViewModel.TemporarilyPickedSong is not null)
-        {
-            MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-        }
-
-
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         if (song is not null)

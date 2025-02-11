@@ -151,6 +151,7 @@ public partial class App : Application
         base.CloseWindow(window);
     }
 
+
 }
 
 public enum AppState

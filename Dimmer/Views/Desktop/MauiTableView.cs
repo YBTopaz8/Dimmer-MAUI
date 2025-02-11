@@ -170,6 +170,8 @@ public partial class MyTableView : View, ITableView
         BindableProperty.Create(nameof(IsMultiSelectCheckBoxEnabled), typeof(bool), typeof(MyTableView), false);
     public static readonly BindableProperty IsSwipeEnabledProperty =
         BindableProperty.Create(nameof(IsSwipeEnabled), typeof(bool), typeof(MyTableView), true);
+    public static readonly BindableProperty IsRightClickEnabledProperty =
+        BindableProperty.Create(nameof(IsSwipeEnabled), typeof(bool), typeof(MyTableView), true);
     public static readonly BindableProperty IsZoomedInViewProperty =
         BindableProperty.Create(nameof(IsZoomedInView), typeof(bool), typeof(MyTableView), false);
     public static readonly BindableProperty ReorderModeProperty =
@@ -260,6 +262,7 @@ BindableProperty.Create(nameof(IsReadOnly), typeof(bool), typeof(MyTableView), f
     public bool IsItemClickEnabled { get => (bool)GetValue(IsItemClickEnabledProperty); set => SetValue(IsItemClickEnabledProperty, value); }
     public bool IsMultiSelectCheckBoxEnabled { get => (bool)GetValue(IsMultiSelectCheckBoxEnabledProperty); set => SetValue(IsMultiSelectCheckBoxEnabledProperty, value); }
     public bool IsSwipeEnabled { get => (bool)GetValue(IsSwipeEnabledProperty); set => SetValue(IsSwipeEnabledProperty, value); }
+    public bool IsRightClickEnabled { get => (bool)GetValue(IsRightClickEnabledProperty); set => SetValue(IsRightClickEnabledProperty, value); }
     public bool IsZoomedInView { get => (bool)GetValue(IsZoomedInViewProperty); set => SetValue(IsZoomedInViewProperty, value); }
     public ListViewReorderMode ReorderMode { get => (ListViewReorderMode)GetValue(ReorderModeProperty); set => SetValue(ReorderModeProperty, value); }
     public ListViewSelectionMode SelectionMode { get => (ListViewSelectionMode)GetValue(SelectionModeProperty); set => SetValue(SelectionModeProperty, value); }

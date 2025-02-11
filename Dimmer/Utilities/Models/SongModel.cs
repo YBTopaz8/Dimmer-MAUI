@@ -1,4 +1,5 @@
 ﻿using ATL;
+using System.ComponentModel.DataAnnotations;
 
 namespace Dimmer_MAUI.Utilities.Models;
 public partial class SongModel : RealmObject
@@ -118,6 +119,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
+    [Display(AutoGenerateField = true)]
     public partial string? CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;

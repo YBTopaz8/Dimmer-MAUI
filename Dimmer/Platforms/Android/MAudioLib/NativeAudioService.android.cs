@@ -1,6 +1,7 @@
 ﻿using Android.Media;
 using Dimmer_MAUI.Platforms.Android.CurrentActivity;
 using Java.Lang;
+using Exception = Java.Lang.Exception;
 
 namespace Dimmer_MAUI.Platforms.Android.MAudioLib;
 
@@ -154,19 +155,35 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         
     }
 
+
     public void SetCurrentTime(double positionInSeconds)
     {
-        var posInMs = (int)(positionInSeconds * 1000);
         if (mediaPlayer is null)
         {
             Debug.WriteLine("no media");
-            return ;
+            return;
         }
-        instance.Binder.GetMediaPlayerService().Seek(posInMs);
-        IsPlaying = true;
-        return ;
 
+        // Get duration (replace with your actual method)
+        double duration = mediaPlayer.Duration; // You must implement this method or property
+
+        // Validate input, ensuring it's within a valid range.
+        double clampedPosition = Java.Lang.Math.Clamp(positionInSeconds, 0, duration);
+        var posInMs = (int)(clampedPosition * 1000);
+
+        try
+        {
+            instance.Binder.GetMediaPlayerService().Seek(posInMs);
+            IsPlaying = true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error seeking: {ex.Message}");
+            IsPlaying = false; // Ensure IsPlaying is false if the seek fails
+                               // Consider other error handling, like showing an error message
+        }
     }
+
 
     public void Dispose()
     {

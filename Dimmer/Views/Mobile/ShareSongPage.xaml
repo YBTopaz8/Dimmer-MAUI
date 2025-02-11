@@ -55,7 +55,7 @@
                        TextColor="White" HorizontalOptions="Center" HorizontalTextAlignment="Justify"/>
                     <Label Text="by" TextColor="White" HorizontalOptions="Center"/>
                     <!-- Artist Name -->
-                    <Label x:Name="ArtistName" FontSize="18"
+                    <Label x:Name="ArtistName" FontSize="16"
                        TextColor="White" HorizontalOptions="Center"
                        Text="{Binding MySelectedSong.ArtistName}" 
                        VerticalOptions="Start"/>
@@ -88,7 +88,7 @@
 
                                 <VerticalStackLayout Grid.ColumnSpan="2" BackgroundColor="Transparent"
                                                      Grid.Column="1" VerticalOptions="Center">
-                                    <Label x:Name="SongTitlesmol" FontSize="23" 
+                                    <Label x:Name="SongTitlesmol" FontSize="16" 
            FontAttributes="Bold" Text="{Binding MySelectedSong.Title}"
            TextColor="Black" HorizontalOptions="Center"/>
                                     <Label Text="by" TextColor="Black" HorizontalOptions="Center"/>
@@ -160,7 +160,7 @@
                               ItemSpacing="15">
                 <HorizontalStackLayout HorizontalOptions="Center" BackgroundColor="Transparent">
                     <Label Text="Toolbox !" HorizontalOptions="Center"
-                           FontSize="24" HorizontalTextAlignment="Center"/>
+                           FontSize="16" HorizontalTextAlignment="Center"/>
                 </HorizontalStackLayout>
                 <dx:DXStackLayout BorderColor="DarkSlateBlue" BorderThickness="0.4"
                                   CornerRadius="15" Padding="0,15">

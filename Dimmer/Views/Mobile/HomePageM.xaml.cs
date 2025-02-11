@@ -8,7 +8,6 @@ public partial class HomePageM : ContentPage
         InitializeComponent();
         this.MyViewModel = homePageVM;
         BindingContext = homePageVM;
-        Shell.SetNavBarIsVisible(this, true);
     }
 
 

@@ -453,7 +453,7 @@ public class MediaPlayerService : Service,
     public void Seek(int position = 0, PlaybackStateCode playbackStateCode = PlaybackStateCode.Stopped)
     {
             positionInMs = position;
-        mediaPlayer?.SeekTo(position);
+        mediaPlayer?.SeekTo(position, MediaPlayerSeekMode.ClosestSync);
         IsSeekedFromNotificationBar?.Invoke(this, position);
         UpdatePlaybackState(MediaPlayerState, position);
         

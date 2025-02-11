@@ -58,7 +58,7 @@ x:Name="SongsColView">
 
                         <HorizontalStackLayout>
                             <VerticalStackLayout>
-                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="16"/>
                                 <Label Text="{Binding FileFormat}" HorizontalTextAlignment="End" FontSize="13"/>
                             </VerticalStackLayout>
                            

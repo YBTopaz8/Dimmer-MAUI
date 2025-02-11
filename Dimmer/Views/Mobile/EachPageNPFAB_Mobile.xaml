@@ -28,7 +28,7 @@
             
             <dx:DXExpander.Content>
                 <Grid WidthRequest="270" HeightRequest="150" BackgroundColor="Transparent">
-                    <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}" BackgroundColor="Transparent"
+                    <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" BackgroundColor="Transparent"
                            Opacity="0.30" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
                     <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
                                BackgroundColor="Transparent" 
@@ -43,7 +43,7 @@
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                         Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
-                                  Icon="stepbackward.png">
+                                  Icon="skipprevious.png">
                             
                         </dx:DXButton>
                         <dx:DXButton Clicked="DXButton_Clicked"
@@ -58,7 +58,7 @@
                                 </dx:DXButton.Triggers>
                         </dx:DXButton>
 
-                        <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="stepforward.png">
+                            <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="skipnext.png">
                         </dx:DXButton>
                     </HorizontalStackLayout>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
@@ -88,7 +88,7 @@
                     </dx:RadialProgressBar.Triggers>
                     <dx:RadialProgressBar.Content>
 
-                        <toolkit:AvatarView ImageSource="{Binding TemporarilyPickedSong.CoverImagePath}"
+                        <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}"
                 WidthRequest="120" HeightRequest="120" VerticalOptions="Fill"
                      BorderWidth="0" CornerRadius="50" Scale="0.9"
                 Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />

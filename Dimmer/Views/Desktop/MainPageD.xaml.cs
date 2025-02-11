@@ -28,16 +28,16 @@ public partial class MainPageD : ContentPage
         {
             SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
         }
-        if(!isIniAssign)
+        if (!isIniAssign)
         {
-            
+
             await MyViewModel.AssignCV(SongsColView);
-            
+
             isIniAssign = true;
         }
         ScrollToSong_Clicked(this, EventArgs.Empty);
 
-        // use opportunity login to parse and last fm
+
     }
 
     protected override void OnDisappearing()
@@ -56,7 +56,7 @@ public partial class MainPageD : ContentPage
 
             if (SongsColView is null)
                 return;
-                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
+            SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
         }
         catch (Exception ex)
         {
@@ -128,7 +128,7 @@ public partial class MainPageD : ContentPage
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
-    
+
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
@@ -136,49 +136,49 @@ public partial class MainPageD : ContentPage
         try
         {
 
-        if (!isAboutToDropFiles)
-        {
-            isAboutToDropFiles = true;
+            if (!isAboutToDropFiles)
+            {
+                isAboutToDropFiles = true;
 
 #if WINDOWS
                 var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
-            var dragUI = WindowsEventArgs.DragUIOverride;
-            
+                var dragUI = WindowsEventArgs.DragUIOverride;
 
-            var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
-            e.AcceptedOperation = DataPackageOperation.None;
-            supportedFilePaths = new List<string>();
 
-            if (items.Count > 0)
-            {
-                foreach (var item in items)
+                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
+                e.AcceptedOperation = DataPackageOperation.None;
+                supportedFilePaths = new List<string>();
+
+                if (items.Count > 0)
                 {
-                    if (item is Windows.Storage.StorageFile file)
+                    foreach (var item in items)
                     {
-                        /// Check file extension
-                        string fileExtension = file.FileType.ToLower();
-                        if (fileExtension != ".mp3" && fileExtension != ".flac" &&
-                            fileExtension != ".wav" && fileExtension != ".m4a")
+                        if (item is Windows.Storage.StorageFile file)
                         {
-                            e.AcceptedOperation = DataPackageOperation.None;
-                            dragUI.IsGlyphVisible = true;
-                            dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
-                            continue;
-                            //break;  // If any invalid file is found, break the loop
-                        }
-                        else
-                        {
-                            dragUI.IsGlyphVisible = false;
-                            dragUI.Caption = "Drop to Play!";
-                            Debug.WriteLine($"File is {item.Path}");
-                            supportedFilePaths.Add(item.Path.ToLower());
+                            /// Check file extension
+                            string fileExtension = file.FileType.ToLower();
+                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                                fileExtension != ".wav" && fileExtension != ".m4a")
+                            {
+                                e.AcceptedOperation = DataPackageOperation.None;
+                                dragUI.IsGlyphVisible = true;
+                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
+                                continue;
+                                //break;  // If any invalid file is found, break the loop
+                            }
+                            else
+                            {
+                                dragUI.IsGlyphVisible = false;
+                                dragUI.Caption = "Drop to Play!";
+                                Debug.WriteLine($"File is {item.Path}");
+                                supportedFilePaths.Add(item.Path.ToLower());
+                            }
                         }
                     }
-                }
 
-            }
+                }
 #endif
-        }
+            }
 
         }
         catch (Exception ex)
@@ -232,12 +232,13 @@ public partial class MainPageD : ContentPage
     SelectionMode currentSelectionMode;
     public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
     {
+
         switch (SongsColView.SelectionMode)
         {
             case SelectionMode.None:
                 SongsColView.SelectionMode = SelectionMode.Multiple;
-                //NormalMiniUtilBar.IsVisible = false;
-                //MultiSelectUtilBar.IsVisible = true;
+                NormalMiniUtilBar.IsVisible = false;
+                MultiSelectUtilBar.IsVisible = true;
                 MyViewModel.EnableContextMenuItems = false;
                 MyViewModel.IsMultiSelectOn = true;
                 selectedSongs = new();
@@ -255,8 +256,8 @@ public partial class MainPageD : ContentPage
                 SongsColView.SelectionMode = SelectionMode.None;
                 MyViewModel.IsMultiSelectOn = false;
                 SongsColView.SelectedItems = null;
-                //NormalMiniUtilBar.IsVisible = true;
-                //MultiSelectUtilBar.IsVisible = false;
+                NormalMiniUtilBar.IsVisible = true;
+                MultiSelectUtilBar.IsVisible = false;
                 MyViewModel.EnableContextMenuItems = true;
                 break;
             default:
@@ -298,11 +299,11 @@ public partial class MainPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        if (MyViewModel.TemporarilyPickedSong is not null )        
+        if (MyViewModel.TemporarilyPickedSong is not null)
         {
             MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         }
-        if (MyViewModel.PickedSong is not null )        
+        if (MyViewModel.PickedSong is not null)
         {
             MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
         }
@@ -320,11 +321,10 @@ public partial class MainPageD : ContentPage
 
     private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
     {
-        if(MyViewModel.IsOnSearchMode)
+        if (MyViewModel.IsOnSearchMode)
         {
             return;
         }
-        //await MyViewModel.LoadSongsInBatchesAsync();
 
     }
 
@@ -346,10 +346,6 @@ public partial class MainPageD : ContentPage
         MyViewModel.PlaySong(song);
     }
 
-    private void SfChip_Clicked(object sender, EventArgs e)
-    {
-        //NowPlayingBtmSheet.IsOpen = !NowPlayingBtmSheet.IsOpen;
-    }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
         MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
@@ -358,7 +354,7 @@ public partial class MainPageD : ContentPage
     private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleFlyout();
-        
+
         //await MyViewModel.ShowContextMenu(ContextMenuPageCaller.MainPage);
     }
 
@@ -400,7 +396,7 @@ public partial class MainPageD : ContentPage
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
-        
+
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
@@ -419,11 +415,11 @@ public partial class MainPageD : ContentPage
             {
                 Debug.WriteLine("Delta: " + properties.MouseWheelDelta);
                 Debug.WriteLine("UPdate Kind: " + properties.PointerUpdateKind);
-                Debug.WriteLine("Pressure: "+ properties.Pressure);
+                Debug.WriteLine("Pressure: " + properties.Pressure);
 
-                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " +e.KeyModifiers);
+                Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
-                {                    
+                {
                     MyViewModel.ToggleFlyout();
 
                     Debug.WriteLine("Right Mouse was Clicked!");
@@ -457,17 +453,17 @@ public partial class MainPageD : ContentPage
 
             throw;
         }
-        //throw new NotImplementedException();
+        
     }
 
     private void S_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-        //throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
     private void S_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        //throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
     private void S_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
@@ -478,8 +474,62 @@ public partial class MainPageD : ContentPage
 
 
 #endif
-}
 
+    private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+
+    }
+}
 public enum ContextMenuPageCaller
 {
     MainPage,

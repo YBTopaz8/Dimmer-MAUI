@@ -13,7 +13,7 @@
         Stroke="Transparent" HeightRequest="200"
         StrokeShape="RoundRectangle 20">
         <VerticalStackLayout Padding="20" Spacing="8">
-            <Label x:Name="labelForSong" FontSize="18" HorizontalOptions="Center" />
+            <Label x:Name="labelForSong" FontSize="16" HorizontalOptions="Center" />
             
             <Picker x:Name="RepeatPicker" Title="Repeat" HorizontalTextAlignment="Center"
                     HorizontalOptions="Fill">

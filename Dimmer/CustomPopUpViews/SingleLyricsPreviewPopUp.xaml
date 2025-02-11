@@ -21,9 +21,9 @@
             <VerticalStackLayout HorizontalOptions="Center" 
                                Grid.Row="0">
                 <HorizontalStackLayout HorizontalOptions="Center">
-                    <Label Text="Artist name" x:Name="ArtistNameLabel" FontSize="23" FontAttributes="Bold"/>
-                    <Label Text=" - " FontSize="23" FontAttributes="Bold"/>
-                    <Label Text="Song Title" x:Name="SongTitleLabel" FontSize="23" FontAttributes="Bold"/>
+                    <Label Text="Artist name" x:Name="ArtistNameLabel" FontSize="16" FontAttributes="Bold"/>
+                    <Label Text=" - " FontSize="16" FontAttributes="Bold"/>
+                    <Label Text="Song Title" x:Name="SongTitleLabel" FontSize="16" FontAttributes="Bold"/>
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>

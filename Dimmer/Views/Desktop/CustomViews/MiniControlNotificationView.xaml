@@ -80,9 +80,6 @@
                                 </DataTrigger>
                             </Image.Triggers>
 
-                            <Image.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="White"/>
-                            </Image.Behaviors>
                         </Image>
                     </Border>
 
@@ -115,9 +112,6 @@
                                 </DataTrigger>
                             </Image.Triggers>
 
-                            <Image.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="{AppThemeBinding Dark=White, Light=Black}"/>
-                            </Image.Behaviors>
                         </Image>
                     </Border>
 
@@ -126,9 +120,6 @@
 
                         <ImageButton Source="playdark.png" Command="{Binding PlayPreviousSongCommand}"  x:Name="PlayPauseBtn">
 
-                            <ImageButton.Behaviors>
-                                <toolkit:IconTintColorBehavior TintColor="White" />
-                            </ImageButton.Behaviors>
                         </ImageButton>
                     </Border>
 

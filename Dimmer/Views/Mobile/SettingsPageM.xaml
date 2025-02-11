@@ -27,13 +27,13 @@
         
     <dx:DXDockLayout Padding="10,10">
         
-        <Label Text="Settings" FontSize="30" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
+        <Label Text="Settings" FontSize="16" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
         <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" BackgroundColor="Transparent">
             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent" Grid.Column="2">
                 <Label Text="{Binding CurrentUser.UserName}"/>
                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                 <Label Text="{Binding CurrentUser.DeviceFormFactor, StringFormat='Type of Device: {0}'}"/>
-                <Label FontSize="24"
+                <Label FontSize="16"
                     Text="{Binding CurrentUserOnline.Username,StringFormat='Welcome Back Online {0} !'}" IsVisible="{Binding CurrentUser.IsAuthenticated}"/>
 
                 <Button Text="Full Sync" Clicked="FullSyncBtn_Clicked" x:Name="FullSyncBtn" IsVisible="False"
@@ -62,7 +62,7 @@
                         </HorizontalStackLayout>
                         <Label Text="Login/Sign Up (Tap to Reveal)"/>
                         <ImageButton Grid.Column="2" HorizontalOptions="End"
-                                     Source="arrowcircledown.png">
+                                     Source="roundaltarrowdown.png">
                             
                         </ImageButton>
                     </VerticalStackLayout>
@@ -75,7 +75,7 @@
                         <VerticalStackLayout x:Name="LoginUI" Spacing="20" 
                       VerticalOptions="Center" BackgroundColor="Transparent"> 
 
-                            <Label Text="User Login" FontSize="26"/>
+                            <Label Text="User Login" FontSize="16"/>
 
                             <Entry Placeholder="User Name" x:Name="LoginUname"
                                />
@@ -98,7 +98,7 @@
                       WidthRequest="280" VerticalOptions="Center"
                       IsVisible="False">
 
-                            <Label Text="User Sign Up" FontSize="26"/>
+                            <Label Text="User Sign Up" FontSize="16"/>
 
                             <Entry Placeholder="User Name" x:Name="SignUpUname"
                                />
@@ -125,7 +125,7 @@
                     <Image Source="folder.png" HeightRequest="30"/>
 
 
-                    <Label Text="Folders" FontSize="24" />
+                    <Label Text="Folders" FontSize="16" />
             </HorizontalStackLayout>
             
             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent"
@@ -145,7 +145,7 @@
                                     EmptyView="No Folders..">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
-                                <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="18" 
+                                <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="16" 
                                        TextColor="White"
                                Margin="20,0"/>
                             </DataTemplate>
@@ -166,7 +166,7 @@
             <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
                     <Image Source="issue.png"/>
 
-                    <Label Text="Facing Issues ?" FontSize="24" />
+                    <Label Text="Facing Issues ?" FontSize="16" />
             </HorizontalStackLayout>
             <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
                          Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"

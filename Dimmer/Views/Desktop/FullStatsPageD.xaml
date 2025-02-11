@@ -82,9 +82,9 @@
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
                                 <Label Text="Days Since First Dimm:" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding DaysSinceFirstDimm,StringFormat='{0} Days ago'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
 
@@ -93,7 +93,7 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="First Dimm: " FontSize="24" FontAttributes="Bold" />
+                                <Label Text="First Dimm: " FontSize="16" FontAttributes="Bold" />
                                 <HorizontalStackLayout>
                                     <Label Text="{Binding FirstDimmSong.Title,StringFormat='{0}'}" 
                                            FontSize="20" FontAttributes="Bold" />
@@ -108,9 +108,9 @@
                               <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                         PointerExited="FocusModePointerRec_PExited"/>
                           </FlexLayout.GestureRecognizers>
-                                <Label Text="Total Albums:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Total Albums:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding AllAlbums.Count,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
 
@@ -120,9 +120,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Total Artists:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Total Artists:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding AllArtists.Count,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
                             </FlexLayout>
 
                             <FlexLayout JustifyContent="SpaceBetween">
@@ -130,9 +130,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Eddington Number:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Eddington Number:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding EddingtonNumber,StringFormat='{0}'}" 
-                                   FontSize="24" FontAttributes="Bold" />
+                                   FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                             <FlexLayout JustifyContent="SpaceBetween">
@@ -140,9 +140,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Gini Index:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Gini Index:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding GiniPlayIndex,StringFormat='{0:n2}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                             <FlexLayout JustifyContent="SpaceBetween">
@@ -150,9 +150,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Percentage Completion:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Percentage Completion:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding PercentageCompletion,StringFormat='{0:n2}%'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                             
@@ -161,9 +161,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Number of Started Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Number of Started Dimms:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding TotalNumberStartedDimms,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                             <FlexLayout JustifyContent="SpaceBetween">
@@ -171,9 +171,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Number of Paused Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Number of Paused Dimms:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding TotalNumberPausedDimms,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                             <FlexLayout JustifyContent="SpaceBetween">
@@ -181,9 +181,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </FlexLayout.GestureRecognizers>
-                                <Label Text="Number of Completed Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Number of Completed Dimms:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding TotalNumberCompletedDimms,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </FlexLayout>
                         </VerticalStackLayout>                           
@@ -274,7 +274,7 @@
                                 <VerticalStackLayout Grid.Column="1" Grid.Row="0" x:DataType="vm:HomePageVM"
                                                      VerticalOptions="Center" >
                                     <Label Text="{Binding MySelectedSong.Title, StringFormat='{0}'}" HorizontalOptions="Center"
-                                           FontAttributes="Bold" FontSize="23" LineBreakMode="WordWrap" 
+                                           FontAttributes="Bold" FontSize="16" LineBreakMode="WordWrap" 
                                            ToolTipProperties.Text="Song Title" />
                                     <Label Text="{Binding MySelectedSong.ArtistName, StringFormat='by {0}'}" 
                                            HorizontalOptions="Center" ToolTipProperties.Text="Artist Name"/>

@@ -91,7 +91,7 @@ FontAttributes="Bold"/>
                     <Border Stroke="Transparent" Padding="2,2">
                         <FlexLayout JustifyContent="SpaceBetween" >
                             <VerticalStackLayout>
-                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding Title}" FontSize="16"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
                             </VerticalStackLayout>
 
