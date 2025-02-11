@@ -473,7 +473,7 @@ public partial class MainPageD : ContentPage
     }
 
 
-#endif
+
 
     private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
@@ -497,12 +497,12 @@ public partial class MainPageD : ContentPage
 
     private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-
+        Debug.WriteLine("d d");
     }
 
     private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-
+        Debug.WriteLine("k up");
     }
 
     private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -517,18 +517,38 @@ public partial class MainPageD : ContentPage
 
     private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
+        if (MyViewModel.TemporarilyPickedSong is not null)
+        {
+            MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        }
+        if (MyViewModel.PickedSong is not null)
+        {
+            MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
+        }
 
+
+        var send = (Microsoft.UI.Xaml.FrameworkElement)e.OriginalSource;
+        var song = (SongModelView)send.DataContext;
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
     }
 
     private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
     {
 
+        MyViewModel.ToggleFlyout();
+        Debug.WriteLine("r tap");
     }
 
     private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-
+        Debug.WriteLine("single tap");
     }
+#endif
 }
 public enum ContextMenuPageCaller
 {

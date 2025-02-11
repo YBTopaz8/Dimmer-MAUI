@@ -9,11 +9,15 @@ using TableView = global::WinUI.TableView;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using Style = Microsoft.UI.Xaml.Style;
+using TableViewColumnsCollection = WinUI.TableView.TableViewColumnsCollection;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using FlyoutBase = Microsoft.Maui.Controls.FlyoutBase;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
 public interface ITableView
 {
+    // Core properties
     object ItemsSource { get; set; }
     bool AutoGenerateColumns { get; set; }
     bool CanDragItems { get; set; }
@@ -37,9 +41,28 @@ public interface ITableView
     object SemanticZoomOwner { get; set; }
     bool ShowsScrollingPlaceholders { get; set; }
     bool SingleSelectionFollowsFocus { get; set; }
+    
 
-    event RoutedEventHandler? Loaded;
-    // Additional native properties:
+    // Interaction events
+    event RoutedEventHandler Loaded;
+    event RoutedEventHandler Unloaded;
+    event DoubleTappedEventHandler DoubleTapped;
+    event PointerEventHandler PointerEntered;
+    event PointerEventHandler PointerExited;
+    event PointerEventHandler PointerMoved;
+    event PointerEventHandler PointerPressed;
+    event PointerEventHandler PointerReleased;
+    event PointerEventHandler PointerWheelChanged;
+    event RightTappedEventHandler RightTapped;
+    event TappedEventHandler Tapped;
+    event HoldingEventHandler Holding;
+    event KeyEventHandler KeyDown;
+    event KeyEventHandler KeyUp;
+    event TypedEventHandler<UIElement, CharacterReceivedRoutedEventArgs> CharacterReceived;
+    event TypedEventHandler<UIElement, ContextRequestedEventArgs> ContextRequested;
+    event TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> DataContextChanged;
+
+    // Native appearance and behavior properties
     double HeaderRowHeight { get; set; }
     double RowHeight { get; set; }
     double RowMaxHeight { get; set; }
@@ -64,6 +87,15 @@ public interface ITableView
     FlyoutBase CellContextFlyout { get; set; }
     Style ColumnHeaderStyle { get; set; }
     Style CellStyle { get; set; }
+
+    // Add a Columns collection for XAML support
+    TableViewColumnsCollection Columns { get; }
+    //Selected Item
+    object SelectedItem { get; set; }
+    object SelectedValue { get; set; }
+    object SelectedValuePath { get; set; }
+    object SelectedIndex { get; set; }
+    
 }
 
 public static class TableViewHandler
@@ -80,23 +112,23 @@ public partial class MyTableView : View, ITableView
     // Add Windows-specific events:
     public new event RoutedEventHandler? Loaded;
     public event RoutedEventHandler Unloaded;
-    public event DoubleTappedEventHandler DoubleTapped;
-    public event PointerEventHandler PointerEntered;
-    public event PointerEventHandler PointerExited;
-    public event PointerEventHandler PointerMoved;
-    public event PointerEventHandler PointerPressed;
-    public event PointerEventHandler PointerReleased;
-    public event PointerEventHandler PointerWheelChanged;
-    public event RightTappedEventHandler RightTapped;
-    //public event EventHandler<TappedEventArgs> TappedEventArgs;
-    public event TappedEventHandler Tapped;
-    public event HoldingEventHandler Holding;
-    public event KeyEventHandler KeyDown;
-    public event KeyEventHandler KeyUp;
-    public event TypedEventHandler<UIElement, CharacterReceivedRoutedEventArgs> CharacterReceived;
-    public event TypedEventHandler<UIElement, RoutedEventArgs> ContextCanceled;
-    public event TypedEventHandler<UIElement, ContextRequestedEventArgs> ContextRequested;
-    public event TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> DataContextChanged;
+    public event DoubleTappedEventHandler? DoubleTapped;
+    public event PointerEventHandler? PointerEntered;
+    public event PointerEventHandler? PointerExited;
+    public event PointerEventHandler? PointerMoved;
+    public event PointerEventHandler? PointerPressed;
+    public event PointerEventHandler? PointerReleased;
+    public event PointerEventHandler? PointerWheelChanged;
+    public event RightTappedEventHandler? RightTapped;
+    //public event EventHandler?<TappedEventArgs> TappedEventArgs;
+    public event TappedEventHandler? Tapped;
+    public event HoldingEventHandler? Holding;
+    public event KeyEventHandler? KeyDown;
+    public event KeyEventHandler? KeyUp;
+    public event TypedEventHandler<UIElement, CharacterReceivedRoutedEventArgs>? CharacterReceived;
+    public event TypedEventHandler<UIElement, RoutedEventArgs>? ContextCanceled;
+    public event TypedEventHandler<UIElement, ContextRequestedEventArgs>? ContextRequested;
+    public event TypedEventHandler<FrameworkElement, DataContextChangedEventArgs>? DataContextChanged;
 
 
 
@@ -131,10 +163,20 @@ public partial class MyTableView : View, ITableView
     //internal void RaiseManipulationStarted(ManipulationStartedRoutedEventArgs e) => ManipulationStarted?.Invoke(this, e);
     //internal void RaiseManipulationStarting(ManipulationStartingRoutedEventArgs e) => ManipulationStarting?.Invoke(this, e);
 
-
+    public object SelectedItem
+    {
+        get => GetValue(SelectedItemProperty);
+        set => SetValue(SelectedItemProperty, value);
+    }
     public static readonly BindableProperty ColumnsProperty =
         BindableProperty.Create(nameof(Columns), typeof(TableViewColumnsCollection), typeof(MyTableView), null);
+    public static readonly BindableProperty SelectedItemProperty =
+    BindableProperty.Create(nameof(SelectedItem), typeof(object), typeof(MyTableView), null, propertyChanged: OnSelectedItemChanged); // 
 
+    private static void OnSelectedItemChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        
+    }
 
     public static readonly BindableProperty ItemsSourceProperty =
         BindableProperty.Create(nameof(ItemsSource), typeof(object), typeof(MyTableView), null);
@@ -289,7 +331,9 @@ BindableProperty.Create(nameof(IsReadOnly), typeof(bool), typeof(MyTableView), f
     public FlyoutBase CellContextFlyout { get => (FlyoutBase)GetValue(CellContextFlyoutProperty); set => SetValue(CellContextFlyoutProperty, value); }
     public Style ColumnHeaderStyle { get => (Style)GetValue(ColumnHeaderStyleProperty); set => SetValue(ColumnHeaderStyleProperty, value); }
     public Style CellStyle { get => (Style)GetValue(CellStyleProperty); set => SetValue(CellStyleProperty, value); }
-
+    public object SelectedValue { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public object SelectedValuePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public object SelectedIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
 #endif
 

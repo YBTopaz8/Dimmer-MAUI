@@ -3,12 +3,15 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.VisualBasic.FileIO;
+using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using System.Collections.Concurrent;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 public static class PlatSpecificUtils
 {
+
+    public static IntPtr DimmerHandle { get; set; }
     public static bool DeleteSongFile(SongModelView song)
     {
         try
@@ -115,7 +118,8 @@ public static class PlatSpecificUtils
     }
     public static class DataTemplateConversion
     {
-        public static Microsoft.UI.Xaml.DataTemplate ConvertToWindowsDataTemplate(Microsoft.Maui.Controls.DataTemplate mauiTemplate)
+        
+        public static DataTemplate ConvertToWindowsDataTemplate(Microsoft.Maui.Controls.DataTemplate mauiTemplate)
         {
             if (mauiTemplate == null)
                 return null;

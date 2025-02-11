@@ -55,9 +55,10 @@ public static class MauiProgram
                     HomePageVM homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
 
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
+                    
                     if (nativeWindowHandle != IntPtr.Zero)
                     {
-
+                        PlatSpecificUtils.DimmerHandle = nativeWindowHandle;
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
 

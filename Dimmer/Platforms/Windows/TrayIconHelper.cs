@@ -59,8 +59,10 @@ public class TrayIconHelper
         _data.cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA));
     }
 
-    public void CreateTrayIcon(IntPtr hwnd, string tooltip, IntPtr iconHandle)
+    public void CreateTrayIcon(string tooltip, IntPtr iconHandle)
     {
+        IntPtr hwnd = PlatSpecificUtils.DimmerHandle;
+
         _data.hWnd = hwnd;
         _data.uID = 1;
         _data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;

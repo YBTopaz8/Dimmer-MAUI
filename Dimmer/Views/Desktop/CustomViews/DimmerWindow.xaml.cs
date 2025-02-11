@@ -34,12 +34,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.2-debug";
+        DimmerTitleBar.Subtitle = "v1.3-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.2.1-release";
+        DimmerTitleBar.Subtitle = "v1.3";
 #endif
 
         if (!InitChecker())
@@ -245,6 +245,7 @@ public partial class DimmerWindow : Window
     private WndProcDelegate _newWndProcDelegate;
     private IntPtr _oldWndProc = IntPtr.Zero;
     private const int GWL_WNDPROC = -4;
+    private const int WM_COMMAND = 0x0111; // Message from thumbnail buttons
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
@@ -274,6 +275,27 @@ public partial class DimmerWindow : Window
                 return IntPtr.Zero;
             }
         }
+        else  // Handle WM_COMMAND for thumbnail button clicks.
+        if (msg == WM_COMMAND)
+        {
+            // The low-order word of wParam is the button command ID.
+            int commandId = wParam.ToInt32() & 0xffff;
+            if (commandId == 100)
+            {
+                // "Play" button clicked.
+                // Insert your Play logic here.
+                System.Diagnostics.Debug.WriteLine("Play button clicked.");
+                return IntPtr.Zero;
+            }
+            else if (commandId == 101)
+            {
+                // "Stop" button clicked.
+                // Insert your Stop logic here.
+                System.Diagnostics.Debug.WriteLine("Stop button clicked.");
+                return IntPtr.Zero;
+            }
+        }
+
         return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
     }
 
@@ -312,9 +334,8 @@ public partial class DimmerWindow : Window
     {
 
 #if WINDOWS
-        // Get the native window from the MAUI Window.
-        var nativeWindow = (Microsoft.UI.Xaml.Window)App.Current.Windows[0].Handler.PlatformView;
-        IntPtr hwnd = WindowNative.GetWindowHandle(nativeWindow);
+
+        IntPtr hwnd = PlatSpecificUtils.DimmerHandle;
 
         // Hook the window procedure to capture tray icon messages.
         _newWndProcDelegate = new WndProcDelegate(WndProc);
@@ -328,7 +349,7 @@ public partial class DimmerWindow : Window
 
         // Create the tray icon.
         _trayIconHelper = new TrayIconHelper();
-        _trayIconHelper.CreateTrayIcon(hwnd, "My MAUI App", iconHandle);
+        _trayIconHelper.CreateTrayIcon( "Dimmer", iconHandle);
 
         // Hide the main window.
         ShowWindow(hwnd, SW_HIDE);
