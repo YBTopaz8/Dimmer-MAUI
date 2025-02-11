@@ -24,7 +24,7 @@
     </ContentPage.Resources>
     <ScrollView  x:Name="MainDock">        
         <VerticalStackLayout Padding="10,0" Spacing="15">
-            <Label Text="Settings" FontSize="30" FontAttributes="Bold" />
+            <Label Text="Settings" FontSize="16" FontAttributes="Bold" />
             
             <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
                                ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
@@ -93,7 +93,7 @@
                                                   CommandParameter="{Binding .}"/>
                                     <Label BackgroundColor="Transparent" 
                                            Text="{Binding .}"  x:DataType="sys:String"
-                                           TextColor="White" FontSize="18" Margin="20,0"/>
+                                           TextColor="White" FontSize="16" Margin="20,0"/>
                                     
                                 </HorizontalStackLayout>
                                 
@@ -106,7 +106,7 @@
         
             <VerticalStackLayout x:Name="LoginParseUI" Spacing="20" IsVisible="False"
                                  VerticalOptions="Center" WidthRequest="280">
-                <Label Text="User Login" FontSize="26"/>
+                <Label Text="User Login" FontSize="16"/>
 
                 <Label Text="Online User Name" />
                 <Entry  x:Name="LoginUname" ClearButtonVisibility="WhileEditing"
@@ -119,7 +119,7 @@
                 <VerticalStackLayout Spacing="10">
                     <syncf:SfChip Text="Login" 
                                    Clicked="SettingsAction" CommandParameter="1"
-                                  BackgroundColor="Transparent" FontSize="23"
+                                  BackgroundColor="Transparent" FontSize="16"
                                   FontAttributes="Bold"/>
                     
                     <syncf:SfChip Text="Forgotten Password" FontAttributes="Italic"
@@ -139,7 +139,7 @@
             <VerticalStackLayout x:Name="SignUpParseUI" Spacing="15" IsVisible="False"
                                  WidthRequest="280" VerticalOptions="Center">
 
-                <Label Text="User Sign Up" FontSize="26"/>
+                <Label Text="User Sign Up" FontSize="16"/>
 
                 <Entry Placeholder="User Name" x:Name="SignUpUname" ClearButtonVisibility="WhileEditing"
                         Text="{Binding CurrentUser.UserName}"/>
@@ -187,7 +187,7 @@
                 <HorizontalStackLayout>
                     <Image Source="issue.png">                        
                     </Image>
-                    <Label Text="Facing Issues!" FontSize="24" />
+                    <Label Text="Facing Issues!" FontSize="16" />
                 </HorizontalStackLayout>
                 
                 <syncf:SfChip Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"

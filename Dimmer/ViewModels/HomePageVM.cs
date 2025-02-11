@@ -144,30 +144,6 @@ public partial class HomePageVM : ObservableObject
         }
 
     }
-    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
-    {
-        
-        if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
-        {
-            newValue.CoverImagePath = string.Empty;
-        }
-
-        if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
-        {
-            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
-            {
-                if (oldValue.AlbumName != newValue.AlbumName)
-                {
-                    newValue.CoverImagePath = string.Empty;
-                }
-            }
-        }
-
-        if (newValue is not null)
-        {
-         
-        }
-    }
 
     partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel> oldValue, ObservableCollection<LyricPhraseModel> newValue)
     {
@@ -647,7 +623,7 @@ public partial class HomePageVM : ObservableObject
         }
 
         TemporarilyPickedSong = selectedSong;
-        TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        
 
         if (selectedSong != null)
         {
@@ -1154,12 +1130,11 @@ public partial class HomePageVM : ObservableObject
                 {
                     PickedSong ??= new SongModelView();
                     MySelectedSong??= new SongModelView();
-
-                    TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                     
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
+                            IsPlaying = true;
                             MySelectedSong = null;
 
                             if (PlayBackService.CurrentlyPlayingSong is null)
@@ -1172,27 +1147,21 @@ public partial class HomePageVM : ObservableObject
                                 PickedSong.IsPlaying = false;
                                 PickedSong.IsCurrentPlayingHighlight = false;                                
                             }
-                            PickedSong = TemporarilyPickedSong;                            
-
+                            PickedSong = TemporarilyPickedSong;
                             MySelectedSong = TemporarilyPickedSong;
-
-                            IsPlaying = true;
 
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                             
-                            await FetchSongCoverImage();
+                            //await FetchSongCoverImage();
 
-                            if (CurrentUser is not null)
-                            {
-                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                            //if (CurrentUser is not null)
+                            //{
+                            //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
 
-                            }
-                            if (TemporarilyPickedSong == null && MySelectedSong != null)
-                            {
-                                TemporarilyPickedSong = MySelectedSong;
-                            }
+                            //}
+                        
                             break;
                         case MediaPlayerState.Paused:
                             if (CurrentUser is not null)
@@ -1234,7 +1203,43 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    
+
+    partial void OnTemporarilyPickedSongChanging(SongModelView? value)
+    {
+       
+    }
+
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+
+        if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            newValue.CoverImagePath = string.Empty;
+        }
+
+        if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
+            {
+                if (oldValue.AlbumName != newValue.AlbumName)
+                {
+                    newValue.CoverImagePath = string.Empty;
+                }
+            }
+        }
+
+        if (newValue is not null)
+        {
+            if (IsPlaying)
+            {
+                newValue.IsCurrentPlayingHighlight = true;
+            }
+            else
+            {
+                newValue.IsCurrentPlayingHighlight = false;
+            }
+        }
+    }
     private void SubscribetoDisplayedSongsChanges()
     {
         PlayBackService.NowPlayingSongs.Subscribe(songs =>

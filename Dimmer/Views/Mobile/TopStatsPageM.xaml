@@ -57,9 +57,9 @@
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
                                 <Label Text="Days Since First Dimm:" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding DaysSinceFirstDimm,StringFormat='{0} Days ago'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
 
@@ -68,12 +68,12 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="First Dimm: " FontSize="24" FontAttributes="Bold" />
+                                <Label Text="First Dimm: " FontSize="16" FontAttributes="Bold" />
                                 <HorizontalStackLayout>
                                     <Label Text="{Binding FirstDimmSong.Title,StringFormat='{0}'}" 
-                                           FontSize="24" FontAttributes="Bold" />
+                                           FontSize="16" FontAttributes="Bold" />
                                     <Label Text="{Binding FirstDimmArtist,StringFormat=' by {0}'}" 
-                                           FontSize="24" FontAttributes="Bold" />
+                                           FontSize="16" FontAttributes="Bold" />
                                 </HorizontalStackLayout>
 
                             </VerticalStackLayout>
@@ -83,9 +83,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                         PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Total Albums:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Total Albums:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding AllAlbums.Count,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
 
@@ -95,9 +95,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Total Artists:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Total Artists:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding AllArtists.Count,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
@@ -105,9 +105,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Eddington Number:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Eddington Number:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding EddingtonNumber,StringFormat='{0}'}" 
-                                   FontSize="24" FontAttributes="Bold" />
+                                   FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
                             <VerticalStackLayout>
@@ -115,9 +115,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Gini Index:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Gini Index:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding GiniPlayIndex,StringFormat='{0:n2}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
                             <VerticalStackLayout>
@@ -125,9 +125,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Pareto Play Count:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Pareto Play Count:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding ParetoPlayRatio,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
                             <VerticalStackLayout>
@@ -135,9 +135,9 @@
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
                                                               PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Total number of Dimms:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Total number of Dimms:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding TotalNumberOfDimms,StringFormat='{0}'}" 
-                                       FontSize="24" FontAttributes="Bold" />
+                                       FontSize="16" FontAttributes="Bold" />
 
                             </VerticalStackLayout>
                         </VerticalStackLayout>
@@ -158,9 +158,9 @@ PointerExited="FocusModePointerRec_PExited"/>
                                     <PointerGestureRecognizer PointerEntered="FocusModePointerRec_PEntered"
 PointerExited="FocusModePointerRec_PExited"/>
                                 </VerticalStackLayout.GestureRecognizers>
-                                <Label Text="Pareto Dimm Ratio:" FontSize="24" FontAttributes="Bold" />
+                                <Label Text="Pareto Dimm Ratio:" FontSize="16" FontAttributes="Bold" />
                                 <Label Text="{Binding ParetoRatio,StringFormat='{0:n2}%'}" 
-    FontSize="24" FontAttributes="Bold" />
+    FontSize="16" FontAttributes="Bold" />
                             </VerticalStackLayout>
 
                         </VerticalStackLayout>

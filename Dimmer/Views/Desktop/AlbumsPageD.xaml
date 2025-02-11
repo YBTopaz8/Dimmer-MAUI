@@ -165,7 +165,7 @@
                                     </syncf:SfEffectsView.GestureRecognizers>
 
                                     <VerticalStackLayout >
-                                        <Label Text="{Binding Title}" FontSize="23"/>
+                                        <Label Text="{Binding Title}" FontSize="16"/>
                                         
                                         </VerticalStackLayout>
                                 </syncf:SfEffectsView>

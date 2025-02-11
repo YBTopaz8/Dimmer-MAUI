@@ -138,7 +138,7 @@
                         <syncf:SfEffectsView TouchDownEffects="Ripple">
                             <FlexLayout JustifyContent="SpaceBetween" Margin="10,0" BackgroundColor="Transparent">
                             <VerticalStackLayout>
-                                <Label Text="{Binding Title}" FontSize="18"/>
+                                <Label Text="{Binding Title}" FontSize="16"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" 
                                         TextColor="Gray"/>
 

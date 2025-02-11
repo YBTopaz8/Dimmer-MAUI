@@ -150,6 +150,7 @@ public partial class PlaybackUtilsService : ObservableObject
         }
 
         StartPositionTimer();
+        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
         _playerStateSubject.OnNext(MediaPlayerState.Playing);
         song.IsPlaying = true; // Update playing status
         UpdateSongPlaybackDetails(song);

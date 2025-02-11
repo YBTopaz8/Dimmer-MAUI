@@ -58,7 +58,7 @@
                                         CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
                                 <Label Text="{Binding .}" x:DataType="x:String"
-                                       FontSize="25" TextColor="White"/>
+                                       FontSize="16" TextColor="White"/>
                             </Border>
                             
                         </DataTemplate>

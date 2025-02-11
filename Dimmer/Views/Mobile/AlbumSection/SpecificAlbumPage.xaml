@@ -77,7 +77,7 @@
                 <dx:DXCollectionView SelectionMode="Single" ItemsSource="{Binding AllArtistsAlbumSongs}" SelectedItem="{Binding PickedSong}">
                     <dx:DXCollectionView.Header>
                         <Label Text="Songs" FontAttributes="Bold"
-            FontSize="18" Margin="10,0"/>
+            FontSize="16" Margin="10,0"/>
                     </dx:DXCollectionView.Header>
                     <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
@@ -102,7 +102,7 @@
                                 </Border.GestureRecognizers>
                                 <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
                                     <VerticalStackLayout>
-                                        <Label Text="{Binding Title}" FontSize="18"/>
+                                        <Label Text="{Binding Title}" FontSize="16"/>
                                         <Label Text="{Binding ArtistName}" FontSize="14" TextColor="Gray"/>
                                     </VerticalStackLayout>
 

@@ -38,7 +38,8 @@
                             <MenuFlyoutItem Text="sss"/>
                         </MenuFlyout>
                     </FlyoutBase.ContextFlyout>
-                    
+                    <ImageButton Source="threesquares.png" Clicked="Minimize_Clicked"/>
+
                     <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}"
                                  Source="pushpined.png" WidthRequest="30" HeightRequest="30">
                         
@@ -47,7 +48,7 @@
                                  Source="pin.png" WidthRequest="30" HeightRequest="30">
                         
                     </ImageButton>
-                    <Button Text="Minimize" x:Name="Minimize" Clicked="Minimize_Clicked"/>
+                    
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
                             TouchUp="SfEffectsView_TouchUp">
                         <Image Source="newyear.png" x:Name="EventEmoji" IsVisible="True" 

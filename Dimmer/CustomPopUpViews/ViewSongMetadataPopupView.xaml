@@ -48,13 +48,13 @@
                 <Image WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
                     
                 </Image>
-                <Label Text="Information" FontSize="26"/>
+                <Label Text="Information" FontSize="16"/>
             </HorizontalStackLayout>
 
             <FlexLayout JustifyContent="SpaceBetween">
                 <VerticalStackLayout>
 
-                    <Label Text="Song Details" FontSize="25" Margin="0,0,0,8"
+                    <Label Text="Song Details" FontSize="16" Margin="0,0,0,8"
                        TextColor="DarkOrange" HorizontalOptions="Start"/>
                     <HorizontalStackLayout>
                         <Label Text="{Binding  MySelectedSong.Title}"/>
@@ -103,7 +103,7 @@
             </FlexLayout>
 
             <VerticalStackLayout>
-                <Label Text="File Details" FontSize="25" 
+                <Label Text="File Details" FontSize="16" 
                        TextColor="DarkOrange" HorizontalOptions="Start"/>
                 <!--<HorizontalStackLayout>
                     <Image>
@@ -132,7 +132,7 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout>
-                <Label Text="Audio Details" FontSize="25" 
+                <Label Text="Audio Details" FontSize="16" 
                        TextColor="DarkOrange"/>
                 <HorizontalStackLayout>
                     <Image>

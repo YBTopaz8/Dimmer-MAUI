@@ -142,7 +142,7 @@
 
                                     </FlexLayout.GestureRecognizers>
                                     <VerticalStackLayout BackgroundColor="Transparent">
-                                        <Label Text="{Binding Title}" FontSize="18" WidthRequest="275" 
+                                        <Label Text="{Binding Title}" FontSize="16" WidthRequest="275" 
                                                HorizontalOptions="Start"/>
                                         <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"
                                                WidthRequest="275"/>
@@ -472,7 +472,7 @@ EmptyView="No Syncronized Lyrics ..." >
                                 CommandParameter="{Binding .}"/>
                                                     </Border.GestureRecognizers>
                                                     <Label Text="{Binding .}" x:DataType="x:String"
-                               FontSize="25" TextColor="White"/>
+                               FontSize="16" TextColor="White"/>
                                                 </Border>
 
                                             </DataTemplate>

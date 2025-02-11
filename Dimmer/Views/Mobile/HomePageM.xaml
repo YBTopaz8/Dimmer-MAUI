@@ -65,7 +65,7 @@
 
                                 <VerticalStackLayout BackgroundColor="Transparent">
                                     
-                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="18"/>
+                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="16"/>
 
                                     <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
                                          WidthRequest="20" HorizontalOptions="Center"
@@ -144,7 +144,7 @@
          HorizontalOptions="End" Clicked="GoToSettingsPage"/>
                 </HorizontalStackLayout>
             </Grid>
-            <Label Text="Welcome Back!" FontSize="25" FontAttributes="Bold"/>
+            <Label Text="Welcome Back!" FontSize="16" FontAttributes="Bold"/>
             <Label Text="What Kind of music do you want to listen to today?"
                FontSize="13" TextColor="Gray"/>
             <dx:TextEdit BackgroundColor="#62667F" BorderColor="Transparent" LabelText="Search..."
@@ -155,7 +155,7 @@
 
             <Grid ColumnDefinitions="*,*" HeightRequest="30" >
                 <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}"
-                    FontSize="18" TextColor="DarkSlateBlue" FontAttributes="Bold"/>
+                    FontSize="16" TextColor="DarkSlateBlue" FontAttributes="Bold"/>
 
                 <dx:DXButton Icon="eye.png"
                         Grid.Column="1" BackgroundColor="Transparent" 
@@ -271,7 +271,7 @@
                                         FieldName="HasLyrics" EditorCheckedColor="DarkSlateBlue" 
                                         Detail="Toggle Search with lyrics inclusion"/>
                     <Label Text="Sort By..." Margin="15,0"
-                            FontSize="18"/>
+                            FontSize="16"/>
 
                     <dx:ChoiceChipGroup ChipUseRippleEffect="True" IsMultiline="True" IsVisible="True">
 

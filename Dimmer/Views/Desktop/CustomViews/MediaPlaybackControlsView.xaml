@@ -85,7 +85,7 @@
 
                 <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
                     <Label Text="{Binding TemporarilyPickedSong.Title}" HorizontalOptions="Start"
-                LineBreakMode="HeadTruncation" FontSize="18"/>
+                LineBreakMode="HeadTruncation" FontSize="16"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
                 LineBreakMode="TailTruncation"
                 Opacity="0.6" HorizontalOptions="Start"/>
