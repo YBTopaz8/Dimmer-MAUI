@@ -1,10 +1,7 @@
 ﻿// File: Platforms/Windows/TableViewImplementation.cs
-using Microsoft.Maui.Controls;
 using WinUI.TableView;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
-using System.ComponentModel;
-using Microsoft.Maui.Platform;
 using WinUIGrid = Microsoft.UI.Xaml.Controls.Grid;
 using WinUITableview = WinUI.TableView.TableView;
 using Microsoft.Maui.Handlers;
@@ -13,8 +10,10 @@ using Microsoft.UI.Xaml.Media.Animation;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using static Dimmer_MAUI.Platforms.Windows.PlatSpecificUtils;
 using Microsoft.UI.Xaml.Input;
-using System.Diagnostics;
-using System.Collections.ObjectModel;
+using CommunityToolkit.WinUI.Collections;
+using GridLength = Microsoft.UI.Xaml.GridLength;
+using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -23,11 +22,15 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
     private WinUITableview _tableView;
     private bool _autoGenerateColumns;
 
+    public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
+
     public TableViewImplementation()
     {
         _tableView = new WinUITableview();
-
+        
         AutoGenerateColumns = true;
+        
+        //_tableView.Background = new Microsoft.UI.Xaml.Media.Brush //need brush to be #191719
 
         ItemsSource = null;
         Children.Add(_tableView);
@@ -40,12 +43,23 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         {
             Console.Error.WriteLine($"Error initializing TableView: {ex.Message}");
         }
+        
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        if (vm is not null)
+        {
+            _tableView.ShowOptionsButton = true;
+            _tableView.ShowExportOptions=true;
+            _tableView.IsAccessKeyScope = true;
+            
+            vm.MyTableView = _tableView;
+        }
     }
 
     private void TableViewImplementation_Loaded(object sender, RoutedEventArgs e)
-    {
+    {        
         UpdateTableView();
     }
+    #region Declare Props
 
     public object? ItemsSource
     {
@@ -69,7 +83,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
             UpdateTableView();
         }
     }
-  
+
     // --- Exposed native properties ---
     public bool CanDragItems
     {
@@ -125,8 +139,11 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.HeaderTransitions = value; OnPropertyChanged(nameof(HeaderTransitions)); }
     }
 
+
+
     public double IncrementalLoadingThreshold
     {
+
         get => _tableView.IncrementalLoadingThreshold;
         set { _tableView.IncrementalLoadingThreshold = value; OnPropertyChanged(nameof(IncrementalLoadingThreshold)); }
     }
@@ -137,6 +154,34 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.IncrementalLoadingTrigger = value; OnPropertyChanged(nameof(IncrementalLoadingTrigger)); }
     }
 
+    public bool IsReadOnly
+    {
+        get => _tableView.IsReadOnly;
+        set { _tableView.IsReadOnly = value; OnPropertyChanged(nameof(IsReadOnly)); }
+
+    }
+
+    // Selected index
+    public object SelectedItem
+    {
+        get => _tableView.SelectedItem;
+        set { _tableView.SelectedItem = value; OnPropertyChanged(nameof(SelectedItem)); }
+    }
+    public object SelectedValue
+    {
+        get => _tableView.SelectedValue;
+        set { _tableView.SelectedValue = value; OnPropertyChanged(nameof(SelectedValue)); }
+    }
+    public IList<object> SelectedItems
+    {
+        get => _tableView.SelectedItems;
+        set { _tableView.SelectedItem = value; OnPropertyChanged(nameof(SelectedItem)); }
+    }
+    public int SelectedIndex
+    {
+        get => _tableView.SelectedIndex;
+        set { _tableView.SelectedIndex = value; OnPropertyChanged(nameof(SelectedIndex)); }
+    }
     public bool IsActiveView
     {
         get => _tableView.IsActiveView;
@@ -160,6 +205,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         get => _tableView.IsSwipeEnabled;
         set { _tableView.IsSwipeEnabled = value; OnPropertyChanged(nameof(IsSwipeEnabled)); }
     }
+    
 
     public bool IsZoomedInView
     {
@@ -192,13 +238,35 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.SingleSelectionFollowsFocus = value; OnPropertyChanged(nameof(SingleSelectionFollowsFocus)); }
     }
 
-    
-    public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
-    {
-    }
+    #endregion
 
+    internal readonly record struct TableViewCellSlot(int Row, int Column);
+
+    public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
+    internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
+    internal TableViewSelectionUnit LastSelectionUnit { get; set; }
+    internal TableViewCellSlot? CurrentCellSlot { get; set; }
+    internal TableViewCellSlot? SelectionStartCellSlot { get; set; }
+    internal int? SelectionStartRowIndex { get; set; }
+    internal HashSet<TableViewCellSlot> SelectedCells { get; set; } = new HashSet<TableViewCellSlot>();
+    internal HashSet<HashSet<TableViewCellSlot>> SelectedCellRanges { get; } = new HashSet<HashSet<TableViewCellSlot>>();
+    internal bool IsEditing { get; set; }
+    internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
+
+    
+    public global::WinUI.TableView.TableViewColumnsCollection Columns
+    {
+        get
+        {
+            return _tableView.Columns;
+        }
+    }
     private void UpdateTableView()
     {
+        if (ItemsSource is not null)
+        {
+            Debug.WriteLine(ItemsSource.GetType());
+        }
         if (_tableView != null)
         {
             _tableView.IsReadOnly = true;
@@ -208,22 +276,69 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
             {
                 return;
             }
-                //ObservableCollection <SongModelView> disSongs = new ObservableCollection<SongModelView>();
-                //foreach (SongModelView song in mySongs)
-                //{
-                //    SongModelView myMini = new SongModelView
-                //    {
-                //        Title = song.Title,
-                //        ArtistName = song.ArtistName,
-                //        AlbumName = song.AlbumName,
-                //        GenreName = song.GenreName,
-                //        DurationInSeconds = song.DurationInSeconds,
-                //        FileFormat = song.FileFormat,
-                //        LocalDeviceId = song.LocalDeviceId
-                //    };
-                //    disSongs.Add(myMini);
-                //}
-                //_tableView.Columns.Clear();
+            _tableView.Columns.Clear();
+            _tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
+            _tableView.Columns.Add(new TableViewTextColumn
+            {
+                Header = "Title",
+                
+                Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new PropertyPath("Title") },
+                
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+            
+            _tableView.Columns.Add(new TableViewTextColumn
+            {
+                Header = "Artist",
+                Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new PropertyPath("ArtistName") },
+                
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+            _tableView.Columns.Add(new TableViewTextColumn
+            {
+                Header = "Album",
+                Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new PropertyPath("AlbumName") },                
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+            _tableView.Columns.Add(new TableViewTextColumn()
+            {
+                Header = "Duration",
+                Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new PropertyPath("DurationInSecondsText") },
+                //CellTemplate = (DataTemplate)Application.Current.Resources["DurationTemplate"],
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+            _tableView.Columns.Add(new TableViewTextColumn
+            {
+                Header = "Year",
+                Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new PropertyPath("ReleaseYear") },                
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+
+            //var menuFlyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
+            //menuFlyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play" });
+            //menuFlyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Add to Playlist" });
+            //menuFlyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Delete" });
+
+            //_tableView.ContextFlyout = menuFlyout;
+
+            
+
+            //ObservableCollection <SongModelView> disSongs = new ObservableCollection<SongModelView>();
+            //foreach (SongModelView song in mySongs)
+            //{
+            //    SongModelView myMini = new SongModelView
+            //    {
+            //        Title = song.Title,
+            //        ArtistName = song.ArtistName,
+            //        AlbumName = song.AlbumName,
+            //        GenreName = song.GenreName,
+            //        DurationInSeconds = song.DurationInSeconds,
+            //        FileFormat = song.FileFormat,
+            //        LocalDeviceId = song.LocalDeviceId
+            //    };
+            //    disSongs.Add(myMini);
+            //}
+            //_tableView.Columns.Clear();
             //_tableView.ItemsSource = (lis) ItemsSource;
 
             //    _tableView.Columns.Clear();
@@ -231,7 +346,6 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
 
             //_tableView = (System.Collections.IList?)ItemsSource;
 
-            _tableView.ItemsSource = (System.Collections.IList?)ItemsSource;
             //_tableView.Columns.Clear();
             ////TableViewColumnsCollection cols = new();
 
@@ -241,75 +355,17 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
             //{
             //    Debug.WriteLine(col.);
             //}   
-            Debug.WriteLine(_tableView);
+            Debug.WriteLine(_tableView.Columns.Count);
         }
     }
 
     private void _tableView_AutoGeneratingColumn(object? sender, TableViewAutoGeneratingColumnEventArgs e)
     {
         var viewModel = (object)((WinUITableview)sender).DataContext;
-        var boundColumn = (TableViewBoundColumn)e.Column;
+        
 
-        /*
-        switch (e.PropertyName)
-        {
-            case nameof(SongModelView.Id):
-                e.Column.Width = new GridLength(60);
-                break;
-            case nameof(SongModelView.FirstName):
-                e.Column.Width = new GridLength(110);
-                break;
-            case nameof(SongModelView.LastName):
-                e.Column.Width = new GridLength(110);
-                break;
-            case nameof(SongModelView.Email):
-                e.Column.Width = new GridLength(270);
-                break;
-            case nameof(SongModelView.Gender):
-                e.Column = new TableViewComboBoxColumn
-                {
-                    Binding = boundColumn.Binding,
-                    Header = boundColumn.Header,
-                    Width = new GridLength(120),
-                    ItemsSource = viewModel.Genders
-                };
-                break;
-            case nameof(SongModelView.Dob):
-                e.Column.Width = new GridLength(110);
-                break;
-            case nameof(SongModelView.ActiveAt):
-                e.Column.Width = new GridLength(110);
-                break;
-            case nameof(SongModelView.IsActive):
-                e.Column.Width = new GridLength(100);
-                break;
-            case nameof(SongModelView.Department):
-                e.Column = new TableViewComboBoxColumn
-                {
-                    Binding = boundColumn.Binding,
-                    Header = boundColumn.Header,
-                    Width = new GridLength(200),
-                    ItemsSource = viewModel.Departments
-                };
-                break;
-            case nameof(SongModelView.Designation):
-                e.Column = new TableViewComboBoxColumn
-                {
-                    Binding = boundColumn.Binding,
-                    Header = boundColumn.Header,
-                    Width = new GridLength(200),
-                    ItemsSource = viewModel.Designations
-                };
-                break;
-            case nameof(SongModelView.Address):
-                e.Column.Width = new GridLength(200);
-                break;
-            default:
-                break;
-        }
-        */
     }
-
+    
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -348,10 +404,8 @@ public static class MyTableViewHandlerMapper
         [nameof(MyTableView.ShowExportOptions)] = MapShowExportOptions,
         [nameof(MyTableView.SingleSelectionFollowsFocus)] = MapSingleSelectionFollowsFocus,
         // Additional native property mappings:
-        [nameof(MyTableView.HeaderRowHeight)] = MapHeaderRowHeight,
-        [nameof(MyTableView.RowHeight)] = MapRowHeight,
-        [nameof(MyTableView.RowMaxHeight)] = MapRowMaxHeight,
-        [nameof(MyTableView.ShowExportOptions)] = MapShowExportOptions,
+        [nameof(MyTableView.Columns)] = MapColumns,
+
         [nameof(MyTableView.IsReadOnly)] = MapIsReadOnly,
         [nameof(MyTableView.CornerButtonMode)] = MapCornerButtonMode,
         [nameof(MyTableView.CanResizeColumns)] = MapCanResizeColumns,
@@ -360,14 +414,6 @@ public static class MyTableViewHandlerMapper
         [nameof(MyTableView.MinColumnWidth)] = MapMinColumnWidth,
         [nameof(MyTableView.MaxColumnWidth)] = MapMaxColumnWidth,
         [nameof(MyTableView.SelectionUnit)] = MapSelectionUnit,
-        //[nameof(MyTableView.HeaderGridLinesVisibility)] = MapHeaderGridLinesVisibility,
-        //[nameof(MyTableView.GridLinesVisibility)] = MapGridLinesVisibility,
-        //[nameof(MyTableView.HorizontalGridLinesStrokeThickness)] = MapHorizontalGridLinesStrokeThickness,
-        //[nameof(MyTableView.VerticalGridLinesStrokeThickness)] = MapVerticalGridLinesStrokeThickness,
-        //[nameof(MyTableView.HorizontalGridLinesStroke)] = MapHorizontalGridLinesStroke,
-        //[nameof(MyTableView.VerticalGridLinesStroke)] = MapVerticalGridLinesStroke,
-        //[nameof(MyTableView.AlternateRowForeground)] = MapAlternateRowForeground,
-        //[nameof(MyTableView.AlternateRowBackground)] = MapAlternateRowBackground,
         [nameof(MyTableView.RowContextFlyout)] = MapRowContextFlyout,
         [nameof(MyTableView.CellContextFlyout)] = MapCellContextFlyout,
         [nameof(MyTableView.ColumnHeaderStyle)] = MapColumnHeaderStyle,
@@ -378,14 +424,89 @@ public static class MyTableViewHandlerMapper
     public static CommandMapper<MyTableView, MyTableViewHandler> CommandMapper =
         new CommandMapper<MyTableView, MyTableViewHandler>(ViewHandler.ViewCommandMapper);
 
+    static void MapColumns(MyTableViewHandler handler, MyTableView view)
+    {
+        var native = GetNativeTable(handler);
+        if (native != null)
+        {
+            //native.Columns.Clear();
+            if (native.Columns is not null)
+            {
+                native.Columns.Clear();
+                if (view.Columns is not null)
+                {
+                    foreach (TableViewColumn col in view.Columns)
+                    {
+                        //col.SetOwningCollection(native.Columns);
+                        //col.SetOwningTableView(native);
+                        //col.SetOwningTableView(native);
+                        native.Columns.Add(col);
+                    }
+                }
 
+            }
+            
+           
+        }
+    }
+
+    
+    public static void MapSelectedItem(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedItemProperty, view.SelectedItem);
+    }
+    
+    
+    public static void MapSelectedIndex(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedIndexProperty, view.SelectedIndex);
+    }
+    
+    
+    public static void MapSelectedValue(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedValueProperty, view.SelectedValue);
+    }
+
+    public static void MapScrollIntoView(MyTableViewHandler handler, ITableView view)
+    {
+
+        //var native = GetNativeTable(handler);
+        //if (native != null)
+        //    native.SetValue(WinUITableview.scro, view.HeaderRowHeight);
+        //if (handler.PlatformView is not null && view.ScrollIntoView != null)
+        //{
+        //    // Ensure the item is in the ItemsSource
+        //    if (view.ItemsSource is IEnumerable items && view.ScrollIntoView is not null)
+        //    {
+        //        foreach (var item in items)
+        //        {
+        //            if (item == view.ScrollIntoView)
+        //            {
+        //                handler.PlatformView.ScrollIntoView(item);
+        //                break; // Exit once found.
+        //            }
+        //        }
+        //    }
+        //}
+    }
     static void MapHeaderRowHeight(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
             native.SetValue(WinUITableview.HeaderRowHeightProperty, view.HeaderRowHeight);
     }
-
+    
+    
     static void MapRowHeight(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
@@ -548,97 +669,6 @@ public static class MyTableViewHandlerMapper
             native.SingleSelectionFollowsFocus = view.SingleSelectionFollowsFocus;
     }
 
-
-    //static void MapHeaderTransitions(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.HeaderTransitions = view.HeaderTransitions;
-    //}
-    //static void MapIncrementalLoadingThreshold(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IncrementalLoadingThreshold = view.IncrementalLoadingThreshold;
-    //}
-    //static void MapIncrementalLoadingTrigger(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IncrementalLoadingTrigger = view.IncrementalLoadingTrigger;
-    //}
-    //static void MapIsActiveView(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IsActiveView = view.IsActiveView;
-    //}
-    //static void MapIsItemClickEnabled(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IsItemClickEnabled = view.IsItemClickEnabled;
-    //}
-    //static void MapIsMultiSelectCheckBoxEnabled(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IsMultiSelectCheckBoxEnabled = view.IsMultiSelectCheckBoxEnabled;
-    //}
-    //static void MapIsSwipeEnabled(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IsSwipeEnabled = view.IsSwipeEnabled;
-    //}
-    //static void MapIsZoomedInView(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.IsZoomedInView = view.IsZoomedInView;
-    //}
-    //static void MapReorderMode(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.ReorderMode = view.ReorderMode;
-    //}
-    //static void MapSelectionMode(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.SelectionMode = view.SelectionMode;
-    //}
-    //static void MapShowsScrollingPlaceholders(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.ShowsScrollingPlaceholders = view.ShowsScrollingPlaceholders;
-    //}
-    //static void MapHeaderRowHeight(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.Header .SetValue(WinUITableview.HeaderRowHeightProperty, view.HeaderRowHeight);
-    //}
-    //static void MapRowHeight(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.SetValue(WinUITableview.RowHeightProperty, view.RowHeight);
-    //}
-    //static void MapRowMaxHeight(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native..SetValue(TableView.RowMaxHeightProperty, view.RowMaxHeight);
-    //}
-    //static void MapShowExportOptions(MyTableViewHandler handler, MyTableView view)
-    //{
-    //    var native = GetNativeTable(handler);
-    //    if (native != null)
-    //        native.SetValue(WinUITableview.ShowExportOptionsProperty, view.ShowExportOptions);
-    //}
     static void MapIsReadOnly(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
@@ -722,8 +752,26 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
     {
     }
 
-    protected override WinUIGrid CreatePlatformView() =>
-        new WinUIGrid();
+    protected override WinUIGrid CreatePlatformView()
+    {
+        var gridView = new WinUIGrid();
+        gridView.DoubleTapped += GridView_DoubleTapped;
+
+        gridView.Tapped += GridView_Tapped;
+        
+        return gridView;
+        //return new WinUIGrid();
+    }
+
+    private void GridView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        Debug.WriteLine(sender.GetType());
+    }
+
+    private void GridView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        Debug.WriteLine(sender.GetType());
+    }
 
     protected override void ConnectHandler(WinUIGrid platformView)
     {
@@ -732,6 +780,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
         {
             var nativeTable = new TableViewImplementation
             {
+
                 ItemsSource = VirtualView.ItemsSource,
                 AutoGenerateColumns = VirtualView.AutoGenerateColumns,
                 CanDragItems = VirtualView.CanDragItems,
@@ -758,7 +807,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
                 ShowsScrollingPlaceholders = VirtualView.ShowsScrollingPlaceholders,
                 SingleSelectionFollowsFocus = VirtualView.SingleSelectionFollowsFocus
             };
-
+            //nativeTable.TestAg += NativeTable_TestAg;
             // Subscribe to native events:
             nativeTable.Loaded += NativeTable_Loaded;
             nativeTable.Unloaded += NativeTable_Unloaded;
@@ -774,9 +823,18 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
             nativeTable.CharacterReceived += NativeTable_CharacterReceived;
             nativeTable.ContextRequested += NativeTable_ContextRequested;
             nativeTable.DataContextChanged += NativeTable_DataContextChanged;
-
+            nativeTable.PropertyChanged += NativeTable_PropertyChanged;
+            nativeTable.SelectionChanged += NativeTable_SelectionChanged;
+            //nativeTable.PropertyChanged += NativeTable_PropertyChanged;
             platformView.Children.Add(nativeTable);
+            
+
         }
+    }
+
+    private void NativeTable_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        VirtualView.RaiseSelectionChanged(e);
     }
 
     protected override void DisconnectHandler(WinUIGrid platformView)
@@ -796,24 +854,24 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
             nativeTable.Tapped -= (s, e) => VirtualView?.RaiseTapped(e);
             nativeTable.CharacterReceived -= (s, e) => VirtualView?.RaiseCharacterReceived(e);
             nativeTable.ContextRequested -= (s, e) => VirtualView?.RaiseContextRequested(e);
-            nativeTable.DataContextChanged -= (s, e) => VirtualView?.RaiseDataContextChanged(e);
+            nativeTable.DataContextChanged -= (s, e) => VirtualView?.RaiseDataContextChanged(this,e);
+            nativeTable.PropertyChanged -= (s, e) => VirtualView?.RaisePropertyChanged(this, e);
+            //nativeTable.SizeChanged -= (s, e) => VirtualView?.RaiseSizeChanged(e);
             nativeTable.Holding -= (s, e) => VirtualView?.RaiseHolding(e);
             nativeTable.KeyDown -= (s, e) => VirtualView?.RaiseKeyDown(e);
             nativeTable.KeyUp -= (s, e) => VirtualView?.RaiseKeyUp(e);
             
-            //nativeTable.ManipulationCompleted -= (s, e) => VirtualView?.RaiseManipulationCompleted(e);
-            //nativeTable.ManipulationDelta -= (s, e) => VirtualView?.RaiseManipulationDelta(e);
-            //nativeTable.ManipulationInertiaStarting -= (s, e) => VirtualView?.RaiseManipulationInertiaStarting(e);
-            //nativeTable.ManipulationStarted -= (s, e) => VirtualView?.RaiseManipulationStarted(e);
-            //nativeTable.ManipulationStarting -= (s, e) => VirtualView?.RaiseManipulationStarting(e);
-            //nativeTable.PointerCanceled -= (s, e) => VirtualView?.RaisePointerCanceled(e);
-            //nativeTable.PointerCaptureLost -= (s, e) => VirtualView?.RaisePointerCaptureLost(e);
         }
         base.DisconnectHandler(platformView);
     }
 
     // Event forwarding methods:
-    private void NativeTable_Loaded(object sender, RoutedEventArgs e) => VirtualView?.RaiseLoaded(e);
+    private void NativeTable_Loaded(object sender, RoutedEventArgs e)
+    {
+        VirtualView?.RaiseLoaded(e);
+    }
+
+    //private void NativeTable_TestAg(object sender, RoutedEventArgs e) => this.
 
     private void NativeTable_Unloaded(object sender, RoutedEventArgs e) => VirtualView?.RaiseUnloaded(e);
 
@@ -843,6 +901,68 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
 
     private void NativeTable_ContextRequested(object sender, ContextRequestedEventArgs e) => VirtualView?.RaiseContextRequested(e);
 
-    private void NativeTable_DataContextChanged(object sender, DataContextChangedEventArgs e) => VirtualView?.RaiseDataContextChanged(e);
+    private void NativeTable_DataContextChanged(object sender, DataContextChangedEventArgs e)
+    {
+        VirtualView?.RaiseDataContextChanged(this,e);
+    }
 
+    private void NativeTable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        VirtualView?.RaisePropertyChanged(this,e);
+    }
+}
+
+public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
+{
+    public void HandleColumnPropertyChanged(TableViewColumn column, string propertyName)
+    {
+        // Update layout as needed when a column property changes.
+    }
+}
+
+/// Represents a column in a TableView.
+/// </summary>
+[StyleTypedProperty(Property = nameof(HeaderStyle), StyleTargetType = typeof(TableViewColumnHeader))]
+
+public abstract class MauiTableViewColumn : TableViewColumn
+{
+
+}
+
+
+/// <summary>
+/// Describes a filter operation applied to TableView items.
+/// </summary>
+public class FilterDescription
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FilterDescription"/> class.
+    /// </summary>
+    /// <param name="propertyName">The name of the property to filter by.</param>
+    /// <param name="predicate">The predicate to apply for filtering.</param>
+    public FilterDescription(string? propertyName,
+                             Predicate<object?> predicate)
+    {
+        PropertyName = propertyName;
+        Predicate = predicate;
+    }
+
+    /// <summary>
+    /// Gets the name of the property to filter by.
+    /// </summary>
+    public string? PropertyName { get; }
+
+    /// <summary>
+    /// Gets the predicate to apply for filtering.
+    /// </summary>
+    public Predicate<object?> Predicate { get; }
+}
+
+
+public static class TableViewHandler
+{
+    public static void ConfigureTableViewHandler(IMauiHandlersCollection handlers)
+    {
+        handlers.AddHandler(typeof(MyTableView), typeof(MyTableViewHandler));
+    }
 }

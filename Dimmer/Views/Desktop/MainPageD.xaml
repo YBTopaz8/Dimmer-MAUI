@@ -38,11 +38,13 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                 x:Name="MediaPlayBackCW" Grid.Row="1"/>
 
-        <!--<viewsD:MyTableView SelectionMode="None" 
+        <!--<viewsD:MyTableView SelectionMode="None" IsVisible="False"
                             AutoGenerateColumns="True"
                             KeyDown="MyTable_KeyDown"
                             KeyUp="MyTable_KeyUp"
                             IsRightClickEnabled="False"
+                            PropertyChanged="MyTable_PropertyChanged"
+                            Loaded="MyTable_Loaded"
                             PointerEntered="MyTable_PointerEntered"
                             PointerExited="MyTable_PointerExited"   
                             PointerMoved="MyTable_PointerMoved"
@@ -57,8 +59,7 @@
                             Tapped="MyTable_Tapped"
                             RightTapped="MyTable_RightTapped"
                             
-            ItemsSource="{Binding DisplayedSongs}"
-            
+            ItemsSource="{Binding DisplayedSongs}"            
             >
             
             
@@ -117,12 +118,12 @@
                   Margin="10,0,0,0"
                   RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
                 <Label Text="Title" Grid.Column="0" FontSize="26"/>
-                <Label Text="Artist Name" Grid.Column="1" FontSize="26"/>
-                <Label Text="Album Name" Grid.Column="2" FontSize="26"/>
+                <Label Text="Artist" Grid.Column="1" FontSize="26"/>
+                <Label Text="Album" Grid.Column="2" FontSize="26"/>
                 <Label Text="Genre" Grid.Column="3" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Duration" Grid.Column="4" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center"/>
-                <Label Text="Number of Times Played" Grid.Column="6" FontSize="26" HorizontalOptions="Center"/>
+                <Label Text="# Times Played" Grid.Column="6" FontSize="26" HorizontalOptions="Center"/>
             </Grid>
             <Grid toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
@@ -144,7 +145,8 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
-                            <Border BackgroundColor="Transparent" Padding="2">
+                            <Border BackgroundColor="Transparent" Padding="2"
+                                    StrokeShape="RoundRectangle 12">
                                 
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection" >

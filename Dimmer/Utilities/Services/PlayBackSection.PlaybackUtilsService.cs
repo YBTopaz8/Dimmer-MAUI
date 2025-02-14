@@ -444,8 +444,8 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (ObservableCurrentlyPlayingSong != null)
         {
-            ObservableCurrentlyPlayingSong.IsPlaying = false;
-            ObservableCurrentlyPlayingSong.IsPlayCompleted = true;
+            //ObservableCurrentlyPlayingSong.IsPlaying = false;
+            //ObservableCurrentlyPlayingSong.IsPlayCompleted = true;
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Completed);
         }
 

@@ -2,11 +2,7 @@
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
-using System.Windows.Interop;
-using Microsoft.Maui.Platform;
-using System.Windows.Media;
 using MediaPlayer = Windows.Media.Playback.MediaPlayer;
-using MediaPlayers = System.Windows.Media.MediaPlayer;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -232,7 +228,7 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
                 mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
 
                 mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
-
+                
                 mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
                 mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
                 //mediaPlayer.Volume = 1;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 public class TrayIconHelper
@@ -59,8 +54,10 @@ public class TrayIconHelper
         _data.cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA));
     }
 
-    public void CreateTrayIcon(IntPtr hwnd, string tooltip, IntPtr iconHandle)
+    public void CreateTrayIcon(string tooltip, IntPtr iconHandle)
     {
+        IntPtr hwnd = PlatSpecificUtils.DimmerHandle;
+
         _data.hWnd = hwnd;
         _data.uID = 1;
         _data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;

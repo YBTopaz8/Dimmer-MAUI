@@ -1,8 +1,14 @@
-﻿using System.Diagnostics;
-
+﻿
+#if WINDOWS
+using TView = WinUI.TableView.TableView;
+#endif
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
+#if WINDOWS
+
+    public TView MyTableView { get; set; }
+#endif
     //LastfmClient LastfmClient;
     [ObservableProperty]
     public partial bool IsFlyoutPresented { get; set; } = false;
@@ -18,7 +24,9 @@ public partial class HomePageVM : ObservableObject
     public partial SongModelView? PickedSong { get; set; } = null;// I use this a lot with the collection view, mostly to scroll
 
     [ObservableProperty]
-    public partial SongModelView? TemporarilyPickedSong { get; set; } = null;
+    public partial SongModelView? TemporarilyPickedSong { get; set; } = null; 
+    [ObservableProperty]
+    public partial SongModelView? MySelectedSong { get; set; } = null;
     [ObservableProperty]
     public partial SongModelView? NextSong { get; set; } = null;
 
@@ -1153,7 +1161,7 @@ public partial class HomePageVM : ObservableObject
                             DoRefreshDependingOnPage();
 
                             CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
-                            
+
                             //await FetchSongCoverImage();
 
                             //if (CurrentUser is not null)
@@ -1161,7 +1169,10 @@ public partial class HomePageVM : ObservableObject
                             //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
 
                             //}
-                        
+#if WINDOWS
+                            //MyTableView.ScrollIntoView(TemporarilyPickedSong);
+                            //MyTableView.
+#endif
                             break;
                         case MediaPlayerState.Paused:
                             if (CurrentUser is not null)
@@ -1204,42 +1215,42 @@ public partial class HomePageVM : ObservableObject
     }
 
 
-    partial void OnTemporarilyPickedSongChanging(SongModelView? value)
-    {
+    //partial void OnTemporarilyPickedSongChanging(SongModelView? value)
+    //{
        
-    }
+    //}
 
-    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
-    {
+    //partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    //{
 
-        if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
-        {
-            newValue.CoverImagePath = string.Empty;
-        }
+    //    if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
+    //    {
+    //        newValue.CoverImagePath = string.Empty;
+    //    }
 
-        if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
-        {
-            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
-            {
-                if (oldValue.AlbumName != newValue.AlbumName)
-                {
-                    newValue.CoverImagePath = string.Empty;
-                }
-            }
-        }
+    //    if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
+    //    {
+    //        if (newValue.CoverImagePath == oldValue?.CoverImagePath)
+    //        {
+    //            if (oldValue.AlbumName != newValue.AlbumName)
+    //            {
+    //                newValue.CoverImagePath = string.Empty;
+    //            }
+    //        }
+    //    }
 
-        if (newValue is not null)
-        {
-            if (IsPlaying)
-            {
-                newValue.IsCurrentPlayingHighlight = true;
-            }
-            else
-            {
-                newValue.IsCurrentPlayingHighlight = false;
-            }
-        }
-    }
+    //    if (newValue is not null)
+    //    {
+    //        if (IsPlaying)
+    //        {
+    //            newValue.IsCurrentPlayingHighlight = true;
+    //        }
+    //        else
+    //        {
+    //            newValue.IsCurrentPlayingHighlight = false;
+    //        }
+    //    }
+    //}
     private void SubscribetoDisplayedSongsChanges()
     {
         PlayBackService.NowPlayingSongs.Subscribe(songs =>

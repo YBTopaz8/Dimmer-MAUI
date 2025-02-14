@@ -1,6 +1,7 @@
-﻿
-using System.Diagnostics;
-
+﻿using System.Runtime.InteropServices;
+#if WINDOWS
+using static Dimmer_MAUI.Platforms.Windows.SHSTOCKICONINFO;
+#endif
 namespace Dimmer_MAUI;
 
 public partial class App : Application
@@ -139,8 +140,80 @@ public partial class App : Application
         //this.Height = 900;
         //this.Width = 1200;
 
+#if WINDOWS
+
+        // Set the thumbnail icon to "music.png".
+
+        InitializeThumbnailButtons();
+#endif
+
+
         return DimmerWindow;
     }
+
+
+#if WINDOWS
+    // Call this method after your window is created.
+    private void InitializeThumbnailButtons()
+    {
+        IntPtr hwnd = PlatSpecificUtils.DimmerHandle;
+
+            // Hook the native window procedure to handle WM_COMMAND.
+            _newWndProcDelegate = new WndProcDelegate(WndProc);
+            _oldWndProc = SetWindowLongPtr(hwnd, GWL_WNDPROC, _newWndProcDelegate);
+
+            // Add thumbnail toolbar buttons.
+            TaskbarThumbnailHelper.AddThumbnailButtons(hwnd);
+     
+    }
+
+    private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        if (msg == WM_COMMAND)
+        {
+            int commandId = wParam.ToInt32() & 0xffff;
+            switch (commandId)
+            {
+                case 100:
+                    System.Diagnostics.Debug.WriteLine("Play clicked.");
+                    break;
+                case 101:
+                    System.Diagnostics.Debug.WriteLine("Pause clicked.");
+                    break;
+                case 102:
+                    System.Diagnostics.Debug.WriteLine("Resume clicked.");
+                    break;
+                case 103:
+                    System.Diagnostics.Debug.WriteLine("Previous clicked.");
+                    break;
+                case 104:
+                    System.Diagnostics.Debug.WriteLine("Next clicked.");
+                    break;
+            }
+            return IntPtr.Zero;
+        }
+        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+    }
+#endif
+
+
+#if WINDOWS
+    private const int WM_COMMAND = 0x0111;
+    private const int GWL_WNDPROC = -4;
+    private WndProcDelegate _newWndProcDelegate;
+    private IntPtr _oldWndProc = IntPtr.Zero;
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, WndProcDelegate newProc);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+#endif
+
+
 
     private static readonly Lock _logLock = new();
 

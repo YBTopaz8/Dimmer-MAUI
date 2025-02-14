@@ -7,7 +7,6 @@ global using Dimmer_MAUI.Views.Mobile;
 global using Dimmer_MAUI.Views.Mobile.FirstSteps;
 
 global using Parse;
-global using Parse.Infrastructure;
 global using Parse.LiveQuery;
 global using Syncfusion.Maui.Toolkit.Charts;
 
@@ -75,8 +74,6 @@ global using CommunityToolkit.Maui.Core;
 global using Dimmer_MAUI.CustomPopUpViews;
 global using static ATL.LyricsInfo;
 global using Track = ATL.Track;
-
-global using SBtmState = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState;
 global using DBtmState = DevExpress.Maui.Controls.BottomSheetState;
 global using Colors = Microsoft.Maui.Graphics.Colors;
 

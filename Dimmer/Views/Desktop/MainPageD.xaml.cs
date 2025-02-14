@@ -1,5 +1,7 @@
-using Microsoft.Maui.Platform;
-using System.Diagnostics;
+#if WINDOWS
+using Microsoft.UI.Xaml;
+using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
+#endif
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -131,8 +133,10 @@ public partial class MainPageD : ContentPage
 
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
+
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
+        #if WINDOWS
         try
         {
 
@@ -140,7 +144,6 @@ public partial class MainPageD : ContentPage
             {
                 isAboutToDropFiles = true;
 
-#if WINDOWS
                 var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
                 var dragUI = WindowsEventArgs.DragUIOverride;
 
@@ -177,7 +180,6 @@ public partial class MainPageD : ContentPage
                     }
 
                 }
-#endif
             }
 
         }
@@ -186,7 +188,10 @@ public partial class MainPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
         //return Task.CompletedTask;
+        #endif
     }
+
+
 
     private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
     {
@@ -392,15 +397,28 @@ public partial class MainPageD : ContentPage
     }
     private void MainBody_Loaded(object sender, EventArgs e)
     {
+
 #if WINDOWS
+
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
-
+        
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
 #if WINDOWS
+
+    private void MyTable_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+
+    }
+
+
+    private void MyTable_PropertyChanged(Microsoft.UI.Xaml.FrameworkElement sender, PropertyChangedEventArgs args)
+    {
+
+    }
     private void S_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         try
@@ -473,7 +491,7 @@ public partial class MainPageD : ContentPage
     }
 
 
-#endif
+
 
     private void MyTable_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
@@ -497,12 +515,12 @@ public partial class MainPageD : ContentPage
 
     private void MyTable_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-
+        Debug.WriteLine("d d");
     }
 
     private void MyTable_KeyUp(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-
+        Debug.WriteLine("k up");
     }
 
     private void MyTable_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -515,20 +533,52 @@ public partial class MainPageD : ContentPage
 
     }
 
-    private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-    {
 
-    }
+    //private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    //{
+    //    if (MyViewModel.TemporarilyPickedSong is not null)
+    //    {
+    //        MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+    //    }
+    //    if (MyViewModel.PickedSong is not null)
+    //    {
+    //        MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
+    //    }
 
-    private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
-    {
+        
+    //    FrameworkElement? send = (FrameworkElement)e.OriginalSource;
+    //    var song = (SongModelView)send.DataContext;
+    //    MyViewModel.MySelectedSong = song;
+        
+    //    //var song = (SongModelView)send.da;
+    //    if (song is not null)
+    //    {
+    //        song.IsCurrentPlayingHighlight = false;
+    //    }
 
-    }
+    //    MyViewModel.PlaySong(song);
+    //    MyTable.SelectedItem = song;
+    //}
+
+    //private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+    //{
+
+
+    //    FrameworkElement? send = (FrameworkElement)e.OriginalSource;
+
+    //    var song = (SongModelView)send.DataContext;
+    //    MyViewModel.MySelectedSong = song;
+    //    MyViewModel.ToggleFlyout();
+    //    MyTable.SelectedItem = song;
+    //    Debug.WriteLine("r tap");
+    //}
 
     private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
-
+        Debug.WriteLine("single tap");
     }
+
+#endif
 }
 public enum ContextMenuPageCaller
 {

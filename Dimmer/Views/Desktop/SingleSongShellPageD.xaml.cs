@@ -247,36 +247,52 @@ public partial class SingleSongShellPageD : ContentPage
 
 
 
-    private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)    
     {
+        if (!this.IsLoaded)
+        {
+            return;
+        }
         try
         {
-            
-            if (LyricsColView.ItemsSource is not null)
+            if (LyricsColView.SelectedItem is not null)
             {
-                if (LyricsColView.SelectedItem is not null)
+                // Set SelectedItem FIRST to ensure UI updates
+                LyricsColView.SelectedItem = MyViewModel.CurrentLyricPhrase;
+
+                // Let UI process selection before animating
+                await Task.Delay(10);
+
+                // Animate Font Size First
+                if (e.PreviousSelection?.Count > 0)
+                {
+                    foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
+                        oldItem.NowPlayingLyricsFontSize = 29;
+                }
+                if (e.CurrentSelection?.Count > 0)
+                {
+                    foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
+                        newItem.NowPlayingLyricsFontSize = 60;
+                }
+
+                // Wait a bit so font size change is visible before scrolling
+                await Task.Delay(10);
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
                     LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
                 }
+                );
+                // Scroll AFTER font size animation
             }
 
-            // --- Reset FontSize for Previously Selected Items ---
-            if (e.PreviousSelection != null && e.PreviousSelection.Count > 0)
+            // Animate selection smoothly
+            if (e.CurrentSelection.FirstOrDefault() is LyricPhraseModel selectedLyric)
             {
-                foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
+                var item = LyricsColView.ItemTemplate.CreateContent() as View;
+                if (item != null)
                 {
-                    oldItem.NowPlayingLyricsFontSize = 29; // Set FontSize to 19 for unselected
-                    //Debug.WriteLine($"Item unselected, set FontSize to 19: {oldItem?.Text}");
-                }
-            }
-
-            // --- Set FontSize for Currently Selected Items ---
-            if (e.CurrentSelection != null && e.CurrentSelection.Count > 0)
-            {
-                foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
-                {
-                    newItem.NowPlayingLyricsFontSize = 65; // Set FontSize to 21 for selected
-                    //Debug.WriteLine($"Item selected, set FontSize to 21: {newItem?.Text}");
+                    item.TranslationY = 50;
+                    await item.TranslateTo(0, 0, 400, Easing.BounceOut);
                 }
             }
         }
@@ -285,6 +301,7 @@ public partial class SingleSongShellPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
+
 
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
@@ -684,6 +701,75 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     private void ToggleShellPane_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleFlyout();
+
+    }
+
+    private void LyricsColView_Loaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        try
+        {
+            var nativeView = LyricsColView.Handler?.PlatformView;
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
+                
+                listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
+
+                listView.Background = null;
+                listView.BorderBrush = null;
+                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+                listView.ContainerContentChanging += (s, args) =>
+                {
+                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
+                    {
+                        item.Background = null;
+                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                    }
+                };
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
+            {
+                selector.Background = null;
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ItemsControl itemsControl)
+            {
+                itemsControl.Background = null;
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.Control control)
+            {
+                control.Background = null;
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.UIElement uiElement)
+            {
+                uiElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible; // Make sure it's still visible
+            }
+
+            Debug.WriteLine($"PlatformView Type: {nativeView?.GetType()}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to remove highlight: {ex.Message}");
+        }
+#endif
+    }
+
+    private void LyricsColView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SearchOnline_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
 
     }
 }

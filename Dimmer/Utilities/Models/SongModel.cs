@@ -95,8 +95,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
+    public partial string DurationInSecondsText {get;set;}
+    [ObservableProperty]
     public partial int? ReleaseYear {get;set;}
-
     [ObservableProperty]
     public partial bool IsDeleted {get;set;}
     [ObservableProperty]
@@ -112,22 +113,23 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int Rating {get;set;} = 0;
 
-    [ObservableProperty]
-    public partial bool HasLyrics {get;set;}
-    [ObservableProperty]
-    public partial bool HasSyncedLyrics {get;set;} = false;
-    [ObservableProperty]
-    public partial bool IsInstrumental {get;set;} = false;
+    //[ObservableProperty]
+    //public partial bool HasLyrics {get;set;}
+    
+    public bool HasLyrics {get;set;}
+    public bool HasSyncedLyrics {get;set;} = false;    
+    public bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
     [Display(AutoGenerateField = true)]
     public partial string? CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
-    [ObservableProperty]
-    public partial bool IsPlaying {get;set;}
+    public bool IsPlaying {get;set;}
 
+    //[ObservableProperty]
+    //public partial bool IsCurrentPlayingHighlight {get;set;}
     [ObservableProperty]
-    public partial bool IsCurrentPlayingHighlight {get;set;}
+    public partial bool IsCurrentPlayingHighlight { get; set; }
     [ObservableProperty]
     public partial bool IsFavorite {get;set;}
     [ObservableProperty]
@@ -165,6 +167,7 @@ public partial class SongModelView : ObservableObject
             Title = model.Title;
             FilePath = model.FilePath;
             DurationInSeconds = model.DurationInSeconds;
+            DurationInSecondsText = TimeSpan.FromSeconds(model.DurationInSeconds).ToString(@"mm\:ss");
             ReleaseYear = model.ReleaseYear;
 
             TrackNumber = model.TrackNumber ?? 0; // Default to 0 if null

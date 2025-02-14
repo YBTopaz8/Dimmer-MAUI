@@ -76,7 +76,7 @@
                     <HorizontalStackLayout 
                         Grid.Row="2"  HorizontalOptions="Center"
                         Spacing="5" x:DataType="vm:HomePageVM">
-                        <ImageButton 
+                        <ImageButton Clicked="SearchOnline_Clicked"
                             Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
                             HeightRequest="25" >
                             <ImageButton.CommandParameter>
@@ -180,23 +180,53 @@
                 
                     <Grid x:Name="SyncedLyricGrid" Grid.Row="1" IsVisible="True" Margin="10,0">
                         <CollectionView x:Name="LyricsColView" ItemsSource="{Binding MySelectedSong.SyncLyrics}"
-                                        SelectionChanged="LyricsColView_SelectionChanged" SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                                        SelectionChanged="LyricsColView_SelectionChanged"
+                                        Loaded="LyricsColView_Loaded"
+                                        Unloaded="LyricsColView_Unloaded"
+                                        SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
                                         EmptyView="No Syncronized Lyrics ...">
                             <CollectionView.ItemsLayout>
                                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
                             </CollectionView.ItemsLayout>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:LyricPhraseModel">
-                                    
-                                    <Label x:Name="LyrBorder" Text="{Binding Text}"
-                                           Loaded="Label_Loaded" SizeChanged="LyrBorder_SizeChanged"
-                                           ParentChanged="LyrBorder_ParentChanged" FontSize="{Binding NowPlayingLyricsFontSize}" 
-                                           HorizontalTextAlignment="Center">
-                                        <Label.GestureRecognizers>
-                                            <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
-                                        </Label.GestureRecognizers>
 
-                                    </Label>
+                                    <Border StrokeShape="RoundRectangle 20" HorizontalOptions="Center" VerticalOptions="Center"
+                                            >
+                                        <VisualStateManager.VisualStateGroups>
+                                            <VisualStateGroup x:Name="CommonStates">
+                                                <VisualState x:Name="Normal" >
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <!--<VisualState x:Name="Selected" >
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>-->
+
+                                                <VisualState x:Name="PointerOver">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
+                                        
+                                        <Label x:Name="LyrBorder" Text="{Binding Text}" 
+                                               Loaded="Label_Loaded" SizeChanged="LyrBorder_SizeChanged"
+                                               
+                                               ParentChanged="LyrBorder_ParentChanged" FontSize="{Binding NowPlayingLyricsFontSize}" 
+                                               HorizontalTextAlignment="Center"
+                                               >
+
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                            </Label.GestureRecognizers>
+
+                                        </Label>
+                                    </Border>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>

@@ -3,7 +3,7 @@ using DevExpress.Maui.Core.Internal;
 
 namespace Dimmer_MAUI.ViewModels;
 
-public partial class HomePageVM : ObservableObject
+public partial class HomePageVM 
 {
     public class FilterWithId
     {
