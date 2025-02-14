@@ -105,7 +105,7 @@
                 <dx:DXButton.Content>
                     <Grid x:Name="TopGrid" BackgroundColor="Transparent" >
 
-                        <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
+                        <Image Source="{Binding MySelectedSong.CoverImagePath}" 
                            Opacity="0.4" Aspect="AspectFill" HeightRequest="400"/>
 
                         <dx:DXStackLayout VerticalOptions="Center" >
@@ -134,24 +134,24 @@
             </dx:DXButton>
             <Grid ColumnDefinitions="*,Auto" >
                 <VerticalStackLayout Grid.Column="0" >
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" 
+                    <dx:Chip Text="{Binding MySelectedSong.Title}" 
                              HorizontalOptions="Center" BorderColor="Transparent"
          FontSize="21"  TextColor="#E4EDFB" 
                              />
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Center"
+                    <dx:Chip Text="{Binding MySelectedSong.ArtistName}" HorizontalOptions="Center"
          FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent"/>
 
                 </VerticalStackLayout>
                 <dx:DXButton Grid.Column="1" IsVisible="False">
                     <dx:DXButton.Triggers>
-                        <DataTrigger TargetType="dx:DXButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="True">
+                        <DataTrigger TargetType="dx:DXButton" Binding="{Binding MySelectedSong.IsFavorite}" Value="True">
                             <Setter Property="IconWidth" Value="40"/>
                             <Setter Property="IconHeight" Value="40"/>
                             <Setter Property="Icon" Value="heart2.png"/>
                             <Setter Property="IconColor" Value="DarkSlateBlue"/>
                             <Setter Property="BackgroundColor" Value="Transparent"/>
                         </DataTrigger>
-                        <DataTrigger TargetType="dx:DXButton" Binding="{Binding TemporarilyPickedSong.IsFavorite}" Value="False">
+                        <DataTrigger TargetType="dx:DXButton" Binding="{Binding MySelectedSong.IsFavorite}" Value="False">
                             <Setter Property="Icon" Value="heartbroken.png"/>
                             <Setter Property="IconHeight" Value="40"/>
                             <Setter Property="IconWidth" Value="40"/>
@@ -170,7 +170,7 @@
                          TapReleased="ProgressSlider_TapReleased"
                          ValueStep="1"
                          Value="{Binding CurrentPositionInSeconds, Mode=TwoWay}" 
-                         MaxValue="{Binding TemporarilyPickedSong.DurationInSeconds}">
+                         MaxValue="{Binding MySelectedSong.DurationInSeconds}">
 
                     <dx:DXSlider.TooltipAppearance>
                         <dx:DXSliderTooltipAppearance BackgroundColor="#626680" TextColor="DarkSlateBlue"
@@ -200,7 +200,7 @@
 
                     </VerticalStackLayout>
 
-                    <Label Grid.Column="1" Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                    <Label Grid.Column="1" Text="{Binding MySelectedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                 </Grid>
             </dx:DXStackLayout>
 
@@ -304,9 +304,9 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
 
                 </dx:DXButton>
             </Grid>
-            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.ReleaseYear}" IsVisible="False"/>
-            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileFormat}" FontSize="20"/>
-            <Label HorizontalTextAlignment="Center" Text="{Binding TemporarilyPickedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
+            <Label HorizontalTextAlignment="Center" Text="{Binding MySelectedSong.ReleaseYear}" IsVisible="False"/>
+            <Label HorizontalTextAlignment="Center" Text="{Binding MySelectedSong.FileFormat}" FontSize="20"/>
+            <Label HorizontalTextAlignment="Center" Text="{Binding MySelectedSong.FileSize, Converter={StaticResource FileSizeConverter}}"
     FontSize="16"/>
 
             <Grid ColumnDefinitions="Auto,*,Auto" 
@@ -372,7 +372,7 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                             UseRippleEffect="True"
                             RippleColor="DarkSlateBlue"                            
                             ItemsSource="{Binding PartOfNowPlayingSongs}"
-                            SelectedItem="{Binding TemporarilyPickedSong}"
+                            SelectedItem="{Binding MySelectedSong}"
                             ItemSpacing="5" 
                                          
                             ItemTemplate="{StaticResource HomePageColViewGridOfOne}" />

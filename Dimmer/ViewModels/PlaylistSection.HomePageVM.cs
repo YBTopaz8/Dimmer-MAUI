@@ -10,8 +10,7 @@ public partial class HomePageVM
     public partial ObservableCollection<SongModelView>? DisplayedSongsFromPlaylist{get;set;}
     [ObservableProperty]
     public partial PlaylistModelView SelectedPlaylistToOpenBtmSheet {get;set;} = null;
-    [ObservableProperty]
-    public partial SongModelView? MySelectedSong {get;set;} = null;
+    
 
     [ObservableProperty]
     public partial PlaylistModelView SelectedPlaylist {get;set;}

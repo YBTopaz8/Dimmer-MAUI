@@ -38,11 +38,13 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                 x:Name="MediaPlayBackCW" Grid.Row="1"/>
 
-        <viewsD:MyTableView SelectionMode="None" 
+        <!--<viewsD:MyTableView SelectionMode="None" IsVisible="False"
                             AutoGenerateColumns="True"
                             KeyDown="MyTable_KeyDown"
                             KeyUp="MyTable_KeyUp"
                             IsRightClickEnabled="False"
+                            PropertyChanged="MyTable_PropertyChanged"
+                            Loaded="MyTable_Loaded"
                             PointerEntered="MyTable_PointerEntered"
                             PointerExited="MyTable_PointerExited"   
                             PointerMoved="MyTable_PointerMoved"
@@ -61,9 +63,9 @@
             >
             
             
-        </viewsD:MyTableView>
+        </viewsD:MyTableView>-->
 
-        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="False"
+        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
                             Loaded="MainBody_Loaded" Unloaded="MainBody_Unloaded">
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
@@ -143,7 +145,8 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
-                            <Border BackgroundColor="Transparent" Padding="2">
+                            <Border BackgroundColor="Transparent" Padding="2"
+                                    StrokeShape="RoundRectangle 12">
                                 
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection" >

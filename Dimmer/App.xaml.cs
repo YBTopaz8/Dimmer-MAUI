@@ -1,6 +1,4 @@
-﻿
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 #if WINDOWS
 using static Dimmer_MAUI.Platforms.Windows.SHSTOCKICONINFO;
 #endif

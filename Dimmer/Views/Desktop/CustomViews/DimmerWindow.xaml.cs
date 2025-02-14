@@ -234,19 +234,13 @@ public partial class DimmerWindow : Window
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     private const int SW_HIDE = 0;
-
-
-
-
     private TrayIconHelper _trayIconHelper;
     private const int SW_SHOW = 5;
-
     // For hooking the native window procedure.
     private WndProcDelegate _newWndProcDelegate;
     private IntPtr _oldWndProc = IntPtr.Zero;
     private const int GWL_WNDPROC = -4;
     private const int WM_COMMAND = 0x0111; // Message from thumbnail buttons
-
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
@@ -258,15 +252,12 @@ public partial class DimmerWindow : Window
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
-
-
     private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
         // Check if this is our tray icon callback.
         if (msg == TrayIconHelper.WM_TRAYICON)
         {
             int lParamInt = lParam.ToInt32();
-
             // Check for WM_LBUTTONUP (0x0202) or WM_LBUTTONDBLCLK (0x0203)
             if (lParamInt == 0x0202 || lParamInt == 0x0203)
             {
@@ -281,21 +272,16 @@ public partial class DimmerWindow : Window
             // The low-order word of wParam is the button command ID.
             int commandId = wParam.ToInt32() & 0xffff;
             if (commandId == 100)
-            {
-                // "Play" button clicked.
-                // Insert your Play logic here.
-                System.Diagnostics.Debug.WriteLine("Play button clicked.");
+            {                
+                Debug.WriteLine("Play button clicked.");
                 return IntPtr.Zero;
             }
             else if (commandId == 101)
             {
-                // "Stop" button clicked.
-                // Insert your Stop logic here.
                 System.Diagnostics.Debug.WriteLine("Stop button clicked.");
                 return IntPtr.Zero;
             }
         }
-
         return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
     }
 

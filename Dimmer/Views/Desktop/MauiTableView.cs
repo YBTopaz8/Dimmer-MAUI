@@ -61,6 +61,7 @@ public interface ITableView
     event TypedEventHandler<UIElement, CharacterReceivedRoutedEventArgs> CharacterReceived;
     event TypedEventHandler<UIElement, ContextRequestedEventArgs> ContextRequested;
     event TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> DataContextChanged;
+    event TypedEventHandler<FrameworkElement, PropertyChangedEventArgs>? PropertyChanged;
 
     // Native appearance and behavior properties
     double HeaderRowHeight { get; set; }
@@ -87,6 +88,9 @@ public interface ITableView
     FlyoutBase CellContextFlyout { get; set; }
     Style ColumnHeaderStyle { get; set; }
     Style CellStyle { get; set; }
+    ICollectionView CollectionView { get; }
+    IList<SortDescription> SortDescriptions { get; set; }
+    IList<FilterDescription> GroupDescriptions { get; set; }
 
     // Add a Columns collection for XAML support
     TableViewColumnsCollection Columns { get; }
@@ -95,19 +99,22 @@ public interface ITableView
     object SelectedValue { get; set; }
     object SelectedValuePath { get; set; }
     object SelectedIndex { get; set; }
-    
+
+    void ScrollIntoView(object item);
 }
 
-public static class TableViewHandler
+public partial class MyTableView : View, ITableView, INotifyPropertyChanged
 {
-    public static void ConfigureTableViewHandler(IMauiHandlersCollection handlers)
+    public event EventHandler<Microsoft.Maui.Controls.PropertyChangingEventArgs>? PropertyChangingg;
+    public event EventHandler<EventArgs>? BindingContextChangedd;
+    public event PropertyChangedEventHandler? PropertyChangedd;
+    public MyTableView()
     {
-        handlers.AddHandler(typeof(MyTableView), typeof(MyTableViewHandler));
+        base.PropertyChanged += (s, e) => PropertyChangedd?.Invoke(this, e);
+        base.PropertyChanging += (s, e) => PropertyChangingg?.Invoke(this, e);
+        base.BindingContextChanged += (s, e) => BindingContextChangedd?.Invoke(this, e);
     }
-}
 
-public partial class MyTableView : View, ITableView
-{
 
     // Add Windows-specific events:
     public new event RoutedEventHandler? Loaded;
@@ -129,11 +136,20 @@ public partial class MyTableView : View, ITableView
     public event TypedEventHandler<UIElement, RoutedEventArgs>? ContextCanceled;
     public event TypedEventHandler<UIElement, ContextRequestedEventArgs>? ContextRequested;
     public event TypedEventHandler<FrameworkElement, DataContextChangedEventArgs>? DataContextChanged;
-
+    public event TypedEventHandler<FrameworkElement, PropertyChangedEventArgs>? PropertyChanged;
+    public event TypedEventHandler<FrameworkElement, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs>? SelectionChanged;
 
 
     // Internal raise methods—must be called from within MyTableView.
-    internal void RaiseLoaded(RoutedEventArgs e) => Loaded?.Invoke(this, e);
+    internal void RaiseLoaded(RoutedEventArgs e)
+    {
+        Loaded?.Invoke(this, e);
+    }
+    internal void RaiseSelectionChanged(Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        SelectionChanged?.Invoke(null, e);
+    }
+
     internal void RaiseUnloaded(RoutedEventArgs e) => Unloaded?.Invoke(this, e);
     internal void RaiseDoubleTapped(DoubleTappedRoutedEventArgs e)
     {        
@@ -153,10 +169,19 @@ public partial class MyTableView : View, ITableView
 
     internal void RaiseCharacterReceived(CharacterReceivedRoutedEventArgs e) => CharacterReceived?.Invoke(null, e);
     internal void RaiseContextRequested(ContextRequestedEventArgs e) => ContextRequested?.Invoke(null, e);
-    internal void RaiseDataContextChanged(DataContextChangedEventArgs e) => DataContextChanged?.Invoke(null, e);
+
+    internal void NativeTable_PropertyChanged(object? sender, PropertyChangedEventArgs e) => PropertyChanged?.Invoke(null, e);    
+    internal void RaiseDataContextChanged(object? sender, DataContextChangedEventArgs e) => DataContextChanged?.Invoke(null, e);
+    internal void RaisePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {        
+        PropertyChanged?.Invoke(null, e);
+    }
+
     internal void RaiseHolding(HoldingRoutedEventArgs e) => Holding?.Invoke(this, e);
     internal void RaiseKeyDown(KeyRoutedEventArgs e) => KeyDown?.Invoke(this, e);
     internal void RaiseKeyUp(KeyRoutedEventArgs e) => KeyUp?.Invoke(this, e);
+    
+
     //internal void RaiseManipulationCompleted(ManipulationCompletedRoutedEventArgs e) => ManipulationCompleted?.Invoke(this, e);
     //internal void RaiseManipulationDelta(ManipulationDeltaRoutedEventArgs e) => ManipulationDelta?.Invoke(this, e);
     //internal void RaiseManipulationInertiaStarting(ManipulationInertiaStartingRoutedEventArgs e) => ManipulationInertiaStarting?.Invoke(this, e);
@@ -334,6 +359,37 @@ BindableProperty.Create(nameof(IsReadOnly), typeof(bool), typeof(MyTableView), f
     public object SelectedValue { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public object SelectedValuePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public object SelectedIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public ICollectionView CollectionView => throw new NotImplementedException();
+
+    public IList<SortDescription> SortDescriptions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public IList<FilterDescription> GroupDescriptions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    private static void OnScrollIntoViewChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        if (bindable is MyTableView tableView && newValue != null)
+        {
+            ((ITableView)tableView).ScrollIntoView(newValue); // Call the actual method
+        }
+    }
+
+    void ScrollIntoView(object item)
+    {
+        // This is just a wrapper - the actual implementation will be in the handler.
+        // You don't need to do anything here.  The handler will implement the scroll.
+        // This is important! The handler will do the actual scrolling.
+        // No need to add code in MyTableView.cs
+    }
+
+    void ITableView.ScrollIntoView(object item)
+    {
+        
+    }
+
+    //internal void PropertyChangedd(PropertyChangedEventHandler e)
+    //{
+        
+    //}
 }
 #endif
 

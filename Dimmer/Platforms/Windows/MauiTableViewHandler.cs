@@ -1,10 +1,7 @@
 ﻿// File: Platforms/Windows/TableViewImplementation.cs
-using Microsoft.Maui.Controls;
 using WinUI.TableView;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
-using System.ComponentModel;
-using Microsoft.Maui.Platform;
 using WinUIGrid = Microsoft.UI.Xaml.Controls.Grid;
 using WinUITableview = WinUI.TableView.TableView;
 using Microsoft.Maui.Handlers;
@@ -13,17 +10,10 @@ using Microsoft.UI.Xaml.Media.Animation;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using static Dimmer_MAUI.Platforms.Windows.PlatSpecificUtils;
 using Microsoft.UI.Xaml.Input;
-using System.Diagnostics;
-using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI.Collections;
-using Microsoft.Maui;
-using Visibility = Microsoft.UI.Xaml.Visibility;
 using GridLength = Microsoft.UI.Xaml.GridLength;
-using Style = Microsoft.UI.Xaml.Style;
-using DevExpress.XtraEditors.Filtering;
-using System.Reflection;
 using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
-using Application = Microsoft.UI.Xaml.Application;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
@@ -32,11 +22,15 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
     private WinUITableview _tableView;
     private bool _autoGenerateColumns;
 
+    public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
+
     public TableViewImplementation()
     {
         _tableView = new WinUITableview();
-
+        
         AutoGenerateColumns = true;
+        
+        //_tableView.Background = new Microsoft.UI.Xaml.Media.Brush //need brush to be #191719
 
         ItemsSource = null;
         Children.Add(_tableView);
@@ -49,12 +43,23 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         {
             Console.Error.WriteLine($"Error initializing TableView: {ex.Message}");
         }
+        
+        var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+        if (vm is not null)
+        {
+            _tableView.ShowOptionsButton = true;
+            _tableView.ShowExportOptions=true;
+            _tableView.IsAccessKeyScope = true;
+            
+            vm.MyTableView = _tableView;
+        }
     }
 
     private void TableViewImplementation_Loaded(object sender, RoutedEventArgs e)
-    {
+    {        
         UpdateTableView();
     }
+    #region Declare Props
 
     public object? ItemsSource
     {
@@ -78,7 +83,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
             UpdateTableView();
         }
     }
-  
+
     // --- Exposed native properties ---
     public bool CanDragItems
     {
@@ -134,10 +139,11 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.HeaderTransitions = value; OnPropertyChanged(nameof(HeaderTransitions)); }
     }
 
-    
+
 
     public double IncrementalLoadingThreshold
     {
+
         get => _tableView.IncrementalLoadingThreshold;
         set { _tableView.IncrementalLoadingThreshold = value; OnPropertyChanged(nameof(IncrementalLoadingThreshold)); }
     }
@@ -148,6 +154,34 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         set { _tableView.IncrementalLoadingTrigger = value; OnPropertyChanged(nameof(IncrementalLoadingTrigger)); }
     }
 
+    public bool IsReadOnly
+    {
+        get => _tableView.IsReadOnly;
+        set { _tableView.IsReadOnly = value; OnPropertyChanged(nameof(IsReadOnly)); }
+
+    }
+
+    // Selected index
+    public object SelectedItem
+    {
+        get => _tableView.SelectedItem;
+        set { _tableView.SelectedItem = value; OnPropertyChanged(nameof(SelectedItem)); }
+    }
+    public object SelectedValue
+    {
+        get => _tableView.SelectedValue;
+        set { _tableView.SelectedValue = value; OnPropertyChanged(nameof(SelectedValue)); }
+    }
+    public IList<object> SelectedItems
+    {
+        get => _tableView.SelectedItems;
+        set { _tableView.SelectedItem = value; OnPropertyChanged(nameof(SelectedItem)); }
+    }
+    public int SelectedIndex
+    {
+        get => _tableView.SelectedIndex;
+        set { _tableView.SelectedIndex = value; OnPropertyChanged(nameof(SelectedIndex)); }
+    }
     public bool IsActiveView
     {
         get => _tableView.IsActiveView;
@@ -171,6 +205,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         get => _tableView.IsSwipeEnabled;
         set { _tableView.IsSwipeEnabled = value; OnPropertyChanged(nameof(IsSwipeEnabled)); }
     }
+    
 
     public bool IsZoomedInView
     {
@@ -202,8 +237,9 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         get => _tableView.SingleSelectionFollowsFocus;
         set { _tableView.SingleSelectionFollowsFocus = value; OnPropertyChanged(nameof(SingleSelectionFollowsFocus)); }
     }
-       
-    
+
+    #endregion
+
     internal readonly record struct TableViewCellSlot(int Row, int Column);
 
     public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
@@ -250,6 +286,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
                 
                 Width = new GridLength(1, GridUnitType.Star)
             });
+            
             _tableView.Columns.Add(new TableViewTextColumn
             {
                 Header = "Artist",
@@ -328,7 +365,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         
 
     }
-
+    
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -413,6 +450,55 @@ public static class MyTableViewHandlerMapper
         }
     }
 
+    
+    public static void MapSelectedItem(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedItemProperty, view.SelectedItem);
+    }
+    
+    
+    public static void MapSelectedIndex(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedIndexProperty, view.SelectedIndex);
+    }
+    
+    
+    public static void MapSelectedValue(MyTableViewHandler handler, ITableView view)
+    {
+
+        var native = GetNativeTable(handler);
+        if (native != null)
+            native.SetValue(WinUITableview.SelectedValueProperty, view.SelectedValue);
+    }
+
+    public static void MapScrollIntoView(MyTableViewHandler handler, ITableView view)
+    {
+
+        //var native = GetNativeTable(handler);
+        //if (native != null)
+        //    native.SetValue(WinUITableview.scro, view.HeaderRowHeight);
+        //if (handler.PlatformView is not null && view.ScrollIntoView != null)
+        //{
+        //    // Ensure the item is in the ItemsSource
+        //    if (view.ItemsSource is IEnumerable items && view.ScrollIntoView is not null)
+        //    {
+        //        foreach (var item in items)
+        //        {
+        //            if (item == view.ScrollIntoView)
+        //            {
+        //                handler.PlatformView.ScrollIntoView(item);
+        //                break; // Exit once found.
+        //            }
+        //        }
+        //    }
+        //}
+    }
     static void MapHeaderRowHeight(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
@@ -694,6 +780,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
         {
             var nativeTable = new TableViewImplementation
             {
+
                 ItemsSource = VirtualView.ItemsSource,
                 AutoGenerateColumns = VirtualView.AutoGenerateColumns,
                 CanDragItems = VirtualView.CanDragItems,
@@ -720,7 +807,7 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
                 ShowsScrollingPlaceholders = VirtualView.ShowsScrollingPlaceholders,
                 SingleSelectionFollowsFocus = VirtualView.SingleSelectionFollowsFocus
             };
-
+            //nativeTable.TestAg += NativeTable_TestAg;
             // Subscribe to native events:
             nativeTable.Loaded += NativeTable_Loaded;
             nativeTable.Unloaded += NativeTable_Unloaded;
@@ -736,9 +823,18 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
             nativeTable.CharacterReceived += NativeTable_CharacterReceived;
             nativeTable.ContextRequested += NativeTable_ContextRequested;
             nativeTable.DataContextChanged += NativeTable_DataContextChanged;
-            
+            nativeTable.PropertyChanged += NativeTable_PropertyChanged;
+            nativeTable.SelectionChanged += NativeTable_SelectionChanged;
+            //nativeTable.PropertyChanged += NativeTable_PropertyChanged;
             platformView.Children.Add(nativeTable);
+            
+
         }
+    }
+
+    private void NativeTable_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        VirtualView.RaiseSelectionChanged(e);
     }
 
     protected override void DisconnectHandler(WinUIGrid platformView)
@@ -758,7 +854,9 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
             nativeTable.Tapped -= (s, e) => VirtualView?.RaiseTapped(e);
             nativeTable.CharacterReceived -= (s, e) => VirtualView?.RaiseCharacterReceived(e);
             nativeTable.ContextRequested -= (s, e) => VirtualView?.RaiseContextRequested(e);
-            nativeTable.DataContextChanged -= (s, e) => VirtualView?.RaiseDataContextChanged(e);
+            nativeTable.DataContextChanged -= (s, e) => VirtualView?.RaiseDataContextChanged(this,e);
+            nativeTable.PropertyChanged -= (s, e) => VirtualView?.RaisePropertyChanged(this, e);
+            //nativeTable.SizeChanged -= (s, e) => VirtualView?.RaiseSizeChanged(e);
             nativeTable.Holding -= (s, e) => VirtualView?.RaiseHolding(e);
             nativeTable.KeyDown -= (s, e) => VirtualView?.RaiseKeyDown(e);
             nativeTable.KeyUp -= (s, e) => VirtualView?.RaiseKeyUp(e);
@@ -768,7 +866,12 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
     }
 
     // Event forwarding methods:
-    private void NativeTable_Loaded(object sender, RoutedEventArgs e) => VirtualView?.RaiseLoaded(e);
+    private void NativeTable_Loaded(object sender, RoutedEventArgs e)
+    {
+        VirtualView?.RaiseLoaded(e);
+    }
+
+    //private void NativeTable_TestAg(object sender, RoutedEventArgs e) => this.
 
     private void NativeTable_Unloaded(object sender, RoutedEventArgs e) => VirtualView?.RaiseUnloaded(e);
 
@@ -798,8 +901,15 @@ public class MyTableViewHandler : ViewHandler<MyTableView, WinUIGrid>
 
     private void NativeTable_ContextRequested(object sender, ContextRequestedEventArgs e) => VirtualView?.RaiseContextRequested(e);
 
-    private void NativeTable_DataContextChanged(object sender, DataContextChangedEventArgs e) => VirtualView?.RaiseDataContextChanged(e);
+    private void NativeTable_DataContextChanged(object sender, DataContextChangedEventArgs e)
+    {
+        VirtualView?.RaiseDataContextChanged(this,e);
+    }
 
+    private void NativeTable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        VirtualView?.RaisePropertyChanged(this,e);
+    }
 }
 
 public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
@@ -817,4 +927,42 @@ public class TableViewColumnsCollection : ObservableCollection<TableViewColumn>
 public abstract class MauiTableViewColumn : TableViewColumn
 {
 
+}
+
+
+/// <summary>
+/// Describes a filter operation applied to TableView items.
+/// </summary>
+public class FilterDescription
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FilterDescription"/> class.
+    /// </summary>
+    /// <param name="propertyName">The name of the property to filter by.</param>
+    /// <param name="predicate">The predicate to apply for filtering.</param>
+    public FilterDescription(string? propertyName,
+                             Predicate<object?> predicate)
+    {
+        PropertyName = propertyName;
+        Predicate = predicate;
+    }
+
+    /// <summary>
+    /// Gets the name of the property to filter by.
+    /// </summary>
+    public string? PropertyName { get; }
+
+    /// <summary>
+    /// Gets the predicate to apply for filtering.
+    /// </summary>
+    public Predicate<object?> Predicate { get; }
+}
+
+
+public static class TableViewHandler
+{
+    public static void ConfigureTableViewHandler(IMauiHandlersCollection handlers)
+    {
+        handlers.AddHandler(typeof(MyTableView), typeof(MyTableViewHandler));
+    }
 }

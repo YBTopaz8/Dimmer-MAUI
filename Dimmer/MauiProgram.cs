@@ -118,11 +118,36 @@ public static class MauiProgram
                 });
             });
         });
+        /* Registering the Desktop Views */
+        builder.Services.AddSingleton<MainPageD>();
+        builder.Services.AddSingleton<SingleSongShellPageD>();
+        builder.Services.AddSingleton<PlaylistsPageD>();
+        builder.Services.AddSingleton<ArtistsPageD>();
+        builder.Services.AddSingleton<FullStatsPageD>();
+        builder.Services.AddSingleton<SingleSongStatsPageD>();
+        builder.Services.AddSingleton<SettingsPageD>();
+        builder.Services.AddSingleton<LandingPageD>();
+        builder.Services.AddSingleton<AlbumsPageD>();
+
+        builder.Services.AddSingleton<MediaPlaybackControlsView>();
 #endif
 
 #if ANDROID
         builder.Services.AddSingleton<MediaPlayerService>(); // Register as singleton
         builder.Services.AddSingleton(IDimmerAudioService => DimmerAudioService.Current);
+        builder.Services.AddSingleton<HomePageM>();
+        builder.Services.AddSingleton<SingleSongShell>();
+        builder.Services.AddSingleton<PlaylistsPageM>();
+        builder.Services.AddSingleton<SinglePlaylistPageM>();
+        builder.Services.AddSingleton<TopStatsPageM>();
+        builder.Services.AddSingleton<SingleSongStatsPageM>();
+        builder.Services.AddSingleton<ArtistsPageM>();
+        builder.Services.AddSingleton<AlbumsM>();
+        builder.Services.AddSingleton<SpecificAlbumPage>();
+        builder.Services.AddSingleton<AlbumPageM>();
+        builder.Services.AddTransient<ShareSongPage>();
+        builder.Services.AddSingleton<SettingsPageM>();
+        builder.Services.AddSingleton<FirstStepPage>();
 #endif
 
 #if ANDROID || WINDOWS
@@ -156,34 +181,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePageVM>();
 
 
-        /* Registering the Desktop Views */
-        builder.Services.AddSingleton<MainPageD>();
-        builder.Services.AddSingleton<SingleSongShellPageD>();
-        builder.Services.AddSingleton<PlaylistsPageD>();
-        builder.Services.AddSingleton<ArtistsPageD>();
-        builder.Services.AddSingleton<FullStatsPageD>();
-        builder.Services.AddSingleton<SingleSongStatsPageD>();
-        builder.Services.AddSingleton<SettingsPageD>();
-        builder.Services.AddSingleton<LandingPageD>();
-        builder.Services.AddSingleton<AlbumsPageD>();
-        
-        builder.Services.AddSingleton<MediaPlaybackControlsView>();
 
 
         /* Registering the Mobile Views */
-        builder.Services.AddSingleton<HomePageM>();
-        builder.Services.AddSingleton<SingleSongShell>();
-        builder.Services.AddSingleton<PlaylistsPageM>();
-        builder.Services.AddSingleton<SinglePlaylistPageM>();
-        builder.Services.AddSingleton<TopStatsPageM>();
-        builder.Services.AddSingleton<SingleSongStatsPageM>();
-        builder.Services.AddSingleton<ArtistsPageM>();
-        builder.Services.AddSingleton<AlbumsM>();
-        builder.Services.AddSingleton<SpecificAlbumPage>();
-        builder.Services.AddSingleton<AlbumPageM>();
-        builder.Services.AddTransient<ShareSongPage>();
-        builder.Services.AddSingleton<SettingsPageM>();
-        builder.Services.AddSingleton<FirstStepPage>();
         //builder.Services.AddSingleton<NowPlayingPage>();
 
 

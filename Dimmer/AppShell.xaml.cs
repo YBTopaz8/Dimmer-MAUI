@@ -7,7 +7,8 @@ using Microsoft.UI.Input; // Required for KeyboardAccelerator
 using Microsoft.UI.Xaml.Input; // Required for KeyRoutedEventArgs
 using System.Collections.Generic;
 using Syncfusion.Maui.Toolkit.Chips;
-using Syncfusion.Maui.Toolkit.EffectsView; // Required for List<string> for navigation history
+using Syncfusion.Maui.Toolkit.EffectsView;
+using Microsoft.UI.Xaml; // Required for List<string> for navigation history
 #endif
 
 namespace Dimmer_MAUI;
@@ -30,15 +31,15 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
         Routing.RegisterRoute(nameof(LandingPageD), typeof(LandingPageD));
 
-        //#if WINDOWS
+#if WINDOWS
 
-        //        // Subscribe to events
-        //        this.Loaded += AppShell_Loaded;
-        //        this.Unloaded += AppShell_Unloaded;
-        //        this.Focused += AppShell_Focused;
-        //        this.Unfocused += AppShell_Unfocused;
+        // Subscribe to events
+        this.Loaded += AppShell_Loaded;
+        this.Unloaded += AppShell_Unloaded;
+        //this.Focused += AppShell_Focused;
+        //this.Unfocused += AppShell_Unfocused;
 
-        //#endif
+#endif
         //currentPage = Current.CurrentPage;
     }
 
@@ -131,6 +132,7 @@ public partial class AppShell : Shell
     }
 
 #if WINDOWS
+    UIElement DimmerUIElement;
 
     private void AppShell_Loaded(object? sender, EventArgs e)
     {
@@ -150,13 +152,13 @@ public partial class AppShell : Shell
         //currentMauiwindow.Content.DragOver += Content_DragOver;
         //currentMauiwindow.Content.Drop += Content_Drop;
 
-        var nativeElement = currentMauiwindow.Content;
+        DimmerUIElement = currentMauiwindow.Content;
 
-        if (nativeElement != null)
+        if (DimmerUIElement != null)
         {
-            nativeElement.PointerPressed += OnGlobalPointerPressed;
+            DimmerUIElement.PointerPressed += OnGlobalPointerPressed;
             //nativeElement.KeyDown += NativeElement_KeyDown; just experimenting
-            nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
+            //nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
         }
     }
 
@@ -168,12 +170,7 @@ public partial class AppShell : Shell
         this.Focused -= AppShell_Focused;
         this.Unfocused -= AppShell_Unfocused;
 
-        // Unsubscribe from global event handlers
-        if (Handler?.PlatformView is MauiWinUIWindow mauiWinUIWindow && mauiWinUIWindow.Content != null)
-        {
-            mauiWinUIWindow.Content.PointerPressed -= OnGlobalPointerPressed;
-            mauiWinUIWindow.Content.KeyDown -= NativeElement_KeyDown; // Ensure unsubscription
-        }
+        DimmerUIElement.PointerPressed -= OnGlobalPointerPressed;
     }
 
     Type[] targetPages = new[] { typeof(PlaylistsPageD), typeof(ArtistsPageD), typeof(FullStatsPageD), typeof(SettingsPageD) };
