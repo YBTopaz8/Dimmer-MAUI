@@ -1,5 +1,6 @@
 ﻿
 #if WINDOWS
+using System.Diagnostics;
 using TView = WinUI.TableView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
@@ -155,36 +156,43 @@ public partial class HomePageVM : ObservableObject
 
     partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel> oldValue, ObservableCollection<LyricPhraseModel> newValue)
     {
-        if (newValue is not null && newValue.Count < 1)
+        try
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            if (newValue is not null && newValue.Count < 1)
             {
-                if (SyncLyricsCV is not null)
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    SyncLyricsCV!.ItemsSource = null;               
-                }
-
-            });
-        }
-        if (newValue is not null && newValue.Count > 0)
-        {
-            
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (SyncLyricsCV is not null)
-                {
-                    SyncLyricsCV!.ItemsSource = null;
-                    SyncLyricsCV.ItemsSource = newValue;
-
-                    if (SyncLyricsCV is not null && CurrentAppState == AppState.OnForeGround)
+                    if (SyncLyricsCV is not null)
                     {
-                        SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                        SyncLyricsCV!.ItemsSource = null;
                     }
-                }
 
-            });
+                });
+            }
+            if (newValue is not null && newValue.Count > 0)
+            {
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (SyncLyricsCV is not null)
+                    {
+                        SyncLyricsCV!.ItemsSource = null;
+                        SyncLyricsCV.ItemsSource = newValue;
+                        
+                        if (SyncLyricsCV is not null && CurrentAppState == AppState.OnForeGround)
+                        {
+                            SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                        }
+                    }
+
+                });
+            }
+
         }
-
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message + "A");
+        }
     }
     public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
     List<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
@@ -719,7 +727,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void PlayNextSong()
     {
-        TemporarilyPickedSong!.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
+        if (TemporarilyPickedSong is not null)
+        {
+            TemporarilyPickedSong!.IsCurrentPlayingHighlight = TemporarilyPickedSong is null;
+        }
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         PlayBackService.PlayNextSong(true);
@@ -751,13 +762,13 @@ public partial class HomePageVM : ObservableObject
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue -= 0.2;
+        VolumeSliderValue -= 0.01;
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue += 0.2;
+        VolumeSliderValue += 0.01;
     }
 
     [ObservableProperty]
@@ -1128,60 +1139,56 @@ public partial class HomePageVM : ObservableObject
     {
         if (_playerStateSubscription != null)
             return; // Already subscribed
-
+        
         _playerStateSubscription = PlayBackService.PlayerState
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
 
-                if (TemporarilyPickedSong is not null)
-                {
-                    PickedSong ??= new SongModelView();
-                    MySelectedSong??= new SongModelView();
-                    
                     switch (state)
                     {
                         case MediaPlayerState.Playing:
                             IsPlaying = true;
-                            MySelectedSong = null;
-
+                            
                             if (PlayBackService.CurrentlyPlayingSong is null)
                                 break;
+                        if (TemporarilyPickedSong is not null)
+                        {
 
+                            if (TemporarilyPickedSong == PlayBackService.CurrentlyPlayingSong)
+                        {
+                            return;
+                        }
                             TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                          
 
-                            if (PickedSong is not null)
-                            {
-                                PickedSong.IsPlaying = false;
-                                PickedSong.IsCurrentPlayingHighlight = false;                                
-                            }
-                            PickedSong = TemporarilyPickedSong;
-                            MySelectedSong = TemporarilyPickedSong;
+                                DoRefreshDependingOnPage();
 
-                            DoRefreshDependingOnPage();
+                                CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
 
-                            CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
 
-                            //await FetchSongCoverImage();
+                        }
 
-                            //if (CurrentUser is not null)
-                            //{
-                            //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                        //await FetchSongCoverImage();
 
-                            //}
+                        //if (CurrentUser is not null)
+                        //{
+                        //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+
+                        //}
 #if WINDOWS
-                            //MyTableView.ScrollIntoView(TemporarilyPickedSong);
-                            //MyTableView.
+                        //MyTableView.ScrollIntoView(TemporarilyPickedSong);
+                        //MyTableView.
 #endif
-                            break;
+                        break;
                         case MediaPlayerState.Paused:
                             if (CurrentUser is not null)
                             {
                                 await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
                             }
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-                            PickedSong = null;
-                            PickedSong = TemporarilyPickedSong;
+                            //TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+                            //PickedSong = null;
+                            //PickedSong = TemporarilyPickedSong;
 
                             IsPlaying = false;
 
@@ -1209,7 +1216,7 @@ public partial class HomePageVM : ObservableObject
                         default:
                             break;
                     }
-                }
+                
             });
 
     }
@@ -1217,28 +1224,50 @@ public partial class HomePageVM : ObservableObject
 
     //partial void OnTemporarilyPickedSongChanging(SongModelView? value)
     //{
-       
+
     //}
 
-    //partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
-    //{
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue == null)
+        {
+            return;
+        }
 
-    //    if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
-    //    {
-    //        newValue.CoverImagePath = string.Empty;
-    //    }
+        if (MySelectedSong != null)
+        {
+            MySelectedSong.IsPlaying = false;
+            MySelectedSong = newValue;
+            MySelectedSong.IsCurrentPlayingHighlight = false;
+            
+        }
+        if (PickedSong != null)
+        {
+            PickedSong.IsPlaying = false;
+            PickedSong.IsCurrentPlayingHighlight = false;
 
-    //    if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
-    //    {
-    //        if (newValue.CoverImagePath == oldValue?.CoverImagePath)
-    //        {
-    //            if (oldValue.AlbumName != newValue.AlbumName)
-    //            {
-    //                newValue.CoverImagePath = string.Empty;
-    //            }
-    //        }
-    //    }
+            PickedSong = newValue;
+            
+        }
 
+
+        if (string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            newValue.CoverImagePath = "musicnoteslider.png";
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
+            {
+                if (oldValue.AlbumName != newValue.AlbumName)
+                {
+                    newValue.CoverImagePath = "musicnoteslider.png";
+                }
+            }
+        }
+    }
     //    if (newValue is not null)
     //    {
     //        if (IsPlaying)

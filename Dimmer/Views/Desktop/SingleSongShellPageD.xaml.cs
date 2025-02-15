@@ -66,7 +66,10 @@ public partial class SingleSongShellPageD : ContentPage
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-
+        if (MyViewModel.CurrentAppState!= AppState.OnForeGround)
+        {
+            return;
+        }
         if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
         {
             LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
@@ -277,16 +280,17 @@ public partial class SingleSongShellPageD : ContentPage
 
                 // Wait a bit so font size change is visible before scrolling
                 await Task.Delay(10);
-                MainThread.BeginInvokeOnMainThread(() =>
+                if (MyViewModel.CurrentAppState != AppState.OnForeGround)
                 {
-                    LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                    return;
                 }
-                );
+                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
+                
                 // Scroll AFTER font size animation
             }
 
             // Animate selection smoothly
-            if (e.CurrentSelection.FirstOrDefault() is LyricPhraseModel selectedLyric)
+            if (e.CurrentSelection?.FirstOrDefault() is LyricPhraseModel selectedLyric)
             {
                 var item = LyricsColView.ItemTemplate.CreateContent() as View;
                 if (item != null)

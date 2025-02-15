@@ -8,7 +8,6 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-
         
     }
 

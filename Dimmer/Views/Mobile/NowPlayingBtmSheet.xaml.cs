@@ -13,7 +13,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
         //Shell.SetTabBarIsVisible(this, false);
         AllowedState = BottomSheetAllowedState.FullExpanded;
-
+        
         //this.StateChanged += NowPlayingBtmSheet_StateChanged;
     }
 
@@ -160,5 +160,17 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
 
+    }
+
+    private void MyPage_StateChanged(object sender, ValueChangedEventArgs<DBtmState> e)
+    {
+        if (e.NewValue != BottomSheetState.Hidden)
+        {
+            DeviceDisplay.Current.KeepScreenOn = true;
+        }
+        else
+        {
+            DeviceDisplay.Current.KeepScreenOn = false;
+        }
     }
 }

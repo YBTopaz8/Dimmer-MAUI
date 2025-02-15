@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Diagnostics;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -445,21 +447,28 @@ public partial class HomePageVM
     public void ToggleFlyout()
     {
 
-        IsFlyoutPresented = !IsFlyoutPresented;
-        if (Shell.Current == null)
+        try
         {
-            return;
-        }
-        if (IsFlyoutPresented)
-        {
-            if (PartOfNowPlayingSongsCV is null)
+            IsFlyoutPresented = !IsFlyoutPresented;
+            if (Shell.Current == null)
+            {
                 return;
-            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            }
+            if (IsFlyoutPresented)
+            {
+                if (PartOfNowPlayingSongsCV is null)
+                    return;
+                PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            }
+            else
+            {
+                _ = Task.Delay(500);
+                Shell.Current.FlyoutIsPresented = true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _ = Task.Delay(500);
-            Shell.Current.FlyoutIsPresented = true;            
+            Debug.WriteLine(ex.Message);
         }
     }
 

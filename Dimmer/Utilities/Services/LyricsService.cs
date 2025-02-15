@@ -539,7 +539,7 @@ public class LyricsService : ILyricsService
                 stringAlbumName = localCopyOfSong.AlbumName;
                 if (localCopyOfSong.CoverImagePath == "NC")
                 {
-                    localCopyOfSong.CoverImagePath = string.Empty;
+                    localCopyOfSong.CoverImagePath = "musicnoteslider.png";
                 }
                 localCopyOfSong.CoverImagePath = SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath);
                 if (!string.IsNullOrEmpty(localCopyOfSong.CoverImagePath))

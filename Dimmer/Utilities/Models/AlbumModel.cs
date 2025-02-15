@@ -8,7 +8,7 @@ public partial class AlbumModel : RealmObject
     public int? ReleaseYear { get; set; }
     public string? Description { get; set; }
     public int NumberOfTracks { get; set; }
-    public string? ImagePath { get; set; }
+    public string? ImagePath { get; set; } = "musicalbum.png";
     public string? TotalDuration { get; set; }
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");

@@ -362,12 +362,12 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public void DecreaseVolume()
     {
-        DimmerAudioService.Volume -= 0.1;
+        DimmerAudioService.Volume -= 0.01;
     }
 
     public void IncreaseVolume()
     {
-        DimmerAudioService.Volume += 0.1;
+        DimmerAudioService.Volume += 0.01;
     }
 
     /// <summary>

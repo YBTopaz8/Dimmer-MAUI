@@ -22,7 +22,7 @@ public partial class SongModel : RealmObject
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
     public string SyncLyrics { get; set; }=string.Empty;
-    public string CoverImagePath { get; set; } = string.Empty;
+    public string CoverImagePath { get; set; } = "musicnoteslider.png";
     public string UnSyncLyrics { get; set; } = string.Empty;
     public bool IsPlaying { get; set; }
     public bool IsFavorite { get; set; }
@@ -121,7 +121,7 @@ public partial class SongModelView : ObservableObject
     public bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
     [Display(AutoGenerateField = true)]
-    public partial string? CoverImagePath { get; set; } = string.Empty;
+    public partial string? CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     public bool IsPlaying {get;set;}

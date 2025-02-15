@@ -4,10 +4,13 @@ public class PathToImageConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
-            return string.Empty;
+            return "musicnoteslider.png";
 
         var path = LyricsService.SaveOrGetCoverImageToFilePath((string)value);
-
+        if (string.IsNullOrEmpty(path))
+        {
+            path = "musicnoteslider.png";
+        }
         return path;
     }
 

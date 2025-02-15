@@ -367,6 +367,7 @@ public partial class MainPageD : ContentPage
     {
         MyViewModel.ToggleFlyout();
     }
+
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
         supportedFilePaths ??= new();
@@ -384,14 +385,13 @@ public partial class MainPageD : ContentPage
         }
     }
 
-
     private void MainBody_Unloaded(object sender, EventArgs e)
     {
 #if WINDOWS
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
-
+        
         mainLayout.PointerPressed -= S_PointerPressed;
 #endif
     }
@@ -407,8 +407,9 @@ public partial class MainPageD : ContentPage
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
-#if WINDOWS
 
+
+#if WINDOWS
     private void MyTable_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
 

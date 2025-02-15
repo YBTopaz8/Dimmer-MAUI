@@ -29,7 +29,7 @@
             <dx:DXExpander.Content>
                 <Grid WidthRequest="270" HeightRequest="150" BackgroundColor="Transparent">
                     <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" BackgroundColor="Transparent"
-                           Opacity="0.30" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
+                           Opacity="0.10" HeightRequest="150" WidthRequest="260" BorderWidth="0"/>
                     <dx:DXStackLayout Orientation="Vertical" x:DataType="vm:HomePageVM"
                                BackgroundColor="Transparent" 
                                CornerRadius="25" VerticalOptions="Center"
@@ -43,11 +43,12 @@
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                         Spacing="10" BackgroundColor="Transparent">
                         <dx:DXButton ShowContent="False" Command="{Binding PlayPreviousSongCommand}"
-                                  Icon="skipprevious.png">
+                                  Icon="skipprevious.png"
+                                     IconHeight="80">
                             
                         </dx:DXButton>
                         <dx:DXButton Clicked="DXButton_Clicked"
-                                     >
+                                     IconHeight="80">
                                 <dx:DXButton.Triggers>
                                     <DataTrigger TargetType="dx:DXButton" Value="True" Binding="{Binding IsPlaying}">
                                         <Setter Property="Icon" Value="pause.png"/>
@@ -58,7 +59,7 @@
                                 </dx:DXButton.Triggers>
                         </dx:DXButton>
 
-                            <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="skipnext.png">
+                            <dx:DXButton Command="{Binding PlayNextSongCommand}" Icon="skipnext.png" IconHeight="80">
                         </dx:DXButton>
                     </HorizontalStackLayout>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 

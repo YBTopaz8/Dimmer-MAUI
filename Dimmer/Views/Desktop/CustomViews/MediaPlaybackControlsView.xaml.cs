@@ -1,3 +1,8 @@
+#if WINDOWS
+using Microsoft.UI.Xaml.Input;
+#endif
+using Syncfusion.Maui.Toolkit.EffectsView;
+
 namespace Dimmer_MAUI.Views.CustomViews;
 
 public partial class MediaPlaybackControlsView : ContentView
@@ -106,6 +111,50 @@ public partial class MediaPlaybackControlsView : ContentView
         }
 
         MyViewModel.PlaySong(song);
+    }
+
+    private void SfEffectsView_Loaded(object sender, EventArgs e)
+    {
+#if WINDOWS
+        var send = (SfEffectsView)sender;
+        var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler!.PlatformView!;
+        mainLayout.PointerWheelChanged += MainLayout_PointerWheelChanged;         
+#endif
+    }
+
+#if WINDOWS
+    private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        // Retrieve the mouse wheel delta value
+        var pointerPoint = e.GetCurrentPoint(null);
+        int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
+
+        // Check if the event is from a mouse wheel
+        if (mouseWheelDelta != 0)
+        {
+            // Positive delta indicates wheel scrolled up
+            // Negative delta indicates wheel scrolled down
+            if (mouseWheelDelta > 0)
+            {
+                MyViewModel.IncreaseVolumeCommand.Execute(true);
+                // Handle scroll up
+            }
+            else
+            {
+                MyViewModel.DecreaseVolumeCommand.Execute(true);
+                // Handle scroll down
+            }
+        }
+
+        // Mark the event as handled
+        e.Handled = true;
+    }
+
+#endif
+
+    private void SfEffectsView_Unloaded(object sender, EventArgs e)
+    {
+
     }
 
 
