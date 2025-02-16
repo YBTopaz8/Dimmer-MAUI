@@ -192,7 +192,7 @@
                                 <DataTemplate x:DataType="models:LyricPhraseModel">
 
                                     <Border StrokeShape="RoundRectangle 20" HorizontalOptions="Center" VerticalOptions="Center"
-                                            >
+                                          x:Name="LyrBorder" Loaded="LyrBorder_Loaded">
                                         <VisualStateManager.VisualStateGroups>
                                             <VisualStateGroup x:Name="CommonStates">
                                                 <VisualState x:Name="Normal" >
@@ -213,9 +213,9 @@
                                                 </VisualState>
                                             </VisualStateGroup>
                                         </VisualStateManager.VisualStateGroups>
-                                        
-                                        <Label x:Name="LyrBorder" Text="{Binding Text}" 
-                                               Loaded="Label_Loaded" SizeChanged="LyrBorder_SizeChanged"
+
+                                        <Label Text="{Binding Text}" 
+                                               SizeChanged="LyrBorder_SizeChanged"
                                                
                                                ParentChanged="LyrBorder_ParentChanged" FontSize="{Binding NowPlayingLyricsFontSize}" 
                                                HorizontalTextAlignment="Center"

@@ -22,8 +22,7 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <SearchBar Text="{Binding SearchText}" 
-                           
+                <SearchBar Text="{Binding SearchText}"                            
                            x:Name="SearchSongSB" HeightRequest="30"                           
                            WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
 

@@ -32,6 +32,9 @@ public partial class HomePageVM
     }
     #endregion
 
+    [ObservableProperty]
+    public partial SearchBar? DimmerGlobalSearchBar { get; set; }
+    
     [RelayCommand]
     void DummyFunc()
     {

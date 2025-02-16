@@ -1,4 +1,9 @@
-using System.Diagnostics;
+#if WINDOWS
+
+#endif
+
+
+using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -249,8 +254,7 @@ public partial class SingleSongShellPageD : ContentPage
     }
 
 
-
-    private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)    
+    private async void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!this.IsLoaded)
         {
@@ -258,47 +262,10 @@ public partial class SingleSongShellPageD : ContentPage
         }
         try
         {
-            if (LyricsColView.SelectedItem is not null)
+            if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
             {
-                // Set SelectedItem FIRST to ensure UI updates
-                LyricsColView.SelectedItem = MyViewModel.CurrentLyricPhrase;
-
-                // Let UI process selection before animating
-                await Task.Delay(10);
-
-                // Animate Font Size First
-                if (e.PreviousSelection?.Count > 0)
-                {
-                    foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
-                        oldItem.NowPlayingLyricsFontSize = 29;
-                }
-                if (e.CurrentSelection?.Count > 0)
-                {
-                    foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
-                        newItem.NowPlayingLyricsFontSize = 60;
-                }
-
-                // Wait a bit so font size change is visible before scrolling
-                await Task.Delay(10);
-                if (MyViewModel.CurrentAppState != AppState.OnForeGround)
-                {
-                    return;
-                }
-                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, true);
-                
-                // Scroll AFTER font size animation
-            }
-
-            // Animate selection smoothly
-            if (e.CurrentSelection?.FirstOrDefault() is LyricPhraseModel selectedLyric)
-            {
-                var item = LyricsColView.ItemTemplate.CreateContent() as View;
-                if (item != null)
-                {
-                    item.TranslationY = 50;
-                    await item.TranslateTo(0, 0, 400, Easing.BounceOut);
-                }
-            }
+                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
+            }   
         }
         catch (Exception ex)
         {
@@ -306,12 +273,11 @@ public partial class SingleSongShellPageD : ContentPage
         }
     }
 
-
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (MyViewModel.IsPlaying)
         {
-            var bor = (Label)sender;
+            var bor = (Border)sender;
             var lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
@@ -572,10 +538,10 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         }
     }
 
-    Label CurrentLyrLabel { get; set; }
+    Border CurrentLyrLabel { get; set; }
     private void Label_Loaded(object sender, EventArgs e)
     {
-        CurrentLyrLabel = (Label)sender;
+        CurrentLyrLabel = (Border)sender;
     }
     private void LyrBorder_SizeChanged(object sender, EventArgs e)
     {
@@ -775,5 +741,11 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         var send = (ImageButton)sender;
         MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
 
+    }
+    Border LyrBorder { get; set; }
+    private void LyrBorder_Loaded(object sender, EventArgs e)
+    {
+        var LoadedLyric = (Border)sender;
+        LoadedLyric = LyrBorder;
     }
 }

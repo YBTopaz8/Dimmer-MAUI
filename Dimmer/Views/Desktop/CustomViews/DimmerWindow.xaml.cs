@@ -1,3 +1,9 @@
+#if WINDOWS
+using Microsoft.Maui.Controls.Platform;
+using Microsoft.UI.Xaml.Input;
+#endif
+using Syncfusion.Maui.Toolkit.EffectsView;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -15,13 +21,14 @@ public partial class DimmerWindow : Window
     {
         base.OnActivated();
         MyViewModel.CurrentAppState = AppState.OnForeGround;
-        
+        MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
         MyViewModel.CurrentAppState = AppState.OnBackGround;
+
     }
     public HomePageVM MyViewModel { get; set; }
 
@@ -38,7 +45,7 @@ public partial class DimmerWindow : Window
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.3";
+        DimmerTitleBar.Subtitle = "v1.3-Release";
 #endif
 
         if (!InitChecker())

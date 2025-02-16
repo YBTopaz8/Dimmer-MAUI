@@ -29,6 +29,7 @@ public partial class App : MauiWinUIApplication
             return;
         }
         mainInstance.Activated += MainInstance_Activated;
+        
         this.InitializeComponent();
 
         
@@ -75,20 +76,6 @@ public partial class App : MauiWinUIApplication
                 break;
         }
 
-        //switch (args.Kind)
-        //{
-        //    case ExtendedActivationKind.File:
-        //        var fileArgs = args.Data as IFileActivatedEventArgs;
-        //        if (fileArgs is not null)
-        //        {
-        //            var pathss = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
-        //            paths = pathss;
-        //            HandleFiles(pathss);
-        //        }
-        //        break;
-        //    default:
-        //        break;
-        //}
     }
 
     private void HandleFiles(string?[] paths)

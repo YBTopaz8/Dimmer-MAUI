@@ -26,7 +26,7 @@ public class VolumeConverter : IValueConverter
         if (value == null)
             return "0";
 
-        return ((double)value*100).ToString("N1")+"%";
+        return (int)Math.Clamp(((double)(value) * 100), 0, 100) + "%";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

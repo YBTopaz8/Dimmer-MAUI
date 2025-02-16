@@ -57,10 +57,6 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double VolumeSliderValue { get; set; } = 1;
 
-    partial void OnVolumeSliderValueChanging(double oldValue, double newValue)
-    {
-        PlayBackService.ChangeVolume(newValue);
-    }
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
     
@@ -740,23 +736,9 @@ public partial class HomePageVM : ObservableObject
     private int _backPressCount = 0;
 
     [RelayCommand]
-    async Task PlayPreviousSong()
+    void PlayPreviousSong()
     {
-        _backPressCount++;
-        if (_backPressCount == 1)
-        {
-            await Task.Delay(300);
-            if (_backPressCount == 1)
-                PlaySong(TemporarilyPickedSong);  // Single press: restart song.
-            _backPressCount = 0;
-        }
-        else if (_backPressCount == 2)
-        {
-            _backPressCount = 0;
-            IsOnLyricsSyncMode = false;
-            SynchronizedLyrics?.Clear();
-            PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
-        }
+        PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
     }
     [RelayCommand]
     void DecreaseVolume()
@@ -803,6 +785,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ChangeVolume()
     {
+        if (VolumeSliderValue >1 || VolumeSliderValue<0)
+        {
+            return;
+        }
         PlayBackService.ChangeVolume(VolumeSliderValue);
     }
     [ObservableProperty]
