@@ -381,4 +381,16 @@ public partial class HomePageM : ContentPage
     {
         SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+        CloseBtmSheet();    
+    }
+
+    private async void Chip_Tap(object sender, HandledEventArgs e)
+    {
+
+        await MyViewModel.NavigateToArtistsPage(1);
+        CloseBtmSheet();
+    }
 }

@@ -135,12 +135,13 @@
             </dx:DXButton>
             <Grid ColumnDefinitions="*,Auto" >
                 <VerticalStackLayout Grid.Column="0" >
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" 
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" TapCommand="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
+                             TapCommandParameter="{Binding MySelectedSong}"  
                              HorizontalOptions="Center" BorderColor="Transparent"
          FontSize="21"  TextColor="#E4EDFB" 
                              />
                     <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Center"
-         FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent"/>
+         FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent" Tap="Chip_Tap"/>
 
                 </VerticalStackLayout>
                 <dx:DXButton Grid.Column="1" IsVisible="False">

@@ -173,4 +173,9 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
             DeviceDisplay.Current.KeepScreenOn = false;
         }
     }
+
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
 }
