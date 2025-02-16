@@ -200,11 +200,6 @@
                                                         <Setter Property="BackgroundColor" Value="Transparent"/>
                                                     </VisualState.Setters>
                                                 </VisualState>
-                                                <!--<VisualState x:Name="Selected" >
-                                                    <VisualState.Setters>
-                                                        <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
-                                                    </VisualState.Setters>
-                                                </VisualState>-->
 
                                                 <VisualState x:Name="PointerOver">
                                                     <VisualState.Setters>
@@ -214,10 +209,8 @@
                                             </VisualStateGroup>
                                         </VisualStateManager.VisualStateGroups>
 
-                                        <Label Text="{Binding Text}" 
-                                               SizeChanged="LyrBorder_SizeChanged"
-                                               
-                                               ParentChanged="LyrBorder_ParentChanged" FontSize="{Binding NowPlayingLyricsFontSize}" 
+                                        <Label Text="{Binding Text}"                                                
+                                               FontSize="{Binding NowPlayingLyricsFontSize}" 
                                                HorizontalTextAlignment="Center"
                                                >
 

@@ -2,7 +2,7 @@
 <dx:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.NowPlayingBtmSheet"
-             
+             AllowedState="FullExpanded"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:containerr="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
             xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
@@ -113,7 +113,9 @@
                             <dx:DXCollectionView ItemsSource="{Binding SynchronizedLyrics}" BackgroundColor="Transparent"
                                                 ItemSpacing="5" SelectionMode="Single" HeightRequest="350" VerticalOptions="Center"
                                                 SelectionChanged="SyncLyricsColView_SelectionChanged" x:Name="SyncLyricsColView"
-                                                SelectedItem="{Binding CurrentLyricPhrase}" >
+                                                SelectedItem="{Binding CurrentLyricPhrase}" 
+                                                 Loaded="SyncLyricsColView_Loaded"
+                                                 Unloaded="SyncLyricsColView_Unloaded">
                                 <dx:DXCollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModel">
                                         <Label Text="{Binding Text}"   TextColor="Gray"                            
@@ -122,9 +124,10 @@
                                 </dx:DXCollectionView.ItemTemplate>
                                 <dx:DXCollectionView.SelectedItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModel">
-                                        <Label Text="{Binding Text}" TextColor="White" HorizontalTextAlignment="Center"
-                                            FontAttributes="Bold" BackgroundColor="Transparent"
-                                            FontSize="16"/>
+                                        <dx:TextEdit Text="{Binding Text}" TextColor="White" TextHorizontalAlignment="Center"                                            
+                                                     TextFontAttributes="Bold" BackgroundColor="Transparent"
+                                            TextFontSize="{Binding NowPlayingLyricsFontSize}" >                                            
+                                        </dx:TextEdit>
                                     </DataTemplate>
                                 </dx:DXCollectionView.SelectedItemTemplate>
                             </dx:DXCollectionView>
@@ -135,7 +138,7 @@
             </dx:DXButton>
             <Grid ColumnDefinitions="*,Auto" >
                 <VerticalStackLayout Grid.Column="0" >
-                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" TapCommand="{Binding NavigateToSpecificAlbumPageFromBtmSheetCommand}"
+                    <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" TapCommand="{Binding NavToSingleSongShellCommand}"
                              TapCommandParameter="{Binding MySelectedSong}"  
                              HorizontalOptions="Center" BorderColor="Transparent"
          FontSize="21"  TextColor="#E4EDFB" 

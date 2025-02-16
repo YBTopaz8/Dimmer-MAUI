@@ -54,7 +54,9 @@
                         <Label Text="{Binding AllArtistsAlbumSongs.Count, StringFormat='{0} Track(s)'}"
                             VerticalTextAlignment="Center"/>
 
-                        <Label Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" />
+                        <dx:TextEdit StartIcon="time.png" 
+                                     HeightRequest="30" WidthRequest="30"
+                                     Text="{Binding SelectedAlbumOnArtistPage.TotalDuration}" />
 
                     </VerticalStackLayout>
                 </dx:DXDockLayout>

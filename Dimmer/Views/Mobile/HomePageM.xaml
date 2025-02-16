@@ -287,15 +287,12 @@
         </dx:BottomSheet>
 
         <dx:BottomSheet x:Name="SongsMenuBtm" AllowDismiss="True" ShowGrabber="True"
-                        HeightRequest="350">
-            <Grid>
-                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center"
-                                        Spacing="10" BackgroundColor="Transparent">
-                    <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}"
-                                HeightRequest="{Binding Height,Source={x:Reference SongsMenuBtm}}" WidthRequest="{Binding Width,Source={x:Reference SongsMenuBtm}}"
-                                CornerRadius="15" BorderWidth="0" Opacity="0.25"/>
-                   
-                </VerticalStackLayout>
+                        AllowedState="HalfExpanded" >
+            <Grid >
+                <dx:DXImage Source="{Binding MySelectedSong.CoverImagePath}"
+                            HeightRequest="{Binding Height,Source={x:Reference SongsMenuBtm}}" WidthRequest="{Binding Width,Source={x:Reference SongsMenuBtm}}"
+                            Opacity="0.35"/>
+                  
                 <VerticalStackLayout BackgroundColor="Transparent">
                     <VerticalStackLayout.Resources>
                         <ResourceDictionary>
@@ -311,10 +308,10 @@
                             </Style>
                         </ResourceDictionary>
                     </VerticalStackLayout.Resources>
-                    <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent">
+                    <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" Margin="10">
 
-                        <Label Text="{Binding MySelectedSong.Title}" HorizontalTextAlignment="Start"
-                            LineBreakMode="TailTruncation" FontSize="30"/>
+                        <dx:Chip Text="{Binding MySelectedSong.Title}" HorizontalOptions="Start"
+                             FontSize="30" TapCommand="{Binding NavToSingleSongShellCommand}"/>
                         <dx:Chip Text="{Binding MySelectedSong.ArtistName}"  Tap="Chip_Tap"
                     HorizontalOptions="Start" BorderColor="Transparent"
                                  FontSize="21"  TextColor="#E4EDFB" 

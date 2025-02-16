@@ -543,17 +543,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         CurrentLyrLabel = (Border)sender;
     }
-    private void LyrBorder_SizeChanged(object sender, EventArgs e)
-    {
-
-    }
-
-    private void LyrBorder_ParentChanged(object sender, EventArgs e)
-    {
-
-    }
-
-
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)

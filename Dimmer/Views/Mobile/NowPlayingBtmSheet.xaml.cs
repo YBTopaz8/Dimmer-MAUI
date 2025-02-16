@@ -178,4 +178,20 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
 
     }
+
+    private void SyncLyricsColView_Loaded(object sender, EventArgs e)
+    {
+#if ANDROID
+        var nativeView = (global::Android.Views.View )SyncLyricsColView.Handler?.PlatformView;
+        if (nativeView is not null)
+        {
+            //nativeView.SetClipToOutline(true);
+        }
+#endif
+    }
+
+    private void SyncLyricsColView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
 }
