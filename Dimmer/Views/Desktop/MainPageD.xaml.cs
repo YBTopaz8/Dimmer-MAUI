@@ -101,7 +101,7 @@ public partial class MainPageD : ContentPage
 
     private void CancelMultiSelect_Clicked(object sender, EventArgs e)
     {
-        ToggleMultiSelect_Clicked(sender, e);
+        MyViewModel.IsMultiSelectOn = false;
     }
 
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
@@ -236,51 +236,24 @@ public partial class MainPageD : ContentPage
 
 
     SelectionMode currentSelectionMode;
-    public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
-    {
-
-        switch (SongsColView.SelectionMode)
-        {
-            case SelectionMode.None:
-                MyViewModel.IsMultiSelectOn = true;
-                SongsColView.BackgroundColor = Color.Parse("#1D1932");
-                break;
-            case SelectionMode.Single:
-                break;
-            case SelectionMode.Multiple:
-                SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-                foreach (var view in selectedSongsViews)
-                {
-                    view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-                }
-                SongsColView.SelectionMode = SelectionMode.None;
-                MyViewModel.IsMultiSelectOn = false;
-                SongsColView.SelectedItems = null;
-                NormalMiniUtilBar.IsVisible = true;
-                MultiSelectUtilBar.IsVisible = false;
-                //MyViewModel.EnableContextMenuItems = true;
-                break;
-            default:
-                break;
-        }
-        currentSelectionMode = SongsColView.SelectionMode;
-    }
-
+    
     List<SongModelView> selectedSongs;
-    List<View> selectedSongsViews;
+    View MouseSelectedView;
+
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
-        View send = (View)sender;
+        MouseSelectedView = (View)sender;
+        MyViewModel.SetContextMenuSong((SongModelView)(MouseSelectedView).BindingContext);
         if (MyViewModel.IsMultiSelectOn)
         {
-
-            send.BackgroundColor = Color.Parse("#1D1932");
-            send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-            return;
-        }
-        else
-        {
-            MyViewModel.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
+            if(!SongsColView.SelectedItems.Contains(MyViewModel.MySelectedSong))
+            {
+                SongsColView.SelectedItems.Add(MyViewModel.MySelectedSong);
+            }
+            else
+            {
+                SongsColView.SelectedItems.Remove(MyViewModel.MySelectedSong);
+            }
         }
     }
 
@@ -389,6 +362,7 @@ public partial class MainPageD : ContentPage
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
+
 
 
 #if WINDOWS

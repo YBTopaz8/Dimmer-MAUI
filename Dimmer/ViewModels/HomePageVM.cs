@@ -1172,7 +1172,7 @@ public partial class HomePageVM : ObservableObject
     {
         MultiSelectSongs = e.CurrentSelection.Cast<SongModelView>().ToObservableCollection();
         
-        MultiSelectText = $"{DisplayedSongsColView.SelectedItems.Count} Song{(DisplayedSongsColView.SelectedItems.Count > 1 ? "s" : "")}/{SongsMgtService.AllSongs.Count} Selected";
+        ContextViewText = $"{DisplayedSongsColView.SelectedItems.Count} Song{(DisplayedSongsColView.SelectedItems.Count > 1 ? "s" : "")}/{SongsMgtService.AllSongs.Count} Selected";
         return;
     }
 

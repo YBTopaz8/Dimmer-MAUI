@@ -88,7 +88,7 @@ public partial class AppShell : Shell
                 {
                     return;
                 }
-                mainPage!.ToggleMultiSelect_Clicked(sender, e);
+                MyViewModel.IsMultiSelectOn=true;
                 if (MyViewModel.IsMultiSelectOn)
                 {
                     GoToSong.IsEnabled = false;
@@ -98,7 +98,7 @@ public partial class AppShell : Shell
                 }
                 else
                 {
-                    MyViewModel.MultiSelectText = string.Empty;
+                    MyViewModel.ContextViewText = string.Empty;
                     GoToSong.IsEnabled = true;
                     GoToSong.Opacity = 1;
                     //MyViewModel.ToggleFlyout(false);
@@ -160,126 +160,22 @@ public partial class AppShell : Shell
 
             DimmerUIElement.PointerWheelChanged += MainLayout_PointerWheelChanged;
             DimmerUIElement.KeyDown += MainLayout_KeyDown;
+            DimmerUIElement.KeyUp += DimmerUIElement_KeyUp;
             //DimmerUIElement.ProcessKeyboardAccelerators += DimmerUIElement_ProcessKeyboardAccelerators;
             //nativeElement.KeyDown += NativeElement_KeyDown; just experimenting
             //nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
         }
     }
 
-    //private void DimmerUIElement_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
-    //{
-    //    if (args.Key == Windows.System.VirtualKey.Control)
-    //    {
-
-    //    }
-    //}
-
-    private void AppShell_Unloaded(object? sender, EventArgs e)
+    private void DimmerUIElement_KeyUp(object sender, KeyRoutedEventArgs e)
     {
-        // Unsubscribe from events when the shell is unloaded
-        this.Loaded -= AppShell_Loaded;
-        this.Unloaded -= AppShell_Unloaded;
-        this.Focused -= AppShell_Focused;
-        this.Unfocused -= AppShell_Unfocused;
-
-        DimmerUIElement.PointerPressed -= OnGlobalPointerPressed;
-        DimmerUIElement.PointerWheelChanged -= MainLayout_PointerWheelChanged;
-        DimmerUIElement.KeyDown -= MainLayout_KeyDown;
-        DimmerUIElement.DragOver += DimmerUIElement_DragOverAsync;
+        //MyViewModel.IsControlKeyPressed = e.Key.HasFlag(Windows.System.VirtualKey.Control) || e.Key.HasFlag(Windows.System.VirtualKey.LeftControl) || e.Key.HasFlag(Windows.System.VirtualKey.RightControl);
+        MyViewModel.IsControlKeyPressed = false;
+        
     }
-
-    List<string> supportedFilePaths;
-    bool isAboutToDropFiles = false;
-    private async void DimmerUIElement_DragOverAsync(object sender, Microsoft.UI.Xaml.DragEventArgs WindowsEventArgs)
-    {
-
-#if WINDOWS
-        try
-        {
-
-            if (!isAboutToDropFiles)
-            {
-                isAboutToDropFiles = true;
-
-                var dragUI = WindowsEventArgs.DragUIOverride;
-
-
-                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
-                WindowsEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
-
-                if (items.Count > 0)
-                {
-                    foreach (var item in items)
-                    {
-                        if (item is Windows.Storage.StorageFile file)
-                        {
-                            /// Check file extension
-                            string fileExtension = file.FileType.ToLower();
-                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
-                                fileExtension != ".wav" && fileExtension != ".m4a")
-                            {
-                                WindowsEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
-                                dragUI.IsGlyphVisible = true;
-                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
-                                continue;
-                                //break;  // If any invalid file is found, break the loop
-                            }
-                            else
-                            {
-                                
-                                dragUI.IsGlyphVisible = false;
-                                dragUI.Caption = "Drop to Play!";
-                                Debug.WriteLine($"File is {item.Path}");
-                                supportedFilePaths.Add(item.Path.ToLower());
-                            }
-                        }
-                    }
-
-                }
-            }
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-        //return Task.CompletedTask;
-#endif
-    }
-
-    private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        // Retrieve the mouse wheel delta value
-        var pointerPoint = e.GetCurrentPoint(null);
-        int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
-
-        // Check if the event is from a mouse wheel
-        if (mouseWheelDelta != 0)
-        {
-            // Positive delta indicates wheel scrolled up
-            // Negative delta indicates wheel scrolled down
-            if (mouseWheelDelta > 0)
-            {
-                MyViewModel.IncreaseVolumeCommand.Execute(true);
-                // Handle scroll up
-            }
-            else
-            {
-                MyViewModel.DecreaseVolumeCommand.Execute(true);
-                // Handle scroll down
-            }
-        }
-
-        // Mark the event as handled
-        e.Handled = true;
-    }
-    bool isCtrlPressed = false;
-    bool isShiftPressed = false;
-    bool isAltPressed = false;
     private void MainLayout_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-        isCtrlPressed = e.Key.HasFlag(Windows.System.VirtualKey.Control) || e.Key.HasFlag(Windows.System.VirtualKey.LeftControl) || e.Key.HasFlag(Windows.System.VirtualKey.RightControl);
+        
         isShiftPressed = e.Key.HasFlag(Windows.System.VirtualKey.LeftShift);
         isAltPressed = e.Key.HasFlag(Windows.System.VirtualKey.LeftMenu);
 
@@ -310,6 +206,7 @@ public partial class AppShell : Shell
             case Windows.System.VirtualKey.Shift:
                 break;
             case Windows.System.VirtualKey.Control:
+                MyViewModel.IsControlKeyPressed=true;
                 break;
             case Windows.System.VirtualKey.Menu:
                 break;
@@ -637,6 +534,110 @@ public partial class AppShell : Shell
     }
 
 
+    private void AppShell_Unloaded(object? sender, EventArgs e)
+    {
+        // Unsubscribe from events when the shell is unloaded
+        this.Loaded -= AppShell_Loaded;
+        this.Unloaded -= AppShell_Unloaded;
+        this.Focused -= AppShell_Focused;
+        this.Unfocused -= AppShell_Unfocused;
+
+        DimmerUIElement.PointerPressed -= OnGlobalPointerPressed;
+        DimmerUIElement.PointerWheelChanged -= MainLayout_PointerWheelChanged;
+        DimmerUIElement.KeyDown -= MainLayout_KeyDown;
+        DimmerUIElement.DragOver += DimmerUIElement_DragOverAsync;
+    }
+
+    List<string> supportedFilePaths;
+    bool isAboutToDropFiles = false;
+    private async void DimmerUIElement_DragOverAsync(object sender, Microsoft.UI.Xaml.DragEventArgs WindowsEventArgs)
+    {
+
+#if WINDOWS
+        try
+        {
+
+            if (!isAboutToDropFiles)
+            {
+                isAboutToDropFiles = true;
+
+                var dragUI = WindowsEventArgs.DragUIOverride;
+
+
+                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
+                WindowsEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                supportedFilePaths = new List<string>();
+
+                if (items.Count > 0)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item is Windows.Storage.StorageFile file)
+                        {
+                            /// Check file extension
+                            string fileExtension = file.FileType.ToLower();
+                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                                fileExtension != ".wav" && fileExtension != ".m4a")
+                            {
+                                WindowsEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+                                dragUI.IsGlyphVisible = true;
+                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
+                                continue;
+                                //break;  // If any invalid file is found, break the loop
+                            }
+                            else
+                            {
+                                
+                                dragUI.IsGlyphVisible = false;
+                                dragUI.Caption = "Drop to Play!";
+                                Debug.WriteLine($"File is {item.Path}");
+                                supportedFilePaths.Add(item.Path.ToLower());
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+        //return Task.CompletedTask;
+#endif
+    }
+
+    private void MainLayout_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        // Retrieve the mouse wheel delta value
+        var pointerPoint = e.GetCurrentPoint(null);
+        int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
+
+        // Check if the event is from a mouse wheel
+        if (mouseWheelDelta != 0)
+        {
+            // Positive delta indicates wheel scrolled up
+            // Negative delta indicates wheel scrolled down
+            if (mouseWheelDelta > 0)
+            {
+                MyViewModel.IncreaseVolumeCommand.Execute(true);
+                // Handle scroll up
+            }
+            else
+            {
+                MyViewModel.DecreaseVolumeCommand.Execute(true);
+                // Handle scroll down
+            }
+        }
+
+        // Mark the event as handled
+        e.Handled = true;
+    }
+    bool isCtrlPressed = false;
+    bool isShiftPressed = false;
+    bool isAltPressed = false;
+ 
     private void Grid_Loaded(object sender, EventArgs e)
     {
 
@@ -708,15 +709,20 @@ public partial class AppShell : Shell
 
                 if (properties.IsPrimary)
                 {
-                    if (MyViewModel.CurrentPage == PageEnum.MainPage)
-                    {
-                        MyViewModel.IsMultiSelectOn = true;
-                    }
+                    
+                    //if (MyViewModel.IsControlKeyPressed)
+                    //{
+                    //    if (MyViewModel.CurrentPage == PageEnum.MainPage)
+                    //    {
+                    //        MyViewModel.IsMultiSelectOn = true;
+                    //    }
+                    //}
                     Debug.WriteLine("Input is from the primary pointer.");
                 }
 
                 if (properties.IsRightButtonPressed)
                 {
+                    MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
                     Debug.WriteLine("Right mouse button pressed.");
                 }
 
@@ -792,16 +798,6 @@ public partial class AppShell : Shell
         }
     }
 
-    private void NativeElement_KeyDown(object? sender, KeyRoutedEventArgs e)
-    {
-        Debug.WriteLine($"Pressed key: {e.Key} (VirtualKey: {(int)e.Key})");
-
-        // Example of handling specific keys
-        //if (e.Key == Windows.System.VirtualKey.F5)
-        //{
-        //    Debug.WriteLine("F5 key pressed globally!");
-        //}
-    }
 
     private void AppShell_Focused(object? sender, FocusEventArgs e)
     {
@@ -979,6 +975,49 @@ public partial class AppShell : Shell
     private void GoToAlbumPageEff_TouchDown(object sender, EventArgs e)
     {
 
+    }
+
+    private bool _isAnimating;
+    private double _containerWidth;
+    private async void MarqueeLabel_SizeChanged(object sender, EventArgs e)
+    {
+        if (Width <= 0)
+            return;
+
+        _containerWidth = Width;
+        // Start animation if text width is larger than container
+        if (!_isAnimating && GetTextWidth() > _containerWidth)
+            await StartAnimation();
+    }
+
+    private double GetTextWidth()
+    {
+        // Measures the text width based on available height
+        var size = Measure(double.PositiveInfinity, Height);
+        return size.Width;
+    }
+
+    public async Task StartAnimation()
+    {
+        _isAnimating = true;
+        double textWidth = GetTextWidth();
+
+        // Calculate extra distance to scroll completely off screen
+        double scrollDistance = textWidth + _containerWidth;
+
+        // Reset starting position (text starts at container's right edge)
+        TranslationX = _containerWidth;
+
+        while (true)
+        {
+
+            // Animate translation: move from right to left completely
+            await this.TranslateTo(-textWidth, 0, 5000, Easing.Linear);
+            // Optional pause at the end
+            await Task.Delay(1000);
+            // Reset instantly to starting position
+            TranslationX = _containerWidth;
+        }
     }
 }
 

@@ -14,6 +14,7 @@
              x:Name="myPage"  
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
+             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"
              >
 
     <ContentPage.Resources>
@@ -99,7 +100,7 @@
                         <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
 
                         </ImageButton>
-                        <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
+                        <Label Text="{Binding ContextViewText}" FontSize="28" VerticalTextAlignment="End"
                             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
                     </HorizontalStackLayout>
 
@@ -151,7 +152,8 @@
                                     StrokeShape="RoundRectangle 12">
                                 
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
-                                                     TouchDownEffects="Ripple,Selection" >
+                                                     TouchDownEffects="Ripple,Selection" 
+                                                     >
                                     <!--<syncf:SfEffectsView.Triggers>
                                         <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                             <Setter Property="BackgroundColor" Value="#B197FC" />

@@ -8,6 +8,9 @@ namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
+    public bool IsControlKeyPressed { get; set; }
+    public bool IsShiftKeyPressed { get; set; }
+    
     partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView> oldValue, ObservableCollection<AlbumModelView> newValue)
     {
         //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");

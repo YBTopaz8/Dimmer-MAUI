@@ -907,7 +907,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             return CurrentOfflineUser;
         }
         db = Realm.GetInstance(DataBaseService.GetRealm());
-        var dbUser = db.All<UserModel>().ToList().FirstOrDefault();
+        var dbUser = db.All<UserModel>().ToList();
+        if (dbUser is null)
+        {
+            return null;
+        }
 
         if (dbUser == null)
         {
@@ -939,7 +943,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             });
             return CurrentOfflineUser;
         }
-        CurrentOfflineUser = new(dbUser);
+        //CurrentOfflineUser = new(dbUser);
         return CurrentOfflineUser;
     }
        
