@@ -28,7 +28,6 @@ public partial class App : MauiWinUIApplication
             Process.GetCurrentProcess().Kill();
             return;
         }
-        mainInstance.Activated += MainInstance_Activated;
         
         this.InitializeComponent();
 

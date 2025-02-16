@@ -336,6 +336,10 @@ public partial class AppShell : Shell
             case Windows.System.VirtualKey.ModeChange:
                 break;
             case Windows.System.VirtualKey.Space:
+                if (MyViewModel.IsPlaying)
+                {
+                    MyViewModel.PauseSong();
+                }
                 break;
             case Windows.System.VirtualKey.PageUp:
                 break;

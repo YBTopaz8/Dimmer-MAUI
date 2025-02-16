@@ -258,6 +258,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (CurrentRepeatMode == RepeatMode.One)
         {
+
             PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
             return;
         }
@@ -284,30 +285,34 @@ public partial class PlaybackUtilsService : ObservableObject
         }
         // If not repeat all and at the end, do nothing or stop playback
     }
+
+    int prevCounter = 0;
     public void PlayPreviousSong(bool isUserInitiated = true)
     {
         if (ObservableCurrentlyPlayingSong == null)
             return;
-
-        if (isUserInitiated)
+        if (CurrentRepeatMode == RepeatMode.One)
         {
-            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Skipped);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Restarted);
+            PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
+            return;
         }
 
+        prevCounter++;
+        if (prevCounter == 1)
+        {
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);
+            prevCounter = 0;
+            PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
+            return;
+        }
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);
+        prevCounter = 1;
         var currentQueue = _playbackQueue.Value;
         int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
-
-        if (currentIndex > 0)
-        {
-            PlaySong(currentQueue[currentIndex - 1], CurrentPlaybackSource);
-        }
-        else if (CurrentRepeatMode == RepeatMode.All && currentQueue.Any()) // Repeat All, go to last song
-        {
-            PlaySong(currentQueue.Last(), CurrentPlaybackSource);
-        }
-        // If not repeat all and at the beginning, do nothing
+        PlaySong(currentQueue[currentIndex - 1], CurrentPlaybackSource);
     }
-
+    double CurrentPercentage = 0;
     /// <summary>
     /// Seeks to a specific position in the currently SELECTED song to play but won't play it if it's paused
     /// </summary>
@@ -320,7 +325,7 @@ public partial class PlaybackUtilsService : ObservableObject
         {
             return;
         }
-        var currentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
+        var CurrentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
 
 
         if (DimmerAudioService.IsPlaying)
@@ -334,7 +339,7 @@ public partial class PlaybackUtilsService : ObservableObject
                 SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = currentPositionInSec
             };
-            if (currentPercentage >= 80)
+            if (CurrentPercentage >= 80)
             {
                 links.PlayType = 7;
             }
@@ -611,6 +616,22 @@ public enum MediaPlayerState
     
 }
 
+/// <summary>
+/// Indicates the type of play action performed.    
+/// Possible VALID values for <see cref="PlayType"/>:
+/// <list type="bullet">
+/// <item><term>0</term><description>Play</description></item>
+/// <item><term>1</term><description>Pause</description></item>
+/// <item><term>2</term><description>Resume</description></item>
+/// <item><term>3</term><description>Completed</description></item>
+/// <item><term>4</term><description>Seeked</description></item>
+/// <item><term>5</term><description>Skipped</description></item>
+/// <item><term>6</term><description>Restarted</description></item>
+/// <item><term>7</term><description>SeekRestarted</description></item>
+/// <item><term>8</term><description>CustomRepeat</description></item>
+/// <item><term>9</term><description>Previous</description></item>
+/// </list>
+/// </summary>
 public enum PlayType
 {
     Play = 0,
@@ -620,8 +641,9 @@ public enum PlayType
     Seeked = 4,
     Skipped = 5,
     Restarted = 6,
-    RestSeekRestartedarted = 7,
-    CustomRepeat = 8
+    SeekRestarted = 7,
+    CustomRepeat = 8,
+    Previous=9
 }
 public enum RepeatMode // Using enum for repeat modes
 {

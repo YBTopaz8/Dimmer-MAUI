@@ -385,6 +385,8 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <item><term>5</term><description>Skipped</description></item>
     /// <item><term>6</term><description>Restarted</description></item>
     /// <item><term>7</term><description>SeekRestarted</description></item>
+    /// <item><term>8</term><description>CustomRepeat</description></item>
+    /// <item><term>9</term><description>Previous</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 
