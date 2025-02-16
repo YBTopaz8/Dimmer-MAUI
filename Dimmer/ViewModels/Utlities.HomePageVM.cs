@@ -136,7 +136,7 @@ public partial class HomePageVM
                     PlayBackService.MultiDeleteSongFromHomePage(MultiSelectSongs);
 
                     MultiSelectSongs.Clear();
-                    MultiSelectText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")} Selected";
+                    MultiSelectText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")}Selected";
                 }
                 break;
 
@@ -500,18 +500,6 @@ public partial class HomePageVM
         await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
-    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
-    {
-        if (newValue is not null)
-        {
-            SongsMgtService.UpdateUserLoginDetails(newValue);
-            IsLoggedIn = true;
-        }
-        else
-        {
-            IsLoggedIn = false; //do more here 
-        }
-    }
 
 
     [RelayCommand]

@@ -254,11 +254,7 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
-    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView> oldValue, ObservableCollection<AlbumModelView> newValue)
-    {
-        //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
-    }
-
+    
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
   {
         var artistIds = AllLinks

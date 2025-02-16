@@ -70,6 +70,7 @@ public partial class MainPageD : ContentPage
     {
         try
         {
+            MyViewModel.DisplayedSongsColView = SongsColView;
             if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
             {
                 return;
@@ -241,13 +242,7 @@ public partial class MainPageD : ContentPage
         switch (SongsColView.SelectionMode)
         {
             case SelectionMode.None:
-                SongsColView.SelectionMode = SelectionMode.Multiple;
-                NormalMiniUtilBar.IsVisible = false;
-                MultiSelectUtilBar.IsVisible = true;
-                MyViewModel.EnableContextMenuItems = false;
                 MyViewModel.IsMultiSelectOn = true;
-                selectedSongs = new();
-                selectedSongsViews = new();
                 SongsColView.BackgroundColor = Color.Parse("#1D1932");
                 break;
             case SelectionMode.Single:
@@ -263,7 +258,7 @@ public partial class MainPageD : ContentPage
                 SongsColView.SelectedItems = null;
                 NormalMiniUtilBar.IsVisible = true;
                 MultiSelectUtilBar.IsVisible = false;
-                MyViewModel.EnableContextMenuItems = true;
+                //MyViewModel.EnableContextMenuItems = true;
                 break;
             default:
                 break;
@@ -276,24 +271,11 @@ public partial class MainPageD : ContentPage
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
         View send = (View)sender;
-        SongModelView song = (send.BindingContext as SongModelView)!;
-
         if (MyViewModel.IsMultiSelectOn)
         {
 
-            if (selectedSongs.Contains(song))
-            {
-                selectedSongs.Remove(song);
-                selectedSongsViews.Remove(send);
-                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-            }
-            else
-            {
-                selectedSongs.Add(song);
-                selectedSongsViews.Add(send);
-                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
-            }
-            MyViewModel.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{MyViewModel.SongsMgtService.AllSongs.Count} Selected";
+            send.BackgroundColor = Color.Parse("#1D1932");
+            send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
             return;
         }
         else

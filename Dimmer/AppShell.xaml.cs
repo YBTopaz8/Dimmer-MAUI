@@ -340,6 +340,10 @@ public partial class AppShell : Shell
                 {
                     MyViewModel.PauseSong();
                 }
+                else
+                {
+                    MyViewModel.ResumeSong();
+                }
                 break;
             case Windows.System.VirtualKey.PageUp:
                 break;
@@ -704,6 +708,10 @@ public partial class AppShell : Shell
 
                 if (properties.IsPrimary)
                 {
+                    if (MyViewModel.CurrentPage == PageEnum.MainPage)
+                    {
+                        MyViewModel.IsMultiSelectOn = true;
+                    }
                     Debug.WriteLine("Input is from the primary pointer.");
                 }
 
