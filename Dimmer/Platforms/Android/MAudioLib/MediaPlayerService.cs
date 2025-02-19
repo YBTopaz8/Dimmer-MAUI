@@ -773,10 +773,12 @@ public class MediaPlayerService : Service,
 
     public class MediaSessionCallback : MediaSession.Callback
     {
+        HomePageVM MyViewModel { get; set; }
         private readonly MediaPlayerServiceBinder mediaPlayerService;
         public MediaSessionCallback(MediaPlayerServiceBinder service)
         {
             mediaPlayerService = service;
+            MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         }
 
         bool isPlaying = true;
@@ -784,6 +786,7 @@ public class MediaPlayerService : Service,
         {
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(false);
             base.OnPause();
+            MyViewModel.PauseSong();
             isPlaying = false;
         }
 
@@ -791,7 +794,8 @@ public class MediaPlayerService : Service,
         {
             Console.WriteLine("Step 2 On Play Callback Method");
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(true);
-            base.OnPlay();
+            //base.OnPlay();
+            MyViewModel.ResumeSong();
             isPlaying = true;
         }
 
@@ -804,6 +808,7 @@ public class MediaPlayerService : Service,
 
         public override void OnSkipToPrevious()
         {
+            
             mediaPlayerService.GetMediaPlayerService().PlayPrevious();
             base.OnSkipToPrevious();
         }

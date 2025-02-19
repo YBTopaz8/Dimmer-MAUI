@@ -3,6 +3,7 @@
 #endif
 
 
+using System.Diagnostics;
 using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer_MAUI.Views.Desktop;
@@ -28,6 +29,7 @@ public partial class SingleSongShellPageD : ContentPage
         MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
         MyViewModel.AssignSyncLyricsCV(LyricsColView);
+        MyViewModel.DoRefreshDependingOnPage();
         switch (MyViewModel.MySelectedSong.IsFavorite)
         {
             
@@ -68,27 +70,24 @@ public partial class SingleSongShellPageD : ContentPage
 
     }
 
-    protected override void OnNavigatedTo(NavigatedToEventArgs args)
-    {
-        base.OnNavigatedTo(args);
-        if (MyViewModel.CurrentAppState!= AppState.OnForeGround)
-        {
-            return;
-        }
-        if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
-        {
-            LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
-        }
-    }
+
+
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         StatsTabs.SelectedItem = SyncLyricsChip;
         MyViewModel.LyricsSearchAlbumName = string.Empty;
-        MyViewModel.LyricsSearchArtistName= string.Empty;
-        MyViewModel.LyricsSearchSongTitle= string.Empty;
+        MyViewModel.LyricsSearchArtistName = string.Empty;
+        MyViewModel.LyricsSearchSongTitle = string.Empty;
+        MyViewModel.UnAssignSyncLyricsCV();
     }
 
+
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
+        base.OnNavigatedTo(args);
+       
+    }
     private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
         switch (e.NewIndex)
@@ -253,31 +252,14 @@ public partial class SingleSongShellPageD : ContentPage
         animationSequence.Commit(avatarView, "FocusModeAnimation", length: 500, easing: Easing.Linear);
     }
 
-
-    private async void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!this.IsLoaded)
-        {
-            return;
-        }
-        try
-        {
-            if (LyricsColView.SelectedItem is not null && LyricsColView.ItemsSource is not null)
-            {
-                LyricsColView.ScrollTo(LyricsColView.SelectedItem, null, ScrollToPosition.Center, false);
-            }   
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
+    int unFocusedLyricSize = 29;
+    int focusedLyricSize = 60;
+   
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (MyViewModel.IsPlaying)
         {
-            var bor = (Border)sender;
+            var bor = (View)sender;
             var lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
@@ -670,27 +652,8 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         {
             var nativeView = LyricsColView.Handler?.PlatformView;
 
-            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
-            {
-                
-                listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
 
-                listView.Background = null;
-                listView.BorderBrush = null;
-                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-
-                listView.ContainerContentChanging += (s, args) =>
-                {
-                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
-                    {
-                        item.Background = null;
-                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                    }
-                };
-            }
-
+            Debug.WriteLine(Shell.Current.CurrentPage);
             if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
             {
                 selector.Background = null;
@@ -710,8 +673,27 @@ NoLyricsFoundMsg.AnimateFadeInFront());
             {
                 uiElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible; // Make sure it's still visible
             }
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
 
-            Debug.WriteLine($"PlatformView Type: {nativeView?.GetType()}");
+                listView.Background = null;
+                listView.BorderBrush = null;
+                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+                listView.ContainerContentChanging += (s, args) =>
+                {
+                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
+                    {
+                        item.Background = null;
+                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                    }
+                };                
+            }
+
+            MyViewModel.ScrollAfterAppearing();
+
         }
         catch (Exception ex)
         {

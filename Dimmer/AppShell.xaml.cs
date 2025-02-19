@@ -161,10 +161,18 @@ public partial class AppShell : Shell
             DimmerUIElement.PointerWheelChanged += MainLayout_PointerWheelChanged;
             DimmerUIElement.KeyDown += MainLayout_KeyDown;
             DimmerUIElement.KeyUp += DimmerUIElement_KeyUp;
+            DimmerUIElement.ProcessKeyboardAccelerators += DimmerUIElement_ProcessKeyboardAccelerators;
+            
             //DimmerUIElement.ProcessKeyboardAccelerators += DimmerUIElement_ProcessKeyboardAccelerators;
             //nativeElement.KeyDown += NativeElement_KeyDown; just experimenting
             //nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
+
         }
+    }
+
+    private void DimmerUIElement_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
+    {
+       
     }
 
     private void DimmerUIElement_KeyUp(object sender, KeyRoutedEventArgs e)
@@ -539,8 +547,8 @@ public partial class AppShell : Shell
         // Unsubscribe from events when the shell is unloaded
         this.Loaded -= AppShell_Loaded;
         this.Unloaded -= AppShell_Unloaded;
-        this.Focused -= AppShell_Focused;
-        this.Unfocused -= AppShell_Unfocused;
+        //this.Focused -= AppShell_Focused;
+        //this.Unfocused -= AppShell_Unfocused;
 
         DimmerUIElement.PointerPressed -= OnGlobalPointerPressed;
         DimmerUIElement.PointerWheelChanged -= MainLayout_PointerWheelChanged;
@@ -613,22 +621,43 @@ public partial class AppShell : Shell
         // Retrieve the mouse wheel delta value
         var pointerPoint = e.GetCurrentPoint(null);
         int mouseWheelDelta = pointerPoint.Properties.MouseWheelDelta;
-
+        
         // Check if the event is from a mouse wheel
         if (mouseWheelDelta != 0)
         {
+            if (MyViewModel.CurrentPage == PageEnum.NowPlayingPage)
+            {
+                if (mouseWheelDelta > 0)
+                {
+                    if (MyViewModel.CurrentLyricPhrase != null)
+                    {
+                        MyViewModel.FocusedLyricSize += 1;
+                    }
+                    // Handle scroll up
+                }
+                else
+                {
+                    if (MyViewModel.CurrentLyricPhrase != null)
+                    {
+                        MyViewModel.FocusedLyricSize -= 1;
+                    }
+                    // Handle scroll down
+                }
+            return;
+            }
+
             // Positive delta indicates wheel scrolled up
-            // Negative delta indicates wheel scrolled down
-            if (mouseWheelDelta > 0)
-            {
-                MyViewModel.IncreaseVolumeCommand.Execute(true);
-                // Handle scroll up
-            }
-            else
-            {
-                MyViewModel.DecreaseVolumeCommand.Execute(true);
-                // Handle scroll down
-            }
+            //// Negative delta indicates wheel scrolled down
+            //if (mouseWheelDelta > 0)
+            //{
+            //    MyViewModel.IncreaseVolumeCommand.Execute(true);
+            //    // Handle scroll up
+            //}
+            //else
+            //{
+            //    MyViewModel.DecreaseVolumeCommand.Execute(true);
+            //    // Handle scroll down
+            //}
         }
 
         // Mark the event as handled
@@ -799,33 +828,33 @@ public partial class AppShell : Shell
     }
 
 
-    private void AppShell_Focused(object? sender, FocusEventArgs e)
-    {
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
-        if (vm != null)
-        {
-            MyViewModel.CurrentAppState = AppState.OnForeGround;
-        }
-        if (vmm != null)
-        {
-            vmm.CurrentAppState = AppState.OnForeGround;
-        }
-    }
+    //private void AppShell_Focused(object? sender, FocusEventArgs e)
+    //{
+    //    var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+    //    var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
+    //    if (vm != null)
+    //    {
+    //        MyViewModel.CurrentAppState = AppState.OnForeGround;
+    //    }
+    //    if (vmm != null)
+    //    {
+    //        vmm.CurrentAppState = AppState.OnForeGround;
+    //    }
+    //}
 
-    private void AppShell_Unfocused(object? sender, FocusEventArgs e)
-    {
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-        var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
-        if (vm != null)
-        {
-            MyViewModel.CurrentAppState = AppState.OnBackGround;
-        }
-        if (vmm != null)
-        {
-            vmm.CurrentAppState = AppState.OnBackGround;
-        }
-    }
+    //private void AppShell_Unfocused(object? sender, FocusEventArgs e)
+    //{
+    //    var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+    //    var vmm = IPlatformApplication.Current!.Services.GetService<PlaybackUtilsService>();
+    //    if (vm != null)
+    //    {
+    //        MyViewModel.CurrentAppState = AppState.OnBackGround;
+    //    }
+    //    if (vmm != null)
+    //    {
+    //        vmm.CurrentAppState = AppState.OnBackGround;
+    //    }
+    //}
 #endif
 
     protected override void OnNavigated(ShellNavigatedEventArgs args)
@@ -974,17 +1003,17 @@ public partial class AppShell : Shell
 
     private void GoToAlbumPageEff_TouchDown(object sender, EventArgs e)
     {
-
+        
     }
 
     private bool _isAnimating;
     private double _containerWidth;
     private async void MarqueeLabel_SizeChanged(object sender, EventArgs e)
     {
-        if (Width <= 0)
+        if (HeaderGrid.Width <= 0)
             return;
 
-        _containerWidth = Width;
+        _containerWidth = HeaderGrid.Width;
         // Start animation if text width is larger than container
         if (!_isAnimating && GetTextWidth() > _containerWidth)
             await StartAnimation();

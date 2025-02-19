@@ -179,8 +179,7 @@
                     </syncf:SfChipGroup>
                 
                     <Grid x:Name="SyncedLyricGrid" Grid.Row="1" IsVisible="True" Margin="10,0">
-                        <CollectionView x:Name="LyricsColView" ItemsSource="{Binding MySelectedSong.SyncLyrics}"
-                                        SelectionChanged="LyricsColView_SelectionChanged"
+                        <CollectionView x:Name="LyricsColView" ItemsSource="{Binding MySelectedSong.SyncLyrics}"                                        
                                         Loaded="LyricsColView_Loaded"
                                         Unloaded="LyricsColView_Unloaded"
                                         SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
@@ -212,7 +211,7 @@
                                         <Label Text="{Binding Text}"                                                
                                                FontSize="{Binding NowPlayingLyricsFontSize}" 
                                                HorizontalTextAlignment="Center"
-                                               >
+                                               FontAttributes="{Binding LyricsFontAttributes}">
 
                                             <Label.GestureRecognizers>
                                                 <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
@@ -222,6 +221,7 @@
                                     </Border>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
+                           
                         </CollectionView>
 
                     </Grid>

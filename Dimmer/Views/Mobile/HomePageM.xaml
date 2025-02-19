@@ -148,7 +148,7 @@
             <Label Text="What Kind of music do you want to listen to today?"
                FontSize="13" TextColor="Gray"/>
             <dx:TextEdit BackgroundColor="#62667F" BorderColor="Transparent" LabelText="Search..."
-                         PlaceholderColor="#E9EDF5" StartIcon="songfind.png" 
+                         PlaceholderColor="#E9EDF5" StartIcon="songfind.png" TextChanged="SongTitleTextEdit_TextChanged"
                          CornerRadius="15" PlaceholderText="Search Song, Artist, Album....">
 
             </dx:TextEdit>
@@ -286,12 +286,12 @@
             </dx:DXScrollView>
         </dx:BottomSheet>
 
-        <dx:BottomSheet x:Name="SongsMenuBtm" AllowDismiss="True" ShowGrabber="True"
-                        AllowedState="HalfExpanded" >
+        <dx:BottomSheet x:Name="SongsMenuBtm" AllowDismiss="True" ShowGrabber="False" CornerRadius="30"
+                        AllowedState="HalfExpanded" BackgroundColor="#1E1E1E">
             <Grid >
-                <dx:DXImage Source="{Binding MySelectedSong.CoverImagePath}"
+                <dx:DXImage Source="{Binding MySelectedSong.CoverImagePath}"  Aspect="AspectFit"
                             HeightRequest="{Binding Height,Source={x:Reference SongsMenuBtm}}" WidthRequest="{Binding Width,Source={x:Reference SongsMenuBtm}}"
-                            Opacity="0.35"/>
+                            Opacity="0.15" />
                   
                 <VerticalStackLayout BackgroundColor="Transparent">
                     <VerticalStackLayout.Resources>
@@ -310,7 +310,7 @@
                     </VerticalStackLayout.Resources>
                     <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" Margin="10">
 
-                        <dx:Chip Text="{Binding MySelectedSong.Title}" HorizontalOptions="Start"
+                        <dx:Chip Text="{Binding MySelectedSong.Title}" HorizontalOptions="Start" Tap="Chip_Tap_1"
                              FontSize="30" TapCommand="{Binding NavToSingleSongShellCommand}"/>
                         <dx:Chip Text="{Binding MySelectedSong.ArtistName}"  Tap="Chip_Tap"
                     HorizontalOptions="Start" BorderColor="Transparent"

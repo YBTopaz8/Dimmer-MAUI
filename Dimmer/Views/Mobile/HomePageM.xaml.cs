@@ -384,13 +384,18 @@ public partial class HomePageM : ContentPage
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
-        CloseBtmSheet();    
+        CloseBtmSheet();
     }
 
     private async void Chip_Tap(object sender, HandledEventArgs e)
     {
-
         await MyViewModel.NavigateToArtistsPage(1);
         CloseBtmSheet();
+    }
+
+    private void Chip_Tap_1(object sender, HandledEventArgs e)
+    {
+        CloseBtmSheet();
+
     }
 }

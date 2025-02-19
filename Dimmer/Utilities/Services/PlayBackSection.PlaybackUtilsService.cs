@@ -291,26 +291,23 @@ public partial class PlaybackUtilsService : ObservableObject
     {
         if (ObservableCurrentlyPlayingSong == null)
             return;
-        if (CurrentRepeatMode == RepeatMode.One)
-        {
-            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Restarted);
-            PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
-            return;
-        }
 
-        prevCounter++;
         if (prevCounter == 1)
         {
-            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);
+            var currentQueue = _playbackQueue.Value;
+            int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);            
+            PlaySong(currentQueue[currentIndex - 1], CurrentPlaybackSource);
             prevCounter = 0;
-            PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
             return;
         }
-        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);
-        prevCounter = 1;
-        var currentQueue = _playbackQueue.Value;
-        int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
-        PlaySong(currentQueue[currentIndex - 1], CurrentPlaybackSource);
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Restarted);
+        PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
+        if (CurrentRepeatMode == RepeatMode.One)
+        {
+            return;
+        }
+        prevCounter++;
     }
     double CurrentPercentage = 0;
     /// <summary>
@@ -369,7 +366,7 @@ public partial class PlaybackUtilsService : ObservableObject
     {
         DimmerAudioService.Volume -= 0.01;
     }
-
+    public double VolumeLevel => DimmerAudioService.Volume;
     public void IncreaseVolume()
     {
         DimmerAudioService.Volume += 0.01;

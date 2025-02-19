@@ -13,7 +13,7 @@
             xmlns:dx="http://schemas.devexpress.com/maui"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
             xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
-            x:DataType="vm:HomePageVM" ShowGrabber="False" AllowDismiss="False"
+            x:DataType="vm:HomePageVM" ShowGrabber="False" AllowDismiss="True"
             State="{Binding NowPlayBtmSheetState}"
             x:Name="myPage"
                 StateChanged="MyPage_StateChanged">
@@ -59,13 +59,10 @@
                         <dx:DXStackLayout Orientation="Vertical" 
                                           >
                                 <dx:Chip Text="{Binding Title}" HorizontalOptions="Start"
-                                         WidthRequest="200" FontSize="21"/>
+                                         WidthRequest="200" FontSize="28"/>
                                 <dx:Chip Text="{Binding ArtistName}" HorizontalOptions="Start"
                                          WidthRequest="100" FontSize="16"/>
-
-
-                            <Label Text="{Binding ArtistName}" FontSize="16" Opacity="0.55"
-                     />
+                     
                         </dx:DXStackLayout>
 
                         </dx:DXButton.Content>
@@ -110,26 +107,20 @@
                            Opacity="0.4" Aspect="AspectFill" HeightRequest="400"/>
 
                         <dx:DXStackLayout VerticalOptions="Center" >
-                            <dx:DXCollectionView ItemsSource="{Binding SynchronizedLyrics}" BackgroundColor="Transparent"
+                            <dx:DXCollectionView ItemsSource="{Binding MySelectedSong.SyncLyrics}" BackgroundColor="Transparent"
                                                 ItemSpacing="5" SelectionMode="Single" HeightRequest="350" VerticalOptions="Center"
                                                 SelectionChanged="SyncLyricsColView_SelectionChanged" x:Name="SyncLyricsColView"
                                                 SelectedItem="{Binding CurrentLyricPhrase}" 
                                                  Loaded="SyncLyricsColView_Loaded"
+                                                 Tap="SyncLyricsColView_Tap"
                                                  Unloaded="SyncLyricsColView_Unloaded">
                                 <dx:DXCollectionView.ItemTemplate>
                                     <DataTemplate x:DataType="models:LyricPhraseModel">
-                                        <Label Text="{Binding Text}"   TextColor="Gray"                            
+                                        <Label Text="{Binding Text}"                     
+                                               FontSize="{Binding NowPlayingLyricsFontSize}"   TextColor="Gray"                            
                                             HorizontalTextAlignment="Center"/>
                                     </DataTemplate>
-                                </dx:DXCollectionView.ItemTemplate>
-                                <dx:DXCollectionView.SelectedItemTemplate>
-                                    <DataTemplate x:DataType="models:LyricPhraseModel">
-                                        <dx:TextEdit Text="{Binding Text}" TextColor="White" TextHorizontalAlignment="Center"                                            
-                                                     TextFontAttributes="Bold" BackgroundColor="Transparent"
-                                            TextFontSize="{Binding NowPlayingLyricsFontSize}" >                                            
-                                        </dx:TextEdit>
-                                    </DataTemplate>
-                                </dx:DXCollectionView.SelectedItemTemplate>
+                                </dx:DXCollectionView.ItemTemplate>                                
                             </dx:DXCollectionView>
 
                         </dx:DXStackLayout>
@@ -141,7 +132,7 @@
                     <dx:Chip Text="{Binding TemporarilyPickedSong.Title}" TapCommand="{Binding NavToSingleSongShellCommand}"
                              TapCommandParameter="{Binding MySelectedSong}"  
                              HorizontalOptions="Center" BorderColor="Transparent"
-         FontSize="21"  TextColor="#E4EDFB" 
+         FontSize="28"  TextColor="#E4EDFB" 
                              />
                     <dx:Chip Text="{Binding TemporarilyPickedSong.ArtistName}" HorizontalOptions="Center"
          FontSize="16" TextColor="#ACB1C1" BorderColor="Transparent" Tap="Chip_Tap"/>

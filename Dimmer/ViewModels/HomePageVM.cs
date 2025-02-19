@@ -167,7 +167,7 @@ public partial class HomePageVM : ObservableObject
         RefreshPlaylists();        
     }
 
-    void DoRefreshDependingOnPage()
+    public void DoRefreshDependingOnPage()
     {
         //CurrentPositionInSeconds = 0;
         //CurrentPositionPercentage = 0;
@@ -178,10 +178,6 @@ public partial class HomePageVM : ObservableObject
         LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         PartOfNowPlayingSongs?.Clear(); 
         
-        
-        CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-        AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
-        splittedLyricsLines = null;
         
         switch (CurrentPage)
         {
@@ -351,11 +347,7 @@ public partial class HomePageVM : ObservableObject
     public partial ObservableCollection<SongModelView> NowPlayingSongsUI { get; set; }
    
     
-    CollectionView? SyncLyricsCV { get; set; }
-    public void AssignSyncLyricsCV(CollectionView cv)
-    {
-        SyncLyricsCV = cv;
-    }
+   
     [ObservableProperty]
     public partial string LoadingSongsText { get; set; }
     public void SetLoadingProgressValue(double newValue)
@@ -705,13 +697,13 @@ public partial class HomePageVM : ObservableObject
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue -= 0.01;
+        VolumeSliderValue += PlayBackService.VolumeLevel;
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue += 0.01;
+        VolumeSliderValue += PlayBackService.VolumeLevel;
     }
 
     [ObservableProperty]
@@ -751,6 +743,7 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         PlayBackService.ChangeVolume(VolumeSliderValue);
+        
     }
     [ObservableProperty]
     public partial bool IsContextMenuOpened { get; set; } = false;

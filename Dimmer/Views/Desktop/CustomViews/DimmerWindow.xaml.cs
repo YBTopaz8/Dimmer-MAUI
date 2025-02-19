@@ -2,8 +2,6 @@
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.UI.Xaml.Input;
 #endif
-using Syncfusion.Maui.Toolkit.EffectsView;
-using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 

@@ -27,7 +27,7 @@
 
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
-    <Shell.FlyoutHeader>
+    <Shell.FlyoutHeader> 
         <Grid x:Name="HeaderGrid" HeightRequest="240" >
             <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
               Text="{Binding MySelectedSong.Title}" Opacity="0.3"

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using DevExpress.Maui.Core.Internal;
+using static ATL.Logging.Log;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -1103,4 +1105,91 @@ public partial class HomePageVM
     }
     #endregion
     #endregion
+
+    CollectionView? SyncLyricsCV { get; set; }
+    public void AssignSyncLyricsCV(CollectionView cv)
+    {
+        SyncLyricsCV = cv;
+        SyncLyricsCV.SelectionChanged += SyncLyricsCV_SelectionChanged;
+    }
+    public void UnAssignSyncLyricsCV()
+    {
+        SyncLyricsCV.SelectionChanged -= SyncLyricsCV_SelectionChanged;
+    }
+
+    
+    [ObservableProperty]
+    public partial int UnFocusedLyricSize { get; set; } = 29;
+    [ObservableProperty]
+    public partial int FocusedLyricSize { get; set; } = 60;
+    private void SyncLyricsCV_SelectionChanged(object? sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        if (SyncLyricsCV is null || SyncLyricsCV.ItemsSource is null || SyncLyricsCV.SelectedItem is null 
+            || SyncLyricsCV.SelectedItems is null )            
+        {
+            return;
+        }
+        try
+        {
+            if (SyncLyricsCV.SelectedItem is not null)
+            {
+                // Set SelectedItem FIRST to ensure UI updates
+                SyncLyricsCV.SelectedItem = CurrentLyricPhrase;
+
+                // Animate Font Size First
+                if (e.PreviousSelection?.Count > 0)
+                {
+                    if (e.CurrentSelection?.Count < 1)
+                    {
+                        foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
+                        {
+                            oldItem.NowPlayingLyricsFontSize = FocusedLyricSize;
+                            oldItem.LyricsFontAttributes = FontAttributes.Bold;
+                        }
+
+                    }
+                    else
+                    {
+                        foreach (LyricPhraseModel oldItem in e.PreviousSelection.Cast<LyricPhraseModel>())
+                        {
+                            oldItem.NowPlayingLyricsFontSize = UnFocusedLyricSize;
+                            oldItem.LyricsFontAttributes = FontAttributes.None;
+                        }
+                    }
+                }
+                if (e.CurrentSelection?.Count > 0)
+                {
+                    foreach (LyricPhraseModel newItem in e.CurrentSelection.Cast<LyricPhraseModel>())
+                    {
+                        newItem.NowPlayingLyricsFontSize = FocusedLyricSize;
+                        newItem.LyricsFontAttributes = FontAttributes.Bold;
+                    }
+                }
+                
+
+                SyncLyricsCV.ScrollTo(SyncLyricsCV.SelectedItem, null, ScrollToPosition.Center, true);
+                // Scroll AFTER font size animation
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    public void ScrollAfterAppearing()
+    {
+        if (CurrentLyricPhrase is not null)
+        {
+            CurrentLyricPhrase.NowPlayingLyricsFontSize = FocusedLyricSize;
+            CurrentLyricPhrase.LyricsFontAttributes = FontAttributes.Bold;
+            if (SyncLyricsCV is null )
+            {
+                return;
+            }
+            SyncLyricsCV.SelectedItem = CurrentLyricPhrase;
+            Debug.WriteLine(SyncLyricsCV.SelectedItem.GetType());
+            SyncLyricsCV.ScrollTo(SyncLyricsCV.SelectedItem, null, ScrollToPosition.Center, true);
+        }
+    }
 }

@@ -63,8 +63,9 @@
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidLinkMode>SdkOnly </AndroidLinkMode>
-    
-    
+
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -134,7 +135,9 @@
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
     <EnableLLVM>True</EnableLLVM>
     <RunAOTCompilation>False</RunAOTCompilation>
-    <PublishTrimmed>False</PublishTrimmed>
+    <PublishTrimmed>True</PublishTrimmed>
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <Debugger>Xamarin</Debugger>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
     <AndroidUseAapt2>True</AndroidUseAapt2>
@@ -144,6 +147,10 @@
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
     <EnableLLVM>True</EnableLLVM>
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
+    <Debugger>Xamarin</Debugger>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->

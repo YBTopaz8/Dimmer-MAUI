@@ -36,6 +36,9 @@ public partial class LyricPhraseModel : ObservableObject
     public partial string? Text { get; set; } = string.Empty;
     [ObservableProperty]
     public partial int NowPlayingLyricsFontSize { get; set; } = 29;
+    [ObservableProperty]
+    public partial FontAttributes LyricsFontAttributes { get; set; } = FontAttributes.None;
+    
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
     public LyricPhraseModel(LyricsPhrase? phrase = null)
     {
