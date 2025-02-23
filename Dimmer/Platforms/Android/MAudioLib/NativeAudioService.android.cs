@@ -86,7 +86,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         set
         {
             volume = value;
-            SetVolume(volume = value, Balance);
+            //SetVolume(volume = value, Balance);
         }
     }
     public double Balance { get => balance; set { balance = value; SetVolume(Volume, balance = value); } }
@@ -97,8 +97,8 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
     public event EventHandler? NotificationTapped;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler<long>? IsSeekedFromNotificationBar;
-    public event EventHandler PlayPrevious;
-    public event EventHandler PlayNext;
+    public event EventHandler? PlayPrevious;
+    public event EventHandler? PlayNext;
 
     public void Pause()
     {        

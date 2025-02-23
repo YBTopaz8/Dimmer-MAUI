@@ -1,12 +1,15 @@
 #if WINDOWS
 using Microsoft.UI.Xaml;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
+using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
 #endif
 
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
 {
+#if WINDOWS
+#endif
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
@@ -14,12 +17,12 @@ public partial class MainPageD : ContentPage
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
 
-
     }
     public HomePageVM MyViewModel { get; }
 
     bool isIniAssign;
     protected override async void OnAppearing()
+
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
@@ -362,6 +365,7 @@ public partial class MainPageD : ContentPage
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
+
 
 
 

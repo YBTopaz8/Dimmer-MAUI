@@ -39,8 +39,8 @@
 
         </ResourceDictionary>
     </ContentPage.Resources>
-
-    <Grid Padding="0,0" BackgroundColor="Transparent">
+    <Label Text="Hi"/>
+    <!--<Grid Padding="0,0" BackgroundColor="Transparent">
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.1"
     IsVisible="True" Grid.Column="0" Aspect="Center"/>
         <Syncf:SfTabView x:Name="TabV" BackgroundColor="Transparent"
@@ -135,13 +135,6 @@
 
                                 </HorizontalStackLayout>
 
-                                <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
-                                                    IsVisible="False">
-                                    <Button.CommandParameter>
-                                        <x:Boolean>True</x:Boolean>
-                                    </Button.CommandParameter>
-                                </Button>
-
                             </VerticalStackLayout>
                             <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
                                                         x:DataType="vm:HomePageVM">
@@ -209,5 +202,5 @@
 
         <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"/>
         
-    </Grid>
+    </Grid>-->
 </ContentPage>

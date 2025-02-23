@@ -344,12 +344,12 @@ public partial class HomePageVM
         }
         else if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
-            UpdatePlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+            UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
-            UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+            UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
             return;
         };
         if (CurrentUser.IsLoggedInLastFM)

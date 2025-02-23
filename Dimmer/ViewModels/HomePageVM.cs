@@ -1,7 +1,7 @@
 ﻿
 #if WINDOWS
 using System.Diagnostics;
-using TView = WinUI.TableView.TableView;
+using TView = YB.MauiDataGridView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
@@ -697,13 +697,13 @@ public partial class HomePageVM : ObservableObject
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue += PlayBackService.VolumeLevel;
+        VolumeSliderValue = (PlayBackService.VolumeLevel*100);
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue += PlayBackService.VolumeLevel;
+        VolumeSliderValue = (PlayBackService.VolumeLevel * 100);
     }
 
     [ObservableProperty]

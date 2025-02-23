@@ -12,6 +12,7 @@
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
+             
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
              xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"
@@ -25,9 +26,8 @@
 
 
     </ContentPage.Resources>
-
     
-    <Grid x:Name="MainDock" RowDefinitions="*,Auto"
+    <Grid x:Name="MainDock" RowDefinitions="*,Auto" IsVisible="True"
         IsEnabled="True">
         <Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
@@ -225,6 +225,5 @@
         </toolkit:DockLayout>
 
     </Grid>
-        
-        
+
 </ContentPage>

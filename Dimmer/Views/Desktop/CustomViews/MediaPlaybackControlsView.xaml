@@ -207,7 +207,7 @@
                                  Loaded="SfEffectsView_Loaded"
                                  Unloaded="SfEffectsView_Unloaded">
                 <VerticalStackLayout VerticalOptions="Center">
-                    <Label Text="{Binding VolumeSliderValue,StringFormat='Volume {0}', Converter={StaticResource VolConverter}}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding VolumeSliderValue,StringFormat='Volume {0}'}" HorizontalOptions="Center"/>
      
                     <Slider Value="{Binding VolumeSliderValue}" VerticalOptions="End"
                             MinimumTrackColor="DarkSlateBlue" DragCompletedCommand="{Binding ChangeVolumeCommand}"/>

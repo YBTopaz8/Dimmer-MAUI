@@ -102,8 +102,6 @@ public partial class PlaybackUtilsService : ObservableObject
 
 
     private Random random = Random.Shared;  // Reuse the same Random instance
-
-
     private void UpdateActiveQueue()
     {
         if (IsShuffleOn)
@@ -115,7 +113,6 @@ public partial class PlaybackUtilsService : ObservableObject
             _playbackQueue.OnNext(SongsMgtService.AllSongs.ToObservableCollection()); // Use the original order
         }
     }
-
     private ObservableCollection<SongModelView> ShuffleList(ObservableCollection<SongModelView> list)
     {
         var shuffledList = list.OrderBy(_ => random.Next()).ToObservableCollection(); // Simple shuffle

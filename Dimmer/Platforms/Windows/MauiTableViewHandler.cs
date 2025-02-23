@@ -1,32 +1,34 @@
 ﻿// File: Platforms/Windows/TableViewImplementation.cs
-using WinUI.TableView;
+
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using WinUIGrid = Microsoft.UI.Xaml.Controls.Grid;
-using WinUITableview = WinUI.TableView.TableView;
+
 using Microsoft.Maui.Handlers;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using Microsoft.UI.Xaml.Media.Animation;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using static Dimmer_MAUI.Platforms.Windows.PlatSpecificUtils;
 using Microsoft.UI.Xaml.Input;
-using CommunityToolkit.WinUI.Collections;
+
 using GridLength = Microsoft.UI.Xaml.GridLength;
 using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
 using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
+using YB.MauiDataGridView;
+using TableView = YB.MauiDataGridView.TableView;
 
 namespace Dimmer_MAUI.Platforms.Windows;
 
 public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
 {
-    private WinUITableview _tableView;
+    private readonly TableView _tableView;
     private bool _autoGenerateColumns;
 
-    public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
+    public event EventHandler<SelectionChangedEventArgs>? SelectionChanged;
 
     public TableViewImplementation()
     {
-        _tableView = new WinUITableview();
+        _tableView = new TableView();
         
         AutoGenerateColumns = true;
         
@@ -47,10 +49,11 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
         var vm = IPlatformApplication.Current.Services.GetService<HomePageVM>();
         if (vm is not null)
         {
-            _tableView.ShowOptionsButton = true;
+            
+            //_tableView.ShowOptionsButton = true;
             _tableView.ShowExportOptions=true;
             _tableView.IsAccessKeyScope = true;
-            
+             
             vm.MyTableView = _tableView;
         }
     }
@@ -242,7 +245,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
 
     internal readonly record struct TableViewCellSlot(int Row, int Column);
 
-    public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
+    //public IAdvancedCollectionView CollectionView { get; private set; } = new AdvancedCollectionView();
     internal IDictionary<string, Predicate<object>> ActiveFilters { get; } = new Dictionary<string, Predicate<object>>();
     internal TableViewSelectionUnit LastSelectionUnit { get; set; }
     internal TableViewCellSlot? CurrentCellSlot { get; set; }
@@ -254,7 +257,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
     internal int SelectionIndicatorWidth => SelectionMode is ListViewSelectionMode.Multiple ? 44 : 16;
 
     
-    public global::WinUI.TableView.TableViewColumnsCollection Columns
+    public YB.MauiDataGridView.TableViewColumnsCollection Columns
     {
         get
         {
@@ -263,10 +266,6 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
     }
     private void UpdateTableView()
     {
-        if (ItemsSource is not null)
-        {
-            Debug.WriteLine(ItemsSource.GetType());
-        }
         if (_tableView != null)
         {
             _tableView.IsReadOnly = true;
@@ -361,7 +360,7 @@ public partial class TableViewImplementation : WinUIGrid, INotifyPropertyChanged
 
     private void _tableView_AutoGeneratingColumn(object? sender, TableViewAutoGeneratingColumnEventArgs e)
     {
-        var viewModel = (object)((WinUITableview)sender).DataContext;
+        var viewModel = (object)((TableView)sender).DataContext;
         
 
     }
@@ -407,7 +406,7 @@ public static class MyTableViewHandlerMapper
         [nameof(MyTableView.Columns)] = MapColumns,
 
         [nameof(MyTableView.IsReadOnly)] = MapIsReadOnly,
-        [nameof(MyTableView.CornerButtonMode)] = MapCornerButtonMode,
+        //[nameof(MyTableView.CornerButtonMode)] = MapCornerButtonMode,
         [nameof(MyTableView.CanResizeColumns)] = MapCanResizeColumns,
         [nameof(MyTableView.CanSortColumns)] = MapCanSortColumns,
         [nameof(MyTableView.CanFilterColumns)] = MapCanFilterColumns,
@@ -456,7 +455,7 @@ public static class MyTableViewHandlerMapper
 
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.SelectedItemProperty, view.SelectedItem);
+            native.SetValue(TableView.SelectedItemProperty, view.SelectedItem);
     }
     
     
@@ -465,7 +464,7 @@ public static class MyTableViewHandlerMapper
 
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.SelectedIndexProperty, view.SelectedIndex);
+            native.SetValue(TableView.SelectedIndexProperty, view.SelectedIndex);
     }
     
     
@@ -474,7 +473,7 @@ public static class MyTableViewHandlerMapper
 
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.SelectedValueProperty, view.SelectedValue);
+            native.SetValue(TableView.SelectedValueProperty, view.SelectedValue);
     }
 
     public static void MapScrollIntoView(MyTableViewHandler handler, ITableView view)
@@ -482,7 +481,7 @@ public static class MyTableViewHandlerMapper
 
         //var native = GetNativeTable(handler);
         //if (native != null)
-        //    native.SetValue(WinUITableview.scro, view.HeaderRowHeight);
+        //    native.SetValue(TableView.scro, view.HeaderRowHeight);
         //if (handler.PlatformView is not null && view.ScrollIntoView != null)
         //{
         //    // Ensure the item is in the ItemsSource
@@ -503,7 +502,7 @@ public static class MyTableViewHandlerMapper
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.HeaderRowHeightProperty, view.HeaderRowHeight);
+            native.SetValue(TableView.HeaderRowHeightProperty, view.HeaderRowHeight);
     }
     
     
@@ -511,21 +510,21 @@ public static class MyTableViewHandlerMapper
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.RowHeightProperty, view.RowHeight);
+            native.SetValue(TableView.RowHeightProperty, view.RowHeight);
     }
 
     static void MapRowMaxHeight(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.RowMaxHeightProperty, view.RowMaxHeight);
+            native.SetValue(TableView.RowMaxHeightProperty, view.RowMaxHeight);
     }
 
     static void MapShowExportOptions(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.ShowExportOptionsProperty, view.ShowExportOptions);
+            native.SetValue(TableView.ShowExportOptionsProperty, view.ShowExportOptions);
     }
 
     static TableViewImplementation GetNativeTable(MyTableViewHandler handler)
@@ -673,74 +672,74 @@ public static class MyTableViewHandlerMapper
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.IsReadOnlyProperty, view.IsReadOnly);
+            native.SetValue(TableView.IsReadOnlyProperty, view.IsReadOnly);
     }
-    static void MapCornerButtonMode(MyTableViewHandler handler, MyTableView view)
-    {
-        var native = GetNativeTable(handler);
-        if (native != null)
-            native.SetValue(WinUITableview.ShowOptionsButtonProperty, view.CornerButtonMode);
-    }
+    //static void MapCornerButtonMode(MyTableViewHandler handler, MyTableView view)
+    //{
+    //    var native = GetNativeTable(handler);
+    //    if (native != null)
+    //        native.SetValue(TableView.ShowOptionsButtonProperty, view.CornerButtonMode);
+    //}
     static void MapCanResizeColumns(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.CanResizeColumnsProperty, view.CanResizeColumns);
+            native.SetValue(TableView.CanResizeColumnsProperty, view.CanResizeColumns);
     }
     static void MapCanSortColumns(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.CanSortColumnsProperty, view.CanSortColumns);
+            native.SetValue(TableView.CanSortColumnsProperty, view.CanSortColumns);
     }
     static void MapCanFilterColumns(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.CanFilterColumnsProperty, view.CanFilterColumns);
+            native.SetValue(TableView.CanFilterColumnsProperty, view.CanFilterColumns);
     }
     static void MapMinColumnWidth(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.MinColumnWidthProperty, view.MinColumnWidth);
+            native.SetValue(TableView.MinColumnWidthProperty, view.MinColumnWidth);
     }
     static void MapMaxColumnWidth(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.MaxColumnWidthProperty, view.MaxColumnWidth);
+            native.SetValue(TableView.MaxColumnWidthProperty, view.MaxColumnWidth);
     }
     static void MapSelectionUnit(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.SelectionUnitProperty, view.SelectionUnit);
+            native.SetValue(TableView.SelectionUnitProperty, view.SelectionUnit);
     }
     
     static void MapRowContextFlyout(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.ContextFlyoutProperty, view.RowContextFlyout);
+            native.SetValue(TableView.ContextFlyoutProperty, view.RowContextFlyout);
     }
     static void MapCellContextFlyout(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.ContextFlyoutProperty, view.CellContextFlyout);
+            native.SetValue(TableView.ContextFlyoutProperty, view.CellContextFlyout);
     }
     static void MapColumnHeaderStyle(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.StyleProperty, view.ColumnHeaderStyle);
+            native.SetValue(TableView.StyleProperty, view.ColumnHeaderStyle);
     }
     static void MapCellStyle(MyTableViewHandler handler, MyTableView view)
     {
         var native = GetNativeTable(handler);
         if (native != null)
-            native.SetValue(WinUITableview.StyleProperty, view.CellStyle);
+            native.SetValue(TableView.StyleProperty, view.CellStyle);
     }
 }
 
@@ -928,36 +927,6 @@ public abstract class MauiTableViewColumn : TableViewColumn
 {
 
 }
-
-
-/// <summary>
-/// Describes a filter operation applied to TableView items.
-/// </summary>
-public class FilterDescription
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="FilterDescription"/> class.
-    /// </summary>
-    /// <param name="propertyName">The name of the property to filter by.</param>
-    /// <param name="predicate">The predicate to apply for filtering.</param>
-    public FilterDescription(string? propertyName,
-                             Predicate<object?> predicate)
-    {
-        PropertyName = propertyName;
-        Predicate = predicate;
-    }
-
-    /// <summary>
-    /// Gets the name of the property to filter by.
-    /// </summary>
-    public string? PropertyName { get; }
-
-    /// <summary>
-    /// Gets the predicate to apply for filtering.
-    /// </summary>
-    public Predicate<object?> Predicate { get; }
-}
-
 
 public static class TableViewHandler
 {

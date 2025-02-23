@@ -176,7 +176,7 @@
     <None Remove="Resources\Images\youtube.svg" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="11.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     
     <!--<PackageReference Include="CSCore" Version="1.2.1.2" />-->
@@ -190,9 +190,9 @@
     
     <!--<PackageReference Include="Hqub.Last.fm" Version="2.5.0" />-->
     
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.2" />
     <!--<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />-->
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
@@ -200,7 +200,7 @@
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.16.0" />
+    <PackageReference Include="z440.atl.core" Version="6.17.0" />
 
   </ItemGroup>
 
@@ -218,6 +218,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SongContextMenuPopUp.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongContextMenuPopupView.xaml">
@@ -348,9 +351,13 @@
     <Folder Include="Utilities\OtherUtils\ParseStaticUtils\" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
-    <PackageReference Include="WinUI.TableView">
+    <ProjectReference Include="..\..\MAUI.TableView\YB.MauiDataGridView\YB.MauiDataGridView.csproj" />
+
+    <!--<PackageReference Include="WinUI.TableView">
       <Version>1.2.2</Version>
-    </PackageReference>
+    </PackageReference>-->
+  </ItemGroup>
+  <ItemGroup>
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

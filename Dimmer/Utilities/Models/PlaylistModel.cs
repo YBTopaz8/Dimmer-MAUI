@@ -13,8 +13,7 @@ public partial class PlaylistModel : RealmObject
         Name = model.Name;
         TotalDuration = model.TotalDuration;
         TotalSize = model.TotalSize;
-        TotalSongsCount = model.TotalSongsCount;
-        
+        TotalSongsCount = model.TotalSongsCount;        
         LocalDeviceId = model.LocalDeviceId;
     }
     public PlaylistModel()
@@ -42,13 +41,13 @@ public partial class PlaylistModelView : ObservableObject
     public string? LocalDeviceId { get; set; } = string.Empty;
 
     [ObservableProperty]
-    string? name;
+    public partial string? Name { get; set; }
     [ObservableProperty]
-    double totalDuration;
+    public partial double TotalDuration { get; set; }
     [ObservableProperty]
-    double totalSize;
+    public partial double TotalSize { get; set; }
     [ObservableProperty]
-    int totalSongsCount;
+    public partial int TotalSongsCount { get; set; }
 
     public PlaylistModelView()
     {

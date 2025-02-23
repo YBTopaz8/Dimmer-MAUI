@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿using System.Linq;
+
+namespace Dimmer_MAUI.DataAccess.Services;
 
 public partial class SongsManagementService : ISongsManagementService, IDisposable
 {
@@ -66,57 +68,59 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             AllSongs.Clear();
 
             var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-            var realmPlayData = db.All<PlayDateAndCompletionStateSongLink>().ToList();
+            AllSongs = new List<SongModelView>(realmSongs.Select(song => new SongModelView(song)).OrderBy(x => x.DateCreated));
+            AllPlayDataLinks = Enumerable.Empty<PlayDataLink>().ToList();
+            //var realmPlayData = db.All<PlayDateAndCompletionStateSongLink>().ToList();
 
-            AllPlayDataLinks = new List<PlayDataLink>(realmPlayData
-                .Select(model => new PlayDataLink()
-                {
-                    LocalDeviceId = model.LocalDeviceId!,
-                    SongId = model.SongId,
-                    DateStarted = model.DatePlayed.LocalDateTime,
-                    DateFinished = model.DateFinished.LocalDateTime,
-                    WasPlayCompleted = model.WasPlayCompleted,
-                    PositionInSeconds = model.PositionInSeconds,
-                    PlayType = model.PlayType,
-                    
-                }));
-            Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData =
-    new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
+            //        AllPlayDataLinks = new List<PlayDataLink>(realmPlayData
+            //            .Select(model => new PlayDataLink()
+            //            {
+            //                LocalDeviceId = model.LocalDeviceId!,
+            //                SongId = model.SongId,
+            //                DateStarted = model.DatePlayed.LocalDateTime,
+            //                DateFinished = model.DateFinished.LocalDateTime,
+            //                WasPlayCompleted = model.WasPlayCompleted,
+            //                PositionInSeconds = model.PositionInSeconds,
+            //                PlayType = model.PlayType,
 
-            foreach (var model in realmPlayData)
-            {
-                if (model.SongId is null)
-                    continue;
+            //            }));
+            //        Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData =
+            //new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
 
-                if (!groupedPlayData.ContainsKey(model.SongId))
-                {
-                    groupedPlayData[model.SongId] = new List<PlayDateAndCompletionStateSongLink>();
-                }
+            //        foreach (var model in realmPlayData)
+            //        {
+            //            if (model.SongId is null)
+            //                continue;
 
-                groupedPlayData[model.SongId].Add(model);
-            }
+            //            if (!groupedPlayData.ContainsKey(model.SongId))
+            //            {
+            //                groupedPlayData[model.SongId] = new List<PlayDateAndCompletionStateSongLink>();
+            //            }
 
-            var tempSongViews = new List<SongModelView>();
-            foreach (var songModel in realmSongs)
-            {
-                if (songModel.LocalDeviceId is null)
-                {
-                    //realmSongs.Remove(songModel);
-                    continue;
-                }
-                if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
-                {
-                    tempSongViews.Add(new SongModelView(songModel, playDataForSong.ToObservableCollection()));
-                }
-                else
-                {
-                    // Handle the case where there's no play data for the song (optional)
-                    tempSongViews.Add(new SongModelView(songModel, null)); // Or an empty ObservableCollection
-                }
-            }
+            //            groupedPlayData[model.SongId].Add(model);
+            //        }
+
+            //        var tempSongViews = new List<SongModelView>();
+            //        foreach (var songModel in realmSongs)
+            //        {
+            //            if (songModel.LocalDeviceId is null)
+            //            {
+            //                //realmSongs.Remove(songModel);
+            //                continue;
+            //            }
+            //            if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
+            //            {
+            //                tempSongViews.Add(new SongModelView(songModel, playDataForSong.ToObservableCollection()));
+            //            }
+            //            else
+            //            {
+            //                // Handle the case where there's no play data for the song (optional)
+            //                tempSongViews.Add(new SongModelView(songModel, null)); // Or an empty ObservableCollection
+            //            }
+            //        }
 
 
-            AllSongs = tempSongViews;
+            //AllSongs = realmSongs.Take(250).ToList();
 
             GetAlbums();
             GetArtists();

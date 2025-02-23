@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿
+
+namespace Dimmer_MAUI;
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
@@ -32,6 +34,7 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
 #if WINDOWS
+                //DataGridHandler.ConfigureTableViewHandler(handlers);
                 TableViewHandler.ConfigureTableViewHandler(handlers);
 #endif
                 //handlers.AddHandler(typeof(TableView), typeof(TableViewHandler));
@@ -148,6 +151,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ShareSongPage>();
         builder.Services.AddSingleton<SettingsPageM>();
         builder.Services.AddSingleton<FirstStepPage>();
+        builder.Services.AddSingleton<SongContextMenuPopUp>();
 #endif
 
 #if ANDROID || WINDOWS

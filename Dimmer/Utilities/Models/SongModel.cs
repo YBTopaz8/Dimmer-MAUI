@@ -21,6 +21,7 @@ public partial class SongModel : RealmObject
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
+
     public string SyncLyrics { get; set; }=string.Empty;
     public string CoverImagePath { get; set; } = "musicnoteslider.png";
     public string UnSyncLyrics { get; set; } = string.Empty;
@@ -95,7 +96,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
-    public partial string DurationInSecondsText {get;set;}
+    public partial string? DurationInSecondsText {get;set;}
     [ObservableProperty]
     public partial int? ReleaseYear {get;set;}
     [ObservableProperty]
@@ -132,6 +133,8 @@ public partial class SongModelView : ObservableObject
     public partial bool IsCurrentPlayingHighlight { get; set; }
     [ObservableProperty]
     public partial bool IsFavorite {get;set;}
+    [ObservableProperty]
+    public partial bool HasCoverImage {get;set;}
     [ObservableProperty]
     public partial bool IsPlayCompleted {get;set;}
     [ObservableProperty]
@@ -177,7 +180,11 @@ public partial class SongModelView : ObservableObject
             BitRate = model.BitRate;            
             Rating = model.Rating;
             HasLyrics = model.HasLyrics;
-            CoverImagePath = model.CoverImagePath;
+            if (!string.IsNullOrEmpty(model.CoverImagePath))
+            {
+                CoverImagePath = model.CoverImagePath;
+                HasCoverImage = true;
+            }
             ArtistName = model.ArtistName;
             Achievement = model.Achievement;
             AlbumName = model.AlbumName;

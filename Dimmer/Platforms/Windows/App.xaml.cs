@@ -47,7 +47,9 @@ public partial class App : MauiWinUIApplication
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-        
+
+
+
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         do
         {

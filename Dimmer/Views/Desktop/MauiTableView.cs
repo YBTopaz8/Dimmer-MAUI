@@ -4,14 +4,16 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Foundation;
-using WinUI.TableView;
-using TableView = global::WinUI.TableView;
+
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using Style = Microsoft.UI.Xaml.Style;
-using TableViewColumnsCollection = WinUI.TableView.TableViewColumnsCollection;
+using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using FlyoutBase = Microsoft.Maui.Controls.FlyoutBase;
+using YB.MauiDataGridView;
+using SortDescription = YB.MauiDataGridView.SortDescription;
+using FilterDescription = YB.MauiDataGridView.FilterDescription;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
