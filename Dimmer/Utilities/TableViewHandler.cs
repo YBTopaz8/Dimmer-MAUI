@@ -5,7 +5,7 @@ public static class TableViewHandler
     public static void ConfigureTableViewHandler(IMauiHandlersCollection handlers)
     {
 #if WINDOWS
-        handlers.AddHandler(typeof(MyTableView), typeof(MyTableViewHandler));
+        //handlers.AddHandler(typeof(MyTableView), typeof(MyTableViewHandler));
 #endif
     }
 }

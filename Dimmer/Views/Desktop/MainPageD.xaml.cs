@@ -1,7 +1,7 @@
 #if WINDOWS
 using Microsoft.UI.Xaml;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
-using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
+//using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
 #endif
 
 namespace Dimmer_MAUI.Views.Desktop;

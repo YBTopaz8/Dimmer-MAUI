@@ -50,7 +50,7 @@ global using Microsoft.UI;
 global using Microsoft.UI.Windowing;
 global using WinRT.Interop;
 global using Dimmer_MAUI.UtilitiesServices;
-global using YB.MauiDataGridView;
+//global using YB.MauiDataGridView;
 #endif
 
 #if ANDROID

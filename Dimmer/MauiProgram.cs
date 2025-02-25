@@ -35,7 +35,7 @@ public static class MauiProgram
             {
 #if WINDOWS
                 //DataGridHandler.ConfigureTableViewHandler(handlers);
-                TableViewHandler.ConfigureTableViewHandler(handlers);
+                //TableViewHandler.ConfigureTableViewHandler(handlers);
 #endif
                 //handlers.AddHandler(typeof(TableView), typeof(TableViewHandler));
             })

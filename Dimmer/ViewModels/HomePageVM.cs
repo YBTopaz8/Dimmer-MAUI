@@ -1,14 +1,14 @@
 ﻿
 #if WINDOWS
 using System.Diagnostics;
-using TView = YB.MauiDataGridView.TableView;
+//using TView = YB.MauiDataGridView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
 #if WINDOWS
 
-    public TView MyTableView { get; set; }
+    //public TView MyTableView { get; set; }
 #endif
     //LastfmClient LastfmClient;
     [ObservableProperty]
