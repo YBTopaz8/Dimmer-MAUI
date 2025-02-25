@@ -55,7 +55,7 @@ public interface IDimmerAudioService
     /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
     ///</Summary>
 
-    double Balance { get; set; }
+    //double Balance { get; set; }
 
     event EventHandler<bool> IsPlayingChanged;
     event EventHandler PlayEnded;

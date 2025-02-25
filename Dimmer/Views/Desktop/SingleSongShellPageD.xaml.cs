@@ -3,9 +3,6 @@
 #endif
 
 
-using System.Diagnostics;
-using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
-
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SingleSongShellPageD : ContentPage
@@ -206,50 +203,17 @@ public partial class SingleSongShellPageD : ContentPage
 
     private void FocusModePlayResume_Tapped(object sender, TappedEventArgs e)
     {
+        var send = (Border)sender;
         if (MyViewModel.IsPlaying)
         {
             MyViewModel.PauseSongCommand.Execute(null);
-            RunFocusModeAnimation(sender as AvatarView, Color.FromArgb("#8B0000")); // DarkRed for pause
+            send.RunFocusModeAnimation( Color.FromArgb("#8B0000")); // DarkRed for pause
         }
         else
         {
             MyViewModel.ResumeSongCommand.Execute(null);
-            RunFocusModeAnimation(sender as AvatarView, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
+            send.RunFocusModeAnimation(Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
         }
-    }
-
-    private void RunFocusModeAnimation(AvatarView avatarView, Color strokeColor)
-    {
-        if (avatarView == null)
-            return;
-
-        // Set the stroke color based on pause/resume state
-        avatarView.Stroke = strokeColor;
-
-        // Define a single animation to embiggen the stroke
-        var expandAnimation = new Animation(v => avatarView.StrokeThickness = v, // Only animating StrokeThickness now
-            0,                                   // Start with 0 thickness
-            5,                                  // Expand to 10 thickness
-            Easing.CubicInOut                    // Smooth easing
-        );
-
-        // Shrink the stroke back to zero after embiggen
-        var shrinkAnimation = new Animation(
-            v => avatarView.StrokeThickness = v,
-            5,                                   // Start at 10 thickness
-            0,                                    // Reduce to 0 thickness
-            Easing.CubicInOut
-        );
-
-        // Combine expand and shrink animations into one sequence
-        var animationSequence = new Animation
-        {
-            { 0, 0.5, expandAnimation },   // Embiggen in the first half
-            { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
-        };
-
-        // Run the full animation sequence
-        animationSequence.Commit(avatarView, "FocusModeAnimation", length: 500, easing: Easing.Linear);
     }
 
     int unFocusedLyricSize = 29;

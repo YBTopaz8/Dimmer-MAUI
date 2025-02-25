@@ -14,7 +14,6 @@ using Microsoft.UI.Xaml.Input;
 using GridLength = Microsoft.UI.Xaml.GridLength;
 using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
 using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
-using YB.MauiDataGridView;
 using TableView = YB.MauiDataGridView.TableView;
 
 namespace Dimmer_MAUI.Platforms.Windows;

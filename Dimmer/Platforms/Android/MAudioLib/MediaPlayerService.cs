@@ -381,9 +381,9 @@ public class MediaPlayerService : Service,
                 MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
 
                 
-                mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
-                    .SetContentType(AudioContentType.Music)
-                    .SetUsage(AudioUsageKind.Media).Build());
+                mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()!
+                    .SetContentType(AudioContentType.Music)!
+                    .SetUsage(AudioUsageKind.Media)!.Build()!);
 
                 mediaPlayer.SetWakeMode(Platform.AppContext, WakeLockFlags.Partial);
 
@@ -414,9 +414,9 @@ public class MediaPlayerService : Service,
                 if (OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     var focusResult = audioManager.RequestAudioFocus(new AudioFocusRequestClass
-                    .Builder(AudioFocus.Gain)
-                    .SetOnAudioFocusChangeListener(this)
-                    .Build());
+                    .Builder(AudioFocus.Gain)!
+                    .SetOnAudioFocusChangeListener(this)!
+                    .Build()!)!;
 
                     if (focusResult != AudioFocusRequest.Granted)
                     {

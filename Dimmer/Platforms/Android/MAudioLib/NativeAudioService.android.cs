@@ -86,10 +86,10 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         set
         {
             volume = value;
-            //SetVolume(volume = value, Balance);
+            SetVolume(volume = value);
         }
     }
-    public double Balance { get => balance; set { balance = value; SetVolume(Volume, balance = value); } }
+    //public double Balance { get => balance; set { balance = value; SetVolume(Volume, balance = value); } }
     public bool Muted { get => muted; set => SetMuted(value); }
 
     public event EventHandler<bool>? IsPlayingChanged;
@@ -132,12 +132,12 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         if (value)
             mediaPlayer.SetVolume(0, 0);
         else
-            SetVolume(volume, balance);
+            SetVolume(volume);
         
     }
-    void SetVolume(double volume, double balance)
+    void SetVolume(double volume)
     {
-
+        mediaPlayer?.SetVolume((float)volume, (float)volume);
         //mediaPlayer?.SetVolume((float)1, (float)1);
 
         //Stream streamType = Stream.Music;
@@ -152,7 +152,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         //int scaledVolume = (int)Math.Round(volume);
         //aManager.SetStreamVolume(streamType, scaledVolume, VolumeNotificationFlags.RemoveSoundAndVibrate);
 
-        
+
     }
 
 

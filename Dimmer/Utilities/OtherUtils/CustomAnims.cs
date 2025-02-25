@@ -572,7 +572,7 @@ public static class CustomAnimsExtensions
     // <ProgressBar x:Name="MyProgressBar" Progress="0" />
     //await MyProgressBar.ProgressFill(0.8); // Fill to 80%
 
-    public static async Task ShowNotificationBanner(this Grid container, Label notificationLabel, string message, uint duration = 400)
+    public static async Task ShowNotificationBanner(this Label notificationLabel, string message, uint duration = 400)
     {
         notificationLabel.Text = message;
         notificationLabel.TranslationY = -notificationLabel.Height; // Start above the container
@@ -1077,6 +1077,41 @@ public static class CustomAnimsExtensions
             child.IsVisible = false;
         }
     }
+
+    public static void RunFocusModeAnimation(this Border avatarView, Color strokeColor)
+    {
+        if (avatarView == null)
+            return;
+
+        // Set the stroke color based on pause/resume state
+        avatarView.Stroke = strokeColor;
+
+        // Define a single animation to embiggen the stroke
+        var expandAnimation = new Animation(v => avatarView.StrokeThickness = v, // Only animating StrokeThickness now
+            0,                                   // Start with 0 thickness
+            5,                                  // Expand to 10 thickness
+            Easing.CubicInOut                    // Smooth easing
+        );
+
+        // Shrink the stroke back to zero after embiggen
+        var shrinkAnimation = new Animation(
+            v => avatarView.StrokeThickness = v,
+            5,                                   // Start at 10 thickness
+            0,                                    // Reduce to 0 thickness
+            Easing.CubicInOut
+        );
+
+        // Combine expand and shrink animations into one sequence
+        var animationSequence = new Animation
+        {
+            { 0, 0.5, expandAnimation },   // Embiggen in the first half
+            { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
+        };
+
+        // Run the full animation sequence
+        animationSequence.Commit(avatarView, "FocusModeAnimation", length: 500, easing: Easing.Linear);
+    }
+
     // <StackLayout x:Name="ExplodingContainer" Padding="20">
     //     <BoxView BackgroundColor="Red" WidthRequest="50" HeightRequest="50" />
     //     <BoxView BackgroundColor="Green" WidthRequest="50" HeightRequest="50" />
@@ -1091,7 +1126,7 @@ public static class CustomAnimsExtensions
     //   await ExplodingContainer.ExplodeView();
     // }
 
-    
+
     //XAML
     // <Grid>
     //     <Grid x:Name="Toolbar" BackgroundColor="LightBlue" HeightRequest="50">

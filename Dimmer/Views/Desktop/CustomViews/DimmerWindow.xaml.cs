@@ -103,7 +103,7 @@ public partial class DimmerWindow : Window
 
                 try
                 {
-                    await Task.Delay(300, token);
+                    await Task.Delay(600, token);
 
                     if (!string.IsNullOrEmpty(txt))
                     {

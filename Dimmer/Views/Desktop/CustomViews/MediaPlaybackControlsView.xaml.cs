@@ -22,7 +22,7 @@ public partial class MediaPlaybackControlsView : ContentView
     {
         MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         BindingContext = MyViewModel;
-        //MyViewModel.QueueCV = NowPlayingPlaylistView;
+        
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -136,6 +136,10 @@ public partial class MediaPlaybackControlsView : ContentView
             // Negative delta indicates wheel scrolled down
             if (mouseWheelDelta > 0)
             {
+                if (MyViewModel.VolumeSliderValue >=1)
+                {
+                    return;
+                }
                 MyViewModel.IncreaseVolumeCommand.Execute(true);
                 // Handle scroll up
             }

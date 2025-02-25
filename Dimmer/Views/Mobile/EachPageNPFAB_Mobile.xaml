@@ -93,6 +93,7 @@
                 WidthRequest="140" HeightRequest="140" VerticalOptions="Fill"
                      BorderWidth="0" CornerRadius="40" Scale="0.9"
                 Text="{Binding TemporarilyPickedSong.Title}" Opacity="0.8" />
+                    
                     </dx:RadialProgressBar.Content>
 
                 </dx:RadialProgressBar>

@@ -1,6 +1,6 @@
 ﻿global using CommunityToolkit.Maui;
 global using CommunityToolkit.Maui.Storage;
-
+global using SkiaSharp;
 global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;

@@ -1,6 +1,3 @@
-
-using DevExpress.Maui.Core;
-using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SingleSongShell : ContentPage

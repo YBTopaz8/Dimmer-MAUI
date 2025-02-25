@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using DevExpress.Maui.Core.Internal;
-using static ATL.Logging.Log;
 
 namespace Dimmer_MAUI.ViewModels;
 
@@ -1183,7 +1181,7 @@ public partial class HomePageVM
         {
             CurrentLyricPhrase.NowPlayingLyricsFontSize = FocusedLyricSize;
             CurrentLyricPhrase.LyricsFontAttributes = FontAttributes.Bold;
-            if (SyncLyricsCV is null )
+            if (SyncLyricsCV is null || SyncLyricsCV.ItemsSource is null)
             {
                 return;
             }

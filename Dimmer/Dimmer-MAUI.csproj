@@ -193,6 +193,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.40" />
     <!--<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />-->
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
@@ -200,7 +201,7 @@
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.17.0" />
+    <PackageReference Include="z440.atl.core" Version="6.18.0" />
 
   </ItemGroup>
 
@@ -351,7 +352,7 @@
     <Folder Include="Utilities\OtherUtils\ParseStaticUtils\" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
-    <ProjectReference Include="..\..\MAUI.TableView\YB.MauiDataGridView\YB.MauiDataGridView.csproj" />
+    <!--<ProjectReference Include="..\..\MAUI.TableView\YB.MauiDataGridView\YB.MauiDataGridView.csproj" />-->
 
     <!--<PackageReference Include="WinUI.TableView">
       <Version>1.2.2</Version>

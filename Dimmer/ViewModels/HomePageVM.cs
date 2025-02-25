@@ -175,7 +175,7 @@ public partial class HomePageVM : ObservableObject
         LyricsSearchArtistName = MySelectedSong?.ArtistName;
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
         
-        LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+        //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
         PartOfNowPlayingSongs?.Clear(); 
         
         
@@ -653,6 +653,7 @@ public partial class HomePageVM : ObservableObject
 
     public void PauseSong()
     {
+        //CurrentPositionInSeconds = PlayBackService.CurrentPosition;
         PlayBackService.PauseResumeSong(CurrentPositionInSeconds, true);
     }
     
@@ -1563,7 +1564,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (newValue)
         {
-            UpdateContextMenuData(MySelectedSong);            
+            UpdateContextMenuData(MySelectedSong);
         }
 
     }
