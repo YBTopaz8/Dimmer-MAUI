@@ -501,30 +501,19 @@ public partial class HomePageM : ContentPage
                 if (e.AddedItems?.Count > 0)
                 {
                     foreach (LyricPhraseModel newItem in e.AddedItems.Cast<LyricPhraseModel>())
-                        newItem.NowPlayingLyricsFontSize = 60;
+                        newItem.NowPlayingLyricsFontSize = 40;
                 }
 
                 // Wait a bit so font size change is visible before scrolling
                 await Task.Delay(10);
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    //var itemHandle = LyricsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
-                    //LyricsColView.ScrollTo(itemHandle,DXScrollToPosition.Start);
+                    var itemHandle = LyricsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                    LyricsColView.ScrollTo(itemHandle,DXScrollToPosition.Start);
                 }
                 );
-                // Scroll AFTER font size animation
             }
 
-            // Animate selection smoothly
-            if (e.AddedItems.FirstOrDefault() is LyricPhraseModel selectedLyric)
-            {
-                var item = LyricsColView.ItemTemplate.CreateContent() as View;
-                if (item != null)
-                {
-                    item.TranslationY = 50;
-                    await item.TranslateTo(0, 0, 400, Easing.BounceOut);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -558,5 +547,10 @@ public partial class HomePageM : ContentPage
         var send = (ChoiceChipGroup)sender;
         var chip = (Chip)send.SelectedItem;
         SearchParam = chip.TapCommandParameter.ToString()!;
+    }
+
+    private void PlayFromNPList_Tapped(object sender, TappedEventArgs e)
+    {
+
     }
 }

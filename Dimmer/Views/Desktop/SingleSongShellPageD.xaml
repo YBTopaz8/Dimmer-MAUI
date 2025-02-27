@@ -16,8 +16,7 @@
         <ResourceDictionary>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
             <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
             <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
@@ -157,32 +156,35 @@
                     </HorizontalStackLayout>-->
                     </Grid>
 
-                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="5">
-                    <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center"
-                                       ChipType="Choice" ChoiceMode="Single" ChipTextSize="30"
+                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="5" Margin="10,0" >
+                    <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
+                                       ChipType="Choice" ChoiceMode="Single" ChipTextSize="60"
                                        SelectionChanged="SongShellChip_SelectionChanged"
+                                       SelectedChipTextColor="White"
                                        SelectionIndicatorColor="DarkSlateBlue"
                                        x:Name="StatsTabs" toolkit:DockLayout.DockPosition="Top">
                         <syncf:SfChipGroup.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="syncf:SfChip">
-                                    <Setter Property="FontSize" Value="30"/>
+                                    <Setter Property="FontSize" Value="40"/>
+                                    <Setter Property="TextColor" Value="Gray"/>
                                 </Style>
                             </ResourceDictionary>
                         </syncf:SfChipGroup.Resources>
                         <syncf:SfChip Text="Sync Lyrics" x:Name="SyncLyricsChip" CommandParameter="0"/>
                         <syncf:SfChip Text="Plain Lyrics" x:Name="PlainLyricsChip"  CommandParameter="1" IsVisible="False"/>
                         <syncf:SfChip Text="Search Lyrics" x:Name="SearchLyricsChip"  CommandParameter="2"/>
-                        <syncf:SfChip Text="Details" x:Name="SongDetailsChip"  CommandParameter="3" FontSize="16"/>
+                        <syncf:SfChip Text="Details" x:Name="SongDetailsChip"  CommandParameter="3" />
                         <syncf:SfChip Text="SongStats" x:Name="SongStatsChip"  CommandParameter="4"/>
                 
                     </syncf:SfChipGroup>
-                
-                    <Grid x:Name="SyncedLyricGrid" Grid.Row="1" IsVisible="True" Margin="10,0">
-                        <CollectionView x:Name="LyricsColView" ItemsSource="{Binding SynchronizedLyrics}"                                        
-                                        Loaded="LyricsColView_Loaded"
-                                        Unloaded="LyricsColView_Unloaded"
-                                        SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}"
+                    
+                    <Grid x:Name="SyncedLyricGrid" Grid.Row="1" IsVisible="True" >
+                        <CollectionView x:Name="LyricsColView" 
+                                        ItemsSource="{Binding SynchronizedLyrics}"                                        
+                                        Loaded="LyricsColView_Loaded" Unloaded="LyricsColView_Unloaded"
+                                        SelectionMode="Single" 
+                                        SelectedItem="{Binding CurrentLyricPhrase}"
                                         EmptyView="No Syncronized Lyrics ...">
                             <CollectionView.ItemsLayout>
                                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
@@ -226,7 +228,7 @@
 
                     </Grid>
                     
-                    <Grid x:Name="PlainLyricsGrid" Grid.Row="1" IsVisible="False" Margin="10,0">
+                    <Grid x:Name="PlainLyricsGrid" Grid.Row="1" IsVisible="False" >
                         <Border>
                             <ScrollView>
                                 <Label Text="{Binding MySelectedSong.UnSyncLyrics}"/>
@@ -235,7 +237,7 @@
                     </Grid>
 
                     <Grid x:Name="SearchLyricsGrid" Grid.Row="1" 
-                          IsVisible="False" Margin="10,0">
+                          IsVisible="False" >
                         <Border>
                             <Grid BackgroundColor="Transparent" Margin="5,5" RowDefinitions="Auto, *">
                             <Grid.Resources>
@@ -290,64 +292,104 @@
                                 </CollectionView>
                             </VerticalStackLayout>
 
-                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
+                                <syncf:SfTabView Grid.Row="1" >
+                                    <syncf:SfTabItem Header="Lyrics Search Result">
+                                        <syncf:SfTabItem.Content>
+                                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
             x:DataType="vm:HomePageVM">
-                                <CollectionView.EmptyView>
-                                    <ContentView>
-                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
+                                                <CollectionView.EmptyView>
+                                                    <ContentView>
+                                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
                                  BackgroundColor="Transparent"
                                  x:Name="emptyV">
-                                            <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
+                                                            <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
 
-                                            <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                                            <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
                    HeightRequest="0" WidthRequest="0" />
-                                            <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+                                                            <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
                    IsVisible="False" IsAnimationPlaying="False"/>
 
-                                            <Label Text="Service is Unavailable, try again !" 
+                                                            <Label Text="Service is Unavailable, try again !" 
                    x:Name="NoLyricsFoundMsg" IsVisible="False"
                    />
-                                        </VerticalStackLayout>
+                                                        </VerticalStackLayout>
 
-                                    </ContentView>
-                                </CollectionView.EmptyView>
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Content">
+                                                    </ContentView>
+                                                </CollectionView.EmptyView>
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:Content">
 
-                                        <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
+                                                        <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
                             Padding="10" Margin="0,5">
-                                            <VerticalStackLayout HorizontalOptions="Start" >
+                                                            <VerticalStackLayout HorizontalOptions="Start" >
 
-                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
+                                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
 
-                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
+                                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
+                                                                <Label Text="{Binding Instrumental}" />
+                                                                <Label Text="{Binding Duration}" />
+                                                                <Label Text="{Binding Id}" />
+                                                                <Label Text="{Binding LinkToCoverImage}" />
+                                                                <Label Text="{Binding  istOfLinksToCoverImages}" />
+                                                                <HorizontalStackLayout IsVisible="{Binding Instrumental}">
+                                                                    <Label Text="Song is an Intrumental" />
+                                                                </HorizontalStackLayout>
 
-                                                <HorizontalStackLayout IsVisible="{Binding Instrumental}">
-                                                    <Label Text="Song is an Intrumental" />
-                                                </HorizontalStackLayout>
+                                                                <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
 
-                                                <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
-
-                                                    <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                                                                    <Button Text="Plain Lyrics" HorizontalOptions="Center" 
                                         Clicked="ViewLyricsBtn_Clicked" BackgroundColor="#5A4CA3"
                                         IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"/>
 
-                                                    <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                                                                    <Button Text="Synced Lyrics" HorizontalOptions="Center" 
                                         IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
-                                                </HorizontalStackLayout>
-                                            </VerticalStackLayout>
-                                        </Border>
+                                                                </HorizontalStackLayout>
+                                                            </VerticalStackLayout>
+                                                        </Border>
 
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                        </syncf:SfTabItem.Content>
+                                    </syncf:SfTabItem>
+
+                                    <syncf:SfTabItem Header="View Lyrics">
+                                        <syncf:SfTabItem.Content>
+                                            <Grid RowDefinitions="*,Auto">
+                                                <CollectionView Grid.Row="0"
+                                                                
+                                                                ItemsSource="{Binding LyricsLines}">
+                                                    <CollectionView.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                                                <Editor Text="{Binding Text}" Grid.Column="0"/>
+                                                                <HorizontalStackLayout Grid.Column="1">
+                                                                    <Editor Text="{Binding TimeStampText}" WidthRequest="70"/>
+                                                                    <ImageButton Source="backk.png" CommandParameter="{Binding .}"
+                                 x:Name="DeleteLine" Clicked="DeleteLine_Clicked"/>
+                                                                    <ImageButton Source="time.png" CommandParameter="{Binding .}"
+                                 x:Name="Stamp" Clicked="Stamp_Clicked"/>
+                                                                </HorizontalStackLayout>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </CollectionView.ItemTemplate>
+                                                </CollectionView>
+                                                <Button Grid.Row="1"
+                                                    Text="Save" x:Name="SaveCapturedLyrics" Clicked="SaveCapturedLyrics_Clicked"/>
+
+                                            </Grid>
+                                            
+                                            
+                                        </syncf:SfTabItem.Content>
+                                    </syncf:SfTabItem>
+                                </syncf:SfTabView>
                         </Grid>
                         </Border>
                     </Grid>
                     
-                    <Grid x:Name="SongStatsGrid" Grid.Row="1" IsVisible="False" Margin="10,0" >
+                    <Grid x:Name="SongStatsGrid" Grid.Row="1" IsVisible="False"  >
                         <Border >
 
                             <ScrollView >
@@ -448,8 +490,7 @@
                         </Border>
                     </Grid>
 
-                    <Grid x:Name="SongDetails" Grid.Row="1"
-                          IsVisible="False" Margin="10,0">
+                    <Grid x:Name="SongDetails" Grid.Row="1" IsVisible="False" >
                         <ScrollView HorizontalOptions="Center"
                                 Margin="5" Padding="20">                            
                             <ScrollView.Resources>

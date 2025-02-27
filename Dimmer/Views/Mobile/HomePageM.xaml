@@ -23,13 +23,9 @@
             </Style>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
-            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
-            
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>            
             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-    
         </ResourceDictionary>
- 
-
     </ContentPage.Resources>
 
     <Grid x:Name="MainPage" Margin="5,0" >
@@ -39,7 +35,6 @@
 
             <dx:DXDockLayout IsVisible="True" StretchLastItem="False" x:Name="NormalNowPlayingUI"
                             Loaded="NormalNowPlayingUI_Loaded" Grid.Row="0" 
-                                 
                             Unloaded="NormalNowPlayingUI_Unloaded">
 
                 <dx:DXStackLayout x:Name="SearchModeUI" dx:DXDockLayout.Dock="Top"
@@ -151,9 +146,9 @@
                                     <dx:DXImage Opacity="0.3"
                              Aspect="AspectFill"
                             Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-                                    <dx:DXCollectionView x:Name="LyricsColView" ItemsSource="{Binding SynchronizedLyrics}"                                
-                                    HeightRequest="230" 
-                            SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}">
+                                    <dx:DXCollectionView x:Name="LyricsColView" SelectionChanged="LyricsColView_SelectionChanged"
+                                                         ItemsSource="{Binding SynchronizedLyrics}"                                
+                                                         HeightRequest="230" SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}">
 
                                         <dx:DXCollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:LyricPhraseModel">
@@ -166,9 +161,9 @@
 
                                         </dx:DXCollectionView.ItemTemplate>
                                         <dx:DXCollectionView.SelectedItemAppearance>
-                                            <dx:CollectionViewSelectedItemAppearance>
-                                                
-                                            </dx:CollectionViewSelectedItemAppearance>
+                                            <dx:CollectionViewSelectedItemAppearance TextColor="DarkSlateBlue"
+                                                                                     FontSize="30"
+                                                                                     />
                                         </dx:DXCollectionView.SelectedItemAppearance>
                                     </dx:DXCollectionView>
                                 </Grid>
@@ -266,8 +261,6 @@
             </dx:DXBorder.Content>
                 
     </dx:DXBorder>
-
-
            
         </Grid>
         <dx:BottomSheet x:Name="CurrentQueueListBtmSheetView"
@@ -285,51 +278,37 @@
                                      Content="Save Playlist"/>
                     </Grid>
                     <dx:DXStackLayout>
-                        <dx:DXCollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" Margin="5,5" Grid.Row="1"
-                 Header="Songs Queue" VerticalOptions="End" ItemSpacing="4" 
-                                             
-                 x:Name="CurrQueueColView" Loaded="CurrQueueColView_Loaded">
+                        <dx:DXCollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" 
+                                             Margin="5,5" Grid.Row="1"
+                                             Header="Songs Queue" VerticalOptions="End" 
+                                             ItemSpacing="4" x:Name="CurrQueueColView" 
+                                             Loaded="CurrQueueColView_Loaded">
+                            
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:SongModelView">
-                                    <dx:DXButton HorizontalContentAlignment="Fill"
-                                                 x:Name="SingleSongRow"
-                                                 TapReleased="SingleSongRow_TapReleased">
-                                        
+                                    <dx:DXBorder HorizontalOptions="Fill"
+                                                 x:Name="SingleSongRow">
+                                        <dx:DXBorder.Triggers>
+                                            <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                <Setter Property="BorderColor" Value="#1E1E1E" />
+                                            </DataTrigger>
+                                        </dx:DXBorder.Triggers>
+                                        <dx:DXBorder.GestureRecognizers>
+                                            <TapGestureRecognizer x:Name="PlayFromNPList" Tapped="PlayFromNPList_Tapped"/>
+                                        </dx:DXBorder.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,*" Margin="10,0">
                                                 <dx:DXStackLayout BackgroundColor="Transparent" Grid.Column="0">
-                                                    <Label Text="{Binding Title}" FontSize="20" HorizontalOptions="Start"/>
-                                                    <Label Text="{Binding ArtistName}" FontSize="15" TextColor="Gray"/>
+                                                <Label Text="{Binding Title}" FontSize="20" HorizontalOptions="Start"/>
+                                                <Label Text="{Binding ArtistName}" FontSize="15" TextColor="Gray"/>
+                                                
+                                            </dx:DXStackLayout>
 
-                                                </dx:DXStackLayout>
-
-                                            <dx:DXButton 
-                                                x:Name="SongFrom2ndaryQueueBtn"
-                                                HorizontalContentAlignment="Fill"
-                                                Grid.Column="1" Tap="SongFrom2ndaryQueueBtn_Tap">
-                                                <dx:DXStackLayout BackgroundColor="Transparent">
-                                                    <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                                    <Image WidthRequest="20" IsVisible="{Binding HasLyrics}" 
-                                    Source="lyrics.png" >
-
-                                                    </Image>
-                                                    <Image Source="songc.png"
-                                        WidthRequest="25"
-                                        HorizontalOptions="Start">
-                                                        <Image.Triggers>
-                                                            <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                                                <Setter Property="IsVisible" Value="True" />
-                                                            </DataTrigger>
-                                                            <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                                                <Setter Property="IsVisible" Value="False" />
-                                                            </DataTrigger>
-                                                        </Image.Triggers>
-                                                    </Image>
-                                                </dx:DXStackLayout>
-
-                                            </dx:DXButton>
                                             </Grid>
                                         
-                                    </dx:DXButton>
+                                    </dx:DXBorder>
                                 </DataTemplate>
                             </dx:DXCollectionView.ItemTemplate>
                         </dx:DXCollectionView>

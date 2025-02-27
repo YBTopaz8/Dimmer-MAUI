@@ -241,6 +241,10 @@ public partial class AppShell : Shell
             case Windows.System.VirtualKey.ModeChange:
                 break;
             case Windows.System.VirtualKey.Space:
+                if (MyViewModel.IsOnSearchMode)
+                {
+                    return;
+                }
                 if (MyViewModel.IsPlaying)
                 {
                     MyViewModel.PauseSong();
@@ -751,7 +755,11 @@ public partial class AppShell : Shell
 
                 if (properties.IsRightButtonPressed)
                 {
-                    MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
+                    if (MyViewModel.IsMultiSelectOn)
+                    {
+                        MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
+                    }
+                     
                     Debug.WriteLine("Right mouse button pressed.");
                 }
 

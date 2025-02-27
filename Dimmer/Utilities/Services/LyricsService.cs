@@ -444,7 +444,7 @@ public class LyricsService : ILyricsService
     public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v1.0.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v1.4.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
         try
         {

@@ -683,4 +683,24 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         var LoadedLyric = (Border)sender;
         LoadedLyric = LyrBorder;
     }
+
+    private void Stamp_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
+        
+    }
+
+    private void DeleteLine_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        
+        MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
+    }
 }

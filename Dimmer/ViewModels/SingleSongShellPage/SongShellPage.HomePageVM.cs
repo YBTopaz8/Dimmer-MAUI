@@ -137,25 +137,45 @@ public partial class HomePageVM
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
 
-        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();
-        AllLinks = SongsMgtService.AllLinks;
+        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();  // .ToList() is fine here
+        AllLinks = SongsMgtService.AllLinks; // Assuming AllLinks is already a List or similar
 
+        // Use LINQ's Where and ToDictionary to filter out null LocalDeviceIds.
+        // This prevents NullReferenceExceptions.
         _songIdToTitleMap = SongsMgtService.AllSongs
-            .ToDictionary(s => s.LocalDeviceId!.ToLower(), s => s.Title, StringComparer.OrdinalIgnoreCase)!;
-        
+            .Where(s => s.LocalDeviceId != null)  // Filter out songs with null IDs
+            .ToDictionary(
+                s => s.LocalDeviceId!.ToLower(),  // Use the null-forgiving operator (!) after filtering
+                s => s.Title,
+                StringComparer.OrdinalIgnoreCase
+            );
+
         _songIdToReleaseYearMap = SongsMgtService.AllSongs
-            .Where(s => s.ReleaseYear > 0)
-            .ToDictionary(s => s.LocalDeviceId!.ToLower(), s => s.ReleaseYear, StringComparer.OrdinalIgnoreCase);
+            .Where(s => s.LocalDeviceId != null && s.ReleaseYear > 0) // Filter null IDs and invalid years
+            .ToDictionary(
+                s => s.LocalDeviceId!.ToLower(),
+                s => s.ReleaseYear,
+                StringComparer.OrdinalIgnoreCase
+            );
 
         _songIdToDurationMap = SongsMgtService.AllSongs
-            .Where(s => s.DurationInSeconds > 0)
-            .ToDictionary(s => s.LocalDeviceId!.ToLower(), s => s.DurationInSeconds, StringComparer.OrdinalIgnoreCase);
+            .Where(s => s.LocalDeviceId != null && s.DurationInSeconds > 0) // Filter null IDs and invalid durations
+            .ToDictionary(
+                s => s.LocalDeviceId!.ToLower(),
+                s => s.DurationInSeconds,
+                StringComparer.OrdinalIgnoreCase
+            );
 
         _songIdToGenreMap = SongsMgtService.AllSongs
-            .Where(s => s.GenreName != null)
-            .ToDictionary(s => s.LocalDeviceId!.ToLower(), s => s.GenreName, StringComparer.OrdinalIgnoreCase)!;
+            .Where(s => s.LocalDeviceId != null && s.GenreName != null)  // Filter null IDs and null genres
+            .ToDictionary(
+                s => s.LocalDeviceId!.ToLower(),
+                s => s.GenreName!, // Null-forgiving operator here, as we've filtered out nulls
+                StringComparer.OrdinalIgnoreCase
+            ); // No need for the ! at the end; ToDictionary returns a non-nullable Dictionary
+
         InitializeAlbumMapping();
-        InitializeArtistMapping();        
+        InitializeArtistMapping();
     }
     #endregion
 

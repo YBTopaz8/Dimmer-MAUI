@@ -204,8 +204,11 @@ public partial class SongModelView : ObservableObject
                 SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x)).ToObservableCollection();
             }
         }
-       
 
+        else
+        {
+
+        }
     }
 
     public SongModelView(SongModel model, ObservableCollection<PlayDateAndCompletionStateSongLink>? AllPlayLinks = null) : this(model)

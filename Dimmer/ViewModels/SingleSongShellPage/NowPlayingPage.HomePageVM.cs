@@ -1,4 +1,7 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
     [ObservableProperty]
@@ -159,14 +162,20 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModel>? LyricsLines { get; set; } = new();
     [RelayCommand]
-    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-             PlaySong(TemporarilyPickedSong);
+            await Shell.Current.DisplayAlert("Warning", "You must be playing a song to capture a timestamp.", "OK");
+            return;
+            //PlaySong(TemporarilyPickedSong);
         }
 
+        if (CurrPosition < 0)
+        {
+            return;
+        }
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
         if (Lyricline is null)
             return;
@@ -195,67 +204,37 @@ public partial class HomePageVM
         if (TemporarilyPickedSong?.UnSyncLyrics == null)
             return;
 
-        // Define the terms to be removed
-        string[] termsToRemove = new[]
-        {
-        "[Chorus]", "Chorus", "[Verse]", "Verse", "[Hook]", "Hook",
-        "[Bridge]", "Bridge", "[Intro]", "Intro", "[Outro]", "Outro",
-        "[Pre-Chorus]", "Pre-Chorus", "[Instrumental]", "Instrumental",
-        "[Interlude]", "Interlude"
-        };
+        // Define the terms to be removed using a regular expression
+        string termsToRemovePattern = @"\[?\s*(Chorus(es)?|Verse(s)?|Hook(s)?|Bridge(s)?|Intro|Outro|Pre[- ]?Chorus|Instrumental|Interlude)\s*\]?";        //string termsToRemovePattern = string.Join("|", termsToRemove.Select(Regex.Escape)); // Alternative with your array.
 
-        // Remove all the terms from the lyrics
-        string cleanedLyrics = TemporarilyPickedSong.UnSyncLyrics;
-        foreach (var term in termsToRemove)
-        {
-            cleanedLyrics = cleanedLyrics.Replace(term, string.Empty, StringComparison.OrdinalIgnoreCase);
-        }
+        // Remove all the terms from the lyrics using Regex.Replace
+        string cleanedLyrics = Regex.Replace(TemporarilyPickedSong.UnSyncLyrics, termsToRemovePattern, "", RegexOptions.IgnoreCase);
 
+        // Split and filter the lyrics lines
         string[]? ss = cleanedLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-        splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line))
-            .ToArray();
+        splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
         if (splittedLyricsLines is null || splittedLyricsLines.Length < 1)
         {
             return;
         }
+        // Clear the existing items. This will trigger a UI update.
+        LyricsLines?.Clear();
+
+        // Add the new items.  This will trigger *another* UI update.
         foreach (var item in splittedLyricsLines)
         {
-            var LyricPhrase = new LyricsPhrase(0, item);
-            LyricPhraseModel newLyric = new(LyricPhrase);
-            LyricsLines?.Add(newLyric);
+            LyricsLines.Add(new LyricPhraseModel(new LyricsPhrase(0, item)));
         }
     }
-
     static string RemoveTextAndFollowingNewline(string input, string textt)
     {
-        string result = input;
-
-        int index = result.IndexOf(textt);
-
-        while (index != -1)
-        {
-            int nextCharIndex = index + textt.Length;
-            if (nextCharIndex < result.Length)
-            {
-                if (result[nextCharIndex] == '\r' || result[nextCharIndex] == '\n')
-                {
-                    result = result.Remove(index, textt.Length + 1);
-                }
-                else
-                {
-                    result = result.Remove(index, textt.Length);
-                }
-            }
-            else
-            {
-                result = result.Remove(index, textt.Length);
-            }
-
-            index = result.IndexOf(textt);
-        }
-
-        return result;
+        // Escape the text to be removed to handle special regex characters.
+        string escapedText = Regex.Escape(textt);
+        // The regex:  Find the text, followed by an optional \r, then a required \n.
+        //             Or, just the text at the end of the string.
+        string pattern = $@"{escapedText}(\r?\n|$)";
+        return Regex.Replace(input, pattern, "", RegexOptions.None); // or RegexOptions.Compiled for even more speed
     }
 
     [RelayCommand]

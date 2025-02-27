@@ -1059,7 +1059,7 @@ public partial class HomePageVM : ObservableObject
             {
                 CurrentPositionInSeconds = position.CurrentTimeInSeconds;
                 CurrentPositionPercentage = position.CurrentPercentagePlayed;
-                if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
+                if (CurrentPositionPercentage >= 0.98 && IsPlaying && IsOnLyricsSyncMode)
                 {
                     PauseSong();
                     MainThread.BeginInvokeOnMainThread(async () =>

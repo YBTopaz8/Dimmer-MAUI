@@ -450,6 +450,7 @@ public partial class HomePageVM
 
         try
         {
+
             IsFlyoutPresented = !IsFlyoutPresented;
             if (Shell.Current == null)
             {
