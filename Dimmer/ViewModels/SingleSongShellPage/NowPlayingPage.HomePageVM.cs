@@ -6,6 +6,10 @@ public partial class HomePageVM
 {
     [ObservableProperty]
     public partial int NPLyricsFontSize { get; set; }
+    [ObservableProperty]
+    public partial Label? InternalNotificationLabelVM { get; set; }
+    [ObservableProperty]
+    public partial SearchBar? InternalSearchSongSBVM { get; set; }
     [RelayCommand]
     public void IncreaseNowPlayingLyricsFontSize()
     {
@@ -34,6 +38,7 @@ public partial class HomePageVM
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
                 SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong!.LocalDeviceId)!.HasLyrics = true;
+                await ShowNotificationInternally("Saved Synced Lyrics To Device");
             }
         }
     }
@@ -315,28 +320,47 @@ public partial class HomePageVM
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
+            await ShowNotificationInternally("Already Favorite");
+
             return;
         }
-        else if (!MySelectedSong.IsFavorite && !willBeFav)
+        if (!MySelectedSong.IsFavorite && !willBeFav)
         {
+            await ShowNotificationInternally("Not Fav");
+
+
             return;
         }
-        else if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
+        if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
             UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+            await ShowNotificationInternally("Removed from Favorites");
+
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
             UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+            await ShowNotificationInternally("Added to Favorites");
             return;
-        };
-        if (CurrentUser.IsLoggedInLastFM)
-        {
-            //LastFMUtils.RateSong(MySelectedSong, willBeFav);
         }
+        //if (CurrentUser.IsLoggedInLastFM)
+        //{
+        //    //LastFMUtils.RateSong(MySelectedSong, willBeFav);
+        //}
 
     }
 
-
+    private async Task ShowNotificationInternally(string msgText, int delayBtnSwitch=3000)
+    {
+        if (InternalNotificationLabelVM is null || InternalSearchSongSBVM is null)
+            return;
+        InternalNotificationLabelVM.Text= msgText;
+        await Task.WhenAll(
+            InternalNotificationLabelVM.DimmInCompletely(), 
+            InternalSearchSongSBVM.DimmOutCompletely(),
+                Task.Delay(delayBtnSwitch),
+                InternalSearchSongSBVM.DimmInCompletely(),
+                InternalNotificationLabelVM.DimmOutCompletely());
+    }
 }

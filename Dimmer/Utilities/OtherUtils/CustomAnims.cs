@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui.Controls.Shapes;
+﻿using Microsoft.Maui.ApplicationModel.Communication;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace Dimmer_MAUI.Utilities.OtherUtils;
 
@@ -30,7 +31,7 @@ public static class CustomAnimsExtensions
     public static async Task DimmInCompletely(this View element, double duration = 350)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
-
+        
     }
 
     public static async Task AnimateRippleBounce(this View element, int bounceCount = 3, double bounceHeight = 20, uint duration = 200)

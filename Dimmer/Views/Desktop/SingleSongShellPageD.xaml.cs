@@ -89,31 +89,7 @@ public partial class SingleSongShellPageD : ContentPage
         base.OnNavigatedTo(args);
        
     }
-    private void TabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
-    {
-        switch (e.NewIndex)
-        {
-            case 0:
-                break;
-            case 1:
-                //emptyV.IsVisible = false;
-                if (MyViewModel.AllSyncLyrics is not null)
-                {
-                    MyViewModel.AllSyncLyrics = new();
-                }
-                break;
-            case 2:
-                break;
-            default:
-                
-                break;
-        }
-        if (e.NewIndex == 2)
-        {
-            MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.MySelectedSong);
-        }
-    }
-
+  
     private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
         var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
@@ -162,31 +138,7 @@ public partial class SingleSongShellPageD : ContentPage
     }
 
     bool isOnFocusMode = false;
-    /*
-    private async void FocusModePointerRec_PointerEntered(object sender, PointerEventArgs e)
-    {
-        if (isOnFocusMode)
-        {
-            if (ViewModel.IsSleek)
-            {
-                return;
-            }
-            await FocusModeUI.AnimateFocusModePointerEnter(500);
-            leftImgBtn.IsVisible = true;
-            rightImgBtn.IsVisible = true;
-        }
-    }
-
-    private async void FocusModePointerRec_PointerExited(object sender, PointerEventArgs e)
-    {
-        if (isOnFocusMode)
-        {
-            await FocusModeUI.AnimateFocusModePointerExited(500);
-            leftImgBtn.IsVisible = false;
-            rightImgBtn.IsVisible = false;
-        }
-    }
-    */
+  
     private void ToggleSleekModeClicked(object sender, EventArgs e)
     {
 
@@ -295,24 +247,11 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
-        //        emptyV.IsVisible = true;
-        //        await Task.WhenAll(Lookgif.AnimateFadeInFront(), fetchFailed.AnimateFadeOutBack(),
-        //NoLyricsFoundMsg.AnimateFadeOutBack());
-
-        //        Lookgif.IsVisible = true;
-
+        
         await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
 
         await MyViewModel.FetchLyrics(true);
 
-//        await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
-//NoLyricsFoundMsg.AnimateFadeInFront());
-//        fetchFailed.IsAnimationPlaying = false;
-        
-//        await Task.Delay(3000);
-//        fetchFailed.IsAnimationPlaying = false;
-//        fetchFailed.IsVisible = false;
-//        emptyV.IsVisible = false;
     }
 
     private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)

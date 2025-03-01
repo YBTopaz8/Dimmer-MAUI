@@ -190,4 +190,12 @@ public static class PlatSpecificUtils
             }
         }
     }
+
+    public enum BackdropType
+    {
+        Mica,
+        Acrylic,
+        Default // Or None, if you want a standard backdrop
+    }
+
 }

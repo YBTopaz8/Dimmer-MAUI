@@ -247,8 +247,8 @@
                                 </Grid.Resources>
 
                                 <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Grid.ColumnSpan="2">
-                                    <ImageButton Source="backb.png" 
-                                                 />
+                                    
+<ImageButton Source="backb.png"  />
                                 </HorizontalStackLayout>
                                 
                                 <VerticalStackLayout Grid.Row="0" Spacing="10" 

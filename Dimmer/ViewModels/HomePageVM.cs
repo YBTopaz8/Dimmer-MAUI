@@ -191,7 +191,7 @@ public partial class HomePageVM : ObservableObject
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
-                CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
+                //CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
                 switch (CurrentViewIndex)
                 {
                     case 0:
@@ -1389,24 +1389,111 @@ public partial class HomePageVM : ObservableObject
             CurrentSortingOption = e;
             if (CurrentPage == PageEnum.MainPage)
             {
-                DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs!, CurrentSortingOption);
+                DisplayedSongs = ApplySorting(DisplayedSongs!, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
                 DisplayedSongsColView.ItemsSource = null;
                 DisplayedSongsColView.ItemsSource = DisplayedSongs;
 
             }
             else if (CurrentPage == PageEnum.AllArtistsPage)
             {
-                AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
+                AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
                 
             }
             else if (CurrentPage == PageEnum.SpecificAlbumPage)
             {
-                AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
+                AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
             }
         }
 
         IsLoadingSongs = false;
     }
+
+
+    public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
+    {
+        IEnumerable<SongModelView> sortedSongs = colToSort;
+
+        switch (mode)
+        {
+            case SortingEnum.TitleAsc:
+                sortedSongs = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.TitleDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameAsc:
+                sortedSongs = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedAsc:
+                sortedSongs = colToSort.OrderBy(x => x.DateCreated).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.DateCreated).ToObservableCollection();
+                break;
+            case SortingEnum.DurationAsc:
+                sortedSongs = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.DurationDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.YearAsc:
+                sortedSongs = colToSort.OrderBy(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                break;
+            case SortingEnum.YearDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                break;
+
+            // --- Play Count Sorting ---
+            case SortingEnum.NumberOfTimesPlayedAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
+                break;
+            case SortingEnum.NumberOfTimesPlayedDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
+                break;
+
+            // --- Skipped Sorting ---
+            case SortingEnum.MostSkippedAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostSkippedDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+
+            // --- Played Completely Sorting ---
+            case SortingEnum.MostPlayedCompletelyAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostPlayedCompletelyDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
+                break;
+
+            // --- Played Incompletely Sorting ---
+            case SortingEnum.MostPlayedIncompletelyAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostPlayedIncompletelyDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+
+
+            case SortingEnum.RatingAsc:
+                sortedSongs = colToSort.OrderBy(x => x.Rating);
+                break;
+            case SortingEnum.RatingDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.Rating);
+                break;
+          
+
+            default:
+                break;
+        }
+        AppSettingsService.SortingModePreference.SetSortingPref(mode);
+        return sortedSongs.ToObservableCollection(); // *Now* the sorting happens, all at once.
+    }
+
 
 
     int CurrentRepeatMaxCount;

@@ -72,26 +72,37 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             LoadPlayData(realmPlayData);
 
-            //var tempSongViews = new List<SongModelView>();
-            //foreach (var songModel in realmSongs)
-            //{
-            //    if (songModel.LocalDeviceId is null)
-            //    {
-            //        //realmSongs.Remove(songModel);
-            //        continue;
-            //    }
-            //    if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
-            //    {
-            //        tempSongViews.Add(new SongModelView(songModel, playDataForSong.ToObservableCollection()));
-            //    }
-            //    else
-            //    {
-            //        // Handle the case where there's no play data for the song (optional)
-            //        tempSongViews.Add(new SongModelView(songModel, null)); // Or an empty ObservableCollection
-            //    }
-            //}
+            var groupedPlayData = AllPlayDataLinks
+    .Where(link => link.SongId != null) // Filter out null SongIds
+    .GroupBy(link => link.SongId!)  // Use the null-forgiving operator (!)
+    .ToDictionary(group => group.Key, group => group.ToList());                                                           // --- 5. Create SongModelView with PlayData ---
+            var tempSongViews = new List<SongModelView>(); //temp list
+            foreach (var songModel in realmSongs)
+            {
+                if (songModel.LocalDeviceId is null)
+                {
+                    continue; // Skip if LocalDeviceId is null (shouldn't happen, but good practice)
+                }
 
+                SongModelView songView = new SongModelView(songModel); //create songview
 
+                if (groupedPlayData.TryGetValue(songModel.LocalDeviceId, out var playDataForSong))
+                {
+                    // Associate PlayDataLink list with the SongModelView
+                    songView.PlayData = playDataForSong;
+
+                    // Calculate statistics (efficiently, using the grouped data)
+                    songView.NumberOfTimesPlayed = playDataForSong.Count;
+                    songView.NumberOfTimesPlayedCompletely = playDataForSong.Count(p => p.WasPlayCompleted);
+                    // ... calculate other statistics (skipped, etc.) ...
+                }
+                //else: No PlayData, we do nothing, and the props are initialized with 0 by default.
+
+                tempSongViews.Add(songView);
+
+            }
+            //set AllSongs here
+            AllSongs = tempSongViews;
 
             GetAlbums();
             GetArtists();
@@ -106,34 +117,23 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     private void LoadPlayData(List<PlayDateAndCompletionStateSongLink> realmPlayData)
     {
         AllPlayDataLinks = new List<PlayDataLink>(realmPlayData
-            .Select(model => new PlayDataLink()
+        .Select(model =>
+        {
+            var link = new PlayDataLink()
             {
                 LocalDeviceId = model.LocalDeviceId!,
                 SongId = model.SongId,
                 DateStarted = model.DatePlayed.LocalDateTime,
-                DateFinished = model.DateFinished.LocalDateTime,
                 WasPlayCompleted = model.WasPlayCompleted,
                 PositionInSeconds = model.PositionInSeconds,
-                PlayType = model.PlayType,
+                PlayType = (int)model.PlayType, //cast
+                EventDate = (model.EventDate ?? model.DateFinished).LocalDateTime
+            };
 
-            }));
-        Dictionary<string, List<PlayDateAndCompletionStateSongLink>>? groupedPlayData =
-new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
-
-        foreach (var model in realmPlayData)
-        {
-            if (model.SongId is null)
-                continue;
-
-            if (!groupedPlayData.ContainsKey(model.SongId))
-            {
-                groupedPlayData[model.SongId] = new List<PlayDateAndCompletionStateSongLink>();
-            }
-
-            groupedPlayData[model.SongId].Add(model);
-        }
+            return link;
+        })
+        .ToList()); // The .ToList() is important here to materialize the results
     }
-
     public void GetGenres()
     {
         db = Realm.GetInstance(DataBaseService.GetRealm());
@@ -186,8 +186,8 @@ new Dictionary<string, List<PlayDateAndCompletionStateSongLink>>();
                 {
                     LocalDeviceId = playData.LocalDeviceId,
                     SongId = playData.SongId,
-                    DatePlayed = playData.DateStarted.ToUniversalTime(),
-                    DateFinished = playData.DateFinished.ToUniversalTime(),
+                    DatePlayed = playData.EventDate.ToUniversalTime(),
+                    //DateFinished = playData.EventDate.ToUniversalTime(),
                     WasPlayCompleted = playData.WasPlayCompleted,
                     PositionInSeconds = playData.PositionInSeconds,
                     PlayType = playData.PlayType

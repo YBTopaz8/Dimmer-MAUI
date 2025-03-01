@@ -20,13 +20,16 @@ public partial class DimmerWindow : Window
         base.OnActivated();
         MyViewModel.CurrentAppState = AppState.OnForeGround;
         MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
+        MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
+        MyViewModel.InternalSearchSongSBVM= SearchSongSB;
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
         MyViewModel.CurrentAppState = AppState.OnBackGround;
-
+        MyViewModel.InternalNotificationLabelVM = null;
+        MyViewModel.InternalSearchSongSBVM= null;
     }
     public HomePageVM MyViewModel { get; set; }
 
@@ -38,12 +41,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.3b-debug";
+        DimmerTitleBar.Subtitle = "v1.3c-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.3b-Release";
+        DimmerTitleBar.Subtitle = "v1.3c-Release";
 #endif
 
         if (!InitChecker())

@@ -22,12 +22,16 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <SearchBar Text="{Binding SearchText}"
-                           Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
-                           x:Name="SearchSongSB" HeightRequest="30"                           
-                           WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
+                <Grid>
+                    <SearchBar Text="{Binding SearchText}"
+           Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
+           x:Name="SearchSongSB" HeightRequest="30"                           
+           WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
 
-                </SearchBar>
+                    </SearchBar>
+                    <Label x:Name="InternalNotificationLabel" IsVisible="False"/>
+                </Grid>
+                
             </TitleBar.Content>
 
             <TitleBar.TrailingContent>

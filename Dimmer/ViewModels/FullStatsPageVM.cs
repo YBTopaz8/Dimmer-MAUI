@@ -9,9 +9,9 @@ public partial class HomePageVM
     public void InitializeHourlyPlayEventData(List<PlayDataLink> playData)
     {           
         HourlyPlayEventDataPlot = playData
-            .GroupBy(p => new { p.SongId, Hour = p.DateFinished.Hour })
+            .GroupBy(p => new { p.SongId, Hour = p.EventDate.Hour })
             .Select(g => g.First())
-            .GroupBy(p => p.DateFinished.Hour)
+            .GroupBy(p => p.EventDate.Hour)
             .Select(g => new DimmData
             {
                 TimeKey = g.Key.ToString(),

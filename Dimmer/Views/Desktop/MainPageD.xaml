@@ -126,7 +126,7 @@
                 <Label Text="Genre" Grid.Column="3" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Duration" Grid.Column="4" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center"/>
-                <Label Text="# Times Played" Grid.Column="6" FontSize="22" HorizontalOptions="Center"/>
+                <Label Text="# Times Played" Grid.Column="6" IsVisible="True" FontSize="22" HorizontalOptions="Center"/>
             </Grid>
             <Grid toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
@@ -154,14 +154,6 @@
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection" 
                                                      >
-                                    <!--<syncf:SfEffectsView.Triggers>
-                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="#B197FC" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                        </DataTrigger>
-                                    </syncf:SfEffectsView.Triggers>-->
                                     <Grid ColumnDefinitions="*,*,*,*,180,180,180" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -211,7 +203,7 @@
                                         <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" FontSize="16"/>
                                         <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
-                                        <Label Grid.Column="6" HorizontalOptions="Center" 
+                                        <Label Grid.Column="6" HorizontalOptions="Center" IsVisible="True"
                                                Text="{Binding NumberOfTimesPlayedCompletely}" />
 
                                     </Grid>

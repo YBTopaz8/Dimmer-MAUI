@@ -25,7 +25,7 @@ public partial class FullStatsPageD : ContentPage
         MyViewModel.CurrentPageMainLayout = MainDock;
         //MyViewModel.ShowGeneralTopXSongsCommand.Execute(null);
         StatsTabs.SelectedItem = StatsTabs.Children[0];
-        MyViewModel.CallStats();
+        //MyViewModel.CallStats();
     }
 
     private async void StatsTabs_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)

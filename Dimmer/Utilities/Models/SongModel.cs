@@ -211,26 +211,7 @@ public partial class SongModelView : ObservableObject
         }
     }
 
-    public SongModelView(SongModel model, ObservableCollection<PlayDateAndCompletionStateSongLink>? AllPlayLinks = null) : this(model)
-    {
-        if (AllPlayLinks is not null)
-        {
-            PlayData = AllPlayLinks.Select(x=> new PlayDataLink() 
-            {
-
-                LocalDeviceId = x.LocalDeviceId!,                
-                SongId = x.SongId,
-                DateFinished= x.DateFinished.LocalDateTime,
-                DateStarted= x.DatePlayed.LocalDateTime,
-                PlayType= x.PlayType,
-                WasPlayCompleted= x.WasPlayCompleted,
-                PositionInSeconds= x.PositionInSeconds,
-                
-            }).ToList();
-            NumberOfTimesPlayed = PlayData.Count;
-            NumberOfTimesPlayedCompletely = PlayData.Count(p => p.WasPlayCompleted);
-        }
-    }
+   
     public SongModelView()
     {
         
@@ -363,13 +344,13 @@ public partial class PlayDataLink : ObservableObject
         LocalDeviceId = model.LocalDeviceId!;
         SongId = model.SongId;
         DateStarted = model.DatePlayed.LocalDateTime;        
-        DateFinished = model.DateFinished.LocalDateTime;
+        //DateFinished = model.EventDate.LocalDateTime;
         WasPlayCompleted = model.WasPlayCompleted;
         PositionInSeconds = model.PositionInSeconds;
         PlayType = model.PlayType;
         
         EventDate = model.EventDate!.Value.LocalDateTime;
-        
+
     }
     public override int GetHashCode()
     {
@@ -417,6 +398,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
 
 }
 
+// Assuming you have this enum somewhere
 public enum SortingEnum
 {
     TitleAsc,
@@ -429,12 +411,15 @@ public enum SortingEnum
     DurationDesc,
     YearAsc,
     YearDesc,
-    PlayCountAsc,
-    PlayCountDesc,
-    NumberOfTimesPlayedAsc,
-    NumberOfTimesPlayedDesc,
-    NumberOfTimesPlayedCompletelyAsc,
-    NumberOfTimesPlayedCompletelyDesc,
     RatingAsc,
     RatingDesc,
+    NumberOfTimesPlayedAsc,
+    NumberOfTimesPlayedDesc,
+    MostSkippedAsc,
+    MostSkippedDesc,
+    MostPlayedCompletelyAsc,
+    MostPlayedCompletelyDesc,
+    MostPlayedIncompletelyAsc,
+    MostPlayedIncompletelyDesc,
+    // ... other sorting modes ...
 }

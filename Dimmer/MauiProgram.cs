@@ -65,11 +65,15 @@ public static class MauiProgram
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
 
+
+
+
                         if (winuiAppWindow.Title != "MP")
                         {
                             homeVM.AppWinPresenter = winuiAppWindow.Presenter;
                             var OLP = winuiAppWindow.Presenter as OverlappedPresenter;
 
+                            
 
                             //winuiAppWindow.Title = new CustomTitleBar(homeVM);
 

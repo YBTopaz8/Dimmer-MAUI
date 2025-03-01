@@ -143,8 +143,8 @@ public partial class DimmData : ObservableObject
 
     public DimmData(PlayDataLink linkk)
     {
-        DateStarted = linkk.DateStarted;
-        DateFinished = linkk.DateFinished;
+        DateStarted = linkk.EventDate;
+        DateFinished = linkk.EventDate;
         PlayEventCode = linkk.PlayType;
         SongId = linkk.SongId;
     }
