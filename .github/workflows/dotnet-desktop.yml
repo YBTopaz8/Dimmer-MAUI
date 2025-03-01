@@ -1,21 +1,41 @@
- name: Discord Release Notifier
+name: Discord Release and Dev Push Notifier
 
- on:
-   release:
-     types: [published]  # Trigger only on published releases
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - dev-official  # Trigger on pushes to dev-official
 
- jobs:
-   notify:
-     runs-on: ubuntu-latest  # Use a standard runner environment
+jobs:
+  notify:
+    runs-on: ubuntu-latest
 
-     steps:
-       - name: Send Discord Notification
-         uses: Ilshidur/action-discord@master # Use a pre-built action for Discord
-         env:
-           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }} # Use a GitHub secret
-         with:
-           args: |  # Customize the message
-             New release {{ release.tag_name }} of {{ repository.name }} is now available!
-             {{ release.body }}
-             
-             Release URL: {{ release.html_url }}
+    steps:
+      - name: Checkout code (for push events)
+        if: github.event_name == 'push' # Only checkout for push
+        uses: actions/checkout@v4
+
+      - name: Send Discord Notification (Release)
+        if: github.event_name == 'release'  # Condition for release events
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            New release {{ release.tag_name }} of {{ repository.name }} is now available!
+            {{ release.body }}
+            Release URL: {{ release.html_url }}
+
+      - name: Send Discord Notification (Push to dev-official)
+        if: github.event_name == 'push'  # Condition for push events
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            New push to dev-official branch in {{ repository.name }}!
+            Commit message: ${{ github.event.head_commit.message }}
+            Committer: ${{ github.event.head_commit.author.name }}
+            Commit URL: ${{ github.event.head_commit.url }}
+            Pushed by: ${{ github.actor }}
