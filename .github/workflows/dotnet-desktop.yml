@@ -5,7 +5,8 @@ on:
     types: [published]
   push:
     branches:
-      - dev-official  # Trigger on pushes to dev-official
+      - Dev-Official  # Trigger on pushes to dev-official
+      - master
 
 jobs:
   notify:
