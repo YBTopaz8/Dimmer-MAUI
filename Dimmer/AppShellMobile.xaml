@@ -42,7 +42,7 @@
         <Tab Title="Profile" x:Name="playlistsTab"
              Icon="usercircle.png">            
             <ShellContent Title="Playlists"
-               ContentTemplate="{DataTemplate viewsM:PlaylistsPageM}"
+               ContentTemplate="{DataTemplate viewsM:SettingsPageM}"
                Route="PlaylistsM"/>
         </Tab>
 
