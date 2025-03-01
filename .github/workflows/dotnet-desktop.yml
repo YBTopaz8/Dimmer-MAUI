@@ -1,1 +1,21 @@
+ name: Discord Release Notifier
 
+ on:
+   release:
+     types: [published]  # Trigger only on published releases
+
+ jobs:
+   notify:
+     runs-on: ubuntu-latest  # Use a standard runner environment
+
+     steps:
+       - name: Send Discord Notification
+         uses: Ilshidur/action-discord@master # Use a pre-built action for Discord
+         env:
+           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }} # Use a GitHub secret
+         with:
+           args: |  # Customize the message
+             New release {{ release.tag_name }} of {{ repository.name }} is now available!
+             {{ release.body }}
+             
+             Release URL: {{ release.html_url }}
