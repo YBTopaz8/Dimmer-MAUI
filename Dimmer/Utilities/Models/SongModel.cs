@@ -6,7 +6,7 @@ public partial class SongModel : RealmObject
 {
 
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public string? LocalDeviceId { get; set; } //Otherwise called SongId by PlayDataLink
     public string Title { get; set; } = string.Empty;
     public string ArtistName { get; set; } = string.Empty;
     public string AlbumName { get; set; } = string.Empty;

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using DevExpress.Maui.Core.Internal;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -1125,10 +1126,14 @@ public partial class HomePageVM
     #endregion
 
     CollectionView? SyncLyricsCV { get; set; }
-    public void AssignSyncLyricsCV(CollectionView cv)
+    public async Task AssignSyncLyricsCV(CollectionView cv)
     {
         SyncLyricsCV = cv;
         SyncLyricsCV.SelectionChanged += SyncLyricsCV_SelectionChanged;
+        if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics?.Count < 1)
+        {
+            await FetchLyrics(false);
+        }
     }
     public void UnAssignSyncLyricsCV()
     {
@@ -1206,7 +1211,6 @@ public partial class HomePageVM
                 return;
             }
             SyncLyricsCV.SelectedItem = CurrentLyricPhrase;
-            Debug.WriteLine(SyncLyricsCV.SelectedItem.GetType());
             SyncLyricsCV.ScrollTo(SyncLyricsCV.SelectedItem, null, ScrollToPosition.Center, true);
         }
     }

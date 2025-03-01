@@ -1,7 +1,11 @@
 #if WINDOWS
+using Microsoft.UI.Xaml;
 
 #endif
 
+
+using Dimmer_MAUI.Utilities.OtherUtils;
+using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.Views.Desktop;
 
@@ -16,7 +20,7 @@ public partial class SingleSongShellPageD : ContentPage
 
     }
     public HomePageVM MyViewModel { get; }
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         if (MyViewModel.MySelectedSong is null)
@@ -25,7 +29,7 @@ public partial class SingleSongShellPageD : ContentPage
         }
         MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        MyViewModel.AssignSyncLyricsCV(LyricsColView);
+        await MyViewModel.AssignSyncLyricsCV(LyricsColView);
         MyViewModel.DoRefreshDependingOnPage();
         switch (MyViewModel.MySelectedSong.IsFavorite)
         {
@@ -92,7 +96,7 @@ public partial class SingleSongShellPageD : ContentPage
             case 0:
                 break;
             case 1:
-                emptyV.IsVisible = false;
+                //emptyV.IsVisible = false;
                 if (MyViewModel.AllSyncLyrics is not null)
                 {
                     MyViewModel.AllSyncLyrics = new();
@@ -110,9 +114,34 @@ public partial class SingleSongShellPageD : ContentPage
         }
     }
 
-    private void SongsPlayed_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
+        var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
+        if (CurrLyric is null)
+            return;
+        if (MyViewModel.IsPlaying)
+        {
+            if (string.IsNullOrEmpty(CurrLyric.Text))
+            {
+                await Task.WhenAll(SearchLyricsGrid.DimmOutCompletely(),
+                    PlainLyricsGrid.DimmOutCompletely(), SyncedLyricGrid.DimmOutCompletely(),
+                    LeftPane.DimmOutCompletely(),MediaPlayBackCW.DimmOutCompletely(), 
+                    StatsTabs.DimmOutCompletely(),PageBGImg.DimmInCompletely(), 
+                    MainDock.DimmOut());
 
+                return;
+            }
+            else
+            {
+                await Task.WhenAll(SearchLyricsGrid.DimmInCompletely(),
+                    PlainLyricsGrid.DimmInCompletely(), SyncedLyricGrid.DimmInCompletely(),
+                    LeftPane.DimmInCompletely(),
+                    MediaPlayBackCW.DimmInCompletely(), StatsTabs.DimmInCompletely(),
+                    PageBGImg.DimmOut(endOpacity:0.15),
+                    MainDock.DimmInCompletely());
+                
+            }
+        }
     }
 
     private bool _isThrottling = false;
@@ -243,19 +272,19 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
+        LyricsEditor.Text = string.Empty;
         var send = (Button)sender;
         var title = send.Text;
-        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
+        var thisContent = (Content)send.BindingContext;
         if (title == "Synced Lyrics")
         {
-
             await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent!, false);
         }
         else
         if (title == "Plain Lyrics")
         {
-
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent!, true);
+            LyricsEditor.Text = thisContent!.PlainLyrics;
+            PasteLyricsFromClipBoardBtn_Clicked(send, e);            
         }
     }
 
@@ -266,22 +295,24 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
-        emptyV.IsVisible = true;
-        await Task.WhenAll(Lookgif.AnimateFadeInFront(), fetchFailed.AnimateFadeOutBack(),
-NoLyricsFoundMsg.AnimateFadeOutBack());
+        //        emptyV.IsVisible = true;
+        //        await Task.WhenAll(Lookgif.AnimateFadeInFront(), fetchFailed.AnimateFadeOutBack(),
+        //NoLyricsFoundMsg.AnimateFadeOutBack());
 
-        Lookgif.IsVisible = true;
+        //        Lookgif.IsVisible = true;
+
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
 
         await MyViewModel.FetchLyrics(true);
 
-        await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
-NoLyricsFoundMsg.AnimateFadeInFront());
-        fetchFailed.IsAnimationPlaying = false;
+//        await Task.WhenAll(Lookgif.AnimateFadeOutBack(), fetchFailed.AnimateFadeInFront(),
+//NoLyricsFoundMsg.AnimateFadeInFront());
+//        fetchFailed.IsAnimationPlaying = false;
         
-        await Task.Delay(3000);
-        fetchFailed.IsAnimationPlaying = false;
-        fetchFailed.IsVisible = false;
-        emptyV.IsVisible = false;
+//        await Task.Delay(3000);
+//        fetchFailed.IsAnimationPlaying = false;
+//        fetchFailed.IsVisible = false;
+//        emptyV.IsVisible = false;
     }
 
     private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
@@ -316,6 +347,9 @@ NoLyricsFoundMsg.AnimateFadeInFront());
                 //MyViewModel.GetOngoingGapBetweenTracks();
                 break;
             case 2:
+                
+                await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
+                
                 break;
             case 3:
                 break;
@@ -491,7 +525,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     }
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
-    private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
+    private async void DropGestureRecognizer_DragOver(object sender, Microsoft.Maui.Controls.DragEventArgs e)
     {
         try
         {
@@ -547,7 +581,7 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         //return Task.CompletedTask;
     }
 
-    private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
+    private void DropGestureRecognizer_DragLeave(object sender, Microsoft.Maui.Controls.DragEventArgs e)
     {
         try
         {
@@ -608,7 +642,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         MyViewModel.ToggleFlyout();
 
     }
-
     private void LyricsColView_Loaded(object sender, EventArgs e)
     {
 #if WINDOWS
@@ -616,8 +649,27 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         {
             var nativeView = LyricsColView.Handler?.PlatformView;
 
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
 
-            Debug.WriteLine(Shell.Current.CurrentPage);
+                listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
+
+                listView.Background = null;
+                listView.BorderBrush = null;
+                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+                listView.ContainerContentChanging += (s, args) =>
+                {
+                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
+                    {
+                        item.Background = null;
+                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                    }
+                };
+            }
+
             if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
             {
                 selector.Background = null;
@@ -637,27 +689,9 @@ NoLyricsFoundMsg.AnimateFadeInFront());
             {
                 uiElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible; // Make sure it's still visible
             }
-            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
-            {
-
-                listView.Background = null;
-                listView.BorderBrush = null;
-                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-
-                listView.ContainerContentChanging += (s, args) =>
-                {
-                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
-                    {
-                        item.Background = null;
-                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                    }
-                };                
-            }
 
             MyViewModel.ScrollAfterAppearing();
-
+            Debug.WriteLine($"PlatformView Type: {nativeView?.GetType()}");
         }
         catch (Exception ex)
         {
@@ -666,9 +700,36 @@ NoLyricsFoundMsg.AnimateFadeInFront());
 #endif
     }
 
+    
     private void LyricsColView_Unloaded(object sender, EventArgs e)
     {
 
+#if WINDOWS
+        try
+        {
+            var nativeView = LyricsColView.Handler?.PlatformView;
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
+                listView.ContainerContentChanging -= (s, args) =>
+                {
+                    if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
+                    {
+                        item.Background = null;
+                        item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                        item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+                    }
+                };
+            }
+
+            
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to remove highlight: {ex.Message}");
+        }
+#endif
     }
 
     private void SearchOnline_Clicked(object sender, EventArgs e)
@@ -703,4 +764,85 @@ NoLyricsFoundMsg.AnimateFadeInFront());
     {
         MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
     }
+
+    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    {
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+
+        //if (Clipboard.Default.HasText)
+        //{
+        //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        //}
+
+        
+    }
+
+    bool IsSyncing = false;
+
+    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmOut();
+        PlainLyricSection.IsEnabled = false;
+        MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        IsSyncing = true;
+    }
+
+    private async void PointerGestureRecognizer_PointerEntered1(object sender, PointerEventArgs e)
+    {
+        await Task.WhenAll(SearchLyricsGrid.DimmInCompletely(),
+            PlainLyricsGrid.DimmInCompletely(), SyncedLyricGrid.DimmInCompletely(),
+            LeftPane.DimmInCompletely(),
+            MediaPlayBackCW.DimmInCompletely(), StatsTabs.DimmInCompletely(),
+            PageBGImg.DimmOutCompletely(),
+            MainDock.DimmInCompletely());
+
+    }
+
+#if WINDOWS
+    private DispatcherTimer _pointerExitTimer;
+#endif
+    private void PointerGestureRecognizer_PointerExited1(object sender, PointerEventArgs e)
+    {
+        if(MyViewModel.MySelectedSong is null)
+        {
+            return;
+        }
+        if(MyViewModel.MySelectedSong.SyncLyrics is not null && MyViewModel.MySelectedSong.SyncLyrics.Count > 1)
+        {
+            return;
+        }
+#if WINDOWS
+        // Cancel any existing timer
+        _pointerExitTimer?.Stop();
+
+        _pointerExitTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+        _pointerExitTimer.Tick += async (s, args) =>
+        {
+            _pointerExitTimer.Stop(); // Stop the timer after it fires once
+
+            if (MyViewModel.MySelectedSong is null)
+            {
+                return;
+            }
+            if (MyViewModel.MySelectedSong.SyncLyrics is null || MyViewModel.MySelectedSong.SyncLyrics.Count < 1)
+            {
+                return;
+            }
+
+            await Task.WhenAll(
+                SearchLyricsGrid.DimmOutCompletely(),
+                PlainLyricsGrid.DimmOutCompletely(),
+                SyncedLyricGrid.DimmOutCompletely(),
+                LeftPane.DimmOutCompletely(),
+                MediaPlayBackCW.DimmOutCompletely(),
+                StatsTabs.DimmOutCompletely(),
+                PageBGImg.DimmInCompletely(),
+                MainDock.DimmOut()
+            );
+        };
+        _pointerExitTimer.Start();
+#endif
+    }
+
+
 }

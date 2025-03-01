@@ -20,10 +20,9 @@ public partial class HomePageVM
     [RelayCommand]
     async Task SaveLyricsToLrcAfterSyncing()
     {
-        string? result = await Shell.Current.DisplayActionSheet("Done Syncing?", "No", "Yes");
-        if (result is null)
-            return;
-        if (result.Equals("Yes"))
+        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "No", "Yes");
+        
+        if (result)
         {
             string? lyr = string.Join(Environment.NewLine, LyricsLines!.Select(line => $"{line.TimeStampText} {line.Text}"));
             if (lyr is not null)
@@ -107,8 +106,6 @@ public partial class HomePageVM
                 TemporarilyPickedSong = MySelectedSong;
         }
     }
-
-
 
     public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
     {
@@ -199,16 +196,19 @@ public partial class HomePageVM
 
     string[]? splittedLyricsLines;
 
-    void PrepareLyricsSync()
+    public void PrepareLyricsSync(string? plainLyrics=null)
     {
-        if (TemporarilyPickedSong?.UnSyncLyrics == null)
+
+        if (plainLyrics == null)
             return;
+
+
 
         // Define the terms to be removed using a regular expression
         string termsToRemovePattern = @"\[?\s*(Chorus(es)?|Verse(s)?|Hook(s)?|Bridge(s)?|Intro|Outro|Pre[- ]?Chorus|Instrumental|Interlude)\s*\]?";        //string termsToRemovePattern = string.Join("|", termsToRemove.Select(Regex.Escape)); // Alternative with your array.
 
         // Remove all the terms from the lyrics using Regex.Replace
-        string cleanedLyrics = Regex.Replace(TemporarilyPickedSong.UnSyncLyrics, termsToRemovePattern, "", RegexOptions.IgnoreCase);
+        string cleanedLyrics = Regex.Replace(plainLyrics, termsToRemovePattern, "", RegexOptions.IgnoreCase);
 
         // Split and filter the lyrics lines
         string[]? ss = cleanedLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);

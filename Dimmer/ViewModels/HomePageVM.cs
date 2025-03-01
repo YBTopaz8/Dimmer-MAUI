@@ -176,8 +176,12 @@ public partial class HomePageVM : ObservableObject
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
         
         //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
-        PartOfNowPlayingSongs?.Clear(); 
-        
+        PartOfNowPlayingSongs?.Clear();
+
+        if (AllSyncLyrics is not null)
+        {
+            AllSyncLyrics.Clear();
+        }
         
         switch (CurrentPage)
         {

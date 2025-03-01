@@ -190,21 +190,21 @@
                     <Label Grid.Column="0" VerticalOptions="Center"
                 Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
                    />
-                    <Slider Grid.Column="1" 
+                    <Slider Grid.Column="1" ToolTipProperties.Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
                 Value="{Binding CurrentPositionPercentage}" 
     MinimumTrackColor="DarkSlateBlue" x:Name="slid" VerticalOptions="Start"
     DragCompleted="Slider_DragCompleted" Margin="15,0" >
                     </Slider>
 
                     <Label Grid.Column="2" VerticalOptions="Center"
-                Text="{Binding TemporarilyTemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                 Opacity="0.6"/>
 
                 </Grid>
             </VerticalStackLayout>
 
             <syncf:SfEffectsView Grid.Column="2" BackgroundColor="Transparent"
-                                 Loaded="SfEffectsView_Loaded"
+                                 Loaded="SfEffectsView_Loaded" 
                                  Unloaded="SfEffectsView_Unloaded">
                 <VerticalStackLayout VerticalOptions="Center">
                     <Label Text="{Binding VolumeSliderValue,StringFormat='Volume {0:0%}'}" HorizontalOptions="Center"/>

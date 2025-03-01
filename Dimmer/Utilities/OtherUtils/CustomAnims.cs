@@ -14,11 +14,20 @@ public static class CustomAnimsExtensions
         await element.ScaleTo(1.0, 80, Easing.CubicOut);
     }
 
-    public static async Task DimmOut(this View element, double duration = 250)
+    public static async Task DimmOut(this View element, double duration = 350, double endOpacity=0.70)
     {
-        await element.FadeTo(0.70, (uint)duration, Easing.CubicIn);
+        await element.FadeTo(endOpacity, (uint)duration, Easing.CubicIn);
     }
-    public static async Task DimmIn(this View element, double duration = 250)
+    public static async Task DimmIn(this View element, double duration = 350)
+    {
+        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+
+    }
+    public static async Task DimmOutCompletely(this View element, double duration = 350)
+    {
+        await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
+    }
+    public static async Task DimmInCompletely(this View element, double duration = 350)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
 
@@ -946,7 +955,7 @@ public static class CustomAnimsExtensions
         {
             // Split view1 apart and fade in view2
             await Task.WhenAll(
-                view1.TranslateTo(-view1.Width / 2, 0, duration, Easing.CubicInOut),
+                view1.TranslateTo(-Shell.Current.Window.Width / 2, 0, duration, Easing.CubicInOut),
                 view2.FadeIn(duration)
             );
         }
@@ -1144,5 +1153,264 @@ public static class CustomAnimsExtensions
     // {
     //     await Toolbar.CollapseToolbar(MainScrollView, ContentArea, Toolbar.Height, e);
     // }
+
+    // --- Existing Animations --- (Keep all your previous animations here)
+
+    // --- 10 NEW BASIC ANIMATIONS ---
+
+    // 1. Blink (Rapid Opacity Change)
+    public static async Task Blink(this VisualElement element, uint duration = 100, int blinks = 3)
+    {
+        for (int i = 0; i < blinks; i++)
+        {
+            await element.FadeTo(0, duration, Easing.Linear);
+            await element.FadeTo(1, duration, Easing.Linear);
+        }
+    }
+    // Usage: await MyLabel.Blink();
+
+    // 3. ColorShift (Smooth transition between two colors)
+    public static async Task ColorShift(this VisualElement element, Color fromColor, Color toColor, uint duration = 400)
+    {
+        await element.AnimateAsync("ColorShiftAnimation", (progress) =>
+        {
+            element.BackgroundColor = Color.FromRgba(
+                fromColor.Red + (toColor.Red - fromColor.Red) * progress,
+                fromColor.Green + (toColor.Green - fromColor.Green) * progress,
+                fromColor.Blue + (toColor.Blue - fromColor.Blue) * progress,
+                fromColor.Alpha + (toColor.Alpha - fromColor.Alpha) * progress
+            );
+        }, length: duration);
+    }
+    // Usage:  await MyBoxView.ColorShift(Colors.Red, Colors.Blue);
+
+    // 4.  ScaleX (Horizontal Scaling)
+    public static async Task ScaleX(this VisualElement element, double targetScaleX, uint duration = 250)
+    {
+        await element.ScaleXTo(targetScaleX, duration, Easing.CubicInOut);
+    }
+    // Usage: await MyImage.ScaleX(0.5); // Shrink horizontally to half its size
+
+    // 5. ScaleY (Vertical Scaling)
+    public static async Task ScaleY(this VisualElement element, double targetScaleY, uint duration = 250)
+    {
+        await element.ScaleYTo(targetScaleY, duration, Easing.CubicInOut);
+    }
+    // Usage: await MyButton.ScaleY(1.5); // Enlarge vertically by 50%
+
+    // 6. TranslateX (Horizontal Movement)
+    public static async Task TranslateX(this VisualElement element, double targetX, uint duration = 250)
+    {
+        await element.TranslateTo(targetX, element.TranslationY, duration, Easing.CubicInOut);
+    }
+    //Usage: await myView.TranslateX(250);
+
+    // 7. TranslateY (Vertical Movement)
+    public static async Task TranslateY(this VisualElement element, double targetY, uint duration = 250)
+    {
+        await element.TranslateTo(element.TranslationX, targetY, duration, Easing.CubicInOut);
+    }
+    //Usage: await myView.TranslateY(250);
+
+
+    // 8.  FadeAndTranslate (Combine Fade and Translation)
+    public static async Task FadeAndTranslate(this VisualElement element, double targetX, double targetY, uint duration = 300)
+    {
+        await Task.WhenAll(
+            element.FadeTo(0.5, duration / 2, Easing.Linear), // Fade out halfway
+            element.TranslateTo(targetX, targetY, duration, Easing.CubicInOut)
+        );
+        await element.FadeTo(1, duration / 2, Easing.Linear);    //fade in to complete.
+    }
+    // Usage: await MyLabel.FadeAndTranslate(50, -30);
+
+
+    // 9. OpacityPulse (Continuous Opacity Fluctuation)
+    public static async Task OpacityPulse(this VisualElement element, double minOpacity = 0.5, uint duration = 500)
+    {
+        var fadeInAnim = new Animation(v => element.Opacity = v, minOpacity, 1, Easing.SinInOut);
+        var fadeOutAnim = new Animation(v => element.Opacity = v, 1, minOpacity, Easing.SinInOut);
+
+        fadeInAnim.Commit(element, "OpacityPulseIn", length: duration / 2, repeat: () =>
+        {
+            fadeOutAnim.Commit(element, "OpacityPulseOut", length: duration / 2, repeat: () => true); // Repeat indefinitely
+            return false; //end first animation
+        });
+        await Task.Delay(-1); //run forever.
+
+    }
+    // Usage: MyButton.OpacityPulse();
+
+    // 10. BorderColorChange (Smoothly changes border color)
+    public static async Task BorderColorChange(this Border border, Color fromColor, Color toColor, uint duration = 400)
+    {
+        await border.AnimateAsync("BorderColorChange", (progress) =>
+        {
+            border.Stroke = Color.FromRgba(
+                fromColor.Red + (toColor.Red - fromColor.Red) * progress,
+                fromColor.Green + (toColor.Green - fromColor.Green) * progress,
+                fromColor.Blue + (toColor.Blue - fromColor.Blue) * progress,
+                fromColor.Alpha + (toColor.Alpha - fromColor.Alpha) * progress
+            );
+        }, length: duration);
+    }
+    // Usage (XAML): <Border x:Name="MyBorder" Stroke="Red" StrokeThickness="2" />
+    //        await MyBorder.BorderColorChange(Colors.Red, Colors.Blue);
+
+    // --- 10 NEW CURVED ANIMATIONS ---
+
+    // 11.  Jiggle (Small Random Rotations)
+    public static async Task Jiggle(this VisualElement element, uint duration = 200, int jiggles = 3, double angle = 10)
+    {
+        Random random = new Random();
+        for (int i = 0; i < jiggles; i++)
+        {
+            double rotation = (random.NextDouble() * 2 - 1) * angle; // Random angle between -angle and +angle
+            await element.RotateTo(rotation, duration / (uint)jiggles, Easing.CubicInOut);
+        }
+        await element.RotateTo(0, duration / (uint)jiggles, Easing.CubicInOut); // Return to original rotation
+    }
+    // Usage: await MyImage.Jiggle();
+
+    // 12. ParabolicJump (Jump along a Parabolic Path)
+    public static async Task ParabolicJump(this VisualElement element, double height, double distance, uint duration = 500)
+    {
+        // Simulate a parabolic path using combined TranslationX and TranslationY with different easings.
+
+        // Upward and forward motion
+        var jumpUp = new Animation(v =>
+        {
+            element.TranslationY = -v; // Move up
+            element.TranslationX = distance * (v / height); // Move forward proportionally
+        }, 0, height, Easing.CubicOut);  // Easing.CubicOut for the upward motion
+
+        // Downward and forward motion
+        var jumpDown = new Animation(v =>
+        {
+            element.TranslationY = -height + v; // Move from peak down to original Y
+            element.TranslationX = distance * ((height + v) / (2 * height));   // Continue moving forward
+        }, 0, height, Easing.CubicIn);   // Easing.CubicIn for the downward motion
+
+
+        jumpUp.Commit(element, "JumpUp", length: duration / 2, finished: (v, c) =>
+        {
+            jumpDown.Commit(element, "JumpDown", length: duration / 2); // Start the downward motion when the upward is finished.
+        });
+        await Task.Delay((int)duration); //wait until jump anim is done.
+
+    }
+    // Usage: await MyButton.ParabolicJump(height: 100, distance: 50);
+
+
+    // 13.  SwirlIn (Scale and Rotate Simultaneously)
+    public static async Task SwirlIn(this VisualElement element, uint duration = 400, double rotations = 2)
+    {
+        element.Rotation = 360 * rotations; // Start rotated
+        element.Scale = 0;                 // Start small
+        element.Opacity = 0;
+        element.IsVisible = true;
+        await Task.WhenAll(
+            element.RotateTo(0, duration, Easing.CubicOut),
+            element.ScaleTo(1, duration, Easing.CubicOut),
+            element.FadeIn(duration)
+        );
+    }
+    // Usage: await MyFrame.SwirlIn();
+
+    // 14. SwirlOut (Opposite of SwirlIn)
+    public static async Task SwirlOut(this VisualElement element, uint duration = 400, double rotations = 2)
+    {
+        await Task.WhenAll(
+          element.RotateTo(360 * rotations, duration, Easing.CubicIn),
+          element.ScaleTo(0, duration, Easing.CubicIn),
+          element.FadeOut(duration)
+        );
+        element.IsVisible = false;
+    }
+    // Usage: await myView.SwirlOut()
+
+    // 15. SquashAndStretch (Simulate Elasticity)
+    public static async Task SquashAndStretch(this VisualElement element, double squashFactor = 0.7, uint duration = 200)
+    {
+        await Task.WhenAll( // Initial squash
+            element.ScaleXTo(1 + (1 - squashFactor), duration / 2, Easing.CubicOut),
+            element.ScaleYTo(squashFactor, duration / 2, Easing.CubicOut)
+        );
+        await Task.WhenAll( // Stretch back
+             element.ScaleXTo(squashFactor, duration / 2, Easing.CubicIn),
+             element.ScaleYTo(1 + (1 - squashFactor), duration / 2, Easing.CubicIn)
+        );
+        await Task.WhenAll(
+            element.ScaleXTo(1, duration / 4, Easing.CubicOut),
+            element.ScaleYTo(1, duration / 4, Easing.CubicOut)
+        );
+    }
+    // Usage: await MyButton.SquashAndStretch();
+
+    // 16.  ElasticSnap (Like Pulling and Releasing)
+    public static async Task ElasticSnap(this VisualElement element, double displacementX, double displacementY, uint duration = 300)
+    {
+        // Move to the displaced position
+        await element.TranslateTo(displacementX, displacementY, duration / 2, Easing.CubicOut);
+        // Snap back with overshoot
+        await element.TranslateTo(0, 0, duration / 2, Easing.SpringOut);
+    }
+    // Usage: await MyImage.ElasticSnap(-50, 20); // Pull left and up, then snap back
+
+    // 17. Wobble (Continuous Tilting)
+    public static async Task Wobble(this VisualElement element, double angle = 15, uint duration = 500)
+    {
+        var wobbleRight = new Animation(v => element.Rotation = v, 0, angle, Easing.SinInOut); //go to +angle
+        var wobbleLeft = new Animation(v => element.Rotation = v, angle, -angle, Easing.SinInOut); //go to -angle
+        var wobbleCenter = new Animation(v => element.Rotation = v, -angle, 0, Easing.SinInOut);  //return to center
+
+        wobbleRight.Commit(element, "WobbleRight", length: duration / 4, finished: (_, _) =>
+        {
+            wobbleLeft.Commit(element, "WobbleLeft", length: duration / 2, finished: (_, _) =>
+            {
+                wobbleCenter.Commit(element, "WobbleCenter", length: duration / 4, repeat: () => true);
+            });
+
+        });
+
+        await Task.Delay(-1);  // Infinite animation
+    }
+    // Usage:  MyLabel.Wobble();
+
+    // 18.  DelayedReveal (Fade In with a Delay)
+    public static async Task DelayedReveal(this VisualElement element, uint delay = 500, uint duration = 300)
+    {
+        element.Opacity = 0;
+        element.IsVisible = true;
+        await Task.Delay((int)delay);
+        await element.FadeIn(duration);
+    }
+    // Usage: await MyBoxView.DelayedReveal(delay: 1000); // Wait 1 second, then fade in
+
+    public static async Task MorphShapes(this BoxView boxView, bool toCircle, uint duration = 400)
+    {
+        double startRadius, endRadius;
+
+        if (toCircle)
+        {
+            startRadius = 0;  // Square
+            endRadius = Math.Max(boxView.Width, boxView.Height) / 2; // Circle
+
+        }
+        else
+        {
+            startRadius = Math.Max(boxView.Width, boxView.Height) / 2; // Circle
+            endRadius = 0;   // Square
+        }
+        //Commit the animation
+        await boxView.AnimateAsync("MorphShapes", (progress) =>
+        {
+            boxView.CornerRadius = new CornerRadius(startRadius + (endRadius - startRadius) * progress);
+        }, length: duration, easing: Easing.CubicInOut);
+
+    }
+    // Usage (XAML): <BoxView x:Name="MorphingBox" BackgroundColor="Blue" WidthRequest="100" HeightRequest="100" />
+    //        await MorphingBox.MorphShapes(true);  // Morph to circle
+    //       await MorphingBox.MorphShapes(false); // Morph to square
 
 }

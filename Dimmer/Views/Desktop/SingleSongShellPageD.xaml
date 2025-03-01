@@ -33,8 +33,8 @@
                            DragLeave="DropGestureRecognizer_DragLeave"
                            Drop="DropGestureRecognizer_Drop"/>
         </Grid.GestureRecognizers>
-        <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.08"
-                Aspect="AspectFill" x:Name="PageBGImg"
+        <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.10"
+                Aspect="AspectFit" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>
         
         <toolkit:DockLayout x:Name="NormalNowPlayingUI" BackgroundColor="Transparent">
@@ -56,8 +56,8 @@
                 </Grid.Resources>
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                       ColumnDefinitions="*" RowSpacing="15"
-                      Grid.Column="0" Margin="10" 
-                                    WidthRequest="250" x:DataType="vm:HomePageVM">
+                      Grid.Column="0" Margin="10" x:Name="LeftPane"
+                    WidthRequest="250" x:DataType="vm:HomePageVM">
                     <ImageButton
                         Grid.Row="0" 
                         x:Name="ToggleShellPane" 
@@ -145,24 +145,22 @@
                     </Image>
 
 
+                </Grid>
 
-                    <!--<HorizontalStackLayout HorizontalOptions="Center"
-                                           Spacing="5">
-                        <ImageButton Source="{AppThemeBinding Dark=minus_d.png,Light=minus_l.png}"                                     
-                                     x:Name="ChangelyrFontSize"
-                                     />
-                        <ImageButton Source="{AppThemeBinding Dark=plus_d.png,Light=plus_l.png}"
-                                     />
-                    </HorizontalStackLayout>-->
-                    </Grid>
-
-                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="5" Margin="10,0" >
+                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="5" Margin="10,0"
+                      x:Name="CentralPane">
                     <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
                                        ChipType="Choice" ChoiceMode="Single" ChipTextSize="60"
                                        SelectionChanged="SongShellChip_SelectionChanged"
                                        SelectedChipTextColor="White"
                                        SelectionIndicatorColor="DarkSlateBlue"
                                        x:Name="StatsTabs" toolkit:DockLayout.DockPosition="Top">
+                        <syncf:SfChipGroup.GestureRecognizers>
+
+                                <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered1"
+                              PointerExited="PointerGestureRecognizer_PointerExited1"/>
+
+                        </syncf:SfChipGroup.GestureRecognizers>
                         <syncf:SfChipGroup.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="syncf:SfChip">
@@ -183,7 +181,7 @@
                         <CollectionView x:Name="LyricsColView" 
                                         ItemsSource="{Binding SynchronizedLyrics}"                                        
                                         Loaded="LyricsColView_Loaded" Unloaded="LyricsColView_Unloaded"
-                                        SelectionMode="Single" 
+                                        SelectionMode="Single" SelectionChanged="LyricsColView_SelectionChanged"
                                         SelectedItem="{Binding CurrentLyricPhrase}"
                                         EmptyView="No Syncronized Lyrics ...">
                             <CollectionView.ItemsLayout>
@@ -237,155 +235,140 @@
                     </Grid>
 
                     <Grid x:Name="SearchLyricsGrid" Grid.Row="1" 
-                          IsVisible="False" >
+                          IsVisible="False"
+                          >
                         <Border>
-                            <Grid BackgroundColor="Transparent" Margin="5,5" RowDefinitions="Auto, *">
-                            <Grid.Resources>
-                                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
-                                <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+                            <Grid Margin="5,5" RowDefinitions="*,Auto,*"
+                                ColumnDefinitions="*,*">
+                                <Grid.Resources>
+                                    <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                                    <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
 
-                            </Grid.Resources>
-                            <VerticalStackLayout Grid.Row="0" Spacing="10" 
-                                                 Margin="5" HorizontalOptions="Start">
+                                </Grid.Resources>
 
-                                <Label Text="{Binding MySelectedSong.FilePath,StringFormat='Full Path: {0}'}"/>
-                                <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
-                                <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
+                                <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Grid.ColumnSpan="2">
+                                    <ImageButton Source="backb.png" 
+                                                 />
+                                </HorizontalStackLayout>
+                                
+                                <VerticalStackLayout Grid.Row="0" Spacing="10" 
+                                                     Margin="5" Grid.ColumnSpan="2">
+
+                                    <Label Text="{Binding MySelectedSong.FilePath,StringFormat='Full Path: {0}'}"/>
+                                    <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
+                                    <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
                                     <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
                                 
-                                    <HorizontalStackLayout>
+                                    <HorizontalStackLayout Spacing="10">
 
-                                    <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
-                                            Clicked="SearchLyricsOnLyrLib_Clicked">
-                                        <Button.CommandParameter>
-                                            <x:Boolean>True</x:Boolean>
-                                        </Button.CommandParameter>
-                                    </Button>
+                                        <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
+                                                Clicked="SearchLyricsOnLyrLib_Clicked">
+                                            
+                                            <Button.CommandParameter>
+                                                <x:Boolean>True</x:Boolean>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        <Button Text="Paste Lyrics"
+                                                x:Name="PasteLyricsFromClipBoardBtn"
+                                                Clicked="PasteLyricsFromClipBoardBtn_Clicked"/>
+                                    </HorizontalStackLayout>
 
-                                </HorizontalStackLayout>
+                                </VerticalStackLayout>
 
-                                <CollectionView ItemsSource="{Binding AllSyncLyrics}" HeightRequest="50"
-                            BackgroundColor="Transparent">
-                                    <CollectionView.ItemTemplate>
+                                <Grid Grid.Row="2" ColumnDefinitions="*,*" 
+                                      RowDefinitions="Auto,*"
+                                      x:Name="ManualSyncLyricsView"
+                                      Grid.Column="0" Grid.ColumnSpan="2" >
+                                    <VerticalStackLayout Grid.Column="0" Grid.Row="1" 
+                                                         x:Name="PlainLyricSection" Spacing="5">
 
-                                        <DataTemplate x:DataType="models:Content">
+                                        <Button x:Name="StartSyncingBtn" Clicked="StartSyncing_Clicked"
+                                            Text="Start Syncing" HorizontalOptions="Center"/>
+                                        <Editor Text="{Binding MySelectedSong.UnSyncLyrics}" 
+                                                x:Name="LyricsEditor" MinimumWidthRequest="350"
+                                                Placeholder="Paste Plain Lyrics Here !"/>
+                                    </VerticalStackLayout>
 
-                                            <VerticalStackLayout
-                            Padding="10" Margin="0,5">
-                                                <VerticalStackLayout.Triggers>
-                                                    <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding LinkToCoverImage}" Value="e">
-                                                        <Setter Property="IsVisible" Value="False"/>
-                                                    </DataTrigger>
-                                                </VerticalStackLayout.Triggers>
-                                                <Image Source="{Binding LinkToCoverImage}"
-                                   HeightRequest="5" WidthRequest="200"/>
 
-                                                <Button Text="Preview Image" x:Name="PreviewImage"
-                                    Clicked="PreviewImage_Clicked"/>
-                                                <Button Text="Save To Song" x:Name="SaveImageInfo" IsVisible="False"
-                                    Clicked="SaveImageInfo_Clicked" CommandParameter="{Binding .}"/>
-                                            </VerticalStackLayout>
+                                    <Grid Grid.Row="1" 
+                                        Grid.Column="1" RowDefinitions="*,Auto" x:Name="SyncLyrView" IsVisible="False">
+                                        <CollectionView Grid.Row="0" ItemsSource="{Binding LyricsLines}">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LyricPhraseModel">
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                                        <Editor Text="{Binding Text}" Grid.Column="0"/>
+                                                        <HorizontalStackLayout Grid.Column="1">
+                                                            <Editor Text="{Binding TimeStampText}" WidthRequest="70"/>
+                                                            <ImageButton Source="backk.png" CommandParameter="{Binding .}"
+x:Name="DeleteLine" Clicked="DeleteLine_Clicked"/>
+                                                            <ImageButton Source="time.png" CommandParameter="{Binding .}"
+x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
+                                                        </HorizontalStackLayout>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                        <Button Grid.Row="1" 
+                   Text="Save" x:Name="SaveCapturedLyrics" Clicked="SaveCapturedLyrics_Clicked"/>
 
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
+                                    </Grid>
+                                </Grid>
 
-                                </CollectionView>
-                            </VerticalStackLayout>
-
-                                <syncf:SfTabView Grid.Row="1" >
-                                    <syncf:SfTabItem Header="Lyrics Search Result">
-                                        <syncf:SfTabItem.Content>
-                                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"
-            x:DataType="vm:HomePageVM">
-                                                <CollectionView.EmptyView>
-                                                    <ContentView>
-                                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
+                                <CollectionView Grid.Row="2" x:Name="OnlineLyricsResView"
+                                                ItemsSource="{Binding AllSyncLyrics}" 
+                                                x:DataType="vm:HomePageVM">
+                                    <CollectionView.EmptyView>
+                                        <ContentView>
+                                            <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
                                  BackgroundColor="Transparent"
                                  x:Name="emptyV">
-                                                            <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
+                                                <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
 
-                                                            <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+                                                <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
                    HeightRequest="0" WidthRequest="0" />
-                                                            <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+                                                <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
                    IsVisible="False" IsAnimationPlaying="False"/>
 
-                                                            <Label Text="Service is Unavailable, try again !" 
+                                                <Label Text="Service is Unavailable, try again !" 
                    x:Name="NoLyricsFoundMsg" IsVisible="False"
                    />
-                                                        </VerticalStackLayout>
+                                            </VerticalStackLayout>
 
-                                                    </ContentView>
-                                                </CollectionView.EmptyView>
-                                                <CollectionView.ItemTemplate>
-                                                    <DataTemplate x:DataType="models:Content">
+                                        </ContentView>
+                                    </CollectionView.EmptyView>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Content">
 
-                                                        <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
+                                            <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
                             Padding="10" Margin="0,5">
-                                                            <VerticalStackLayout HorizontalOptions="Start" >
+                                                <VerticalStackLayout HorizontalOptions="Start" >
 
-                                                                <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+                                                    <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
 
-                                                                <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
+                                                    <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
 
-                                                                <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
-                                                                <Label Text="{Binding Instrumental}" />
-                                                                <Label Text="{Binding Duration}" />
-                                                                <Label Text="{Binding Id}" />
-                                                                <Label Text="{Binding LinkToCoverImage}" />
-                                                                <Label Text="{Binding  istOfLinksToCoverImages}" />
-                                                                <HorizontalStackLayout IsVisible="{Binding Instrumental}">
-                                                                    <Label Text="Song is an Intrumental" />
-                                                                </HorizontalStackLayout>
+                                                    <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
 
-                                                                <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
+                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental}">
+                                                        <Label Text="Song is an Intrumental" />
+                                                    </HorizontalStackLayout>
 
-                                                                    <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
+
+                                                        <Button Text="Plain Lyrics" HorizontalOptions="Center" 
                                         Clicked="ViewLyricsBtn_Clicked" BackgroundColor="#5A4CA3"
                                         IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"/>
 
-                                                                    <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                                                        <Button Text="Synced Lyrics" HorizontalOptions="Center" 
                                         IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
-                                                                </HorizontalStackLayout>
-                                                            </VerticalStackLayout>
-                                                        </Border>
+                                                    </HorizontalStackLayout>
+                                                </VerticalStackLayout>
+                                            </Border>
 
-                                                    </DataTemplate>
-                                                </CollectionView.ItemTemplate>
-                                            </CollectionView>
-                                        </syncf:SfTabItem.Content>
-                                    </syncf:SfTabItem>
-
-                                    <syncf:SfTabItem Header="View Lyrics">
-                                        <syncf:SfTabItem.Content>
-                                            <Grid RowDefinitions="*,Auto">
-                                                <CollectionView Grid.Row="0"
-                                                                
-                                                                ItemsSource="{Binding LyricsLines}">
-                                                    <CollectionView.ItemTemplate>
-                                                        <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
-                                                                <Editor Text="{Binding Text}" Grid.Column="0"/>
-                                                                <HorizontalStackLayout Grid.Column="1">
-                                                                    <Editor Text="{Binding TimeStampText}" WidthRequest="70"/>
-                                                                    <ImageButton Source="backk.png" CommandParameter="{Binding .}"
-                                 x:Name="DeleteLine" Clicked="DeleteLine_Clicked"/>
-                                                                    <ImageButton Source="time.png" CommandParameter="{Binding .}"
-                                 x:Name="Stamp" Clicked="Stamp_Clicked"/>
-                                                                </HorizontalStackLayout>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </CollectionView.ItemTemplate>
-                                                </CollectionView>
-                                                <Button Grid.Row="1"
-                                                    Text="Save" x:Name="SaveCapturedLyrics" Clicked="SaveCapturedLyrics_Clicked"/>
-
-                                            </Grid>
-                                            
-                                            
-                                        </syncf:SfTabItem.Content>
-                                    </syncf:SfTabItem>
-                                </syncf:SfTabView>
-                        </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Grid>
                         </Border>
                     </Grid>
                     
@@ -587,20 +570,22 @@
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout>
-                                    <Label Text="Audio Details" FontSize="16" 
+                                    <Label Text="Audio Details" FontSize="21" 
                     TextColor="#5A4CA3"/>
                                     <syncf:SfEffectsView>
-<HorizontalStackLayout>
-                                        
-                                        <Label 
+                                        <HorizontalStackLayout>
+                                            <ImageButton Source="time.png"/>
+
+                                            <Label VerticalOptions="Center"
                      Text="{Binding MySelectedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
                                     </HorizontalStackLayout>
 
                                     </syncf:SfEffectsView>
                                     <syncf:SfEffectsView>
-                                        <HorizontalStackLayout>
-                                        
-                                        <Label Text="{Binding MySelectedSong.FileFormat}"/>
+                                        <HorizontalStackLayout >
+                                            <ImageButton Source="infosquare.png"/>
+                                            <Label Text="{Binding MySelectedSong.FileFormat}"
+                                                   VerticalOptions="Center"/>
                                     </HorizontalStackLayout>
 
                                     </syncf:SfEffectsView>
