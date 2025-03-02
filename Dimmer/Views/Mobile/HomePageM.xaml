@@ -81,7 +81,7 @@
                                                 <Setter Property="BorderThickness" Value="0" />
                                             </DataTrigger>
                                         </dx:DXBorder.Triggers>
-                                        <Grid ColumnDefinitions="*, 120"  ColumnSpacing="10">
+                                        <Grid ColumnDefinitions="*, 120" ColumnSpacing="10">
 
                                             <dx:DXStackLayout Grid.Column="0" Orientation="Horizontal"
                                     ItemSpacing="5">
