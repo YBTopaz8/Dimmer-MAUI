@@ -1,13 +1,14 @@
 ﻿
 #if WINDOWS
-using TView = WinUI.TableView.TableView;
+using System.Diagnostics;
+//using TView = YB.MauiDataGridView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
 #if WINDOWS
 
-    public TView MyTableView { get; set; }
+    //public TView MyTableView { get; set; }
 #endif
     //LastfmClient LastfmClient;
     [ObservableProperty]
@@ -56,10 +57,6 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial double VolumeSliderValue { get; set; } = 1;
 
-    partial void OnVolumeSliderValueChanging(double oldValue, double newValue)
-    {
-        PlayBackService.ChangeVolume(newValue);
-    }
     [ObservableProperty]
     public partial bool IsShuffleOn { get; set; }
     
@@ -122,11 +119,10 @@ public partial class HomePageVM : ObservableObject
 
         LoadSongCoverImage();
         //_ = GetSecuredData();
-
     }
+
     public async Task AssignCV(CollectionView cv)
     {
-        DisplayedSongsColView = cv;
         
         if (CurrentUser is null)
         {
@@ -153,39 +149,6 @@ public partial class HomePageVM : ObservableObject
 
     }
 
-    partial void OnSynchronizedLyricsChanging(ObservableCollection<LyricPhraseModel> oldValue, ObservableCollection<LyricPhraseModel> newValue)
-    {
-        if (newValue is not null && newValue.Count < 1)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (SyncLyricsCV is not null)
-                {
-                    SyncLyricsCV!.ItemsSource = null;               
-                }
-
-            });
-        }
-        if (newValue is not null && newValue.Count > 0)
-        {
-            
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (SyncLyricsCV is not null)
-                {
-                    SyncLyricsCV!.ItemsSource = null;
-                    SyncLyricsCV.ItemsSource = newValue;
-
-                    if (SyncLyricsCV is not null && CurrentAppState == AppState.OnForeGround)
-                    {
-                        SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
-                    }
-                }
-
-            });
-        }
-
-    }
     public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
     List<AlbumArtistGenreSongLinkView> AllLinks { get; set; }
     public void SyncRefresh()
@@ -204,7 +167,7 @@ public partial class HomePageVM : ObservableObject
         RefreshPlaylists();        
     }
 
-    void DoRefreshDependingOnPage()
+    public void DoRefreshDependingOnPage()
     {
         //CurrentPositionInSeconds = 0;
         //CurrentPositionPercentage = 0;
@@ -212,13 +175,13 @@ public partial class HomePageVM : ObservableObject
         LyricsSearchArtistName = MySelectedSong?.ArtistName;
         LyricsSearchAlbumName = MySelectedSong?.AlbumName;
         
-        LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
-        PartOfNowPlayingSongs?.Clear(); 
-        
-        
-        CurrentLyricPhrase = new LyricPhraseModel() { Text = "" };
-        AllSyncLyrics = Enumerable.Empty<Content>().ToObservableCollection();
-        splittedLyricsLines = null;
+        //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
+        PartOfNowPlayingSongs?.Clear();
+
+        if (AllSyncLyrics is not null)
+        {
+            AllSyncLyrics.Clear();
+        }
         
         switch (CurrentPage)
         {
@@ -228,7 +191,7 @@ public partial class HomePageVM : ObservableObject
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
-                CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
+                //CalculateGeneralSongStatistics(TemporarilyPickedSong.LocalDeviceId!);
                 switch (CurrentViewIndex)
                 {
                     case 0:
@@ -376,21 +339,19 @@ public partial class HomePageVM : ObservableObject
         var SpecificAlbumSongs = GetAllSongsFromAlbumID(SelectedAlbumOnAlbumPage!.LocalDeviceId);
 
     }
-
+    
     [ObservableProperty]
     public partial bool IsMultiSelectOn { get; set; }
-    CollectionView DisplayedSongsColView { get; set; }
+    
+    [ObservableProperty]
+    public partial CollectionView DisplayedSongsColView { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> DisplayedSongs { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> NowPlayingSongsUI { get; set; }
    
-
-    CollectionView? SyncLyricsCV { get; set; }
-    public void AssignSyncLyricsCV(CollectionView cv)
-    {
-        SyncLyricsCV = cv;
-    }
+    
+   
     [ObservableProperty]
     public partial string LoadingSongsText { get; set; }
     public void SetLoadingProgressValue(double newValue)
@@ -696,6 +657,7 @@ public partial class HomePageVM : ObservableObject
 
     public void PauseSong()
     {
+        //CurrentPositionInSeconds = PlayBackService.CurrentPosition;
         PlayBackService.PauseResumeSong(CurrentPositionInSeconds, true);
     }
     
@@ -719,7 +681,10 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void PlayNextSong()
     {
-        TemporarilyPickedSong!.IsCurrentPlayingHighlight= TemporarilyPickedSong is null;
+        if (TemporarilyPickedSong is not null)
+        {
+            TemporarilyPickedSong!.IsCurrentPlayingHighlight = TemporarilyPickedSong is null;
+        }
         IsOnLyricsSyncMode = false;
         SynchronizedLyrics?.Clear();
         PlayBackService.PlayNextSong(true);
@@ -729,35 +694,21 @@ public partial class HomePageVM : ObservableObject
     private int _backPressCount = 0;
 
     [RelayCommand]
-    async Task PlayPreviousSong()
+    void PlayPreviousSong()
     {
-        _backPressCount++;
-        if (_backPressCount == 1)
-        {
-            await Task.Delay(300);
-            if (_backPressCount == 1)
-                PlaySong(TemporarilyPickedSong);  // Single press: restart song.
-            _backPressCount = 0;
-        }
-        else if (_backPressCount == 2)
-        {
-            _backPressCount = 0;
-            IsOnLyricsSyncMode = false;
-            SynchronizedLyrics?.Clear();
-            PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
-        }
+        PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
     }
     [RelayCommand]
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue -= 0.2;
+        VolumeSliderValue = (PlayBackService.VolumeLevel*100);
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue += 0.2;
+        VolumeSliderValue = (PlayBackService.VolumeLevel * 100);
     }
 
     [ObservableProperty]
@@ -792,7 +743,12 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void ChangeVolume()
     {
+        if (VolumeSliderValue >1 || VolumeSliderValue<0)
+        {
+            return;
+        }
         PlayBackService.ChangeVolume(VolumeSliderValue);
+        
     }
     [ObservableProperty]
     public partial bool IsContextMenuOpened { get; set; } = false;
@@ -1107,7 +1063,7 @@ public partial class HomePageVM : ObservableObject
             {
                 CurrentPositionInSeconds = position.CurrentTimeInSeconds;
                 CurrentPositionPercentage = position.CurrentPercentagePlayed;
-                if (CurrentPositionPercentage >= 0.97 && IsPlaying && IsOnLyricsSyncMode)
+                if (CurrentPositionPercentage >= 0.98 && IsPlaying && IsOnLyricsSyncMode)
                 {
                     PauseSong();
                     MainThread.BeginInvokeOnMainThread(async () =>
@@ -1128,88 +1084,78 @@ public partial class HomePageVM : ObservableObject
     {
         if (_playerStateSubscription != null)
             return; // Already subscribed
-
+        
         _playerStateSubscription = PlayBackService.PlayerState
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
-
-                if (TemporarilyPickedSong is not null)
+                switch (state)
                 {
-                    PickedSong ??= new SongModelView();
-                    MySelectedSong??= new SongModelView();
-                    
-                    switch (state)
+                    case MediaPlayerState.Playing:
+                        IsPlaying = true;
+                            
+                    if (PlayBackService.CurrentlyPlayingSong is null)
+                        break;
+                    if (TemporarilyPickedSong is not null)
                     {
-                        case MediaPlayerState.Playing:
-                            IsPlaying = true;
-                            MySelectedSong = null;
 
-                            if (PlayBackService.CurrentlyPlayingSong is null)
-                                break;
-
-                            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-
-                            if (PickedSong is not null)
-                            {
-                                PickedSong.IsPlaying = false;
-                                PickedSong.IsCurrentPlayingHighlight = false;                                
-                            }
-                            PickedSong = TemporarilyPickedSong;
-                            MySelectedSong = TemporarilyPickedSong;
-
-                            DoRefreshDependingOnPage();
-
-                            CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
-
-                            //await FetchSongCoverImage();
-
-                            //if (CurrentUser is not null)
-                            //{
-                            //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
-
-                            //}
-#if WINDOWS
-                            //MyTableView.ScrollIntoView(TemporarilyPickedSong);
-                            //MyTableView.
-#endif
-                            break;
-                        case MediaPlayerState.Paused:
-                            if (CurrentUser is not null)
-                            {
-                                await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
-                            }
-                            TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-                            PickedSong = null;
-                            PickedSong = TemporarilyPickedSong;
-
-                            IsPlaying = false;
-
-                            //PlayPauseIcon = MaterialRounded.Play_arrow;
-                            break;
-                        case MediaPlayerState.Stopped:
-                            IsPlaying = false;
-                            //PickedSong = "Stopped";
-                            break;
-                        case MediaPlayerState.LoadingSongs:
-
-                            break;
-                        case MediaPlayerState.ShowPlayBtn:
-                            //PlayPauseIcon = MaterialRounded.Play_arrow;
-                            IsPlaying = false;
-                            break;
-                        case MediaPlayerState.ShowPauseBtn:
-                            IsPlaying = true;
-                            //PlayPauseIcon = MaterialRounded.Pause;
-                            break;
-                        case MediaPlayerState.DoneScanningData:
-                            SyncRefresh();
-                            SetLoadingProgressValue(100);
-                            break;
-                        default:
-                            break;
+                        if (TemporarilyPickedSong == PlayBackService.CurrentlyPlayingSong)
+                        {
+                            return;
+                        }
+                        TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                        DoRefreshDependingOnPage();
+                        CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
                     }
+
+                    //await FetchSongCoverImage();
+
+                    //if (CurrentUser is not null)
+                    //{
+                    //    await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+
+                    //}
+#if WINDOWS
+                    //MyTableView.ScrollIntoView(TemporarilyPickedSong);
+                    //MyTableView.
+#endif
+                    break;
+                    case MediaPlayerState.Paused:
+                        if (CurrentUser is not null)
+                        {
+                            await ParseStaticUtils.UpdateSongStatusOnline(TemporarilyPickedSong, CurrentUser.IsAuthenticated);
+                        }
+                        //TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+                        //PickedSong = null;
+                        //PickedSong = TemporarilyPickedSong;
+
+                        IsPlaying = false;
+
+                        //PlayPauseIcon = MaterialRounded.Play_arrow;
+                        break;
+                    case MediaPlayerState.Stopped:
+                        IsPlaying = false;
+                        //PickedSong = "Stopped";
+                        break;
+                    case MediaPlayerState.LoadingSongs:
+
+                        break;
+                    case MediaPlayerState.ShowPlayBtn:
+                        //PlayPauseIcon = MaterialRounded.Play_arrow;
+                        IsPlaying = false;
+                        break;
+                    case MediaPlayerState.ShowPauseBtn:
+                        IsPlaying = true;
+                        //PlayPauseIcon = MaterialRounded.Pause;
+                        break;
+                    case MediaPlayerState.DoneScanningData:
+                        SyncRefresh();
+                        SetLoadingProgressValue(100);
+                        break;
+                    default:
+                        break;
                 }
+                
             });
 
     }
@@ -1217,28 +1163,60 @@ public partial class HomePageVM : ObservableObject
 
     //partial void OnTemporarilyPickedSongChanging(SongModelView? value)
     //{
-       
+
     //}
+    
+    private void DisplayedSongsColView_SelectionChanged(object? sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        MultiSelectSongs = e.CurrentSelection.Cast<SongModelView>().ToObservableCollection();
+        
+        ContextViewText = $"{DisplayedSongsColView.SelectedItems.Count} Song{(DisplayedSongsColView.SelectedItems.Count > 1 ? "s" : "")}/{SongsMgtService.AllSongs.Count} Selected";
+        return;
+    }
 
-    //partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
-    //{
 
-    //    if (newValue is not null && string.IsNullOrEmpty(newValue.CoverImagePath))
-    //    {
-    //        newValue.CoverImagePath = string.Empty;
-    //    }
 
-    //    if (newValue is not null && !string.IsNullOrEmpty(newValue.CoverImagePath))
-    //    {
-    //        if (newValue.CoverImagePath == oldValue?.CoverImagePath)
-    //        {
-    //            if (oldValue.AlbumName != newValue.AlbumName)
-    //            {
-    //                newValue.CoverImagePath = string.Empty;
-    //            }
-    //        }
-    //    }
+    partial void OnTemporarilyPickedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue == null)
+        {
+            return;
+        }
 
+        if (MySelectedSong != null)
+        {
+            MySelectedSong.IsPlaying = false;
+            MySelectedSong = newValue;
+            MySelectedSong.IsCurrentPlayingHighlight = false;
+            
+        }
+        if (PickedSong != null)
+        {
+            PickedSong.IsPlaying = false;
+            PickedSong.IsCurrentPlayingHighlight = false;
+
+            PickedSong = newValue;
+            
+        }
+
+
+        if (string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            newValue.CoverImagePath = "musicnoteslider.png";
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(newValue.CoverImagePath))
+        {
+            if (newValue.CoverImagePath == oldValue?.CoverImagePath)
+            {
+                if (oldValue.AlbumName != newValue.AlbumName)
+                {
+                    newValue.CoverImagePath = "musicnoteslider.png";
+                }
+            }
+        }
+    }
     //    if (newValue is not null)
     //    {
     //        if (IsPlaying)
@@ -1299,10 +1277,7 @@ public partial class HomePageVM : ObservableObject
     //{
     //    Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
     //}
-    partial void OnDisplayedSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
-    {
-        Debug.WriteLine($"Old {oldValue?.Count} | New {newValue?.Count}");
-    }
+  
 
 
     private void SubscribeToSyncedLyricsChanges()
@@ -1414,24 +1389,111 @@ public partial class HomePageVM : ObservableObject
             CurrentSortingOption = e;
             if (CurrentPage == PageEnum.MainPage)
             {
-                DisplayedSongs = AppSettingsService.ApplySorting(DisplayedSongs!, CurrentSortingOption);
+                DisplayedSongs = ApplySorting(DisplayedSongs!, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
                 DisplayedSongsColView.ItemsSource = null;
                 DisplayedSongsColView.ItemsSource = DisplayedSongs;
 
             }
             else if (CurrentPage == PageEnum.AllArtistsPage)
             {
-                AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
+                AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
                 
             }
             else if (CurrentPage == PageEnum.SpecificAlbumPage)
             {
-                AllArtistsAlbumSongs = AppSettingsService.ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption);
+                AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
             }
         }
 
         IsLoadingSongs = false;
     }
+
+
+    public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
+    {
+        IEnumerable<SongModelView> sortedSongs = colToSort;
+
+        switch (mode)
+        {
+            case SortingEnum.TitleAsc:
+                sortedSongs = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.TitleDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameAsc:
+                sortedSongs = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.ArtistNameDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedAsc:
+                sortedSongs = colToSort.OrderBy(x => x.DateCreated).ToObservableCollection();
+                break;
+            case SortingEnum.DateAddedDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.DateCreated).ToObservableCollection();
+                break;
+            case SortingEnum.DurationAsc:
+                sortedSongs = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.DurationDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
+                break;
+            case SortingEnum.YearAsc:
+                sortedSongs = colToSort.OrderBy(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                break;
+            case SortingEnum.YearDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                break;
+
+            // --- Play Count Sorting ---
+            case SortingEnum.NumberOfTimesPlayedAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
+                break;
+            case SortingEnum.NumberOfTimesPlayedDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
+                break;
+
+            // --- Skipped Sorting ---
+            case SortingEnum.MostSkippedAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostSkippedDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+
+            // --- Played Completely Sorting ---
+            case SortingEnum.MostPlayedCompletelyAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostPlayedCompletelyDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
+                break;
+
+            // --- Played Incompletely Sorting ---
+            case SortingEnum.MostPlayedIncompletelyAsc:
+                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+            case SortingEnum.MostPlayedIncompletelyDesc:
+                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
+                break;
+
+
+            case SortingEnum.RatingAsc:
+                sortedSongs = colToSort.OrderBy(x => x.Rating);
+                break;
+            case SortingEnum.RatingDesc:
+                sortedSongs = colToSort.OrderByDescending(x => x.Rating);
+                break;
+          
+
+            default:
+                break;
+        }
+        AppSettingsService.SortingModePreference.SetSortingPref(mode);
+        return sortedSongs.ToObservableCollection(); // *Now* the sorting happens, all at once.
+    }
+
 
 
     int CurrentRepeatMaxCount;
@@ -1593,7 +1655,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (newValue)
         {
-            UpdateContextMenuData(MySelectedSong);            
+            UpdateContextMenuData(MySelectedSong);
         }
 
     }

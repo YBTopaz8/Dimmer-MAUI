@@ -118,7 +118,7 @@ public static class PlatSpecificUtils
     }
     public static class DataTemplateConversion
     {
-        
+
         public static DataTemplate ConvertToWindowsDataTemplate(Microsoft.Maui.Controls.DataTemplate mauiTemplate)
         {
             if (mauiTemplate == null)
@@ -148,7 +148,7 @@ public static class PlatSpecificUtils
         public static ConcurrentDictionary<string, Microsoft.Maui.Controls.DataTemplate> PendingTemplates { get; } = new ConcurrentDictionary<string, Microsoft.Maui.Controls.DataTemplate>();
     }
 
-    public class MauiDataTemplateHost : ContentControl
+    public partial class MauiDataTemplateHost : ContentControl
     {
         public MauiDataTemplateHost()
         {
@@ -190,4 +190,12 @@ public static class PlatSpecificUtils
             }
         }
     }
+
+    public enum BackdropType
+    {
+        Mica,
+        Acrylic,
+        Default // Or None, if you want a standard backdrop
+    }
+
 }

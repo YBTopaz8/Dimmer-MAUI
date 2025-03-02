@@ -24,6 +24,7 @@ public partial class App : Application
 
         //APIKeys.SetupClientInitializations();
 
+        
 
     }
 
@@ -60,19 +61,9 @@ public partial class App : Application
         }
     }
 
-    //private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
-    //{
-
-    //    Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
-    //        $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
-
-    //    //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
-    //    LogException(e.Exception);
-    //}
-
     private void LogException(Exception ex)
     {
-        
+
         try
         {
             // Define the directory path
@@ -85,7 +76,7 @@ public partial class App : Application
             }
             string filePath = Path.Combine(directoryPath, "crashlog.txt");
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
-            
+
             // Retry mechanism for file writing
             bool success = false;
             int retries = 3;
@@ -120,6 +111,17 @@ public partial class App : Application
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
+
+    //private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    //{
+
+    //    Debug.WriteLine($"********** UNHANDLED EXCEPTION! Details: {e.Exception} | {e.Exception.InnerException?.Message} | {e.Exception.Source} " +
+    //        $"| {e.Exception.StackTrace} | {e.Exception.Message} || {e.Exception.Data.Values} {e.Exception.HelpLink}");
+
+    //    //var home = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+    //    LogException(e.Exception);
+    //}
+
 
     protected override Window CreateWindow(IActivationState? activationState)
     {

@@ -8,7 +8,7 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> MultiSelectSongs { get; set; } = Enumerable.Empty<SongModelView>().ToObservableCollection();
     [ObservableProperty]
-    public partial string? MultiSelectText { get; set; } = string.Empty;
+    public partial string? ContextViewText { get; set; } = string.Empty;
 
 
 
@@ -30,6 +30,9 @@ public partial class HomePageVM
     }
     #endregion
 
+    [ObservableProperty]
+    public partial SearchBar? DimmerGlobalSearchBar { get; set; }
+    
     [RelayCommand]
     void DummyFunc()
     {
@@ -131,7 +134,7 @@ public partial class HomePageVM
                     PlayBackService.MultiDeleteSongFromHomePage(MultiSelectSongs);
 
                     MultiSelectSongs.Clear();
-                    MultiSelectText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")} Selected";
+                    ContextViewText = $"{MultiSelectSongs.Count} Song{(MultiSelectSongs.Count > 1 ? "s" : "")}Selected";
                 }
                 break;
 
@@ -275,16 +278,13 @@ public partial class HomePageVM
                 break;
         }
     }
-    //I want to use MySelectedSong, which has Title, ArtistName and AlbumName
+    
     async Task OpenGoogleSearch()
     {
         if (MySelectedSong != null)
         {
             string query = $"{MySelectedSong.Title} - {MySelectedSong.ArtistName}";
-            //if (!string.IsNullOrEmpty(MySelectedSong.AlbumName))
-            //{
-            //    query += $" {MySelectedSong.AlbumName}";
-            //}
+            
             string searchUrl = $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
             await Launcher.OpenAsync(new Uri(searchUrl));
         }
@@ -445,21 +445,29 @@ public partial class HomePageVM
     public void ToggleFlyout()
     {
 
-        IsFlyoutPresented = !IsFlyoutPresented;
-        if (Shell.Current == null)
+        try
         {
-            return;
-        }
-        if (IsFlyoutPresented)
-        {
-            if (PartOfNowPlayingSongsCV is null)
+
+            IsFlyoutPresented = !IsFlyoutPresented;
+            if (Shell.Current == null)
+            {
                 return;
-            PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            }
+            if (IsFlyoutPresented)
+            {
+                if (PartOfNowPlayingSongsCV is null)
+                    return;
+                PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
+            }
+            else
+            {
+                _ = Task.Delay(500);
+                Shell.Current.FlyoutIsPresented = true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _ = Task.Delay(500);
-            Shell.Current.FlyoutIsPresented = true;            
+            Debug.WriteLine(ex.Message);
         }
     }
 
@@ -488,18 +496,6 @@ public partial class HomePageVM
         await Shell.Current.DisplayAlert("Success!", "Syncing Complete", "OK");
     }
 
-    partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
-    {
-        if (newValue is not null)
-        {
-            SongsMgtService.UpdateUserLoginDetails(newValue);
-            IsLoggedIn = true;
-        }
-        else
-        {
-            IsLoggedIn = false; //do more here 
-        }
-    }
 
 
     [RelayCommand]

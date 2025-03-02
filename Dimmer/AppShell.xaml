@@ -8,7 +8,7 @@
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
     x:DataType="vm:HomePageVM"         
     x:Name="myPage"
-    
+             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"    
     Shell.FlyoutBehavior="Flyout"
     FlyoutIsPresented="{Binding IsFlyoutPresented, Mode=TwoWay}"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
@@ -27,7 +27,7 @@
 
     <!--Shell.TabBarUnselectedColor="Gray"-->
 
-    <Shell.FlyoutHeader>
+    <Shell.FlyoutHeader> 
         <Grid x:Name="HeaderGrid" HeightRequest="240" >
             <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
               Text="{Binding MySelectedSong.Title}" Opacity="0.3"
@@ -84,16 +84,15 @@
                 </ResourceDictionary>
             </VerticalStackLayout.Resources>
             
-
-            <Label Text="{Binding MySelectedSong.Title}" 
+<customControl:MarqueeLabel Text="{Binding MySelectedSong.Title}" SizeChanged="MarqueeLabel_SizeChanged"
       LineBreakMode="HeadTruncation" FontSize="35"/>
-            
-            <Label Text="{Binding MySelectedSong.ArtistName}" 
+
+            <customControl:MarqueeLabel  Text="{Binding MySelectedSong.ArtistName}" 
       LineBreakMode="TailTruncation" Opacity="0.6" 
-                   FontSize="22"/>
+                   FontSize="22" SizeChanged="MarqueeLabel_SizeChanged"/>
             
-            <Label Text="{Binding MySelectedSong.AlbumName}" 
-             LineBreakMode="HeadTruncation"
+            <customControl:MarqueeLabel  Text="{Binding MySelectedSong.AlbumName}" 
+             LineBreakMode="HeadTruncation" SizeChanged="MarqueeLabel_SizeChanged"
                    FontSize="15"/>
 
 
@@ -265,7 +264,7 @@
                                       VerticalOptions="End" IsVisible="False" 
                                       HeightRequest="75" Padding="10,5">
 
-                                    <Label Text="{Binding MultiSelectText}" VerticalTextAlignment="Center"
+                                    <Label Text="{Binding ContextViewText}" VerticalTextAlignment="Center"
                                            Grid.Column="0"/>
 
                                     <Button Text="Delete"

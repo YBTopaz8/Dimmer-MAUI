@@ -1,12 +1,15 @@
 #if WINDOWS
 using Microsoft.UI.Xaml;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
+//using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
 #endif
 
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
 {
+#if WINDOWS
+#endif
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
@@ -14,12 +17,12 @@ public partial class MainPageD : ContentPage
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
 
-
     }
     public HomePageVM MyViewModel { get; }
 
     bool isIniAssign;
     protected override async void OnAppearing()
+
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.MainPage;
@@ -70,6 +73,7 @@ public partial class MainPageD : ContentPage
     {
         try
         {
+            MyViewModel.DisplayedSongsColView = SongsColView;
             if (MyViewModel.PickedSong is null || MyViewModel.TemporarilyPickedSong is null)
             {
                 return;
@@ -100,7 +104,7 @@ public partial class MainPageD : ContentPage
 
     private void CancelMultiSelect_Clicked(object sender, EventArgs e)
     {
-        ToggleMultiSelect_Clicked(sender, e);
+        MyViewModel.IsMultiSelectOn = false;
     }
 
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
@@ -235,70 +239,24 @@ public partial class MainPageD : ContentPage
 
 
     SelectionMode currentSelectionMode;
-    public void ToggleMultiSelect_Clicked(object sender, EventArgs e)
-    {
-
-        switch (SongsColView.SelectionMode)
-        {
-            case SelectionMode.None:
-                SongsColView.SelectionMode = SelectionMode.Multiple;
-                NormalMiniUtilBar.IsVisible = false;
-                MultiSelectUtilBar.IsVisible = true;
-                MyViewModel.EnableContextMenuItems = false;
-                MyViewModel.IsMultiSelectOn = true;
-                selectedSongs = new();
-                selectedSongsViews = new();
-                SongsColView.BackgroundColor = Color.Parse("#1D1932");
-                break;
-            case SelectionMode.Single:
-                break;
-            case SelectionMode.Multiple:
-                SongsColView.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-                foreach (var view in selectedSongsViews)
-                {
-                    view.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
-                }
-                SongsColView.SelectionMode = SelectionMode.None;
-                MyViewModel.IsMultiSelectOn = false;
-                SongsColView.SelectedItems = null;
-                NormalMiniUtilBar.IsVisible = true;
-                MultiSelectUtilBar.IsVisible = false;
-                MyViewModel.EnableContextMenuItems = true;
-                break;
-            default:
-                break;
-        }
-        currentSelectionMode = SongsColView.SelectionMode;
-    }
-
+    
     List<SongModelView> selectedSongs;
-    List<View> selectedSongsViews;
+    View MouseSelectedView;
+
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
-        View send = (View)sender;
-        SongModelView song = (send.BindingContext as SongModelView)!;
-
+        MouseSelectedView = (View)sender;
+        MyViewModel.SetContextMenuSong((SongModelView)(MouseSelectedView).BindingContext);
         if (MyViewModel.IsMultiSelectOn)
         {
-
-            if (selectedSongs.Contains(song))
+            if(!SongsColView.SelectedItems.Contains(MyViewModel.MySelectedSong))
             {
-                selectedSongs.Remove(song);
-                selectedSongsViews.Remove(send);
-                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
+                SongsColView.SelectedItems.Add(MyViewModel.MySelectedSong);
             }
             else
             {
-                selectedSongs.Add(song);
-                selectedSongsViews.Add(send);
-                send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+                SongsColView.SelectedItems.Remove(MyViewModel.MySelectedSong);
             }
-            MyViewModel.MultiSelectText = $"{selectedSongs.Count} Song{(selectedSongs.Count > 1 ? "s" : "")}/{MyViewModel.SongsMgtService.AllSongs.Count} Selected";
-            return;
-        }
-        else
-        {
-            MyViewModel.SetContextMenuSong((SongModelView)((View)sender).BindingContext);
         }
     }
 
@@ -367,6 +325,7 @@ public partial class MainPageD : ContentPage
     {
         MyViewModel.ToggleFlyout();
     }
+
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
         supportedFilePaths ??= new();
@@ -384,14 +343,13 @@ public partial class MainPageD : ContentPage
         }
     }
 
-
     private void MainBody_Unloaded(object sender, EventArgs e)
     {
 #if WINDOWS
         var send = sender as View;
 
         var mainLayout = (Microsoft.UI.Xaml.UIElement)send.Handler.PlatformView;
-
+        
         mainLayout.PointerPressed -= S_PointerPressed;
 #endif
     }
@@ -407,8 +365,11 @@ public partial class MainPageD : ContentPage
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
     }
-#if WINDOWS
 
+
+
+
+#if WINDOWS
     private void MyTable_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
 

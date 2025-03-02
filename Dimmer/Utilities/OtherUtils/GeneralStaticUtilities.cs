@@ -447,7 +447,7 @@ public static class GeneralStaticUtilities
         return col;
     }
 
-    public static string? GetCoverImagePath(string filePath)
+    public static string GetCoverImagePath(string filePath)
     {
         var LoadTrack = new Track(filePath);
         byte[]? coverImage = null;
@@ -497,10 +497,11 @@ public static class GeneralStaticUtilities
 
         if (coverImage is null)
         {
-            return null;
+            
+            return "musicnoteslider.png";
         }
 
-        return null;
+        return "musicnoteslider.png";
     }
 
 #if WINDOWS

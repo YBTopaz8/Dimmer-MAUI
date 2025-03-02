@@ -89,15 +89,19 @@ public partial class DimmData : ObservableObject
     public partial int RankLost { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    
-    /// Possible VALID values:
+    /// Possible VALID values for <see cref="PlayType"/>:
     /// <list type="bullet">
     /// <item><term>0</term><description>Play</description></item>
     /// <item><term>1</term><description>Pause</description></item>
     /// <item><term>2</term><description>Resume</description></item>
     /// <item><term>3</term><description>Completed</description></item>
     /// <item><term>4</term><description>Seeked</description></item>
-    /// <item><term>5</term><description>Skipped Skipped</description></item>
-
+    /// <item><term>5</term><description>Skipped</description></item>
+    /// <item><term>6</term><description>Restarted</description></item>
+    /// <item><term>7</term><description>SeekRestarted</description></item>
+    /// <item><term>8</term><description>CustomRepeat</description></item>
+    /// <item><term>9</term><description>Previous</description></item>
+    /// </list>
     /// </summary>
     [ObservableProperty]
     public partial int PlayType { get; set; }
@@ -139,8 +143,8 @@ public partial class DimmData : ObservableObject
 
     public DimmData(PlayDataLink linkk)
     {
-        DateStarted = linkk.DateStarted;
-        DateFinished = linkk.DateFinished;
+        DateStarted = linkk.EventDate;
+        DateFinished = linkk.EventDate;
         PlayEventCode = linkk.PlayType;
         SongId = linkk.SongId;
     }

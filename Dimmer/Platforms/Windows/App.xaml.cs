@@ -28,7 +28,7 @@ public partial class App : MauiWinUIApplication
             Process.GetCurrentProcess().Kill();
             return;
         }
-        mainInstance.Activated += MainInstance_Activated;
+        
         this.InitializeComponent();
 
         
@@ -47,7 +47,9 @@ public partial class App : MauiWinUIApplication
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-        
+
+
+
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         do
         {
@@ -75,20 +77,6 @@ public partial class App : MauiWinUIApplication
                 break;
         }
 
-        //switch (args.Kind)
-        //{
-        //    case ExtendedActivationKind.File:
-        //        var fileArgs = args.Data as IFileActivatedEventArgs;
-        //        if (fileArgs is not null)
-        //        {
-        //            var pathss = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
-        //            paths = pathss;
-        //            HandleFiles(pathss);
-        //        }
-        //        break;
-        //    default:
-        //        break;
-        //}
     }
 
     private void HandleFiles(string?[] paths)

@@ -239,9 +239,6 @@ public class LyricsService : ILyricsService
         return Enumerable.Empty<LyricPhraseModel>().ToList(); // Return empty if no lyrics are found
     }
 
-
-
-
     public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath)
     {
        
@@ -279,6 +276,29 @@ public class LyricsService : ILyricsService
         return lyrr.ToObservableCollection();//lyricPhrases;
     }
 
+    static List<LyricPhraseModel> StringToLyricPhraseModel(string[] lines)
+    {
+        List<LyricPhraseModel> lyricPhrases = new();
+        foreach (string line in lines)
+        {
+            // Regular expression to match lines with timestamps and lyrics.
+            Match match = Regex.Match(line, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
+            if (match.Success)
+            {
+                int minutes = int.Parse(match.Groups[1].Value);
+                int seconds = int.Parse(match.Groups[2].Value);
+                int hundredths = int.Parse(match.Groups[3].Value);
+                string lyricText = match.Groups[4].Value.Trim();
+
+                // Convert timestamp to milliseconds.
+                int timeStampMs = (minutes * 60 + seconds) * 1000 + hundredths * 10;
+
+                LyricPhraseModel phrase = new(new LyricsPhrase(timeStampMs, lyricText));
+                lyricPhrases.Add(phrase);
+            }
+        }
+        return lyricPhrases;
+    }
     List<LyricPhraseModel> songSyncLyrics;
     string lastSongIDLyrics;
     public void InitializeLyrics(string synclyrics)
@@ -303,29 +323,6 @@ public class LyricsService : ILyricsService
         }
     }
 
-    private static List<LyricPhraseModel> StringToLyricPhraseModel(string[] lines)
-    {
-        List<LyricPhraseModel> lyricPhrases = new();
-        foreach (string line in lines)
-        {
-            // Regular expression to match lines with timestamps and lyrics.
-            Match match = Regex.Match(line, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
-            if (match.Success)
-            {
-                int minutes = int.Parse(match.Groups[1].Value);
-                int seconds = int.Parse(match.Groups[2].Value);
-                int hundredths = int.Parse(match.Groups[3].Value);
-                string lyricText = match.Groups[4].Value.Trim();
-
-                // Convert timestamp to milliseconds.
-                int timeStampMs = (minutes * 60 + seconds) * 1000 + hundredths * 10;
-
-                LyricPhraseModel phrase = new(new LyricsPhrase(timeStampMs, lyricText));
-                lyricPhrases.Add(phrase);
-            }
-        }
-        return lyricPhrases;
-    }
 #endregion
 
     #region Manage Sync and timer
@@ -382,7 +379,6 @@ public class LyricsService : ILyricsService
         }
 
     }
-
     LyricPhraseModel FindClosestLyric(double currentPositionInMs)
     {
         try
@@ -444,7 +440,7 @@ public class LyricsService : ILyricsService
     public async Task<(bool IsFetchSuccessful, Content[]? contentData)> FetchLyricsOnlineLrcLib(SongModelView song, bool useManualSearch = false, List<string>? manualSearchFields = null)
     {
         HttpClient client = new();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v1.0.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Dimmer v1.4.0 (https://github.com/YBTopaz8/Dimmer-MAUI)");
 
         try
         {
@@ -539,7 +535,7 @@ public class LyricsService : ILyricsService
                 stringAlbumName = localCopyOfSong.AlbumName;
                 if (localCopyOfSong.CoverImagePath == "NC")
                 {
-                    localCopyOfSong.CoverImagePath = string.Empty;
+                    localCopyOfSong.CoverImagePath = "musicnoteslider.png";
                 }
                 localCopyOfSong.CoverImagePath = SaveOrGetCoverImageToFilePath(localCopyOfSong.FilePath);
                 if (!string.IsNullOrEmpty(localCopyOfSong.CoverImagePath))

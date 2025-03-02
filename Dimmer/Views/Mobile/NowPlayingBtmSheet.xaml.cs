@@ -1,4 +1,9 @@
+#if ANDROID
+using Android.Views;
+using AndroidX.RecyclerView.Widget;
+#endif
 using DevExpress.Maui.Core;
+using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer_MAUI.Views.Mobile;
 
@@ -13,20 +18,13 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
         //Shell.SetTabBarIsVisible(this, false);
         AllowedState = BottomSheetAllowedState.FullExpanded;
-
-        //this.StateChanged += NowPlayingBtmSheet_StateChanged;
+        
     }
 
 
     private void NowPlayingBtmSheet_StateChanged(object? sender, ValueChangedEventArgs<BottomSheetState> e)
     {
-        //if (e.NewValue == BottomSheetState.FullExpanded)
-        //{
-        //    if(NPSlider.ItemsSource is null)
-        //    {
-        //        NPSlider.ItemsSource = MyViewModel.SongsMgtService.AllSongs;
-        //    }
-        //}
+        
     }
 
     HomePageVM MyViewModel { get; set; }
@@ -160,5 +158,67 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
 
+    }
+
+    private void MyPage_StateChanged(object sender, ValueChangedEventArgs<DBtmState> e)
+    {
+        if (e.NewValue != BottomSheetState.Hidden)
+        {
+            DeviceDisplay.Current.KeepScreenOn = true;
+        }
+        else
+        {
+            DeviceDisplay.Current.KeepScreenOn = false;
+        }
+    }
+
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void SyncLyricsColView_Loaded(object sender, EventArgs e)
+    {
+#if ANDROID
+        var nativeView = (global::Android.Views.View )SyncLyricsColView.Handler?.PlatformView;
+        if (nativeView is not null)
+        {
+            if (nativeView is RecyclerView recyclerView)
+            {
+                // Disable item animator
+                recyclerView.SetItemAnimator(null);
+
+                // Remove all item decorations in reverse order to avoid shifting indexes.
+                for (int i = recyclerView.ItemDecorationCount - 1; i >= 0; i--)
+                {
+                    recyclerView.RemoveItemDecorationAt(i);
+                }
+
+                // Remove background
+                recyclerView.Background = null;
+            }
+            // If the native view is a ViewGroup, ensure transparency.
+            if (nativeView is ViewGroup viewGroup)
+            {
+                viewGroup.SetBackgroundColor(Android.Graphics.Color.Transparent);
+            }
+        }
+#endif
+    }
+
+    private void SyncLyricsColView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SyncLyricsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        if (MyViewModel.IsPlaying)
+        {
+            
+            var bor = (View)sender;
+            var lyr = (LyricPhraseModel)bor.BindingContext;
+            MyViewModel.SeekSongPosition(lyr);
+        }
     }
 }

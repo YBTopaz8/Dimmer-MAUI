@@ -22,12 +22,16 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <SearchBar Text="{Binding SearchText}" 
-                           
-                           x:Name="SearchSongSB" HeightRequest="30"                           
-                           WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
+                <Grid HorizontalOptions="Center">
+                    <SearchBar Text="{Binding SearchText}"
+           Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
+           x:Name="SearchSongSB" HeightRequest="30"                           
+           WidthRequest="500" TextChanged="SearchSongSB_TextChanged" >
 
-                </SearchBar>
+                    </SearchBar>
+                    <Label x:Name="InternalNotificationLabel" IsVisible="False"/>
+                </Grid>
+                
             </TitleBar.Content>
 
             <TitleBar.TrailingContent>
@@ -48,17 +52,17 @@
                                  Source="pin.png" WidthRequest="30" HeightRequest="30">
                         
                     </ImageButton>
-                    
-                    <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
+
+                    <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7" IsVisible="False"
                             TouchUp="SfEffectsView_TouchUp">
                         <Image Source="newyear.png" x:Name="EventEmoji" IsVisible="True" 
        WidthRequest="30" />
                     </syncf:SfEffectsView>
 
                     <syncf:SfEffectsView BackgroundColor="Transparent" Opacity="0.7"
-                            TouchUp="SfEffectsView_TouchUp">
+                            TouchUp="SfEffectsView_TouchUp" IsVisible="False">
 
-                        <Image Source="onlinecloud.gif" x:Name="onlineCloud"
+                        <Image Source="onlinecloud.gif" x:Name="onlineCloud" 
                                HeightRequest="30" HorizontalOptions="Start"/>
                     </syncf:SfEffectsView>
                     

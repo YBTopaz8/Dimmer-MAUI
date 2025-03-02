@@ -31,11 +31,18 @@ public partial class LyricPhraseModel : ObservableObject
     [ObservableProperty]
     public partial int TimeStampMs { get; set; } = 0;
     [ObservableProperty]
+    public partial double Opacity { get; set; } = 0.3;
+    [ObservableProperty]
     public partial string? TimeStampText { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? Text { get; set; } = string.Empty;
     [ObservableProperty]
     public partial int NowPlayingLyricsFontSize { get; set; } = 29;
+    [ObservableProperty]
+    public partial FontAttributes LyricsFontAttributes { get; set; } = FontAttributes.None;
+    [ObservableProperty]
+    public partial Color LyricsBGColor { get; set; } = Colors.Transparent;
+    
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
     public LyricPhraseModel(LyricsPhrase? phrase = null)
     {

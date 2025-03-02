@@ -6,7 +6,7 @@ public partial class SongModel : RealmObject
 {
 
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public string? LocalDeviceId { get; set; } //Otherwise called SongId by PlayDataLink
     public string Title { get; set; } = string.Empty;
     public string ArtistName { get; set; } = string.Empty;
     public string AlbumName { get; set; } = string.Empty;
@@ -21,8 +21,9 @@ public partial class SongModel : RealmObject
     public int Rating { get; set; } = 0;
     public bool HasLyrics { get; set; }
     public bool HasSyncedLyrics { get; set; }
+
     public string SyncLyrics { get; set; }=string.Empty;
-    public string CoverImagePath { get; set; } = string.Empty;
+    public string CoverImagePath { get; set; } = "musicnoteslider.png";
     public string UnSyncLyrics { get; set; } = string.Empty;
     public bool IsPlaying { get; set; }
     public bool IsFavorite { get; set; }
@@ -95,7 +96,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial double DurationInSeconds {get;set;}
     [ObservableProperty]
-    public partial string DurationInSecondsText {get;set;}
+    public partial string? DurationInSecondsText {get;set;}
     [ObservableProperty]
     public partial int? ReleaseYear {get;set;}
     [ObservableProperty]
@@ -121,7 +122,7 @@ public partial class SongModelView : ObservableObject
     public bool IsInstrumental {get;set;} = false;
     [ObservableProperty]
     [Display(AutoGenerateField = true)]
-    public partial string? CoverImagePath { get; set; } = string.Empty;
+    public partial string? CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     public bool IsPlaying {get;set;}
@@ -132,6 +133,8 @@ public partial class SongModelView : ObservableObject
     public partial bool IsCurrentPlayingHighlight { get; set; }
     [ObservableProperty]
     public partial bool IsFavorite {get;set;}
+    [ObservableProperty]
+    public partial bool HasCoverImage {get;set;}
     [ObservableProperty]
     public partial bool IsPlayCompleted {get;set;}
     [ObservableProperty]
@@ -177,7 +180,11 @@ public partial class SongModelView : ObservableObject
             BitRate = model.BitRate;            
             Rating = model.Rating;
             HasLyrics = model.HasLyrics;
-            CoverImagePath = model.CoverImagePath;
+            if (!string.IsNullOrEmpty(model.CoverImagePath))
+            {
+                CoverImagePath = model.CoverImagePath;
+                HasCoverImage = true;
+            }
             ArtistName = model.ArtistName;
             Achievement = model.Achievement;
             AlbumName = model.AlbumName;
@@ -197,30 +204,14 @@ public partial class SongModelView : ObservableObject
                 SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x)).ToObservableCollection();
             }
         }
-       
 
-    }
-
-    public SongModelView(SongModel model, ObservableCollection<PlayDateAndCompletionStateSongLink>? AllPlayLinks = null) : this(model)
-    {
-        if (AllPlayLinks is not null)
+        else
         {
-            PlayData = AllPlayLinks.Select(x=> new PlayDataLink() 
-            {
 
-                LocalDeviceId = x.LocalDeviceId!,                
-                SongId = x.SongId,
-                DateFinished= x.DateFinished.LocalDateTime,
-                DateStarted= x.DatePlayed.LocalDateTime,
-                PlayType= x.PlayType,
-                WasPlayCompleted= x.WasPlayCompleted,
-                PositionInSeconds= x.PositionInSeconds,
-                
-            }).ToList();
-            NumberOfTimesPlayed = PlayData.Count;
-            NumberOfTimesPlayedCompletely = PlayData.Count(p => p.WasPlayCompleted);
         }
     }
+
+   
     public SongModelView()
     {
         
@@ -353,13 +344,13 @@ public partial class PlayDataLink : ObservableObject
         LocalDeviceId = model.LocalDeviceId!;
         SongId = model.SongId;
         DateStarted = model.DatePlayed.LocalDateTime;        
-        DateFinished = model.DateFinished.LocalDateTime;
+        //DateFinished = model.EventDate.LocalDateTime;
         WasPlayCompleted = model.WasPlayCompleted;
         PositionInSeconds = model.PositionInSeconds;
         PlayType = model.PlayType;
         
         EventDate = model.EventDate!.Value.LocalDateTime;
-        
+
     }
     public override int GetHashCode()
     {
@@ -385,6 +376,8 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <item><term>5</term><description>Skipped</description></item>
     /// <item><term>6</term><description>Restarted</description></item>
     /// <item><term>7</term><description>SeekRestarted</description></item>
+    /// <item><term>8</term><description>CustomRepeat</description></item>
+    /// <item><term>9</term><description>Previous</description></item>
     /// </list>
     /// </summary>
     public int PlayType { get; set; } = 0; 
@@ -405,6 +398,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
 
 }
 
+// Assuming you have this enum somewhere
 public enum SortingEnum
 {
     TitleAsc,
@@ -417,12 +411,15 @@ public enum SortingEnum
     DurationDesc,
     YearAsc,
     YearDesc,
-    PlayCountAsc,
-    PlayCountDesc,
-    NumberOfTimesPlayedAsc,
-    NumberOfTimesPlayedDesc,
-    NumberOfTimesPlayedCompletelyAsc,
-    NumberOfTimesPlayedCompletelyDesc,
     RatingAsc,
     RatingDesc,
+    NumberOfTimesPlayedAsc,
+    NumberOfTimesPlayedDesc,
+    MostSkippedAsc,
+    MostSkippedDesc,
+    MostPlayedCompletelyAsc,
+    MostPlayedCompletelyDesc,
+    MostPlayedIncompletelyAsc,
+    MostPlayedIncompletelyDesc,
+    // ... other sorting modes ...
 }

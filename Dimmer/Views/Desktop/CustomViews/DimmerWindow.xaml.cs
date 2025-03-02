@@ -1,3 +1,7 @@
+#if WINDOWS
+using Microsoft.Maui.Controls.Platform;
+using Microsoft.UI.Xaml.Input;
+#endif
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -8,7 +12,6 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-
         
     }
 
@@ -16,13 +19,17 @@ public partial class DimmerWindow : Window
     {
         base.OnActivated();
         MyViewModel.CurrentAppState = AppState.OnForeGround;
-        
+        MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
+        MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
+        MyViewModel.InternalSearchSongSBVM= SearchSongSB;
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
         MyViewModel.CurrentAppState = AppState.OnBackGround;
+        MyViewModel.InternalNotificationLabelVM = null;
+        MyViewModel.InternalSearchSongSBVM= null;
     }
     public HomePageVM MyViewModel { get; set; }
 
@@ -34,12 +41,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.3-debug";
+        DimmerTitleBar.Subtitle = "v1.4c-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.3";
+        DimmerTitleBar.Subtitle = "v1.4c-Release";
 #endif
 
         if (!InitChecker())
@@ -66,13 +73,15 @@ public partial class DimmerWindow : Window
         }
         return true;
     }
-    private CancellationTokenSource _debounceTimer;
+    private CancellationTokenSource? _debounceTimer; 
+
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if  (!InitChecker())
+        if (!InitChecker())
         {
             return;
         }
+
         var searchBar = (SearchBar)sender;
         var txt = searchBar.Text;
 
@@ -80,156 +89,122 @@ public partial class DimmerWindow : Window
         _debounceTimer = new CancellationTokenSource();
         var token = _debounceTimer.Token;
 
-        switch (MyViewModel.CurrentPage)
+        // Determine the delay based on the page.  This makes the code cleaner.
+        int delayMilliseconds = MyViewModel.CurrentPage == PageEnum.AllAlbumsPage ? 300 : 600;
+
+        try
         {
-            case PageEnum.SetupPage:
-                break;
-            case PageEnum.SettingsPage:
-                break;
-            case PageEnum.MainPage:
+            await Task.Delay(delayMilliseconds, token);
 
-                if (MyViewModel.SongsMgtService.AllSongs is null)
+            // Check if the task was canceled *after* the delay.  This is the correct way.
+            if (token.IsCancellationRequested)
+            {
+                return; // Exit if canceled
+            }
+
+            // Use Dispatcher to update the UI on the main thread
+            Dispatcher.Dispatch(() =>
+            {
+                switch (MyViewModel.CurrentPage)
                 {
-                    return;
+                    case PageEnum.SetupPage:
+                    case PageEnum.SettingsPage:
+                    case PageEnum.NowPlayingPage:
+                    case PageEnum.PlaylistsPage:
+                    case PageEnum.FullStatsPage:
+                    case PageEnum.AllArtistsPage:
+                    case PageEnum.SpecificAlbumPage:  
+                        break; // Do nothing for these pages
+
+                    case PageEnum.MainPage:
+                        SearchSongs(txt);
+                        break;
+
+                    case PageEnum.AllAlbumsPage:
+                        SearchAlbums(txt);
+                        break;
                 }
-                if (MyViewModel.DisplayedSongs is null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    await Task.Delay(300, token);
-
-                    if (!string.IsNullOrEmpty(txt))
-                    {
-                        if (txt.Length >= 1)
-                        {
-                            MyViewModel.IsOnSearchMode = true;
-                            MyViewModel.DisplayedSongs.Clear();
-
-                            // Directly filter the songs based on the search text, with null checks
-                            var fSongs = MyViewModel.SongsMgtService.AllSongs
-                                .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
-                                               (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(txt, StringComparison.OrdinalIgnoreCase)) ||
-                                               (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(txt, StringComparison.OrdinalIgnoreCase)))
-                                .ToList();
-
-                            MyViewModel.FilteredSongs = fSongs;
-
-                            foreach (var song in fSongs)
-                            {
-                                MyViewModel.DisplayedSongs.Add(song);
-                            }
-                            MyViewModel.CurrentQueue = 1;
-
-                            OnPropertyChanged(nameof(MyViewModel.DisplayedSongs));
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        MyViewModel.IsOnSearchMode = false;
-                        MyViewModel.DisplayedSongs.Clear();
-
-                        // Repopulate with all songs when search is empty
-                        if (MyViewModel.SongsMgtService.AllSongs != null)
-                        {
-                            foreach (var song in MyViewModel.SongsMgtService.AllSongs)
-                            {
-                                MyViewModel.DisplayedSongs.Add(song);
-                            }
-                        }
-                        MyViewModel.CurrentQueue = 0;
-                    }
-                }
-                //catch (TaskCanceledException)
-                //{
-                //    // Expected if the debounce timer is cancelled
-                //}
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
-                }
-                break;
-            case PageEnum.NowPlayingPage:
-                break;
-            case PageEnum.PlaylistsPage:
-                break;
-            case PageEnum.FullStatsPage:
-                break;
-            case PageEnum.AllArtistsPage:
-                break;
-            case PageEnum.AllAlbumsPage:
-                if (MyViewModel.SongsMgtService.AllAlbums is null)
-                {
-                    return;
-                }
-                
-                if (MyViewModel.AllAlbums is null)
-                {
-                    return;
-                }
-                try
-                {
-                    await Task.Delay(300, token);
-
-                    if (!string.IsNullOrEmpty(txt))
-                    {
-                        if (txt.Length >= 1)
-                        {
-
-                            MyViewModel.AllAlbums.Clear();
-                            // Directly filter the songs based on the search text, with null checks
-                            var fAlbums = MyViewModel.SongsMgtService.AllAlbums
-                                .Where(item => (!string.IsNullOrEmpty(item.Name) && item.Name.Contains(txt, StringComparison.OrdinalIgnoreCase))).ToList();
-
-
-                            foreach (var song in fAlbums)
-                            {
-                                MyViewModel.AllAlbums.Add(song);
-                            }
-
-                            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        MyViewModel.IsOnSearchMode = false;
-                        MyViewModel.AllAlbums.Clear();
-
-                        // Repopulate with all songs when search is empty
-                        if (MyViewModel.SongsMgtService.AllAlbums != null)
-                        {
-                            foreach (var song in MyViewModel.SongsMgtService.AllAlbums)
-                            {
-                                MyViewModel.AllAlbums.Add(song);
-                            }
-                            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
-                        }
-                    }
-                }
-                catch (TaskCanceledException)
-                {
-                    // Expected if the debounce timer is cancelled
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
-                }
-                break;
-            case PageEnum.SpecificAlbumPage:
-                break;
-            default:
-                break;
+            });
         }
-        if (MyViewModel.CurrentPage != PageEnum.MainPage)
+        catch (Exception ex) // Catch *all* exceptions, but log them
+        {
+            Debug.WriteLine($"Search Error: {ex}"); // Log the full exception for debugging
+        }
+    }
+    private void SearchSongs(string? searchText)
+    {
+        if (MyViewModel.SongsMgtService.AllSongs is null || MyViewModel.DisplayedSongs is null)
+        {
+            return; // Nothing to search
+        }
+
+        if (string.IsNullOrEmpty(searchText))
+        {
+            MyViewModel.IsOnSearchMode = false;
+            MyViewModel.DisplayedSongs.Clear();
+            MyViewModel.CurrentQueue = 0;
+            // Repopulate with all songs when search is empty
+            foreach (var song in MyViewModel.SongsMgtService.AllSongs)
+            {
+                MyViewModel.DisplayedSongs.Add(song);
+            }
+            OnPropertyChanged(nameof(MyViewModel.DisplayedSongs)); // Notify UI after *all* changes
             return;
+        }
+        // Search text is not empty, perform search
+        MyViewModel.IsOnSearchMode = true;
+        MyViewModel.DisplayedSongs.Clear();
+
+        // Filter with null checks. This is your existing logic, and it's correct.
+        var fSongs = MyViewModel.SongsMgtService.AllSongs
+            .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                           (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                           (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        MyViewModel.FilteredSongs = fSongs;
+        MyViewModel.CurrentQueue = 1;
+        foreach (var song in fSongs)
+        {
+            MyViewModel.DisplayedSongs.Add(song);
+        }
+        OnPropertyChanged(nameof(MyViewModel.DisplayedSongs));
+    }
+    private void SearchAlbums(string? searchText)
+    {
+        if (MyViewModel.SongsMgtService.AllAlbums is null || MyViewModel.AllAlbums is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(searchText))
+        {
+            MyViewModel.IsOnSearchMode = false; // Consistent naming
+            MyViewModel.AllAlbums.Clear();
+
+            foreach (var album in MyViewModel.SongsMgtService.AllAlbums)
+            {
+                MyViewModel.AllAlbums.Add(album);
+            }
+
+            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
+            return;
+        }
+        // Search text is not empty, perform search
+
+        MyViewModel.AllAlbums.Clear();
+
+        // Filter with null checks
+        var fAlbums = MyViewModel.SongsMgtService.AllAlbums
+            .Where(item => (!string.IsNullOrEmpty(item.Name) && item.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        foreach (var album in fAlbums)
+        {
+            MyViewModel.AllAlbums.Add(album);
+        }
+
+        OnPropertyChanged(nameof(MyViewModel.AllAlbums));
 
     }
-
-
 #if WINDOWS
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -343,5 +318,15 @@ public partial class DimmerWindow : Window
 #endif
 
         return;
+    }
+
+    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
+    {
+        MyViewModel.IsOnSearchMode = true;
+    }
+
+    private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    {
+        MyViewModel.IsOnSearchMode = false;
     }
 }

@@ -1,3 +1,9 @@
+using CommunityToolkit.Maui.Extensions;
+using DevExpress.Maui.CollectionView;
+using DevExpress.Maui.Core;
+using System.Threading.Tasks;
+using View = Microsoft.Maui.Controls.View;
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class HomePageM : ContentPage
@@ -11,24 +17,10 @@ public partial class HomePageM : ContentPage
     }
 
 
-    private void SongsColView_Loaded(object? sender, EventArgs e)
-    {        
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-        //SongsColView.GetItemHandleByVisibleIndex(visibleIndex:); param type is int
-        //SongsColView.VisibleItemCount // type int, get the number of visible items in the collection view
-        //SongsColView.GetItemVisibleIndex(itemHandle:); // param type is int. Get the visible index of the item by its handle
-        //there also exists a method to get the handle of item by object 
-        //SongsColView.FindItemHandle(item: MyViewModel.PickedSong); // param type is object. Get the handle of the item by its object
-
-        //SongsColView.GetItemHandleByVisibleIndex(visibleIndex: 0); // param type is int. Get the handle of the item by its visible index\
-        //SongsColView.GetItemHandle(sourceIndex: 0); // param type is int. Get the handle of the item by its source index
-    }
-
-
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        
+
         if (MyViewModel.isFirstTimeOpeningApp)
         {
             await Shell.Current.GoToAsync(nameof(FirstStepPage));
@@ -41,92 +33,27 @@ public partial class HomePageM : ContentPage
         }
         MyViewModel.CurrentPage = PageEnum.MainPage;
 
-        //Shell.SetNavBarIsVisible(this, true);
 
-        
     }
+    private void ToggleRepeat_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
 
+    }
+    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        MyViewModel.SeekSongPosition(currPosPer: ProgressSlider.Value);
+    }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         MyViewModel.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
-
-
-    private void SwipeGestureRecognizer_SwipedUp(object sender, SwipedEventArgs e)
-    {
-        if (SongsColView.IsLoaded)
-        {
-            SongsColView.ScrollTo(0);
-        }
-    }
-    private void SwipeGestureRecognizer_SwipedDown(object sender, SwipedEventArgs e)
-    {
-        if (SongsColView.IsLoaded)
-        {
-            var col = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
-            var fItem = col.Last();
-            SongsColView.ScrollTo(SongsColView.FindItemHandle(fItem), DevExpress.Maui.Core.DXScrollToPosition.MakeVisible);
-        }
-    }
-
-    private async void GoToSettingsPage(object sender, EventArgs e)
-    {
-
-        await Shell.Current.GoToAsync(nameof(SettingsPageM));
-
-    }
-    protected override bool OnBackButtonPressed()
-    {        
-        return true;
-    }
-
-
-
-    SelectionMode currentSelectionMode;
+    bool isOnFocusMode = false;
    
 
-    private DateTime _lastTapTime = DateTime.MinValue;
-    private const int DoubleTapTime = 300; // in milliseconds
-    private const int LongPressTime = 500; // in milliseconds
-    
-
-    private void SingleSongCxtMenuArea_Clicked(object sender, EventArgs e)
-    {        
-        var s = (View)sender;
-        var song = (SongModelView)s.BindingContext;
-        MyViewModel.SetContextMenuSong(song);
-        if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
-        {
-            SongsMenuBtm.Show();
-        }
-    }
-    // Assume SongsColView is your CollectionView and MyViewModel.FilteredSongs is the data source
-    public List<SongModelView> GetVisibleItems()
-    {
-        var visibleItems = new List<SongModelView>();
-        int visibleCount = SongsColView.VisibleItemCount;
-
-        for (int i = 0; i < visibleCount; i++)
-        {
-            // Get the handle of the item by visible index
-            var handle = SongsColView.GetItemHandleByVisibleIndex(i);
-
-            if (handle != -1) // Ensure the handle is valid
-            {
-                // Retrieve the object using the handle
-                SongModelView? item = (SongModelView?)SongsColView.GetItem(handle);
-                if (item != null)
-                {
-                    visibleItems.Add(item);
-                }
-            }
-        }
-
-        return visibleItems;
-    }
-
-    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    //colview tap play
+    private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
         MyViewModel.CurrentQueue = 0;
         if (MyViewModel.IsOnSearchMode)
@@ -138,247 +65,556 @@ public partial class HomePageM : ContentPage
                      .Select(handle => SongsColView.GetItem(handle) as SongModelView)
                      .Where(item => item != null)
                      .ToList()!;
-            MyViewModel.FilteredSongs = filteredSongs;
-
-        }
-        MyViewModel.PlaySong(e.Item as SongModelView);
-    }
-
-    private void SongsColView_LongPress(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
-    { 
-        
-        var s = (View)sender;
-        var song = (SongModelView)e.Item;
-        MyViewModel.SetContextMenuSong(song);
-        if (SongsMenuBtm.State == DevExpress.Maui.Controls.BottomSheetState.Hidden)
-        {
-            SongsMenuBtm.Show();
             
         }
+        MyViewModel.PlaySong(e.Item as SongModelView);
+
+        await Task.WhenAll(BtmBar.AnimateNewTrackBounce(duration: 500),
+            BtmBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500));
     }
 
-    private void ShareSong_Clicked(object sender, EventArgs e)
+    protected override bool OnBackButtonPressed()
     {
-        CloseBtmSheet();
+        if (!NormalNowPlayingUI.IsVisible)
+        {
+            Task.WhenAll(
+            CurrentView.AnimateFadeOutBack(),
+            NormalNowPlayingUI.AnimateFadeInFront()
+
+            );
+            CurrentView = NormalNowPlayingUI;
+            isOnFocusMode = false;
+
+            SearchBy.Unfocus();
+
+        }
+        switch (HomeTabView.SelectedItemIndex)
+        {
+            case 0:                
+                break;
+            case 1:
+                HomeTabView.SelectedItemIndex = 0;
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
-    private void CloseBtmSheet()
+    private void ShowMoreBtn_Clicked(object sender, EventArgs e)
     {
-        SongsMenuBtm.State = DevExpress.Maui.Controls.BottomSheetState.Hidden;
+        var s = (View)sender;
+        var song = (SongModelView)s.BindingContext;
+        MyViewModel.SetContextMenuSong(song);
+        SongsMenuPopup.Show();
+
     }
-
-
-    private void ShowFilterUIImgBtm_Clicked(object sender, EventArgs e)
-    {
-        SearchSongPopUp.Show();
-        
-        
-    }
-
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.NavigateToArtistsPage(1);
-        CloseBtmSheet();
+        SongsMenuPopup.Close();
+    }
+    private void ClosePopup(object sender, EventArgs e)
+    {
+        SongsMenuPopup.Close();
     }
 
-
-    private void OnLongPressElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    
+    private void SearchBy_TextChanged(object sender, EventArgs e)
     {
-        _isLongPressed = true;
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);        
-    }
-    private async void ShowSongDetails_Tap(object sender, DevExpress.Maui.CollectionView.SwipeItemTapEventArgs e)
-    {
-        var song = (SongModelView)e.Item;
-
-        MyViewModel.MySelectedSong = song;
-
-        await MyViewModel.NavToSingleSongShell();
-    }
-    ObservableCollection<DevExpress.Maui.CollectionView.SortDescription> Sorts;
-    private void SortSongsChip_Tap(object sender, HandledEventArgs e)
-    {
-        var chip = (DevExpress.Maui.Editors.Chip)sender;
-        SongsColView.SortDescriptions.Clear();
-        switch (chip.TapCommandParameter)
+        switch (SearchParam)
         {
-            case "0":
-                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "Title", SortOrder = DevExpress.Maui.Core.DataSortOrder.Ascending});
+            case "Title":
+                ByTitle();
                 break;
-            case "1":
-                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "Title", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
+            case "Artist":
+                ByArtist();
                 break;
-            case "2":
-                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Ascending });
-                break;
-            case "3":
-                SongsColView.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription() { FieldName = "DateAdded", SortOrder = DevExpress.Maui.Core.DataSortOrder.Descending });
-                var servicee = IPlatformApplication.Current!.Services.GetRequiredService<IPlaybackUtilsService>()!;
-
+            case "":
+                ByAll();
                 break;
             default:
+                ByAll();
                 break;
         }
-        //var commandParam = 
+        
     }
 
-    List<SongModelView>? filteredSongs=new();
-    private void SongTitleTextEdit_TextChanged(object sender, EventArgs e)
+    private void ByTitle()
     {
-        var searchBar = (TextEdit)sender;
-        var txt = searchBar.Text;
-
-        if (!string.IsNullOrEmpty(txt))
+        if (!string.IsNullOrEmpty(SearchBy.Text))
         {
-            if (txt.Length >= 1)
+            if (SearchBy.Text.Length >= 1)
             {
-                MyViewModel.IsOnSearchMode = true;
-                // Setting the FilterString for SongsColView
-                SongsColView.FilterString = $"Contains([Title], '{SongTitleTextEdit.Text}')";
-                filteredSongs?.Clear();
-
-                // Apply the filter to the DisplayedSongs collection
-                filteredSongs = MyViewModel.SongsMgtService.AllSongs!
-                    .Where(item => item.Title.Contains(SongTitleTextEdit.Text, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
+                MyViewModel.IsOnSearchMode = true;                
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
             }
             else
             {
                 MyViewModel.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
-
             }
         }
     }
-    private void ArtistNameTextEdit_TextChanged(object sender, EventArgs e)
+    private void ByAll()
     {
-        var searchBar = (TextEdit)sender;
-        var txt = searchBar.Text;
-
-        if (!string.IsNullOrEmpty(txt))
+        if (!string.IsNullOrEmpty(SearchBy.Text))
         {
-            if (txt.Length >= 1)
+            if (SearchBy.Text.Length >= 1)
             {
                 MyViewModel.IsOnSearchMode = true;
-                // Setting the FilterString for SongsColView
-                SongsColView.FilterString = $"Contains([ArtistName], '{ArtistNameTextEdit.Text}')";
-                filteredSongs?.Clear();
-
-                // Apply the filter to the DisplayedSongs collection
-                filteredSongs = MyViewModel.SongsMgtService.AllSongs!
-                    .Where(item => item.ArtistName!.Contains(ArtistNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
+                SongsColView.FilterString = 
+                    $"Contains([Title], '{SearchBy.Text}') OR " +
+                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
+                    $"Contains([AlbumName], '{SearchBy.Text}')";
             }
             else
             {
                 MyViewModel.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
-
             }
         }
     }
-    private void AlbumNameTextEdit_TextChanged(object sender, EventArgs e)
+    private void ByArtist()
     {
-        var searchBar = (TextEdit)sender;
-        var txt = searchBar.Text;
-
-        if (!string.IsNullOrEmpty(txt))
+        if (!string.IsNullOrEmpty(SearchBy.Text))
         {
-            if (txt.Length >= 1)
+            if (SearchBy.Text.Length >= 1)
             {
-                MyViewModel.IsOnSearchMode = true;
-                // Setting the FilterString for SongsColView
-                SongsColView.FilterString = $"Contains([AlbumName], '{AlbumNameTextEdit.Text}')";
-                filteredSongs?.Clear();
-
-                // Apply the filter to the DisplayedSongs collection
-                filteredSongs = MyViewModel.SongsMgtService.AllSongs
-                    .Where(item => item.AlbumName!.Contains(AlbumNameTextEdit.Text, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
+                MyViewModel.IsOnSearchMode = true;                
+                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+                
             }
             else
             {
                 MyViewModel.IsOnSearchMode = false;
                 SongsColView.FilterString = string.Empty;
-
             }
         }
     }
-    private void ClearSearch_Clicked(object sender, EventArgs e)
-    {
-        SongsColView.FilterString = string.Empty;
-        SongTitleTextEdit.Text = string.Empty;
-        MyViewModel.IsOnSearchMode = false;  
-        SongTitleTextEdit.Focus();
-    }
+
+  
+    DXLayoutBase? CurrentView { get; set; }
     
-
-    private System.Timers.Timer _longPressTimer;
-    private bool _isLongPressed;
-
-    private void NowPlaySearchBtmSheet_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    string SearchParam = string.Empty;
+    private async void SearchSong_Tap(object sender, HandledEventArgs e)
     {
-        _longPressTimer.Stop(); // Stop the timer if released early
-
-        if (!_isLongPressed)
+        
+        if (!SearchModeUI.IsVisible)
         {
-            // Short tap action
-            SearchSongPopUp.Show();
+            await Task.WhenAll(SearchModeUI.AnimateFadeInFront()
+                );
+            //CurrentView!.AnimateFadeOutBack());
+            isOnFocusMode = true;
+            //CurrentView = SearchModeUI;
+
+            SearchBy.Focus();
+            SearchParam = "Title";
         }
         else
         {
-            SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.PickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
-            
+            await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
+                );
+            //CurrentView!.AnimateFadeOutBack());
+            isOnFocusMode = false;
+            //CurrentView = SearchModeUI;
+
+            SearchBy.Unfocus();
+            SearchParam = string.Empty;
+
         }
     }
 
-    private void NowPlaySearchBtmSheet_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    private void NormalNowPlayingUI_Loaded(object sender, EventArgs e)
     {
-        // Initialize the timer
-        _longPressTimer = new System.Timers.Timer(500); // 1.5 seconds
-        _longPressTimer.Elapsed += OnLongPressElapsed;
-        _longPressTimer.AutoReset = false; // Only fire once per press
-        _isLongPressed = false;
-        _longPressTimer.Start(); // Start the timer on button press
+        CurrentView = NormalNowPlayingUI;
+    }
+    
+    private void NormalNowPlayingUI_Unloaded(object sender, EventArgs e)
+    {
+        CurrentView = null;
+    
+    }
+
+    
+    private double _startX;
+    private double _startY;
+    private bool _isPanning;
+    private CancellationTokenSource _debounceTokenSource = new CancellationTokenSource();
+    private int _lastFullyVisibleHandle = -1; // Track the last *fully visible* item handle.
+
+    private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        var send = (DXBorder)sender;
+
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _isPanning = true;
+                _startX = BtmBar.TranslationX;  
+                _startY = BtmBar.TranslationY;
+                break;
+
+            case GestureStatus.Running:
+                if (!_isPanning)
+                    return; // Safety check
+
+                BtmBar.TranslationX = _startX + e.TotalX;
+                BtmBar.TranslationY = _startY + e.TotalY;
+                break;
+
+            case GestureStatus.Completed:
+                _isPanning = false; 
+
+                double deltaX = BtmBar.TranslationX - _startX;
+                double deltaY = BtmBar.TranslationY - _startY;
+                double absDeltaX = Math.Abs(deltaX);
+                double absDeltaY = Math.Abs(deltaY);
+
+                // Haptic feedback based on direction
+                if (absDeltaX > absDeltaY) // Horizontal swipe
+                {
+                    if (absDeltaX > absDeltaY) // Horizontal swipe
+                    {
+                        try
+                        {
+                            if (deltaX > 0) // Right
+                            {
+                                HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                                Debug.WriteLine("Swiped Right");
+
+                                MyViewModel.PlayNextSongCommand.Execute(null);
+
+                                var colorTask = AnimateColor(send, Colors.SlateBlue);
+                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+
+                                await Task.WhenAll(colorTask, bounceTask);
+                            }
+                             else // Left
+                            {
+                                Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
+                                MyViewModel.PlayPreviousSongCommand.Execute(null);
+
+                                var colorTask = AnimateColor(send, Colors.MediumPurple);
+                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+
+                                await Task.WhenAll(colorTask, bounceTask);
+                            }
+                        }
+                        catch { }
+                    }
+
+                    else // Left
+                    {
+                        try
+                        {
+                            Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
+                            MyViewModel.PlayPreviousSongCommand.Execute(null);
+                            Debug.WriteLine("Swiped left");
+                            var t1= send.BackgroundColorTo(Colors.MediumPurple, length: 300); 
+                            var t2=  Task.Delay(500);
+                            var t3 = send.BackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
+                            await Task.WhenAll(t1, t2, t3);
+                        }
+                        catch { }
+                    }
+                }
+                else  //Vertical swipe
+                {
+                    if (deltaY > 0) // Down
+                    {
+                        try
+                        {
+                            if (HomeTabView.SelectedItemIndex != 0)
+                            {
+                                HomeTabView.SelectedItemIndex=0;
+                            }
+                            var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                            SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                            
+                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                        }
+                        catch { }
+                    }
+                    else  //Up
+                    {
+                        try
+                        {
+                            if (HomeTabView.SelectedItemIndex != 1)
+                            {
+                                HomeTabView.SelectedItemIndex = 1;
+                                
+                                await MyViewModel.AssignSyncLyricsCV(LyricsColView);
+                            }
+                            else
+                            {
+                                HomeTabView.SelectedItemIndex = prevViewIndex;
+                            }
+                        }
+                        catch { }
+                    }
+
+                }
+
+                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                break;
+
+
+            case GestureStatus.Canceled:  
+                _isPanning = false;
+                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut); // Return to original position
+                break;
+
+        }
+    }
+    int prevViewIndex = 0;
+    // Extracted color animation method for reusability
+    async Task AnimateColor(VisualElement element, Color color)
+    {
+        await element.BackgroundColorTo(color, length: 300);
+        await Task.Delay(300); // Reduce freeze by using a lower delay
+        await element.BackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+    }
+    private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+    }
+
+    //mini bar tap play/pause
+
+    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (DXBorder)sender;
+        
+        if (MyViewModel.IsPlaying)
+        {
+            
+            MyViewModel.PauseSong();
+            RunFocusModeAnimation(send, Color.FromArgb("#8B0000")); // DarkRed for pause
+            
+            await send.BackgroundColorTo(Color.FromArgb("#252526"), length: 300);
+        }
+        else
+        {
+            await send.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
+            //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
+            if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
+            {
+                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong);
+            }
+            else
+            {
+                MyViewModel.ResumeSong();
+            }
+        }
 
     }
 
-    private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
+    public void RunFocusModeAnimation(DXBorder bView, Color strokeColor)
+    {
+        if (bView == null)
+            return;
+
+        // Set the stroke color based on pause/resume state
+        bView.BorderColor= strokeColor;
+
+        // Define a single animation to embiggen the stroke
+        var expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
+            0,                                   // Start with 0 thickness
+            5,                                  // Expand to 10 thickness
+            Easing.CubicInOut                    // Smooth easing
+        );
+
+        // Shrink the stroke back to zero after embiggen
+        var shrinkAnimation = new Animation(
+            v => bView.BorderThickness = v,
+            5,                                   // Start at 10 thickness
+            0,                                    // Reduce to 0 thickness
+            Easing.CubicInOut
+        );
+
+        // Combine expand and shrink animations into one sequence
+        var animationSequence = new Animation
+        {
+            { 0, 0.5, expandAnimation },   // Embiggen in the first half
+            { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
+        };
+
+        // Run the full animation sequence
+        animationSequence.Commit(bView, "FocusModeAnimation", length: 300, easing: Easing.Linear);
+    }
+
+    private void BtmBarTitle_Loaded(object sender, EventArgs e)
     {
         
-        var s = sender as ChoiceChipGroup;
-        switch (s.SelectedIndex)
-        {
-            case 0:
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfOne"];
-                break;
+    }
 
-            case 1:
-                SongsColView.ItemSpanSpacing = 2;
-                SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfTwo"];
+    private void BtmBar_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void BtmBar_BindingContextChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SongsColView_Scrolled(object sender, DevExpress.Maui.CollectionView.DXCollectionViewScrolledEventArgs e)
+    {
+        var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+        bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
+        
+    }
+
+
+    private void SongFrom2ndaryQueueBtn_Tap(object sender, DXTapEventArgs e)
+    {
+       
+    }
+
+    private void CurrQueueColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void SingleSongRow_TapReleased(object sender, DXTapEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
+    }
+
+    private void LyricsColView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    {
+        var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
+        
+        if (!this.IsLoaded)
+        {
+            return;
+        }
+        if (CurrLyric is null)
+            return;
+
+        try
+        {
+            
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    Label CurrentLyrLabel { get; set; }
+    private void LyrBorder_Loaded(object sender, EventArgs e)
+    {
+        CurrentLyrLabel = (Label)sender;
+    }
+
+    private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
+    {
+        if (MyViewModel.IsPlaying)
+        {
+            var bor = (Label)sender;
+            var lyr = (LyricPhraseModel)bor.BindingContext;
+            MyViewModel.SeekSongPosition(lyr);
+        }
+    }
+
+    private void SearchBy_ClearIconClicked(object sender, HandledEventArgs e)
+    {
+        SongsColView.RefreshData();
+    }
+
+    private void SearchFiltersChips_ChipTap(object sender, ChipEventArgs e)
+    {
+        var send = (ChoiceChipGroup)sender;
+        var chip = (Chip)send.SelectedItem;
+        SearchParam = chip.TapCommandParameter.ToString()!;
+    }
+
+    private void PlayFromNPList_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
+
+    private void LyricsColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void LyricsColView_Unloaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void ShowArtistSongsAndAlbums_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.LoadArtistSongs();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        await NowPlayingQueueView.DimmOutCompletely();
+        NowPlayingQueueView.IsVisible=false;    
+        await ArtistSongsView.DimmInCompletely();
+        ArtistSongsView.IsVisible=true;
+    }
+
+    private void ShowSongInAlbum_Tap(object sender, HandledEventArgs e)
+    {
+        
+    }
+
+    
+
+    private void ShowArtistAlbums_Tapped(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var curSel = send.BindingContext as AlbumModelView;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+    }
+
+    private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        MyViewModel.GetAllArtistAlbumFromArtistModel(MyViewModel.SelectedArtistOnArtistPage);
+    }
+
+    private void SingleSongBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.CurrentQueue = 1;
+        var s = (View)sender;
+        var song = s.BindingContext as SongModelView;
+        MyViewModel.PlaySong(song);
+
+    }
+
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var param = send.TapCommandParameter.ToString();
+        switch (param)
+        {
+            case "repeat":
+
+                MyViewModel.ToggleRepeatModeCommand.Execute(true);
+                
                 break;
-            case 2:
-                //SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfThree"];
+            case "shuffle":
+                MyViewModel.CurrentQueue = 1;
                 break;
-            case 3:
-                //SongsColView.ItemTemplate = (DataTemplate)Resources["HomePageColViewGridOfFour"];
+            case "Lyrics":
+                MyViewModel.CurrentQueue = 2;
                 break;
             default:
                 break;
         }
-        Debug.WriteLine(s.GetType());
-    }
 
-    private void GoToArtistBtn_Clicked_1(object sender, EventArgs e)
-    {
-
-    }
-
-    private void ScrollToSong_Clicked(object sender, EventArgs e)
-    {
-        SongsColView.ScrollTo(SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong), DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 }

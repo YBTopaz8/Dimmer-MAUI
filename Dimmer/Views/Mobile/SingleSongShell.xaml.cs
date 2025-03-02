@@ -1,6 +1,3 @@
-
-using DevExpress.Maui.Core;
-using SelectionChangedEventArgs = Microsoft.Maui.Controls.SelectionChangedEventArgs;
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SingleSongShell : ContentPage
@@ -20,6 +17,8 @@ public partial class SingleSongShell : ContentPage
 
 
     public HomePageVM MyViewModel { get; }
+   
+    /*
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
@@ -31,8 +30,6 @@ public partial class SingleSongShell : ContentPage
         await MyViewModel.AfterSingleSongShellAppeared();
         
     }
-
-
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -40,12 +37,10 @@ public partial class SingleSongShell : ContentPage
         DeviceDisplay.Current.KeepScreenOn = false;
         
     }
-
     protected override bool OnBackButtonPressed()
     {           
         return base.OnBackButtonPressed();
     }
-
     private void tabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
         switch (e.NewIndex)
@@ -70,8 +65,6 @@ public partial class SingleSongShell : ContentPage
             MyViewModel.ShowSingleSongStatsCommand.Execute(MyViewModel.MySelectedSong);
         }
     }
-
-
     private void LyricsColView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (MyViewModel.MySelectedSong != MyViewModel.TemporarilyPickedSong)
@@ -95,10 +88,6 @@ public partial class SingleSongShell : ContentPage
             return;
         }
     }
-
-
-     
-
     private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (MyViewModel.IsPlaying)
@@ -108,7 +97,6 @@ public partial class SingleSongShell : ContentPage
             MyViewModel.SeekSongPosition(lyr);
         }
     }
-
     private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
         emptyV.IsVisible = true;
@@ -130,8 +118,6 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         fetchFailed.IsVisible = false;
         emptyV.IsVisible = false;
     }
-
-
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         var send = (Button)sender;
@@ -149,17 +135,14 @@ NoLyricsFoundMsg.AnimateFadeInFront());
             await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, true);
         }
     }
-
     private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
         NowPlayingBtmSheet.Show();
     }
-
     private void RevealNPBtmSheet_Tapped(object sender, TappedEventArgs e)
     {
         NowPlayingBtmSheet.Show();
     }
-
     private void DXButton_Clicked(object sender, EventArgs e)
     {
         if (MyViewModel.IsPlaying)
@@ -171,4 +154,5 @@ NoLyricsFoundMsg.AnimateFadeInFront());
             MyViewModel.ResumeSong();
         }
     }
+    */
 }

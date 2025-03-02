@@ -9,7 +9,7 @@
              
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
-             xmlns:chart="http://schemas.syncfusion.com/maui/toolkit"                            
+             xmlns:Syncf="http://schemas.syncfusion.com/maui/toolkit"                            
              x:DataType="vm:HomePageVM"
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:cv="clr-namespace:Dimmer_MAUI.Views.Mobile.CustomViewsM"
@@ -39,23 +39,23 @@
 
         </ResourceDictionary>
     </ContentPage.Resources>
-
-    <Grid Padding="0,0" BackgroundColor="Transparent">
+    <Label Text="Hi"/>
+    <!--<Grid Padding="0,0" BackgroundColor="Transparent">
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.1"
     IsVisible="True" Grid.Column="0" Aspect="Center"/>
-        <chart:SfTabView x:Name="TabV" BackgroundColor="Transparent"
+        <Syncf:SfTabView x:Name="TabV" BackgroundColor="Transparent"
                         TabBarHeight="65" TabBarPlacement="Bottom" x:DataType="vm:HomePageVM"
                         IndicatorPlacement="Bottom" SelectedIndex="{Binding CurrentViewIndex}"
                         EnableSwiping="{OnPlatform Android=True, WinUI=False}" 
                         SelectionChanged="tabView_SelectionChanged"
                         IsClippedToBounds="True">
 
-            <chart:SfTabView.Items >
+            <Syncf:SfTabView.Items >
 
-                <chart:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
+                <Syncf:SfTabItem Header="View Synced Lyrics" x:Name="Lyr" 
                                  TextColor="Gray" ImageSource="lyrics.png">
                     
-                    <chart:SfTabItem.Content>
+                    <Syncf:SfTabItem.Content>
 
 
                         <dx:DXCollectionView x:DataType="vm:HomePageVM" ItemsSource="{Binding SynchronizedLyrics}" 
@@ -99,38 +99,44 @@
                             
                         </dx:DXCollectionView>
                         
-                    </chart:SfTabItem.Content>
-                </chart:SfTabItem>
+                    </Syncf:SfTabItem.Content>
+                </Syncf:SfTabItem>
 
-                <chart:SfTabItem Header="Fetch Lyrics" TextColor="Gray"
-                                 ImageSource="search.gif">
+                <Syncf:SfTabItem Header="Fetch Lyrics" TextColor="Gray"
+                                 ImageSource="songfind.png">
                     
-                    <chart:SfTabItem.Content>
-                        <Grid Margin="5,5" RowDefinitions="*,Auto" BackgroundColor="Transparent">
+                    <Syncf:SfTabItem.Content>
+                        <Grid Margin="5,5" RowDefinitions="Auto,*,Auto" BackgroundColor="Transparent">
                             <Grid.Resources>
                                 <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
                                 <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
 
                             </Grid.Resources>
-                            <HorizontalStackLayout Spacing="10" Grid.Row="1" HeightRequest="50"
+                            <VerticalStackLayout Grid.Row="0">
+                                <Label Text="{Binding MySelectedSong.FilePath,StringFormat='Full Path: {0}'}"/>
+                                <dx:TextEdit PlaceholderText="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
+                                <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
+                                <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
+
+                            </VerticalStackLayout>
+                            
+                            <VerticalStackLayout Spacing="10" Grid.Row="2" HeightRequest="50"
                    Margin="5" HorizontalOptions="Center">
-                                <Button Text="Search on LrcLib API" x:Name="SearchLyricsOnLyrLib"
-                                                    Clicked="SearchLyricsOnLyrLib_Clicked">
-                                    <Button.CommandParameter>
-                                        <x:Boolean>True</x:Boolean>
-                                    </Button.CommandParameter>
-                                </Button>
 
+                               
+                                <HorizontalStackLayout>
 
-                                <Button Text="Search on Lyrist API" Command="{Binding FetchLyricsLyristCommand}"
-                                                    IsVisible="False">
-                                    <Button.CommandParameter>
-                                        <x:Boolean>True</x:Boolean>
-                                    </Button.CommandParameter>
-                                </Button>
+                                    <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
+                                            Clicked="SearchLyricsOnLyrLib_Clicked">
+                                        <Button.CommandParameter>
+                                            <x:Boolean>True</x:Boolean>
+                                        </Button.CommandParameter>
+                                    </Button>
 
-                            </HorizontalStackLayout>
-                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="0"  
+                                </HorizontalStackLayout>
+
+                            </VerticalStackLayout>
+                            <CollectionView ItemsSource="{Binding AllSyncLyrics}" Grid.Row="1"  
                                                         x:DataType="vm:HomePageVM">
                                 <CollectionView.EmptyView>
                                     <ContentView>
@@ -182,13 +188,13 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </Grid>
-                    </chart:SfTabItem.Content>
-                </chart:SfTabItem>
+                    </Syncf:SfTabItem.Content>
+                </Syncf:SfTabItem>
 
 
-            </chart:SfTabView.Items>
+            </Syncf:SfTabView.Items>
 
-        </chart:SfTabView>
+        </Syncf:SfTabView>
         <VerticalStackLayout VerticalOptions="End" HeightRequest="180"
                              HorizontalOptions="End" BackgroundColor="Transparent">
             <viewsM:EachPageNPFAB_Mobile Margin="10"/>
@@ -196,5 +202,5 @@
 
         <viewsM:NowPlayingBtmSheet x:Name="NowPlayingBtmSheet"/>
         
-    </Grid>
+    </Grid>-->
 </ContentPage>

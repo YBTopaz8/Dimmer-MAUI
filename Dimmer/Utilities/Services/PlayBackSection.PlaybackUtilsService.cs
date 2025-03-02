@@ -102,8 +102,6 @@ public partial class PlaybackUtilsService : ObservableObject
 
 
     private Random random = Random.Shared;  // Reuse the same Random instance
-
-
     private void UpdateActiveQueue()
     {
         if (IsShuffleOn)
@@ -115,7 +113,6 @@ public partial class PlaybackUtilsService : ObservableObject
             _playbackQueue.OnNext(SongsMgtService.AllSongs.ToObservableCollection()); // Use the original order
         }
     }
-
     private ObservableCollection<SongModelView> ShuffleList(ObservableCollection<SongModelView> list)
     {
         var shuffledList = list.OrderBy(_ => random.Next()).ToObservableCollection(); // Simple shuffle
@@ -258,6 +255,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (CurrentRepeatMode == RepeatMode.One)
         {
+
             PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
             return;
         }
@@ -284,30 +282,31 @@ public partial class PlaybackUtilsService : ObservableObject
         }
         // If not repeat all and at the end, do nothing or stop playback
     }
+
+    int prevCounter = 0;
     public void PlayPreviousSong(bool isUserInitiated = true)
     {
         if (ObservableCurrentlyPlayingSong == null)
             return;
 
-        if (isUserInitiated)
+        if (prevCounter == 1)
         {
-            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Skipped);
-        }
-
-        var currentQueue = _playbackQueue.Value;
-        int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
-
-        if (currentIndex > 0)
-        {
+            var currentQueue = _playbackQueue.Value;
+            int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);            
             PlaySong(currentQueue[currentIndex - 1], CurrentPlaybackSource);
+            prevCounter = 0;
+            return;
         }
-        else if (CurrentRepeatMode == RepeatMode.All && currentQueue.Any()) // Repeat All, go to last song
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Restarted);
+        PlaySong(ObservableCurrentlyPlayingSong, CurrentPlaybackSource);
+        if (CurrentRepeatMode == RepeatMode.One)
         {
-            PlaySong(currentQueue.Last(), CurrentPlaybackSource);
+            return;
         }
-        // If not repeat all and at the beginning, do nothing
+        prevCounter++;
     }
-
+    double CurrentPercentage = 0;
     /// <summary>
     /// Seeks to a specific position in the currently SELECTED song to play but won't play it if it's paused
     /// </summary>
@@ -320,26 +319,43 @@ public partial class PlaybackUtilsService : ObservableObject
         {
             return;
         }
-        var currentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
+        var CurrentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
 
+#if ANDROID
+        DimmerAudioService.SetCurrentTime(positionInSec);
 
+        PlayDateAndCompletionStateSongLink links = new()
+        {
+            DatePlayed = DateTime.Now,
+            PlayType = 4,
+            SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
+            PositionInSeconds = currentPositionInSec
+        };
+        if (CurrentPercentage >= 80)
+        {
+            links.PlayType = 7;
+        }
+
+        SongsMgtService.AddPDaCStateLink(links);
+        return;
+#endif
         if (DimmerAudioService.IsPlaying)
         {
             DimmerAudioService.SetCurrentTime(positionInSec);
 
-            PlayDateAndCompletionStateSongLink links = new()
+            PlayDateAndCompletionStateSongLink linkss = new()
             {
                 DatePlayed = DateTime.Now,
                 PlayType = 4,
                 SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = currentPositionInSec
             };
-            if (currentPercentage >= 80)
+            if (CurrentPercentage >= 80)
             {
-                links.PlayType = 7;
+                linkss.PlayType = 7;
             }
 
-            SongsMgtService.AddPDaCStateLink(links);
+            SongsMgtService.AddPDaCStateLink(linkss);
         }
     }
     public void ChangeVolume(double newVolumeOver1)
@@ -362,12 +378,12 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public void DecreaseVolume()
     {
-        DimmerAudioService.Volume -= 0.1;
+        DimmerAudioService.Volume -= 0.01;
     }
-
+    public double VolumeLevel => DimmerAudioService.Volume;
     public void IncreaseVolume()
     {
-        DimmerAudioService.Volume += 0.1;
+        DimmerAudioService.Volume += 0.01;
     }
 
     /// <summary>
@@ -611,6 +627,22 @@ public enum MediaPlayerState
     
 }
 
+/// <summary>
+/// Indicates the type of play action performed.    
+/// Possible VALID values for <see cref="PlayType"/>:
+/// <list type="bullet">
+/// <item><term>0</term><description>Play</description></item>
+/// <item><term>1</term><description>Pause</description></item>
+/// <item><term>2</term><description>Resume</description></item>
+/// <item><term>3</term><description>Completed</description></item>
+/// <item><term>4</term><description>Seeked</description></item>
+/// <item><term>5</term><description>Skipped</description></item>
+/// <item><term>6</term><description>Restarted</description></item>
+/// <item><term>7</term><description>SeekRestarted</description></item>
+/// <item><term>8</term><description>CustomRepeat</description></item>
+/// <item><term>9</term><description>Previous</description></item>
+/// </list>
+/// </summary>
 public enum PlayType
 {
     Play = 0,
@@ -620,8 +652,9 @@ public enum PlayType
     Seeked = 4,
     Skipped = 5,
     Restarted = 6,
-    RestSeekRestartedarted = 7,
-    CustomRepeat = 8
+    SeekRestarted = 7,
+    CustomRepeat = 8,
+    Previous=9
 }
 public enum RepeatMode // Using enum for repeat modes
 {

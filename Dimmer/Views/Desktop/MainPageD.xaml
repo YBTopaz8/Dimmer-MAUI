@@ -12,8 +12,10 @@
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
+             
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
+             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"
              >
 
     <ContentPage.Resources>
@@ -24,9 +26,8 @@
 
 
     </ContentPage.Resources>
-
     
-    <Grid x:Name="MainDock" RowDefinitions="*,Auto"
+    <Grid x:Name="MainDock" RowDefinitions="*,Auto" IsVisible="True"
         IsEnabled="True">
         <Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
@@ -71,7 +72,8 @@
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
-                    Margin="10,0,10,0" x:Name="NormalMiniUtilBar">
+                            Margin="10,0,10,0" x:Name="NormalMiniUtilBar" 
+                            IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}">
                     <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="16"
                 FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
@@ -92,12 +94,13 @@
                 </FlexLayout>
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
-                        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" IsVisible="False">
+                        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" 
+                            IsVisible="{Binding IsMultiSelectOn}">
                     <HorizontalStackLayout>
                         <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
 
                         </ImageButton>
-                        <Label Text="{Binding MultiSelectText}" FontSize="28" VerticalTextAlignment="End"
+                        <Label Text="{Binding ContextViewText}" FontSize="28" VerticalTextAlignment="End"
                             FontAttributes="Bold" TextColor="DarkSlateBlue"/>
                     </HorizontalStackLayout>
 
@@ -114,7 +117,7 @@
 
                 </FlexLayout>
             </VerticalStackLayout>
-            <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+            <Grid ColumnDefinitions="*,*,*,*,180,180,180"
                   Margin="10,0,0,0"
                   RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
                 <Label Text="Title" Grid.Column="0" FontSize="26"/>
@@ -123,7 +126,7 @@
                 <Label Text="Genre" Grid.Column="3" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Duration" Grid.Column="4" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center"/>
-                <Label Text="# Times Played" Grid.Column="6" FontSize="26" HorizontalOptions="Center"/>
+                <Label Text="# Times Played" Grid.Column="6" IsVisible="True" FontSize="22" HorizontalOptions="Center"/>
             </Grid>
             <Grid toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
@@ -149,16 +152,9 @@
                                     StrokeShape="RoundRectangle 12">
                                 
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
-                                                     TouchDownEffects="Ripple,Selection" >
-                                    <!--<syncf:SfEffectsView.Triggers>
-                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="#B197FC" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="syncf:SfEffectsView" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                        </DataTrigger>
-                                    </syncf:SfEffectsView.Triggers>-->
-                                    <Grid ColumnDefinitions="*,*,*,*,*,*,*" RowDefinitions="90" ColumnSpacing="5">
+                                                     TouchDownEffects="Ripple,Selection" 
+                                                     >
+                                    <Grid ColumnDefinitions="*,*,*,*,180,180,180" RowDefinitions="90" ColumnSpacing="5">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -207,7 +203,8 @@
                                         <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" FontSize="16"/>
                                         <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
-                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding NumberOfTimesPlayedCompletely}" />
+                                        <Label Grid.Column="6" HorizontalOptions="Center" IsVisible="True"
+                                               Text="{Binding NumberOfTimesPlayedCompletely}" />
 
                                     </Grid>
 
@@ -220,6 +217,5 @@
         </toolkit:DockLayout>
 
     </Grid>
-        
-        
+
 </ContentPage>

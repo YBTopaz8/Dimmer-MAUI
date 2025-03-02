@@ -60,4 +60,5 @@ public interface IPlaybackUtilsService
     //void SetEqualizerSettings(float[] bands);
 
     ObservableCollection<ArtistModelView>? AllArtists { get; }
+    double VolumeLevel { get; }
 }

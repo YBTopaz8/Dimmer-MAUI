@@ -2,16 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer_MAUI.Views.Mobile.SettingsPageM"
-              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
-            
+              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"               
-             
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"            
 
             xmlns:dx="http://schemas.devexpress.com/maui"
-             Shell.NavBarIsVisible="False"             
-             
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="True"             
              x:DataType="vm:HomePageVM" 
 
              Title="Settings">
@@ -164,7 +162,7 @@
         <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"
                              Margin="10" BackgroundColor="Transparent">
             <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                    <Image Source="issue.png"/>
+                    <Image Source="issuee.png" HeightRequest="35"/>
 
                     <Label Text="Facing Issues ?" FontSize="16" />
             </HorizontalStackLayout>

@@ -74,7 +74,18 @@ public partial class HomePageVM
 #endif
 
     }
-    
+    public void LoadArtistSongs()
+    {
+        if (SelectedArtistOnArtistPage is not null && SelectedArtistOnArtistPage.Name == MySelectedSong.ArtistName)
+        {
+            if (AllArtistsAlbumSongs.Count > 1)
+            {
+                return;
+            }
+        }
+        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).First();
+        GetAllArtistAlbumFromArtistModel(SelectedArtistOnArtistPage);
+    }
     [RelayCommand]
     public async Task NavigateToAlbumsPage(int? callerID=0) //0 if called by else, 1 if called by homeD or homeM
     {
@@ -254,11 +265,7 @@ public partial class HomePageVM
         }
         PickedSong = AllArtistsAlbumSongs.FirstOrDefault()!;
     }
-    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView> oldValue, ObservableCollection<AlbumModelView> newValue)
-    {
-        //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
-    }
-
+    
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
   {
         var artistIds = AllLinks

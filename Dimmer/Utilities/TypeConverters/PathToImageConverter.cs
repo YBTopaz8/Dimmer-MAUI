@@ -4,10 +4,13 @@ public class PathToImageConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
-            return string.Empty;
+            return "musicnoteslider.png";
 
         var path = LyricsService.SaveOrGetCoverImageToFilePath((string)value);
-
+        if (string.IsNullOrEmpty(path))
+        {
+            path = "musicnoteslider.png";
+        }
         return path;
     }
 
@@ -23,7 +26,7 @@ public class VolumeConverter : IValueConverter
         if (value == null)
             return "0";
 
-        return ((double)value*100).ToString("N1")+"%";
+        return (int)Math.Clamp(((double)(value) * 100), 0, 100) + "%";
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

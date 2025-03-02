@@ -381,9 +381,9 @@ public class MediaPlayerService : Service,
                 MediaMetadataRetriever metaRetriever = new MediaMetadataRetriever();
 
                 
-                mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()
-                    .SetContentType(AudioContentType.Music)
-                    .SetUsage(AudioUsageKind.Media).Build());
+                mediaPlayer.SetAudioAttributes(new AudioAttributes.Builder()!
+                    .SetContentType(AudioContentType.Music)!
+                    .SetUsage(AudioUsageKind.Media)!.Build()!);
 
                 mediaPlayer.SetWakeMode(Platform.AppContext, WakeLockFlags.Partial);
 
@@ -414,9 +414,9 @@ public class MediaPlayerService : Service,
                 if (OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     var focusResult = audioManager.RequestAudioFocus(new AudioFocusRequestClass
-                    .Builder(AudioFocus.Gain)
-                    .SetOnAudioFocusChangeListener(this)
-                    .Build());
+                    .Builder(AudioFocus.Gain)!
+                    .SetOnAudioFocusChangeListener(this)!
+                    .Build()!)!;
 
                     if (focusResult != AudioFocusRequest.Granted)
                     {
@@ -773,10 +773,12 @@ public class MediaPlayerService : Service,
 
     public class MediaSessionCallback : MediaSession.Callback
     {
+        HomePageVM MyViewModel { get; set; }
         private readonly MediaPlayerServiceBinder mediaPlayerService;
         public MediaSessionCallback(MediaPlayerServiceBinder service)
         {
             mediaPlayerService = service;
+            MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         }
 
         bool isPlaying = true;
@@ -784,6 +786,7 @@ public class MediaPlayerService : Service,
         {
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(false);
             base.OnPause();
+            MyViewModel.PauseSong();
             isPlaying = false;
         }
 
@@ -791,7 +794,8 @@ public class MediaPlayerService : Service,
         {
             Console.WriteLine("Step 2 On Play Callback Method");
             mediaPlayerService.GetMediaPlayerService().OnPlayingChanged(true);
-            base.OnPlay();
+            //base.OnPlay();
+            MyViewModel.ResumeSong();
             isPlaying = true;
         }
 
@@ -804,6 +808,7 @@ public class MediaPlayerService : Service,
 
         public override void OnSkipToPrevious()
         {
+            
             mediaPlayerService.GetMediaPlayerService().PlayPrevious();
             base.OnSkipToPrevious();
         }

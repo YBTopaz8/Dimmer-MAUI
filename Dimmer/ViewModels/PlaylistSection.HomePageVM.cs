@@ -42,7 +42,7 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public void UpdatePlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public void UpSertPlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {
@@ -96,7 +96,7 @@ public partial class HomePageVM
             {
                 Name = PlaylistName,
             };
-            UpdatePlayList(MySelectedSong, newPlaylist, IsAddSong: true);
+            UpSertPlayList(MySelectedSong!, newPlaylist, IsAddSong: true);
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             //await toast.Show(cts.Token);

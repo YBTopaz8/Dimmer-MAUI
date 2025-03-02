@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 namespace Dimmer_MAUI.Utilities.Services;
@@ -152,72 +153,6 @@ public class AppSettingsService : IAppSettingsService
             return (SortingEnum)SortingMode;
         }
 
-    }
-
-    public static ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode)
-    {
-        colToSort = colToSort.ToObservableCollection();
-        switch (mode)
-        {
-            case SortingEnum.TitleAsc:
-                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
-                break;
-            case SortingEnum.TitleDesc:
-                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
-                break;
-            case SortingEnum.ArtistNameAsc:
-                colToSort = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
-                break;
-            case SortingEnum.ArtistNameDesc:
-                colToSort = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
-                break;
-            case SortingEnum.DateAddedAsc:
-                colToSort = colToSort.OrderBy(x => x.DateCreated).ToObservableCollection();
-                break;
-            case SortingEnum.DateAddedDesc:
-                colToSort = colToSort.OrderByDescending(x => x.DateCreated).ToObservableCollection();
-                break;
-            case SortingEnum.DurationAsc:
-                colToSort = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
-                break;
-            case SortingEnum.DurationDesc:
-                colToSort = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
-                break;
-            case SortingEnum.YearAsc:
-                colToSort = colToSort.OrderBy(x => x.Title).ToObservableCollection();
-                break;
-            case SortingEnum.YearDesc:
-                colToSort = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
-                break;
-            //case SortingEnum.NumberOfTimesPlayedAsc:
-            //    colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
-            //    break;
-
-            //case SortingEnum.NumberOfTimesPlayedDesc:
-            //    colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count).ToObservableCollection();
-            //    break;
-
-            //case SortingEnum.NumberOfTimesPlayedCompletelyAsc:
-            //    colToSort = colToSort.OrderBy(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
-            //    break;
-
-            //case SortingEnum.NumberOfTimesPlayedCompletelyDesc:
-            //    colToSort = colToSort.OrderByDescending(x => x.DatesPlayedAndWasPlayCompleted.Count(entry => entry.WasPlayCompleted)).ToObservableCollection();
-            //    break;
-
-            case SortingEnum.RatingAsc:
-                colToSort = colToSort.OrderBy(x => x.Rating).ToObservableCollection();
-                break;
-
-            case SortingEnum.RatingDesc:
-                colToSort = colToSort.OrderByDescending(x => x.Rating).ToObservableCollection();
-                break;
-
-            default:
-                break;
-        }
-        SortingModePreference.SetSortingPref(mode);
-        return colToSort;
     }
     public static class MusicFoldersPreference
     {

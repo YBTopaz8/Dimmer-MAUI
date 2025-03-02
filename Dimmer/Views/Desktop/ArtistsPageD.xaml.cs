@@ -16,7 +16,18 @@ public partial class ArtistsPageD : ContentPage
 
   
     public HomePageVM MyViewModel { get; }
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
+    {
 
+        base.OnNavigatedTo(args);
+
+        if (MyViewModel.SelectedArtistOnArtistPage is not null && MyViewModel.CurrentAppState == AppState.OnForeGround)
+        {
+            AllArtistsColView.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
+            AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
+        }
+
+    }
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -50,12 +61,7 @@ public partial class ArtistsPageD : ContentPage
         {
             MyViewModel.GetAllArtistsAlbum();
         }
-        if (MyViewModel.SelectedArtistOnArtistPage is not null && MyViewModel.CurrentAppState == AppState.OnForeGround)
-        {
-            AllArtistsColView.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
-            AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
-        }
-        
+       
         
         
     }

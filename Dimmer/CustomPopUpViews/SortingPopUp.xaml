@@ -33,10 +33,10 @@
                     <syncf:SfChip Text="Duration - Descending" CommandParameter="7" TextColor="White"/>
                     <syncf:SfChip Text="Year - Ascending" CommandParameter="8"  TextColor="White"/>
                     <syncf:SfChip Text="Year - Descending" CommandParameter="9" TextColor="White"/>
-                    <!--<syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
+                    <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
                     <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11" TextColor="White"/>
                     <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12" TextColor="White"/>
-                    <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>-->
+                    <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>
                     <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
                     <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
 

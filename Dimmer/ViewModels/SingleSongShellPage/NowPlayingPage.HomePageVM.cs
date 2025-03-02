@@ -1,8 +1,15 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
     [ObservableProperty]
     public partial int NPLyricsFontSize { get; set; }
+    [ObservableProperty]
+    public partial Label? InternalNotificationLabelVM { get; set; }
+    [ObservableProperty]
+    public partial SearchBar? InternalSearchSongSBVM { get; set; }
     [RelayCommand]
     public void IncreaseNowPlayingLyricsFontSize()
     {
@@ -17,10 +24,9 @@ public partial class HomePageVM
     [RelayCommand]
     async Task SaveLyricsToLrcAfterSyncing()
     {
-        string? result = await Shell.Current.DisplayActionSheet("Done Syncing?", "No", "Yes");
-        if (result is null)
-            return;
-        if (result.Equals("Yes"))
+        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "No", "Yes");
+        
+        if (result)
         {
             string? lyr = string.Join(Environment.NewLine, LyricsLines!.Select(line => $"{line.TimeStampText} {line.Text}"));
             if (lyr is not null)
@@ -32,6 +38,7 @@ public partial class HomePageVM
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
                 SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong!.LocalDeviceId)!.HasLyrics = true;
+                await ShowNotificationInternally("Saved Synced Lyrics To Device");
             }
         }
     }
@@ -105,8 +112,6 @@ public partial class HomePageVM
         }
     }
 
-
-
     public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
     {
         bool isSavedSuccessfully;
@@ -159,14 +164,20 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModel>? LyricsLines { get; set; } = new();
     [RelayCommand]
-    void CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
+    async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
         var CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
-             PlaySong(TemporarilyPickedSong);
+            await Shell.Current.DisplayAlert("Warning", "You must be playing a song to capture a timestamp.", "OK");
+            return;
+            //PlaySong(TemporarilyPickedSong);
         }
 
+        if (CurrPosition < 0)
+        {
+            return;
+        }
         LyricPhraseModel? Lyricline = LyricsLines?.FirstOrDefault(x => x == lyricPhraseModel);
         if (Lyricline is null)
             return;
@@ -190,72 +201,45 @@ public partial class HomePageVM
 
     string[]? splittedLyricsLines;
 
-    void PrepareLyricsSync()
+    public void PrepareLyricsSync(string? plainLyrics=null)
     {
-        if (TemporarilyPickedSong?.UnSyncLyrics == null)
+
+        if (plainLyrics == null)
             return;
 
-        // Define the terms to be removed
-        string[] termsToRemove = new[]
-        {
-        "[Chorus]", "Chorus", "[Verse]", "Verse", "[Hook]", "Hook",
-        "[Bridge]", "Bridge", "[Intro]", "Intro", "[Outro]", "Outro",
-        "[Pre-Chorus]", "Pre-Chorus", "[Instrumental]", "Instrumental",
-        "[Interlude]", "Interlude"
-        };
 
-        // Remove all the terms from the lyrics
-        string cleanedLyrics = TemporarilyPickedSong.UnSyncLyrics;
-        foreach (var term in termsToRemove)
-        {
-            cleanedLyrics = cleanedLyrics.Replace(term, string.Empty, StringComparison.OrdinalIgnoreCase);
-        }
 
+        // Define the terms to be removed using a regular expression
+        string termsToRemovePattern = @"\[?\s*(Chorus(es)?|Verse(s)?|Hook(s)?|Bridge(s)?|Intro|Outro|Pre[- ]?Chorus|Instrumental|Interlude)\s*\]?";        //string termsToRemovePattern = string.Join("|", termsToRemove.Select(Regex.Escape)); // Alternative with your array.
+
+        // Remove all the terms from the lyrics using Regex.Replace
+        string cleanedLyrics = Regex.Replace(plainLyrics, termsToRemovePattern, "", RegexOptions.IgnoreCase);
+
+        // Split and filter the lyrics lines
         string[]? ss = cleanedLyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-        splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line))
-            .ToArray();
+        splittedLyricsLines = ss?.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
         if (splittedLyricsLines is null || splittedLyricsLines.Length < 1)
         {
             return;
         }
+        // Clear the existing items. This will trigger a UI update.
+        LyricsLines?.Clear();
+
+        // Add the new items.  This will trigger *another* UI update.
         foreach (var item in splittedLyricsLines)
         {
-            var LyricPhrase = new LyricsPhrase(0, item);
-            LyricPhraseModel newLyric = new(LyricPhrase);
-            LyricsLines?.Add(newLyric);
+            LyricsLines.Add(new LyricPhraseModel(new LyricsPhrase(0, item)));
         }
     }
-
     static string RemoveTextAndFollowingNewline(string input, string textt)
     {
-        string result = input;
-
-        int index = result.IndexOf(textt);
-
-        while (index != -1)
-        {
-            int nextCharIndex = index + textt.Length;
-            if (nextCharIndex < result.Length)
-            {
-                if (result[nextCharIndex] == '\r' || result[nextCharIndex] == '\n')
-                {
-                    result = result.Remove(index, textt.Length + 1);
-                }
-                else
-                {
-                    result = result.Remove(index, textt.Length);
-                }
-            }
-            else
-            {
-                result = result.Remove(index, textt.Length);
-            }
-
-            index = result.IndexOf(textt);
-        }
-
-        return result;
+        // Escape the text to be removed to handle special regex characters.
+        string escapedText = Regex.Escape(textt);
+        // The regex:  Find the text, followed by an optional \r, then a required \n.
+        //             Or, just the text at the end of the string.
+        string pattern = $@"{escapedText}(\r?\n|$)";
+        return Regex.Replace(input, pattern, "", RegexOptions.None); // or RegexOptions.Compiled for even more speed
     }
 
     [RelayCommand]
@@ -336,28 +320,47 @@ public partial class HomePageVM
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
+            await ShowNotificationInternally("Already Favorite");
+
             return;
         }
-        else if (!MySelectedSong.IsFavorite && !willBeFav)
+        if (!MySelectedSong.IsFavorite && !willBeFav)
         {
+            await ShowNotificationInternally("Not Fav");
+
+
             return;
         }
-        else if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
+        if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
-            UpdatePlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+            UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+            await ShowNotificationInternally("Removed from Favorites");
+
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
-            UpdatePlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+            UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+            await ShowNotificationInternally("Added to Favorites");
             return;
-        };
-        if (CurrentUser.IsLoggedInLastFM)
-        {
-            //LastFMUtils.RateSong(MySelectedSong, willBeFav);
         }
+        //if (CurrentUser.IsLoggedInLastFM)
+        //{
+        //    //LastFMUtils.RateSong(MySelectedSong, willBeFav);
+        //}
 
     }
 
-
+    private async Task ShowNotificationInternally(string msgText, int delayBtnSwitch=3000)
+    {
+        if (InternalNotificationLabelVM is null || InternalSearchSongSBVM is null)
+            return;
+        InternalNotificationLabelVM.Text= msgText;
+        await Task.WhenAll(
+            InternalNotificationLabelVM.DimmInCompletely(), 
+            InternalSearchSongSBVM.DimmOutCompletely(),
+                Task.Delay(delayBtnSwitch),
+                InternalSearchSongSBVM.DimmInCompletely(),
+                InternalNotificationLabelVM.DimmOutCompletely());
+    }
 }

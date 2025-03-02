@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI;
+﻿
+
+namespace Dimmer_MAUI;
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
@@ -32,7 +34,8 @@ public static class MauiProgram
             .ConfigureMauiHandlers(handlers =>
             {
 #if WINDOWS
-                TableViewHandler.ConfigureTableViewHandler(handlers);
+                //DataGridHandler.ConfigureTableViewHandler(handlers);
+                //TableViewHandler.ConfigureTableViewHandler(handlers);
 #endif
                 //handlers.AddHandler(typeof(TableView), typeof(TableViewHandler));
             })
@@ -62,11 +65,15 @@ public static class MauiProgram
                         WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(nativeWindowHandle);
                         AppWindow winuiAppWindow = AppWindow.GetFromWindowId(win32WindowsId);
 
+
+
+
                         if (winuiAppWindow.Title != "MP")
                         {
                             homeVM.AppWinPresenter = winuiAppWindow.Presenter;
                             var OLP = winuiAppWindow.Presenter as OverlappedPresenter;
 
+                            
 
                             //winuiAppWindow.Title = new CustomTitleBar(homeVM);
 
@@ -108,7 +115,7 @@ public static class MauiProgram
                             if (winuiAppWindow.Presenter is OverlappedPresenter p)
                             {
 
-                                p.IsResizable = false;
+                                p.IsResizable = true;
                                 p.SetBorderAndTitleBar(false, false); // Remove title bar and border
                                 p.IsAlwaysOnTop = true;
                             }
@@ -148,6 +155,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ShareSongPage>();
         builder.Services.AddSingleton<SettingsPageM>();
         builder.Services.AddSingleton<FirstStepPage>();
+        builder.Services.AddSingleton<SongContextMenuPopUp>();
 #endif
 
 #if ANDROID || WINDOWS

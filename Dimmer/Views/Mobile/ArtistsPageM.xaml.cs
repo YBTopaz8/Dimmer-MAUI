@@ -61,9 +61,6 @@ public partial class ArtistsPageM : ContentPage
     {
         var send = (DXButton)sender;
         var curSel = send.BindingContext as AlbumModelView;
-
-
-
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);

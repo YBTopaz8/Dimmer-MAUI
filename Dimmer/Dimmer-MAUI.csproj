@@ -63,8 +63,9 @@
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
     <ApplicationTitle>Dimmer</ApplicationTitle>
     <AndroidLinkMode>SdkOnly </AndroidLinkMode>
-    
-    
+
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -134,7 +135,9 @@
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
     <EnableLLVM>True</EnableLLVM>
     <RunAOTCompilation>False</RunAOTCompilation>
-    <PublishTrimmed>False</PublishTrimmed>
+    <PublishTrimmed>True</PublishTrimmed>
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <Debugger>Xamarin</Debugger>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android35.0|AnyCPU'">
     <AndroidUseAapt2>True</AndroidUseAapt2>
@@ -144,6 +147,10 @@
     <AndroidSigningStorePass>YBTopaz8!</AndroidSigningStorePass>
     <AndroidSigningKeyPass>YBTopaz8</AndroidSigningKeyPass>
     <EnableLLVM>True</EnableLLVM>
+    <ApplicationTitle>Dimmer</ApplicationTitle>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
+    <Debugger>Xamarin</Debugger>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->
@@ -169,7 +176,7 @@
     <None Remove="Resources\Images\youtube.svg" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="11.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     
     <!--<PackageReference Include="CSCore" Version="1.2.1.2" />-->
@@ -183,9 +190,10 @@
     
     <!--<PackageReference Include="Hqub.Last.fm" Version="2.5.0" />-->
     
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.40" />
     <!--<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />-->
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
@@ -193,7 +201,7 @@
     <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.16.0" />
+    <PackageReference Include="z440.atl.core" Version="6.18.0" />
 
   </ItemGroup>
 
@@ -211,6 +219,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SleepTimerSelectionPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\SongContextMenuPopUp.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SongContextMenuPopupView.xaml">
@@ -341,9 +352,13 @@
     <Folder Include="Utilities\OtherUtils\ParseStaticUtils\" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
-    <PackageReference Include="WinUI.TableView">
+    <!--<ProjectReference Include="..\..\MAUI.TableView\YB.MauiDataGridView\YB.MauiDataGridView.csproj" />-->
+
+    <!--<PackageReference Include="WinUI.TableView">
       <Version>1.2.2</Version>
-    </PackageReference>
+    </PackageReference>-->
+  </ItemGroup>
+  <ItemGroup>
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
