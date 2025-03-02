@@ -321,12 +321,29 @@ public partial class PlaybackUtilsService : ObservableObject
         }
         var CurrentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
 
+#if ANDROID
+        DimmerAudioService.SetCurrentTime(positionInSec);
 
+        PlayDateAndCompletionStateSongLink links = new()
+        {
+            DatePlayed = DateTime.Now,
+            PlayType = 4,
+            SongId = ObservableCurrentlyPlayingSong.LocalDeviceId,
+            PositionInSeconds = currentPositionInSec
+        };
+        if (CurrentPercentage >= 80)
+        {
+            links.PlayType = 7;
+        }
+
+        SongsMgtService.AddPDaCStateLink(links);
+        return;
+#endif
         if (DimmerAudioService.IsPlaying)
         {
             DimmerAudioService.SetCurrentTime(positionInSec);
 
-            PlayDateAndCompletionStateSongLink links = new()
+            PlayDateAndCompletionStateSongLink linkss = new()
             {
                 DatePlayed = DateTime.Now,
                 PlayType = 4,
@@ -335,10 +352,10 @@ public partial class PlaybackUtilsService : ObservableObject
             };
             if (CurrentPercentage >= 80)
             {
-                links.PlayType = 7;
+                linkss.PlayType = 7;
             }
 
-            SongsMgtService.AddPDaCStateLink(links);
+            SongsMgtService.AddPDaCStateLink(linkss);
         }
     }
     public void ChangeVolume(double newVolumeOver1)

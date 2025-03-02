@@ -1196,45 +1196,16 @@ public partial class HomePageVM
         {
             if (SyncLyricsCVV.SelectedItem is not null)
             {
+                if (CurrentLyricPhrase is null)
+                {
+                    return;
+                }
                 // Set SelectedItem FIRST to ensure UI updates
                 SyncLyricsCVV.SelectedItem = CurrentLyricPhrase;
 
-                // Animate Font Size First
-                if (e.RemovedItems?.Count > 0)
-                {
-                    if (e.AddedItems?.Count <= 1)
-                    {
-                        foreach (LyricPhraseModel oldItem in e.RemovedItems.Cast<LyricPhraseModel>())
-                        {                            
-                            oldItem.Opacity = 1;
-                            oldItem.LyricsFontAttributes = FontAttributes.Bold;
-                        }
-
-                    }
-                    else
-                    {
-                        foreach (LyricPhraseModel oldItem in e.RemovedItems.Cast<LyricPhraseModel>())
-                        {
-                            oldItem.Opacity = 0.3;
-                            oldItem.LyricsFontAttributes = FontAttributes.None;
-                        }
-                    }
-                }
-                if (e.AddedItems?.Count > 0)
-                {
-                    foreach (LyricPhraseModel newItem in e.AddedItems.Cast<LyricPhraseModel>())
-                    {
-                        newItem.NowPlayingLyricsFontSize = FocusedLyricSize;
-                        newItem.LyricsFontAttributes = FontAttributes.Bold;
-                    }
-                }
-
-                var s= SyncLyricsCVV.SelectedItem as LyricPhraseModel;
-                if (s is not null)
-                {
-                    s.Opacity = 1;
-                    s.LyricsFontAttributes = FontAttributes.Bold;
-                }
+                    CurrentLyricPhrase.Opacity = 1;
+                    CurrentLyricPhrase.LyricsFontAttributes = FontAttributes.Bold;
+                
 
                 var itemHandle = SyncLyricsCVV.FindItemHandle(SyncLyricsCVV.SelectedItem);
                 MainThread.BeginInvokeOnMainThread(() =>

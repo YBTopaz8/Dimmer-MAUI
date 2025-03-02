@@ -43,9 +43,7 @@ public partial class AppShellMobile : Shell
 
         if (targetPages.Contains(currentPage.GetType()))
         {
-
             shelltabbar.CurrentItem = homeTab;
-
         }
         return base.OnBackButtonPressed();
     }

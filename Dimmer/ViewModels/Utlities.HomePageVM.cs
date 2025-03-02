@@ -278,16 +278,13 @@ public partial class HomePageVM
                 break;
         }
     }
-    //I want to use MySelectedSong, which has Title, ArtistName and AlbumName
+    
     async Task OpenGoogleSearch()
     {
         if (MySelectedSong != null)
         {
             string query = $"{MySelectedSong.Title} - {MySelectedSong.ArtistName}";
-            //if (!string.IsNullOrEmpty(MySelectedSong.AlbumName))
-            //{
-            //    query += $" {MySelectedSong.AlbumName}";
-            //}
+            
             string searchUrl = $"https://www.google.com/search?q={Uri.EscapeDataString(query)}";
             await Launcher.OpenAsync(new Uri(searchUrl));
         }

@@ -34,7 +34,15 @@ public partial class HomePageM : ContentPage
 
 
     }
+    private void ToggleRepeat_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
 
+    }
+    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        MyViewModel.SeekSongPosition(currPosPer: ProgressSlider.Value);
+    }
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -540,4 +548,6 @@ public partial class HomePageM : ContentPage
     {
 
     }
+
+  
 }
