@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
+using System.Threading.Tasks;
 using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -324,6 +325,10 @@ public partial class HomePageM : ContentPage
                     {
                         try
                         {
+                            if (HomeTabView.SelectedItemIndex != 0)
+                            {
+                                HomeTabView.SelectedItemIndex=0;
+                            }
                             var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
                             SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
                             
@@ -373,7 +378,7 @@ public partial class HomePageM : ContentPage
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
         MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
-        CurrentQueueListBtmSheetView.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
     }
 
     //mini bar tap play/pause
@@ -549,5 +554,67 @@ public partial class HomePageM : ContentPage
 
     }
 
-  
+    private async void ShowArtistSongsAndAlbums_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.LoadArtistSongs();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        await NowPlayingQueueView.DimmOutCompletely();
+        NowPlayingQueueView.IsVisible=false;    
+        await ArtistSongsView.DimmInCompletely();
+        ArtistSongsView.IsVisible=true;
+    }
+
+    private void ShowSongInAlbum_Tap(object sender, HandledEventArgs e)
+    {
+        
+    }
+
+    
+
+    private void ShowArtistAlbums_Tapped(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var curSel = send.BindingContext as AlbumModelView;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+    }
+
+    private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        MyViewModel.GetAllArtistAlbumFromArtistModel(MyViewModel.SelectedArtistOnArtistPage);
+    }
+
+    private void SingleSongBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.CurrentQueue = 1;
+        var s = (View)sender;
+        var song = s.BindingContext as SongModelView;
+        MyViewModel.PlaySong(song);
+
+    }
+
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var param = send.TapCommandParameter.ToString();
+        switch (param)
+        {
+            case "repeat":
+
+                MyViewModel.ToggleRepeatModeCommand.Execute(true);
+                
+                break;
+            case "shuffle":
+                MyViewModel.CurrentQueue = 1;
+                break;
+            case "Lyrics":
+                MyViewModel.CurrentQueue = 2;
+                break;
+            default:
+                break;
+        }
+
+    }
 }

@@ -1210,7 +1210,7 @@ public partial class HomePageVM
                 var itemHandle = SyncLyricsCVV.FindItemHandle(SyncLyricsCVV.SelectedItem);
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    SyncLyricsCVV.ScrollTo(itemHandle, DXScrollToPosition.MakeVisible);
+                    SyncLyricsCVV.ScrollTo(itemHandle, DXScrollToPosition.Start);
                 });
                 // Scroll AFTER font size animation
             }

@@ -162,7 +162,7 @@
         <VerticalStackLayout VerticalOptions="End" HorizontalOptions="Center" toolkit:DockLayout.DockPosition="Top"
                              Margin="10" BackgroundColor="Transparent">
             <HorizontalStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                    <Image Source="issuee.png"/>
+                    <Image Source="issuee.png" HeightRequest="35"/>
 
                     <Label Text="Facing Issues ?" FontSize="16" />
             </HorizontalStackLayout>
