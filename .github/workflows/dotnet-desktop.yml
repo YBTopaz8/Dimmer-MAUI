@@ -6,22 +6,20 @@ on:
   push:
     branches:
       - Dev-Official
-      - master  # Assuming 'master' is the main branch, not 'main'
+      - master  # Or 'main' if that's your main branch
 
 jobs:
   notify:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code (for push and release events)
-        uses: actions/checkout@v4 # Checkout is needed for generating the tag
+      - name: Checkout code
+        uses: actions/checkout@v4  # Needed for commit info and release tag.
 
-      - name: Generate Tag Name
-        if: github.event_name == 'release' # Only generate tag on release
-        id: generate_tag
-        run: |
-          echo "tag=$(date +'%d-%m-%Y_%H-%M-%S')" >> $GITHUB_OUTPUT  # Correct date format
-
+      - name: Get Release Tag (Release Event)
+        if: github.event_name == 'release'
+        id: get_release_tag
+        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
       - name: Send Discord Notification (Release)
         if: github.event_name == 'release'
@@ -29,10 +27,13 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
-          args: |
-            New release ${{ steps.generate_tag.outputs.tag }} of Dimmer is now available!
-            This is a test release body.
-            Release URL: https://example.com # Replace with actual logic to get URL if needed
+          args: |  # Use multiline string for readability
+            New release **${{ steps.get_release_tag.outputs.tag }}** of Dimmer is now available!
+            
+            ${{ github.event.release.body }}  #  Include the actual release body!
+
+            Release URL: ${{ github.event.release.html_url }}
+            Published by: ${{ github.event.release.author.login }}
 
       - name: Send Discord Notification (Push)
         if: github.event_name == 'push'
@@ -41,8 +42,11 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            New push to ${{ github.ref_name }} branch in Dimmer!
+            New push to **${{ github.ref_name }}** branch in Dimmer!
+            
             Commit message: ${{ github.event.head_commit.message }}
-            Committer: ${{ github.event.head_commit.author.name }}
+            Committer: ${{ github.event.head_commit.author.name }} (<${{ github.event.head_commit.author.email }}>)
             Commit URL: ${{ github.event.head_commit.url }}
             Pushed by: ${{ github.actor }}
+            
+            ${{ github.event.compare }} # Show changed files
