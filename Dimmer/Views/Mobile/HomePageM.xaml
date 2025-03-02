@@ -58,7 +58,7 @@
                 <dx:TabView IsSelectedItemIndicatorVisible="False" SwipeEnabled="True"
                     x:Name="HomeTabView" HeaderPanelPosition="Bottom"
                         HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0"
-                        HeaderPanelHeight="0" 
+                        HeaderPanelHeight="0" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
                         ItemHeaderMinHeight="0" ItemHeaderHeight="0">
 
                     <dx:TabViewItem>
@@ -139,22 +139,27 @@
                         </dx:DXCollectionView>
                     </dx:TabViewItem>
                     <dx:TabViewItem x:Name="NowPlayingView">
-                        <dx:DXScrollView Orientation="Vertical">
+                        
                             <dx:DXDockLayout >
                                 <Grid dx:DXDockLayout.Dock="Top" 
                                 Grid.Row="0">
                                     <dx:DXImage Opacity="0.3"
                              Aspect="AspectFill"
                             Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-                                    <dx:DXCollectionView x:Name="LyricsColView" SelectionChanged="LyricsColView_SelectionChanged"
+                                    <dx:DXCollectionView x:Name="LyricsColView" 
+                                                         SelectionChanged="LyricsColView_SelectionChanged"
                                                          ItemsSource="{Binding SynchronizedLyrics}"                                
-                                                         HeightRequest="230" SelectionMode="Single" SelectedItem="{Binding CurrentLyricPhrase}">
+                                                         HeightRequest="230" SelectionMode="Single" 
+                                                         SelectedItem="{Binding CurrentLyricPhrase}"
+                                                         Loaded="LyricsColView_Loaded"
+                                                         Unloaded="LyricsColView_Unloaded">
 
                                         <dx:DXCollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:LyricPhraseModel">
                                                 
                                                 <Label x:Name="LyrBorder" Text="{Binding Text}"  
-                                                   FontSize="{Binding NowPlayingLyricsFontSize}"
+                                                   FontSize="28" FontAttributes="{Binding LyricsFontAttributes}"
+                                                       Opacity="{Binding Opacity}"
                                                 HorizontalTextAlignment="Center">
                                                 </Label>
                                             </DataTemplate >
@@ -178,7 +183,7 @@
                                 </dx:DXStackLayout>
 
                             </dx:DXDockLayout>
-                        </dx:DXScrollView>
+                        
                     </dx:TabViewItem>
 
                     <dx:TabViewItem x:Name="UpSertPlayListView">

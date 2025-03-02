@@ -330,7 +330,8 @@ public partial class HomePageM : ContentPage
                             if (HomeTabView.SelectedItemIndex != 1)
                             {
                                 HomeTabView.SelectedItemIndex = 1;
-                                MyViewModel.CurrentPage = PageEnum.NowPlayingPage;
+                                
+                                await MyViewModel.AssignSyncLyricsCV(LyricsColView);
                             }
                             else
                             {
@@ -476,44 +477,20 @@ public partial class HomePageM : ContentPage
         MyViewModel.PlaySong(song);
     }
 
-    private async void LyricsColView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    private void LyricsColView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
+        var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
+        
         if (!this.IsLoaded)
         {
             return;
         }
+        if (CurrLyric is null)
+            return;
+
         try
         {
-            if (LyricsColView.SelectedItem is not null)
-            {
-                // Set SelectedItem FIRST to ensure UI updates
-                LyricsColView.SelectedItem = MyViewModel.CurrentLyricPhrase;
-
-                // Let UI process selection before animating
-                await Task.Delay(10);
-
-                // Animate Font Size First
-                if (e.RemovedItems?.Count > 0)
-                {
-                    foreach (LyricPhraseModel oldItem in e.RemovedItems.Cast<LyricPhraseModel>())
-                        oldItem.NowPlayingLyricsFontSize = 29;
-                }
-                if (e.AddedItems?.Count > 0)
-                {
-                    foreach (LyricPhraseModel newItem in e.AddedItems.Cast<LyricPhraseModel>())
-                        newItem.NowPlayingLyricsFontSize = 40;
-                }
-
-                // Wait a bit so font size change is visible before scrolling
-                await Task.Delay(10);
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    var itemHandle = LyricsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
-                    LyricsColView.ScrollTo(itemHandle,DXScrollToPosition.Start);
-                }
-                );
-            }
-
+            
         }
         catch (Exception ex)
         {
@@ -550,6 +527,16 @@ public partial class HomePageM : ContentPage
     }
 
     private void PlayFromNPList_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
+
+    private void LyricsColView_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void LyricsColView_Unloaded(object sender, EventArgs e)
     {
 
     }

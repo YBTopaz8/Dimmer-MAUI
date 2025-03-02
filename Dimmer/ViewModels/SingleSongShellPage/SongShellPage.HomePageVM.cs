@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using DevExpress.Maui.CollectionView;
+using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -1142,6 +1144,7 @@ public partial class HomePageVM
     #endregion
 
     CollectionView? SyncLyricsCV { get; set; }
+    DXCollectionView? SyncLyricsCVV { get; set; }
     public async Task AssignSyncLyricsCV(CollectionView cv)
     {
         SyncLyricsCV = cv;
@@ -1151,6 +1154,103 @@ public partial class HomePageVM
             await FetchLyrics(false);
         }
     }
+    public async Task AssignSyncLyricsCV(DXCollectionView cv)
+    {
+        SyncLyricsCVV = cv;
+        SyncLyricsCVV.SelectionChanged +=SyncLyricsCVV_SelectionChanged;
+        
+        if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics?.Count < 1)
+        {
+            await FetchLyrics(false);
+        }
+    }
+    [ObservableProperty]
+    public partial int SelectedItemIndexMobile { get; set; } = 0;
+
+    partial void OnSelectedItemIndexMobileChanging(int oldValue, int newValue)
+    {
+
+        switch (newValue)
+        {
+            case 0:
+                break;
+            case 1:
+
+                CurrentPage = PageEnum.NowPlayingPage;
+                //AssignSyncLyricsCV(LyricsColView);
+                break;
+            case2:
+                break;
+            default:
+                break;
+        }
+    }
+    private void SyncLyricsCVV_SelectionChanged(object? sender, CollectionViewSelectionChangedEventArgs e)
+    {
+        if (SyncLyricsCVV is null || SyncLyricsCVV.ItemsSource is null || SyncLyricsCVV.SelectedItem is null
+            )
+        {
+            return;
+        }
+        try
+        {
+            if (SyncLyricsCVV.SelectedItem is not null)
+            {
+                // Set SelectedItem FIRST to ensure UI updates
+                SyncLyricsCVV.SelectedItem = CurrentLyricPhrase;
+
+                // Animate Font Size First
+                if (e.RemovedItems?.Count > 0)
+                {
+                    if (e.AddedItems?.Count <= 1)
+                    {
+                        foreach (LyricPhraseModel oldItem in e.RemovedItems.Cast<LyricPhraseModel>())
+                        {                            
+                            oldItem.Opacity = 1;
+                            oldItem.LyricsFontAttributes = FontAttributes.Bold;
+                        }
+
+                    }
+                    else
+                    {
+                        foreach (LyricPhraseModel oldItem in e.RemovedItems.Cast<LyricPhraseModel>())
+                        {
+                            oldItem.Opacity = 0.3;
+                            oldItem.LyricsFontAttributes = FontAttributes.None;
+                        }
+                    }
+                }
+                if (e.AddedItems?.Count > 0)
+                {
+                    foreach (LyricPhraseModel newItem in e.AddedItems.Cast<LyricPhraseModel>())
+                    {
+                        newItem.NowPlayingLyricsFontSize = FocusedLyricSize;
+                        newItem.LyricsFontAttributes = FontAttributes.Bold;
+                    }
+                }
+
+                var s= SyncLyricsCVV.SelectedItem as LyricPhraseModel;
+                if (s is not null)
+                {
+                    s.Opacity = 1;
+                    s.LyricsFontAttributes = FontAttributes.Bold;
+                }
+
+                var itemHandle = SyncLyricsCVV.FindItemHandle(SyncLyricsCVV.SelectedItem);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    SyncLyricsCVV.ScrollTo(itemHandle, DXScrollToPosition.MakeVisible);
+                });
+                // Scroll AFTER font size animation
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+        
+    }
+
     public void UnAssignSyncLyricsCV()
     {
         SyncLyricsCV.SelectionChanged -= SyncLyricsCV_SelectionChanged;

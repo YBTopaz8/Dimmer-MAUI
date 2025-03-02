@@ -22,6 +22,7 @@ public static class CustomAnimsExtensions
     public static async Task DimmIn(this View element, double duration = 350)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+        
 
     }
     public static async Task DimmOutCompletely(this View element, double duration = 350)
@@ -31,6 +32,7 @@ public static class CustomAnimsExtensions
     public static async Task DimmInCompletely(this View element, double duration = 350)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+
         
     }
 

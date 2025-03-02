@@ -76,7 +76,7 @@
                         Grid.Row="2"  HorizontalOptions="Center"
                         Spacing="5" x:DataType="vm:HomePageVM">
                         <ImageButton Clicked="SearchOnline_Clicked"
-                            Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            
                             HeightRequest="25" >
                             <ImageButton.CommandParameter>
                                 <x:Int32>1</x:Int32>
@@ -89,7 +89,7 @@
 
                         <ImageButton
                             Grid.Row="3" Grid.Column="1"
-                            Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            Clicked="SearchOnline_Clicked"
                                 HeightRequest="25">
                             <ImageButton.CommandParameter>
                                 <x:Int32>2</x:Int32>
@@ -100,7 +100,7 @@
                         </ImageButton>
 
                         <ImageButton                             
-                            Command="{Binding BindingContext.CntxtMenuSearchCommand,Source={x:Reference myPage}}"
+                            Clicked="SearchOnline_Clicked"
                             HeightRequest="25" >
                             <ImageButton.CommandParameter>
                                 <x:Int32>0</x:Int32>
@@ -248,7 +248,7 @@
 
                                 <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Grid.ColumnSpan="2">
                                     
-<ImageButton Source="backb.png"  />
+<ImageButton Source="backb.png" x:Name="CancelAction" Clicked="CancelAction_Clicked" />
                                 </HorizontalStackLayout>
                                 
                                 <VerticalStackLayout Grid.Row="0" Spacing="10" 
@@ -279,16 +279,20 @@
                                       RowDefinitions="Auto,*"
                                       x:Name="ManualSyncLyricsView"
                                       Grid.Column="0" Grid.ColumnSpan="2" >
-                                    <VerticalStackLayout Grid.Column="0" Grid.Row="1" 
-                                                         x:Name="PlainLyricSection" Spacing="5">
+                                    <ScrollView Grid.Column="0" Grid.Row="1" HorizontalOptions="Start">                                        
+                                    <VerticalStackLayout 
+                                                         x:Name="PlainLyricSection" Spacing="5"
+                                                         >
 
                                         <Button x:Name="StartSyncingBtn" Clicked="StartSyncing_Clicked"
                                             Text="Start Syncing" HorizontalOptions="Center"/>
                                         <Editor Text="{Binding MySelectedSong.UnSyncLyrics}" 
                                                 x:Name="LyricsEditor" MinimumWidthRequest="350"
+                                                MinimumHeightRequest="350"
                                                 Placeholder="Paste Plain Lyrics Here !"/>
                                     </VerticalStackLayout>
 
+                                    </ScrollView>
 
                                     <Grid Grid.Row="1" 
                                         Grid.Column="1" RowDefinitions="*,Auto" x:Name="SyncLyrView" IsVisible="False">

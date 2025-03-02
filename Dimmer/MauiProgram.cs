@@ -115,7 +115,7 @@ public static class MauiProgram
                             if (winuiAppWindow.Presenter is OverlappedPresenter p)
                             {
 
-                                p.IsResizable = false;
+                                p.IsResizable = true;
                                 p.SetBorderAndTitleBar(false, false); // Remove title bar and border
                                 p.IsAlwaysOnTop = true;
                             }

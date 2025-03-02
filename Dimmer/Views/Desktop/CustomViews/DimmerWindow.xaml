@@ -22,7 +22,7 @@
             </TitleBar.Resources>
             
             <TitleBar.Content>
-                <Grid>
+                <Grid HorizontalOptions="Center">
                     <SearchBar Text="{Binding SearchText}"
            Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
            x:Name="SearchSongSB" HeightRequest="30"                           

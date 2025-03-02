@@ -489,6 +489,21 @@ public partial class SingleSongShellPageD : ContentPage
                         {
                             /// Check file extension
                             string fileExtension = file.FileType.ToLower();
+
+                            if (fileExtension == ".png" || fileExtension == ".jpg" ||
+                                fileExtension == ".jpeg" || fileExtension == ".webp" )
+                            {
+                                if (MyViewModel.MySelectedSong is not null)
+                                {
+                                    MyViewModel.MySelectedSong.CoverImagePath = file.Path;
+                                    MyViewModel.SongsMgtService.UpdateSongDetails(MyViewModel.MySelectedSong);
+                                    if (MyViewModel.MySelectedSong == MyViewModel.TemporarilyPickedSong )
+                                    {
+                                        MyViewModel.TemporarilyPickedSong.CoverImagePath = file.Path;
+                                    }
+                                }
+                            } 
+                            else
                             if (fileExtension != ".mp3" && fileExtension != ".flac" &&
                                 fileExtension != ".wav" && fileExtension != ".m4a")
                             {
@@ -724,6 +739,9 @@ public partial class SingleSongShellPageD : ContentPage
         PlainLyricSection.IsEnabled = false;
         MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
         IsSyncing = true;
+
+        await SyncLyrView.DimmIn();
+        SyncLyrView.IsVisible=true;
     }
 
     private async void PointerGestureRecognizer_PointerEntered1(object sender, PointerEventArgs e)
@@ -783,5 +801,15 @@ public partial class SingleSongShellPageD : ContentPage
 #endif
     }
 
-
+    private async void CancelAction_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmIn();
+        PlainLyricSection.IsEnabled = true;
+        
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        IsSyncing = false;
+        
+        await SyncLyrView.DimmOut();
+        SyncLyrView.IsVisible=false;
+    }
 }

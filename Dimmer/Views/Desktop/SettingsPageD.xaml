@@ -185,7 +185,7 @@
                 </VerticalStackLayout>-->
                 
                 <HorizontalStackLayout>
-                    <Image Source="issue.png">                        
+                    <Image Source="issue.png" HeightRequest="40">
                     </Image>
                     <Label Text="Facing Issues!" FontSize="16" />
                 </HorizontalStackLayout>
