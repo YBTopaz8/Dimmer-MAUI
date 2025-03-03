@@ -9,44 +9,7 @@ on:
       - master
 
 jobs:
-  notify_discord:  # Job for Discord notifications
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'push'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get Release Tag (Release Event)
-        if: github.event_name == 'release'
-        id: get_release_tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-
-      - name: Send Discord Notification (Release)
-        if: github.event_name == 'release'
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |
-            New release **${{ steps.get_release_tag.outputs.tag }}** of Dimmer is now available!
-            ${{ github.event.release.body }}
-            Release URL: ${{ github.event.release.html_url }}
-            Published by: ${{ github.event.release.author.login }}
-
-      - name: Send Discord Notification (Push)
-        if: github.event_name == 'push'
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |
-            New push to **${{ github.ref_name }}** branch in Dimmer!
-            Commit message: ${{ github.event.head_commit.message }}
-            Committer: ${{ github.event.head_commit.author.name }} (<${{ github.event.head_commit.author.email }}>)
-            Commit URL: ${{ github.event.head_commit.url }}
-            Pushed by: ${{ github.actor }}
-
+  
   notify_back4app:  # Job for Back4App notifications
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || github.event_name == 'push'
