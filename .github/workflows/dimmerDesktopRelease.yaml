@@ -11,7 +11,7 @@ on:
 jobs:
   notify_back4app:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'push' # Put the condition back
+    if: github.event_name == 'release' || github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,13 +35,16 @@ jobs:
 
       - name: Send Back4App Webhook (Release or Push)
         run: |
+          commit_message=$(echo '${{ toJSON(github.event.head_commit.message) }}' | tr -d '"')
+          commit_url=$(echo '${{ toJSON(github.event.head_commit.url) }}' | tr -d '"')
+
           payload=$(cat << EOF
           {
             "master": false,
             "installationId": "",
             "params": {
-              "commitMessage": "${{ github.event.head_commit ? github.event.head_commit.message : '' }}",
-              "commitUrl": "${{ github.event.head_commit ? github.event.head_commit.url : '' }}",
+              "commitMessage": "${commit_message}",
+              "commitUrl": "${commit_url}",
               "branch": "${{ github.ref_name }}",
               "pusher": "${{ github.actor }}",
               "releaseTag": "${{ steps.get_release_tag.outputs.tag }}",
