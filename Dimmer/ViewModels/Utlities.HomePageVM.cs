@@ -497,6 +497,83 @@ public partial class HomePageVM
     }
 
 
+    [RelayCommand]
+    public async Task ContributeLyricsAsync()
+    {
+
+       var SelectedSongs = new List<SongModelView> { MySelectedSong! };
+
+        // Prepare the data to send to the Cloud Code function
+        List<Dictionary<string, object>> lyricsData = new();
+        foreach (SongModelView song in SelectedSongs)
+        {
+            //ONLY contribute, if song has lyrics
+            if (string.IsNullOrEmpty(song.UnSyncLyrics))
+            {
+                continue; // Skip songs without unsynced lyrics.
+            }
+
+            // Create a dictionary for each song's lyrics data
+            Dictionary<string, object> songLyricData = new()
+            {
+                { "title", song.Title },
+                { "artistName", song.ArtistName },
+                { "albumName", song.AlbumName }, // Optional
+                { "plainLyric", song.UnSyncLyrics },
+                { "syncLyrics", song.SyncLyrics.Select(lyric => new Dictionary<string, object>() { { "time", lyric.TimeStampMs}, { "lyric", lyric.Text } }).ToList() },
+                // Add other fields if needed
+            };
+            lyricsData.Add(songLyricData);
+        }
+
+        if (lyricsData.Count == 0) //If no song has Lyrics
+        {
+            await Shell.Current.DisplayAlert("No Lyrics", "Selected songs have no lyrics.", "OK");
+            return;
+        }
+
+        try
+        {
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("contributeLyrics", new Dictionary<string, object> { { "data", lyricsData } });
+            // Handle the result (check for success/partial success/error)
+            if (result is string successMessage && successMessage == "Lyrics contribution successful!")
+            {
+                await Shell.Current.DisplayAlert("Success", successMessage, "OK");
+                // Optionally, clear the selected songs or update the UI
+            }
+            else if (result is Dictionary<string, object> dictResult)
+            {
+                if (dictResult.ContainsKey("status") && (string)dictResult["status"] == "partial_success")
+                {
+                    string errorsMessage = "Lyrics contribution completed with errors:\n";
+                    if (dictResult.ContainsKey("errors") && dictResult["errors"] is List<object> errorsList)
+                    {
+                        foreach (var errorObj in errorsList)
+                        {
+                            if (errorObj is Dictionary<string, object> errorDict)
+                            {
+                                errorsMessage += "- " + errorDict["error"] + "\n"; // Assuming a simple error string. Adjust this as needed.
+                            }
+                        }
+                    }
+                    await Shell.Current.DisplayAlert("Partial Success", errorsMessage, "OK");
+                }
+                else if (dictResult.ContainsKey("status") && (string)dictResult["status"] == "error")
+                {
+                    await Shell.Current.DisplayAlert("Error", (string)dictResult["message"], "OK");
+                }
+
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Error", "An unexpected error occurred.", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error", $"Failed to contribute lyrics: {ex.Message}", "OK");
+        }
+    }
 
     [RelayCommand]
     public async Task BackupAllUserData()

@@ -286,27 +286,27 @@ Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
                                         <DataTrigger TargetType="dx:Chip" Value="0" Binding="{Binding CurrentRepeatMode}">
 
                                             <Setter Property="Icon" Value="repoff.png" />
-                                            <Setter Property="IconSize" Value="15" />
+                                            <Setter Property="IconSize" Value="15,15" />
                                             
                                         </DataTrigger>
 
                                         <DataTrigger TargetType="dx:Chip" Value="1" Binding="{Binding CurrentRepeatMode}">
 
                                             <Setter Property="Icon" Value="repeat.png"/>
-                                            <Setter Property="IconSize" Value="15"/>
+                                            <Setter Property="IconSize" Value="15,15"/>
                                             
                                         </DataTrigger>
 
                                         <DataTrigger TargetType="dx:Chip" Value="2" Binding="{Binding CurrentRepeatMode}">
 
                                             <Setter Property="Icon" Value="repone.png"/>
-                                            <Setter Property="IconSize" Value="15"/>
-                                            
+                                            <Setter Property="IconSize" Value="15,15"/>
+
                                         </DataTrigger>
 
                                         <DataTrigger TargetType="dx:Chip" Value="4" Binding="{Binding CurrentRepeatMode}">
                                             <Setter Property="Icon" Value="repone.png"/>
-                                            <Setter Property="IconSize" Value="15"/>
+                                            <Setter Property="IconSize" Value="15,15"/>
                                             
                                         </DataTrigger>
                                     </dx:Chip.Triggers>

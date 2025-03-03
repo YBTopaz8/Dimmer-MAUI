@@ -1,0 +1,90 @@
+name: Dimmer Release and Push Notifier
+
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - Dev-Official
+      - master
+
+jobs:
+  notify_discord:  # Job for Discord notifications
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Release Tag (Release Event)
+        if: github.event_name == 'release'
+        id: get_release_tag
+        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+      - name: Send Discord Notification (Release)
+        if: github.event_name == 'release'
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            New release **${{ steps.get_release_tag.outputs.tag }}** of Dimmer is now available!
+            ${{ github.event.release.body }}
+            Release URL: ${{ github.event.release.html_url }}
+            Published by: ${{ github.event.release.author.login }}
+
+      - name: Send Discord Notification (Push)
+        if: github.event_name == 'push'
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            New push to **${{ github.ref_name }}** branch in Dimmer!
+            Commit message: ${{ github.event.head_commit.message }}
+            Committer: ${{ github.event.head_commit.author.name }} (<${{ github.event.head_commit.author.email }}>)
+            Commit URL: ${{ github.event.head_commit.url }}
+            Pushed by: ${{ github.actor }}
+
+  notify_back4app:  # Job for Back4App notifications
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Release Tag (Release Event)
+        if: github.event_name == 'release'
+        id: get_release_tag
+        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+      - name: set release url
+        if: github.event_name == 'release'
+        run: echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
+        id: get_release_url
+
+      - name: Send Back4App Webhook (Release or Push)
+        run: |
+          payload=$(cat << EOF
+          {
+            "master": false,
+            "installationId": "",
+            "params": {
+              "commitMessage": "${{ github.event.head_commit.message }}",
+              "commitUrl": "${{ github.event.head_commit.url }}",
+              "branch": "${{ github.ref_name }}",
+              "pusher": "${{ github.actor }}",
+              "releaseTag": "${{ steps.get_release_tag.outputs.tag }}",
+              "releaseUrl": "${{steps.get_release_url.outputs.release_url}}"
+            },
+            "functionName": "githubUpdate"
+          }
+          EOF
+          )
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-Parse-Application-Id: ${{ secrets.PARSE_APP_ID }}" \
+            -H "X-Parse-REST-API-Key: ${{ secrets.PARSE_REST_API_KEY }}" \
+            -H "X-Parse-Webhook-Key: ${{ secrets.BACK4APP_WEBHOOK_KEY }}" \
+            -d "$payload" \
+            "${{ secrets.BACK4APP_WEBHOOK_URL }}"
