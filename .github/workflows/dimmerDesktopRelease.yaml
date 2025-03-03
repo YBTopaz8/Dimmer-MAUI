@@ -9,10 +9,9 @@ on:
       - master
 
 jobs:
-  
-  notify_back4app:  # Job for Back4App notifications
+  notify_back4app:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'push'
+    if: github.event_name == 'release' || github.event_name == 'push' # Put the condition back
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,10 +20,18 @@ jobs:
         if: github.event_name == 'release'
         id: get_release_tag
         run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-      - name: set release url
+
+      - name: Set Release URL (Release Event)
         if: github.event_name == 'release'
-        run: echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
         id: get_release_url
+        run: echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
+
+      - name: Print Secrets (for Debugging)
+        run: |
+          echo "BACK4APP_WEBHOOK_URL: ${{ secrets.BACK4APP_WEBHOOK_URL }}"
+          echo "PARSE_APP_ID: ${{ secrets.PARSE_APP_ID }}"
+          echo "PARSE_REST_API_KEY: ${{ secrets.PARSE_REST_API_KEY }}"
+          echo "BACK4APP_WEBHOOK_KEY: ${{ secrets.BACK4APP_WEBHOOK_KEY }}"
 
       - name: Send Back4App Webhook (Release or Push)
         run: |
@@ -33,12 +40,12 @@ jobs:
             "master": false,
             "installationId": "",
             "params": {
-              "commitMessage": "${{ github.event.head_commit.message }}",
-              "commitUrl": "${{ github.event.head_commit.url }}",
+              "commitMessage": "${{ github.event.head_commit ? github.event.head_commit.message : '' }}",
+              "commitUrl": "${{ github.event.head_commit ? github.event.head_commit.url : '' }}",
               "branch": "${{ github.ref_name }}",
               "pusher": "${{ github.actor }}",
               "releaseTag": "${{ steps.get_release_tag.outputs.tag }}",
-              "releaseUrl": "${{steps.get_release_url.outputs.release_url}}"
+              "releaseUrl": "${{ steps.get_release_url.outputs.release_url }}"
             },
             "functionName": "githubUpdate"
           }
