@@ -23,7 +23,6 @@ public partial class App : Application
         DimmerWindow = dimmerWindow;
 
         //APIKeys.SetupClientInitializations();
-
     }
 
     
