@@ -31,7 +31,7 @@
         <Grid x:Name="HeaderGrid" HeightRequest="240" >
             <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
               Text="{Binding MySelectedSong.Title}" Opacity="0.3"
-              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Width, Source={x:Reference HeaderGrid}}"  
+              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Height, Source={x:Reference HeaderGrid}}"  
               BorderWidth="0" CornerRadius="15">
                 <toolkit:AvatarView.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>

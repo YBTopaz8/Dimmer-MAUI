@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using View = Microsoft.Maui.Controls.View;
 
@@ -342,13 +343,19 @@ public partial class HomePageM : ContentPage
                         {
                             if (HomeTabView.SelectedItemIndex != 1)
                             {
-                                HomeTabView.SelectedItemIndex = 1;
-                                
+                                HomeTabView.SelectedItemIndex = 1;                                
                                 await MyViewModel.AssignSyncLyricsCV(LyricsColView);
                             }
                             else
                             {
-                                HomeTabView.SelectedItemIndex = prevViewIndex;
+                                MyViewModel.LoadArtistSongs();
+                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                                await NowPlayingQueueView.DimmOutCompletely();
+                                NowPlayingQueueView.IsVisible=false;
+                                await ArtistSongsView.DimmInCompletely();
+                                ArtistSongsView.IsVisible=true;
+                                //HomeTabView.SelectedItemIndex = prevViewIndex;
                             }
                         }
                         catch { }
@@ -616,5 +623,20 @@ public partial class HomePageM : ContentPage
                 break;
         }
 
+    }
+
+    private void LyricsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        Debug.WriteLine(e.Item.GetType());
+        if (MyViewModel.IsPlaying)
+        {
+            var lyr = (LyricPhraseModel)e.Item;
+            MyViewModel.SeekSongPosition(lyr);
+        }
+    }
+
+    private void HomeTabView_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        
     }
 }
