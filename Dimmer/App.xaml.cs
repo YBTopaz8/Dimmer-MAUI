@@ -24,8 +24,6 @@ public partial class App : Application
 
         //APIKeys.SetupClientInitializations();
 
-        
-
     }
 
     
