@@ -49,4 +49,4 @@ jobs:
             Commit URL: ${{ github.event.head_commit.url }}
             Pushed by: ${{ github.actor }}
             
-            ${{ github.event.compare }} # Show changed files
+            ${{ github.event.compare }} 
