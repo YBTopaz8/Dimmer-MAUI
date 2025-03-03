@@ -33,9 +33,9 @@ jobs:
           echo "PARSE_REST_API_KEY: ${{ secrets.PARSE_REST_API_KEY }}"
           echo "BACK4APP_WEBHOOK_KEY: ${{ secrets.BACK4APP_WEBHOOK_KEY }}"
 
-      - name: Send Back4App Webhook (Release or Push)
+      - name: Send Back4App Webhook (Release or Push) - WEBHOOK.SITE TEST
         run: |
-          # Use jq for safe JSON handling.  MUCH better than tr.
+          echo "Testing with webhook.site..."
           payload=$(jq -n \
             --arg commit_message "${{ github.event.head_commit.message }}" \
             --arg commit_url "${{ github.event.head_commit.url }}" \
@@ -44,28 +44,26 @@ jobs:
             --arg release_tag "${{ steps.get_release_tag.outputs.tag }}" \
             --arg release_url "${{ steps.get_release_url.outputs.release_url }}" \
             '{
-              "master": false,
-              "installationId": "",
-              "params": {
-                "commitMessage": $commit_message,
-                "commitUrl": $commit_url,
-                "branch": $branch,
-                "pusher": $pusher,
-                "releaseTag": $release_tag,
-                "releaseUrl": $release_url
-              },
-              "functionName": "githubUpdate"
-            }'
-          )
+                "master": false,
+                "installationId": "",
+                "params": {
+                  "commitMessage": $commit_message,
+                  "commitUrl": $commit_url,
+                  "branch": $branch,
+                  "pusher": $pusher,
+                  "releaseTag": $release_tag,
+                  "releaseUrl": $release_url
+                },
+                "functionName": "githubUpdate"
+              }'
+            )
 
           # Echo the payload for debugging.  Always a good idea.
           echo "Payload:"
           echo "$payload"
 
+
           curl -X POST \
             -H "Content-Type: application/json" \
-            -H "X-Parse-Application-Id: ${{ secrets.PARSE_APP_ID }}" \
-            -H "X-Parse-REST-API-Key: ${{ secrets.PARSE_REST_API_KEY }}" \
-            -H "X-Parse-Webhook-Key: ${{ secrets.BACK4APP_WEBHOOK_KEY }}" \
             -d "$payload" \
-            "${{ secrets.BACK4APP_WEBHOOK_URL }}"
+            "${{ secrets.TEST_WEBHOOK_URL }}"   # Use the TEST URL!
