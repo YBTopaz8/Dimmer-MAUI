@@ -18,20 +18,33 @@ public partial class DimmerWindow : Window
     protected override void OnActivated()
     {
         base.OnActivated();
+
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.CurrentAppState = AppState.OnForeGround;
         MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
         MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
         MyViewModel.InternalSearchSongSBVM= SearchSongSB;
+        
+        MyViewModel.ShowNotificationInternally("Window Activated", text: MyViewModel.InternalNotificationLabelVM, bar: MyViewModel.InternalSearchSongSBVM, titleBar: MyViewModel.DimmerTitleBarVM);
+        
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
+
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.CurrentAppState = AppState.OnBackGround;
         MyViewModel.InternalNotificationLabelVM = null;
         MyViewModel.InternalSearchSongSBVM= null;
     }
-    public HomePageVM MyViewModel { get; set; }
+    public HomePageVM? MyViewModel { get; set; }
 
     protected override void OnCreated()
     {
@@ -41,19 +54,22 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.4c-debug";
+        DimmerTitleBar.Subtitle = "v1.5-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.4c-Release";
+        DimmerTitleBar.Subtitle = "v1.5-Release";
 #endif
 
         if (!InitChecker())
         {
             return;
         }
-        
+        if (MyViewModel is null)
+        {
+            return;
+        }
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
         if(MyViewModel.CurrentUser is not null)
@@ -77,6 +93,10 @@ public partial class DimmerWindow : Window
 
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         if (!InitChecker())
         {
             return;
@@ -265,6 +285,10 @@ public partial class DimmerWindow : Window
 
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         if (!InitChecker())
         {
             return;
@@ -322,10 +346,20 @@ public partial class DimmerWindow : Window
 
     private void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
-        MyViewModel.IsOnSearchMode = true;
+        
     }
 
     private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    {
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        MyViewModel.IsOnSearchMode = true;
+
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
         MyViewModel.IsOnSearchMode = false;
     }

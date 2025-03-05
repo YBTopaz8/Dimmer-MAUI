@@ -6,15 +6,18 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM"             
-             x:Name="myPage"     
-        
-        >
+             x:Name="myPage">
     
    
     <Window.TitleBar>
         <TitleBar Title="Dimmer" x:Name="DimmerTitleBar" 
                   HeightRequest="55" Margin="10" 
                   >
+            <TitleBar.GestureRecognizers>
+                <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"
+                                          PointerExited="PointerGestureRecognizer_PointerExited"
+                                          />
+            </TitleBar.GestureRecognizers>
             <TitleBar.Resources>
                 <ResourceDictionary>
                     <converters:BoolToInverseConverter x:Key="BoolToInverse"/>

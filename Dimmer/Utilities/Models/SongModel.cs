@@ -42,31 +42,38 @@ public partial class SongModel : RealmObject
     {
         LocalDeviceId = model.LocalDeviceId!;
 
-        Title = model.Title;
-        FilePath = model.FilePath;
-        ArtistName = model.ArtistName;
-        Genre = model.GenreName;
+        Title = string.IsNullOrEmpty(model.Title)? "Unknown Title" : model.Title;
+        FilePath = string.IsNullOrEmpty(model.FilePath) ? "Unknown FilePath" : model.FilePath;
+        
+        ArtistName = string.IsNullOrEmpty(model.ArtistName) ? "Unknown Artist Name" : model.ArtistName;
+        
+        Genre = string.IsNullOrEmpty(model.GenreName) ? "Unknown Genre" : model.GenreName;
+        
         DurationInSeconds = model.DurationInSeconds;
         ReleaseYear = model.ReleaseYear ?? 0;
         TrackNumber = model.TrackNumber;
-        FileFormat = model.FileFormat;
+        
         FileSize = model.FileSize;
         BitRate = model.BitRate ?? 0;   
         Rating = model.Rating;
         HasLyrics = model.HasLyrics;
         HasSyncedLyrics = model.HasSyncedLyrics;
-        CoverImagePath = model.CoverImagePath;
-        AlbumName = model.AlbumName;        
-        UnSyncLyrics = model.UnSyncLyrics;
+        CoverImagePath = string.IsNullOrEmpty(model.CoverImagePath) ? "Unknown CoverImagePath" : model.CoverImagePath;
+        
+        AlbumName = string.IsNullOrEmpty(model.AlbumName) ? "Unknown AlbumName" : model.AlbumName;
+              
+        UnSyncLyrics = string.IsNullOrEmpty(model.UnSyncLyrics) ? "No Lyrics" : model.UnSyncLyrics;
+        
         IsPlaying = model.IsPlaying;        
         IsFavorite = model.IsFavorite;
-        Achievement = model.Achievement;
+        Achievement = string.IsNullOrEmpty(model.Achievement) ? "No Achievements" : model.Achievement;
+        
         IsFileExists = model.IsFileExists;
         var s = new Track();
         LyricsInfo lyrics = new LyricsInfo();
         if (model.SyncLyrics is not null && model.SyncLyrics.Count > 0)
         {
-            lyrics.SynchronizedLyrics = model.SyncLyrics.Select(x => new LyricsPhrase(x.TimeStampMs, x.Text)).ToList();
+            lyrics.SynchronizedLyrics = [.. model.SyncLyrics.Select(x => new LyricsPhrase(x.TimeStampMs, x.Text))];
             SyncLyrics = lyrics.FormatSynchToLRC();
         }
     }
@@ -201,7 +208,7 @@ public partial class SongModelView : ObservableObject
             {
                 s.Lyrics.ParseLRC(model.SyncLyrics);
                 IList<LyricsPhrase>? syncLyr = s.Lyrics.SynchronizedLyrics;
-                SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x)).ToObservableCollection();
+                SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x) ).ToObservableCollection();
             }
         }
 
@@ -421,5 +428,7 @@ public enum SortingEnum
     MostPlayedCompletelyDesc,
     MostPlayedIncompletelyAsc,
     MostPlayedIncompletelyDesc,
+    HasLyrics,
+    HasNoLyrics
     // ... other sorting modes ...
 }

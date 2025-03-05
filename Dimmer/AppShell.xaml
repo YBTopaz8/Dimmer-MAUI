@@ -31,7 +31,7 @@
         <Grid x:Name="HeaderGrid" HeightRequest="240" >
             <toolkit:AvatarView ImageSource="{Binding MySelectedSong.CoverImagePath}" 
               Text="{Binding MySelectedSong.Title}" Opacity="0.3"
-              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Width, Source={x:Reference HeaderGrid}}"  
+              WidthRequest="{Binding Width, Source={x:Reference HeaderGrid}}" HeightRequest="{Binding Height, Source={x:Reference HeaderGrid}}"  
               BorderWidth="0" CornerRadius="15">
                 <toolkit:AvatarView.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding ToggleNowPlayingBtmSheetCommand}"/>
@@ -537,7 +537,7 @@ EmptyView="No Syncronized Lyrics ..." >
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>
-        <Tab Title="Settings" x:Name="settingsTab" Icon="settings.png">
+        <Tab Title="User" x:Name="settingsTab" Icon="user.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
                 Route="SettingsPageD"/>
         </Tab>

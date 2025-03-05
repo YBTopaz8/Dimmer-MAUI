@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.ApplicationModel.Communication;
-using Microsoft.Maui.Controls.Shapes;
+﻿using Microsoft.Maui.Controls.Shapes;
 
 namespace Dimmer_MAUI.Utilities.OtherUtils;
 
@@ -29,11 +28,21 @@ public static class CustomAnimsExtensions
     {
         await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
     }
+    public static async Task DimmOutCompletelyAndHide(this View element, double duration = 350)
+    {
+        await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
+        element.IsVisible=false;
+    }
     public static async Task DimmInCompletely(this View element, double duration = 350)
     {
         await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
 
-        
+    }
+    public static async Task DimmInCompletelyAndShow(this View element, double duration = 350)
+    {
+        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+        element.IsVisible=true;
+
     }
 
     public static async Task AnimateRippleBounce(this View element, int bounceCount = 3, double bounceHeight = 20, uint duration = 200)
@@ -1415,5 +1424,43 @@ public static class CustomAnimsExtensions
     // Usage (XAML): <BoxView x:Name="MorphingBox" BackgroundColor="Blue" WidthRequest="100" HeightRequest="100" />
     //        await MorphingBox.MorphShapes(true);  // Morph to circle
     //       await MorphingBox.MorphShapes(false); // Morph to square
+
+    public static async Task MyBackgroundColorTo(this VisualElement element, Color targetColor, uint length = 250)
+    {
+        if (element.BackgroundColor == null)
+            return;
+
+        Color startColor = element.BackgroundColor;
+        uint startTime = (uint)Environment.TickCount;
+
+        while (Environment.TickCount - startTime < length)
+        {
+            double progress = (double)(Environment.TickCount - startTime) / length;
+            progress = Math.Min(1, progress); // Clamp to 1
+
+            Color currentColor = Color.FromRgba(
+                startColor.Red + (targetColor.Red - startColor.Red) * progress,
+                startColor.Green + (targetColor.Green - startColor.Green) * progress,
+                startColor.Blue + (targetColor.Blue - startColor.Blue) * progress,
+                startColor.Alpha + (targetColor.Alpha - startColor.Alpha) * progress
+            );
+
+            // Update the UI on the main thread, but do NOT wait for it!
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                element.BackgroundColor = currentColor;
+            });
+
+            // Yield control to allow the UI thread to process events.
+            await Task.Yield(); // VERY IMPORTANT!
+        }
+
+        // Ensure the final color is set.
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            element.BackgroundColor = targetColor;
+        });
+    }
+
 
 }

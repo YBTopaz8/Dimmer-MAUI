@@ -1,7 +1,6 @@
 using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
-using System.Threading.Tasks;
 using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -38,7 +37,6 @@ public partial class HomePageM : ContentPage
     private void ToggleRepeat_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
-
     }
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
@@ -49,8 +47,7 @@ public partial class HomePageM : ContentPage
         base.OnDisappearing();
         MyViewModel.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
-    bool isOnFocusMode = false;
-   
+    bool isOnFocusMode = false;   
 
     //colview tap play
     private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -70,7 +67,7 @@ public partial class HomePageM : ContentPage
         MyViewModel.PlaySong(e.Item as SongModelView);
 
         await Task.WhenAll(BtmBar.AnimateNewTrackBounce(duration: 500),
-            BtmBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500));
+            BtmBar.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 500));
     }
 
     protected override bool OnBackButtonPressed()
@@ -197,6 +194,7 @@ public partial class HomePageM : ContentPage
     DXLayoutBase? CurrentView { get; set; }
     
     string SearchParam = string.Empty;
+
     private async void SearchSong_Tap(object sender, HandledEventArgs e)
     {
         
@@ -311,9 +309,9 @@ public partial class HomePageM : ContentPage
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                             MyViewModel.PlayPreviousSongCommand.Execute(null);
                             Debug.WriteLine("Swiped left");
-                            var t1= send.BackgroundColorTo(Colors.MediumPurple, length: 300); 
+                            var t1= send.MyBackgroundColorTo(Colors.MediumPurple, length: 300); 
                             var t2=  Task.Delay(500);
-                            var t3 = send.BackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
+                            var t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
                             await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
@@ -342,13 +340,19 @@ public partial class HomePageM : ContentPage
                         {
                             if (HomeTabView.SelectedItemIndex != 1)
                             {
-                                HomeTabView.SelectedItemIndex = 1;
-                                
+                                HomeTabView.SelectedItemIndex = 1;                                
                                 await MyViewModel.AssignSyncLyricsCV(LyricsColView);
                             }
                             else
                             {
-                                HomeTabView.SelectedItemIndex = prevViewIndex;
+                                MyViewModel.LoadArtistSongs();
+                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                                await NowPlayingQueueView.DimmOutCompletely();
+                                NowPlayingQueueView.IsVisible=false;
+                                await ArtistSongsView.DimmInCompletely();
+                                ArtistSongsView.IsVisible=true;
+                                //HomeTabView.SelectedItemIndex = prevViewIndex;
                             }
                         }
                         catch { }
@@ -371,9 +375,9 @@ public partial class HomePageM : ContentPage
     // Extracted color animation method for reusability
     async Task AnimateColor(VisualElement element, Color color)
     {
-        await element.BackgroundColorTo(color, length: 300);
+        await element.MyBackgroundColorTo(color, length: 300);
         await Task.Delay(300); // Reduce freeze by using a lower delay
-        await element.BackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+        await element.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
     }
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
@@ -393,11 +397,11 @@ public partial class HomePageM : ContentPage
             MyViewModel.PauseSong();
             RunFocusModeAnimation(send, Color.FromArgb("#8B0000")); // DarkRed for pause
             
-            await send.BackgroundColorTo(Color.FromArgb("#252526"), length: 300);
+            await send.MyBackgroundColorTo(Color.FromArgb("#252526"), length: 300);
         }
         else
         {
-            await send.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
+            await send.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
             //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
@@ -616,5 +620,31 @@ public partial class HomePageM : ContentPage
                 break;
         }
 
+    }
+
+    private void LyricsColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        Debug.WriteLine(e.Item.GetType());
+        if (MyViewModel.IsPlaying)
+        {
+            var lyr = (LyricPhraseModel)e.Item;
+            MyViewModel.SeekSongPosition(lyr);
+        }
+    }
+
+    private void HomeTabView_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        
+    }
+
+    private async void ContextIcon_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.LoadArtistSongs();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        await NowPlayingQueueView.DimmOutCompletely();
+        NowPlayingQueueView.IsVisible=false;
+        await ArtistSongsView.DimmInCompletely();
+        ArtistSongsView.IsVisible=true;
     }
 }

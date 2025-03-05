@@ -350,7 +350,7 @@ public partial class HomePageVM
             .ToHashSet();
 
         return new ObservableCollection<SongModelView>(
-            DisplayedSongs.Where(song => songIds.Contains(song.LocalDeviceId))
+            DisplayedSongs.Where(song => songIds.Contains(song.LocalDeviceId!))
         );
     }
 

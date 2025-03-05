@@ -322,7 +322,7 @@ Fill="Transparent" StartAngle="-180" SweepAngle="360">
                                  HorizontalOptions="Fill" PressedBackgroundColor="DarkSlateBlue"
                                 Grid.Column="1"  HeightRequest="100">
                         <dx:DXButton.Content>
-                            <dx:DXStackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" 
+                            <dx:DXStackLayout Orientation="Vertical" HorizontalOptions="Fill" 
                                               Padding="10" Margin="-10,-10"
                                               
                                               ItemSpacing="5">

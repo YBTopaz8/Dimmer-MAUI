@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
@@ -1156,8 +1155,12 @@ public partial class HomePageVM
     }
     public async Task AssignSyncLyricsCV(DXCollectionView cv)
     {
+        if (SyncLyricsCVV is not null)
+        {
+            return;
+        }
         SyncLyricsCVV = cv;
-        SyncLyricsCVV.SelectionChanged +=SyncLyricsCVV_SelectionChanged;
+        SyncLyricsCVV.SelectionChanged += SyncLyricsCVV_SelectionChanged;
         
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics?.Count < 1)
         {
@@ -1167,21 +1170,26 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial int SelectedItemIndexMobile { get; set; } = 0;
 
+    [ObservableProperty]
+    public partial bool IsTopBarVisible { get; set; } = false;
+
+    
     partial void OnSelectedItemIndexMobileChanging(int oldValue, int newValue)
     {
 
         switch (newValue)
         {
             case 0:
+                IsTopBarVisible = true;
                 break;
             case 1:
-
                 CurrentPage = PageEnum.NowPlayingPage;
-                //AssignSyncLyricsCV(LyricsColView);
+                ShowUtilsForNowPlayingUI();
                 break;
-            case2:
+            case 2:
                 break;
             default:
+                IsTopBarVisible = false;
                 break;
         }
     }
@@ -1200,18 +1208,18 @@ public partial class HomePageVM
                 {
                     return;
                 }
-                // Set SelectedItem FIRST to ensure UI updates
-                SyncLyricsCVV.SelectedItem = CurrentLyricPhrase;
-
-                    CurrentLyricPhrase.Opacity = 1;
-                    CurrentLyricPhrase.LyricsFontAttributes = FontAttributes.Bold;
-                
-
+              
                 var itemHandle = SyncLyricsCVV.FindItemHandle(SyncLyricsCVV.SelectedItem);
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     SyncLyricsCVV.ScrollTo(itemHandle, DXScrollToPosition.Start);
                 });
+                // Set SelectedItem FIRST to ensure UI updates
+                SyncLyricsCVV.SelectedItem = CurrentLyricPhrase;
+
+                CurrentLyricPhrase.Opacity = 1;
+                CurrentLyricPhrase.LyricsFontAttributes = FontAttributes.Bold;
+
                 // Scroll AFTER font size animation
             }
         }
@@ -1227,7 +1235,13 @@ public partial class HomePageVM
         SyncLyricsCV.SelectionChanged -= SyncLyricsCV_SelectionChanged;
     }
 
-    
+    [ObservableProperty]
+    public partial bool AreUtilsVisible { get; set; }
+    DXBorder BtmBar { get; set; }
+    public void ShowUtilsForNowPlayingUI()
+    {
+        //AreUtilsVisible 
+    }
     [ObservableProperty]
     public partial int UnFocusedLyricSize { get; set; } = 29;
     [ObservableProperty]

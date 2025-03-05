@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using CommunityToolkit.Maui.Extensions;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.ViewModels;
@@ -24,7 +25,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task SaveLyricsToLrcAfterSyncing()
     {
-        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "No", "Yes");
+        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "Yes", "No");
         
         if (result)
         {
@@ -38,7 +39,7 @@ public partial class HomePageVM
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
                 SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong!.LocalDeviceId)!.HasLyrics = true;
-                await ShowNotificationInternally("Saved Synced Lyrics To Device");
+                ShowNotificationInternally("Saved Synced Lyrics To Device");
             }
         }
     }
@@ -251,14 +252,14 @@ public partial class HomePageVM
             {
                 if (!File.Exists(MySelectedSong.CoverImagePath))
                 {
-                    MySelectedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName, TemporarilyPickedSong.AlbumName, TemporarilyPickedSong);
+                    MySelectedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title!, TemporarilyPickedSong.ArtistName!, TemporarilyPickedSong.AlbumName!, TemporarilyPickedSong);
                 }
             }
             return;
         }
         else
         {
-            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song.ArtistName, song.AlbumName, song);
+            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title!, song.ArtistName!, song.AlbumName!, song);
             MySelectedSong.CoverImagePath = str;
         }
 
@@ -320,13 +321,13 @@ public partial class HomePageVM
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
-            await ShowNotificationInternally("Already Favorite");
+            ShowNotificationInternally("Already Favorite");
 
             return;
         }
         if (!MySelectedSong.IsFavorite && !willBeFav)
         {
-            await ShowNotificationInternally("Not Fav");
+            ShowNotificationInternally("Not Fav");
 
 
             return;
@@ -334,14 +335,14 @@ public partial class HomePageVM
         if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
             UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
-            await ShowNotificationInternally("Removed from Favorites");
+            ShowNotificationInternally("Removed from Favorites");
 
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
             UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
-            await ShowNotificationInternally("Added to Favorites");
+            ShowNotificationInternally("Added to Favorites");
             return;
         }
         //if (CurrentUser.IsLoggedInLastFM)
@@ -350,17 +351,45 @@ public partial class HomePageVM
         //}
 
     }
-
-    private async Task ShowNotificationInternally(string msgText, int delayBtnSwitch=3000)
+    [ObservableProperty]
+    public partial TitleBar? DimmerTitleBarVM { get; set; } = new();
+    public void ShowNotificationInternally(string msgText, int delayBtnSwitch = 1500, Label? text = null, SearchBar? bar = null, TitleBar? titleBar=null)
     {
-        if (InternalNotificationLabelVM is null || InternalSearchSongSBVM is null)
-            return;
-        InternalNotificationLabelVM.Text= msgText;
-        await Task.WhenAll(
-            InternalNotificationLabelVM.DimmInCompletely(), 
-            InternalSearchSongSBVM.DimmOutCompletely(),
-                Task.Delay(delayBtnSwitch),
-                InternalSearchSongSBVM.DimmInCompletely(),
-                InternalNotificationLabelVM.DimmOutCompletely());
+        MainThread.BeginInvokeOnMainThread(async () =>
+            {
+
+                if (text is null || bar is null || titleBar is null)
+                    return;
+
+                text.Text = msgText;
+                text.Opacity = 1; // Ensure the label is fully opaque initially.
+                text.IsVisible = true; // Ensure label is visible
+                bar.Opacity = 0.01;  // Make Search Bar almost invisible
+                bar.IsVisible = false; // Ensure Search Bar is hidden initially.
+
+                // Fade out the search bar completely and hide it.
+                await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
+                await bar.DimmOutCompletelyAndHide();
+
+
+                // Fade in the notification label and show it.
+                await text.DimmInCompletelyAndShow();
+
+                // Wait for the specified delay.
+                await Task.Delay(delayBtnSwitch);
+
+                // Fade out the notification label and hide.
+                await text.DimmOutCompletelyAndHide();
+
+                // Fade in the search bar and show it.
+                await bar.DimmInCompletelyAndShow();
+
+#if DEBUG
+
+                await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
+#elif RELEASE
+        await titleBar.BackgroundColorTo(Colors.Black, length: 500);
+#endif
+            });
     }
 }

@@ -85,7 +85,7 @@ public partial class AlbumsPageD : ContentPage
         MyViewModel.CurrentQueue = 1;
         var s = (View)sender;
         var song = s.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);
+        MyViewModel.PlaySong(song!);
     }
 
     private void SfTabItem_Loaded(object sender, EventArgs e)

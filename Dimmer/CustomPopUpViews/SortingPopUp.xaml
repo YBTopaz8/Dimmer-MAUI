@@ -39,6 +39,8 @@
                     <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>
                     <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
                     <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
+                    <syncf:SfChip ImageSource="lyrics.png" Text="Has Lyrics" CommandParameter="16"  TextColor="White"/>
+                    <syncf:SfChip ImageSource="lyrics.png" Text="Has No Lyrics" CommandParameter="17"  TextColor="Gray"/>
 
                 </syncf:SfChipGroup.Items>
             </syncf:SfChipGroup>
