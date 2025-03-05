@@ -1,8 +1,6 @@
 using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -39,7 +37,6 @@ public partial class HomePageM : ContentPage
     private void ToggleRepeat_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
-
     }
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
     {
@@ -50,8 +47,7 @@ public partial class HomePageM : ContentPage
         base.OnDisappearing();
         MyViewModel.NowPlayBtmSheetState = DevExpress.Maui.Controls.BottomSheetState.Hidden;
     }
-    bool isOnFocusMode = false;
-   
+    bool isOnFocusMode = false;   
 
     //colview tap play
     private async void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
@@ -198,6 +194,7 @@ public partial class HomePageM : ContentPage
     DXLayoutBase? CurrentView { get; set; }
     
     string SearchParam = string.Empty;
+
     private async void SearchSong_Tap(object sender, HandledEventArgs e)
     {
         
@@ -638,5 +635,16 @@ public partial class HomePageM : ContentPage
     private void HomeTabView_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         
+    }
+
+    private async void ContextIcon_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.LoadArtistSongs();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        await NowPlayingQueueView.DimmOutCompletely();
+        NowPlayingQueueView.IsVisible=false;
+        await ArtistSongsView.DimmInCompletely();
+        ArtistSongsView.IsVisible=true;
     }
 }

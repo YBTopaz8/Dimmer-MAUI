@@ -121,7 +121,7 @@ public partial class SettingsPageD : ContentPage
             {2, LoginParseUI},
             {3, SignUpParseUI},
             {4, LogInLastFMUI},
-
+            {5,SocialView }
         };
         if (!viewss.ContainsKey(selectedStatView))
             return;
@@ -208,6 +208,11 @@ public partial class SettingsPageD : ContentPage
             default:
                 break;
         }
+    }
+
+    private void UserSelect_Tapped(object sender, TappedEventArgs e)
+    {
+
     }
 }
 

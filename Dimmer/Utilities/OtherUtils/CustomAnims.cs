@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.ApplicationModel.Communication;
-using Microsoft.Maui.Controls.Shapes;
+﻿using Microsoft.Maui.Controls.Shapes;
 
 namespace Dimmer_MAUI.Utilities.OtherUtils;
 

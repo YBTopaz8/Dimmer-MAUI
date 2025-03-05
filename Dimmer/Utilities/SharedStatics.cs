@@ -1,5 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Dimmer_MAUI.Utilities;
 

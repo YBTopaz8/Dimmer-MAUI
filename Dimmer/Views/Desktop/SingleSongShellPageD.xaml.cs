@@ -4,8 +4,6 @@ using Microsoft.UI.Xaml;
 #endif
 
 
-using Dimmer_MAUI.Utilities.OtherUtils;
-using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.Views.Desktop;
 

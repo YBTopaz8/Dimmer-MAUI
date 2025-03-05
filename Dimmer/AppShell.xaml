@@ -537,7 +537,7 @@ EmptyView="No Syncronized Lyrics ..." >
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>
-        <Tab Title="Settings" x:Name="settingsTab" Icon="settings.png">
+        <Tab Title="User" x:Name="settingsTab" Icon="user.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
                 Route="SettingsPageD"/>
         </Tab>

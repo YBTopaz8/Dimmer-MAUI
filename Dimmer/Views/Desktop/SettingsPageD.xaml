@@ -6,6 +6,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels" 
+             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:HomePageVM" 
@@ -22,22 +23,87 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <ScrollView  x:Name="MainDock">        
+    <ScrollView  x:Name="MainDock">
         <VerticalStackLayout Padding="10,0" Spacing="15">
             <Label Text="Settings" FontSize="16" FontAttributes="Bold" />
-            
+
             <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
                                ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
                                x:Name="SettingsTab">
-                <syncf:SfChip Text="Folders Management" CommandParameter="1"/>                
+
+                <syncf:SfChip ImageSource="peopb.png" Text="Buddies" CommandParameter="5"/>
+                <syncf:SfChip Text="Folders Management" CommandParameter="1"/>
                 <syncf:SfChip Text="User Page" CommandParameter="0"/>
                 <syncf:SfChip Text="Online Login" CommandParameter="2"/>
 
-                
+
                 <syncf:SfChip Text="LastFM Login"  CommandParameter="4"/>
                 <!--<syncf:SfChip Text="SongStats" x:Name="SongStatsChip"  CommandParameter="4"/>-->
             </syncf:SfChipGroup>
 
+            <Grid x:Name="SocialView" IsVisible="False"
+                RowSpacing="5" BackgroundColor="Transparent"
+                    Scale="0.9" ColumnDefinitions="Auto,*">
+                <CollectionView Header="All Buddies" Grid.Column="0">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:UserModelView">
+                            <VerticalStackLayout>
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer x:Name="UserSelect" Tapped="UserSelect_Tapped">
+
+                                    </TapGestureRecognizer>
+                                </VerticalStackLayout.GestureRecognizers>
+
+                                <Label Text="{Binding UserName}"/>
+                                <Label Text="{Binding LastSessionDate}"/>
+
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Grid Grid.Column="1">
+
+                    <Grid x:Name="ChatView" RowDefinitions="100,*">
+                        <CollectionView >
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:ChatMessageDisplay">
+                                    <Grid >
+                                        <Grid.Triggers>
+                                            <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsDeleted}" Value="False">
+                                                <Setter Property="IsVisible" Value="False"/>
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsDeleted}" Value="True">
+                                                <Setter Property="IsVisible" Value="False"/>
+                                            </DataTrigger>
+                                        </Grid.Triggers>
+
+                                        <Border>
+                                            <VerticalStackLayout>
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <Label Text="{Binding Content}" Grid.Column="0"/>
+
+                                                    <VerticalStackLayout Grid.Column="1">
+                                                        <Label Text="{Binding SenderUsername}"/>
+                                                    </VerticalStackLayout>
+                                                </Grid>
+                                            </VerticalStackLayout>
+
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+
+                    <VerticalStackLayout IsVisible="False" x:Name="UserProfileView">
+                        <Label Text="User Profile"/>
+                        <Label Text="{Binding CurrentUser.UserName}"/>
+                        <Label Text="{Binding CurrentUser.UserEmail}"/>
+                        <Label Text="{Binding CurrentUser.UserPassword}"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Grid>
             <VerticalStackLayout x:Name="AlreadyInView">
                 <VerticalStackLayout>
 
@@ -45,11 +111,11 @@
                            FontSize="46" HorizontalOptions="Center"/>
 
                 </VerticalStackLayout>
-                
+
                 <VerticalStackLayout IsVisible="{Binding CurrentUser.IsAuthenticated}"
                                      Spacing="10">
-                    
-                    <Label Text="{Binding CurrentUser.UserName,StringFormat='Welcome Back Online {0} ☁️'}"/>                    
+
+                    <Label Text="{Binding CurrentUser.UserName,StringFormat='Welcome Back Online {0} ☁️'}"/>
                     <Label Text="{Binding CurrentUser.DeviceFormFactor,StringFormat='Device Form: {0}'}"/>
                     <Label Text="{Binding CurrentUser.DeviceName,StringFormat='Device Name: {0}'}"/>
                     <Label Text="{Binding CurrentUser.IsAuthenticated,StringFormat='Device Name: {0}'}"/>
@@ -94,16 +160,16 @@
                                     <Label BackgroundColor="Transparent" 
                                            Text="{Binding .}"  x:DataType="sys:String"
                                            TextColor="White" FontSize="16" Margin="20,0"/>
-                                    
+
                                 </HorizontalStackLayout>
-                                
+
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-                    
+
                 </Grid>
             </VerticalStackLayout>
-        
+
             <VerticalStackLayout x:Name="LoginParseUI" Spacing="20" IsVisible="False"
                                  VerticalOptions="Center" WidthRequest="280">
                 <Label Text="User Login" FontSize="16"/>
@@ -121,7 +187,7 @@
                                    Clicked="SettingsAction" CommandParameter="1"
                                   BackgroundColor="Transparent" FontSize="16"
                                   FontAttributes="Bold"/>
-                    
+
                     <syncf:SfChip Text="Forgotten Password" FontAttributes="Italic"
                                    Clicked="SettingsAction" CommandParameter="4"
                                   BackgroundColor="Transparent" 
@@ -166,7 +232,7 @@
                 <Label 
                     FontSize="35" HorizontalTextAlignment="Justify"
                     Text="Last FM integration is coming around v1.5. It just stopped working the moment I wanted to release v1 🥲"/>
-                
+
                 <!--<VerticalStackLayout IsVisible="{Binding CurrentUser.IsLoggedInLastFM, Converter={x:StaticResource BoolToInverse}}">
                     
                 <Label Text="Log In LastFM" />
@@ -181,15 +247,17 @@
 
                 <VerticalStackLayout IsVisible="{Binding CurrentUser.IsLoggedInLastFM}">
                     <Label Text="Already Logged Into LastFM"/>
-                    --><!--<syncf:SfChip Clicked=""--><!--
+                    -->
+                <!--<syncf:SfChip Clicked=""-->
+                <!--
                 </VerticalStackLayout>-->
-                
+
                 <HorizontalStackLayout>
                     <Image Source="issue.png" HeightRequest="40">
                     </Image>
                     <Label Text="Facing Issues!" FontSize="16" />
                 </HorizontalStackLayout>
-                
+
                 <syncf:SfChip Text="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
                      Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
                      TextColor="White" />

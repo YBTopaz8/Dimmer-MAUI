@@ -1,6 +1,9 @@
 ﻿
 #if WINDOWS
+using Parse;
 using System.Diagnostics;
+using System.Windows;
+using Windows.ApplicationModel.Chat;
 //using TView = YB.MauiDataGridView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
@@ -119,8 +122,33 @@ public partial class HomePageVM : ObservableObject
 
         LoadSongCoverImage();
         //_ = GetSecuredData();
+
+        SetUpParseLiveQueries();
     }
 
+    public ParseLiveQueryClient? LiveClient { get; set; }
+    private void SetUpParseLiveQueries()
+    {
+        try
+        {
+            LiveClient = new ParseLiveQueryClient();
+            LiveQueryManager LQM = new LiveQueryManager(LiveClient!);
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+   
+// Example Usage (e.g., in a ViewModel or a Page's code-behind):
+
+// ... in your ViewModel or Page constructor:
+//  LiveQueryManager = new LiveQueryManager(new ParseLiveQueryClient()); // Or get the client from DI
+// await LiveQueryManager.SubscribeToMultipleQueriesAsync();
+
+// ... when the ViewModel/Page is being destroyed or the subscriptions are no longer needed:
+// LiveQueryManager.Dispose(); // CRUCIAL to unsubscribe
     public async Task AssignCV(CollectionView cv)
     {
         

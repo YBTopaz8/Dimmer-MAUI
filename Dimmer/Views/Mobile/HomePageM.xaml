@@ -142,8 +142,8 @@
                             <dx:DXImage Opacity="0.2"
                                         Aspect="AspectFill"
                                         Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
-                            <dx:DXCollectionView IsScrollBarVisible="False"
-x:Name="LyricsColView" VerticalOptions="Start" HeightRequest="300"
+                            <dx:DXCollectionView IsScrollBarVisible="False" VerticalOptions="Center"
+x:Name="LyricsColView" HeightRequest="300"
                      SelectionChanged="LyricsColView_SelectionChanged"
                      ItemsSource="{Binding SynchronizedLyrics}"                                
                       SelectionMode="Single" Tap="LyricsColView_Tap"
@@ -174,7 +174,7 @@ x:Name="LyricsColView" VerticalOptions="Start" HeightRequest="300"
                             <Grid ColumnDefinitions="Auto,*,Auto" 
                                   >
                                 <dx:DXSlider MinimumHeightRequest="500"
-                                    Grid.Column="0" Opacity="0.20" VerticalOptions="End"
+                                    Grid.Column="0" Opacity="0.35" VerticalOptions="End"
                                     MinValue="0" Orientation="Vertical"
                                     x:Name="ProgressSlider2" 
                                     
@@ -203,7 +203,7 @@ BackgroundColor="#626680">
                                     </dx:DXSlider.ThumbAppearance>
                                 </dx:DXSlider>
                                 <dx:DXSlider MinValue="0" Grid.Column="2" Orientation="Vertical" 
-                                             Opacity="0.20" VerticalOptions="End"
+                                             Opacity="0.35" VerticalOptions="End"
                                              MinimumHeightRequest="500"
                                              x:Name="ProgressSlider"                        
            TapReleased="ProgressSlider_TapReleased" ValueStep="1"
@@ -245,7 +245,7 @@ BackgroundColor="#626680">
             </dx:DXDockLayout>
            
 
-            <dx:DXBorder Grid.Row="1" Opacity="0.3"
+            <dx:DXBorder Grid.Row="1" Opacity="0.8"
                     Loaded="BtmBar_Loaded"  
                     CornerRadius="12" BorderColor="Transparent"
                     BackgroundColor="#252526" HorizontalOptions="Fill"
@@ -259,9 +259,7 @@ BackgroundColor="#626680">
                 <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*"  >
                 <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
                                           Grid.Column="0" x:Name="TopBtmBarView"
-                                          Orientation="Horizontal" IsVisible="{Binding IsTopBarVisible}">
-                            
-
+                                          Orientation="Horizontal" >                            
                             <dx:ChipGroup >
 
                                 <dx:Chip Icon="repoff.png" BorderColor="Transparent"
@@ -298,10 +296,13 @@ BackgroundColor="#626680">
                                     </dx:Chip.Triggers>
                                 </dx:Chip>
 
-                                <dx:Chip TapCommandParameter="shuffle" BorderColor="Transparent"
+                                <dx:Chip  BorderColor="Transparent"
                                          IconSize="35,35" IconColor="MediumPurple" 
                                          TapCommand="{Binding ToggleShuffleStateCommand}"
      Icon="shuffle.png"  BackgroundColor="Transparent">
+                                    <dx:Chip.TapCommandParameter>
+                                        <x:Boolean>True</x:Boolean>
+                                    </dx:Chip.TapCommandParameter>
                                     <dx:Chip.Triggers>
                                             <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:Chip">
                                                 <Setter Property="BackgroundColor" Value="#B197FC"/>
@@ -313,13 +314,28 @@ BackgroundColor="#626680">
 
                                 </dx:Chip>
                             </dx:ChipGroup>
-                </dx:DXStackLayout>
+                            <dx:DXStackLayout.Triggers>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </dx:DXStackLayout.Triggers>
+                        </dx:DXStackLayout>
 
                 <dx:DXStackLayout Orientation="Horizontal" Grid.ColumnSpan="2" 
                                           Grid.Row="1" 
                                       Padding="4">
-
-                        <dx:RadialProgressBar Grid.Row="1" HeightRequest="65" Value="{Binding CurrentPositionPercentage}" 
+                            <dx:DXStackLayout.Triggers>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </dx:DXStackLayout.Triggers>
+                            <dx:RadialProgressBar Grid.Row="1" HeightRequest="65" Value="{Binding CurrentPositionPercentage}" 
                             ValueIndicatorThickness="3" Thickness="10" AllowAnimation="True"
                             Fill="Transparent" StartAngle="-180" SweepAngle="360"
                             ValueIndicatorFill="DarkSlateBlue">
@@ -351,9 +367,45 @@ BackgroundColor="#626680">
                         </dx:DXStackLayout>
 
                     </dx:DXStackLayout>
-                    
-                <dx:DXStackLayout Orientation="Horizontal"         Grid.Column="1" Margin="15" Grid.Row="0" IsVisible="{Binding IsTopBarVisible}">
 
+                <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" Margin="15" Grid.Row="0">
+
+                            <dx:DXStackLayout.Triggers>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </dx:DXStackLayout.Triggers>
+                    
+                    <dx:Chip Icon="vinyl.png" WidthRequest="45" 
+                             x:Name="ContextIconn" IsVisible="False"
+                             Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
+                             IsIconVisible="True" IconColor="MediumPurple"
+                              IconSize="35,35"/>
+
+                            <dx:Chip Icon="infocircle.png" WidthRequest="45"
+                        x:Name="ContextIcon"
+                        Tap="ContextIcon_Tap"
+                        BorderColor="Transparent"
+                        IsIconVisible="True"
+                        IconColor="MediumPurple"
+                        IconSize="35,35"
+                        />
+                    
+                </dx:DXStackLayout>
+
+                <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" Margin="15" Grid.Row="0">
+
+                            <dx:DXStackLayout.Triggers>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </dx:DXStackLayout.Triggers>
                     <dx:Chip Icon="vinyl.png" WidthRequest="45" x:Name="ViewNowPlayPage"
                                 Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
                                 IsIconVisible="True" IconColor="MediumPurple"
@@ -367,6 +419,7 @@ BackgroundColor="#626680">
                         IconColor="MediumPurple"
                         IconSize="35,35"
                         />
+                    
                 </dx:DXStackLayout>
 
             </Grid>

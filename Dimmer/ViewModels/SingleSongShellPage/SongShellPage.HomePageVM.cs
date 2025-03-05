@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
@@ -1181,6 +1180,7 @@ public partial class HomePageVM
         switch (newValue)
         {
             case 0:
+                IsTopBarVisible = true;
                 break;
             case 1:
                 CurrentPage = PageEnum.NowPlayingPage;
