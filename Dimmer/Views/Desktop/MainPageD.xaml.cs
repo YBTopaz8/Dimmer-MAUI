@@ -140,7 +140,7 @@ public partial class MainPageD : ContentPage
     bool isAboutToDropFiles = false;
 
 
-    private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
+    private void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
         try
         {
@@ -276,7 +276,7 @@ public partial class MainPageD : ContentPage
             song.IsCurrentPlayingHighlight = false;
         }
 
-        MyViewModel.PlaySong(song);
+        MyViewModel.PlaySong(song!);
     }
 
     private void SongsColView_RemainingItemsThresholdReached(object sender, EventArgs e)
@@ -303,7 +303,7 @@ public partial class MainPageD : ContentPage
         MyViewModel.CurrentQueue = 1;
         var s = (Border)sender;
         var song = s.BindingContext as SongModelView;
-        MyViewModel.PlaySong(song);
+        MyViewModel.PlaySong(song!);
     }
 
     private void PlayNext_Clicked(object sender, EventArgs e)

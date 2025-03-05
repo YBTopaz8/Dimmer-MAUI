@@ -227,22 +227,22 @@ public partial class HomePageVM
     void RefreshStatView()
     {
 
-        UpdateMostPlayedDay(SongPickedForStats.Song);
+        UpdateMostPlayedDay(SongPickedForStats.Song!);
         UpdateNumberOfTimesPlayed(SongPickedForStats.Song);
 
         switch (CurrentNowPlayingStatsViewIndex)
         {
             case 0:
-                LoadDailyStats(MySelectedSong);
+                LoadDailyStats(MySelectedSong!);
                 break;
             case 1:
-                LoadWeeklyStats(MySelectedSong);
+                LoadWeeklyStats(MySelectedSong!);
                 break;
             case 2:
-                LoadMonthlyStats(MySelectedSong);
+                LoadMonthlyStats(MySelectedSong!);
                 break;
             case 3:
-                LoadYearlyStats(MySelectedSong);
+                LoadYearlyStats(MySelectedSong!);
                 break;
             default:
                 break;

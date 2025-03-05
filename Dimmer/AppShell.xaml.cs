@@ -64,8 +64,10 @@ public partial class AppShell : Shell
             {
                 SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, position: ScrollToPosition.Start, animate: false);
             }
-            
-            MyViewModel.PartOfNowPlayingSongsCV = SongsColView;
+            if (SongsColView is not null)
+            {
+                MyViewModel.PartOfNowPlayingSongsCV = SongsColView;
+            }
 
             MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
 
@@ -891,10 +893,12 @@ public partial class AppShell : Shell
     {
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-        if (song is not null)
+        if (song is null)
         {
-            song.IsCurrentPlayingHighlight = false;
+            return;
         }
+            song.IsCurrentPlayingHighlight = false;
+        
 
         MyViewModel.PlaySong(song);
     }
@@ -935,6 +939,10 @@ public partial class AppShell : Shell
 
     private void AddPlayNextEff_TouchDown(object sender, EventArgs e)
     {
+        if (MyViewModel.MySelectedSong is null)
+        {
+            return;
+        }
         MyViewModel.AddNextInQueue(MyViewModel.MySelectedSong);
     }
 

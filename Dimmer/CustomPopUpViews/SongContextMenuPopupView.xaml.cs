@@ -16,6 +16,10 @@ public partial class SongContextMenuPopupView : Popup
     {
         var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         var param = ee.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
         CurrentIndex = int.Parse(param);
         Close(CurrentIndex);
 

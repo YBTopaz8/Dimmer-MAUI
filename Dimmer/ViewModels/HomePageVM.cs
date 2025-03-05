@@ -1570,7 +1570,7 @@ public partial class HomePageVM : ObservableObject
         PickedSong = MySelectedSong;
 #endif
 
-        var result = ((int)await Shell.Current.ShowPopupAsync(new CustomRepeatPopup(CurrentRepeatMaxCount, PickedSong)));
+        var result = ((int)await Shell.Current.ShowPopupAsync(new CustomRepeatPopup(CurrentRepeatMaxCount, PickedSong!)));
 
         if (result > 0)
         {

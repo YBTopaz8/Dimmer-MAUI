@@ -252,14 +252,14 @@ public partial class HomePageVM
             {
                 if (!File.Exists(MySelectedSong.CoverImagePath))
                 {
-                    MySelectedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title, TemporarilyPickedSong.ArtistName, TemporarilyPickedSong.AlbumName, TemporarilyPickedSong);
+                    MySelectedSong.CoverImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(TemporarilyPickedSong.Title!, TemporarilyPickedSong.ArtistName!, TemporarilyPickedSong.AlbumName!, TemporarilyPickedSong);
                 }
             }
             return;
         }
         else
         {
-            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song.ArtistName, song.AlbumName, song);
+            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title!, song.ArtistName!, song.AlbumName!, song);
             MySelectedSong.CoverImagePath = str;
         }
 

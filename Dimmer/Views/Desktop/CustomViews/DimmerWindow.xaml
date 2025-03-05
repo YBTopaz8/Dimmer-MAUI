@@ -6,9 +6,7 @@
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
              x:DataType="vm:HomePageVM"             
-             x:Name="myPage"     
-        
-        >
+             x:Name="myPage">
     
    
     <Window.TitleBar>

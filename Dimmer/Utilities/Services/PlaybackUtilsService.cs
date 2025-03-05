@@ -323,7 +323,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         return null;
     }
-    byte[]? GetCoverImage(string filePath, bool isToGetByteArrayImages)
+    byte[]? GetCoverImage(string? filePath, bool isToGetByteArrayImages)
     {
         var LoadTrack = new Track(filePath);
         byte[]? coverImage = null;
@@ -482,10 +482,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
 
 
-    private string NormalizeAndCache(string text)
+    private string NormalizeAndCache(string? text)
     {
         if (string.IsNullOrEmpty(text))
-            return text;
+            return string.Empty;
 
         // Retrieve from cache if already normalized
         if (normalizationCache.TryGetValue(text, out string? cachedValue))

@@ -28,7 +28,7 @@ public partial class DimmerWindow : Window
         MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
         MyViewModel.InternalSearchSongSBVM= SearchSongSB;
         
-        MyViewModel.ShowNotificationInternally("Window Activated", text: InternalNotificationLabel, bar: SearchSongSB, titleBar: DimmerTitleBar);
+        MyViewModel.ShowNotificationInternally("Window Activated", text: MyViewModel.InternalNotificationLabelVM, bar: MyViewModel.InternalSearchSongSBVM, titleBar: MyViewModel.DimmerTitleBarVM);
         
     }
 
@@ -54,12 +54,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.4c-debug";
+        DimmerTitleBar.Subtitle = "v1.5-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.4c-Release";
+        DimmerTitleBar.Subtitle = "v1.5-Release";
 #endif
 
         if (!InitChecker())

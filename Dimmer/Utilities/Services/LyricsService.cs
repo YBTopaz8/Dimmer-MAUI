@@ -60,7 +60,8 @@ public class LyricsService : ILyricsService
                     break;
                 case MediaPlayerState.CoverImageDownload:
                     pState = MediaPlayerState.CoverImageDownload;
-                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong.Title, PlayBackService.CurrentlyPlayingSong.ArtistName, PlayBackService.CurrentlyPlayingSong.AlbumName, PlayBackService.CurrentlyPlayingSong);
+                    
+                    await FetchAndDownloadCoverImage(PlayBackService.CurrentlyPlayingSong.Title!, PlayBackService.CurrentlyPlayingSong.ArtistName, PlayBackService.CurrentlyPlayingSong.AlbumName!, PlayBackService.CurrentlyPlayingSong);
 
                         break;
                 default:
@@ -72,7 +73,7 @@ public class LyricsService : ILyricsService
 
 
     #region Manage Loadings and Initializations
-    public async Task LoadLyrics(SongModelView song)
+    public async Task LoadLyrics(SongModelView? song)
     {
         try
         {            
@@ -120,7 +121,13 @@ public class LyricsService : ILyricsService
             lastSongIDLyrics = song.LocalDeviceId!;
             //Debug.WriteLine($"Loaded song lyrics {");
             song.HasLyrics = true;
-            _synchronizedLyricsSubject.OnNext(songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : songSyncLyrics);
+            var e = songSyncLyrics;
+            if (e is null )
+            {
+                return;
+            }
+            var t = songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : e;
+            _synchronizedLyricsSubject.OnNext(t);
             StartLyricIndexUpdateTimer();
         }
         catch (Exception ex)
@@ -181,7 +188,10 @@ public class LyricsService : ILyricsService
         //        //List.Sort(sortedLyrics, (x, y) => x.TimeStampMs.CompareTo(y.TimeStampMs));
         //    }
         //}
-
+        if (sortedLyrics is null)
+        {
+            return Enumerable.Empty<LyricPhraseModel>().ToList();
+        }
         return sortedLyrics.ToList();//lyricPhrases;
     }
 
@@ -520,7 +530,7 @@ public class LyricsService : ILyricsService
     #endregion
     #region Fetch Lyrics Online from Lyrist
 
-    public async Task<string> FetchAndDownloadCoverImage(string songTitle, string songArtistName, string albumName, SongModelView? song =null)
+    public async Task<string> FetchAndDownloadCoverImage(string? songTitle, string? songArtistName, string? albumName, SongModelView? song =null)
     {
         var stringAlbumName = albumName;
         var stringSongTitle = songTitle;
@@ -560,7 +570,10 @@ public class LyricsService : ILyricsService
             //    song.CoverImagePath = SaveOrGetCoverImageToFilePath(song.FilePath!, ImageBytes);
             //    SongsManagementService.UpdateSongDetails(song);
             //}
-
+            if (song is null)
+            {
+                return string.Empty;
+            }
             return string.IsNullOrEmpty(song.CoverImagePath) ? "NC" : song.CoverImagePath;
         
         }
@@ -575,7 +588,7 @@ public class LyricsService : ILyricsService
             return string.Empty;
         }
     }
-    public static string SaveOrGetCoverImageToFilePath(string fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)
+    public static string SaveOrGetCoverImageToFilePath(string? fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)
     {
         if (imageData is null)
         {
@@ -586,7 +599,10 @@ public class LyricsService : ILyricsService
                 imageData = song.EmbeddedPictures?.FirstOrDefault()?.PictureData;
             }
         }
-
+        if (fullfilePath is null)
+        {
+            return string.Empty;
+        }
         string fileNameWithExtension = Path.GetFileName(fullfilePath);
 
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
@@ -635,7 +651,7 @@ public class LyricsService : ILyricsService
 
 #endregion
 
-    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongModelView song)
+    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongModelView? song)
     {
         if (song is null)
         {
@@ -682,7 +698,7 @@ public class LyricsService : ILyricsService
              SongsManagementService.UpdateSongDetails(songObj);
         }
         string songDirectory = Path.GetDirectoryName(songObj.FilePath!)!;
-        string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath);
+        string songFileNameWithoutExtension = Path.GetFileNameWithoutExtension(songObj.FilePath!);
         string fileExtension = IsSynched ? ".lrc" : ".txt";
         string lrcFilePath;
         

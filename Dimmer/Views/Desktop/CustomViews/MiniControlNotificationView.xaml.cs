@@ -4,9 +4,9 @@ namespace Dimmer_MAUI.Views.CustomViews;
 public partial class MiniControlNotificationView : ContentPage
 {
    
-    private Timer _closeTimer;
-    HomePageVM MyViewModel;
-    public MiniControlNotificationView(string title, string artistName, string imagePath)
+    private Timer? _closeTimer;
+    HomePageVM? MyViewModel;
+    public MiniControlNotificationView(string? title, string? artistName, string? imagePath)
     {
 		InitializeComponent();
         MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
@@ -42,6 +42,10 @@ public partial class MiniControlNotificationView : ContentPage
     }
     public void ResetTimer()
     {
+        if (_closeTimer is null)
+        {
+            return;
+        }
         _closeTimer.Stop();
         _closeTimer.Start();
     }
@@ -59,7 +63,7 @@ public partial class MiniControlNotificationView : ContentPage
 
 #endif
 
-    public void Update(string title, string artistName, string imagePath)
+    public void Update(string? title, string? artistName, string? imagePath)
     {
         songTitle.Text = title;
         ArtistName.Text = artistName;
@@ -79,18 +83,30 @@ public partial class MiniControlNotificationView : ContentPage
 
     private void pauseImgBtn_Clicked(object sender, EventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.PauseSong();
         ResetTimer();
     }
 
     private void playImgBtn_Clicked(object sender, EventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.ResumeSong();
         ResetTimer();
     }
 
     private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
     }
 }

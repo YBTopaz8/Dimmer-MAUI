@@ -21,7 +21,11 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     private bool isPlaying;
     public bool IsPlaying
     {
-        get => isPlaying;
+        get
+        {
+            return isPlaying;
+        }
+
         set
         {
             if (isPlaying != value)
@@ -38,7 +42,10 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     public double CurrentPosition => mediaPlayer?.Position.TotalSeconds ?? 0;
     public double Volume
     {
-        get => mediaPlayer?.Volume ?? 0;
+        get
+        {
+            return mediaPlayer?.Volume ?? 0;
+        }
 
         set
         {
@@ -50,12 +57,27 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
     }
     public bool Muted
     {
-        get => mediaPlayer?.IsMuted ?? false;
-        set => mediaPlayer.IsMuted = value;
+        get
+        {
+            return mediaPlayer?.IsMuted ?? false;
+        }
+
+        set
+        {
+            if (mediaPlayer is null)
+            {
+                return;
+            }
+            mediaPlayer.IsMuted = value;
+        }
     }
     public double Balance
     {
-        get => 0; // CSCore does not natively support balance
+        get
+        {
+            return 0; // CSCore does not natively support balance
+        }
+
         set { /* Implement if necessary using custom processing */ }
     }
     private readonly object resourceLock = new();
@@ -84,6 +106,10 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
 
     public void Resume(double positionInSeconds)
     {
+        if (mediaPlayer is null)
+        {
+            return;
+        }   
         mediaPlayer.Position = TimeSpan.FromSeconds(positionInSeconds);
         mediaPlayer.Play();
         IsPlaying = true;
@@ -187,15 +213,18 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
         CurrentMedia?.Stream?.Dispose();
         if (media is not null)
         {
-            // Directly use the file path to create a URI for local files
-            using var fileStreamm = File.OpenRead(media.FilePath);
             var memStream = new MemoryStream();
-            fileStreamm.CopyTo(memStream);
-            memStream.Position = 0;
+            // Directly use the file path to create a URI for local files
+            if (media.FilePath is not  null)
+            {
+                using var fileStreamm = File.OpenRead(media.FilePath);                
+                fileStreamm.CopyTo(memStream);
+                memStream.Position = 0;
+            }
             CurrentMedia = new MediaPlay()
             {
-                SongId = media.LocalDeviceId,
-                Name = media.Title,
+                SongId = media.LocalDeviceId!,
+                Name = media.Title!,
                 Author = media!.ArtistName!,
                 Stream = memStream,
                 ImageBytes = ImageBytes is not null ? ImageBytes : null,

@@ -585,8 +585,12 @@ public partial class PlaybackUtilsService : ObservableObject
         // ShowMiniPlayBackView();
     }
 
-    private void UpdateSongPlaybackState(SongModelView song, PlayType playType, double? position = null)
+    private void UpdateSongPlaybackState(SongModelView? song, PlayType playType, double? position = null)
     {
+        if (song is null)
+        {
+            return;
+        }
         var link = new PlayDateAndCompletionStateSongLink
         {
             DatePlayed = DateTime.Now,
