@@ -1439,86 +1439,120 @@ public partial class HomePageVM : ObservableObject
 
     public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
     {
-        IEnumerable<SongModelView> sortedSongs = colToSort;
+        IEnumerable<SongModelView> sortedSongs;
 
         switch (mode)
         {
             case SortingEnum.TitleAsc:
-                sortedSongs = colToSort.OrderBy(x => x.Title).ToObservableCollection();
+                sortedSongs = colToSort.OrderBy(x => x.Title);
                 break;
             case SortingEnum.TitleDesc:
-                sortedSongs = colToSort.OrderByDescending(x => x.Title).ToObservableCollection();
+                sortedSongs = colToSort.OrderByDescending(x => x.Title);
                 break;
             case SortingEnum.ArtistNameAsc:
-                sortedSongs = colToSort.OrderBy(x => x.ArtistName).ToObservableCollection();
+                sortedSongs = colToSort.OrderBy(x => x.ArtistName);
                 break;
             case SortingEnum.ArtistNameDesc:
-                sortedSongs = colToSort.OrderByDescending(x => x.ArtistName).ToObservableCollection();
+                sortedSongs = colToSort.OrderByDescending(x => x.ArtistName);
                 break;
             case SortingEnum.DateAddedAsc:
-                sortedSongs = colToSort.OrderBy(x => x.DateCreated).ToObservableCollection();
+                sortedSongs = colToSort.OrderBy(x => x.DateCreated);
                 break;
             case SortingEnum.DateAddedDesc:
-                sortedSongs = colToSort.OrderByDescending(x => x.DateCreated).ToObservableCollection();
+                sortedSongs = colToSort.OrderByDescending(x => x.DateCreated);
                 break;
             case SortingEnum.DurationAsc:
-                sortedSongs = colToSort.OrderBy(x => x.DurationInSeconds).ToObservableCollection();
+                sortedSongs = colToSort.OrderBy(x => x.DurationInSeconds);
                 break;
             case SortingEnum.DurationDesc:
-                sortedSongs = colToSort.OrderByDescending(x => x.DurationInSeconds).ToObservableCollection();
+                sortedSongs = colToSort.OrderByDescending(x => x.DurationInSeconds);
                 break;
             case SortingEnum.YearAsc:
-                sortedSongs = colToSort.OrderBy(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                sortedSongs = colToSort.OrderBy(x => x.ReleaseYear);
                 break;
             case SortingEnum.YearDesc:
-                sortedSongs = colToSort.OrderByDescending(x => x.ReleaseYear); // Corrected: Use ReleaseYear
+                sortedSongs = colToSort.OrderByDescending(x => x.ReleaseYear);
                 break;
-
-            // --- Play Count Sorting ---
-            case SortingEnum.NumberOfTimesPlayedAsc:
-                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
-                break;
-            case SortingEnum.NumberOfTimesPlayedDesc:
-                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId));
-                break;
-
-            // --- Skipped Sorting ---
-            case SortingEnum.MostSkippedAsc:
-                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
-                break;
-            case SortingEnum.MostSkippedDesc:
-                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
-                break;
-
-            // --- Played Completely Sorting ---
-            case SortingEnum.MostPlayedCompletelyAsc:
-                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
-                break;
-            case SortingEnum.MostPlayedCompletelyDesc:
-                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && link.WasPlayCompleted));
-                break;
-
-            // --- Played Incompletely Sorting ---
-            case SortingEnum.MostPlayedIncompletelyAsc:
-                sortedSongs = colToSort.OrderBy(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
-                break;
-            case SortingEnum.MostPlayedIncompletelyDesc:
-                sortedSongs = colToSort.OrderByDescending(song => allPlayDataLinks.Count(link => link.SongId == song.LocalDeviceId && !link.WasPlayCompleted));
-                break;
-
-
             case SortingEnum.RatingAsc:
                 sortedSongs = colToSort.OrderBy(x => x.Rating);
                 break;
             case SortingEnum.RatingDesc:
                 sortedSongs = colToSort.OrderByDescending(x => x.Rating);
                 break;
-          
+            case SortingEnum.HasLyrics:
+                sortedSongs = colToSort.OrderBy(x => x.HasSyncedLyrics); 
+                break;
+            case SortingEnum.HasNoLyrics:
+                sortedSongs = colToSort.OrderBy(x => !x.HasSyncedLyrics); 
+                break;
+
+            // --- Optimized Play Data Sorting ---
+            case SortingEnum.NumberOfTimesPlayedAsc:
+            case SortingEnum.NumberOfTimesPlayedDesc:
+            case SortingEnum.MostSkippedAsc:
+            case SortingEnum.MostSkippedDesc:
+            case SortingEnum.MostPlayedCompletelyAsc:
+            case SortingEnum.MostPlayedCompletelyDesc:
+            case SortingEnum.MostPlayedIncompletelyAsc:
+            case SortingEnum.MostPlayedIncompletelyDesc:
+                // Pre-calculate counts for ALL songs:
+                Dictionary<string, int> playCounts = allPlayDataLinks
+                    .GroupBy(link => link.SongId)
+                    .ToDictionary(group => group.Key, group => group.Count());
+
+                Dictionary<string, int> skippedCounts = allPlayDataLinks
+                    .Where(link => !link.WasPlayCompleted)
+                    .GroupBy(link => link.SongId)
+                    .ToDictionary(group => group.Key, group => group.Count());
+
+                Dictionary<string, int> completedCounts = allPlayDataLinks
+                    .Where(link => link.WasPlayCompleted)
+                    .GroupBy(link => link.SongId)
+                    .ToDictionary(group => group.Key, group => group.Count());
+
+                // Now, use the pre-calculated counts in the OrderBy:
+                switch (mode)
+                {
+                    case SortingEnum.NumberOfTimesPlayedAsc:
+                        sortedSongs = colToSort.OrderBy(song => playCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    case SortingEnum.NumberOfTimesPlayedDesc:
+                        sortedSongs = colToSort.OrderByDescending(song => playCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    case SortingEnum.MostSkippedAsc: // Combined with MostPlayedIncompletely
+                    case SortingEnum.MostPlayedIncompletelyAsc:
+                        sortedSongs = colToSort.OrderBy(song => skippedCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    case SortingEnum.MostSkippedDesc: // Combined with MostPlayedIncompletely
+                    case SortingEnum.MostPlayedIncompletelyDesc:
+                        sortedSongs = colToSort.OrderByDescending(song => skippedCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    case SortingEnum.MostPlayedCompletelyAsc:
+                        sortedSongs = colToSort.OrderBy(song => completedCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    case SortingEnum.MostPlayedCompletelyDesc:
+                        sortedSongs = colToSort.OrderByDescending(song => completedCounts.GetValueOrDefault(song.LocalDeviceId, 0));
+                        break;
+                    default: //Should not reach here
+                        sortedSongs = colToSort;
+                        break;
+                }
+                break;
 
             default:
+                sortedSongs = colToSort; // Or throw an exception, depending on your needs
                 break;
         }
-        AppSettingsService.SortingModePreference.SetSortingPref(mode);
+
+        // Update the ObservableCollection *once* at the end.
+        colToSort.Clear();
+        foreach (var song in sortedSongs)
+        {
+            colToSort.Add(song);
+        }
+        return colToSort;
+    
+    AppSettingsService.SortingModePreference.SetSortingPref(mode);
         return sortedSongs.ToObservableCollection(); // *Now* the sorting happens, all at once.
     }
 

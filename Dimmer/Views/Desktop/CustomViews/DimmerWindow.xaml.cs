@@ -18,20 +18,33 @@ public partial class DimmerWindow : Window
     protected override void OnActivated()
     {
         base.OnActivated();
+
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.CurrentAppState = AppState.OnForeGround;
         MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
         MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
         MyViewModel.InternalSearchSongSBVM= SearchSongSB;
+        
+        MyViewModel.ShowNotificationInternally("Window Activated", text: InternalNotificationLabel, bar: SearchSongSB, titleBar: DimmerTitleBar);
+        
     }
 
     protected override void OnDeactivated()
     {
         base.OnDeactivated();
+
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.CurrentAppState = AppState.OnBackGround;
         MyViewModel.InternalNotificationLabelVM = null;
         MyViewModel.InternalSearchSongSBVM= null;
     }
-    public HomePageVM MyViewModel { get; set; }
+    public HomePageVM? MyViewModel { get; set; }
 
     protected override void OnCreated()
     {
@@ -53,7 +66,10 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        
+        if (MyViewModel is null)
+        {
+            return;
+        }
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
         if(MyViewModel.CurrentUser is not null)
@@ -77,6 +93,10 @@ public partial class DimmerWindow : Window
 
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         if (!InitChecker())
         {
             return;
@@ -265,6 +285,10 @@ public partial class DimmerWindow : Window
 
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            return;
+        }
         if (!InitChecker())
         {
             return;

@@ -67,7 +67,7 @@ public partial class HomePageM : ContentPage
         MyViewModel.PlaySong(e.Item as SongModelView);
 
         await Task.WhenAll(BtmBar.AnimateNewTrackBounce(duration: 500),
-            BtmBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500));
+            BtmBar.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 500));
     }
 
     protected override bool OnBackButtonPressed()
@@ -309,9 +309,9 @@ public partial class HomePageM : ContentPage
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                             MyViewModel.PlayPreviousSongCommand.Execute(null);
                             Debug.WriteLine("Swiped left");
-                            var t1= send.BackgroundColorTo(Colors.MediumPurple, length: 300); 
+                            var t1= send.MyBackgroundColorTo(Colors.MediumPurple, length: 300); 
                             var t2=  Task.Delay(500);
-                            var t3 = send.BackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
+                            var t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
                             await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
@@ -375,9 +375,9 @@ public partial class HomePageM : ContentPage
     // Extracted color animation method for reusability
     async Task AnimateColor(VisualElement element, Color color)
     {
-        await element.BackgroundColorTo(color, length: 300);
+        await element.MyBackgroundColorTo(color, length: 300);
         await Task.Delay(300); // Reduce freeze by using a lower delay
-        await element.BackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+        await element.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
     }
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
@@ -397,11 +397,11 @@ public partial class HomePageM : ContentPage
             MyViewModel.PauseSong();
             RunFocusModeAnimation(send, Color.FromArgb("#8B0000")); // DarkRed for pause
             
-            await send.BackgroundColorTo(Color.FromArgb("#252526"), length: 300);
+            await send.MyBackgroundColorTo(Color.FromArgb("#252526"), length: 300);
         }
         else
         {
-            await send.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
+            await send.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
             //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {

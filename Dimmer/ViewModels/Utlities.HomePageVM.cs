@@ -210,7 +210,7 @@ public partial class HomePageVM
 
 
 #if WINDOWS
-    public AppWindowPresenter AppWinPresenter { get; set; }
+    public AppWindowPresenter? AppWinPresenter { get; set; }
 #endif
     [ObservableProperty]
     public partial bool IsStickToTop { get; set; } = false;
@@ -504,7 +504,7 @@ public partial class HomePageVM
        var SelectedSongs = new List<SongModelView> { MySelectedSong! };
 
         // Prepare the data to send to the Cloud Code function
-        List<Dictionary<string, object>> lyricsData = new();
+        List<Dictionary<string, object?>> lyricsData = new();
         foreach (SongModelView song in SelectedSongs)
         {
             //ONLY contribute, if song has lyrics
@@ -514,13 +514,13 @@ public partial class HomePageVM
             }
 
             // Create a dictionary for each song's lyrics data
-            Dictionary<string, object> songLyricData = new()
+            Dictionary<string, object?> songLyricData = new()
             {
                 { "title", song.Title },
                 { "artistName", song.ArtistName },
                 { "albumName", song.AlbumName }, // Optional
                 { "plainLyric", song.UnSyncLyrics },
-                { "syncLyrics", song.SyncLyrics.Select(lyric => new Dictionary<string, object>() { { "time", lyric.TimeStampMs}, { "lyric", lyric.Text } }).ToList() },
+                { "syncLyrics", song.SyncLyrics.Select(lyric => new Dictionary<string, object?>() { { "time", lyric.TimeStampMs}, { "lyric", lyric.Text } }).ToList() },
                 // Add other fields if needed
             };
             lyricsData.Add(songLyricData);

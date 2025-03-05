@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace Dimmer_MAUI.Platforms.Windows;
-public static class PlatSpecificUtils
+public static partial class PlatSpecificUtils
 {
 
     public static IntPtr DimmerHandle { get; set; }
@@ -72,7 +72,7 @@ public static class PlatSpecificUtils
     }
        
     // Method to set the window on top
-    public static void ToggleWindowAlwaysOnTop(bool topMost, AppWindowPresenter appPresenter)
+    public static void ToggleWindowAlwaysOnTop(bool topMost, AppWindowPresenter? appPresenter)
     {
         try
         {
@@ -119,7 +119,7 @@ public static class PlatSpecificUtils
     public static class DataTemplateConversion
     {
 
-        public static DataTemplate ConvertToWindowsDataTemplate(Microsoft.Maui.Controls.DataTemplate mauiTemplate)
+        public static DataTemplate? ConvertToWindowsDataTemplate(Microsoft.Maui.Controls.DataTemplate mauiTemplate)
         {
             if (mauiTemplate == null)
                 return null;
@@ -168,7 +168,7 @@ public static class PlatSpecificUtils
             ApplyMauiTemplate();
         }
 
-        public Microsoft.Maui.Controls.DataTemplate MauiTemplate { get; set; }
+        public Microsoft.Maui.Controls.DataTemplate? MauiTemplate { get; set; }
 
         private void ApplyMauiTemplate()
         {

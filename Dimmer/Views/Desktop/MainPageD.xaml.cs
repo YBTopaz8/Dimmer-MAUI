@@ -1,4 +1,5 @@
 #if WINDOWS
+using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.UI.Xaml;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 //using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
@@ -138,82 +139,78 @@ public partial class MainPageD : ContentPage
     List<string> supportedFilePaths;
     bool isAboutToDropFiles = false;
 
+
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
-        #if WINDOWS
         try
         {
-
             if (!isAboutToDropFiles)
             {
                 isAboutToDropFiles = true;
 
-                var WindowsEventArgs = e.PlatformArgs.DragEventArgs;
-                var dragUI = WindowsEventArgs.DragUIOverride;
+                // Use MAUI's DataPackageView, which is cross-platform.
+                DataPackageView dataView = e.Data.View;
 
-
-                var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
-                e.AcceptedOperation = DataPackageOperation.None;
+                e.AcceptedOperation = DataPackageOperation.None; // Default to None.
                 supportedFilePaths = new List<string>();
+                bool allFilesSupported = true;
 
-                if (items.Count > 0)
+                // Check if the DataPackage contains a list of files.
+                // MAUI uses the "FileNames" key in the DataPackagePropertySetView
+                // to store a list of file paths (as strings).
+
+                if (dataView.Properties.ContainsKey("FileNames") &&
+                    dataView.Properties["FileNames"] is IList<string> fileNames)
                 {
-                    foreach (var item in items)
+                    foreach (string filePath in fileNames)
                     {
-                        if (item is Windows.Storage.StorageFile file)
+                        string fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
+
+                        if (fileExtension != ".mp3" && fileExtension != ".flac" &&
+                            fileExtension != ".wav" && fileExtension != ".m4a")
                         {
-                            /// Check file extension
-                            string fileExtension = file.FileType.ToLower();
-                            if (fileExtension != ".mp3" && fileExtension != ".flac" &&
-                                fileExtension != ".wav" && fileExtension != ".m4a")
-                            {
-                                e.AcceptedOperation = DataPackageOperation.None;
-                                dragUI.IsGlyphVisible = true;
-                                dragUI.Caption = $"{fileExtension.ToUpper()} Files Not Supported";
-                                continue;
-                                //break;  // If any invalid file is found, break the loop
-                            }
-                            else
-                            {
-                                dragUI.IsGlyphVisible = false;
-                                dragUI.Caption = "Drop to Play!";
-                                Debug.WriteLine($"File is {item.Path}");
-                                supportedFilePaths.Add(item.Path.ToLower());
-                            }
+                            allFilesSupported = false;
+                        }
+                        else
+                        {
+                            supportedFilePaths.Add(filePath.ToLowerInvariant());
                         }
                     }
 
+                    if (allFilesSupported)
+                    {
+                        e.AcceptedOperation = DataPackageOperation.Copy;  // Or another appropriate value.
+
+                        // You can't directly manipulate a "dragUI" object here
+                        // like you did in the Windows-specific code.  MAUI handles
+                        // the drag-and-drop UI visuals at a higher level.
+                        // You *could* potentially influence the appearance by setting
+                        // e.Data.Image, but standard platform behavior is preferred.
+                    }
+                    else
+                    {
+                        e.AcceptedOperation = DataPackageOperation.None;
+                        // Similarly, you can't directly set a caption like "Files Not Supported".
+                        // The platform handles this. If AcceptedOperation is None, the
+                        // platform will typically show a "cannot drop" visual.
+                    }
+                }
+                else
+                {
+                    e.AcceptedOperation = DataPackageOperation.None;
                 }
             }
-
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
         }
-        //return Task.CompletedTask;
-        #endif
-    }
-
-
-
-    private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
-    {
-        try
+        finally
         {
-            isAboutToDropFiles = false;
-            var send = sender as View;
-            if (send is null)
-            {
-                return;
-            }
-            send.Opacity = 1;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
+            isAboutToDropFiles = false; // Reset the flag.
         }
     }
+
 
     private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
@@ -364,6 +361,24 @@ public partial class MainPageD : ContentPage
         
         mainLayout.PointerPressed += S_PointerPressed;
 #endif
+    }
+
+    private void DropGestureRecognizer_DragLeave(object sender, DragEventArgs e)
+    {
+        try
+        {
+            isAboutToDropFiles = false;
+            var send = sender as View;
+            if (send is null)
+            {
+                return;
+            }
+            send.Opacity = 1;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
 
