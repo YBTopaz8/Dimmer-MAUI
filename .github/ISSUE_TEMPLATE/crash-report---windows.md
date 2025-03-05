@@ -1,7 +1,7 @@
 ---
 name: Crash Report - Windows
 about: Create a Crash Report to help improve Dimmer
-title: "CRASH - Windows"
+title: CRASH - Windows
 labels: bug-windows
 assignees: YBTopaz8
 
