@@ -1148,6 +1148,10 @@ public partial class HomePageVM
     {
         SyncLyricsCV = cv;
         SyncLyricsCV.SelectionChanged += SyncLyricsCV_SelectionChanged;
+        if (MySelectedSong is null)
+        {
+            return;
+        }
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics?.Count < 1)
         {
             await FetchLyrics(false);

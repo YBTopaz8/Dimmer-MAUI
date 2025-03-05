@@ -21,14 +21,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     System.Timers.Timer? _positionTimer;
 
     
-    private SongModelView ObservableCurrentlyPlayingSong { get; set; } = new();
-    public SongModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
+    private SongModelView? ObservableCurrentlyPlayingSong { get; set; } = new();
+    public SongModelView? CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
     [ObservableProperty]
     private partial SongModelView? ObservablePreviouslyPlayingSong { get; set; } = new();
-    public SongModelView PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
+    public SongModelView? PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
     [ObservableProperty]
     private partial SongModelView? ObservableNextPlayingSong { get; set; } = new();
-    public SongModelView NextPlayingSong => ObservableNextPlayingSong;
+    public SongModelView? NextPlayingSong => ObservableNextPlayingSong;
 
     [ObservableProperty]
     private partial int ObservableLoadingSongsProgress { get; set; }

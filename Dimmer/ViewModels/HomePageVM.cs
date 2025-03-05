@@ -1,5 +1,6 @@
 ﻿
 #if WINDOWS
+using DevExpress.Maui.CollectionView;
 using Parse;
 using System.Diagnostics;
 using System.Windows;
@@ -192,11 +193,15 @@ public partial class HomePageVM : ObservableObject
         AllLinks = SongsMgtService.AllLinks;
         AllPlayDataLinks = SongsMgtService.AllPlayDataLinks;
 
-        RefreshPlaylists();        
+        RefreshPlaylists();
+
+
     }
 
+    
     public void DoRefreshDependingOnPage()
     {
+        
         //CurrentPositionInSeconds = 0;
         //CurrentPositionPercentage = 0;
         LyricsSearchSongTitle = MySelectedSong?.Title;

@@ -173,12 +173,17 @@ public partial class PlaybackUtilsService : ObservableObject
         DimmerAudioService.Play();
         DimmerAudioService.SetCurrentTime(sixtyPercent);
         _playerStateSubject.OnNext(MediaPlayerState.Previewing);
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play, 0);
         return true;
     }
 
     public bool PauseResumeSong(double currentPosition, bool isPause = false)
     {
-        ObservableCurrentlyPlayingSong ??= _playbackQueue.Value.FirstOrDefault();
+        var s = _playbackQueue.Value.ToList();
+        if (s is not null)
+        {
+            ObservableCurrentlyPlayingSong = s.FirstOrDefault();
+        }
         if (ObservableCurrentlyPlayingSong == null)
             return false;
 
@@ -596,7 +601,9 @@ public partial class PlaybackUtilsService : ObservableObject
             DatePlayed = DateTime.Now,
             PlayType = (int)playType,
             SongId = song.LocalDeviceId,
-            PositionInSeconds = position is null? 0 : (double)position
+            PositionInSeconds = position is null? 0 : (double)position,
+            WasPlayCompleted = playType == PlayType.Completed,
+            
         };
         SongsMgtService.AddPDaCStateLink(link);
     }

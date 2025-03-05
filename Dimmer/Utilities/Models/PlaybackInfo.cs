@@ -147,6 +147,7 @@ public partial class DimmData : ObservableObject
         DateFinished = linkk.EventDate;
         PlayEventCode = linkk.PlayType;
         SongId = linkk.SongId;
+
     }
 
 }

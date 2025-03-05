@@ -359,6 +359,7 @@
     </PackageReference>-->
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\MAUI.TableView\YB.MauiDataGridView\YB.MauiDataGridView.csproj" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
