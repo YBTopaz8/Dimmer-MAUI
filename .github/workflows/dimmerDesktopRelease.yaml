@@ -26,38 +26,44 @@ jobs:
         id: get_release_url
         run: echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
 
-      - name: Print Secrets (for Debugging)
+      - name: Print Secrets (for Debugging)  # Keep this for now, it's good practice
         run: |
           echo "BACK4APP_WEBHOOK_URL: ${{ secrets.BACK4APP_WEBHOOK_URL }}"
           echo "PARSE_APP_ID: ${{ secrets.PARSE_APP_ID }}"
           echo "PARSE_REST_API_KEY: ${{ secrets.PARSE_REST_API_KEY }}"
           echo "BACK4APP_WEBHOOK_KEY: ${{ secrets.BACK4APP_WEBHOOK_KEY }}"
 
-      - name: Send Back4App Webhook (Release or Push)
+      - name: Send Back4App Webhook (Release or Push) - WEBHOOK.SITE TEST
         run: |
-          commit_message=$(echo '${{ toJSON(github.event.head_commit.message) }}' | tr -d '"')
-          commit_url=$(echo '${{ toJSON(github.event.head_commit.url) }}' | tr -d '"')
+          echo "Testing with webhook.site..."
+          payload=$(jq -n \
+            --arg commit_message "${{ github.event.head_commit.message }}" \
+            --arg commit_url "${{ github.event.head_commit.url }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg pusher "${{ github.actor }}" \
+            --arg release_tag "${{ steps.get_release_tag.outputs.tag }}" \
+            --arg release_url "${{ steps.get_release_url.outputs.release_url }}" \
+            '{
+                "master": false,
+                "installationId": "",
+                "params": {
+                  "commitMessage": $commit_message,
+                  "commitUrl": $commit_url,
+                  "branch": $branch,
+                  "pusher": $pusher,
+                  "releaseTag": $release_tag,
+                  "releaseUrl": $release_url
+                },
+                "functionName": "githubUpdate"
+              }'
+            )
 
-          payload=$(cat << EOF
-          {
-            "master": false,
-            "installationId": "",
-            "params": {
-              "commitMessage": "${commit_message}",
-              "commitUrl": "${commit_url}",
-              "branch": "${{ github.ref_name }}",
-              "pusher": "${{ github.actor }}",
-              "releaseTag": "${{ steps.get_release_tag.outputs.tag }}",
-              "releaseUrl": "${{ steps.get_release_url.outputs.release_url }}"
-            },
-            "functionName": "githubUpdate"
-          }
-          EOF
-          )
+          # Echo the payload for debugging.  Always a good idea.
+          echo "Payload:"
+          echo "$payload"
+
+
           curl -X POST \
             -H "Content-Type: application/json" \
-            -H "X-Parse-Application-Id: ${{ secrets.PARSE_APP_ID }}" \
-            -H "X-Parse-REST-API-Key: ${{ secrets.PARSE_REST_API_KEY }}" \
-            -H "X-Parse-Webhook-Key: ${{ secrets.BACK4APP_WEBHOOK_KEY }}" \
             -d "$payload" \
-            "${{ secrets.BACK4APP_WEBHOOK_URL }}"
+            "${{ secrets.TEST_WEBHOOK_URL }}"   # Use the TEST URL!
