@@ -8,7 +8,7 @@ public class LyricsService : ILyricsService
     private BehaviorSubject<IList<LyricPhraseModel>> _synchronizedLyricsSubject = new([]);
     public IObservable<IList<LyricPhraseModel>> SynchronizedLyricsStream => _synchronizedLyricsSubject.AsObservable();
 
-    private BehaviorSubject<LyricPhraseModel> _currentLyricSubject = new (new LyricPhraseModel(null));
+    private BehaviorSubject<LyricPhraseModel> _currentLyricSubject = new (new LyricPhraseModel());
     public IObservable<LyricPhraseModel> CurrentLyricStream => _currentLyricSubject.AsObservable();
 
     private BehaviorSubject<string> _unsyncedLyricsSubject = new("");
@@ -293,7 +293,7 @@ public class LyricsService : ILyricsService
                 // Convert timestamp to milliseconds.
                 int timeStampMs = (minutes * 60 + seconds) * 1000 + hundredths * 10;
 
-                LyricPhraseModel phrase = new(new LyricsPhrase(timeStampMs, lyricText));
+                LyricPhraseModel phrase = new(new LyricsPhrase(timeStampMs,lyricText));
                 lyricPhrases.Add(phrase);
             }
         }

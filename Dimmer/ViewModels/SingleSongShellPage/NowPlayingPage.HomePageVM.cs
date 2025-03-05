@@ -23,7 +23,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task SaveLyricsToLrcAfterSyncing()
     {
-        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "No", "Yes");
+        bool result = await Shell.Current.DisplayAlert("Information","Done Syncing?", "Yes", "No");
         
         if (result)
         {

@@ -201,7 +201,7 @@ public partial class SongModelView : ObservableObject
             {
                 s.Lyrics.ParseLRC(model.SyncLyrics);
                 IList<LyricsPhrase>? syncLyr = s.Lyrics.SynchronizedLyrics;
-                SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x)).ToObservableCollection();
+                SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x) ).ToObservableCollection();
             }
         }
 

@@ -322,10 +322,20 @@ public partial class DimmerWindow : Window
 
     private void SearchSongSB_Focused(object sender, FocusEventArgs e)
     {
-        MyViewModel.IsOnSearchMode = true;
+        
     }
 
     private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
+    {
+    }
+
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        MyViewModel.IsOnSearchMode = true;
+
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
         MyViewModel.IsOnSearchMode = false;
     }

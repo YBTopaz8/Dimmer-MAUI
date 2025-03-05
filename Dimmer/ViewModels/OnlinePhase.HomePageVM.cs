@@ -621,7 +621,7 @@ public class LiveQueryManager : IDisposable
 
         // Ensure the client is connected (you might handle this elsewhere, too)
         LiveClient.ConnectIfNeeded();
-
+        SubscribeToMultipleQueries();
         // Centralized error handling (optional, but good practice)
         var errorHandler = LiveClient.OnError
             .Subscribe(ex =>
