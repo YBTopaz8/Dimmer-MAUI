@@ -26,9 +26,10 @@
 
 
     </ContentPage.Resources>
-    
+
+        
     <Grid x:Name="MainDock" RowDefinitions="*,Auto" IsVisible="True"
-        IsEnabled="True">
+        IsEnabled="True" BackgroundColor="Blue">
         <Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                                 DragOver="DropGestureRecognizer_DragOver"
@@ -66,7 +67,9 @@
             
         </viewsD:MyTableView>-->
 
-        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
+        
+        
+        <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="False"
                             Loaded="MainBody_Loaded" Unloaded="MainBody_Unloaded">
 
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >

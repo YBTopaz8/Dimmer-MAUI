@@ -124,16 +124,17 @@ public partial class HomePageVM : ObservableObject
         LoadSongCoverImage();
         //_ = GetSecuredData();
 
-        SetUpParseLiveQueries();
+        //SetUpParseLiveQueries();
     }
 
-    public ParseLiveQueryClient? LiveClient { get; set; }
+    
     private void SetUpParseLiveQueries()
     {
         try
         {
-            LiveClient = new ParseLiveQueryClient();
-            LiveQueryManager LQM = new LiveQueryManager(LiveClient!);
+            LiveQueryClient = new ParseLiveQueryClient();
+            LiveQueryManager LQM = new LiveQueryManager(LiveQueryClient!);
+            
         }
         catch (Exception)
         {
