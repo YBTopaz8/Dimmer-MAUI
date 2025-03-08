@@ -158,8 +158,9 @@
         </Grid>
         <Grid toolkit:DockLayout.DockPosition="None" RowDefinitions="Auto,*">
             <HorizontalStackLayout HorizontalOptions="End">
-                
-            <SearchBar Grid.Row="0"
+                <ImageButton Source="restartcircle.png"
+                             Clicked="ResetAlbumSongsList_Clicked" x:Name="ResetAlbumSongsList"/>
+                <SearchBar Grid.Row="0"
          HorizontalOptions="End" x:Name="SearchSongInAlbum" 
             Placeholder="Search Song..." TextChanged="SearchSongInAlbum_TextChanged"/>
 

@@ -253,4 +253,9 @@ public partial class ArtistsPageD : ContentPage
     {
         
     }
+
+    private void ResetAlbumSongsList_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedArtistOnArtistPage);
+    }
 }

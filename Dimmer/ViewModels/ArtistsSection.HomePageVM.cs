@@ -263,8 +263,8 @@ public partial class HomePageVM
                     SelectedAlbumOnArtistPage = AllAlbums?.FirstOrDefault(x => x.Name == TemporarilyPickedSong!.AlbumName);
                 }
             }
-            SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong!.LocalDeviceId!).FirstOrDefault();
-
+            SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong!.LocalDeviceId!).First();
+            SelectedArtistOnArtistPage.IsCurrentlySelected=true;
         }
         if (AllArtists?.Count < 1)
         {
@@ -447,10 +447,10 @@ public partial class HomePageVM
         );
     }
 
-    public void LoadArtistAlbumsAndSongs(ArtistModelView? artist)
+    public void LoadArtistAlbumsAndSongs(ArtistModelView? artist=null)
     {
         //if (artist is null SelectedArtistOnArtistPage is null)
-        if (artist is null)
+        if (artist is null )
             return;
         if (SelectedArtistOnArtistPage is not null)
             SelectedArtistOnArtistPage.IsCurrentlySelected = false;
@@ -463,8 +463,9 @@ public partial class HomePageVM
             return;
         }
         SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.First().AlbumImagePath;
-        return;
+        
         AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId!);
+        SelectedArtistOnArtistPage.IsCurrentlySelected=true;
         if (MySelectedSong is not null)
         {
             MySelectedSong.IsCurrentPlayingHighlight = true;
@@ -532,8 +533,16 @@ public partial class HomePageVM
         if (AllArtists.Count > 0)
         {
             SelectedArtistOnArtistPage = AllArtists.FirstOrDefault();
-            var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
-            GetAllArtistsAlbum(song: song, isFromSong: true);            
+            AllArtistsAlbums = GetAllAlbumsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);
+            //await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
+            if (AllArtistsAlbums is null || AllArtistsAlbums.Count<1)
+            {
+                return;
+            }
+            SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.First().AlbumImagePath;
+
+            AllArtistsAlbumSongs= GetAllSongsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);
+            SelectedArtistOnArtistPage.IsCurrentlySelected=true;
         }
         else
         {

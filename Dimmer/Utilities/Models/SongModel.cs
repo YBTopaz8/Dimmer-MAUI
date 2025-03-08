@@ -137,7 +137,7 @@ public partial class SongModelView : ObservableObject
     //[ObservableProperty]
     //public partial bool IsCurrentPlayingHighlight {get;set;}
     [ObservableProperty]
-    public partial bool IsCurrentPlayingHighlight { get; set; }
+    public partial bool IsCurrentPlayingHighlight { get; set; } = false;
     [ObservableProperty]
     public partial bool IsFavorite {get;set;}
     [ObservableProperty]
