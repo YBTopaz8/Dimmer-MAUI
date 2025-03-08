@@ -462,8 +462,22 @@ public partial class MainPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
+    public bool ClickToPreview { get; set; } = true;
 
+    private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
+    {
+        var send = sender as PieSeries;
+        var itemss = send.ItemsSource as ObservableCollection<DimmData>;
 
+        var song = MyViewModel.DisplayedSongs.FirstOrDefault(X => X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+
+        MyViewModel.MySelectedSong = song;
+        if (ClickToPreview)
+        {
+            MyViewModel.PlaySong(song, true);
+        }
+
+    }
 
 
 #if WINDOWS
@@ -496,6 +510,9 @@ public partial class MainPageD : ContentPage
                 Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
                 {
+                    MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
+                    SongStatsView.IsVisible = !SongStatsView.IsVisible;
+                    return;
                     MyViewModel.ToggleFlyout();
 
                     Debug.WriteLine("Right Mouse was Clicked!");
@@ -635,7 +652,9 @@ public partial class MainPageD : ContentPage
     {
         Debug.WriteLine("single tap");
     }
-#endif 
+#endif
+
+
 }
 public enum ContextMenuPageCaller
 {

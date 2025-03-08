@@ -69,3 +69,9 @@ public partial class ArtistModelView : ObservableObject
 
 
 }
+
+public partial class ArtistGroup : ObservableCollection<ArtistModelView>
+{
+    public required string FirstLetter { get; set; }
+    
+}

@@ -177,6 +177,6 @@ public partial class UserActivity : ParseObject
     [ParseFieldName("isRead")]
     public bool IsRead { get => GetProperty<bool>("isRead"); set => SetProperty(value, "isRead"); }
     
-    public Friendship? FriendRequest { get => GetProperty<Friendship>(); set => SetProperty(value); }
+    public FriendRequest? FriendRequest { get => GetProperty<FriendRequest>(); set => SetProperty(value); }
 
 }

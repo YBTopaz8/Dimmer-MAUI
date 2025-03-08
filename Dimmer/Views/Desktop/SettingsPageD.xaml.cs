@@ -17,6 +17,7 @@ public partial class SettingsPageD : ContentPage
 
         _ = MyViewModel.GetLoggedInDevicesForUser();
         MyViewModel.CurrentPageMainLayout = MainDock;
+        MyViewModel.IsSearchBarVisible = false;
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {

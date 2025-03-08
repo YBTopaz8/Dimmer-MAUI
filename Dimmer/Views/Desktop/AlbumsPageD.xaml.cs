@@ -20,7 +20,7 @@ public partial class AlbumsPageD : ContentPage
         Shell.Current.FlyoutIsPresented = false;
         MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-
+        MyViewModel.IsSearchBarVisible = false;
     }
     Border? SelectedBorderView { get; set; }
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)

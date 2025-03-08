@@ -12,6 +12,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public List<AlbumModelView> AllAlbums { get; set; }
     public List<ArtistModelView> AllArtists { get; set; }
+    
     public List<GenreModelView> AllGenres { get; set; }
     public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
     public IDataBaseService DataBaseService { get; }
@@ -76,7 +77,9 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             var groupedPlayData = AllPlayDataLinks
     .Where(link => link.SongId != null) // Filter out null SongIds
     .GroupBy(link => link.SongId!)  // Use the null-forgiving operator (!)
-    .ToDictionary(group => group.Key, group => group.ToList());                                                           // --- 5. Create SongModelView with PlayData ---
+    .ToDictionary(group => group.Key, group => group.ToList());
+            
+            // --- 5. Create SongModelView with PlayData ---
             var tempSongViews = new List<SongModelView>(); //temp list
             foreach (var songModel in realmSongs)
             {
@@ -164,7 +167,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)).OrderBy(x=>x.Name));
-
     }
 
     public void AddPlayData(string songId, PlayDataLink playData)
@@ -999,9 +1001,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 Identifier = "com.yvanbrunel.dimmer",
                 Name = "Dimmer",
             };
-
             client.Publicize();
-
 
             Debug.WriteLine("ParseClient initialized successfully.");
             return true;

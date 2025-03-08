@@ -100,7 +100,6 @@ public partial class SongsManagementService
     {
         try
         {
-            var result = (InitializeParseClient());
             if (CurrentOfflineUser is null)
             {
                 CurrentOfflineUser = new UserModelView()

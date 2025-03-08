@@ -49,7 +49,6 @@ public partial class ArtistsPageD : ContentPage
 
         if (MyViewModel.MySelectedSong is null)
         {
-
             if (MyViewModel.TemporarilyPickedSong is not null)
             {
                 MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
@@ -62,8 +61,7 @@ public partial class ArtistsPageD : ContentPage
             MyViewModel.GetAllArtistsAlbum();
         }
        
-        
-        
+        MyViewModel.IsSearchBarVisible = false;
     }
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)
@@ -232,7 +230,9 @@ public partial class ArtistsPageD : ContentPage
         }
     }
 
-    
-    
-
+    private void SearchSongInAlbum_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchSongFromArtistAlbumsSongsCommand.Execute(SearchSongInAlbum.Text);
+        
+    }
 }

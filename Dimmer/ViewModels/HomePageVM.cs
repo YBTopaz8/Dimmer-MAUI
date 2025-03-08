@@ -736,13 +736,13 @@ public partial class HomePageVM : ObservableObject
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue = (PlayBackService.VolumeLevel*100);
+        VolumeSliderValue = (PlayBackService.VolumeLevel);
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue = (PlayBackService.VolumeLevel * 100);
+        VolumeSliderValue = (PlayBackService.VolumeLevel);
     }
 
     [ObservableProperty]

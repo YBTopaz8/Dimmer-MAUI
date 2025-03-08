@@ -31,6 +31,8 @@ public partial class HomePageVM
     #endregion
 
     [ObservableProperty]
+    public partial bool IsSearchBarVisible { get; set; } = true;
+    [ObservableProperty]
     public partial SearchBar? DimmerGlobalSearchBar { get; set; }
     
     [RelayCommand]

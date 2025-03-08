@@ -22,7 +22,7 @@
             
         </ResourceDictionary>
     </ContentPage.Resources>
-    <toolkit:DockLayout  x:Name="MainDock">
+    <toolkit:DockLayout  x:Name="MainDock" >
         <toolkit:DockLayout.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                            DragOver="DropGestureRecognizer_DragOver"
@@ -32,10 +32,9 @@
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCV"/>
 
-        <SearchBar toolkit:DockLayout.DockPosition="Top" HorizontalOptions="End" x:Name="SearchArtistBar"
-                   WidthRequest="200" Placeholder="Type To Search" TextChanged="SearchBar_TextChanged"/>
-
-        <CollectionView toolkit:DockLayout.DockPosition="Top" 
+        <Grid RowDefinitions="Auto,*" toolkit:DockLayout.DockPosition="Top" >
+            
+            <CollectionView 
                         HeightRequest="150" x:Name="AllAlbumsColView" 
                         VerticalOptions="Start" HorizontalScrollBarVisibility="Default"
                         ItemsSource="{Binding AllArtistsAlbums}">
@@ -65,8 +64,14 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        </Grid>
+        <Grid RowDefinitions="Auto,*" toolkit:DockLayout.DockPosition="Left" 
+              >
 
-        <CollectionView toolkit:DockLayout.DockPosition="Left" 
+            <SearchBar Grid.Row="0" x:Name="SearchArtistBar" Margin="5,0"
+                   Placeholder="Search Artist..." TextChanged="SearchBar_TextChanged"/>
+
+            <CollectionView Grid.Row="1"
                     x:Name="AllArtistsColView"
                     EmptyView="No Artists Existing..." SelectionMode="None" 
                     WidthRequest="250" Margin="10,0"
@@ -111,10 +116,17 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    
 
+        </Grid>
+        <Grid toolkit:DockLayout.DockPosition="None" RowDefinitions="Auto,*">
+            <HorizontalStackLayout>
+                
+            <SearchBar Grid.Row="0"
+         HorizontalOptions="End" x:Name="SearchSongInAlbum" 
+            Placeholder="Search Song..." TextChanged="SearchSongInAlbum_TextChanged"/>
 
-        <CollectionView SelectionMode="Single" toolkit:DockLayout.DockPosition="None" x:Name="AlbumSongsCV"
+            </HorizontalStackLayout>
+            <CollectionView SelectionMode="Single" x:Name="AlbumSongsCV" Grid.Row="1"
         ItemsSource="{Binding AllArtistsAlbumSongs}" EmptyView="No Songs to display, Please Select an Album...">
             <CollectionView.Header>
                 <FlexLayout JustifyContent="SpaceBetween">
@@ -186,5 +198,6 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        </Grid>
     </toolkit:DockLayout>
 </ContentPage>

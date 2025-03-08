@@ -33,9 +33,9 @@ public partial class HomePageVM
     {
         if (LiveQueryClient == null || !LiveQueryClient.IsConnected)
         {
-            
             try
             {
+                
                 LiveQueryClient = new ParseLiveQueryClient();
                 LiveQueryClient.ConnectIfNeeded();
                 Console.WriteLine("Live Query Client Connected");
@@ -462,7 +462,7 @@ public partial class HomePageVM
                  // Process different event types (Create, Update, Delete, etc.).
                  if (e.evt == Subscription.Event.Create)
                  {
-                     ProcessMessageEvent(e);
+
                  }
                  // You could handle Update/Delete if you allow editing/deleting messages.
              });
@@ -553,36 +553,8 @@ public partial class HomePageVM
     {
 
     }
-        [RelayCommand]
-    private async Task RejectFriendRequest(string requestId)
-    {
-        try
-        {
-            // Remove the request from the UI list
-            var requestToRemove = PendingFriendRequests.FirstOrDefault(r => r.RequestId == requestId);
-            if (requestToRemove != null)
-            {
-                PendingFriendRequests.Remove(requestToRemove);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to reject friend request: {ex.Message}");
-        }
-    }
    
-    // --- Send chat messages ---
-    [RelayCommand]
-    private async Task SendChatMessage(string messageText) //we bind directly to string now
-    {
-        if (string.IsNullOrWhiteSpace(messageText) || string.IsNullOrEmpty(CurrentChatRoom.ObjectId))
-        {
-            return; // Don't send empty messages
-        }
-        await SendMessageAsync(CurrentChatRoom, messageText);
-
-    }
-
+  
     public async Task<bool> CheckIfUserHasFriends()
     {
         try
@@ -615,37 +587,7 @@ public partial class HomePageVM
         }
     }
 
-    // --- Example: Start a chat with a specific user ---
-    public async Task StartChatWithUser(string otherUserId)
-    {
-        try
-        {
-            var q= ParseClient.Instance.GetQuery("_User").
-                WhereEqualTo("objectId",otherUserId);
-            var otherUser = await q.FirstOrDefaultAsync();
-            // 1. Create/Get Chat Room
-            CurrentChatRoom = await CreateChatRoomAsync(otherUser); //stores roomid
-            //CurrentChatRoomId = await CreateChatRoomAsync(otherUser); //stores roomid
-
-            if (!string.IsNullOrEmpty(CurrentChatRoom.ObjectId))
-            {
-                // 2. Clear existing messages (if any)
-                ChatMessages.Clear();
-
-                // 3.  (Optionally) Fetch existing messages from the chat room (using skip/limit for pagination)
-
-                // 4. Subscribe to Live Queries (if not already subscribed)
-                //await ConnectToLiveQueriesAsync(); //removed
-                Console.WriteLine($"Started chat with user. ChatRoomId: {CurrentChatRoom.ObjectId}");
-                // Navigate to your chat page, set up data binding, etc.
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error starting chat: {ex.Message}");
-        }
-    }
-
+   
     public async Task ListenForMessagesAsync(ChatRoom chatRoom, Action<Message> onMessageReceived)
     {
         try

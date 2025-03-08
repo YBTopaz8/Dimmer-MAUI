@@ -9,6 +9,8 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView> AllArtists { get; set; } = new();
     [ObservableProperty]
+    public partial ObservableCollection<ArtistGroup> GroupedArtists { get; set; } = new();
+    [ObservableProperty]
     public partial ObservableCollection<AlbumModelView> AllAlbums{get;set;}= new();
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> AllArtistsAlbumSongs {get;set;}= new();
@@ -111,31 +113,33 @@ public partial class HomePageVM
     [RelayCommand]
     void GetAllArtists()
     {
-        
-        if (SelectedArtistOnArtistPage != null)
-            SelectedArtistOnArtistPage.IsCurrentlySelected = true;
-        if (SelectedAlbumOnArtistPage != null)
-            SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
-        if (AllArtists?.Count != PlayBackService.GetAllArtists().Count)
+        var artists = PlayBackService.GetAllArtists().OrderBy(x => x.Name).ToList();
+
+        // Refresh the list only if the count has changed
+        if (AllArtists?.Count != artists.Count)
         {
-            AllArtists = PlayBackService
-                .GetAllArtists()
-                .OrderBy(x => x.Name)
-                .ToObservableCollection();
-            if (AllArtists.Count > 0)
-            {
-#if WINDOWS
-                if(SelectedArtistOnArtistPage is not null)
-                {
-                    SelectedArtistOnArtistPage.IsCurrentlySelected = true;                    
-                    var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
-                    GetAllArtistsAlbum(song: song, isFromSong: true);
-                    
-                }
-#endif
-            }
+            AllArtists = artists.ToObservableCollection();
         }
 
+        // Update selections safely
+        if (SelectedArtistOnArtistPage is not null)
+        {
+            foreach (var artist in AllArtists)
+                artist.IsCurrentlySelected = artist.Name == SelectedArtistOnArtistPage.Name;
+
+#if WINDOWS
+        // Update displayed songs/albums based on the selected artist
+        var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
+        if (song is not null)
+            GetAllArtistsAlbum(song: song, isFromSong: true);
+#endif
+        }
+
+        if (SelectedAlbumOnArtistPage is not null)
+        {
+            foreach (var album in AllArtistsAlbums)
+                album.IsCurrentlySelected = album.Name == SelectedAlbumOnArtistPage.Name;
+        }
     }
 
     public void GetAllArtistsAlbum(AlbumModelView? album = null, SongModelView? song = null, bool isFromSong = false)
@@ -448,12 +452,41 @@ public partial class HomePageVM
             AllArtistsAlbumSongs?.Clear();
         }
     }
+    
+    void SearchArtist(ArtistModelView selectedArtist)
+    {
+        if (string.IsNullOrEmpty(selectedArtist.Name))
+        {
+            AllArtists = PlayBackService.GetAllArtists();
+            AllArtistsAlbumSongs?.Clear();
+            return;
+        }
+
+        SelectedArtistOnArtistPage = selectedArtist;
+        var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
+        GetAllArtistsAlbum(song: song, isFromSong: true);
+          
+    }
+    
+    [RelayCommand]
+    void SearchSongFromArtistAlbumsSongs(string songTitle)
+    {
+        if (string.IsNullOrWhiteSpace(songTitle))
+        {
+            SearchArtist(SelectedArtistOnArtistPage);
+            return;
+        }
+         AllArtistsAlbumSongs=AllArtistsAlbumSongs
+            .Where(x=>x.Title.Contains(songTitle, StringComparison.OrdinalIgnoreCase))
+            .ToObservableCollection();
+     
+    }
 
     public void ReCheckSongsBelongingToAlbum(string id)
     {
         AllArtistsAlbumSongs?.Clear();
         var alb = AllAlbums.FirstOrDefault(x => x.LocalDeviceId == id);
-        //AllArtistsAlbumSongs = GetAllSongsFromAlbumID(id);
+        
         AllArtistsAlbumSongs= GetAllSongsFromAlbumID(id);
         
         if (alb is not null)
