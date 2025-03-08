@@ -32,7 +32,7 @@ public partial class ArtistsPageM : ContentPage
             MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
         }
 
-        MyViewModel.GetAllArtistsAlbum(song: MyViewModel.MySelectedSong, isFromSong: true);
+        MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MyViewModel.MySelectedSong, isFromSong: true);
     }
 
     private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)

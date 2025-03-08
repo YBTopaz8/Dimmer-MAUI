@@ -18,10 +18,21 @@ public partial class SongGroup : ObservableCollection<SongModelView>
 public partial class AlbumGroup : ObservableCollection<SongModelView>
 {
     public string? AlbumName { get; set; }
+    public string? FirstLetter { get; set; }
     public string? AlbumId { get; set; }
-    public int? ReleaseYear { get; set; }
     public string? AlbumImagePath { get; set; }
     public bool IsCurrentlySelected { get; set; }
+    public ObservableCollection<SongModelView>? GroupSongs { get; set; }
+    // Constructor to initialize the group
+    public AlbumGroup(string? Albumname, string? Albumid, ObservableCollection<SongModelView> songs)
+        : base(songs)
+    {
+        AlbumName = Albumname;
+        AlbumId = Albumid;
+        FirstLetter = string.IsNullOrEmpty(AlbumName) ? "#" : AlbumName.Substring(0, 1).ToUpper();
+        GroupSongs = songs;
+    }
+    public AlbumGroup() { }
 }
 
 public partial class ArtistGroup : ObservableCollection<SongModelView>

@@ -179,13 +179,14 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public bool PauseResumeSong(double currentPosition, bool isPause = false)
     {
-        var s = _playbackQueue.Value.ToList();
-        if (s is not null)
+        if (ObservableCurrentlyPlayingSong is null)
         {
-            ObservableCurrentlyPlayingSong = s.FirstOrDefault();
+            ObservableCurrentlyPlayingSong = _playbackQueue.Value.ToList().FirstOrDefault();
+            
+            if (ObservableCurrentlyPlayingSong == null)
+                return false;
         }
-        if (ObservableCurrentlyPlayingSong == null)
-            return false;
+        
 
         if (isPause)
         {

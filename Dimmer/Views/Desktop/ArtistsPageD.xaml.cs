@@ -45,20 +45,21 @@ public partial class ArtistsPageD : ContentPage
 
         MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
 
-        if (MyViewModel.MySelectedSong is null)
+        //AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
+
+        if(MyViewModel.MySelectedSong is null)
         {
             if (MyViewModel.TemporarilyPickedSong is not null)
             {
                 MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
-                MyViewModel.GetAllArtistsAlbum(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
+                MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
                 
             }
         }
         else
         {
-            MyViewModel.GetAllArtistsAlbum();
+            MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
         }
        
         MyViewModel.IsSearchBarVisible = false;
@@ -115,15 +116,8 @@ public partial class ArtistsPageD : ContentPage
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
-        //artist.IsCurrentlySelected = true;
         MyViewModel.LoadArtistAlbumsAndSongs(artist);
 
-        //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
-
-
-        //var AlbumArtist = MyViewModel.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
-        //var album = MyViewModel.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
-        //MyViewModel.GetAllArtistsAlbum(album: album, isFromSong: false);
     }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {

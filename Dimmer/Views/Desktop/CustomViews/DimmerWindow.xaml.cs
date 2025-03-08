@@ -54,12 +54,12 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.5-debug";
+        DimmerTitleBar.Subtitle = "v1.6-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #endif
 
 #if RELEASE
-        DimmerTitleBar.Subtitle = "v1.5-Release";
+        DimmerTitleBar.Subtitle = "v1.6-Release";
 #endif
 
         if (!InitChecker())

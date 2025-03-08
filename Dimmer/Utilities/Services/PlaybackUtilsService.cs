@@ -20,8 +20,8 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     BehaviorSubject<PlaybackInfo> _currentPositionSubject = new(new());
     System.Timers.Timer? _positionTimer;
 
-    
-    private SongModelView? ObservableCurrentlyPlayingSong { get; set; } = new();
+    [ObservableProperty]
+    private partial SongModelView? ObservableCurrentlyPlayingSong { get; set; } = new();
     public SongModelView? CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
     [ObservableProperty]
     private partial SongModelView? ObservablePreviouslyPlayingSong { get; set; } = new();
@@ -40,7 +40,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public partial RepeatMode CurrentRepeatMode { get; set; }
 
     [ObservableProperty]
-    string totalSongsDuration;
+    private partial string TotalSongsDuration { get; set; }
     ISongsManagementService SongsMgtService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
     
@@ -65,6 +65,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     SortingEnum CurrentSorting;
     private Lazy<HomePageVM> ViewModel { get; set; }
 
+
+    partial void OnObservableCurrentlyPlayingSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        
+    }
     public PlaybackUtilsService(IDimmerAudioService DimmerAudioService, ISongsManagementService SongsMgtService,
         IPlaylistManagementService playlistManagementService, Lazy<HomePageVM> viewModel)
     {
