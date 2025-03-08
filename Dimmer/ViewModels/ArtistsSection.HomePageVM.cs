@@ -566,23 +566,22 @@ public partial class HomePageVM
         //if (artist is null SelectedArtistOnArtistPage is null)
         if (album is null )
             return;
-        if (SelectedArtistOnArtistPage is null)
+        if (SelectedAlbumOnAlbumPage is null)
             return;
         
-        SelectedArtistOnArtistPage.IsCurrentlySelected = false;
+        SelectedAlbumOnAlbumPage.IsCurrentlySelected = false;
 
         SelectedAlbumOnAlbumPage = album;
-
+        
         AllArtistsAlbumSongs = GetAllSongsFromAlbumID(album.LocalDeviceId!);
         //await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
-        if (AllArtistsAlbums is null || AllArtistsAlbums.Count<1)
+        if (AllArtistsAlbumSongs is null || AllArtistsAlbumSongs.Count<1)
         {
             return;
         }
-        SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.First().AlbumImagePath;
-        
-        AllArtistsAlbumSongs= GetAllSongsFromArtistID(album.LocalDeviceId!);
-        SelectedArtistOnArtistPage.IsCurrentlySelected=true;
+
+
+        SelectedAlbumOnAlbumPage.IsCurrentlySelected=true;
         if (MySelectedSong is not null)
         {
             MySelectedSong.IsCurrentPlayingHighlight = true;

@@ -34,7 +34,7 @@
                            Drop="DropGestureRecognizer_Drop"/>
         </Grid.GestureRecognizers>
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.10"
-                Aspect="AspectFit" x:Name="PageBGImg"
+                Aspect="AspectFill" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>
         
         <toolkit:DockLayout x:Name="NormalNowPlayingUI" BackgroundColor="Transparent">
