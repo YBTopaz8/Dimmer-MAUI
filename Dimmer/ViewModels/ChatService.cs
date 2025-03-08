@@ -389,14 +389,14 @@ public class ChatService : IDisposable
 
         var messages = await query.FindAsync();
 
-        return messages.Select(msg => new ChatMessageDisplay
+        return [.. messages.Select(msg => new ChatMessageDisplay
         {
             MessageId = msg.ObjectId,
             SenderUsername = msg.Sender.Username,
             Content = msg.Content,
             IsEdited = msg.IsEdited,
             //IsMyMessage = msg.Sender.ObjectId == _currentUser.ObjectId
-        }).ToList();
+        })];
     }
 
     public async Task SendMessageAsync(string chatRoomId, string content)

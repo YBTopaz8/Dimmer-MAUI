@@ -68,7 +68,7 @@ public partial class App : MauiWinUIApplication
                 var fileArgs = args.Data as IFileActivatedEventArgs;
                 if (fileArgs is not null)
                 {
-                    paths = fileArgs.Files.Select(file => (file as StorageFile)?.Path).ToArray();
+                    paths = [.. fileArgs.Files.Select(file => (file as StorageFile)?.Path)];
                     HandleFiles(paths);
                 }
 

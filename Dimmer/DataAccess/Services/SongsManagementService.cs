@@ -210,11 +210,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     void GetInitialValues()
     {
         db = Realm.GetInstance(DataBaseService.GetRealm());
-        realmSongs = db.All<SongModel>().ToList();
-        realmAlbums = db.All<AlbumModel>().ToList();
-        realGenres = db.All<GenreModel>().ToList();
-        realmArtists = db.All<ArtistModel>().ToList();
-        realmAAGSL = db.All<AlbumArtistGenreSongLink>().ToList();
+        realmSongs = [.. db.All<SongModel>()];
+        realmAlbums = [.. db.All<AlbumModel>()];
+        realGenres = [.. db.All<GenreModel>()];
+        realmArtists = [.. db.All<ArtistModel>()];
+        realmAAGSL = [.. db.All<AlbumArtistGenreSongLink>()];
         
     }
 
@@ -687,11 +687,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 if (existingSong.Count == 0)
                 {
                     // Fallback to the longer check if no matches by LocalDeviceID
-                    existingSong = db.All<SongModel>()
+                    existingSong = [.. db.All<SongModel>()
                         .Where(x => x.Title == songsModelView.Title &&
                                     x.DurationInSeconds == songsModelView.DurationInSeconds &&
-                                    x.ArtistName == songsModelView.ArtistName)
-                        .ToList();
+                                    x.ArtistName == songsModelView.ArtistName)];
                     if (existingSong is not null && existingSong.Count > 0)
                     {
                         return;
@@ -1025,11 +1024,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             return false;
         }
 
-        songs = songs.DistinctBy(x => new { x.Title, x.DurationInSeconds, x.AlbumName, x.ArtistName }).ToList();
-        allArtists = allArtists.DistinctBy(x => x.Name).ToList();
-        allAlbums = allAlbums.DistinctBy(x => x.Name).ToList();
-        allGenres = allGenres.DistinctBy(x => x.Name).ToList();
-        allLinks = allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId, x.GenreId }).ToList();
+        songs = [.. songs.DistinctBy(x => new { x.Title, x.DurationInSeconds, x.AlbumName, x.ArtistName })];
+        allArtists = [.. allArtists.DistinctBy(x => x.Name)];
+        allAlbums = [.. allAlbums.DistinctBy(x => x.Name)];
+        allGenres = [.. allGenres.DistinctBy(x => x.Name)];
+        allLinks = [.. allLinks.DistinctBy(x => new { x.ArtistId, x.AlbumId, x.SongId, x.GenreId })];
 
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
                 

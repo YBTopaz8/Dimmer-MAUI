@@ -139,7 +139,7 @@ public partial class HomePageVM
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
 
-        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();  // .ToList() is fine here
+        AllPlayDataLinks = [.. SongsMgtService.AllPlayDataLinks];  // .ToList() is fine here
         AllLinks = SongsMgtService.AllLinks; // Assuming AllLinks is already a List or similar
 
         // Use LINQ's Where and ToDictionary to filter out null LocalDeviceIds.
@@ -291,8 +291,8 @@ public partial class HomePageVM
             return new SongStatistics();
         }
 
-        List<PlayDataLink> playData = SongsMgtService.AllPlayDataLinks.Where(x => x.SongId == songId).ToList();
-        List<PlayDataLink> completedPlays = playData.Where(x => x.PlayType == 3 && x.EventDate != DateTime.MinValue).ToList();
+        List<PlayDataLink> playData = [.. SongsMgtService.AllPlayDataLinks.Where(x => x.SongId == songId)];
+        List<PlayDataLink> completedPlays = [.. playData.Where(x => x.PlayType == 3 && x.EventDate != DateTime.MinValue)];
 
         SongStatistics stats = new SongStatistics();
 
@@ -304,12 +304,12 @@ public partial class HomePageVM
         int completedCount = completedPlays.Count;
         int skippedCount = playData.Count(x => x.PlayType == 5);
 
-        stats.SpecificSongPlaysStarted = playData.Where(x => x.PlayType == 0).ToList();
-        stats.SpecificSongPlaysPaused = playData.Where(x => x.PlayType == 1).ToList();
-        stats.SpecificSongPlaysResumed= playData.Where(x => x.PlayType == 2).ToList();
-        stats.SpecificSongPlaysCompleted= playData.Where(x => x.PlayType == 3).ToList();
-        stats.SpecificSongPlaysSeeked= playData.Where(x => x.PlayType == 4).ToList();
-        stats.SpecificSongPlaysSkipped= playData.Where(x => x.PlayType == 5).ToList();
+        stats.SpecificSongPlaysStarted = [.. playData.Where(x => x.PlayType == 0)];
+        stats.SpecificSongPlaysPaused = [.. playData.Where(x => x.PlayType == 1)];
+        stats.SpecificSongPlaysResumed= [.. playData.Where(x => x.PlayType == 2)];
+        stats.SpecificSongPlaysCompleted= [.. playData.Where(x => x.PlayType == 3)];
+        stats.SpecificSongPlaysSeeked= [.. playData.Where(x => x.PlayType == 4)];
+        stats.SpecificSongPlaysSkipped= [.. playData.Where(x => x.PlayType == 5)];
 
         // Calculate Daily Completion Counts
         stats.SpecificSongPlaysDailyCompletedCount = playData
@@ -393,7 +393,7 @@ public partial class HomePageVM
 
     public static List<PlayDataLink> GetPlayEventsByPlayType(string songId, int playType, List<PlayDataLink> playDataLinks)
     {
-        return playDataLinks.Where(p => p.SongId == songId && p.PlayType == playType).ToList();
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.PlayType == playType)];
     }
 
     public static int GetPlayCountInLastNDays(string songId, int nDays, List<PlayDataLink> playDataLinks)
@@ -896,17 +896,17 @@ public partial class HomePageVM
 
     public static List<PlayDataLink> GetPlayEventsBeforeDate(string songId, DateTime date, List<PlayDataLink> playDataLinks)
     {
-        return playDataLinks.Where(p => p.SongId == songId && p.EventDate < date).ToList();
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate < date)];
     }
 
     public static List<PlayDataLink> GetPlayEventsAfterDate(string songId, DateTime date, List<PlayDataLink> playDataLinks)
     {
-        return playDataLinks.Where(p => p.SongId == songId && p.EventDate > date).ToList();
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate > date)];
     }
 
     public static List<PlayDataLink> GetPlayEventsBetweenDates(string songId, DateTime startDate, DateTime endDate, List<PlayDataLink> playDataLinks)
     {
-        return playDataLinks.Where(p => p.SongId == songId && p.EventDate >= startDate && p.EventDate <= endDate).ToList();
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate >= startDate && p.EventDate <= endDate)];
     }
 
     public static bool GetIsMostPlayedSong(string songId, List<string> songIds, List<PlayDataLink> playDataLinks)
@@ -1424,10 +1424,9 @@ private Dictionary<string, int> GetMonthData(List<PlayDataLink> playData, int mo
         double averagePlayCount = songPlayCounts.Average(x => x.Count);
         double stdDev = Math.Sqrt(songPlayCounts.Sum(x => Math.Pow(x.Count - averagePlayCount, 2)) / (songPlayCounts.Count - 1));
 
-        return songPlayCounts
+        return [.. songPlayCounts
             .Where(x => Math.Abs(x.Count - averagePlayCount) > threshold * stdDev)
-            .Select(x => x.SongId  )
-            .ToList();
+            .Select(x => x.SongId  )];
     }
     
 

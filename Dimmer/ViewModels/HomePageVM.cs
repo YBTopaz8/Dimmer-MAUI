@@ -553,7 +553,7 @@ public partial class HomePageVM : ObservableObject
                 IsLoadingSongs = false;
                 return;
             }
-            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder([.. FolderPaths]);
             if (loadSongsResult)
             {
                 DisplayedSongs?.Clear();
@@ -635,7 +635,7 @@ public partial class HomePageVM : ObservableObject
 
             if (CurrentPage == PageEnum.PlaylistsPage && DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playImmediately: false); // Set the queue
+                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongsFromPlaylist], playImmediately: false); // Set the queue
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
@@ -647,17 +647,17 @@ public partial class HomePageVM : ObservableObject
             }
             else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. AllArtistsAlbumSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or Album source
             }
             else if (IsOnSearchMode && FilteredSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. FilteredSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage); // Or Search source
             }
             else // Default playing on the main page (HomePage)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }

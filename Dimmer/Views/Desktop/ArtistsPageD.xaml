@@ -67,16 +67,54 @@
         </Grid>
         <Grid RowDefinitions="Auto,*" toolkit:DockLayout.DockPosition="Left" 
               >
+            <Grid RowDefinitions="70,200" Grid.Row="0" >
+                <VerticalStackLayout Grid.Row="0">
+                    <Label HorizontalOptions="End" x:Name="FilterLetterLabel"
+                           />
+                    <Label HorizontalOptions="End" 
+                           Text="{Binding AllArtists.Count, StringFormat='{0} Artists'}"/>
+                    <SearchBar x:Name="SearchArtistBar" 
+                           Margin="5,0"
+       Placeholder="Search Artist..." TextChanged="SearchBar_TextChanged"/>
 
-            <SearchBar Grid.Row="0" x:Name="SearchArtistBar" Margin="5,0"
-                   Placeholder="Search Artist..." TextChanged="SearchBar_TextChanged"/>
+                </VerticalStackLayout>
+                <CollectionView x:Name="ArtistLetterColView" Grid.Row="1"
+                                HorizontalOptions="Center" SelectionMode="Single" 
+                    ItemsSource="{Binding GroupedArtistNames}">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Span="5" Orientation="Horizontal"
+                                         VerticalItemSpacing="2"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border HorizontalOptions="Center" StrokeShape="RoundRectangle 10">
+                                <syncf:SfEffectsView TouchDownEffects="Ripple" RippleAnimationDuration="500"
+          TouchDown="FirstLetterLabel_TouchDown" x:Name="FirstLetterLabel">
+                                    
+                                    <Label Text="{Binding .}"
+                                           HorizontalTextAlignment="Center" x:Name="FilterLabelBtn">
+                                
+                                <Label.GestureRecognizers>
+                                    
+                                    <TapGestureRecognizer x:Name="ArtistLetterGestureRecog"
+                                                          Tapped="ArtistLetterGestureRecog_Tapped"/>
+                                </Label.GestureRecognizers>
+                                    </Label>
+                                </syncf:SfEffectsView>
 
-            <CollectionView Grid.Row="1"
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+            
+            <CollectionView Grid.Row="1" 
                     x:Name="AllArtistsColView"
                     EmptyView="No Artists Existing..." SelectionMode="None" 
                     WidthRequest="250" Margin="10,0"
                     ItemsSource="{Binding AllArtists}" >
-            <CollectionView.ItemsLayout>
+               
+                <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" 
                                 ItemSpacing="4"/>
             </CollectionView.ItemsLayout>
@@ -119,7 +157,7 @@
 
         </Grid>
         <Grid toolkit:DockLayout.DockPosition="None" RowDefinitions="Auto,*">
-            <HorizontalStackLayout>
+            <HorizontalStackLayout HorizontalOptions="End">
                 
             <SearchBar Grid.Row="0"
          HorizontalOptions="End" x:Name="SearchSongInAlbum" 

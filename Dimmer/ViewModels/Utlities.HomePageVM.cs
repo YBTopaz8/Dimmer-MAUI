@@ -753,10 +753,9 @@ public partial class HomePageVM
         {
             if (value is List<object> dataList)
             {
-                return dataList.Cast<IDictionary<string, object>>()
+                return [.. dataList.Cast<IDictionary<string, object>>()
                                .Select(item => ObjectMapper.MapFromDictionary<T>(item))
-                               .Where(item => item != null) // Filter out null items
-                               .ToList();
+                               .Where(item => item != null)];
             }
         }
 

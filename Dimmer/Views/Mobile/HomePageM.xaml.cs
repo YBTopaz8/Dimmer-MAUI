@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
+using System.Threading.Tasks;
 using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -197,7 +198,11 @@ public partial class HomePageM : ContentPage
 
     private async void SearchSong_Tap(object sender, HandledEventArgs e)
     {
-        
+        await ToggleSearchPanel();
+    }
+
+    private async Task ToggleSearchPanel()
+    {
         if (!SearchModeUI.IsVisible)
         {
             await Task.WhenAll(SearchModeUI.AnimateFadeInFront()
@@ -531,9 +536,10 @@ public partial class HomePageM : ContentPage
         }
     }
 
-    private void SearchBy_ClearIconClicked(object sender, HandledEventArgs e)
+    private async void SearchBy_ClearIconClicked(object sender, HandledEventArgs e)
     {
         SongsColView.RefreshData();
+        await ToggleSearchPanel();
     }
 
     private void SearchFiltersChips_ChipTap(object sender, ChipEventArgs e)
@@ -587,7 +593,7 @@ public partial class HomePageM : ContentPage
 
     private void ResetSongs_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        MyViewModel.GetAllArtistAlbumFromArtistModel(MyViewModel.SelectedArtistOnArtistPage);
+        MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedArtistOnArtistPage);
     }
 
     private void SingleSongBtn_Clicked(object sender, EventArgs e)

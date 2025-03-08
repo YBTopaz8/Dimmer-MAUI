@@ -221,7 +221,7 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-                <Border x:Name="SongStatsView" WidthRequest="400" Grid.Column="1" IsVisible="True" Margin="10,0">
+                <Border x:Name="SongStatsView" WidthRequest="400" Grid.Column="1" IsVisible="False" Margin="10,0">
 
                     <ScrollView>
                         <VerticalStackLayout>

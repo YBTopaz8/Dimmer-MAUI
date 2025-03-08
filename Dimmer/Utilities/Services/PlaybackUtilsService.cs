@@ -305,10 +305,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
 
-            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-                .ToArray();
+            string[] imageFiles =
+            [
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+,
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly),
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly),
+            ];
 
             if (imageFiles.Length > 0)
             {                
@@ -349,10 +352,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
 
-            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-                .ToArray();
+            string[] imageFiles =
+            [
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+,
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly),
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly),
+            ];
 
             if (imageFiles.Length > 0)
             {
@@ -465,11 +471,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
             // Step 3: Perform the search with normalization and comparison on the filtered list
-            SearchedSongsList = filteredSongs
+            SearchedSongsList = [.. filteredSongs
                 .Where(s => NormalizeAndCache(s.Title).ToLowerInvariant().Contains(normalizedSearchTerm)
                             || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
-                            || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
-                .ToList();
+                            || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))];
 
             // Step 4: Load the results with sorting
             Debug.WriteLine(SearchedSongsList.Count + "Search Count");

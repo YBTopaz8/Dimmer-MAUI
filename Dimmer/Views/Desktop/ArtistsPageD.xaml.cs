@@ -116,7 +116,7 @@ public partial class ArtistsPageD : ContentPage
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
         //artist.IsCurrentlySelected = true;
-        MyViewModel.GetAllArtistAlbumFromArtistModel(artist);
+        MyViewModel.LoadArtistAlbumsAndSongs(artist);
 
         //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
 
@@ -232,7 +232,25 @@ public partial class ArtistsPageD : ContentPage
 
     private void SearchSongInAlbum_TextChanged(object sender, TextChangedEventArgs e)
     {
-        MyViewModel.SearchSongFromArtistAlbumsSongsCommand.Execute(SearchSongInAlbum.Text);
+        MyViewModel.SearchSongFromArtistAlbumsSongsCommand.Execute(SearchSongInAlbum.Text);        
+    }
+    string FilterLetter = string.Empty;
+    private void ArtistLetterGestureRecog_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Label)sender;
+        var letter = send.Text;
+
+        MyViewModel.FilterArtistList(letter);
+        FilterLetter = letter;
+    }
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+
+    private void FirstLetterLabel_TouchDown(object sender, EventArgs e)
+    {
         
     }
 }

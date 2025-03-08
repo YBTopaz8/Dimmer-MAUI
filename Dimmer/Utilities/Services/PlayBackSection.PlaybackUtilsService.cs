@@ -444,7 +444,7 @@ public partial class PlaybackUtilsService : ObservableObject
             currentQueue.AddRange(songs);
         }
 
-        _playbackQueue.OnNext(new ObservableCollection<SongModelView>(currentQueue.Distinct().ToList())); 
+        _playbackQueue.OnNext(new ObservableCollection<SongModelView>([.. currentQueue.Distinct()])); 
     }
 
 
