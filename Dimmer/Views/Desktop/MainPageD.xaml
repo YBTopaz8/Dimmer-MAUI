@@ -120,9 +120,9 @@
 
                 </FlexLayout>
             </VerticalStackLayout>
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
                 
-            <Grid Grid.Column="0"
+            <Grid Grid.Column="0" Grid.Row="0"
                 ColumnDefinitions="*,*,*,*,180,180,180"
                   Margin="10,0,0,0"
                   RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
@@ -131,10 +131,10 @@
                 <Label Text="Album" Grid.Column="2" FontSize="26"/>
                 <Label Text="Genre" Grid.Column="3" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="Duration" Grid.Column="4" FontSize="26" HorizontalOptions="Center"/>
-                <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center"/>
+                <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center" />
                 <Label Text="# Times Played" Grid.Column="6" IsVisible="True" FontSize="22" HorizontalOptions="Center"/>
             </Grid>
-            <Grid Grid.Column="0"
+                <Grid Grid.Column="0" Grid.Row="1"
                 toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
                             VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" 

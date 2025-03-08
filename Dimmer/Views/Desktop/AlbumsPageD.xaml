@@ -141,7 +141,9 @@ Placeholder="Search Album..." TextChanged="SearchBar_TextChanged"/>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:AlbumModelView">
                             <Border HorizontalOptions="Center" BackgroundColor="Transparent">
-                                <syncf:SfEffectsView Padding="10,5" TouchDownEffects="Ripple" RippleAnimationDuration="500"
+                                <syncf:SfEffectsView Padding="10,5" 
+                                                     BackgroundColor="Transparent"
+                                                     TouchDownEffects="Ripple" RippleAnimationDuration="500"
                      x:Name="AlbumView" TouchDown="AlbumView_TouchDown">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
