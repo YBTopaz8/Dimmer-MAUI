@@ -29,6 +29,8 @@ public partial class SingleSongShellPageD : ContentPage
         MyViewModel.CurrentPageMainLayout = MainDock;
         await MyViewModel.AssignSyncLyricsCV(LyricsColView);
         MyViewModel.DoRefreshDependingOnPage();
+
+        MyViewModel.IsSearchBarVisible = false;
         switch (MyViewModel.MySelectedSong.IsFavorite)
         {
             

@@ -1,5 +1,6 @@
 ﻿
 #if WINDOWS
+using DevExpress.Maui.CollectionView;
 using Parse;
 using System.Diagnostics;
 using System.Windows;
@@ -123,16 +124,17 @@ public partial class HomePageVM : ObservableObject
         LoadSongCoverImage();
         //_ = GetSecuredData();
 
-        SetUpParseLiveQueries();
+        //SetUpParseLiveQueries();
     }
 
-    public ParseLiveQueryClient? LiveClient { get; set; }
+    
     private void SetUpParseLiveQueries()
     {
         try
         {
-            LiveClient = new ParseLiveQueryClient();
-            LiveQueryManager LQM = new LiveQueryManager(LiveClient!);
+            LiveQueryClient = new ParseLiveQueryClient();
+            LiveQueryManager LQM = new LiveQueryManager(LiveQueryClient!);
+            
         }
         catch (Exception)
         {
@@ -192,11 +194,15 @@ public partial class HomePageVM : ObservableObject
         AllLinks = SongsMgtService.AllLinks;
         AllPlayDataLinks = SongsMgtService.AllPlayDataLinks;
 
-        RefreshPlaylists();        
+        RefreshPlaylists();
+
+
     }
 
+    
     public void DoRefreshDependingOnPage()
     {
+        
         //CurrentPositionInSeconds = 0;
         //CurrentPositionPercentage = 0;
         LyricsSearchSongTitle = MySelectedSong?.Title;
@@ -547,7 +553,7 @@ public partial class HomePageVM : ObservableObject
                 IsLoadingSongs = false;
                 return;
             }
-            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder(FolderPaths.ToList());
+            bool loadSongsResult = await PlayBackService.LoadSongsFromFolder([.. FolderPaths]);
             if (loadSongsResult)
             {
                 DisplayedSongs?.Clear();
@@ -629,7 +635,7 @@ public partial class HomePageVM : ObservableObject
 
             if (CurrentPage == PageEnum.PlaylistsPage && DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongsFromPlaylist.ToList(), playImmediately: false); // Set the queue
+                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongsFromPlaylist], playImmediately: false); // Set the queue
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
@@ -641,17 +647,17 @@ public partial class HomePageVM : ObservableObject
             }
             else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(AllArtistsAlbumSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. AllArtistsAlbumSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or Album source
             }
             else if (IsOnSearchMode && FilteredSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue(FilteredSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. FilteredSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage); // Or Search source
             }
             else // Default playing on the main page (HomePage)
             {
-                PlayBackService.ReplaceAndPlayQueue(DisplayedSongs.ToList(), playImmediately: false);
+                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -730,13 +736,13 @@ public partial class HomePageVM : ObservableObject
     void DecreaseVolume()
     {
         PlayBackService.DecreaseVolume();
-        VolumeSliderValue = (PlayBackService.VolumeLevel*100);
+        VolumeSliderValue = (PlayBackService.VolumeLevel);
     }
     [RelayCommand]
     void IncreaseVolume()
     {
         PlayBackService.IncreaseVolume();
-        VolumeSliderValue = (PlayBackService.VolumeLevel * 100);
+        VolumeSliderValue = (PlayBackService.VolumeLevel);
     }
 
     [ObservableProperty]

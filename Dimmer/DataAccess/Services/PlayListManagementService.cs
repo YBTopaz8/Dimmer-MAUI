@@ -20,7 +20,7 @@ public class PlayListManagementService : IPlaylistManagementService
             var realmPlayLists = db.All<PlaylistModel>().ToList();
             AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
-            return AllPlaylists.ToList();
+            return [.. AllPlaylists];
         }
         catch (Exception ex)
         {

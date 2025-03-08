@@ -137,7 +137,7 @@ public partial class SongModelView : ObservableObject
     //[ObservableProperty]
     //public partial bool IsCurrentPlayingHighlight {get;set;}
     [ObservableProperty]
-    public partial bool IsCurrentPlayingHighlight { get; set; }
+    public partial bool IsCurrentPlayingHighlight { get; set; } = false;
     [ObservableProperty]
     public partial bool IsFavorite {get;set;}
     [ObservableProperty]
@@ -240,67 +240,6 @@ public partial class SongModelView : ObservableObject
         return HashCode.Combine(LocalDeviceId);
     }
 
-}
-
-public partial class SongsGroup : List<SongModelView>
-{
-    
-    public string GroupName { get ; set ;}
-    
-    public string? Description { get; set; }
-    
-    public string? IconUrl { get; set; }
-    
-    public int SortOrder { get; set; }
-    
-    public bool? IsExpanded { get; set; }
-    
-    public List<string>? Tags { get; set; }
-    
-    public ObservableCollection<SongModelView> Songs { get; private set; }
-
-    public SongsGroup(
-        string groupName,
-        List<SongModelView> songs,
-        string description = "",
-        string iconUrl = "",
-        int sortOrder = 0,
-        bool isExpanded = true,
-        List<string>? tags = null) :base(songs)
-    {
-        GroupName = groupName;
-        Description = description;
-        IconUrl = iconUrl;
-        SortOrder = sortOrder;
-        IsExpanded = isExpanded;
-        Tags = tags ?? new List<string>();
-        Songs = new ObservableCollection<SongModelView>(songs);
-    }
-
-    
-    public void AddSong(SongModelView song)
-    {
-        Songs.Add(song);
-        // Additional logic if needed
-    }
-
-    public bool RemoveSong(SongModelView song)
-    {
-        return Songs.Remove(song);
-    }
-}
-public class SongsCollection : ObservableCollection<SongsGroup>
-{
-    public SongsCollection() : base()
-    {
-    }
-
-    public void AddGroup(SongsGroup group)
-    {
-        this.Add(group);
-    }
-
-    // Additional methods to manage groups
 }
 
 public partial class PlayDataLink : ObservableObject

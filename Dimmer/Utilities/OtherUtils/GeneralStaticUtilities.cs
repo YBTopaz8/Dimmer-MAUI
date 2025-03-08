@@ -284,7 +284,7 @@ public static class GeneralStaticUtilities
         }
 
         // Return the artist names as a list
-        return artistNamesSet.ToList();
+        return [.. artistNamesSet];
     }
 
     public static GenreModel GetOrCreateGenre(
@@ -484,10 +484,13 @@ public static class GeneralStaticUtilities
             }
 
 
-            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-                .ToArray();
+            string[] imageFiles =
+            [
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+,
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly),
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly),
+            ];
 
             if (imageFiles.Length > 0)
             {

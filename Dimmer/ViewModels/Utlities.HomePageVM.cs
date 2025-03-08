@@ -31,6 +31,8 @@ public partial class HomePageVM
     #endregion
 
     [ObservableProperty]
+    public partial bool IsSearchBarVisible { get; set; } = true;
+    [ObservableProperty]
     public partial SearchBar? DimmerGlobalSearchBar { get; set; }
     
     [RelayCommand]
@@ -751,10 +753,9 @@ public partial class HomePageVM
         {
             if (value is List<object> dataList)
             {
-                return dataList.Cast<IDictionary<string, object>>()
+                return [.. dataList.Cast<IDictionary<string, object>>()
                                .Select(item => ObjectMapper.MapFromDictionary<T>(item))
-                               .Where(item => item != null) // Filter out null items
-                               .ToList();
+                               .Where(item => item != null)];
             }
         }
 

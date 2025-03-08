@@ -353,7 +353,7 @@ public partial class HomePageVM
     }
     [ObservableProperty]
     public partial TitleBar? DimmerTitleBarVM { get; set; } = new();
-    public void ShowNotificationInternally(string msgText, int delayBtnSwitch = 1500, Label? text = null, SearchBar? bar = null, TitleBar? titleBar=null)
+    public void ShowNotificationInternally(string msgText, int delayBtnSwitch = 800, Label? text = null, SearchBar? bar = null, TitleBar? titleBar=null)
     {
         MainThread.BeginInvokeOnMainThread(async () =>
             {

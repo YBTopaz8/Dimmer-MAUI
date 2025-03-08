@@ -1,7 +1,9 @@
 #if WINDOWS
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.UI.Xaml;
+//using YB.MauiDataGridView;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
+
 //using TableViewColumnsCollection = YB.MauiDataGridView.TableViewColumnsCollection;
 #endif
 
@@ -9,23 +11,103 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class MainPageD : ContentPage
 {
-#if WINDOWS
-#endif
+
+    public ObservableCollection<MyDataItem> MyData { get; set; } = new();
+
+
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
         InitializeComponent();
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
+//#if WINDOWS
+//        var dataGrid = new YB.MauiDataGridView.MauiDataGrid
+//        {
+//            ItemsSource = MyData,
+//            AutoGenerateColumns = false,
 
+//            SelectionMode = (Microsoft.UI.Xaml.Controls.ListViewSelectionMode)ListViewSelectionMode.Single,
+
+//        };
+//        // --- Create DataTemplate (in C#) ---
+//        var cellTemplate = new Microsoft.Maui.Controls.DataTemplate(() =>
+//        {
+//            // Create a layout for each cell (e.g., HorizontalStackLayout)
+//            var cellLayout = new HorizontalStackLayout
+//            {
+//                Spacing = 5,
+//                Padding = new Microsoft.Maui.Thickness(5)
+//            };
+
+//            // Create Labels and bind them to the properties of MyDataItem
+//            var titleLabel = new Label();
+//            titleLabel.SetBinding(Label.TextProperty, new Binding(nameof(MyDataItem.Name))); // Bind to Title
+
+//            var artistLabel = new Label();
+//            artistLabel.SetBinding(Label.TextProperty, new Binding(nameof(MyDataItem.Age))); //Bind to Artist
+
+//            // Add the Labels to the cell layout
+//            cellLayout.Children.Add(titleLabel);
+//            cellLayout.Children.Add(artistLabel);
+
+
+//            // Return the root element of the cell template (the layout)
+//            return cellLayout;
+//        });
+//        // --- Create Columns and Assign DataTemplate ---
+//        var titleColumn = new TableViewTextColumn
+//        {
+//            Header = "Name",
+//            //No Binding here, as template already specified
+//            Width = new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star),
+
+            
+//            //CellTemplate = cellTemplate // Assign the DataTemplate
+//        };
+//        var artistColumn = new TableViewTextColumn
+//        {
+//            Header = "Name",
+//            //No Binding here, as template already specified
+//            Width = new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star),
+//            //CellTemplate = cellTemplate // Assign the DataTemplate
+//            Binding = new Microsoft.UI.Xaml.Data.Binding { Path = new Microsoft.UI.Xaml.PropertyPath("Name") }
+//        };
+//        TableViewColumnsCollection cols = new TableViewColumnsCollection();
+//        cols.Add(titleColumn);
+//        cols.Add(artistColumn);
+//        dataGrid.Columns = cols;
+        
+//        // --- Add Sample Data ---   
+//        MyData.Add(new MyDataItem { Name = "Song 1"});
+//        MyData.Add(new MyDataItem { Name = "Song 2" });
+
+//        // --- Create Layout ---
+//        Content = new VerticalStackLayout
+//        {
+//            Children = { dataGrid }
+//        };
+//#endif
     }
-    public HomePageVM MyViewModel { get; }
+
+
+    // Define a simple data class
+    public class MyDataItem
+    {
+        public string? Name { get; set; }
+        public int Age { get; set; }
+    }
+    public HomePageVM? MyViewModel { get; }
 
     bool isIniAssign;
     protected override async void OnAppearing()
 
     {
         base.OnAppearing();
+        if (MyViewModel is null)
+        {
+            return;
+        }
         MyViewModel.CurrentPage = PageEnum.MainPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
         SongsColView.ItemsSource = MyViewModel.DisplayedSongs;
@@ -136,7 +218,7 @@ public partial class MainPageD : ContentPage
 
     }
 
-    List<string> supportedFilePaths;
+    List<string>? supportedFilePaths;
     bool isAboutToDropFiles = false;
 
 
@@ -237,8 +319,8 @@ public partial class MainPageD : ContentPage
 
     SelectionMode currentSelectionMode;
     
-    List<SongModelView> selectedSongs;
-    View MouseSelectedView;
+    List<SongModelView>? selectedSongs;
+    View? MouseSelectedView;
 
     private void SfEffectsView_TouchDown(object sender, EventArgs e)
     {
@@ -380,8 +462,22 @@ public partial class MainPageD : ContentPage
             Debug.WriteLine(ex.Message);
         }
     }
+    public bool ClickToPreview { get; set; } = true;
 
+    private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
+    {
+        var send = sender as PieSeries;
+        var itemss = send.ItemsSource as ObservableCollection<DimmData>;
 
+        var song = MyViewModel.DisplayedSongs.FirstOrDefault(X => X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+
+        MyViewModel.MySelectedSong = song;
+        if (ClickToPreview)
+        {
+            MyViewModel.PlaySong(song, true);
+        }
+
+    }
 
 
 #if WINDOWS
@@ -414,6 +510,9 @@ public partial class MainPageD : ContentPage
                 Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
                 {
+                    MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
+                    SongStatsView.IsVisible = !SongStatsView.IsVisible;
+                    return;
                     MyViewModel.ToggleFlyout();
 
                     Debug.WriteLine("Right Mouse was Clicked!");
@@ -553,8 +652,9 @@ public partial class MainPageD : ContentPage
     {
         Debug.WriteLine("single tap");
     }
-
 #endif
+
+
 }
 public enum ContextMenuPageCaller
 {

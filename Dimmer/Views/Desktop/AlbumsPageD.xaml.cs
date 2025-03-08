@@ -1,5 +1,7 @@
 
 
+using Syncfusion.Maui.Toolkit.EffectsView;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class AlbumsPageD : ContentPage
@@ -9,8 +11,8 @@ public partial class AlbumsPageD : ContentPage
         InitializeComponent();
         MyViewModel = homePageVM;
         BindingContext = homePageVM;
-        //MediaPlayBackCW.BindingContext = homePageVM;
-
+        
+        MyViewModel.GetAllAlbums();
     }
 
     protected override async void OnAppearing()
@@ -20,6 +22,20 @@ public partial class AlbumsPageD : ContentPage
         Shell.Current.FlyoutIsPresented = false;
         MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
+        MyViewModel.IsSearchBarVisible = false;
+
+        if (MyViewModel.MySelectedSong is null)
+        {
+            if (MyViewModel.TemporarilyPickedSong is not null)
+            {
+                MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
+                MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
+            }
+        }
+        else
+        {
+            //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+        }
 
     }
     Border? SelectedBorderView { get; set; }
@@ -32,17 +48,11 @@ public partial class AlbumsPageD : ContentPage
         var send = (Border)sender;
         SelectedBorderView ??= send;
         AlbumModelView curSel = (send.BindingContext as AlbumModelView)!;
-        //MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId!);
-
-        //SelectedBorderView.StrokeShape = new RoundRectangle
-        //{
-        //    CornerRadius = new CornerRadius(15),
-        //};
+       
         SelectedBorderView.Stroke = Colors.DarkSlateBlue;
 
         MyViewModel.ReCheckSongsBelongingToAlbum(curSel.LocalDeviceId);  
-        //await MyViewModel.GetAllAlbumInfos(curSel);
-        //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
+        
     }
 
     public HomePageVM MyViewModel { get; }
@@ -218,5 +228,63 @@ public partial class AlbumsPageD : ContentPage
         {
             await send.AnimateRippleBounce();
         }
+    }
+    private void SearchBar_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchAlbum(SearchArtistBar.Text);
+    }
+    private void FirstLetterLabel_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+    private void SearchSongInAlbum_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchSongFromArtistAlbumsSongsCommand.Execute(SearchSongInAlbum.Text);
+    }
+    string FilterLetter = string.Empty;
+    private void ArtistLetterGestureRecog_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Label)sender;
+        var letter = send.Text;
+
+        MyViewModel.FilterAlbumList(letter);
+        FilterLetter = letter;
+        FilterLetterLabel.Text = letter;
+    }
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+    private void ResetAlbumSongsList_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedAlbumOnAlbumPage);
+    }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AllArtistsAlbumSongs = MyViewModel.GetAllSongsFromAlbumID(MyViewModel.SelectedAlbumOnAlbumPage.LocalDeviceId);
+    }
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
+    }
+
+    private void AlbumView_TouchDown(object sender, EventArgs e)
+    {
+        SfEffectsView view = (SfEffectsView)sender;
+        AlbumModelView artist = (view.BindingContext as AlbumModelView)!;
+
+        MyViewModel.LoadArtistAlbumsAndSongs(artist);
+
+
     }
 }

@@ -45,25 +45,24 @@ public partial class ArtistsPageD : ContentPage
 
         MyViewModel.CurrentPage = PageEnum.AllArtistsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
 
-        if (MyViewModel.MySelectedSong is null)
+        //AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
+
+        if(MyViewModel.MySelectedSong is null)
         {
-
             if (MyViewModel.TemporarilyPickedSong is not null)
             {
                 MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
-                MyViewModel.GetAllArtistsAlbum(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
+                MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
                 
             }
         }
         else
         {
-            MyViewModel.GetAllArtistsAlbum();
+            MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
         }
        
-        
-        
+        MyViewModel.IsSearchBarVisible = false;
     }
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)
@@ -117,15 +116,8 @@ public partial class ArtistsPageD : ContentPage
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
 
-        //artist.IsCurrentlySelected = true;
-        MyViewModel.GetAllArtistAlbumFromArtistModel(artist);
+        MyViewModel.LoadArtistAlbumsAndSongs(artist);
 
-        //await MyViewModel.GetAllArtistAlbumFromArtist(artist);
-
-
-        //var AlbumArtist = MyViewModel.AllLinks!.FirstOrDefault(x => x.ArtistId == artist.LocalDeviceId)!.AlbumId;
-        //var album = MyViewModel.AllAlbums.FirstOrDefault(x => x.LocalDeviceId == AlbumArtist);
-        //MyViewModel.GetAllArtistsAlbum(album: album, isFromSong: false);
     }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
@@ -232,7 +224,32 @@ public partial class ArtistsPageD : ContentPage
         }
     }
 
-    
-    
+    private void SearchSongInAlbum_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        MyViewModel.SearchSongFromArtistAlbumsSongsCommand.Execute(SearchSongInAlbum.Text);        
+    }
+    string FilterLetter = string.Empty;
+    private void ArtistLetterGestureRecog_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (Label)sender;
+        var letter = send.Text;
 
+        MyViewModel.FilterArtistList(letter);
+        FilterLetter = letter;
+    }
+
+    private void SfEffectsView_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+
+    private void FirstLetterLabel_TouchDown(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void ResetAlbumSongsList_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedArtistOnArtistPage);
+    }
 }

@@ -139,7 +139,7 @@ public partial class HomePageVM
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
 
-        AllPlayDataLinks = SongsMgtService.AllPlayDataLinks.ToList();  // .ToList() is fine here
+        AllPlayDataLinks = [.. SongsMgtService.AllPlayDataLinks];  // .ToList() is fine here
         AllLinks = SongsMgtService.AllLinks; // Assuming AllLinks is already a List or similar
 
         // Use LINQ's Where and ToDictionary to filter out null LocalDeviceIds.
@@ -225,7 +225,7 @@ public partial class HomePageVM
         TotalNumberResumedDimms = AllPlayDataLinks.Where(p => p.PlayType == 2).Count();
         var  s= decimal.Divide(TotalNumberCompletedDimms , AllPlayDataLinks.Count);
         PercentageCompletion = s * 100;
-        GetBiggestClimbers(AllPlayDataLinks, month: DateTime.Now.Month, year: DateTime.Now.Year);
+        //GetBiggestClimbers(AllPlayDataLinks, month: DateTime.Now.Month, year: DateTime.Now.Year);
         GetTopPlayedSongs(AllPlayDataLinks);
         GetTopPlayedAlbums(AllPlayDataLinks);
         GetTopPlayedGenres(AllPlayDataLinks);
@@ -237,21 +237,36 @@ public partial class HomePageVM
 
     }
 
-    /// <summary>
-    /// Indicates the type of play action performed.    
-    /// Possible VALID values for <see cref="PlayType"/>:
-    /// <list type="bullet">
-    /// <item><term>0</term><description>Play</description></item>
-    /// <item><term>1</term><description>Pause</description></item>
-    /// <item><term>2</term><description>Resume</description></item>
-    /// <item><term>3</term><description>Completed</description></item>
-    /// <item><term>4</term><description>Seeked</description></item>
-    /// <item><term>5</term><description>Skipped</description></item>
-    /// <item><term>6</term><description>Restarted</description></item>
-    /// <item><term>7</term><description>SeekRestarted</description></item>
-    
-    /// </list>
-    /// </summary>
+    public class SongStatistics
+    {
+        public string DateOfFirstDimm { get; set; } = "None Yet";
+        public string DateOfLastDimm { get; set; } = "None Yet";
+        public int DaysSinceFirstDimm { get; set; } = 0;
+        public int TotalNumberOfDimms { get; set; } = 0;
+        public double AverageDimmsPerDay { get; set; } = 0.0;
+        public int SpecificSongEddingtonNumber { get; set; }
+        public int SpecificPlayEvents { get; set; }
+        public int SpecificTotalPlayCount { get; set; }
+        public int SpecificTotalPauseCount { get; set; }
+        public int SpecificTotalPreviousCount { get; set; }
+        public double SpecificSongCompletionRate { get; set; } = 0.0;
+        public double SpecificSongSkipRate { get; set; } = 0.0;
+        public int SpecificSongLongestListeningStreak { get; set; }
+        public List<PlayDataLink> SpecificSongPlaysStarted { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysPaused { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysResumed { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysCompleted { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysSeeked { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysSkipped { get; set; } = new();
+        public ObservableCollection<DimmData> SpecificSongPlaysDailyCompletedCount { get; set; } = new();
+        public double GiniIndex { get; set; }
+        public double ParetoRatio { get; set; }
+
+    }
+
+
+
+
     [ObservableProperty]
     public partial int TotalNumberStartedDimms { get; set; }
     [ObservableProperty]
@@ -262,84 +277,655 @@ public partial class HomePageVM
     public partial int TotalNumberResumedDimms { get; set; }
     [ObservableProperty]
     public partial int TotalNumberCompletedDimms { get; set; }
-    public void CalculateGeneralSongStatistics(string songId)
+
+    public SongStatistics CalculateGeneralSongStatistics(string songId)
     {
-        if (DisplayedSongs is null)
+        if (string.IsNullOrEmpty(songId))
         {
-            return;
+            return new SongStatistics(); // Or throw an exception, depending on your needs
         }
-        
-        SongModelView singleSong= SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == songId)!;
+
+        SongModelView? singleSong = SongsMgtService.AllSongs.SingleOrDefault(x => x.LocalDeviceId == songId); // changed this line to singleordefault.
         if (singleSong is null)
         {
-            return;
+            return new SongStatistics();
         }
-        var lastSongLinkk = SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId)
-            .Where(x => x.EventDate != DateTime.MinValue).ToList();
-        
-        if (lastSongLinkk.Count > 0)
-        {
-            PlayDataLink? lastSongLink = lastSongLinkk.LastOrDefault();
-            DateOfLastDimm = lastSongLink.EventDate.ToLongDateString();
-        }
-        DateOfFirstDimm = "None Yet";
-        DaysSinceFirstDimm = 0;
-        //DateOfFirstDimm = "None Yet";
-        if (SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).LastOrDefault() != null)
-        {
-            var w= SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId)
-                .Where(x => x.PlayType==3)
-                    .Where(x => x.DateFinished != DateTime.MinValue && x.EventDate != DateTime.MinValue).ToList();
 
-            if (w.Count > 0)
+        List<PlayDataLink> playData = [.. SongsMgtService.AllPlayDataLinks.Where(x => x.SongId == songId)];
+        List<PlayDataLink> completedPlays = [.. playData.Where(x => x.PlayType == 3 && x.EventDate != DateTime.MinValue)];
+
+        SongStatistics stats = new SongStatistics();
+
+        // Calculate First/Last Dimm Dates and Days Since
+        CalculateDimmDates(completedPlays, stats);
+
+        // Calculate Counts
+        int startedCount = playData.Count(x => x.PlayType == 0);
+        int completedCount = completedPlays.Count;
+        int skippedCount = playData.Count(x => x.PlayType == 5);
+
+        stats.SpecificSongPlaysStarted = [.. playData.Where(x => x.PlayType == 0)];
+        stats.SpecificSongPlaysPaused = [.. playData.Where(x => x.PlayType == 1)];
+        stats.SpecificSongPlaysResumed= [.. playData.Where(x => x.PlayType == 2)];
+        stats.SpecificSongPlaysCompleted= [.. playData.Where(x => x.PlayType == 3)];
+        stats.SpecificSongPlaysSeeked= [.. playData.Where(x => x.PlayType == 4)];
+        stats.SpecificSongPlaysSkipped= [.. playData.Where(x => x.PlayType == 5)];
+
+        // Calculate Daily Completion Counts
+        stats.SpecificSongPlaysDailyCompletedCount = playData
+           .Where(x => x.PlayType == 3)
+           .GroupBy(p => p.EventDate.Date) // Group by full date, not day of year.
+           .Select(group => new DimmData()
+           {
+               Date = group.Key,
+               DimmCount = group.Count(),
+           }).ToObservableCollection();
+
+
+
+        // Calculate Other Stats
+        stats.TotalNumberOfDimms = completedCount;
+        int uniqueDays = playData.Select(p => p.EventDate.Date).Distinct().Count();
+        stats.AverageDimmsPerDay = uniqueDays > 0 ? (double)stats.TotalNumberOfDimms / uniqueDays : 0.0;
+        stats.SpecificSongEddingtonNumber = CalculateEddingtonNumberInner(playData); // Pass playData, not re-querying
+        stats.SpecificSongCompletionRate = (startedCount > 0) ? (double)completedCount / startedCount * 100 : 0;
+        stats.SpecificSongSkipRate = (startedCount > 0) ? (double)skippedCount / startedCount * 100 : 0;
+        stats.SpecificSongLongestListeningStreak = CalculateLongestListeningStreak(playData); // Pass playData
+
+        stats.GiniIndex = CalculateGiniIndex(playData);
+        stats.ParetoRatio = CalculateParetoRatio(playData);
+
+        return stats;
+    }
+
+
+    private void CalculateDimmDates(List<PlayDataLink> completedPlays, SongStatistics stats)
+    {
+        if (completedPlays.Count != 0)
+        {
+            var firstCompleted = completedPlays.OrderBy(x => x.EventDate).FirstOrDefault(); // Use First, not FirstOrDefault, as the condition above guarantees one.
+            var lastCompleted = completedPlays.OrderBy(x => x.EventDate).LastOrDefault(); // needs to be LastOrDefault, and we need to check it for not being null.
+
+            if (firstCompleted is not null)
             {
-                var mostRecentEntry = w.OrderByDescending(x => x.EventDate).FirstOrDefault(); // Or .LastOrDefault()
+                stats.DateOfFirstDimm = firstCompleted.EventDate.ToLongDateString();
+                stats.DaysSinceFirstDimm = (DateTime.Now.Date - firstCompleted.EventDate.Date).Days;
+            }
 
-                if (mostRecentEntry != null)
+            if (lastCompleted is not null)
+                stats.DateOfLastDimm = lastCompleted.EventDate.ToLongDateString();
+        }
+    }
+
+    public static int GetTotalPlayEvents(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId);
+    }
+
+    public static int GetTotalPlayCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 0);
+    }
+
+    public static int GetTotalPauseCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 1);
+    }
+    public static int GetTotalPreviousCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 9);
+    }
+
+    public static int GetTotalResumeCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 2);
+    }
+
+    public static int GetTotalSeekCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 4);
+    }
+
+    public static int GetTotalRestartCount(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks.Count(p => p.SongId == songId && (p.PlayType == 6 || p.PlayType == 7 || p.PlayType == 8));
+    }
+
+    public static List<PlayDataLink> GetPlayEventsByPlayType(string songId, int playType, List<PlayDataLink> playDataLinks)
+    {
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.PlayType == playType)];
+    }
+
+    public static int GetPlayCountInLastNDays(string songId, int nDays, List<PlayDataLink> playDataLinks)
+    {
+        DateTime startDate = DateTime.Now.Date.AddDays(-nDays);
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 0 && p.EventDate.Date >= startDate);
+    }
+
+    public static int GetPlayCountInLastNMonths(string songId, int nMonths, List<PlayDataLink> playDataLinks)
+    {
+        DateTime startDate = DateTime.Now.Date.AddMonths(-nMonths);
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 0 && p.EventDate.Date >= startDate);
+    }
+    public static int GetPlayCountInLastNYears(string songId, int nYears, List<PlayDataLink> playDataLinks)
+    {
+        DateTime startDate = DateTime.Now.Date.AddYears(-nYears);
+        return playDataLinks.Count(p => p.SongId == songId && p.PlayType == 0 && p.EventDate.Date >= startDate);
+    }
+
+
+    public static double GetAveragePlaysPerWeek(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0).ToList();
+        if (!plays.Any())
+            return 0;
+
+        var firstPlayDate = plays.Min(p => p.EventDate).Date;
+        var totalWeeks = (DateTime.Now.Date - firstPlayDate).TotalDays / 7.0;
+        return totalWeeks > 0 ? plays.Count / totalWeeks : 0;
+    }
+
+    public static double GetAveragePlaysPerMonth(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0).ToList();
+        if (!plays.Any())
+            return 0;
+
+        var firstPlayDate = plays.Min(p => p.EventDate).Date;
+        // More accurate month calculation
+        var totalMonths = ((DateTime.Now.Year - firstPlayDate.Year) * 12) + DateTime.Now.Month - firstPlayDate.Month;
+
+        // Add partial month.
+        totalMonths += (DateTime.Now.Day > firstPlayDate.Day ? 1 : 0);
+
+        return totalMonths > 0 ? (double)plays.Count / totalMonths : 0;
+    }
+
+
+    // --- Time-Based Statistics ---
+    public static double GetTotalListeningTime(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var songPlays = playDataLinks.Where(p => p.SongId == songId).OrderBy(p => p.EventDate).ToList();
+        double totalSeconds = 0;
+
+        for (int i = 0; i < songPlays.Count - 1; i++)
+        {
+            if (songPlays[i].PlayType == 0) // Started
+            {
+                // Find the next relevant event (pause, skip, complete, or another start)
+                for (int j = i + 1; j < songPlays.Count; j++)
                 {
-
-                    if (mostRecentEntry.DateFinished > mostRecentEntry.EventDate)
+                    if (songPlays[j].SongId == songId && (songPlays[j].PlayType == 1 || songPlays[j].PlayType == 3 || songPlays[j].PlayType == 5 || songPlays[j].PlayType == 0))
                     {
-                        mostRecentEntry.EventDate = mostRecentEntry.DateFinished;
-
+                        totalSeconds += (songPlays[j].EventDate - songPlays[i].EventDate).TotalSeconds;
+                        i = j - 1; // Adjust i to avoid double-counting.
+                        break;
                     }
-
-                    DateOfFirstDimm = mostRecentEntry.EventDate.ToLongDateString();
-                    DaysSinceFirstDimm = (DateTime.Now.Date - mostRecentEntry.EventDate.Date).Days; //get the number of days between today's date and the most recent entry's event date, ignoring time
                 }
             }
         }
-        
-        SpecificSongPlaysStarted = SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 0).ToList();
-        SpecificSongPlaysPaused = SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 1).ToList();
-        SpecificSongPlaysResumed= SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 2).ToList();
-        SpecificSongPlaysCompleted= SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 3).ToList();
-        SpecificSongPlaysSeeked= SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 4).ToList();
-        SpecificSongPlaysSkipped= SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 5).ToList();
 
-        SpecificSongPlaysDailyCompletedCount = SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Where(x => x.PlayType == 3)
-        .GroupBy(p => p.EventDate.DayOfYear)
-        .Select(group => new DimmData()
+        return totalSeconds;
+    }
+
+
+    public static double GetAverageListeningTimePerPlay(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var totalListeningTime = GetTotalListeningTime(songId, playDataLinks);
+        var totalPlays = GetTotalPlayCount(songId, playDataLinks);
+        return totalPlays > 0 ? totalListeningTime / totalPlays : 0;
+    }
+
+    public static double GetShortestListeningTime(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var songPlays = playDataLinks.Where(p => p.SongId == songId).OrderBy(p => p.EventDate).ToList();
+        double shortest = double.MaxValue;
+
+
+        for (int i = 0; i < songPlays.Count - 1; i++)
         {
-            Date = new DateTime(DateTime.Now.Year, 1, 1).AddDays(group.Key - 1),
-            DimmCount = group.Count(),
-            //DimmDatas = group.ToList()
-        }).ToObservableCollection();
+            if (songPlays[i].PlayType == 0) // Started
+            {
 
-        TotalNumberOfDimms = SpecificSongPlaysCompleted.Count();
-        int uniqueDays = SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).Select(p => p.EventDate.DayOfYear).Distinct().Count();
-        AverageDimmsPerDay = uniqueDays > 0 ? (double)TotalNumberOfDimms / uniqueDays : 0.0;
-        SpecificSongEddingtonNumber = CalculateEddingtonNumberInner(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
+                for (int j = i + 1; j < songPlays.Count; j++)
+                {
+                    if (songPlays[j].SongId == songId && (songPlays[j].PlayType == 1 || songPlays[j].PlayType == 3 || songPlays[j].PlayType == 5 || songPlays[j].PlayType == 0))
+                    {
+                        double currentDuration = (songPlays[j].EventDate - songPlays[i].EventDate).TotalSeconds;
+                        shortest = Math.Min(shortest, currentDuration);
+                        i = j-1;
+                        break;
+                    }
+                }
+            }
+        }
 
-        SpecificSongCompletionRate = CalculateTotalCompletionRate(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
-        SpecificSongSkipRate = CalculateSkipRate(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
-        SpecificSongLongestListeningStreak = CalculateLongestListeningStreak(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
+        if (shortest == double.MaxValue)
+            return 0;
+        return shortest;
+    }
+    public static double GetLongestListeningTime(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var songPlays = playDataLinks.Where(p => p.SongId == songId).OrderBy(p => p.EventDate).ToList();
+        double longest = 0;
 
-        CalculateGiniIndex(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
-        CalculateParetoRatio(SongsMgtService.AllPlayDataLinks.Where(x=>x.SongId == songId).ToList());
 
+        for (int i = 0; i < songPlays.Count - 1; i++)
+        {
+            if (songPlays[i].PlayType == 0) // Started
+            {
+
+                for (int j = i + 1; j < songPlays.Count; j++)
+                {
+                    if (songPlays[j].SongId == songId && (songPlays[j].PlayType == 1 || songPlays[j].PlayType == 3 || songPlays[j].PlayType == 5 || songPlays[j].PlayType == 0))
+                    {
+                        double currentDuration = (songPlays[j].EventDate - songPlays[i].EventDate).TotalSeconds;
+                        longest = Math.Max(longest, currentDuration);
+                        i = j-1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return longest;
+    }
+
+
+    public static string GetMostFrequentPlayTimeOfDay(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0);
+        if (!plays.Any())
+            return "None";
+
+        var timeOfDayCounts = new Dictionary<string, int>
+        {
+            { "Morning", 0 },   // 6:00 - 12:00
+            { "Afternoon", 0 }, // 12:00 - 18:00
+            { "Evening", 0 },   // 18:00 - 0:00
+            { "Night", 0 }      // 0:00 - 6:00
+        };
+
+        foreach (var play in plays)
+        {
+            int hour = play.EventDate.Hour;
+            if (hour >= 6 && hour < 12)
+                timeOfDayCounts["Morning"]++;
+            else if (hour >= 12 && hour < 18)
+                timeOfDayCounts["Afternoon"]++;
+            else if (hour >= 18 || hour < 0)
+                timeOfDayCounts["Evening"]++;
+            else
+                timeOfDayCounts["Night"]++;
+        }
+
+        return timeOfDayCounts.OrderByDescending(kv => kv.Value).First().Key;
+    }
+
+    public static Dictionary<DayOfWeek, int> GetPlayFrequencyDistribution(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0);
+
+        var distribution = Enumerable.Range(0, 7)
+            .ToDictionary(i => (DayOfWeek)i, i => 0); // Initialize all days to 0
+
+        foreach (var play in plays)
+        {
+            distribution[play.EventDate.DayOfWeek]++;
+        }
+
+        return distribution;
+    }
+    public static Dictionary<string, int> GetTimeOfDayPlayDistribution(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0);
+
+        var distribution = new Dictionary<string, int>()
+        {
+             { "Morning", 0 },   // 6:00 - 12:00
+            { "Afternoon", 0 }, // 12:00 - 18:00
+            { "Evening", 0 },   // 18:00 - 0:00
+            { "Night", 0 }      // 0:00 - 6:00
+        };
+
+        foreach (var play in plays)
+        {
+            if (play.EventDate.Hour >= 6 && play.EventDate.Hour < 12)
+            {
+                distribution["Morning"]++;
+            }
+            else if (play.EventDate.Hour >= 12 && play.EventDate.Hour < 18)
+            {
+                distribution["Afternoon"]++;
+            }
+            else if (play.EventDate.Hour >= 18 || play.EventDate.Hour < 0)
+            {
+                distribution["Evening"]++;
+            }
+            else
+            {
+                distribution["Night"]++;
+            }
+        }
+
+        return distribution;
+    }
+
+    // --- Completion & Skipping ---
+
+    public static double GetAverageCompletionPercentage(string songId, List<PlayDataLink> playDataLinks, double songDurationSeconds)
+    {
+        if (songDurationSeconds <= 0)
+            return 0; // Avoid division by zero
+
+        var relevantEvents = playDataLinks.Where(p => p.SongId == songId && (p.PlayType == 0 || p.PlayType == 3 || p.PlayType == 5)).ToList();
+        double totalCompletionPercentage = 0;
+        int count = 0;
+
+        for (int i = 0; i < relevantEvents.Count; i++)
+        {
+            if (relevantEvents[i].PlayType == 0) //start
+            {
+                for (int j = i + 1; j < relevantEvents.Count; j++)
+                {
+                    if (relevantEvents[j].PlayType == 3 || relevantEvents[j].PlayType == 5)
+                    {
+                        totalCompletionPercentage += (relevantEvents[j].PositionInSeconds / songDurationSeconds) * 100;
+                        count++;
+                        i = j; // Move i to the end event.
+                        break;
+                    }
+                    else if (relevantEvents[j].PlayType == 0) // another play starts before this ends.
+                    {
+                        i = j -1; // i stays as is.
+                        break; // if we find another play, break the loop
+                    }
+                }
+            }
+        }
+
+        return count > 0 ? totalCompletionPercentage / count : 0;
+    }
+
+
+    public static double GetMedianCompletionPercentage(string songId, List<PlayDataLink> playDataLinks, double songDurationSeconds)
+    {
+        if (songDurationSeconds <= 0)
+            return 0; // Avoid division by zero
+
+        var completionPercentages = new List<double>();
+
+        var relevantEvents = playDataLinks.Where(p => p.SongId == songId && (p.PlayType == 0 || p.PlayType == 3 || p.PlayType == 5)).ToList();
+
+
+        for (int i = 0; i < relevantEvents.Count; i++)
+        {
+            if (relevantEvents[i].PlayType == 0) //start
+            {
+                for (int j = i + 1; j < relevantEvents.Count; j++)
+                {
+                    if (relevantEvents[j].PlayType == 3 || relevantEvents[j].PlayType == 5)
+                    {
+                        completionPercentages.Add((relevantEvents[j].PositionInSeconds / songDurationSeconds) * 100);
+
+                        i = j; // Move i to the end event.
+                        break;
+                    }
+                    else if (relevantEvents[j].PlayType == 0) // another play starts before this ends.
+                    {
+                        i = j -1;
+                        break; // if we find another play, break the loop
+                    }
+                }
+            }
+        }
+
+
+        if (!completionPercentages.Any())
+            return 0;
+
+        completionPercentages.Sort();
+        int mid = completionPercentages.Count / 2;
+        return completionPercentages.Count % 2 != 0
+            ? completionPercentages[mid]
+            : (completionPercentages[mid - 1] + completionPercentages[mid]) / 2.0;
+    }
+
+
+
+    public static double GetMostFrequentSkipPoint(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var skipEvents = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 5);
+        if (!skipEvents.Any())
+            return 0;
+
+        // Group skip events by their position (in seconds, rounded to nearest second for grouping)
+        var skipPointCounts = skipEvents
+            .GroupBy(p => (int)Math.Round(p.PositionInSeconds))
+            .Select(group => new { Position = group.Key, Count = group.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        // Return the most frequent skip point, or 0 if there are no skips.
+        return skipPointCounts.FirstOrDefault()?.Position ?? 0;
 
     }
+
+    public static Dictionary<string, double> GetCompletionRateByTimeOfDay(string songId, List<PlayDataLink> playDataLinks, double songDurationSeconds)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && (p.PlayType == 0 || p.PlayType==3 || p.PlayType == 5));
+
+        var distribution = new Dictionary<string, double>()
+        {
+             { "Morning", 0 },   // 6:00 - 12:00
+            { "Afternoon", 0 }, // 12:00 - 18:00
+            { "Evening", 0 },   // 18:00 - 0:00
+            { "Night", 0 }      // 0:00 - 6:00
+        };
+
+        var counts = new Dictionary<string, int>()
+        {
+             { "Morning", 0 },   // 6:00 - 12:00
+            { "Afternoon", 0 }, // 12:00 - 18:00
+            { "Evening", 0 },   // 18:00 - 0:00
+            { "Night", 0 }      // 0:00 - 6:00
+        };
+
+
+        for (int i = 0; i < plays.Count(); i++)
+        {
+            if (plays.ElementAt(i).PlayType == 0) //start
+            {
+                string timeOfDay = "";
+                if (plays.ElementAt(i).EventDate.Hour >= 6 && plays.ElementAt(i).EventDate.Hour < 12)
+                {
+                    timeOfDay = "Morning";
+                }
+                else if (plays.ElementAt(i).EventDate.Hour >= 12 && plays.ElementAt(i).EventDate.Hour < 18)
+                {
+                    timeOfDay = "Afternoon";
+                }
+                else if (plays.ElementAt(i).EventDate.Hour >= 18 || plays.ElementAt(i).EventDate.Hour < 0)
+                {
+                    timeOfDay = "Evening";
+                }
+                else
+                {
+                    timeOfDay = "Night";
+                }
+
+                for (int j = i + 1; j < plays.Count(); j++)
+                {
+                    if (plays.ElementAt(j).PlayType == 3 || plays.ElementAt(j).PlayType == 5)
+                    {
+
+                        distribution[timeOfDay] += (plays.ElementAt(j).PositionInSeconds / songDurationSeconds);
+                        counts[timeOfDay] +=1;
+                        i = j; // Move i to the end event.
+                        break;
+                    }
+                    else if (plays.ElementAt(j).PlayType == 0) // another play starts before this ends.
+                    {
+                        i = j -1;
+                        break; // if we find another play, break the loop
+                    }
+                }
+            }
+        }
+
+        foreach (var key in distribution.Keys.ToList())
+        {
+            if (counts[key] != 0)
+            {
+                distribution[key] = distribution[key] / counts[key] * 100;
+            }
+        }
+        return distribution;
+    }
+    // --- Streaks & Patterns ---
+
+    public static List<List<PlayDataLink>> GetListeningStreaks(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && p.PlayType == 0)
+            .OrderBy(p => p.EventDate).ToList();
+
+        var streaks = new List<List<PlayDataLink>>();
+        if (!plays.Any())
+            return streaks;
+
+        var currentStreak = new List<PlayDataLink> { plays[0] };
+
+        for (int i = 1; i < plays.Count; i++)
+        {
+            // Check if the current play is within one day of the previous play
+            if ((plays[i].EventDate.Date - plays[i - 1].EventDate.Date).Days <= 1)
+            {
+                currentStreak.Add(plays[i]);
+            }
+            else
+            {
+                // End of current streak, start a new one
+                streaks.Add(currentStreak);
+                currentStreak = new List<PlayDataLink> { plays[i] };
+            }
+        }
+        streaks.Add(currentStreak); // Add the last streak
+        return streaks;
+    }
+
+
+
+    public static int GetAverageListeningStreakLength(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var streaks = GetListeningStreaks(songId, playDataLinks);
+        if (!streaks.Any())
+            return 0;
+
+        int totalStreakLength = streaks.Sum(streak => streak.Count);
+        return totalStreakLength / streaks.Count;
+    }
+
+    public static int GetDaysSinceLastPlay(string songId, List<PlayDataLink> playDataLinks)
+    {
+        var lastPlay = playDataLinks
+            .Where(p => p.SongId == songId && p.PlayType == 0)
+            .OrderByDescending(p => p.EventDate)
+            .FirstOrDefault(); // Use FirstOrDefault to handle no plays
+
+        return lastPlay != null ? (DateTime.Now.Date - lastPlay.EventDate.Date).Days : -1; //return -1 if it has never been played.
+    }
+
+    public static int GetNumberOfUniqueDaysPlayed(string songId, List<PlayDataLink> playDataLinks)
+    {
+        return playDataLinks
+        .Where(x => x.SongId == songId)
+        .Select(p => p.EventDate.Date).Distinct().Count();
+    }
+
+
+    
+
+    public static Dictionary<string, double> GetCompletionRateByDevice(string songId, List<PlayDataLink> playDataLinks, double songDurationSeconds)
+    {
+        var plays = playDataLinks.Where(p => p.SongId == songId && (p.PlayType == 0 || p.PlayType == 3 || p.PlayType == 5));
+        var completionRates = new Dictionary<string, double>();
+        var deviceCounts = new Dictionary<string, int>();
+
+
+        for (int i = 0; i < plays.Count(); i++)
+        {
+
+            if (plays.ElementAt(i).PlayType == 0)
+            {
+                if (!completionRates.ContainsKey(plays.ElementAt(i).LocalDeviceId))
+                {
+                    completionRates[plays.ElementAt(i).LocalDeviceId] = 0;
+                    deviceCounts[plays.ElementAt(i).LocalDeviceId] = 0;
+                }
+
+                for (int j = i + 1; j < plays.Count(); j++)
+                {
+                    if (plays.ElementAt(j).PlayType == 3 || plays.ElementAt(j).PlayType == 5)
+                    {
+                        completionRates[plays.ElementAt(i).LocalDeviceId] += plays.ElementAt(j).PositionInSeconds / songDurationSeconds;
+                        deviceCounts[plays.ElementAt(i).LocalDeviceId] +=1;
+                        i = j; // Move i to the end event.
+                        break;
+                    }
+                    else if (plays.ElementAt(j).PlayType == 0)
+                    {
+                        i=j-1;
+                        break;
+                    }
+
+                }
+            }
+        }
+
+
+        foreach (var key in completionRates.Keys.ToList())
+        {
+            if (deviceCounts[key] != 0)
+            {
+                completionRates[key] = completionRates[key] / deviceCounts[key] * 100;
+            }
+        }
+        return completionRates;
+    }
+
+
+    public static List<PlayDataLink> GetPlayEventsBeforeDate(string songId, DateTime date, List<PlayDataLink> playDataLinks)
+    {
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate < date)];
+    }
+
+    public static List<PlayDataLink> GetPlayEventsAfterDate(string songId, DateTime date, List<PlayDataLink> playDataLinks)
+    {
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate > date)];
+    }
+
+    public static List<PlayDataLink> GetPlayEventsBetweenDates(string songId, DateTime startDate, DateTime endDate, List<PlayDataLink> playDataLinks)
+    {
+        return [.. playDataLinks.Where(p => p.SongId == songId && p.EventDate >= startDate && p.EventDate <= endDate)];
+    }
+
+    public static bool GetIsMostPlayedSong(string songId, List<string> songIds, List<PlayDataLink> playDataLinks)
+    {
+        var targetSongPlays = playDataLinks.Count(x => x.SongId == songId && x.PlayType == 0);
+        foreach (var otherSongId in songIds)
+        {
+            if (otherSongId == songId)
+                continue; //dont check against itself.
+            if (targetSongPlays < playDataLinks.Count(x => x.SongId == otherSongId && x.PlayType == 0))
+                return false;
+        }
+        return true;
+
+    }
+
+
+
+
     [ObservableProperty]
     public partial ObservableCollection<DimmData>? SpecificSongDistributionByDayOfWeek { get; set; } = new();
     
@@ -374,84 +960,40 @@ public partial class HomePageVM
             }
         }
 
-        CalculateEddingtonNumberTotal();
+        //CalculateEddingtonNumberTotal();
         
         return eddington;
     }
 
     [ObservableProperty]
     public partial ObservableCollection<DimmData> BiggestClimbers { get; set; }
-    public void GetBiggestClimbers(List<PlayDataLink> playData, int top = 20, bool isAscend = false, int month = 0, int year = 0)
+
+private Dictionary<string, int> GetMonthData(List<PlayDataLink> playData, int month, int year)
+{
+    return playData
+    .Where(p => p.EventDate.Year == year && p.EventDate.Month == month && p.SongId != null)
+    .GroupBy(p => p.SongId, StringComparer.OrdinalIgnoreCase)
+    .Where(g => g.Count() >= (month == DateTime.Now.Month ? 3 : 5)) //Simplified.
+    .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+}
+
+    private List<(string SongId, string SongTitle, string ArtistName, int PreviousMonthDimms, int CurrentMonthDimms, int RankChange)> CalculateClimbers(Dictionary<string, int> currentMonthData, Dictionary<string, int> previousMonthData)
     {
-        try
+        var climbers = new List<(string, string, string, int, int, int)>();
+        var allSongIds = currentMonthData.Keys.Union(previousMonthData.Keys, StringComparer.OrdinalIgnoreCase).Distinct(StringComparer.OrdinalIgnoreCase);
+
+
+        foreach (var songId in allSongIds)
         {
+            currentMonthData.TryGetValue(songId, out int currentDimms);
+            previousMonthData.TryGetValue(songId, out int prevDimms);
+            int rankChange = currentDimms - prevDimms;
 
-            if (playData == null || !playData.Any())
-            {
-                BiggestClimbers.Clear();
-                return;
-            }
-
-            int currentMonth = month;
-            int currentYear = year;
-            int previousMonth = currentMonth == 1 ? 12 : currentMonth - 1;
-            int previousYear = currentMonth == 1 ? currentYear - 1 : currentYear;
-
-            var currentMonthPlays = playData
-                .Where(p => p.EventDate.Year == currentYear && p.EventDate.Month == currentMonth && p.SongId != null)
-                .GroupBy(p => p.SongId, StringComparer.OrdinalIgnoreCase)
-                .Where(g => g.Count() >= 3)
-                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
-
-            var previousMonthPlays = playData
-                .Where(p => p.EventDate.Year == previousYear && p.EventDate.Month == previousMonth && p.SongId != null)
-                .GroupBy(p => p.SongId, StringComparer.OrdinalIgnoreCase)
-                .Where(g => g.Count() >= 5)
-                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
-
-            var allSongIdsToConsider = currentMonthPlays.Keys.Union(previousMonthPlays.Keys).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-            var climbers = new List<(string SongId, string SongTitle, string ArtistName, int PreviousMonthDimms, int CurrentMonthDimms, int RankChange)>();
-
-            foreach (var songId in allSongIdsToConsider)
-            {
-                currentMonthPlays.TryGetValue(songId, out int currentDimms);
-                previousMonthPlays.TryGetValue(songId, out int prevDimms);
-                int rankChange = currentDimms - prevDimms;
-
-                string songTitle = _songIdToTitleMap.TryGetValue(songId, out string title) ? title : "Unknown Title";
-                string artistName = _songIdToArtistMap.TryGetValue(songId, out string artist) ? artist : "Unknown Artist";
-                climbers.Add((SongId: songId, songTitle, artistName, prevDimms, currentDimms, rankChange));
-            }
-
-            var sortedClimbers = isAscend
-                ? climbers.OrderBy(c => c.RankChange)
-                : climbers.OrderByDescending(c => c.RankChange);
-
-            IEnumerable<DimmData> dimmDataQuery = sortedClimbers.Select(kvp => new DimmData
-            {
-                SongId = kvp.SongId,
-                SongTitle = kvp.SongTitle,
-                PreviousMonthDimms = kvp.PreviousMonthDimms,
-                CurrentMonthDimms = kvp.CurrentMonthDimms,
-                RankChange = kvp.RankChange,
-                ArtistName = kvp.ArtistName
-            });
-
-            if (top == 9999999)
-            {
-                BiggestClimbers = new ObservableCollection<DimmData>(dimmDataQuery.Take(20).ToObservableCollection());
-            }
-            else
-            {
-                BiggestClimbers = new ObservableCollection<DimmData>(dimmDataQuery.Take(top).ToObservableCollection());
-            }
+            _songIdToTitleMap.TryGetValue(songId, out string title);
+            _songIdToArtistMap.TryGetValue(songId, out string artist);
+            climbers.Add((songId, title ?? "Unknown Title", artist ?? "Unknown Artist", prevDimms, currentDimms, rankChange));
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Biggest climbers Ex{ex.Message}");
-            
-        }
+        return climbers;
     }
 
 
@@ -882,10 +1424,9 @@ public partial class HomePageVM
         double averagePlayCount = songPlayCounts.Average(x => x.Count);
         double stdDev = Math.Sqrt(songPlayCounts.Sum(x => Math.Pow(x.Count - averagePlayCount, 2)) / (songPlayCounts.Count - 1));
 
-        return songPlayCounts
+        return [.. songPlayCounts
             .Where(x => Math.Abs(x.Count - averagePlayCount) > threshold * stdDev)
-            .Select(x => x.SongId  )
-            .ToList();
+            .Select(x => x.SongId  )];
     }
     
 
@@ -1148,6 +1689,10 @@ public partial class HomePageVM
     {
         SyncLyricsCV = cv;
         SyncLyricsCV.SelectionChanged += SyncLyricsCV_SelectionChanged;
+        if (MySelectedSong is null)
+        {
+            return;
+        }
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics?.Count < 1)
         {
             await FetchLyrics(false);

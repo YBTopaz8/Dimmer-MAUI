@@ -53,20 +53,35 @@ public partial class FriendRequest : ParseObject
 [ParseClassName("Friendship")]
 public partial class Friendship : ParseObject
 {
-    [ParseFieldName("user1")]
+    [ParseFieldName("User1")]
     public ParseUser User1 { get => GetProperty<ParseUser>("user1"); set => SetProperty(value, "user1"); }
 
-    [ParseFieldName("user2")]
+    [ParseFieldName("User2")]
     public ParseUser User2 { get => GetProperty<ParseUser>("user2"); set => SetProperty(value, "user2"); }
+
+    public string Status { get => GetProperty<string>(); set => SetProperty(value); } // "pending", "accepted"
 }
 [ParseClassName("ChatRoom")]
 public partial class ChatRoom : ParseObject
 {
-    [ParseFieldName("participant1")]
-    public ParseUser Participant1 { get => GetProperty<ParseUser>("participant1"); set => SetProperty(value, "participant1"); }
+    
+    public ParseRelation<ParseUser> Participants
+    {
+        get => GetRelation<ParseUser>("Participants");
+    }
+    // Optional: Type of chat (direct or group)
+    public string Type
+    {
+        get => GetProperty<string>(nameof(Type));
+        set => SetProperty(value, nameof(Type));
+    }
 
-    [ParseFieldName("participant2")]
-    public ParseUser Participant2 { get => GetProperty<ParseUser>("participant2"); set => SetProperty(value, "participant2"); }
+    // Optional: Name of the chat (for group chats, or auto-generated for direct)
+    public string Name
+    {
+        get => GetProperty<string>(nameof(Name));
+        set => SetProperty(value, nameof(Name));
+    }
 }
 
 [ParseClassName("Message")]
@@ -161,4 +176,7 @@ public partial class UserActivity : ParseObject
 
     [ParseFieldName("isRead")]
     public bool IsRead { get => GetProperty<bool>("isRead"); set => SetProperty(value, "isRead"); }
+    
+    public FriendRequest? FriendRequest { get => GetProperty<FriendRequest>(); set => SetProperty(value); }
+
 }

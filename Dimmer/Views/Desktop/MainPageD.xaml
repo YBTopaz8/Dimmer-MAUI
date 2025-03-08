@@ -26,9 +26,10 @@
 
 
     </ContentPage.Resources>
-    
+
+        
     <Grid x:Name="MainDock" RowDefinitions="*,Auto" IsVisible="True"
-        IsEnabled="True">
+        IsEnabled="True" >
         <Grid.GestureRecognizers >
             <DropGestureRecognizer AllowDrop="True" x:Name="mainDockDropGest" 
                                 DragOver="DropGestureRecognizer_DragOver"
@@ -66,6 +67,8 @@
             
         </viewsD:MyTableView>-->
 
+        
+        
         <toolkit:DockLayout x:Name="MainBody" Grid.Row="0" IsVisible="True"
                             Loaded="MainBody_Loaded" Unloaded="MainBody_Unloaded">
 
@@ -117,7 +120,10 @@
 
                 </FlexLayout>
             </VerticalStackLayout>
-            <Grid ColumnDefinitions="*,*,*,*,180,180,180"
+            <Grid ColumnDefinitions="*,Auto">
+                
+            <Grid Grid.Column="0"
+                ColumnDefinitions="*,*,*,*,180,180,180"
                   Margin="10,0,0,0"
                   RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
                 <Label Text="Title" Grid.Column="0" FontSize="26"/>
@@ -128,7 +134,8 @@
                 <Label Text="Format" Grid.Column="5" FontSize="26" HorizontalOptions="Center"/>
                 <Label Text="# Times Played" Grid.Column="6" IsVisible="True" FontSize="22" HorizontalOptions="Center"/>
             </Grid>
-            <Grid toolkit:DockLayout.DockPosition="Top" >
+            <Grid Grid.Column="0"
+                toolkit:DockLayout.DockPosition="Top" >
                 <CollectionView ItemsSource="{Binding DisplayedSongs}" 
                             VerticalScrollBarVisibility="Default" RemainingItemsThreshold="15" 
                             RemainingItemsThresholdReached="SongsColView_RemainingItemsThresholdReached"
@@ -213,6 +220,266 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
+            </Grid>
+                <Border x:Name="SongStatsView" WidthRequest="400" Grid.Column="1" IsVisible="False" Margin="10,0">
+
+                    <ScrollView>
+                        <VerticalStackLayout>
+
+                            <Border>
+
+                                <Grid RowDefinitions="*,*" ColumnDefinitions="*,400"
+                HorizontalOptions="Center" >
+
+                                    <syncf:SfPolarChart Grid.Row="1" BackgroundColor="Transparent" 
+                                           HeightRequest="900" WidthRequest="1200" 
+                                            Grid.Column="0">
+                                        <syncf:SfPolarChart.PrimaryAxis>
+                                            <syncf:CategoryAxis />
+                                        </syncf:SfPolarChart.PrimaryAxis>
+
+                                        <syncf:SfPolarChart.SecondaryAxis>
+                                            <syncf:NumericalAxis/>
+                                        </syncf:SfPolarChart.SecondaryAxis>
+
+
+                                        <syncf:SfPolarChart.Resources>
+
+                                        </syncf:SfPolarChart.Resources>
+                                        <syncf:PolarLineSeries ItemsSource="{Binding TopPlayedSongs}" ShowMarkers="True"
+                                               ShowDataLabels="False" EnableAnimation="True"
+                                               YBindingPath="DimmCount" EnableTooltip="True">
+                                            <syncf:PolarLineSeries.XBindingPath>
+                                                <x:String>SongTitle</x:String>
+                                            </syncf:PolarLineSeries.XBindingPath>
+
+                                            <syncf:PolarLineSeries.SelectionBehavior>
+                                                <syncf:DataPointSelectionBehavior Type="Single" 
+                    SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
+                    SelectionBrush="DarkSlateBlue"/>
+                                            </syncf:PolarLineSeries.SelectionBehavior>
+
+
+                                            <syncf:PolarLineSeries.LabelTemplate>
+                                                <DataTemplate>
+                                                    <Label TextColor="White">
+                                                        <Label.Text>
+                                                            <MultiBinding StringFormat="{} {0} ({1})">
+                                                                <Binding Path="Item.SongTitle"/>
+                                                                <Binding Path="Item.DimmCount"/>
+                                                            </MultiBinding>
+                                                        </Label.Text>
+                                                    </Label>
+                                                </DataTemplate>
+                                            </syncf:PolarLineSeries.LabelTemplate>
+
+                                            <syncf:PolarLineSeries.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <VerticalStackLayout>
+
+                                                        <Label TextColor="White">
+                                                            <Label.Text>
+                                                                <MultiBinding StringFormat="{} {0} by {1}">
+                                                                    <Binding Path="Item.SongTitle"/>
+                                                                    <Binding Path="Item.ArtistName"/>
+                                                                </MultiBinding>
+                                                            </Label.Text>
+                                                        </Label>
+                                                        <Label Text="{Binding Item.DimmCount, StringFormat='Dimm Count {0}'}"/>
+                                                    </VerticalStackLayout>
+
+                                                </DataTemplate>
+                                            </syncf:PolarLineSeries.TooltipTemplate>
+                                        </syncf:PolarLineSeries>
+
+                                        <syncf:SfPolarChart.TooltipBehavior>
+                                            <syncf:ChartTooltipBehavior Duration="5000"/>
+                                        </syncf:SfPolarChart.TooltipBehavior>
+                                    </syncf:SfPolarChart>
+
+
+                                    <VerticalStackLayout Grid.Column="1" Grid.Row="0" x:DataType="vm:HomePageVM"
+                                         VerticalOptions="Center" >
+                                        <Label Text="{Binding MySelectedSong.Title, StringFormat='{0}'}" HorizontalOptions="Center"
+                               FontAttributes="Bold" FontSize="16" LineBreakMode="WordWrap" 
+                               ToolTipProperties.Text="Song Title" />
+                                        <Label Text="{Binding MySelectedSong.ArtistName, StringFormat='by {0}'}" 
+                               HorizontalOptions="Center" ToolTipProperties.Text="Artist Name"/>
+                                        <Label Text="{Binding MySelectedSong.AlbumName, StringFormat='{0}'}"
+                               HorizontalOptions="Center" ToolTipProperties.Text="Album Name"/>
+
+                                        <Grid>
+                                            <Image IsVisible="True"
+                                   Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.6"/>
+
+                                        </Grid>
+                                        <Image Source="heartangle.png" IsAnimationPlaying="{Binding MySelectedSong.IsFavorite}"
+                               WidthRequest="60" HeightRequest="60" IsVisible="{Binding MySelectedSong.IsFavorite}"/>
+
+                                    </VerticalStackLayout>
+
+
+                                    <syncf:SfCircularChart Grid.Row="0" BackgroundColor="Transparent" 
+                                           HeightRequest="800" WidthRequest="1200"
+                                           Grid.Column="0" HorizontalOptions="Center">
+
+                                        <syncf:SfCircularChart.Resources>
+
+                                        </syncf:SfCircularChart.Resources>
+
+
+
+                                        <syncf:DoughnutSeries ItemsSource="{Binding TopPlayedSongs}"
+  ShowDataLabels="True" EnableAnimation="True"
+  YBindingPath="DimmCount" EnableTooltip="True">
+
+                                            <syncf:DoughnutSeries.XBindingPath>
+                                                <x:String>SongTitle</x:String>
+                                            </syncf:DoughnutSeries.XBindingPath>
+
+                                            <syncf:DoughnutSeries.SelectionBehavior>
+                                                <syncf:DataPointSelectionBehavior Type="Single" 
+                    SelectionChanged="DataPointSelectionBehavior_SelectionChanged"
+                    SelectionBrush="DarkSlateBlue"/>
+                                            </syncf:DoughnutSeries.SelectionBehavior>
+                                            <syncf:DoughnutSeries.DataLabelSettings>
+                                                <syncf:CircularDataLabelSettings LabelPosition="Inside" LabelPlacement="Inner" >
+                                                </syncf:CircularDataLabelSettings>
+                                            </syncf:DoughnutSeries.DataLabelSettings>
+
+                                            <syncf:DoughnutSeries.LabelTemplate>
+                                                <DataTemplate>
+                                                    <Label TextColor="White">
+                                                        <Label.Text>
+                                                            <MultiBinding StringFormat="{} {0} ({1})">
+                                                                <Binding Path="Item.SongTitle"/>
+                                                                <Binding Path="Item.DimmCount"/>
+                                                            </MultiBinding>
+                                                        </Label.Text>
+                                                    </Label>
+                                                </DataTemplate>
+                                            </syncf:DoughnutSeries.LabelTemplate>
+
+                                            <syncf:DoughnutSeries.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <VerticalStackLayout>
+
+                                                        <Label TextColor="White">
+                                                            <Label.Text>
+                                                                <MultiBinding StringFormat="{}{0} by {1}">
+                                                                    <Binding Path="Item.SongTitle"/>
+                                                                    <Binding Path="Item.ArtistName"/>
+                                                                </MultiBinding>
+                                                            </Label.Text>
+                                                        </Label>
+                                                    </VerticalStackLayout>
+
+                                                </DataTemplate>
+                                            </syncf:DoughnutSeries.TooltipTemplate>
+
+                                            <syncf:DoughnutSeries.CenterView>
+                                                <VerticalStackLayout x:DataType="vm:HomePageVM">
+                                                    <Label Text="{Binding TemporarilyPickedSong.Title}"/>
+                                                </VerticalStackLayout>
+                                            </syncf:DoughnutSeries.CenterView>
+                                        </syncf:DoughnutSeries>
+
+                                        <syncf:SfCircularChart.TooltipBehavior>
+                                            <syncf:ChartTooltipBehavior Duration="5000"/>
+                                        </syncf:SfCircularChart.TooltipBehavior>
+                                    </syncf:SfCircularChart>
+
+                                </Grid>
+
+                            </Border>
+
+
+                            <Border>
+
+                                <Grid ColumnDefinitions="*" 
+                HorizontalOptions="Center" >
+
+
+                                    <syncf:SfCartesianChart Grid.Column="1" BackgroundColor="Transparent" 
+            HeightRequest="600" WidthRequest="1600" 
+            Title="Top Dimmed Genres">
+                                        <syncf:SfCartesianChart.XAxes>
+                                            <syncf:CategoryAxis Interval="1">
+
+                                                <syncf:CategoryAxis.Title>
+                                                    <syncf:ChartAxisTitle Text="Song Title"/>
+                                                </syncf:CategoryAxis.Title>
+                                            </syncf:CategoryAxis>
+                                        </syncf:SfCartesianChart.XAxes>
+                                        <syncf:SfCartesianChart.YAxes>
+                                            <syncf:NumericalAxis ShowMajorGridLines="False" Interval="5"
+                     >
+                                                <syncf:NumericalAxis.Title>
+                                                    <syncf:ChartAxisTitle Text="Dimm Count"/>
+                                                </syncf:NumericalAxis.Title>
+                                            </syncf:NumericalAxis>
+                                        </syncf:SfCartesianChart.YAxes>
+
+                                        <syncf:ColumnSeries ItemsSource="{Binding TopPlayedGenres}" EnableAnimation="True"
+                                                ShowDataLabels="True" Spacing="50" Width="40"
+                                                YBindingPath="DimmCount" EnableTooltip="True"
+                                                >
+                                            <syncf:ColumnSeries.XBindingPath>
+                                                <x:String>GenreName</x:String>
+                                            </syncf:ColumnSeries.XBindingPath>
+                                        </syncf:ColumnSeries>
+                                    </syncf:SfCartesianChart>
+
+
+                                </Grid>
+
+                            </Border>
+
+                            <Border>
+
+                                <Grid ColumnDefinitions="*" 
+                HorizontalOptions="Center" >
+
+
+                                    <syncf:SfCircularChart Grid.Column="1" BackgroundColor="Transparent" 
+            HeightRequest="600" WidthRequest="1600" 
+            Title="Top Streaks">
+                                        <syncf:RadialBarSeries ItemsSource="{Binding TopStreaks}"  MaximumValue="10"
+                                                ShowDataLabels="True" YBindingPath="StreakLength" EnableTooltip="True"
+                                                StrokeWidth="10" CapStyle="BothCurve" GapRatio="1">
+                                            <syncf:RadialBarSeries.XBindingPath>
+                                                <x:String>SongTitle</x:String>
+                                            </syncf:RadialBarSeries.XBindingPath>
+
+                                            <syncf:RadialBarSeries.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <VerticalStackLayout>
+
+                                                        <Label TextColor="White">
+                                                            <Label.Text>
+                                                                <MultiBinding StringFormat="{}{0} by {1}">
+                                                                    <Binding Path="Item.SongTitle"/>
+                                                                    <Binding Path="Item.ArtistName"/>
+                                                                </MultiBinding>
+                                                            </Label.Text>
+                                                        </Label>
+                                                        <Label Text="{Binding Item.StreakLength, StringFormat='Streak Length {0}'}"/>
+                                                    </VerticalStackLayout>
+
+                                                </DataTemplate>
+                                            </syncf:RadialBarSeries.TooltipTemplate>
+
+                                        </syncf:RadialBarSeries>
+
+
+                                    </syncf:SfCircularChart>
+                                </Grid>
+
+                            </Border>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Border>
+               
             </Grid>
         </toolkit:DockLayout>
 

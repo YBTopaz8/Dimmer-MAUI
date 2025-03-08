@@ -46,6 +46,8 @@ public partial class ArtistModelView : ObservableObject
     public partial string? Bio { get; set; }
     [ObservableProperty]
     public partial bool IsCurrentlySelected { get; set; }
+    [ObservableProperty]
+    public partial bool IsVisible { get; set; }
 
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
@@ -69,3 +71,4 @@ public partial class ArtistModelView : ObservableObject
 
 
 }
+

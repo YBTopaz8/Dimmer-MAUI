@@ -20,15 +20,15 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     BehaviorSubject<PlaybackInfo> _currentPositionSubject = new(new());
     System.Timers.Timer? _positionTimer;
 
-    
-    private SongModelView ObservableCurrentlyPlayingSong { get; set; } = new();
-    public SongModelView CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
+    [ObservableProperty]
+    private partial SongModelView? ObservableCurrentlyPlayingSong { get; set; } = new();
+    public SongModelView? CurrentlyPlayingSong => ObservableCurrentlyPlayingSong;
     [ObservableProperty]
     private partial SongModelView? ObservablePreviouslyPlayingSong { get; set; } = new();
-    public SongModelView PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
+    public SongModelView? PreviouslyPlayingSong => ObservablePreviouslyPlayingSong;
     [ObservableProperty]
     private partial SongModelView? ObservableNextPlayingSong { get; set; } = new();
-    public SongModelView NextPlayingSong => ObservableNextPlayingSong;
+    public SongModelView? NextPlayingSong => ObservableNextPlayingSong;
 
     [ObservableProperty]
     private partial int ObservableLoadingSongsProgress { get; set; }
@@ -40,7 +40,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public partial RepeatMode CurrentRepeatMode { get; set; }
 
     [ObservableProperty]
-    string totalSongsDuration;
+    private partial string TotalSongsDuration { get; set; }
     ISongsManagementService SongsMgtService { get; }
     public IPlaylistManagementService PlaylistManagementService { get; }
     
@@ -65,6 +65,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     SortingEnum CurrentSorting;
     private Lazy<HomePageVM> ViewModel { get; set; }
 
+
+    partial void OnObservableCurrentlyPlayingSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        
+    }
     public PlaybackUtilsService(IDimmerAudioService DimmerAudioService, ISongsManagementService SongsMgtService,
         IPlaylistManagementService playlistManagementService, Lazy<HomePageVM> viewModel)
     {
@@ -305,10 +310,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
 
-            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-                .ToArray();
+            string[] imageFiles =
+            [
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+,
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly),
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly),
+            ];
 
             if (imageFiles.Length > 0)
             {                
@@ -349,10 +357,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
 
-            string[] imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly))
-                .Concat(Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly))
-                .ToArray();
+            string[] imageFiles =
+            [
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpg", SearchOption.TopDirectoryOnly)
+,
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.jpeg", SearchOption.TopDirectoryOnly),
+                .. Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.png", SearchOption.TopDirectoryOnly),
+            ];
 
             if (imageFiles.Length > 0)
             {
@@ -465,11 +476,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             }
 
             // Step 3: Perform the search with normalization and comparison on the filtered list
-            SearchedSongsList = filteredSongs
+            SearchedSongsList = [.. filteredSongs
                 .Where(s => NormalizeAndCache(s.Title).ToLowerInvariant().Contains(normalizedSearchTerm)
                             || (s.ArtistName != null && NormalizeAndCache(s.ArtistName).ToLowerInvariant().Contains(normalizedSearchTerm))
-                            || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))
-                .ToList();
+                            || (s.AlbumName != null && NormalizeAndCache(s.AlbumName).ToLowerInvariant().Contains(normalizedSearchTerm)))];
 
             // Step 4: Load the results with sorting
             Debug.WriteLine(SearchedSongsList.Count + "Search Count");

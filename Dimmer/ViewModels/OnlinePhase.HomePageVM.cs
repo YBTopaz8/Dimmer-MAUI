@@ -9,13 +9,21 @@ namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
+
+
+    private Subscription<Message>? _messageSubscription; //  Subscription for messages
+
+
+
     [ObservableProperty]
     public partial ObservableCollection<FriendRequestDisplay>? PendingFriendRequests { get; set; } = new();
 
     [ObservableProperty]
+    public partial ChatRoom? CurrentChatRoom { get; set; } 
+    
+    [ObservableProperty]
     public partial ObservableCollection<ChatMessageDisplay>? ChatMessages { get; set; } = new();
 
-    private ParseLiveQueryClient? _liveQueryClient; //keep LQ ref for later disposal
     private Subscription<UserActivity>? _friendRequestSubscription; //keep sub ref for later disposal
     private Subscription<UserActivity>? _chatMessageSubscription;
     private CancellationTokenSource _cts = new(); //to cancel async ops
@@ -23,12 +31,13 @@ public partial class HomePageVM
     // --- Live Query Connection Management ---
     public async Task ConnectToLiveQueriesAsync()
     {
-        if (_liveQueryClient == null || !_liveQueryClient.IsConnected)
+        if (LiveQueryClient == null || !LiveQueryClient.IsConnected)
         {
             try
             {
-                _liveQueryClient = new ParseLiveQueryClient(new Uri("wss://YOUR_PARSE_SERVER"));
-                _liveQueryClient.ConnectIfNeeded();
+                
+                LiveQueryClient = new ParseLiveQueryClient();
+                LiveQueryClient.ConnectIfNeeded();
                 Console.WriteLine("Live Query Client Connected");
 
                 // Subscribe to Friend Requests and Chat Messages
@@ -49,15 +58,15 @@ public partial class HomePageVM
 
     public void Disconnect()
     {
-        if (_liveQueryClient != null)
+        if (LiveQueryClient != null)
         {
             try
             {
                 // Unsubscribe from all subscriptions
-                _liveQueryClient.RemoveAllSubscriptions();
+                LiveQueryClient.RemoveAllSubscriptions();
                 
 
-                _liveQueryClient.Disconnect();
+                LiveQueryClient.Disconnect();
                 Console.WriteLine("LiveQuery Client Disconnected");
             }
             catch (Exception ex)
@@ -66,7 +75,7 @@ public partial class HomePageVM
             }
             finally
             {
-                _liveQueryClient = null;
+                LiveQueryClient = null;
             }
         }
         _cts.Cancel(); // Cancel any ongoing tasks
@@ -76,7 +85,7 @@ public partial class HomePageVM
     // --- Subscribe to Friend Requests ---
     private async Task SubscribeToFriendRequestsAsync()
     {
-        if (_liveQueryClient == null)
+        if (LiveQueryClient == null)
             return;
         
         try
@@ -85,14 +94,14 @@ public partial class HomePageVM
             var query = ParseClient.Instance.GetQuery("UserActivity")
                 .WhereEqualTo("recipient", CurrentUserOnline)
                 .WhereEqualTo("activityType", "FriendRequest");
-            var subscription = LiveClient!.Subscribe(query, "FriendRequestsSub");
-            LiveClient.ConnectIfNeeded();
+            var subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
+            LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
             int batchSize = 3; // Number of events to release at a time
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
-            LiveClient.OnConnected
+            LiveQueryClient.OnConnected
                 .Do(_ => Debug.WriteLine("LiveQuery connected."))
                 .RetryWhen(errors =>
                     errors
@@ -108,7 +117,7 @@ public partial class HomePageVM
                             Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
 
                             // Explicit reconnect call before retry delay
-                            LiveClient.ConnectIfNeeded(); // revive app!
+                            LiveQueryClient.ConnectIfNeeded(); // revive app!
 
                             return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
                         })
@@ -122,27 +131,27 @@ public partial class HomePageVM
                     ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
                 );
 
-            LiveClient.OnError
+            LiveQueryClient.OnError
                 .Do(ex =>
                 {
                     Debug.WriteLine("LQ Error: " + ex.Message);
-                    LiveClient.ConnectIfNeeded();  // Ensure reconnection on errors
+                    LiveQueryClient.ConnectIfNeeded();  // Ensure reconnection on errors
                 })
                 .OnErrorResumeNext(Observable.Empty<Exception>()) // Prevent breaking the stream
                 .Subscribe();
 
-            LiveClient.OnDisconnected
+            LiveQueryClient.OnDisconnected
                 .Do(info => Debug.WriteLine(info.userInitiated
                     ? "User disconnected."
                     : "Server disconnected."))
                 .Subscribe();
 
-            LiveClient.OnSubscribed
+            LiveQueryClient.OnSubscribed
                 .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
                 .Subscribe();
 
 
-            LiveClient.OnObjectEvent
+            LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription) // Filter relevant events
             .GroupBy(e => e.evt)
             .SelectMany(group =>
@@ -200,7 +209,7 @@ public partial class HomePageVM
     // --- Subscribe to Chat Messages ---
     private async Task SubscribeToChatMessagesAsync()
     {
-        if (_liveQueryClient == null)
+        if (LiveQueryClient == null)
             return;
 
         try
@@ -213,15 +222,15 @@ public partial class HomePageVM
                 .Include("chatMessage")  // Important: Include the chatMessage pointer
                 .Include("chatMessage.sender"); // Include sender details
 
-            var subscription = LiveClient!.Subscribe(query, "ChatMessagesSub");
+            var subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
 
-            LiveClient.ConnectIfNeeded();
+            LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
             int batchSize = 3; // Number of events to release at a time
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
-            LiveClient.OnConnected
+            LiveQueryClient.OnConnected
                 .Do(_ => Debug.WriteLine("LiveQuery connected."))
                 .RetryWhen(errors =>
                     errors
@@ -237,7 +246,7 @@ public partial class HomePageVM
                             Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
 
                             // Explicit reconnect call before retry delay
-                            LiveClient.ConnectIfNeeded(); // revive app!
+                            LiveQueryClient.ConnectIfNeeded(); // revive app!
 
                             return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
                         })
@@ -251,27 +260,27 @@ public partial class HomePageVM
                     ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
                 );
 
-            LiveClient.OnError
+            LiveQueryClient.OnError
                 .Do(ex =>
                 {
                     Debug.WriteLine("LQ Error: " + ex.Message);
-                    LiveClient.ConnectIfNeeded();  // Ensure reconnection on errors
+                    LiveQueryClient.ConnectIfNeeded();  // Ensure reconnection on errors
                 })
                 .OnErrorResumeNext(Observable.Empty<Exception>()) // Prevent breaking the stream
                 .Subscribe();
 
-            LiveClient.OnDisconnected
+            LiveQueryClient.OnDisconnected
                 .Do(info => Debug.WriteLine(info.userInitiated
                     ? "User disconnected."
                     : "Server disconnected."))
                 .Subscribe();
 
-            LiveClient.OnSubscribed
+            LiveQueryClient.OnSubscribed
                 .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
                 .Subscribe();
 
 
-            LiveClient.OnObjectEvent
+            LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription) // Filter relevant events
             .GroupBy(e => e.evt)
             .SelectMany(group =>
@@ -304,6 +313,217 @@ public partial class HomePageVM
     }
 
 
+
+    // --- Start/Join a Chat (Now supports group chat) ---
+
+    //This method now handles both creating and joining
+    public async Task StartOrJoinChat(List<string> participantIds)
+    {
+        if (participantIds == null || participantIds.Count == 0)
+        {
+            Debug.WriteLine("Participant list is empty.");
+            return;
+        }
+
+        try
+        {
+            //1. Fetch those users
+            List<ParseUser> participants = new();
+
+            //Fetch users
+            foreach (var id in participantIds)
+            {
+                var q = ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", id);
+                var user = await q.FirstOrDefaultAsync(); // Use FirstOrDefaultAsync to handle nulls
+                if (user != null)
+                {
+                    participants.Add(user);
+                }
+                else
+                {
+                    // Handle the case where a user ID is invalid.  Maybe log it.
+                    Debug.WriteLine($"User with ID {id} not found.");
+                    return; // Or continue, depending on your error handling.
+                }
+            }
+
+            // Add Current User.
+            ParseUser currentUser = await ParseClient.Instance.GetCurrentUser();
+            participants.Add(currentUser);
+
+            //2.  Check for existing chat room (IMPORTANT for preventing duplicates).
+            CurrentChatRoom = await GetExistingChatRoom(participants);
+
+            // 3. Create if it doesn't exist.
+            if (CurrentChatRoom == null)
+            {
+                CurrentChatRoom = await CreateChatRoomAsync(participants);
+            }
+
+            // 4. Clear Existing Messages, for safety
+            ChatMessages.Clear();
+
+            // 5. Fetch any existing messages (optional, for history).  Could add pagination here.
+            await LoadExistingMessages();
+
+            // 6. Set up the LiveQuery subscription for new messages.
+            await SubscribeToMessages();
+            Debug.WriteLine($"Started/Joined chat. ChatRoomId: {CurrentChatRoom.ObjectId}");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting/joining chat: {ex.Message}");
+        }
+    }
+
+    private async Task LoadExistingMessages()
+    {
+        if (CurrentChatRoom == null)
+            return;
+
+        var query = ParseClient.Instance.GetQuery<Message>()
+            .WhereEqualTo(nameof(Message.ChatRoom), CurrentChatRoom)
+            .Include(nameof(Message.Sender))
+            .OrderBy(nameof(Message.CreatedAt)); // Or a custom timestamp if you have one.
+
+        var existingMessages = await query.FindAsync();
+
+        foreach (var msg in existingMessages)
+        {
+            var msgDisplay = new ChatMessageDisplay
+            {
+                SenderUsername = msg.Sender.Username, // Assuming you included Sender
+                Content = msg.Content,
+                
+                // ... other properties ...
+            };
+            ChatMessages.Add(msgDisplay); // Add to your ObservableCollection.
+        }
+    }
+    // --- Live Query Subscription for Messages ---
+    private async Task SubscribeToMessages()
+    {
+        if (CurrentChatRoom == null)
+            return;
+
+
+        LiveQueryClient.RemoveAllSubscriptions();
+        // 1.  Unsubscribe from any previous subscription (important!).
+        //_messageSubscription?.Unsubscribe();
+
+        // 2.  Create the query.
+        var query = ParseClient.Instance.GetQuery<Message>()
+            .WhereEqualTo(nameof(Message.ChatRoom), CurrentChatRoom)
+            .Include(nameof(Message.Sender)); // Include the Sender for display.
+
+        // 3.  Subscribe.
+        _messageSubscription = LiveQueryClient.Subscribe(query);
+
+        // 4.  Handle events (Connected, Error, Disconnected, Subscribed are good practice).
+        int retryDelaySeconds = 5;
+        int maxRetries = 10;
+        LiveQueryClient.OnConnected
+            .Do(_ => Debug.WriteLine("LiveQuery connected."))
+                .RetryWhen(errors =>
+                    errors
+                        .Zip(Observable.Range(1, maxRetries), (error, attempt) => (error, attempt))
+                        .SelectMany(tuple =>
+                        {
+                            if (tuple.attempt > maxRetries)
+                            {
+                                Debug.WriteLine($"Max retries reached. Error: {tuple.error.Message}");
+                                return Observable.Throw<Exception>(tuple.error); // Explicit type here
+                            }
+                            Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
+                            // Explicit reconnect call before retry delay
+                            LiveQueryClient.ConnectIfNeeded(); // revive app!
+
+                            return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
+                        })
+                )
+                .Subscribe(
+                    _ =>
+                    {
+                        Debug.WriteLine("Reconnected successfully.");
+                    },
+                    ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
+                );
+
+        LiveQueryClient.OnError.Subscribe(ex => Debug.WriteLine($"LiveQuery Error: {ex.Message}"));
+        LiveQueryClient.OnDisconnected.Subscribe(info => Debug.WriteLine($"LiveQuery Disconnected: {info}"));
+        LiveQueryClient.OnSubscribed.Subscribe(e => Debug.WriteLine($"Subscribed to Messages for ChatRoom: {CurrentChatRoom.ObjectId}"));
+
+        // 5.  MOST IMPORTANT: Handle the object events.
+        LiveQueryClient.OnObjectEvent
+             .Where(e => e.subscription == _messageSubscription)
+             .Subscribe(e =>
+             {
+                 // Process different event types (Create, Update, Delete, etc.).
+                 if (e.evt == Subscription.Event.Create)
+                 {
+
+                 }
+                 // You could handle Update/Delete if you allow editing/deleting messages.
+             });
+    }
+
+
+    private async Task<ChatRoom?> GetExistingChatRoom(List<ParseUser> participants)
+    {
+        // Efficiently check for an existing chat room with ALL the given participants.
+        // Using Any or Contains will not work. We need to use ContainsAll in a smart way.
+
+        var query = ParseClient.Instance.GetQuery<ChatRoom>()
+            .WhereContainedIn("Participants", participants);  //All listed participants
+
+        // Get all potential ChatRooms, and then filter in memory for an *exact* match.
+        var potentialMatches = await query.FindAsync();
+
+        foreach (var chatRoom in potentialMatches)
+        {
+            // Fetch the participants for this ChatRoom.
+            var chatRoomParticipants = await chatRoom.GetRelation<ParseUser>("Participants").Query.FindAsync();
+
+            //Compare. must have same counts and contains all.
+            if (chatRoomParticipants.Count() == participants.Count &&
+                chatRoomParticipants.All(crp => participants.Any(p => p.ObjectId == crp.ObjectId)))
+            {
+                return chatRoom; // Found an exact match.
+
+            }
+        }
+
+        return null; // No exact match found.
+    }
+    private async Task<ChatRoom> CreateChatRoomAsync(List<ParseUser> participants)
+    {
+        var chatRoom = new ChatRoom();
+        await chatRoom.SaveAsync(); // Save first to get an ObjectId
+
+        // Add all participants to the relation.
+        var relation = chatRoom.GetRelation<ParseUser>("Participants");
+        foreach (var participant in participants)
+        {
+            relation.Add(participant);
+        }
+        await chatRoom.SaveAsync(); // Save again to update the relation
+
+        //add this chatroom to other users,
+        foreach (var p in participants)
+        {
+            var u = await ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", p.ObjectId).FirstOrDefaultAsync();
+            if (u != null)
+            {
+                u.GetRelation<ChatRoom>("ChatRooms").Add(chatRoom);
+            }
+            await u.SaveAsync();
+        }
+
+
+        return chatRoom;
+    }
+
     // --- Accept/Reject Friend Request (Commands) ---
     [RelayCommand]
     private async Task AcceptFriendRequest(string requestId)
@@ -333,38 +553,8 @@ public partial class HomePageVM
     {
 
     }
-        [RelayCommand]
-    private async Task RejectFriendRequest(string requestId)
-    {
-        try
-        {
-            // Remove the request from the UI list
-            var requestToRemove = PendingFriendRequests.FirstOrDefault(r => r.RequestId == requestId);
-            if (requestToRemove != null)
-            {
-                PendingFriendRequests.Remove(requestToRemove);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to reject friend request: {ex.Message}");
-        }
-    }
-    [ObservableProperty]
-    public partial ChatRoom? CurrentChatRoom { get; set; } // Store the ID of the active chat room
-
-    // --- Send chat messages ---
-    [RelayCommand]
-    private async Task SendChatMessage(string messageText) //we bind directly to string now
-    {
-        if (string.IsNullOrWhiteSpace(messageText) || string.IsNullOrEmpty(CurrentChatRoom.ObjectId))
-        {
-            return; // Don't send empty messages
-        }
-        await SendMessageAsync(CurrentChatRoom, messageText);
-
-    }
-
+   
+  
     public async Task<bool> CheckIfUserHasFriends()
     {
         try
@@ -397,94 +587,7 @@ public partial class HomePageVM
         }
     }
 
-    // --- Example: Start a chat with a specific user ---
-    public async Task StartChatWithUser(string otherUserId)
-    {
-        try
-        {
-            var q= ParseClient.Instance.GetQuery("_User").
-                WhereEqualTo("objectId",otherUserId);
-            var otherUser = await q.FirstOrDefaultAsync();
-            // 1. Create/Get Chat Room
-            CurrentChatRoom = await CreateChatRoomAsync(otherUser); //stores roomid
-            //CurrentChatRoomId = await CreateChatRoomAsync(otherUser); //stores roomid
-
-            if (!string.IsNullOrEmpty(CurrentChatRoom.ObjectId))
-            {
-                // 2. Clear existing messages (if any)
-                ChatMessages.Clear();
-
-                // 3.  (Optionally) Fetch existing messages from the chat room (using skip/limit for pagination)
-
-                // 4. Subscribe to Live Queries (if not already subscribed)
-                //await ConnectToLiveQueriesAsync(); //removed
-                Console.WriteLine($"Started chat with user. ChatRoomId: {CurrentChatRoom.ObjectId}");
-                // Navigate to your chat page, set up data binding, etc.
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error starting chat: {ex.Message}");
-        }
-    }
-
-    public async Task<ChatRoom> CreateChatRoomAsync(ParseObject user2)
-    {
-        try
-        {
-
-            var query = ParseClient.Instance.GetQuery("ChatRoom")
-                    .WhereEqualTo("participant1", CurrentUserOnline)
-                    .WhereEqualTo("participant2", user2);
-
-            var existingRoom = await query.FirstOrDefaultAsync();
-
-            if (existingRoom != null)
-                return (ChatRoom)existingRoom;
-
-            var chatRoom = new ChatRoom
-            {
-                Participant1 = CurrentUserOnline,
-                Participant2 = (ParseUser)user2
-            };
-
-            await chatRoom.SaveAsync();
-            return chatRoom;
-        }
-        catch (Exception ex)
-        {
-            // Handle Parse-specific errors
-            Console.WriteLine($"Error creating chat room: {ex.Message}");
-            return null; // Or throw the exception, depending on your error handling strategy
-        }
-    }
-
-    public async Task SendMessageAsync(ChatRoom chatRoom, string content)
-    {
-        try
-        {
-            ParseUser sender = CurrentUserOnline;
-            // Authorization check (example)
-            if (sender.ObjectId != chatRoom.Participant1.ObjectId && sender.ObjectId != chatRoom.Participant2.ObjectId)
-            {
-                Console.WriteLine("Unauthorized to send message in this chat room.");
-                return;
-            }
-            var message = new Message
-            {
-                ChatRoom = chatRoom,
-                Sender = sender,
-                Content = content
-            };
-
-            await message.SaveAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error sending message: {ex.Message}");
-        }
-    }
-
+   
     public async Task ListenForMessagesAsync(ChatRoom chatRoom, Action<Message> onMessageReceived)
     {
         try
@@ -494,14 +597,14 @@ public partial class HomePageVM
                 .WhereEqualTo("chatRoom", chatRoom)
                 .OrderBy("createdAt"); // Order by creation time
 
-            var subscription = LiveClient!.Subscribe(query, "FriendRequestsSub");
-            LiveClient.ConnectIfNeeded();
+            var subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
+            LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
             int batchSize = 3; // Number of events to release at a time
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
-            LiveClient.OnConnected
+            LiveQueryClient.OnConnected
                 .Do(_ => Debug.WriteLine("LiveQuery connected."))
                 .RetryWhen(errors =>
                     errors
@@ -517,7 +620,7 @@ public partial class HomePageVM
                             Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
 
                             // Explicit reconnect call before retry delay
-                            LiveClient.ConnectIfNeeded(); // revive app!
+                            LiveQueryClient.ConnectIfNeeded(); // revive app!
 
                             return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
                         })
@@ -531,27 +634,27 @@ public partial class HomePageVM
                     ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
                 );
 
-            LiveClient.OnError
+            LiveQueryClient.OnError
                 .Do(ex =>
                 {
                     Debug.WriteLine("LQ Error: " + ex.Message);
-                    LiveClient.ConnectIfNeeded();  // Ensure reconnection on errors
+                    LiveQueryClient.ConnectIfNeeded();  // Ensure reconnection on errors
                 })
                 .OnErrorResumeNext(Observable.Empty<Exception>()) // Prevent breaking the stream
                 .Subscribe();
 
-            LiveClient.OnDisconnected
+            LiveQueryClient.OnDisconnected
                 .Do(info => Debug.WriteLine(info.userInitiated
                     ? "User disconnected."
                     : "Server disconnected."))
                 .Subscribe();
 
-            LiveClient.OnSubscribed
+            LiveQueryClient.OnSubscribed
                 .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
                 .Subscribe();
 
 
-            LiveClient.OnObjectEvent
+            LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription) // Filter relevant events
             .GroupBy(e => e.evt)
             .SelectMany(group =>
@@ -585,15 +688,14 @@ public partial class HomePageVM
         }
     }
 
-    private Subscription<Message>? _messageSubscription;
     public async Task DisconnectAsync()
     {
-        if (_liveQueryClient != null && _messageSubscription != null)
+        if (LiveQueryClient != null && _messageSubscription != null)
         {
             try
             {
-                LiveClient.RemoveAllSubscriptions();
-                LiveClient.Disconnect();
+                LiveQueryClient.RemoveAllSubscriptions();
+                LiveQueryClient.Disconnect();
             }
             catch (Exception ex)
             {
@@ -602,7 +704,7 @@ public partial class HomePageVM
             finally
             {
                 _messageSubscription = null;
-                _liveQueryClient = null;
+                LiveQueryClient = null;
             }
             _cts?.Cancel(); // Cancel any ongoing operations
         }
@@ -611,24 +713,24 @@ public partial class HomePageVM
 
 public class LiveQueryManager : IDisposable
 {
-    private ParseLiveQueryClient LiveClient { get; }
+    private ParseLiveQueryClient LiveQueryClient { get; }
     private List<Subscription> Subscriptions { get; } = new List<Subscription>();
     private List<IDisposable> EventDisposables { get; } = new List<IDisposable>();
 
-    public LiveQueryManager(ParseLiveQueryClient liveClient)
+    public LiveQueryManager(ParseLiveQueryClient LiveQueryClient)
     {
-        LiveClient = liveClient;
+        LiveQueryClient = LiveQueryClient;
 
         // Ensure the client is connected (you might handle this elsewhere, too)
-        LiveClient.ConnectIfNeeded();
+        LiveQueryClient.ConnectIfNeeded();
         SubscribeToMultipleQueries();
         // Centralized error handling (optional, but good practice)
-        var errorHandler = LiveClient.OnError
+        var errorHandler = LiveQueryClient.OnError
             .Subscribe(ex =>
             {
                 Debug.WriteLine($"LiveQuery Error: {ex.Message}");
                 // Implement reconnection logic here, if desired.
-                // LiveClient.ConnectIfNeeded();
+                // LiveQueryClient.ConnectIfNeeded();
             });
         EventDisposables.Add(errorHandler);
     }
@@ -638,21 +740,21 @@ public class LiveQueryManager : IDisposable
         // 1. Chat Messages
         ParseQuery<ParseObject> chatQuery = ParseClient.Instance.GetQuery("ChatMessage");
         chatQuery = chatQuery.WhereEqualTo("roomId", "myRoomId"); // Example constraint
-        Subscription chatSubscription = LiveClient.Subscribe(chatQuery);
+        Subscription chatSubscription = LiveQueryClient.Subscribe(chatQuery);
         Subscriptions.Add(chatSubscription);
         SubscribeToEvents(chatSubscription, "Chat");
 
         // 2. Game Scores
         ParseQuery<ParseObject> scoreQuery = ParseClient.Instance.GetQuery("GameScore");
         scoreQuery = scoreQuery.WhereGreaterThan("score", 1000);  // Example constraint
-        Subscription scoreSubscription = LiveClient.Subscribe(scoreQuery);
+        Subscription scoreSubscription = LiveQueryClient.Subscribe(scoreQuery);
         Subscriptions.Add(scoreSubscription);
         SubscribeToEvents(scoreSubscription, "Score");
 
         // 3. User Status
         ParseQuery<ParseUser> userQuery = ParseClient.Instance.GetQuery<ParseUser>(); //Use ParseUser
         userQuery = userQuery.WhereEqualTo("online", true); // Example: Track online users
-        Subscription userSubscription = LiveClient.Subscribe(userQuery);
+        Subscription userSubscription = LiveQueryClient.Subscribe(userQuery);
         Subscriptions.Add(userSubscription);
         SubscribeToEvents(userSubscription, "User");
 
@@ -661,7 +763,7 @@ public class LiveQueryManager : IDisposable
     }
     private void SubscribeToEvents(Subscription subscription, string subscriptionName)
     {
-        var eventHandler = LiveClient.OnObjectEvent
+        var eventHandler = LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription)
             .Subscribe(e =>
             {
@@ -709,7 +811,7 @@ public class LiveQueryManager : IDisposable
 
     public void Dispose()
     {
-        LiveClient.RemoveAllSubscriptions();
+        LiveQueryClient.RemoveAllSubscriptions();
         // Unsubscribe from all subscriptions and dispose of event handlers.
         foreach (var subscription in Subscriptions)
         {
@@ -723,6 +825,6 @@ public class LiveQueryManager : IDisposable
         Subscriptions.Clear();
         EventDisposables.Clear();
 
-        // LiveClient.Disconnect(); //Disconnect from the client. You may want to do that OUTSIDE of the manager.
+        // LiveQueryClient.Disconnect(); //Disconnect from the client. You may want to do that OUTSIDE of the manager.
     }
 }

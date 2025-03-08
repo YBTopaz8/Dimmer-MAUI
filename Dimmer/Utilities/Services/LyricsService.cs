@@ -152,7 +152,7 @@ public class LyricsService : ILyricsService
         {
             hasSyncedLyrics = true;
             //sortedLyrics = syncedLyrics
-            sortedLyrics = syncedLyrics.ToList();
+            sortedLyrics = [.. syncedLyrics];
             return sortedLyrics;
         }
         List<LyricPhraseModel> lyrr = LoadLyrFromFile(songPath);
@@ -192,7 +192,7 @@ public class LyricsService : ILyricsService
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
         }
-        return sortedLyrics.ToList();//lyricPhrases;
+        return [.. sortedLyrics];//lyricPhrases;
     }
 
     private List<LyricPhraseModel> LoadLyrFromFile(string? songPath)
@@ -233,7 +233,7 @@ public class LyricsService : ILyricsService
                 }
             }
 
-            sortedLyrics = parsedLyrics.OrderBy(l => l.TimeStampMs).ToList(); // Ensure lyrics are sorted
+            sortedLyrics = [.. parsedLyrics.OrderBy(l => l.TimeStampMs)]; // Ensure lyrics are sorted
             return sortedLyrics;
         }
 
@@ -243,7 +243,7 @@ public class LyricsService : ILyricsService
         if (lyrics != null && lyrics.Count > 0)
         {
             hasSyncedLyrics = true;
-            sortedLyrics = lyrics.Select(phrase => new LyricPhraseModel(phrase)).ToList();
+            sortedLyrics = [.. lyrics.Select(phrase => new LyricPhraseModel(phrase))];
             return sortedLyrics;
         }
         return Enumerable.Empty<LyricPhraseModel>().ToList(); // Return empty if no lyrics are found
@@ -397,7 +397,7 @@ public class LyricsService : ILyricsService
             {
                 if (_synchronizedLyricsSubject?.Value?.Count > 0)
                 {
-                    sortedLyrics = _synchronizedLyricsSubject.Value.OrderBy(l => l.TimeStampMs).ToList();
+                    sortedLyrics = [.. _synchronizedLyricsSubject.Value.OrderBy(l => l.TimeStampMs)];
                 }
                 else
                 {

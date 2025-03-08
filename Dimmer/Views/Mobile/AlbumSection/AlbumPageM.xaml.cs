@@ -38,7 +38,7 @@ public partial class AlbumPageM : ContentPage
         {
             MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong!;
         }
-        MyViewModel.GetAllArtistsAlbum(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
+        MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MyViewModel.TemporarilyPickedSong, isFromSong: true);
     }
 
     private void ToolbarItem_Clicked(object sender, EventArgs e)
