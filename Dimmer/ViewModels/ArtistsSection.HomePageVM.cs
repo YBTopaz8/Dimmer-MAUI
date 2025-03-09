@@ -566,15 +566,17 @@ public partial class HomePageVM
         //if (artist is null SelectedArtistOnArtistPage is null)
         if (album is null )
             return;
-        if (SelectedAlbumOnAlbumPage is null)
-            return;
         
-        SelectedAlbumOnAlbumPage.IsCurrentlySelected = false;
+        if (SelectedAlbumOnAlbumPage is not null)
+        {
+            SelectedAlbumOnAlbumPage.IsCurrentlySelected = false;
+        }
+        
 
         SelectedAlbumOnAlbumPage = album;
         
         AllArtistsAlbumSongs = GetAllSongsFromAlbumID(album.LocalDeviceId!);
-        //await GetAlbumsFromArtistIDAsync(artist.LocalDeviceId);
+        
         if (AllArtistsAlbumSongs is null || AllArtistsAlbumSongs.Count<1)
         {
             return;

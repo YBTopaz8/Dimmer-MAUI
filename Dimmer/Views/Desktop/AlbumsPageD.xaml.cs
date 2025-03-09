@@ -284,7 +284,5 @@ public partial class AlbumsPageD : ContentPage
         AlbumModelView artist = (view.BindingContext as AlbumModelView)!;
 
         MyViewModel.LoadArtistAlbumsAndSongs(artist);
-
-
     }
 }
