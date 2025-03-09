@@ -67,8 +67,9 @@
         </Grid>
         <Grid RowDefinitions="Auto,*" toolkit:DockLayout.DockPosition="Left" 
               >
-            <Grid RowDefinitions="90,200" Grid.Row="0" >
-                <VerticalStackLayout Grid.Row="0">
+            <toolkit:Expander Grid.Row="0" BackgroundColor="Transparent">
+                <toolkit:Expander.Header>
+                    <VerticalStackLayout Grid.Row="0">
                     <Label HorizontalOptions="End" x:Name="FilterLetterLabel"
                            />
                     <Label HorizontalOptions="End" 
@@ -78,7 +79,10 @@
        Placeholder="Search Artist..." TextChanged="SearchBar_TextChanged"/>
 
                 </VerticalStackLayout>
-                <CollectionView x:Name="ArtistLetterColView" Grid.Row="1" 
+                </toolkit:Expander.Header>
+                <toolkit:Expander.Content>
+                    <Grid RowDefinitions="200">
+                    <CollectionView x:Name="ArtistLetterColView" Grid.Row="1" 
                                 HorizontalOptions="Center" SelectionMode="Single" 
                     ItemsSource="{Binding GroupedArtistNames}">
                     <CollectionView.ItemsLayout>
@@ -107,7 +111,10 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
             </Grid>
-            
+
+            </toolkit:Expander.Content>
+            </toolkit:Expander>
+
             <CollectionView Grid.Row="1" 
                     x:Name="AllArtistsColView"
                     EmptyView="No Artists Existing..." SelectionMode="None" 
