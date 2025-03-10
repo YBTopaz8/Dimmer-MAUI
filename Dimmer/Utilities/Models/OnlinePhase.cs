@@ -262,6 +262,25 @@ public partial class UserActivity : ParseObject
         get => GetProperty<string>();
         set => SetProperty(value);
     }
+    
+    [ParseFieldName("deviceVersion")]
+    public string DeviceVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("deviceIdiom")]
+    public string DeviceIdiom
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("devicePlatform")]
+    public string DevicePlatform
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sender")]
     public ParseUser Sender

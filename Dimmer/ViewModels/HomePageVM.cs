@@ -130,13 +130,13 @@ public partial class HomePageVM : ObservableObject
     
   
    
-// Example Usage (e.g., in a ViewModel or a Page's code-behind):
+// Example Usage (e.g., in a MyViewModel or a Page's code-behind):
 
-// ... in your ViewModel or Page constructor:
+// ... in your MyViewModel or Page constructor:
 //  LiveQueryManager = new LiveQueryManager(new ParseLiveQueryClient()); // Or get the client from DI
 // await LiveQueryManager.SubscribeToMultipleQueriesAsync();
 
-// ... when the ViewModel/Page is being destroyed or the subscriptions are no longer needed:
+// ... when the MyViewModel/Page is being destroyed or the subscriptions are no longer needed:
 // LiveQueryManager.Dispose(); // CRUCIAL to unsubscribe
     public async Task AssignCV(CollectionView cv)
     {

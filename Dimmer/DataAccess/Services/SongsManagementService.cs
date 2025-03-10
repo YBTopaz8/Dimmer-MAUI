@@ -958,6 +958,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         
         try
         {
+            if (ParseClient.Instance is not null)
+            {
+                return true;
+            }
             // Check for internet connection
             if (Connectivity.NetworkAccess != NetworkAccess.Internet)
             {

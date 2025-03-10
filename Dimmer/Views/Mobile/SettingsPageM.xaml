@@ -4,6 +4,7 @@
              x:Class="Dimmer_MAUI.Views.Mobile.SettingsPageM"
               xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"             
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"            
 
@@ -11,25 +12,34 @@
              Shell.NavBarIsVisible="True"
              Shell.TabBarIsVisible="True"             
              x:DataType="vm:HomePageVM" 
-
+x:Name="myPage"
              Title="Settings">
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+            </Style>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <dx:DXScrollView>
-        <dx:TabView>
+
+        <dx:DXScrollView>
+        <dx:TabView IsSelectedItemIndicatorVisible="False" HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
+HeaderPanelHeight="0">
             <dx:TabViewItem>
                 <dx:DXStackLayout>
                     <dx:DXDockLayout Padding="10,10">
-
                         <Label Text="Settings" FontSize="16" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
+                        
                         <VerticalStackLayout Padding="5" dx:DXDockLayout.Dock="Top" BackgroundColor="Transparent">
                             <VerticalStackLayout Spacing="5" BackgroundColor="Transparent" Grid.Column="2">
+                                <dx:DXButton Content="Quick Reconnect" Clicked="DXButton_Clicked_1"
+                                             BackgroundColor="DarkSlateBlue" TextColor="White"/>
                                 <Label Text="{Binding CurrentUser.UserName}"/>
                                 <Label Text="{Binding CurrentUser.UserEmail}"/>
                                 <Label Text="{Binding CurrentUser.DeviceFormFactor, StringFormat='Type of Device: {0}'}"/>
@@ -177,8 +187,311 @@
                     </dx:DXDockLayout>
                 </dx:DXStackLayout>
             </dx:TabViewItem>
-            <dx:TabViewItem>
-                
+            <dx:TabViewItem>              
+                <Grid x:Name="MainPage" Margin="5,0" >
+                    <Grid x:Name="MainDock" Margin="5,5" RowDefinitions="*,auto" >
+
+                        <dx:DXDockLayout IsVisible="True" StretchLastItem="False" 
+                                         x:Name="NormalNowPlayingUI"
+                             Grid.Row="0" 
+                            >
+
+                            <dx:DXStackLayout x:Name="SearchModeUI" dx:DXDockLayout.Dock="Top"
+                            IsVisible="False">
+                               
+                            </dx:DXStackLayout>
+
+                            <dx:TabView IsSelectedItemIndicatorVisible="False" SwipeEnabled="True"
+                    x:Name="HomeTabView" HeaderPanelPosition="Bottom"  PropertyChanged="HomeTabView_PropertyChanged"
+                        HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
+                        HeaderPanelHeight="0" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
+                        ItemHeaderMinHeight="0" ItemHeaderHeight="0">
+
+                                <dx:TabViewItem>
+                                    <dx:DXCollectionView  ItemsSource="{Binding ChatMessages}" x:Name="UserChatColView"
+                                            SelectionMode="Single" dx:DXDockLayout.Dock ="Top"
+                                            Orientation="Vertical" ItemSpacing="8">
+                                        <dx:DXCollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:UserActivity">
+                                                <dx:DXBorder Padding="5,2" CornerRadius="15">
+                                                    <dx:DXBorder.Triggers>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="0">
+                                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="1">
+                                                            <Setter Property="BorderColor" Value="Transparent" />
+                                                            <Setter Property="BorderThickness" Value="0" />
+                                                        </DataTrigger>
+                                                    </dx:DXBorder.Triggers>
+                                                    <Grid ColumnDefinitions="*,120" ColumnSpacing="10">
+
+                                                        <dx:DXStackLayout Grid.Column="0" ItemSpacing="5" >
+                                                            <Label  FontSize="20"   Text="{Binding ChatMessage.Content}" />
+                                                            <Label  FontSize="20"   Text="{Binding ChatMessage.Sender.Username}" />
+                                                            <Label  FontSize="14"   Text="{Binding DeviceIdiom}" TextColor="DarkOrange"/>
+                                                            
+                                                            
+                                                            <HorizontalStackLayout IsVisible="False">
+                                                                <ImageButton  Opacity="0.7" Grid.Column="1"
+                                                                              Source="multipleforwardleft.png" x:Name="AddReaction"
+                                                                              Clicked="AddReaction_Clicked">
+
+                                                                    <ImageButton.Behaviors>
+                                                                        <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                                                    </ImageButton.Behaviors>
+                                                                </ImageButton>
+                                                                <!--<ImageButton Source="reaction.png" x:Name="EditRemoveReaction" Clicked="EditRemoveReaction_Clicked"/>-->
+
+                                                            </HorizontalStackLayout>
+                                                        </dx:DXStackLayout>
+                             
+                                                    </Grid>
+
+                                                </dx:DXBorder>
+                                            </DataTemplate>
+                                        </dx:DXCollectionView.ItemTemplate>
+
+                                    </dx:DXCollectionView>
+                                </dx:TabViewItem>
+                            </dx:TabView>
+
+                        </dx:DXDockLayout>
+
+                        <dx:DXStackLayout 
+                             Grid.Row="1" >
+                            <dx:DXBorder x:Name="OGSenderView" BackgroundColor="Transparent">
+                                <VerticalStackLayout  IsVisible="True" BackgroundColor="Transparent">
+                                    <Button BackgroundColor="Transparent" Text="x" IsVisible="False"
+                                            x:Name="CloseReplyWindow" Clicked="CloseReplyWindow_Clicked"/>
+                                    <Label x:Name="OGSenderUserName" FontAttributes="Bold" />
+                                    <Label x:Name="OGSenderLabel" FontSize="18"
+                />
+
+                                </VerticalStackLayout>
+                            </dx:DXBorder>
+                            <dx:DXBorder Grid.Row="1" Opacity="0.8"
+               Loaded="BtmBar_Loaded"  
+               CornerRadius="12" BorderColor="Transparent"
+               BackgroundColor="#252526" HorizontalOptions="Fill"
+               x:Name="BtmBar" >
+                                <dx:DXBorder.GestureRecognizers>
+                                    <TapGestureRecognizer x:Name="BtmBarTapGest" Tapped="BtmBarTapGest_Tapped"/>
+                                    <PanGestureRecognizer x:Name="PanGesture" PanUpdated="PanGesture_PanUpdated" />
+                                </dx:DXBorder.GestureRecognizers>
+                                <dx:DXBorder.Content>
+
+                                    <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*"  >
+                                        <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
+                                     Grid.Column="0" x:Name="TopBtmBarView"
+                                     Orientation="Horizontal" >
+                                            <dx:ChipGroup >
+
+                                                <dx:Chip Icon="repoff.png" BorderColor="Transparent"
+                                    IconSize="35,35" IconColor="MediumPurple"
+                                    Tap="Chip_Tap"
+                                    TapCommandParameter="repeat">
+                                                    <dx:Chip.Triggers>
+                                                        <DataTrigger TargetType="dx:Chip" Value="0" Binding="{Binding CurrentRepeatMode}">
+
+                                                            <Setter Property="Icon" Value="repoff.png" />
+                                                            <Setter Property="IconSize" Value="15,15" />
+
+                                                        </DataTrigger>
+
+                                                        <DataTrigger TargetType="dx:Chip" Value="1" Binding="{Binding CurrentRepeatMode}">
+
+                                                            <Setter Property="Icon" Value="repeat.png"/>
+                                                            <Setter Property="IconSize" Value="15,15"/>
+
+                                                        </DataTrigger>
+
+                                                        <DataTrigger TargetType="dx:Chip" Value="2" Binding="{Binding CurrentRepeatMode}">
+
+                                                            <Setter Property="Icon" Value="repone.png"/>
+                                                            <Setter Property="IconSize" Value="15,15"/>
+
+                                                        </DataTrigger>
+
+                                                        <DataTrigger TargetType="dx:Chip" Value="4" Binding="{Binding CurrentRepeatMode}">
+                                                            <Setter Property="Icon" Value="repone.png"/>
+                                                            <Setter Property="IconSize" Value="15,15"/>
+
+                                                        </DataTrigger>
+                                                    </dx:Chip.Triggers>
+                                                </dx:Chip>
+
+                                                <dx:Chip  BorderColor="Transparent"
+                                    IconSize="35,35" IconColor="MediumPurple" 
+                                    TapCommand="{Binding ToggleShuffleStateCommand}"
+Icon="shuffle.png"  BackgroundColor="Transparent">
+                                                    <dx:Chip.TapCommandParameter>
+                                                        <x:Boolean>True</x:Boolean>
+                                                    </dx:Chip.TapCommandParameter>
+                                                    <dx:Chip.Triggers>
+                                                        <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:Chip">
+                                                            <Setter Property="BackgroundColor" Value="#B197FC"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:Chip" Binding="{Binding IsShuffleOn}" Value="False">
+                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                        </DataTrigger>
+                                                    </dx:Chip.Triggers>
+
+                                                </dx:Chip>
+                                            </dx:ChipGroup>
+                                            <dx:DXStackLayout.Triggers>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                            </dx:DXStackLayout.Triggers>
+                                        </dx:DXStackLayout>
+
+                                        <dx:DXStackLayout Orientation="Horizontal" Grid.ColumnSpan="2" 
+                                     Grid.Row="1" 
+                                 Padding="4">
+                                            <dx:DXStackLayout.Triggers>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                            </dx:DXStackLayout.Triggers>
+                                            <dx:RadialProgressBar Grid.Row="1" HeightRequest="65" Value="{Binding CurrentPositionPercentage}" 
+                       ValueIndicatorThickness="3" Thickness="10" AllowAnimation="True"
+                       Fill="Transparent" StartAngle="-180" SweepAngle="360"
+                       ValueIndicatorFill="DarkSlateBlue">
+
+                                                <dx:RadialProgressBar.Triggers>
+                                                    <DataTrigger TargetType="dx:RadialProgressBar" Binding="{Binding CurrentQueue}" Value="0">
+                                                        <Setter Property="ValueIndicatorFill" Value="MediumPurple"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="dx:RadialProgressBar" Binding="{Binding CurrentQueue}" Value="1">
+                                                        <Setter Property="ValueIndicatorFill" Value="LightCoral"/>
+                                                    </DataTrigger>
+                                                </dx:RadialProgressBar.Triggers>
+                                                <dx:RadialProgressBar.Content>
+                                                    <dx:Chip Icon="{Binding TemporarilyPickedSong.CoverImagePath}"
+                               IsIconVisible="True" BorderThickness="0"
+                               IconSize="50,50" PressedBackgroundColor="DarkSlateBlue"
+                               x:Name="BtmCoverImg"
+                               WidthRequest="60" HeightRequest="60"/>
+
+                                                </dx:RadialProgressBar.Content>
+                                            </dx:RadialProgressBar>
+
+                                            <dx:DXStackLayout>
+                                                <Label Text="{Binding TemporarilyPickedSong.Title}" 
+                              FontSize="20" x:Name="BtmBarTitle" />
+                                                <Label Text="{Binding TemporarilyPickedSong.ArtistName}" FontSize="14"
+                                  x:Name="BtmBarArtistName"/>
+
+                                            </dx:DXStackLayout>
+
+                                        </dx:DXStackLayout>
+
+                                        <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" Margin="15" Grid.Row="0">
+
+                                            <dx:DXStackLayout.Triggers>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                            </dx:DXStackLayout.Triggers>
+
+                                            <dx:Chip Icon="vinyl.png" WidthRequest="45" 
+                        x:Name="ContextIconn" IsVisible="False"
+                        Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
+                        IsIconVisible="True" IconColor="MediumPurple"
+                         IconSize="35,35"/>
+
+                                            <dx:Chip Icon="infocircle.png" WidthRequest="45"
+                   x:Name="ContextIcon"
+                   Tap="ContextIcon_Tap"
+                   BorderColor="Transparent"
+                   IsIconVisible="True"
+                   IconColor="MediumPurple"
+                   IconSize="35,35"
+                   />
+
+                                        </dx:DXStackLayout>
+
+                                        <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" Margin="15" Grid.Row="0">
+
+                                            <dx:DXStackLayout.Triggers>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
+                                                    <Setter Property="IsVisible" Value="True"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
+                                                    <Setter Property="IsVisible" Value="False"/>
+                                                </DataTrigger>
+                                            </dx:DXStackLayout.Triggers>
+                                            <dx:Chip Icon="vinyl.png" WidthRequest="45" x:Name="ViewNowPlayPage"
+                           Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
+                           IsIconVisible="True" IconColor="MediumPurple"
+                           IconSize="35,35"/>
+
+                                            <dx:Chip Icon="addcircle.png" WidthRequest="45"
+                   x:Name="SearchSong"
+                   
+                   BorderColor="Transparent"
+                   IsIconVisible="True"
+                   IconColor="MediumPurple"
+                   IconSize="35,35"
+                   />
+
+                                        </dx:DXStackLayout>
+
+                                    </Grid>
+
+                                </dx:DXBorder.Content>
+
+                            </dx:DXBorder>
+                               
+                            <Grid ColumnDefinitions="*,75" ColumnSpacing="5" >
+                                <dx:DXStackLayout   x:Name="ChatMsgView">
+                                    
+                                <dx:TextEdit  Grid.Column="0" CornerRadius="20" BorderColor="MediumPurple" FocusedBorderColor="DarkSlateBlue"
+                                    PlaceholderText="{OnPlatform WinUI='Leave a note.. (Tip: Press Windows Key + . for Emojis)'
+                                    ,Android='Leave a note..'} "  x:Name="ChatMsgViewText" Keyboard="Chat" 
+                    TextFontSize="20"/>
+                                </dx:DXStackLayout>
+                                <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" IsVisible="True"
+                            x:Name="SendView"                            
+                            Padding="5">
+                                    <dx:DXButton BackgroundColor="Transparent"
+                                                 BorderColor="DarkSlateBlue"
+                                                 IconColor="White" IconHeight="30" IconWidth="30"
+                                        PressedBackgroundColor="DarkSlateBlue"
+                                        Icon="multipleforwardright.png" ToolTipProperties.Text="Send"
+                        x:Name="SendTextMsgBtn" Clicked="SendTextMsgBtn_Clicked"/>
+                                </dx:DXStackLayout>
+
+                            </Grid>
+                            
+                        </dx:DXStackLayout>
+                        
+                    </Grid>
+
+                    <dx:BottomSheet x:Name="ContextBtmSheet"
+             IsVisible="False">
+                        <dx:BottomSheet.Content>
+                            <Label Text="CntxtBtmSheet"/>
+                        </dx:BottomSheet.Content>
+                    </dx:BottomSheet>
+
+                    <dx:DXPopup x:Name="SongsMenuPopup" PlacementTarget="{x:Reference myPage}"
+         AllowScrim="True" CloseOnScrimTap="True" 
+         WidthRequest="{Binding Width,Source={x:Reference MainPage}}">
+                        <Label Text="CntxtBtmSheet"/>
+
+                    </dx:DXPopup>
+                </Grid>
             </dx:TabViewItem>
         </dx:TabView>
     

@@ -575,7 +575,7 @@ public static class UserActivityLogger
 {
     public static async Task LogUserActivity(
         ParseUser sender,        
-        PlayType activityType, //0 - dimmer log, 1 - chatmessage, 2 - playSong,3 - pause, 4 - seeksong, 5 - completed song 
+        PlayType activityType, 
         ParseUser? recipient = null,
         Message? chatMessage = null,
         SharedPlaylist? sharedPlaylist = null,
@@ -608,7 +608,10 @@ public static class UserActivityLogger
             // --- Set Core Fields ---
 
             newActivity["sender"] = sender;
-            newActivity["activityType"] = (int)activityType;
+            newActivity["activityType"] = (int)activityType;          
+            newActivity["devicePlatform"] = DeviceInfo.Current.Platform.ToString();
+            newActivity["deviceIdiom"] = DeviceInfo.Current.Idiom.ToString();
+            newActivity["deviceVersion"] = DeviceInfo.Current.VersionString;
 
             // --- Set Optional Related Objects (Pointers) ---
             // Use null-conditional operator and null-coalescing operator for brevity and safety.

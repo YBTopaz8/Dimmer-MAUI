@@ -34,6 +34,8 @@ public partial class HomePageM : ContentPage
         MyViewModel.CurrentPage = PageEnum.MainPage;
 
 
+        await MyViewModel.ConnectToLiveQueriesAsync();
+        await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
     }
     private void ToggleRepeat_Clicked(object sender, EventArgs e)
     {

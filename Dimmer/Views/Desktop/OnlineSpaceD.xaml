@@ -25,7 +25,9 @@
             toolkit:DockLayout.DockPosition="Bottom">
             <Border x:Name="OGSenderView" BackgroundColor="Transparent">
                 <VerticalStackLayout  IsVisible="True" BackgroundColor="Transparent">
-                    <Button BackgroundColor="Transparent" Text="x" Clicked="Button_Clicked"/>
+                    <Button BackgroundColor="Transparent"
+                            x:Name="CloseReplyWindow" 
+                            Text="x" Clicked="CloseReplyWindow_Clicked"/>
                     <Label x:Name="OGSenderUserName" FontAttributes="Bold" />
                     <Label x:Name="OGSenderLabel" FontSize="18"
                            />
@@ -82,8 +84,7 @@
             </CollectionView>
             </Grid>
             
-            <CollectionView Grid.Column="1" VerticalOptions="Start"
-                            
+            <CollectionView Grid.Column="1" VerticalOptions="Start"                            
                             ItemsSource="{Binding ChatMessages}" x:Name="UserChatColView"
                             EmptyView="Nothing yet..." Grid.Row="1">
                 <CollectionView.ItemTemplate>
@@ -118,6 +119,7 @@
                                     <Label 
                                         FontSize="20"
                                         Text="{Binding ChatMessage.Sender.Username}" />
+                                    <Label  FontSize="14" Text="{Binding DeviceIdiom}" TextColor="DarkOrange"/>
 
                                     <HorizontalStackLayout>
                                             <ImageButton  

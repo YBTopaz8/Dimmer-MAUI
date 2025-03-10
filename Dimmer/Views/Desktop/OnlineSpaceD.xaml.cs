@@ -13,11 +13,11 @@ public partial class OnlineSpaceD : ContentPage
     }
     public HomePageVM? MyViewModel { get; }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        
+        MyViewModel.CurrentPage = PageEnum.OnlineChatPage;
     }
     private async void AddReaction_Clicked(object sender, EventArgs e)
     {
@@ -60,7 +60,7 @@ public partial class OnlineSpaceD : ContentPage
         
     }
 
-    private async void Button_Clicked(object sender, EventArgs e)
+    private async void CloseReplyWindow_Clicked(object sender, EventArgs e)
     {
 
         await OGSenderView.DimmOutCompletely();

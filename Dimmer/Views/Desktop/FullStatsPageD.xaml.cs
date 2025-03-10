@@ -62,8 +62,8 @@ public partial class FullStatsPageD : ContentPage
                 //MyViewModel.GetOngoingGapBetweenTracks();
                 break;
             case 2:
-                //ViewModel.
-                //ViewModel.InitializeDailyPlayEventData();
+                //MyViewModel.
+                //MyViewModel.InitializeDailyPlayEventData();
                 break;
             case 3:
                 break;

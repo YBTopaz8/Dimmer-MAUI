@@ -348,9 +348,9 @@ public partial class SingleSongShellPageD : ContentPage
         SelectedSongIds = [SelectedSong1Id];
         if (e.NewIndex == 6)
         {
-            //ViewModel.GetPlayCompletionStatus(SelectedSongIds);
+            //MyViewModel.GetPlayCompletionStatus(SelectedSongIds);
             //PeriodTabView.SelectedIndex = 0;
-            //ViewModel.LoadDailyData(SelectedSongIds);
+            //MyViewModel.LoadDailyData(SelectedSongIds);
         }
     }
 
@@ -360,7 +360,7 @@ public partial class SingleSongShellPageD : ContentPage
         {
             FilterDates.Clear();
             FilterDates.Add(e.Date);
-            //ViewModel.LoadDailyData(SelectedSongIds,FilterDates);
+            //MyViewModel.LoadDailyData(SelectedSongIds,FilterDates);
         }
         else
         {

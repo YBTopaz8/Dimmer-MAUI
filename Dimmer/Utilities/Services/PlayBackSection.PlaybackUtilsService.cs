@@ -279,13 +279,15 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (currentQueue.Count < 1 || currentIndex < currentQueue.Count - 1)
         {
-            PlaySong(currentQueue[currentIndex + 1], CurrentPlaybackSource);        
+            PlaySong(currentQueue[currentIndex + 1], CurrentPlaybackSource);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play);
             return;
         }
 
         else if (CurrentRepeatMode == RepeatMode.All && currentQueue.Any()) // Repeat All
         {
             PlaySong(currentQueue.First(), CurrentPlaybackSource);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play);
             return;
         }
         // If not repeat all and at the end, do nothing or stop playback
@@ -345,6 +347,7 @@ public partial class PlaybackUtilsService : ObservableObject
         }
 
         SongsMgtService.AddPDaCStateLink(links);
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Seeked, currentPositionInSec);
         return;
 #endif
         if (DimmerAudioService.IsPlaying)
@@ -730,7 +733,7 @@ public enum PlayType
     SeekRestarted = 7,
     CustomRepeat = 8,
     Previous=9,
-    logEvent,
+    logEvent=10,
 
 }
 public enum RepeatMode // Using enum for repeat modes

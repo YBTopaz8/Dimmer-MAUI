@@ -40,6 +40,10 @@ public partial class HomePageVM
             try
             {
 
+                if (CurrentUserOnline is null)
+                {
+                    return;
+                }
                 LiveQueryClient = new ParseLiveQueryClient();
                 LiveQueryClient.ConnectIfNeeded();
                 Console.WriteLine("Live Query Client Connected");
@@ -49,9 +53,6 @@ public partial class HomePageVM
                 SubscribeToChatMessages2();
 
                 await StartOrJoinChat(new List<string>() { CurrentUserOnline.ObjectId });
-                
-
-
                 AllUsersAvailable.Add(CurrentUserOnline);
 
             }
@@ -228,10 +229,10 @@ public partial class HomePageVM
                 .Include("chatMessage.Content") // Include sender details
                 .Include("nowPlaying");
                 
+            LiveQueryClient.NamedSubscriptions.ContainsKey("ChatMessagesSub");
 
-
-            var subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
-
+            Subscription<UserActivity>? subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
+            
             LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
@@ -518,6 +519,11 @@ public partial class HomePageVM
                     {
                         ObjectId = objData["objectId"].ToString(),                        
                         ActivityType = objData["activityType"].ToString()!,
+                        DeviceIdiom = objData["deviceIdiom"].ToString()!,
+                        
+                        DevicePlatform = objData["devicePlatform"].ToString()!,
+                        DeviceVersion = objData["deviceVersion"].ToString()!,
+                        
                     };
                     ParseUser emptyUsr = (ParseUser)objData["sender"];
                     // 3. Fetch the related objects if they exist.
@@ -552,7 +558,7 @@ public partial class HomePageVM
                     }
                     
                         // Add the fully populated UserActivity to your list.
-                        ChatMessages.Add(activity);
+                        ChatMessages.Insert(0,activity);
 
                     
                 }
@@ -679,7 +685,10 @@ public partial class HomePageVM
 
     public async Task SetChatRoom(ChatRoomOptions roomOption)
     {
-        
+        if (CurrentUserOnline is null)
+        {
+            return;
+        }
         var user = new List<string>
         {
             CurrentUserOnline.ObjectId
@@ -692,7 +701,7 @@ public partial class HomePageVM
         await newMessage.SaveAsync();
 
         await UserActivityLogger.LogUserActivity(CurrentUserOnline,
-            activityType: 0, chatMessage: newMessage,
+            activityType: PlayType.logEvent, chatMessage: newMessage,
             chatRoomm: CurrentChatRoom, CurrentUserOnline: CurrentUserOnline);
         switch (roomOption)
         {

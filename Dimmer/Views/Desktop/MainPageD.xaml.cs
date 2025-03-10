@@ -124,8 +124,6 @@ public partial class MainPageD : ContentPage
             isIniAssign = true;
         }
         ScrollToSong_Clicked(this, EventArgs.Empty);
-
-
     }
 
     protected override void OnDisappearing()

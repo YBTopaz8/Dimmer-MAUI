@@ -9,7 +9,8 @@ public partial class SongsManagementService
     public void UpdateUserLoginDetails(ParseUser usrr)
     {
         CurrentUserOnline = usrr;
-        CurrentOfflineUser.UserEmail = usrr.Username;
+        CurrentOfflineUser.UserEmail = usrr.Email;
+        CurrentOfflineUser.UserName = usrr.Username;
 
         CurrentOfflineUser.LastSessionDate = DateTimeOffset.UtcNow;
         UserModel usr = new(CurrentOfflineUser);
@@ -156,7 +157,7 @@ public partial class SongsManagementService
         catch (Exception ex)
         {
             Debug.WriteLine("Error getting user account online: " + ex.Message);
-            await Shell.Current.DisplayAlert("Hey!", ex.Message, "Ok");
+            await Shell.Current.DisplayAlert("Hey1!", ex.Message, "Ok");
             return null;
         }
     }
