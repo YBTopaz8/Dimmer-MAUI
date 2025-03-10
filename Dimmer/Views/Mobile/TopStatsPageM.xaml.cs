@@ -1,3 +1,4 @@
+using DevExpress.Maui.Core;
 using Syncfusion.Maui.Toolkit.EffectsView;
 
 namespace Dimmer_MAUI.Views.Mobile;
@@ -21,7 +22,10 @@ public partial class TopStatsPageM : ContentPage
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.FullStatsPage;
-        
+        var itemHandle = UserChatColView.GetItemHandle(MyViewModel.ChatMessages.Count);
+        UserChatColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
+
+
         //MyViewModel.LoadDailyData();
     }
 
@@ -50,146 +54,378 @@ public partial class TopStatsPageM : ContentPage
 
     //}
 
-    private async void StatsTabs_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
-    {
-        var selectedTab = StatsTabs.SelectedItem;
-        var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
-        if (selected is null)
-        {
-            return;
-        }
-        _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
-
-        switch (selectedStatView)
-        {
-            case 0:
-                //MyViewModel.GetDaysNeededForNextEddington();
-                //MyViewModel.GetParetoPlayRatio();
-                //MyViewModel.GetGiniPlayIndex();
-                //MyViewModel.GetFibonacciPlayCount();
-
-                //GeneralStatsView front, rest back
-                break;
-            case 1:
-                //SongsStatsView front, rest back
-                //MyViewModel.GetLifetimeBingeSong();
-                //MyViewModel.GetBiggestClimbers();
-                //MyViewModel.GetMostDimmsPerDay(15);
-                //MyViewModel.GetNotListenedStreaks();
-                //MyViewModel.GetTopStreakTracks();
-
-                //MyViewModel.GetGoldenOldies();
-
-
-                //MyViewModel.GetBiggestFallers(DateTime.Now.Month, DateTime.Now.Year);
-                //MyViewModel.GetStatisticalOutlierSongs();
-                //MyViewModel.GetDailyListeningVolume();
-                //MyViewModel.GetUniqueTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //MyViewModel.GetNewTracksInMonth(DateTime.Now.Month, DateTime.Now.Year);
-                //MyViewModel.GetOngoingGapBetweenTracks();
-                break;
-            case 2:
-                //MyViewModel.GetTopPlayedArtists();
-                break;
-            case 3:
-                //MyViewModel.GetTopPlayedAlbums();
-                break;
-            case 4:
-                break;
-            case 5:
-
-                break;
-            case 6:
-
-                break;
-            default:
-
-                break;
-        }
-
-        var viewss = new Dictionary<int, View>
-        {
-            {0, GeneralStatsView},
-            {1, SongsStatsView},
-            {2, ArtistsStatsView},
-            {3, AlbumsStatsView},
-            {4, DimmsStatsView},
-            {5, PlaylistsStatsView},
-            {6, GenreStatsView }
-        };
-        if (!viewss.ContainsKey(selectedStatView))
-            return;
-
-        await Task.WhenAll
-            (viewss.Select(kvp =>
-            kvp.Key == selectedStatView
-            ? kvp.Value.AnimateFadeInFront()
-            : kvp.Value.AnimateFadeOutBack()));
-        return;
-    }
-
+  
     int SelectedGeneralView;
-
-    private void SfEffectsView_TouchUp(object sender, EventArgs e)
+    private async void AddReaction_Clicked(object sender, EventArgs e)
     {
-        var send = (SfEffectsView)sender;
-        int.TryParse(send.TouchUpCommandParameter.ToString(), out SelectedGeneralView);
+        var send = (ImageButton)sender;
+        var uAct = send.BindingContext as UserActivity;
+        await OGSenderView.DimmInCompletely();
+        OGSenderUserName.Text = uAct.Sender.Username;
+        OGSenderLabel.Text = uAct.ChatMessage.Content;
+        //var Msg = (UserActivity)send.BindingContext
+    }
+ 
 
-        switch (SelectedGeneralView)
+    private void EditRemoveReaction_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void MsgBorderPointerRecog_PointerEntered(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private void MsgBorderPointerRecog_PointerExited(object sender, PointerEventArgs e)
+    {
+
+    }
+
+    private async void SendTextMsgBtn_Clicked(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(ChatMsgViewText.Text) || MyViewModel is null)
         {
-            case 0:
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            case 6:
-                break;
-            case 7:
-                break;
-            case 8:
-                break;
-            case 9:
-                break;
-            case 10:
-                break;
-            case 11:
-                break;
-            default:
-                break;
+            return;
+        }
+        await MyViewModel.SendMessageAsync(ChatMsgViewText.Text);
+        ChatMsgViewText.Text = string.Empty;
+        await OGSenderView.DimmOutCompletely();
+    }
+
+    private void SepecificUserVew_TouchDown(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void CloseReplyWindow_Clicked(object sender, EventArgs e)
+    {
+
+        await OGSenderView.DimmOutCompletely();
+    }
+    private void HomeTabView_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+
+    }
+    private void BtmBar_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+
+    private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (DXBorder)sender;
+
+        if (MyViewModel.IsPlaying)
+        {
+
+            MyViewModel.PauseSong();
+            RunFocusModeAnimation(send, Color.FromArgb("#8B0000")); // DarkRed for pause
+
+            await send.MyBackgroundColorTo(Color.FromArgb("#252526"), length: 300);
+        }
+        else
+        {
+            await send.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
+            //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
+            if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
+            {
+                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong);
+            }
+            else
+            {
+                MyViewModel.ResumeSong();
+            }
         }
 
     }
-
-
-    private async void FocusModePointerRec_PEntered(object sender, PointerEventArgs e)
+    public void RunFocusModeAnimation(DXBorder bView, Color strokeColor)
     {
-        var send = (View)sender;
-        await send.DimmIn(500);
+        if (bView == null)
+            return;
 
-    }
-    private async void FocusModePointerRec_PExited(object sender, PointerEventArgs e)
-    {
-        var send = (View)sender;
-        await send.DimmOut(300);
+        // Set the stroke color based on pause/resume state
+        bView.BorderColor= strokeColor;
 
+        // Define a single animation to embiggen the stroke
+        var expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
+            0,                                   // Start with 0 thickness
+            5,                                  // Expand to 10 thickness
+            Easing.CubicInOut                    // Smooth easing
+        );
+
+        // Shrink the stroke back to zero after embiggen
+        var shrinkAnimation = new Animation(
+            v => bView.BorderThickness = v,
+            5,                                   // Start at 10 thickness
+            0,                                    // Reduce to 0 thickness
+            Easing.CubicInOut
+        );
+
+        // Combine expand and shrink animations into one sequence
+        var animationSequence = new Animation
+        {
+            { 0, 0.5, expandAnimation },   // Embiggen in the first half
+            { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
+        };
+
+        // Run the full animation sequence
+        animationSequence.Commit(bView, "FocusModeAnimation", length: 300, easing: Easing.Linear);
     }
 
-    private void StatView_Loaded(object sender, EventArgs e)
-    {
-        var send = (View)sender;
-        _ = send.DimmOut(300);
-    }
     protected override bool OnBackButtonPressed()
     {
-      
-        return base.OnBackButtonPressed();
+
+        switch (HomeTabView.SelectedItemIndex)
+        {
+            case 0:
+                break;
+            case 1:
+                HomeTabView.SelectedItemIndex = 0;
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+
+    private double _startX;
+    private double _startY;
+    private bool _isPanning;
+    private CancellationTokenSource _debounceTokenSource = new CancellationTokenSource();
+    private int _lastFullyVisibleHandle = -1; // Track the last *fully visible* item handle.
+
+    private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        var send = (DXBorder)sender;
+
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _isPanning = true;
+                _startX = BtmBar.TranslationX;
+                _startY = BtmBar.TranslationY;
+                break;
+
+            case GestureStatus.Running:
+                if (!_isPanning)
+                    return; // Safety check
+
+                BtmBar.TranslationX = _startX + e.TotalX;
+                BtmBar.TranslationY = _startY + e.TotalY;
+                break;
+
+            case GestureStatus.Completed:
+                _isPanning = false;
+
+                double deltaX = BtmBar.TranslationX - _startX;
+                double deltaY = BtmBar.TranslationY - _startY;
+                double absDeltaX = Math.Abs(deltaX);
+                double absDeltaY = Math.Abs(deltaY);
+
+                // Haptic feedback based on direction
+                if (absDeltaX > absDeltaY) // Horizontal swipe
+                {
+                    if (absDeltaX > absDeltaY) // Horizontal swipe
+                    {
+                        try
+                        {
+                            if (deltaX > 0) // Right
+                            {
+                                HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                                Debug.WriteLine("Swiped Right");
+
+                                MyViewModel.PlayNextSongCommand.Execute(null);
+
+                                var colorTask = AnimateColor(send, Colors.SlateBlue);
+                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+
+                                await Task.WhenAll(colorTask, bounceTask);
+                            }
+                            else // Left
+                            {
+                                Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
+                                MyViewModel.PlayPreviousSongCommand.Execute(null);
+
+                                var colorTask = AnimateColor(send, Colors.MediumPurple);
+                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+
+                                await Task.WhenAll(colorTask, bounceTask);
+                            }
+                        }
+                        catch { }
+                    }
+
+                    else // Left
+                    {
+                        try
+                        {
+                            Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
+                            MyViewModel.PlayPreviousSongCommand.Execute(null);
+                            Debug.WriteLine("Swiped left");
+                            var t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
+                            var t2 = Task.Delay(500);
+                            var t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+                            await Task.WhenAll(t1, t2, t3);
+                        }
+                        catch { }
+                    }
+                }
+                else  //Vertical swipe
+                {
+                    if (deltaY > 0) // Down
+                    {
+                        try
+                        {
+                            if (HomeTabView.SelectedItemIndex != 0)
+                            {
+                                HomeTabView.SelectedItemIndex=0;
+                            }
+                            //var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                            //SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                        }
+                        catch { }
+                    }
+                    else  //Up
+                    {
+                        try
+                        {
+                            if (HomeTabView.SelectedItemIndex != 1)
+                            {
+                                HomeTabView.SelectedItemIndex = 1;
+                                //await MyViewModel.AssignSyncLyricsCV(LyricsColView);
+                            }
+                            else
+                            {
+                                MyViewModel.LoadArtistSongs();
+                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                                //await NowPlayingQueueView.DimmOutCompletely();
+                                //NowPlayingQueueView.IsVisible=false;
+                                //await ArtistSongsView.DimmInCompletely();
+                                //ArtistSongsView.IsVisible=true;
+                                //HomeTabView.SelectedItemIndex = prevViewIndex;
+                            }
+                        }
+                        catch { }
+                    }
+
+                }
+
+                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                break;
+
+
+            case GestureStatus.Canceled:
+                _isPanning = false;
+                await BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut); // Return to original position
+                break;
+
+        }
+    }
+    int prevViewIndex = 0;
+    // Extracted color animation method for reusability
+    async Task AnimateColor(VisualElement element, Color color)
+    {
+        await element.MyBackgroundColorTo(color, length: 300);
+        await Task.Delay(300); // Reduce freeze by using a lower delay
+        await element.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+    }
+    private void Chip_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var param = send.TapCommandParameter.ToString();
+        switch (param)
+        {
+            case "repeat":
+
+                MyViewModel.ToggleRepeatModeCommand.Execute(true);
+
+                break;
+            case "shuffle":
+                MyViewModel.CurrentQueue = 1;
+                break;
+            case "Lyrics":
+                MyViewModel.CurrentQueue = 2;
+                break;
+            default:
+                break;
+        }
+
+    }
+    private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+    }
+    private void ContextIcon_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.LoadArtistSongs();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+    }
+
+
+    private void UserChatColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void UserChatColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColViewDX= UserChatColView;
+    }
+
+    private void UserChatColView_Unloaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColViewDX= null;
+    }
+
+
+    private bool _isAnimating;
+    private double _containerWidth;
+    private async void MarqueeLabel_SizeChanged(object sender, EventArgs e)
+    {
+        if (BtmBar.Width <= 0)
+            return;
+
+        _containerWidth = BtmBar.Width;
+        // Start animation if text width is larger than container
+        if (!_isAnimating && GetTextWidth() > _containerWidth)
+            await StartAnimation();
+    }
+
+    private double GetTextWidth()
+    {
+        // Measures the text width based on available height
+        var size = Measure(double.PositiveInfinity, Height);
+        return size.Width;
+    }
+
+    public async Task StartAnimation()
+    {
+        _isAnimating = true;
+        double textWidth = GetTextWidth();
+
+        // Calculate extra distance to scroll completely off screen
+        double scrollDistance = textWidth + _containerWidth;
+
+        // Reset starting position (text starts at container's right edge)
+        TranslationX = _containerWidth;
+
+        while (true)
+        {
+
+            // Animate translation: move from right to left completely
+            await this.TranslateTo(-textWidth, 0, 5000, Easing.Linear);
+            // Optional pause at the end
+            await Task.Delay(1000);
+            // Reset instantly to starting position
+            TranslationX = _containerWidth;
+        }
     }
 }

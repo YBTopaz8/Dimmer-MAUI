@@ -37,7 +37,7 @@
             
             <ShellContent 
        ContentTemplate="{DataTemplate viewsM:TopStatsPageM}"
-       Route="AlbumM"/>
+       Route="ChatM"/>
         </Tab>
         <Tab Title="Profile" x:Name="SettingsPage"
              Icon="usercircle.png">
