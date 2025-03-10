@@ -6,7 +6,8 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"         
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"            
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"       
+             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"       
 
             xmlns:dx="http://schemas.devexpress.com/maui"
              Shell.NavBarIsVisible="True"
@@ -27,12 +28,12 @@ x:Name="myPage"
         </ResourceDictionary>
     </ContentPage.Resources>
 
-
-        <dx:DXScrollView>
-        <dx:TabView IsSelectedItemIndicatorVisible="False" HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
-HeaderPanelHeight="0">
+        <dx:TabView IsSelectedItemIndicatorVisible="False" SelectedItemIndex="{Binding SettingsPageIndex}"
+                    HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
+                    SwipeEnabled="False" x:Name="MainTabView"
+                    HeaderPanelHeight="0">
             <dx:TabViewItem>
-                <dx:DXStackLayout>
+                <dx:DXStackLayout >
                     <dx:DXDockLayout Padding="10,10">
                         <Label Text="Settings" FontSize="16" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
                         
@@ -182,6 +183,11 @@ HeaderPanelHeight="0">
                      Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
                      TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
                             <Label Text="Dimmer By Yvan Brunel" HorizontalTextAlignment="Center"/>
+
+                            <dx:DXButton Icon="notificationunread" x:Name="OpenChatPage" Clicked="OpenChatPage_Clicked"
+                                         BackgroundColor="Transparent"
+                                         IconColor="White"
+                                         PressedBackgroundColor="DarkSlateBlue"/>
                         </VerticalStackLayout>
 
                     </dx:DXDockLayout>
@@ -189,7 +195,7 @@ HeaderPanelHeight="0">
             </dx:TabViewItem>
             <dx:TabViewItem>              
                 <Grid x:Name="MainPage" Margin="5,0" >
-                    <Grid x:Name="MainDock" Margin="5,5" RowDefinitions="*,auto" >
+                    <Grid x:Name="MainDock" Margin="5,5" RowDefinitions="*,auto" RowSpacing="5">
 
                         <dx:DXDockLayout IsVisible="True" StretchLastItem="False" 
                                          x:Name="NormalNowPlayingUI"
@@ -204,26 +210,213 @@ HeaderPanelHeight="0">
                             <dx:TabView IsSelectedItemIndicatorVisible="False" SwipeEnabled="True"
                     x:Name="HomeTabView" HeaderPanelPosition="Bottom"  PropertyChanged="HomeTabView_PropertyChanged"
                         HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
-                        HeaderPanelHeight="0" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
+                        HeaderPanelHeight="0" 
                         ItemHeaderMinHeight="0" ItemHeaderHeight="0">
 
                                 <dx:TabViewItem>
                                     <dx:DXCollectionView  ItemsSource="{Binding ChatMessages}" x:Name="UserChatColView"
                                             SelectionMode="Single" dx:DXDockLayout.Dock ="Top"
-                                            Orientation="Vertical" ItemSpacing="8">
+                                            Loaded="UserChatColView_Loaded" Unloaded="UserChatColView_Unloaded"
+                                            Orientation="Vertical" ItemSpacing="8"
+                                                          SelectionChanged="UserChatColView_SelectionChanged">
                                         <dx:DXCollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:UserActivity">
                                                 <dx:DXBorder Padding="5,2" CornerRadius="15">
                                                     <dx:DXBorder.Triggers>
+                                                        
+                                                        
+                                                        <!-- Playback Controls (DarkSlateBlue variations) -->
                                                         <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="0">
-                                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
-                                                            <Setter Property="BorderThickness" Value="1" />
+                                                            <!-- Play -->
+                                                            <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+                                                            <!-- Primary action, use the main color -->
                                                         </DataTrigger>
                                                         <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="1">
-                                                            <Setter Property="BorderColor" Value="Transparent" />
-                                                            <Setter Property="BorderThickness" Value="0" />
+                                                            <!-- Pause -->
+                                                            <Setter Property="BorderColor" Value="Red"/>
+                                                            <!-- Gray, common for disabled/paused states -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="2">
+                                                            <!-- Resume -->
+                                                            <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+                                                            <!-- Same as Play, re-engaging -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="3">
+                                                            <!-- Completed -->
+                                                            <Setter Property="BorderColor" Value="Green"/>
+                                                            <!-- Success/completion -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="4">
+                                                            <!-- Seeked -->
+                                                            <Setter Property="BorderColor" Value="MediumSlateBlue"/>
+                                                            <!-- Lighter variation of DarkSlateBlue, indicating a change in position -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="5">
+                                                            <!-- Skipped -->
+                                                            <Setter Property="BorderColor" Value="#A8A1C7"/>
+                                                            <!-- Light purple/gray, visually distinct but related to DarkSlateBlue -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="6">
+                                                            <!-- Restarted -->
+                                                            <Setter Property="BorderColor" Value="RoyalBlue"/>
+                                                            <!-- A brighter, more vibrant blue for a fresh start -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="7">
+                                                            <!-- SeekRestarted -->
+                                                            <Setter Property="BorderColor" Value="CornflowerBlue"/>
+                                                            <!-- Similar to Restarted, but slightly lighter due to the "seek" aspect -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="8">
+                                                            <!-- CustomRepeat -->
+                                                            <Setter Property="BorderColor" Value="MediumPurple"/>
+                                                            <!-- Distinct from other blues, suggesting a custom action -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="9">
+                                                            <!-- Previous -->
+                                                            <Setter Property="BorderColor" Value="LightSlateGray"/>
+                                                            <!-- Muted blue-gray, suggests going back -->
+                                                        </DataTrigger>
+
+                                                        <!-- Logging and Chat Actions (More diverse, but still related) -->
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="10">
+                                                            <!-- LogEvent -->
+                                                            <Setter Property="BorderColor" Value="DimGray"/>
+                                                            <!-- Neutral, informational -->
+                                                        </DataTrigger>
+
+                                                        <!-- Chat Actions (Variations of blue/purple, with some exceptions) -->
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="11">
+                                                            <!-- ChatSent -->
+                                                            <Setter Property="BorderColor" Value="#6A5ACD"/>
+                                                            <!-- Slightly lighter DarkSlateBlue, indicating outgoing -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="12">
+                                                            <!-- ChatReceived -->
+                                                            <Setter Property="BorderColor" Value="#7B68EE"/>
+                                                            <!-- Another variation of DarkSlateBlue, for incoming -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="13">
+                                                            <!-- ChatDeleted -->
+                                                            <Setter Property="BorderColor" Value="Red"/>
+                                                            <!-- Standard color for deletion -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="14">
+                                                            <!-- ChatEdited -->
+                                                            <Setter Property="BorderColor" Value="Orange"/>
+                                                            <!-- Indicates modification -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="15">
+                                                            <!-- ChatPinned -->
+                                                            <Setter Property="BorderColor" Value="#9370DB"/>
+                                                            <!-- Lighter purple, stands out -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="16">
+                                                            <!-- ChatUnpinned -->
+                                                            <Setter Property="BorderColor" Value="#D8BFD8"/>
+                                                            <!-- Lighter, desaturated purple, less prominent -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="17">
+                                                            <!-- ChatLiked -->
+                                                            <Setter Property="BorderColor" Value="HotPink"/>
+                                                            <!-- Common for likes/favorites -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="18">
+                                                            <!-- ChatUnliked -->
+                                                            <Setter Property="BorderColor" Value="LightPink"/>
+                                                            <!-- Paler version of liked color -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="19">
+                                                            <!-- ChatShared -->
+                                                            <Setter Property="BorderColor" Value="#4682B4"/>
+                                                            <!-- SteelBlue, distinct but professional -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="20">
+                                                            <!-- ChatUnread -->
+                                                            <Setter Property="BorderColor" Value="Teal"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="21">
+                                                            <!-- ChatRead -->
+                                                            <Setter Property="BorderColor" Value="#ADD8E6"/>
+                                                            <!-- LightBlue -->
+                                                        </DataTrigger>
+
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="22">
+                                                            <!-- ChatMentioned -->
+                                                            <Setter Property="BorderColor" Value="#00CED1"/>
+                                                            <!-- DarkTurquoise-->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="23">
+                                                            <!-- ChatUnMentioned -->
+                                                            <Setter Property="BorderColor" Value="#AFEEEE"/>
+                                                            <!-- PaleTurquoise -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="24">
+                                                            <!-- ChatReplied -->
+                                                            <Setter Property="BorderColor" Value="#66CDAA"/>
+                                                            <!-- MediumAquaMarine -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="25">
+                                                            <!-- ChatUnreplied -->
+                                                            <Setter Property="BorderColor" Value="#E0FFFF"/>
+                                                            <!-- LightCyan -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="26">
+                                                            <!-- ChatForwarded -->
+                                                            <Setter Property="BorderColor" Value="#87CEFA"/>
+                                                            <!-- LightSkyBlue-->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="27">
+                                                            <!-- ChatUnforwarded -->
+                                                            <Setter Property="BorderColor" Value="#F0F8FF"/>
+                                                            <!-- AliceBlue -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="28">
+                                                            <!-- ChatSaved -->
+                                                            <Setter Property="BorderColor" Value="DarkOliveGreen"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="29">
+                                                            <!-- ChatUnsaved -->
+                                                            <Setter Property="BorderColor" Value="#BDB76B"/>
+                                                            <!-- DarkKhaki-->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="30">
+                                                            <!-- ChatReported -->
+                                                            <Setter Property="BorderColor" Value="#B22222"/>
+                                                            <!--FireBrick -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="31">
+                                                            <!-- ChatUnreported -->
+                                                            <Setter Property="BorderColor" Value="#F08080"/>
+                                                            <!--LightCoral -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="32">
+                                                            <!-- ChatBlocked -->
+                                                            <Setter Property="BorderColor" Value="#2F4F4F"/>
+                                                            <!-- DarkSlateGray -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="33">
+                                                            <!-- ChatUnblocked -->
+                                                            <Setter Property="BorderColor" Value="#696969"/>
+                                                            <!-- DimGray -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="34">
+                                                            <!-- ChatMuted -->
+                                                            <Setter Property="BorderColor" Value="#708090"/>
+                                                            <!-- SlateGray -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="35">
+                                                            <!-- ChatUnmuted -->
+                                                            <Setter Property="BorderColor" Value="#778899"/>
+                                                            <!-- LightSlateGray -->
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="dx:DXBorder" Binding="{Binding ActivityType}" Value="36">
+                                                            <!-- ChatPinnedMessage -->
+                                                            <Setter Property="BorderColor" Value="#9370DB"/>
+                                                            <!-- MediumPurple, same as Pinned -->
                                                         </DataTrigger>
                                                     </dx:DXBorder.Triggers>
+                                                    
+                                                    
                                                     <Grid ColumnDefinitions="*,120" ColumnSpacing="10">
 
                                                         <dx:DXStackLayout Grid.Column="0" ItemSpacing="5" >
@@ -258,7 +451,7 @@ HeaderPanelHeight="0">
 
                         </dx:DXDockLayout>
 
-                        <dx:DXStackLayout 
+                        <dx:DXStackLayout ItemSpacing="8"
                              Grid.Row="1" >
                             <dx:DXBorder x:Name="OGSenderView" BackgroundColor="Transparent">
                                 <VerticalStackLayout  IsVisible="True" BackgroundColor="Transparent">
@@ -281,8 +474,20 @@ HeaderPanelHeight="0">
                                 </dx:DXBorder.GestureRecognizers>
                                 <dx:DXBorder.Content>
 
-                                    <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*"  >
-                                        <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
+                                    <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*,Auto,Auto"  >
+
+
+                                    <customControl:MarqueeLabel Grid.Row="0" Text="{Binding MySelectedSong.Title}" SizeChanged="MarqueeLabel_SizeChanged"
+      LineBreakMode="HeadTruncation" FontSize="35"/>
+
+                                    <customControl:MarqueeLabel  Text="{Binding MySelectedSong.ArtistName}" 
+      LineBreakMode="TailTruncation" Opacity="0.6" 
+                   FontSize="22" SizeChanged="MarqueeLabel_SizeChanged"/>
+
+                                    <customControl:MarqueeLabel  Text="{Binding MySelectedSong.AlbumName}" 
+             LineBreakMode="HeadTruncation" SizeChanged="MarqueeLabel_SizeChanged"
+                   FontSize="15"/>
+                                    <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
                                      Grid.Column="0" x:Name="TopBtmBarView"
                                      Orientation="Horizontal" >
                                             <dx:ChipGroup >
@@ -404,8 +609,8 @@ Icon="shuffle.png"  BackgroundColor="Transparent">
                                                 </DataTrigger>
                                             </dx:DXStackLayout.Triggers>
 
-                                            <dx:Chip Icon="vinyl.png" WidthRequest="45" 
-                        x:Name="ContextIconn" IsVisible="False"
+                                            <dx:Chip Icon="microphone.png" WidthRequest="45" 
+                        x:Name="ContextIconn" IsVisible="True"
                         Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
                         IsIconVisible="True" IconColor="MediumPurple"
                          IconSize="35,35"/>
@@ -421,31 +626,6 @@ Icon="shuffle.png"  BackgroundColor="Transparent">
 
                                         </dx:DXStackLayout>
 
-                                        <dx:DXStackLayout Orientation="Horizontal" Grid.Column="1" Margin="15" Grid.Row="0">
-
-                                            <dx:DXStackLayout.Triggers>
-                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
-                                                    <Setter Property="IsVisible" Value="True"/>
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="1">
-                                                    <Setter Property="IsVisible" Value="False"/>
-                                                </DataTrigger>
-                                            </dx:DXStackLayout.Triggers>
-                                            <dx:Chip Icon="vinyl.png" WidthRequest="45" x:Name="ViewNowPlayPage"
-                           Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
-                           IsIconVisible="True" IconColor="MediumPurple"
-                           IconSize="35,35"/>
-
-                                            <dx:Chip Icon="addcircle.png" WidthRequest="45"
-                   x:Name="SearchSong"
-                   
-                   BorderColor="Transparent"
-                   IsIconVisible="True"
-                   IconColor="MediumPurple"
-                   IconSize="35,35"
-                   />
-
-                                        </dx:DXStackLayout>
 
                                     </Grid>
 
@@ -495,5 +675,4 @@ Icon="shuffle.png"  BackgroundColor="Transparent">
             </dx:TabViewItem>
         </dx:TabView>
     
-    </dx:DXScrollView>
 </ContentPage>

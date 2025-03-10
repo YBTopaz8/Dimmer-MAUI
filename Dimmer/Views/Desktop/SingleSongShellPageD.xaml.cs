@@ -723,12 +723,12 @@ public partial class SingleSongShellPageD : ContentPage
     {
         await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
-        //if (Clipboard.Default.HasText)
-        //{
-        //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
-        //}
+        if (Clipboard.Default.HasText)
+        {
+            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        }
 
-        
+
     }
 
     bool IsSyncing = false;

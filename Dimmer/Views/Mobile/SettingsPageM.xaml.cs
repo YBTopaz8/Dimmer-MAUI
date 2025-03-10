@@ -26,9 +26,12 @@ public partial class SettingsPageM : ContentPage
         LoginUI.IsVisible = !LoginUI.IsVisible;
         SignUpUI.IsVisible = !SignUpUI.IsVisible;
     }
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
+                
+        var itemHandle = UserChatColView.GetItemHandle(MyViewModel.ChatMessages.Count);
+        UserChatColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
         //await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
 
         //LoginBtn_Clicked(null, null); //review this.
@@ -178,7 +181,7 @@ public partial class SettingsPageM : ContentPage
     }
     private void HomeTabView_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-
+        
     }
     private void BtmBar_Loaded(object sender, EventArgs e)
     {
@@ -245,6 +248,22 @@ public partial class SettingsPageM : ContentPage
 
         // Run the full animation sequence
         animationSequence.Commit(bView, "FocusModeAnimation", length: 300, easing: Easing.Linear);
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+       
+        switch (HomeTabView.SelectedItemIndex)
+        {
+            case 0:
+                break;
+            case 1:
+                HomeTabView.SelectedItemIndex = 0;
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
 
@@ -429,5 +448,69 @@ public partial class SettingsPageM : ContentPage
     private void DXButton_Clicked_1(object sender, EventArgs e)
     {
         MyViewModel.SongsMgtService.GetUserAccountOnline();
+    }
+
+    private void UserChatColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
+    {
+       
+    }
+
+    private void UserChatColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColViewDX= UserChatColView;
+    }
+
+    private void UserChatColView_Unloaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColViewDX= null;    
+    }
+
+    private void OpenChatPage_Clicked(object sender, EventArgs e)
+    {
+        MainTabView.SelectedItemIndex = 1;
+    }
+
+
+    private bool _isAnimating;
+    private double _containerWidth;
+    private async void MarqueeLabel_SizeChanged(object sender, EventArgs e)
+    {
+        if (BtmBar.Width <= 0)
+            return;
+
+        _containerWidth = BtmBar.Width;
+        // Start animation if text width is larger than container
+        if (!_isAnimating && GetTextWidth() > _containerWidth)
+            await StartAnimation();
+    }
+
+    private double GetTextWidth()
+    {
+        // Measures the text width based on available height
+        var size = Measure(double.PositiveInfinity, Height);
+        return size.Width;
+    }
+
+    public async Task StartAnimation()
+    {
+        _isAnimating = true;
+        double textWidth = GetTextWidth();
+
+        // Calculate extra distance to scroll completely off screen
+        double scrollDistance = textWidth + _containerWidth;
+
+        // Reset starting position (text starts at container's right edge)
+        TranslationX = _containerWidth;
+
+        while (true)
+        {
+
+            // Animate translation: move from right to left completely
+            await this.TranslateTo(-textWidth, 0, 5000, Easing.Linear);
+            // Optional pause at the end
+            await Task.Delay(1000);
+            // Reset instantly to starting position
+            TranslationX = _containerWidth;
+        }
     }
 }

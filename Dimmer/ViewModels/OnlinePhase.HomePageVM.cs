@@ -1,7 +1,9 @@
-﻿using MongoDB.Bson;
+﻿using DevExpress.Maui.CollectionView;
+using MongoDB.Bson;
 using Parse.LiveQuery;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,6 +64,121 @@ public partial class HomePageVM
                 // Implement robust reconnection logic here
             }
         }
+    }
+    public DXCollectionView? userChatColViewDX;
+    public CollectionView? userChatColView;
+    async Task ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e)
+    {
+        if (ChatMessages is null)
+        {
+            ChatMessages =new();
+        }
+
+        var objData = e.objectDictionnary as Dictionary<string, object>;
+        if (objData is null)
+            return;
+
+        UserActivity activity;
+
+        switch (e.evt)
+        {
+            case Subscription.Event.Enter:
+                Debug.WriteLine("Entered");
+                break;
+
+            case Subscription.Event.Leave:
+                Debug.WriteLine("Left");
+                break;
+
+            case Subscription.Event.Create:
+
+                try
+                {
+
+                    // 2. Create a *new* UserActivity object with just the objectId.
+                    activity = new UserActivity()
+                    {
+                        ObjectId = objData["objectId"].ToString(),
+                        ActivityType = objData["activityType"].ToString()!,
+                        DeviceIdiom = objData["deviceIdiom"].ToString()!,
+
+                        DevicePlatform = objData["devicePlatform"].ToString()!,
+                        DeviceVersion = objData["deviceVersion"].ToString()!,
+
+                    };
+                    ParseUser emptyUsr = (ParseUser)objData["sender"];
+                    // 3. Fetch the related objects if they exist.
+
+                    if (objData.ContainsKey("chatMessage"))
+                    {
+                        // Create a *new* Message object with just the objectId.
+                        Message uMsg = (Message)objData["chatMessage"];
+
+
+
+                        var qa = ParseClient.Instance.GetQuery<Message>()
+                            .WhereEqualTo("objectId", uMsg.ObjectId);
+                        uMsg = await qa.FirstOrDefaultAsync();
+
+
+                        var q1 = ParseClient.Instance.GetQuery<ParseUser>()
+                            .WhereEqualTo("objectId", emptyUsr.ObjectId);
+                        uMsg.Sender = await q1.FirstOrDefaultAsync();
+                        activity.Sender= uMsg.Sender;
+                        activity.ChatMessage=uMsg;
+
+                        if (uMsg.ChatRoom is not null)
+                        {
+                            var q2 = ParseClient.Instance.GetQuery<ChatRoom>()
+                                .WhereEqualTo("objectId", uMsg.ChatRoom.ObjectId);
+                            var resChatRoom = await q2.FirstOrDefaultAsync();
+                            uMsg.ChatRoom = resChatRoom;
+                        }
+
+
+                    }
+                    LatestActivity = activity;
+                    ChatMessages.Add(activity);
+                    
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing UserActivity: {ex.Message}");
+                }
+
+                break;
+            case Subscription.Event.Update:
+                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
+                var obj = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+
+                if (obj != null)
+                {
+                    ChatMessages[ChatMessages.IndexOf(obj)] = activity;
+                }
+                break;
+
+            case Subscription.Event.Delete:
+                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
+                var objToDelete = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+
+                if (objToDelete != null)
+                {
+                    ChatMessages.Remove(objToDelete);
+                }
+                if (ChatMessages.Count>1)
+                {
+                    //for some interesting reasons, if you call this when messages.count <1 it will crash/disconnect LQ subscription. (or maybe send it to another thread?)
+                    MainThread.BeginInvokeOnMainThread(() => UserChatColView?.ScrollTo(ChatMessages.LastOrDefault(), null, ScrollToPosition.End, true));
+                }
+                break;
+
+            default:
+                Debug.WriteLine("Unhandled event type.");
+                break;
+        }
+
+        Debug.WriteLine($"Processed {e.evt} on object {objData?.GetType()}");
     }
 
     public void Disconnect()
@@ -222,17 +339,17 @@ public partial class HomePageVM
         try
         {
             // Listen for UserActivity objects of type "ChatMessage"
-            var query = ParseClient.Instance.GetQuery<UserActivity>()                
-                             
+            var query = ParseClient.Instance.GetQuery<UserActivity>()
+
                 .Include("chatMessage")  // Important: Include the chatMessage pointer
                 .Include("chatMessage.Sender") // Include sender details
                 .Include("chatMessage.Content") // Include sender details
                 .Include("nowPlaying");
-                
+
             LiveQueryClient.NamedSubscriptions.ContainsKey("ChatMessagesSub");
 
             Subscription<UserActivity>? subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
-            
+
             LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
@@ -282,36 +399,51 @@ public partial class HomePageVM
                     ? "User disconnected."
                     : "Server disconnected."))
                 .Subscribe();
-            
+
             LiveQueryClient.OnSubscribed
                 .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
                 .Subscribe();
 
 
             LiveQueryClient.OnObjectEvent
-            .Where(e => e.subscription == subscription) // Filter relevant events
-            .GroupBy(e => e.evt)
-            .SelectMany(group =>
-            {
-                if (group.Key == Subscription.Event.Create)
+                .Synchronize()
+                .GroupBy(evt => evt.evt)
+                .SelectMany(group =>
                 {
-                    // Apply throttling only to CREATE events
-                    return group.Throttle(throttleTime)
-                                .Buffer(TimeSpan.FromSeconds(1), 3) // Further control
-                                .SelectMany(batch => batch); // Flatten the batch
-                }
-                else
-                {
-                    //do something with group !
-                    // Pass through other events without throttling
-                    return group;
-                }
-            })
-            .Subscribe(async e =>
+                    if (group.Key == Subscription.Event.Create)
+                    {
+                        // Buffer CREATE events for 500ms intervals
+                        return group.Buffer(TimeSpan.FromMilliseconds(500))
+                                    .SelectMany(batch => batch); // Flatten batch while preserving order
+                    }
+                    else
+                    {
+                        // Immediately pass other events without throttle
+                        return group;
+                    }
+                })
+                .Select(evt => Observable.FromAsync(() => ProcessEvent(evt)))
+                .Concat() // Serialize ProcessEvent calls
+    .ToList()
+    .Subscribe(results => // 'results' is a list (likely of void, depending on ProcessEvent's return type)
+    {
+        // This block executes *after* all ProcessEvent calls have completed.
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+#if WINDOWS
+            if (userChatColView is not null)
             {
-                await ProcessEvent(e);
-            });
-
+                userChatColView.ScrollTo(index: ChatMessages.Count, position: ScrollToPosition.End, animate: false);
+            }
+#elif ANDROID
+            if (userChatColViewDX is not null)
+            {
+                var itemHandle = userChatColViewDX.FindItemHandle(LatestActivity);
+                userChatColViewDX.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
+            }
+#endif
+        });
+    });
         }
         catch (Exception ex)
         {
@@ -486,121 +618,9 @@ public partial class HomePageVM
             Console.WriteLine($"Failed to accept friend request: {ex.Message}");
         }
     }
-    async Task ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e)
-    {
-        if (ChatMessages is null)
-        {
-            ChatMessages =new();
-        }
-
-        var objData = e.objectDictionnary as Dictionary<string, object>;
-        if (objData is null)
-            return;
-
-        UserActivity activity;
-
-        switch (e.evt)
-        {
-            case Subscription.Event.Enter:
-                Debug.WriteLine("Entered");
-                break;
-
-            case Subscription.Event.Leave:
-                Debug.WriteLine("Left");
-                break;
-
-            case Subscription.Event.Create:
-
-                try
-                {
-
-                    // 2. Create a *new* UserActivity object with just the objectId.
-                    activity = new UserActivity()
-                    {
-                        ObjectId = objData["objectId"].ToString(),                        
-                        ActivityType = objData["activityType"].ToString()!,
-                        DeviceIdiom = objData["deviceIdiom"].ToString()!,
-                        
-                        DevicePlatform = objData["devicePlatform"].ToString()!,
-                        DeviceVersion = objData["deviceVersion"].ToString()!,
-                        
-                    };
-                    ParseUser emptyUsr = (ParseUser)objData["sender"];
-                    // 3. Fetch the related objects if they exist.
-
-                    if (objData.ContainsKey("chatMessage"))
-                    {
-                        // Create a *new* Message object with just the objectId.
-                        Message uMsg = (Message)objData["chatMessage"];
-
-
-
-                        var qa = ParseClient.Instance.GetQuery<Message>()
-                            .WhereEqualTo("objectId", uMsg.ObjectId);
-                        uMsg = await qa.FirstOrDefaultAsync();
-
-
-                        var q1 = ParseClient.Instance.GetQuery<ParseUser>()
-                            .WhereEqualTo("objectId", emptyUsr.ObjectId);
-                        uMsg.Sender = await q1.FirstOrDefaultAsync();
-                        activity.Sender= uMsg.Sender;
-                        activity.ChatMessage=uMsg;
-
-                        if (uMsg.ChatRoom is not null)
-                        { 
-                            var q2 = ParseClient.Instance.GetQuery<ChatRoom>()
-                                .WhereEqualTo("objectId", uMsg.ChatRoom.ObjectId);
-                            var resChatRoom = await q2.FirstOrDefaultAsync();
-                            uMsg.ChatRoom = resChatRoom;
-                        }
-                        
-
-                    }
-                    
-                        // Add the fully populated UserActivity to your list.
-                        ChatMessages.Insert(0,activity);
-
-                    
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error processing UserActivity: {ex.Message}");
-                }
-
-                break;
-            case Subscription.Event.Update:
-                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
-                var obj = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
-
-                if (obj != null)
-                {
-                    ChatMessages[ChatMessages.IndexOf(obj)] = activity;
-                }
-                break;
-
-            case Subscription.Event.Delete:
-                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
-                var objToDelete = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
-
-                if (objToDelete != null)
-                {
-                    ChatMessages.Remove(objToDelete);
-                }
-                if (ChatMessages.Count>1)
-                {
-                    //for some interesting reasons, if you call this when messages.count <1 it will crash/disconnect LQ subscription. (or maybe send it to another thread?)
-                    MainThread.BeginInvokeOnMainThread(() => UserChatColView?.ScrollTo(ChatMessages.LastOrDefault(), null, ScrollToPosition.End, true));
-                }
-                break;
-
-            default:
-                Debug.WriteLine("Unhandled event type.");
-                break;
-        }
-
-        Debug.WriteLine($"Processed {e.evt} on object {objData?.GetType()}");
-    }
-
+    
+    [ObservableProperty]
+    public partial UserActivity? LatestActivity { get; set; }
     public async Task<bool> CheckIfUserHasFriends2()
     {
         try
@@ -656,7 +676,7 @@ public partial class HomePageVM
         }
     }
 
-    public async Task SendMessageAsync(string messageContent, PlayType evtType= PlayType.logEvent, SongModelView? song=null)
+    public async Task SendMessageAsync(string messageContent, PlayType evtType= PlayType.LogEvent, SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(messageContent) || CurrentChatRoom == null)
             return;
@@ -682,9 +702,19 @@ public partial class HomePageVM
             Console.WriteLine($"Error sending message: {ex.Message}");
         }
     }
-
+    string GetDaySuffix(int day)
+    {
+        return day switch
+        {
+            1 or 21 or 31 => "st",
+            2 or 22 => "nd",
+            3 or 23 => "rd",
+            _ => "th"
+        };
+    }
     public async Task SetChatRoom(ChatRoomOptions roomOption)
     {
+
         if (CurrentUserOnline is null)
         {
             return;
@@ -696,12 +726,14 @@ public partial class HomePageVM
 
         CurrentChatRoom = await StartOrJoinChatAsync(user);
         Message newMessage = new();
-        
-        newMessage.Content = $"{CurrentUserOnline.Username} Started Dimmer at {DateTime.Now.ToLocalTime()} On {DeviceInfo.Platform}";
+        var date = DateTime.Now;
+        newMessage.Content = $"{CurrentUser.UserName} on {date:dd}{GetDaySuffix(date.Day)} of {date:MMMM yyyy} at {date:HH'h'mm:ss}";
+
+      
         await newMessage.SaveAsync();
 
         await UserActivityLogger.LogUserActivity(CurrentUserOnline,
-            activityType: PlayType.logEvent, chatMessage: newMessage,
+            activityType: PlayType.LogEvent, chatMessage: newMessage,
             chatRoomm: CurrentChatRoom, CurrentUserOnline: CurrentUserOnline);
         switch (roomOption)
         {

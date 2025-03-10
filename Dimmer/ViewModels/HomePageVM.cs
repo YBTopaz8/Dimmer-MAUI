@@ -10,6 +10,39 @@ using Windows.ApplicationModel.Chat;
 namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
+
+    [ObservableProperty]
+    public partial int SettingsPageIndex { get; set; } = 0;
+    [ObservableProperty]
+    public partial bool CanSwipeTab { get; set; } = true;
+
+    partial void OnSettingsPageIndexChanging(int oldValue, int newValue)
+    {
+        //if  (newValue == 1)
+        //{
+        //    CanSwipeTab = false;
+        //}
+        //else
+        //{
+        //    CanSwipeTab = true;
+        //}
+    }
+    [ObservableProperty]
+    public partial int BtmSheetIndex { get; set; } = 0;
+
+    partial void OnBtmSheetIndexChanging(int oldValue, int newValue)
+    {
+        if (newValue == 2)
+        {
+            CanSwipeTab = false;
+            LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: MySelectedSong, isFromSong: true);
+        }
+        else
+        {
+            CanSwipeTab = true;
+        }
+    }
+
 #if WINDOWS
 
     //public TView MyTableView { get; set; }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.Views.Desktop;
@@ -18,6 +19,10 @@ public partial class OnlineSpaceD : ContentPage
         base.OnAppearing();
 
         MyViewModel.CurrentPage = PageEnum.OnlineChatPage;
+        if (MyViewModel.ChatMessages is not null)
+        {
+            UserChatColView.ScrollTo(MyViewModel.ChatMessages.Count, null, ScrollToPosition.End, true);
+        }
     }
     private async void AddReaction_Clicked(object sender, EventArgs e)
     {
@@ -50,7 +55,7 @@ public partial class OnlineSpaceD : ContentPage
         {
             return;
         }
-        await MyViewModel.SendMessageAsync(ChatMsgView.Text);
+        await MyViewModel.SendMessageAsync(ChatMsgView.Text,PlayType.ChatSent );
         ChatMsgView.Text = string.Empty;
         await OGSenderView.DimmOutCompletely();
     }
@@ -64,5 +69,22 @@ public partial class OnlineSpaceD : ContentPage
     {
 
         await OGSenderView.DimmOutCompletely();
+    }
+
+    private void UserChatColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {   
+        UserChatColView.ScrollTo(UserChatColView.SelectedItem, null, ScrollToPosition.End, true);
+    }
+
+    private void UserChatColView_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColView = UserChatColView;
+
+    }
+
+    private void UserChatColView_Unloaded(object sender, EventArgs e)
+    {
+        MyViewModel.userChatColView= null;
+
     }
 }
