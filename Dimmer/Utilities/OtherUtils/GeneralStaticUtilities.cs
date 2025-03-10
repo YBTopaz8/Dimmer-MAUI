@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.OtherUtils;
+﻿
+
+namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class GeneralStaticUtilities
 {
     public static string GenerateLocalDeviceID(string CallerClass)

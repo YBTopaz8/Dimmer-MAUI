@@ -46,7 +46,7 @@ public partial class OnlineSpaceD : ContentPage
 
     private async void SendTextMsgBtn_Clicked(object sender, EventArgs e)
     {
-        if (string.IsNullOrEmpty(ChatMsgView.Text))
+        if (string.IsNullOrEmpty(ChatMsgView.Text) || MyViewModel is null)
         {
             return;
         }

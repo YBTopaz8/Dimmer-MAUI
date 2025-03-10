@@ -468,8 +468,6 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (ObservableCurrentlyPlayingSong != null)
         {
-            //ObservableCurrentlyPlayingSong.IsPlaying = false;
-            //ObservableCurrentlyPlayingSong.IsPlayCompleted = true;
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Completed);
         }
 
@@ -593,7 +591,7 @@ public partial class PlaybackUtilsService : ObservableObject
         // ShowMiniPlayBackView();
     }
 
-    private async Task UpdateSongPlaybackState(SongModelView? song, PlayType playType, double? position = null)
+    private void UpdateSongPlaybackState(SongModelView? song, PlayType playType, double? position = null)
     {
         if (song is null)
         {
@@ -604,51 +602,54 @@ public partial class PlaybackUtilsService : ObservableObject
             DatePlayed = DateTime.Now,
             PlayType = (int)playType,
             SongId = song.LocalDeviceId,
-            PositionInSeconds = position is null? 0 : (double)position,
+            PositionInSeconds = position is null ? 0 : (double)position,
             WasPlayCompleted = playType == PlayType.Completed,
-            
+
         };
         SongsMgtService.AddPDaCStateLink(link);
-        
+        string MessageContent = string.Empty;
         if (ViewModel.Value.CurrentUserOnline != null)
         {
             ParseUser CurrentUserOnline = ViewModel.Value.CurrentUserOnline;
-            string Content = string.Empty;
+            if (position is null)
+            {
+                position = 0;
+            }
             TimeSpan pos = TimeSpan.FromSeconds((long)position);
             string formattedPosition = pos.ToString(@"mm\:ss");
 
             switch (playType)
             {
-            
+
                 case PlayType.Play:
-                Content = $"{CurrentUserOnline.Username} Started Playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
-                break;
+                    MessageContent = $"{CurrentUserOnline.Username} Started Playing {song.Title} - {song.ArtistName}";
+                    break;
                 case PlayType.Pause:
-                Content = $"{CurrentUserOnline.Username} Paused {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}s";
-                ;
-                break;
+                    MessageContent = $"{CurrentUserOnline.Username} Paused {song.Title} - {song.ArtistName} at {formattedPosition}s";
+                    ;
+                    break;
                 case PlayType.Resume:
-                    Content = $"{CurrentUserOnline.Username} Resumed {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}s";
+                    MessageContent = $"{CurrentUserOnline.Username} Resumed {song.Title} - {song.ArtistName} at {formattedPosition}s";
 
                     break;
                 case PlayType.Completed:
-                    Content = $"{CurrentUserOnline.Username} Finished Playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}";
+                    MessageContent = $"{CurrentUserOnline.Username} Finished Playing {song.Title} - {song.ArtistName} at {formattedPosition}";
 
                     break;
                 case PlayType.Seeked:
-                    Content = $"{CurrentUserOnline.Username} Skipped to {formattedPosition}s when playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} ";
+                    MessageContent = $"{CurrentUserOnline.Username} Skipped to {formattedPosition}s when playing {song.Title} - {song.ArtistName} ";
 
                     break;
                 case PlayType.Skipped:
-                    Content = $"{CurrentUserOnline.Username} Skipped {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} Entirely";
+                    MessageContent = $"{CurrentUserOnline.Username} Skipped {song.Title} - {song.ArtistName} Entirely";
 
                     break;
                 case PlayType.Restarted:
-                    Content = $"{CurrentUserOnline.Username} Restarted {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
+                    MessageContent = $"{CurrentUserOnline.Username} Restarted {song.Title} - {song.ArtistName}";
 
                     break;
                 case PlayType.SeekRestarted:
-                    Content = $"{CurrentUserOnline.Username} Restarted back {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
+                    MessageContent = $"{CurrentUserOnline.Username} Restarted back {song.Title} - {song.ArtistName}";
 
                     break;
                 case PlayType.CustomRepeat:
@@ -660,21 +661,19 @@ public partial class PlaybackUtilsService : ObservableObject
                 default:
                     break;
             }
-            if (CurrentlyPlayingSong is null)
-            {
 
-                await ViewModel.Value.SendMessageAsync(Content, playType);
-            }
-            else
-            {
+            GeneralStaticUtilities.RunFireAndForget(
+                ViewModel.Value.SendMessageAsync(MessageContent, playType, CurrentlyPlayingSong), 
+                e =>
+                {
+                    Debug.WriteLine(e.Message);
+                });
 
-                await ViewModel.Value.SendMessageAsync(Content, playType, CurrentlyPlayingSong);
-            }
         }
     }
     #endregion
-
 }
+
 public enum PlaybackSource
 {
     HomePage,

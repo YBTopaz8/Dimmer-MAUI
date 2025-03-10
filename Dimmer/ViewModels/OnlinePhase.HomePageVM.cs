@@ -650,7 +650,7 @@ public partial class HomePageVM
         }
     }
 
-    public async Task SendMessageAsync(string messageContent, PlayType evtType=PlayType.logEvent, SongModelView? song=null)
+    public async Task SendMessageAsync(string messageContent, PlayType evtType= PlayType.logEvent, SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(messageContent) || CurrentChatRoom == null)
             return;
