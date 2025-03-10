@@ -198,7 +198,6 @@
     <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
     
     
     <PackageReference Include="z440.atl.core" Version="6.18.0" />
@@ -278,6 +277,9 @@
     <MauiXaml Update="Views\Desktop\MainPageD.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\Desktop\OnlineSpaceD.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Desktop\PlaylistsPageD.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
@@ -340,6 +342,9 @@
     <Compile Update="Views\Desktop\FullStatsPageD.xaml.cs">
       <DependentUpon>FullStatsPageD.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Desktop\OnlineSpaceD.xaml.cs">
+      <DependentUpon>OnlineSpaceD.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Mobile\AlbumSection\AlbumsM.xaml.cs">
       <DependentUpon>AlbumsM.xaml</DependentUpon>
     </Compile>
@@ -357,6 +362,9 @@
     <!--<PackageReference Include="WinUI.TableView">
       <Version>1.2.2</Version>
     </PackageReference>-->
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

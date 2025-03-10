@@ -1,6 +1,9 @@
-﻿using Parse.LiveQuery;
+﻿using DevExpress.Maui.CollectionView;
+using MongoDB.Bson;
+using Parse.LiveQuery;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +25,10 @@ public partial class HomePageVM
     public partial ChatRoom? CurrentChatRoom { get; set; } 
     
     [ObservableProperty]
-    public partial ObservableCollection<ChatMessageDisplay>? ChatMessages { get; set; } = new();
+    public partial ObservableCollection<UserActivity>? ChatMessages { get; set; } = new();
+    
+    [ObservableProperty]
+    public partial ObservableCollection<ParseUser>? AllUsersAvailable { get; set; } = new();
 
     private Subscription<UserActivity>? _friendRequestSubscription; //keep sub ref for later disposal
     private Subscription<UserActivity>? _chatMessageSubscription;
@@ -35,17 +41,21 @@ public partial class HomePageVM
         {
             try
             {
-                
+
+                if (CurrentUserOnline is null)
+                {
+                    return;
+                }
                 LiveQueryClient = new ParseLiveQueryClient();
                 LiveQueryClient.ConnectIfNeeded();
                 Console.WriteLine("Live Query Client Connected");
 
                 // Subscribe to Friend Requests and Chat Messages
-                await SubscribeToFriendRequestsAsync();
-                if (await CheckIfUserHasFriends()) //check for friends before listening
-                {
-                    await SubscribeToChatMessagesAsync();
-                }
+                //SubscribeToFriendRequests();                
+                SubscribeToChatMessages2();
+
+                await StartOrJoinChat(new List<string>() { CurrentUserOnline.ObjectId });
+                AllUsersAvailable.Add(CurrentUserOnline);
 
             }
             catch (Exception ex)
@@ -55,6 +65,121 @@ public partial class HomePageVM
             }
         }
     }
+    public DXCollectionView? userChatColViewDX;
+    public CollectionView? userChatColView;
+    async Task ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e)
+    {
+        if (ChatMessages is null)
+        {
+            ChatMessages =new();
+        }
+
+        var objData = e.objectDictionnary as Dictionary<string, object>;
+        if (objData is null)
+            return;
+
+        UserActivity activity;
+
+        switch (e.evt)
+        {
+            case Subscription.Event.Enter:
+                Debug.WriteLine("Entered");
+                break;
+
+            case Subscription.Event.Leave:
+                Debug.WriteLine("Left");
+                break;
+
+            case Subscription.Event.Create:
+
+                try
+                {
+
+                    // 2. Create a *new* UserActivity object with just the objectId.
+                    activity = new UserActivity()
+                    {
+                        ObjectId = objData["objectId"].ToString(),
+                        ActivityType = objData["activityType"].ToString()!,
+                        DeviceIdiom = objData["deviceIdiom"].ToString()!,
+
+                        DevicePlatform = objData["devicePlatform"].ToString()!,
+                        DeviceVersion = objData["deviceVersion"].ToString()!,
+
+                    };
+                    ParseUser emptyUsr = (ParseUser)objData["sender"];
+                    // 3. Fetch the related objects if they exist.
+
+                    if (objData.ContainsKey("chatMessage"))
+                    {
+                        // Create a *new* Message object with just the objectId.
+                        Message uMsg = (Message)objData["chatMessage"];
+
+
+
+                        var qa = ParseClient.Instance.GetQuery<Message>()
+                            .WhereEqualTo("objectId", uMsg.ObjectId);
+                        uMsg = await qa.FirstOrDefaultAsync();
+
+
+                        var q1 = ParseClient.Instance.GetQuery<ParseUser>()
+                            .WhereEqualTo("objectId", emptyUsr.ObjectId);
+                        uMsg.Sender = await q1.FirstOrDefaultAsync();
+                        activity.Sender= uMsg.Sender;
+                        activity.ChatMessage=uMsg;
+
+                        if (uMsg.ChatRoom is not null)
+                        {
+                            var q2 = ParseClient.Instance.GetQuery<ChatRoom>()
+                                .WhereEqualTo("objectId", uMsg.ChatRoom.ObjectId);
+                            var resChatRoom = await q2.FirstOrDefaultAsync();
+                            uMsg.ChatRoom = resChatRoom;
+                        }
+
+
+                    }
+                    LatestActivity = activity;
+                    ChatMessages.Add(activity);
+                    
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing UserActivity: {ex.Message}");
+                }
+
+                break;
+            case Subscription.Event.Update:
+                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
+                var obj = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+
+                if (obj != null)
+                {
+                    ChatMessages[ChatMessages.IndexOf(obj)] = activity;
+                }
+                break;
+
+            case Subscription.Event.Delete:
+                activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
+                var objToDelete = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+
+                if (objToDelete != null)
+                {
+                    ChatMessages.Remove(objToDelete);
+                }
+                if (ChatMessages.Count>1)
+                {
+                    //for some interesting reasons, if you call this when messages.count <1 it will crash/disconnect LQ subscription. (or maybe send it to another thread?)
+                    MainThread.BeginInvokeOnMainThread(() => UserChatColView?.ScrollTo(ChatMessages.LastOrDefault(), null, ScrollToPosition.End, true));
+                }
+                break;
+
+            default:
+                Debug.WriteLine("Unhandled event type.");
+                break;
+        }
+
+        Debug.WriteLine($"Processed {e.evt} on object {objData?.GetType()}");
+    }
 
     public void Disconnect()
     {
@@ -62,6 +187,7 @@ public partial class HomePageVM
         {
             try
             {
+                
                 // Unsubscribe from all subscriptions
                 LiveQueryClient.RemoveAllSubscriptions();
                 
@@ -83,22 +209,21 @@ public partial class HomePageVM
 
     bool IsConnected;
     // --- Subscribe to Friend Requests ---
-    private async Task SubscribeToFriendRequestsAsync()
+    public void SubscribeToFriendRequests2()
     {
         if (LiveQueryClient == null)
             return;
         
         try
-        {            
-            CurrentUserOnline = await ParseClient.Instance.GetCurrentUser();
-            var query = ParseClient.Instance.GetQuery("UserActivity")
-                .WhereEqualTo("recipient", CurrentUserOnline)
-                .WhereEqualTo("activityType", "FriendRequest");
+        {
+
+            var query = ParseClient.Instance.GetQuery<UserActivity>()
+                .WhereEqualTo("recipient", CurrentUserOnline);
+                
             var subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
             LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
-            int batchSize = 3; // Number of events to release at a time
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
             LiveQueryClient.OnConnected
@@ -170,9 +295,9 @@ public partial class HomePageVM
                     return group;
                 }
             })
-            .Subscribe(e =>
+            .Subscribe(async e =>
             {
-                ProcessEvent(e);
+               await ProcessEvent(e);
             });
 
             
@@ -204,30 +329,30 @@ public partial class HomePageVM
         }
     }
 
-    // --- Subscribe to Chat Messages ---
 
     // --- Subscribe to Chat Messages ---
-    private async Task SubscribeToChatMessagesAsync()
+    public void SubscribeToChatMessages2()
     {
         if (LiveQueryClient == null)
             return;
 
         try
         {
-            var CurrentUserOnline = await ParseClient.Instance.GetCurrentUser();
             // Listen for UserActivity objects of type "ChatMessage"
-            var query = ParseClient.Instance.GetQuery("UserActivity")
-                .WhereEqualTo("recipient", CurrentUserOnline)
-                .WhereEqualTo("activityType", "ChatMessage")
-                .Include("chatMessage")  // Important: Include the chatMessage pointer
-                .Include("chatMessage.sender"); // Include sender details
+            var query = ParseClient.Instance.GetQuery<UserActivity>()
 
-            var subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
+                .Include("chatMessage")  // Important: Include the chatMessage pointer
+                .Include("chatMessage.Sender") // Include sender details
+                .Include("chatMessage.Content") // Include sender details
+                .Include("nowPlaying");
+
+            LiveQueryClient.NamedSubscriptions.ContainsKey("ChatMessagesSub");
+
+            Subscription<UserActivity>? subscription = LiveQueryClient!.Subscribe(query, "ChatMessagesSub");
 
             LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
-            int batchSize = 3; // Number of events to release at a time
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
             LiveQueryClient.OnConnected
@@ -281,40 +406,54 @@ public partial class HomePageVM
 
 
             LiveQueryClient.OnObjectEvent
-            .Where(e => e.subscription == subscription) // Filter relevant events
-            .GroupBy(e => e.evt)
-            .SelectMany(group =>
-            {
-                if (group.Key == Subscription.Event.Create)
+                .Synchronize()
+                .GroupBy(evt => evt.evt)
+                .SelectMany(group =>
                 {
-                    // Apply throttling only to CREATE events
-                    return group.Throttle(throttleTime)
-                                .Buffer(TimeSpan.FromSeconds(1), 3) // Further control
-                                .SelectMany(batch => batch); // Flatten the batch
-                }
-                else
-                {
-                    //do something with group !
-                    // Pass through other events without throttling
-                    return group;
-                }
-            })
-            .Subscribe(e =>
+                    if (group.Key == Subscription.Event.Create)
+                    {
+                        // Buffer CREATE events for 500ms intervals
+                        return group.Buffer(TimeSpan.FromMilliseconds(500))
+                                    .SelectMany(batch => batch); // Flatten batch while preserving order
+                    }
+                    else
+                    {
+                        // Immediately pass other events without throttle
+                        return group;
+                    }
+                })
+                .Select(evt => Observable.FromAsync(() => ProcessEvent(evt)))
+                .Concat() // Serialize ProcessEvent calls
+    .ToList()
+    .Subscribe(results => // 'results' is a list (likely of void, depending on ProcessEvent's return type)
+    {
+        // This block executes *after* all ProcessEvent calls have completed.
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+#if WINDOWS
+            if (userChatColView is not null)
             {
-                ProcessEvent(e);
-            });
-
-
+                userChatColView.ScrollTo(index: ChatMessages.Count, position: ScrollToPosition.End, animate: false);
+            }
+#elif ANDROID
+            if (userChatColViewDX is not null)
+            {
+                var itemHandle = userChatColViewDX.FindItemHandle(LatestActivity);
+                userChatColViewDX.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
+            }
+#endif
+        });
+    });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error subscribing to chat messages: {ex.Message}");
+            Console.WriteLine($"Error subscribing to activity messages: {ex.Message}");
         }
     }
 
 
 
-    // --- Start/Join a Chat (Now supports group chat) ---
+    // --- Start/Join a Chat (Now supports group activity) ---
 
     //This method now handles both creating and joining
     public async Task StartOrJoinChat(List<string> participantIds)
@@ -328,7 +467,7 @@ public partial class HomePageVM
         try
         {
             //1. Fetch those users
-            List<ParseUser> participants = new();
+            List<ParseUser> participants = [];
 
             //Fetch users
             foreach (var id in participantIds)
@@ -346,12 +485,9 @@ public partial class HomePageVM
                     return; // Or continue, depending on your error handling.
                 }
             }
+            participants.Add(CurrentUserOnline);
 
-            // Add Current User.
-            ParseUser currentUser = await ParseClient.Instance.GetCurrentUser();
-            participants.Add(currentUser);
-
-            //2.  Check for existing chat room (IMPORTANT for preventing duplicates).
+            //2.  Check for existing activity room (IMPORTANT for preventing duplicates).
             CurrentChatRoom = await GetExistingChatRoom(participants);
 
             // 3. Create if it doesn't exist.
@@ -367,13 +503,13 @@ public partial class HomePageVM
             await LoadExistingMessages();
 
             // 6. Set up the LiveQuery subscription for new messages.
-            await SubscribeToMessages();
-            Debug.WriteLine($"Started/Joined chat. ChatRoomId: {CurrentChatRoom.ObjectId}");
+            
+            Debug.WriteLine($"Started/Joined activity. ChatRoomId: {CurrentChatRoom.ObjectId}");
 
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error starting/joining chat: {ex.Message}");
+            Console.WriteLine($"Error starting/joining activity: {ex.Message}");
         }
     }
 
@@ -385,97 +521,30 @@ public partial class HomePageVM
         var query = ParseClient.Instance.GetQuery<Message>()
             .WhereEqualTo(nameof(Message.ChatRoom), CurrentChatRoom)
             .Include(nameof(Message.Sender))
-            .OrderBy(nameof(Message.CreatedAt)); // Or a custom timestamp if you have one.
+            .OrderBy(nameof(Message.CreatedAt)); 
 
         var existingMessages = await query.FindAsync();
-
-        foreach (var msg in existingMessages)
+        ChatMessages??=new();   
+        foreach (var msg in ChatMessages)
         {
-            var msgDisplay = new ChatMessageDisplay
-            {
-                SenderUsername = msg.Sender.Username, // Assuming you included Sender
-                Content = msg.Content,
-                
-                // ... other properties ...
-            };
-            ChatMessages.Add(msgDisplay); // Add to your ObservableCollection.
+            await Task.WhenAll(msg.Sender.FetchIfNeededAsync(),
+                msg.ChatMessage.FetchIfNeededAsync());
+
+            ChatMessages.Add( msg); // Add to your ObservableCollection.
         }
     }
-    // --- Live Query Subscription for Messages ---
-    private async Task SubscribeToMessages()
-    {
-        if (CurrentChatRoom == null)
-            return;
-
-
-        LiveQueryClient.RemoveAllSubscriptions();
-        // 1.  Unsubscribe from any previous subscription (important!).
-        //_messageSubscription?.Unsubscribe();
-
-        // 2.  Create the query.
-        var query = ParseClient.Instance.GetQuery<Message>()
-            .WhereEqualTo(nameof(Message.ChatRoom), CurrentChatRoom)
-            .Include(nameof(Message.Sender)); // Include the Sender for display.
-
-        // 3.  Subscribe.
-        _messageSubscription = LiveQueryClient.Subscribe(query);
-
-        // 4.  Handle events (Connected, Error, Disconnected, Subscribed are good practice).
-        int retryDelaySeconds = 5;
-        int maxRetries = 10;
-        LiveQueryClient.OnConnected
-            .Do(_ => Debug.WriteLine("LiveQuery connected."))
-                .RetryWhen(errors =>
-                    errors
-                        .Zip(Observable.Range(1, maxRetries), (error, attempt) => (error, attempt))
-                        .SelectMany(tuple =>
-                        {
-                            if (tuple.attempt > maxRetries)
-                            {
-                                Debug.WriteLine($"Max retries reached. Error: {tuple.error.Message}");
-                                return Observable.Throw<Exception>(tuple.error); // Explicit type here
-                            }
-                            Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
-                            // Explicit reconnect call before retry delay
-                            LiveQueryClient.ConnectIfNeeded(); // revive app!
-
-                            return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
-                        })
-                )
-                .Subscribe(
-                    _ =>
-                    {
-                        Debug.WriteLine("Reconnected successfully.");
-                    },
-                    ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
-                );
-
-        LiveQueryClient.OnError.Subscribe(ex => Debug.WriteLine($"LiveQuery Error: {ex.Message}"));
-        LiveQueryClient.OnDisconnected.Subscribe(info => Debug.WriteLine($"LiveQuery Disconnected: {info}"));
-        LiveQueryClient.OnSubscribed.Subscribe(e => Debug.WriteLine($"Subscribed to Messages for ChatRoom: {CurrentChatRoom.ObjectId}"));
-
-        // 5.  MOST IMPORTANT: Handle the object events.
-        LiveQueryClient.OnObjectEvent
-             .Where(e => e.subscription == _messageSubscription)
-             .Subscribe(e =>
-             {
-                 // Process different event types (Create, Update, Delete, etc.).
-                 if (e.evt == Subscription.Event.Create)
-                 {
-
-                 }
-                 // You could handle Update/Delete if you allow editing/deleting messages.
-             });
-    }
-
+    // --- Live Query Subscription for Messages
+    [ObservableProperty]
+    public partial CollectionView? UserChatColView { get; set; }
 
     private async Task<ChatRoom?> GetExistingChatRoom(List<ParseUser> participants)
     {
-        // Efficiently check for an existing chat room with ALL the given participants.
+        // Efficiently check for an existing activity room with ALL the given participants.
         // Using Any or Contains will not work. We need to use ContainsAll in a smart way.
 
         var query = ParseClient.Instance.GetQuery<ChatRoom>()
-            .WhereContainedIn("Participants", participants);  //All listed participants
+                     .WhereMatchesQuery("Participants", ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", CurrentUserOnline.ObjectId));
+        ;
 
         // Get all potential ChatRooms, and then filter in memory for an *exact* match.
         var potentialMatches = await query.FindAsync();
@@ -496,7 +565,7 @@ public partial class HomePageVM
 
         return null; // No exact match found.
     }
-    private async Task<ChatRoom> CreateChatRoomAsync(List<ParseUser> participants)
+    private async Task<ChatRoom> CreateChatRoomAsync2(List<ParseUser> participants)
     {
         var chatRoom = new ChatRoom();
         await chatRoom.SaveAsync(); // Save first to get an ObjectId
@@ -537,10 +606,10 @@ public partial class HomePageVM
             {
                 PendingFriendRequests.Remove(requestToRemove);
             }
-            // Check if we now have friends and can start listening for chat messages
+            // Check if we now have friends and can start listening for activity messages
             if (await CheckIfUserHasFriends())
             {
-                await SubscribeToChatMessagesAsync();
+                //SubscribeToChatMessages();
             }
 
         }
@@ -549,13 +618,10 @@ public partial class HomePageVM
             Console.WriteLine($"Failed to accept friend request: {ex.Message}");
         }
     }
-    void ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e)
-    {
-
-    }
-   
-  
-    public async Task<bool> CheckIfUserHasFriends()
+    
+    [ObservableProperty]
+    public partial UserActivity? LatestActivity { get; set; }
+    public async Task<bool> CheckIfUserHasFriends2()
     {
         try
         {
@@ -588,106 +654,6 @@ public partial class HomePageVM
     }
 
    
-    public async Task ListenForMessagesAsync(ChatRoom chatRoom, Action<Message> onMessageReceived)
-    {
-        try
-        {
-            _cts = new CancellationTokenSource();
-            var query = ParseClient.Instance.GetQuery("Message")
-                .WhereEqualTo("chatRoom", chatRoom)
-                .OrderBy("createdAt"); // Order by creation time
-
-            var subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
-            LiveQueryClient.ConnectIfNeeded();
-            int retryDelaySeconds = 5;
-            int maxRetries = 10;
-            int batchSize = 3; // Number of events to release at a time
-            TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
-
-            LiveQueryClient.OnConnected
-                .Do(_ => Debug.WriteLine("LiveQuery connected."))
-                .RetryWhen(errors =>
-                    errors
-                        .Zip(Observable.Range(1, maxRetries), (error, attempt) => (error, attempt))
-                        .SelectMany(tuple =>
-                        {
-                            if (tuple.attempt > maxRetries)
-                            {
-                                Debug.WriteLine($"Max retries reached. Error: {tuple.error.Message}");
-                                return Observable.Throw<Exception>(tuple.error); // Explicit type here
-                            }
-                            IsConnected = false;
-                            Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
-
-                            // Explicit reconnect call before retry delay
-                            LiveQueryClient.ConnectIfNeeded(); // revive app!
-
-                            return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
-                        })
-                )
-                .Subscribe(
-                    _ =>
-                    {
-                        IsConnected=true;
-                        Debug.WriteLine("Reconnected successfully.");
-                    },
-                    ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
-                );
-
-            LiveQueryClient.OnError
-                .Do(ex =>
-                {
-                    Debug.WriteLine("LQ Error: " + ex.Message);
-                    LiveQueryClient.ConnectIfNeeded();  // Ensure reconnection on errors
-                })
-                .OnErrorResumeNext(Observable.Empty<Exception>()) // Prevent breaking the stream
-                .Subscribe();
-
-            LiveQueryClient.OnDisconnected
-                .Do(info => Debug.WriteLine(info.userInitiated
-                    ? "User disconnected."
-                    : "Server disconnected."))
-                .Subscribe();
-
-            LiveQueryClient.OnSubscribed
-                .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
-                .Subscribe();
-
-
-            LiveQueryClient.OnObjectEvent
-            .Where(e => e.subscription == subscription) // Filter relevant events
-            .GroupBy(e => e.evt)
-            .SelectMany(group =>
-            {
-                if (group.Key == Subscription.Event.Create)
-                {
-                    // Apply throttling only to CREATE events
-                    return group.Throttle(throttleTime)
-                                .Buffer(TimeSpan.FromSeconds(1), 3) // Further control
-                                .SelectMany(batch => batch); // Flatten the batch
-                }
-                else
-                {
-                    //do something with group !
-                    // Pass through other events without throttling
-                    return group;
-                }
-            })
-            .Subscribe(e =>
-            {
-                ProcessEvent(e);
-            });
-
-            Console.WriteLine("Connected to Live Query.");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error connecting to Live Query: {ex.Message}");
-            // Implement reconnection logic here
-        }
-    }
-
     public async Task DisconnectAsync()
     {
         if (LiveQueryClient != null && _messageSubscription != null)
@@ -709,122 +675,92 @@ public partial class HomePageVM
             _cts?.Cancel(); // Cancel any ongoing operations
         }
     }
+
+    public async Task SendMessageAsync(string messageContent, PlayType evtType= PlayType.LogEvent, SongModelView? song=null)
+    {
+        if (string.IsNullOrWhiteSpace(messageContent) || CurrentChatRoom == null)
+            return;
+
+        
+        try
+        {
+            var message = new Message
+            {
+                Sender = CurrentUserOnline,                
+                Content = messageContent,
+                ChatRoom = CurrentChatRoom
+            };
+            await message.SaveAsync();
+
+            await UserActivityLogger.LogUserActivity(
+                CurrentUserOnline!,  
+                evtType, nowPlaying:song,
+                chatMessage: message, chatRoomm: CurrentChatRoom, CurrentUserOnline: CurrentUserOnline);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending message: {ex.Message}");
+        }
+    }
+    string GetDaySuffix(int day)
+    {
+        return day switch
+        {
+            1 or 21 or 31 => "st",
+            2 or 22 => "nd",
+            3 or 23 => "rd",
+            _ => "th"
+        };
+    }
+    public async Task SetChatRoom(ChatRoomOptions roomOption)
+    {
+
+        if (CurrentUserOnline is null)
+        {
+            return;
+        }
+        var user = new List<string>
+        {
+            CurrentUserOnline.ObjectId
+        };
+
+        CurrentChatRoom = await StartOrJoinChatAsync(user);
+        Message newMessage = new();
+        var date = DateTime.Now;
+        newMessage.Content = $"{CurrentUser.UserName} on {date:dd}{GetDaySuffix(date.Day)} of {date:MMMM yyyy} at {date:HH'h'mm:ss}";
+
+      
+        await newMessage.SaveAsync();
+
+        await UserActivityLogger.LogUserActivity(CurrentUserOnline,
+            activityType: PlayType.LogEvent, chatMessage: newMessage,
+            chatRoomm: CurrentChatRoom, CurrentUserOnline: CurrentUserOnline);
+        switch (roomOption)
+        {
+            
+            case ChatRoomOptions.PersonalRoom:
+                break;
+            case ChatRoomOptions.GroupChatRoom:
+                break;
+            case ChatRoomOptions.UpdatesRoom:
+                break;
+            case ChatRoomOptions.StatsRoom:
+                break;
+            default:
+                break;
+        }
+    }
+
+
+
 }
 
-public class LiveQueryManager : IDisposable
+
+public enum ChatRoomOptions
 {
-    private ParseLiveQueryClient LiveQueryClient { get; }
-    private List<Subscription> Subscriptions { get; } = new List<Subscription>();
-    private List<IDisposable> EventDisposables { get; } = new List<IDisposable>();
+    PersonalRoom,
+    GroupChatRoom,
+    UpdatesRoom,
+    StatsRoom
 
-    public LiveQueryManager(ParseLiveQueryClient LiveQueryClient)
-    {
-        LiveQueryClient = LiveQueryClient;
-
-        // Ensure the client is connected (you might handle this elsewhere, too)
-        LiveQueryClient.ConnectIfNeeded();
-        SubscribeToMultipleQueries();
-        // Centralized error handling (optional, but good practice)
-        var errorHandler = LiveQueryClient.OnError
-            .Subscribe(ex =>
-            {
-                Debug.WriteLine($"LiveQuery Error: {ex.Message}");
-                // Implement reconnection logic here, if desired.
-                // LiveQueryClient.ConnectIfNeeded();
-            });
-        EventDisposables.Add(errorHandler);
-    }
-
-    public void SubscribeToMultipleQueries()
-    {
-        // 1. Chat Messages
-        ParseQuery<ParseObject> chatQuery = ParseClient.Instance.GetQuery("ChatMessage");
-        chatQuery = chatQuery.WhereEqualTo("roomId", "myRoomId"); // Example constraint
-        Subscription chatSubscription = LiveQueryClient.Subscribe(chatQuery);
-        Subscriptions.Add(chatSubscription);
-        SubscribeToEvents(chatSubscription, "Chat");
-
-        // 2. Game Scores
-        ParseQuery<ParseObject> scoreQuery = ParseClient.Instance.GetQuery("GameScore");
-        scoreQuery = scoreQuery.WhereGreaterThan("score", 1000);  // Example constraint
-        Subscription scoreSubscription = LiveQueryClient.Subscribe(scoreQuery);
-        Subscriptions.Add(scoreSubscription);
-        SubscribeToEvents(scoreSubscription, "Score");
-
-        // 3. User Status
-        ParseQuery<ParseUser> userQuery = ParseClient.Instance.GetQuery<ParseUser>(); //Use ParseUser
-        userQuery = userQuery.WhereEqualTo("online", true); // Example: Track online users
-        Subscription userSubscription = LiveQueryClient.Subscribe(userQuery);
-        Subscriptions.Add(userSubscription);
-        SubscribeToEvents(userSubscription, "User");
-
-        // You could add reconnection logic here, similar to your original example.
-        // It's often better to centralize this, as shown in the constructor.
-    }
-    private void SubscribeToEvents(Subscription subscription, string subscriptionName)
-    {
-        var eventHandler = LiveQueryClient.OnObjectEvent
-            .Where(e => e.subscription == subscription)
-            .Subscribe(e =>
-            {
-                // Process events based on subscription type (e.g., chat, score, user)
-                ProcessEvent(e, subscriptionName);
-            });
-        EventDisposables.Add(eventHandler);
-    }
-    private void ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e, string subscriptionName)
-    {
-        // You can switch on e.evt (Create, Update, Delete, Enter, Leave)
-        // and also use the subscriptionName to differentiate the data.
-
-        Debug.WriteLine($"[{subscriptionName}] Event: {e.evt}, Object: {e.objectDictionnary}");
-
-        // Example:
-        switch (subscriptionName)
-        {
-            case "Chat":
-                // Handle chat message events
-                if (e.evt == Subscription.Event.Create)
-                {
-                    //var chatMessage = ObjectMapper.MapFromDictionary<ChatMessage>(e.objectDictionnary as Dictionary<string, object>);
-                    // Add chatMessage to UI, etc.
-                }
-                break;
-            case "Score":
-                // Handle game score events
-                if (e.evt == Subscription.Event.Update)
-                {
-                    //var gameScore = ObjectMapper.MapFromDictionary<GameScore>(e.objectDictionnary as Dictionary<string, object>);
-                    //Update game score
-                }
-                break;
-            case "User":
-                // Handle user status events
-                if (e.evt == Subscription.Event.Enter || e.evt==Subscription.Event.Update)
-                {
-                    var userStatus = ObjectMapper.MapFromDictionary<ParseUser>(e.objectDictionnary as Dictionary<string, object>);
-                    //...
-                }
-                break;
-        }
-    }
-
-    public void Dispose()
-    {
-        LiveQueryClient.RemoveAllSubscriptions();
-        // Unsubscribe from all subscriptions and dispose of event handlers.
-        foreach (var subscription in Subscriptions)
-        {
-
-        }
-
-        foreach (var disposable in EventDisposables)
-        {
-            disposable.Dispose(); // Release Rx.NET subscriptions
-        }
-        Subscriptions.Clear();
-        EventDisposables.Clear();
-
-        // LiveQueryClient.Disconnect(); //Disconnect from the client. You may want to do that OUTSIDE of the manager.
-    }
 }

@@ -202,8 +202,10 @@ public partial class SongModelView : ObservableObject
             HasLyrics = model.HasLyrics;
             HasSyncedLyrics = model.HasSyncedLyrics;
             IsFileExists = model.IsFileExists;
-            Track s = new Track();
-            s.Lyrics = new LyricsInfo();
+            Track s = new Track
+            {
+                Lyrics = new LyricsInfo()
+            };
             if (model.SyncLyrics is not null)
             {
                 s.Lyrics.ParseLRC(model.SyncLyrics);

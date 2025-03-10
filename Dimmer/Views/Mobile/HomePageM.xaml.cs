@@ -34,6 +34,8 @@ public partial class HomePageM : ContentPage
         MyViewModel.CurrentPage = PageEnum.MainPage;
 
 
+        await MyViewModel.ConnectToLiveQueriesAsync();
+        await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
     }
     private void ToggleRepeat_Clicked(object sender, EventArgs e)
     {
@@ -609,11 +611,11 @@ public partial class HomePageM : ContentPage
     {
         var send = (Chip)sender;
         var param = send.TapCommandParameter.ToString();
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
         switch (param)
         {
             case "repeat":
 
-                MyViewModel.ToggleRepeatModeCommand.Execute(true);
                 
                 break;
             case "shuffle":
@@ -652,5 +654,123 @@ public partial class HomePageM : ContentPage
         NowPlayingQueueView.IsVisible=false;
         await ArtistSongsView.DimmInCompletely();
         ArtistSongsView.IsVisible=true;
+    }
+    private void SearchOnline_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
+
+    }
+    Border LyrBorder { get; set; }
+  
+
+    private void Stamp_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void DeleteLine_Clicked(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+
+        MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
+    }
+    private void Chip_Tap_1(object sender, HandledEventArgs e)
+    {
+        MyViewModel.ToggleShuffleStateCommand.Execute(true);
+    }
+
+    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmOut();
+        PlainLyricSection.IsEnabled = false;
+        MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        IsSyncing = true;
+
+        await SyncLyrView.DimmIn();
+        SyncLyrView.IsVisible=true;
+    }
+
+    bool IsSyncing = false;
+    private async void CancelAction_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmIn();
+        PlainLyricSection.IsEnabled = true;
+
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        IsSyncing = false;
+
+        await SyncLyrView.DimmOut();
+        SyncLyrView.IsVisible=false;
+    }
+    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    {
+
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
+
+        await MyViewModel.FetchLyrics(true);
+
+    }
+    private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
+    {
+        LyricsEditor.Text = string.Empty;
+        var send = (Button)sender;
+        var title = send.Text;
+        var thisContent = (Content)send.BindingContext;
+        if (title == "Synced Lyrics")
+        {
+            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent!, false);
+        }
+        else
+        if (title == "Plain Lyrics")
+        {
+            LyricsEditor.Text = thisContent!.PlainLyrics;
+            PasteLyricsFromClipBoardBtn_Clicked(send, e);
+        }
+    }
+    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    {
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+
+        if (Clipboard.Default.HasText)
+        {
+            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        }
+
+
+    }
+
+    private void CurrQueueColView_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        MyViewModel.CurrentQueue = 1;
+        if (MyViewModel.IsOnSearchMode)
+        {
+            MyViewModel.CurrentQueue = 1;
+            var filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
+                     .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
+                     .Where(handle => handle != -1)
+                     .Select(handle => SongsColView.GetItem(handle) as SongModelView)
+                     .Where(item => item != null)
+                     .ToList()!;
+
+        }
+        MyViewModel.PlaySong(e.Item as SongModelView);
+
+    }
+
+    private void DXCollectionView_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        var send = (View)sender;
+
+        var curSel = send.BindingContext as AlbumModelView;
+        MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
 }

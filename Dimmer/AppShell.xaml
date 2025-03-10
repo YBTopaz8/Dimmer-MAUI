@@ -541,6 +541,10 @@ EmptyView="No Syncronized Lyrics ..." >
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
                 Route="SettingsPageD"/>
         </Tab>
+        <Tab Title="" x:Name="onlineSpaceTab" Icon="maskhapply.png">
+            <ShellContent ContentTemplate="{DataTemplate viewsD:OnlineSpaceD}"
+                Route="OnlineSpaceD"/>
+        </Tab>
 
         <!--<Tab>
             <ShellContent Title="Exit"/>

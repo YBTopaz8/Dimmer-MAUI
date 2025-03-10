@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.ViewModels;
 
 public partial class HomePageVM
 {
@@ -92,6 +94,11 @@ public partial class HomePageVM
 
     partial void OnCurrentUserOnlineChanged(ParseUser? oldValue, ParseUser? newValue)
     {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await ConnectToLiveQueriesAsync();
+        });
+
         if (newValue is not null)
         {
             SongsMgtService.UpdateUserLoginDetails(newValue);

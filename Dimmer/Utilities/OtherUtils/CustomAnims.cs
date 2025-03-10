@@ -764,11 +764,11 @@ public static class CustomAnimsExtensions
         {
             StartPoint = new Point(0, 0),
             EndPoint = new Point(1, 1), // Diagonal gradient
-            GradientStops = new GradientStopCollection
-        {
+            GradientStops =
+        [
             new GradientStop { Color = color1, Offset = 0 },
             new GradientStop { Color = color2, Offset = 1 }
-        }
+        ]
         };
 
         box.Background = gradientBrush;
@@ -845,13 +845,13 @@ public static class CustomAnimsExtensions
         {
             StartPoint = new Point(0, 0.5), // Horizontal line
             EndPoint = new Point(1, 0.5),
-            GradientStops = new GradientStopCollection
-        {
+            GradientStops =
+        [
             new GradientStop { Color = box.BackgroundColor, Offset = 0 }, // Dash color
             new GradientStop { Color = box.BackgroundColor, Offset = (float)(dashLength / (dashLength + gapLength)) }, // End of dash
             new GradientStop { Color = Colors.Transparent, Offset = (float)(dashLength / (dashLength + gapLength)) },   // Start of gap
             new GradientStop { Color = Colors.Transparent, Offset = 1 }  // End of gap
-        }
+        ]
         };
 
         box.Background = gradientBrush; //initially set the gradient

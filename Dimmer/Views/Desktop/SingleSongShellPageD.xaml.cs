@@ -334,8 +334,8 @@ public partial class SingleSongShellPageD : ContentPage
         MyViewModel.RateSongCommand.Execute(ee.CommandParameter.ToString()!);
     }
 
-    List<string> SelectedSongIds = new List<string>();
-    List<DateTime> FilterDates = new ();
+    List<string> SelectedSongIds = [];
+    List<DateTime> FilterDates = [];
     private void SongShellTabView_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.TabView.TabSelectionChangedEventArgs e)
     {
         //DailyCalender.MaximumDate = DateTime.Now;
@@ -345,12 +345,12 @@ public partial class SingleSongShellPageD : ContentPage
             return;
         }
         SelectedSong1Id = MyViewModel.MySelectedSong.LocalDeviceId;
-        SelectedSongIds = new List<string> { SelectedSong1Id };
+        SelectedSongIds = [SelectedSong1Id];
         if (e.NewIndex == 6)
         {
-            //ViewModel.GetPlayCompletionStatus(SelectedSongIds);
+            //MyViewModel.GetPlayCompletionStatus(SelectedSongIds);
             //PeriodTabView.SelectedIndex = 0;
-            //ViewModel.LoadDailyData(SelectedSongIds);
+            //MyViewModel.LoadDailyData(SelectedSongIds);
         }
     }
 
@@ -360,7 +360,7 @@ public partial class SingleSongShellPageD : ContentPage
         {
             FilterDates.Clear();
             FilterDates.Add(e.Date);
-            //ViewModel.LoadDailyData(SelectedSongIds,FilterDates);
+            //MyViewModel.LoadDailyData(SelectedSongIds,FilterDates);
         }
         else
         {
@@ -479,7 +479,7 @@ public partial class SingleSongShellPageD : ContentPage
 
                 var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
                 e.AcceptedOperation = DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
 
                 if (items.Count > 0)
                 {
@@ -555,7 +555,7 @@ public partial class SingleSongShellPageD : ContentPage
 
     private void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        supportedFilePaths ??= new();
+        supportedFilePaths ??= [];
         isAboutToDropFiles = false;
 
 
@@ -723,12 +723,12 @@ public partial class SingleSongShellPageD : ContentPage
     {
         await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
-        //if (Clipboard.Default.HasText)
-        //{
-        //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
-        //}
+        if (Clipboard.Default.HasText)
+        {
+            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        }
 
-        
+
     }
 
     bool IsSyncing = false;

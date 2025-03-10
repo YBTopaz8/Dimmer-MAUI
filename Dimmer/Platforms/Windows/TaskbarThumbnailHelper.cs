@@ -37,9 +37,11 @@ public struct SHSTOCKICONINFO
 {
     public static IntPtr GetStockIconHandle(SHSTOCKICONID iconId, SHGSI flags)
     {
-        SHSTOCKICONINFO info = new SHSTOCKICONINFO();
-        info.cbSize = (uint)Marshal.SizeOf(typeof(SHSTOCKICONINFO));
-        int hr = SHGetStockIconInfo(iconId, (uint)flags, ref info);
+            SHSTOCKICONINFO info = new SHSTOCKICONINFO
+            {
+                cbSize = (uint)Marshal.SizeOf(typeof(SHSTOCKICONINFO))
+            };
+            int hr = SHGetStockIconInfo(iconId, (uint)flags, ref info);
         return (hr == 0) ? info.hIcon : IntPtr.Zero;
     }
 }

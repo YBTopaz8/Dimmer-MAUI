@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.DataAccess.Services;
 public partial class SongsManagementService
 {
 
@@ -7,8 +9,10 @@ public partial class SongsManagementService
     public void UpdateUserLoginDetails(ParseUser usrr)
     {
         CurrentUserOnline = usrr;
-        CurrentOfflineUser.UserEmail = usrr.Username;        
-        CurrentOfflineUser.LastSessionDate = (DateTimeOffset)usrr.UpdatedAt!;        
+        CurrentOfflineUser.UserEmail = usrr.Email;
+        CurrentOfflineUser.UserName = usrr.Username;
+
+        CurrentOfflineUser.LastSessionDate = DateTimeOffset.UtcNow;
         UserModel usr = new(CurrentOfflineUser);
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
@@ -22,7 +26,7 @@ public partial class SongsManagementService
         try
         {
             // Log the user in
-            _ = ParseClient.Instance.LogInWithAsync(email, password);
+            var e = await ParseClient.Instance.LogInWithAsync(email, password);
 
             // Check if the email is verified (if applicable)
             if (CurrentUserOnline is not null)
@@ -100,20 +104,24 @@ public partial class SongsManagementService
     {
         try
         {
-            if (CurrentOfflineUser is null)
-            {
-                CurrentOfflineUser = new UserModelView()
+            CurrentOfflineUser ??= new ()
                 {
                     UserName = string.Empty,
                     UserEmail = string.Empty,
                     UserPassword = string.Empty,
                 };
-            }
             if (CurrentUserOnline is null)
             {
-                // display user is offline
-                //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "Ok");
-                return null;
+                var oUser = await ParseClient.Instance.LogInWithAsync(CurrentOfflineUser.UserName, CurrentOfflineUser.UserPassword);
+
+                if (oUser is null)
+                {
+                    return null;
+                }
+                CurrentUserOnline = oUser;
+                MyViewModel.CurrentUserOnline = oUser;
+
+                
             }
 
             if (await CurrentUserOnline.IsAuthenticatedAsync())
@@ -123,10 +131,12 @@ public partial class SongsManagementService
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                UserModel? user = new();
-                user.UserEmail = CurrentUserOnline.Email;
-                user.UserName = CurrentUserOnline.Username;
-                user.UserPassword = CurrentUserOnline.Password;
+                UserModel? user = new()
+                {
+                    UserEmail = CurrentUserOnline.Email,
+                    UserName = CurrentUserOnline.Username,
+                    UserPassword = CurrentUserOnline.Password
+                };
 
 
                 var userdb = db.All<UserModel>();
@@ -147,7 +157,7 @@ public partial class SongsManagementService
         catch (Exception ex)
         {
             Debug.WriteLine("Error getting user account online: " + ex.Message);
-            await Shell.Current.DisplayAlert("Hey!", ex.Message, "Ok");
+            await Shell.Current.DisplayAlert("Hey1!", ex.Message, "Ok");
             return null;
         }
     }

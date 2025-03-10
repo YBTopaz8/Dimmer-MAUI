@@ -134,6 +134,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SettingsPageD>();
         builder.Services.AddSingleton<LandingPageD>();
         builder.Services.AddSingleton<AlbumsPageD>();
+        builder.Services.AddSingleton<OnlineSpaceD>();
 
         builder.Services.AddSingleton<MediaPlaybackControlsView>();
 #endif

@@ -1,3 +1,7 @@
+
+
+using DevExpress.Maui.Core;
+
 namespace Dimmer_MAUI.Views.Mobile;
 
 public partial class SettingsPageM : ContentPage
@@ -5,10 +9,10 @@ public partial class SettingsPageM : ContentPage
 	public SettingsPageM(HomePageVM vm)
     {
         InitializeComponent();
-        this.ViewModel = vm;
+        this.MyViewModel = vm;
         BindingContext = vm;
     }
-    public HomePageVM ViewModel { get; }
+    public HomePageVM MyViewModel { get; }
 
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
@@ -25,7 +29,9 @@ public partial class SettingsPageM : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        SongsManagementService.ConnectOnline();
+                
+         //await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
+
         //LoginBtn_Clicked(null, null); //review this.
     }
     private async void SignUpBtn_Clicked(object sender, EventArgs e)
@@ -62,9 +68,9 @@ public partial class SettingsPageM : ContentPage
 
     private async void LoginBtn_Clicked(object sender, EventArgs e)
     {
-        if (ViewModel.CurrentUserOnline is not null)
+        if (MyViewModel.CurrentUserOnline is not null)
         {
-            if (await ViewModel.CurrentUserOnline.IsAuthenticatedAsync())
+            if (await MyViewModel.CurrentUserOnline.IsAuthenticatedAsync())
             {
                 return;
             }
@@ -81,16 +87,20 @@ public partial class SettingsPageM : ContentPage
             var uname= LoginUname.Text.Trim();
             var pass = LoginPass.Text.Trim();
             var oUser = await ParseClient.Instance.LogInWithAsync(uname,pass);
-            ViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
-            ViewModel.CurrentUserOnline = oUser;
-            ViewModel.CurrentUser.IsAuthenticated = true;
+            MyViewModel.SongsMgtService.UpdateUserLoginDetails(oUser);
+            MyViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
+            MyViewModel.CurrentUserOnline = oUser;
+            MyViewModel.CurrentUser.IsAuthenticated = true;
             await Shell.Current.DisplayAlert("Success !", $"Welcome Back ! {oUser.Username}", "OK");
+
+            LoginUname.Text = string.Empty;
+            LoginPass.Text = string.Empty;
             // Navigate to a different page or perform post-login actions
-            //ViewModel.SongsMgtService.GetUserAccount(oUser);
+            //MyViewModel.SongsMgtService.GetUserAccount(oUser);
         }
         catch (Exception ex)
         {
-            ViewModel.CurrentUser.IsAuthenticated = false;
+            MyViewModel.CurrentUser.IsAuthenticated = false;
             await Shell.Current.DisplayAlert("Error", $"Login failed: {ex.Message}", "OK");
 
         }
@@ -98,7 +108,7 @@ public partial class SettingsPageM : ContentPage
 
     private void FullSyncBtn_Clicked(object sender, EventArgs e)
     {
-       _=  ViewModel.FullSync();
+       _=  MyViewModel.FullSync();
     }
 
     private void DXButton_Clicked(object sender, EventArgs e)
@@ -108,16 +118,22 @@ public partial class SettingsPageM : ContentPage
 
     private async void ScanAllBtn_Clicked(object sender, EventArgs e)
     {
-        await ViewModel.LoadSongsFromFolders();
+        await MyViewModel.LoadSongsFromFolders();
     }
 
     private async void PickFolder_Clicked(object sender, EventArgs e)
     {
-         await ViewModel.SelectSongFromFolder();
+         await MyViewModel.SelectSongFromFolder();
     }
 
     private async void SyncPDaCS_Clicked(object sender, EventArgs e)
     {
-        await ViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+        await MyViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+    }
+
+
+    private void DXButton_Clicked_1(object sender, EventArgs e)
+    {
+        MyViewModel.SongsMgtService.GetUserAccountOnline();
     }
 }

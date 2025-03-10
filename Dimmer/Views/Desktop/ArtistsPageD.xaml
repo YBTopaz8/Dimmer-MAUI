@@ -70,8 +70,8 @@
             <toolkit:Expander Grid.Row="0" BackgroundColor="Transparent">
                 <toolkit:Expander.Header>
                     <VerticalStackLayout Grid.Row="0">
-                    <Label HorizontalOptions="End" x:Name="FilterLetterLabel"
-                           />
+                    <Label HorizontalOptions="End" 
+                           x:Name="FilterLetterLabel"/>
                     <Label HorizontalOptions="End" 
                            Text="{Binding AllArtists.Count, StringFormat='{0} Artists'}"/>
                     <SearchBar x:Name="SearchArtistBar" 
@@ -205,13 +205,14 @@
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
-                                <Setter Property="Stroke" Value="DarkSlateBlue" />
-                            </DataTrigger>
+                                    <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                </DataTrigger>
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
                                 <Setter Property="Stroke" Value="Transparent" />
-                                <Setter Property="StrokeThickness" Value="1"/>
+                                <Setter Property="StrokeThickness" Value="0"/>
 
                             </DataTrigger>
                         </Border.Triggers>

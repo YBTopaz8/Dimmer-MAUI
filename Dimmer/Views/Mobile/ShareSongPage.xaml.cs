@@ -14,7 +14,7 @@ public partial class ShareSongPage : ContentPage
     SongModelView currentsong;
     HomePageVM MyViewModel { get; set; }
     bool hasLyrics;
-    ObservableCollection<LyricPhraseModel>? sharelyrics=new();
+    ObservableCollection<LyricPhraseModel>? sharelyrics=[];
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -399,11 +399,13 @@ public partial class ShareSongPage : ContentPage
         itemSL.GestureRecognizers.Add(DragDropGest);
 
         // Create the expander
-        DXExpander itemExp = new DXExpander();
-        itemExp.IsExpanded = false;
-        itemExp.VerticalExpandMode = ExpandMode.FromStartToEnd;
+        DXExpander itemExp = new DXExpander
+        {
+            IsExpanded = false,
+            VerticalExpandMode = ExpandMode.FromStartToEnd
+        };
 
-        HorizontalStackLayout buttonLayout = new HorizontalStackLayout();
+        HorizontalStackLayout buttonLayout = [];
 
         // Create the 'Delete Text' button
         DXButton DeleteTextBtn = new DXButton()

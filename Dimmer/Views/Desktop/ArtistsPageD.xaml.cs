@@ -115,7 +115,7 @@ public partial class ArtistsPageD : ContentPage
     {
         SfEffectsView view = (SfEffectsView)sender;
         ArtistModelView artist = (view.BindingContext as ArtistModelView)!;
-
+        
         MyViewModel.LoadArtistAlbumsAndSongs(artist);
 
     }
@@ -149,7 +149,7 @@ public partial class ArtistsPageD : ContentPage
 
                 var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
                 e.AcceptedOperation = DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
 
                 if (items.Count > 0)
                 {
@@ -191,7 +191,7 @@ public partial class ArtistsPageD : ContentPage
     }
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        supportedFilePaths ??= new();
+        supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         var send = sender as View;
@@ -251,5 +251,8 @@ public partial class ArtistsPageD : ContentPage
     private void ResetAlbumSongsList_Clicked(object sender, EventArgs e)
     {
         MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedArtistOnArtistPage);
+        AlbumSongsCV.ScrollTo(MyViewModel.SelectedAlbumOnArtistPage, null, ScrollToPosition.Center, false);
+        AllArtistsColView.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
+        //.ScrollTo(MyViewModel.SelectedArtistOnArtistPage, null, ScrollToPosition.Center, false);
     }
 }

@@ -69,7 +69,7 @@ public partial class PlaylistsPageD : ContentPage
 
                 var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
                 e.AcceptedOperation = DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
 
                 if (items.Count > 0)
                 {
@@ -129,7 +129,7 @@ public partial class PlaylistsPageD : ContentPage
     }
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        supportedFilePaths ??= new();
+        supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         var send = sender as View;

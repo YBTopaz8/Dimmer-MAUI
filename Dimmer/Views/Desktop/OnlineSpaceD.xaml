@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer_MAUI.Views.Desktop.OnlineSpaceD"
+            xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
+            xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"
+            xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
+            xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"               
+            xmlns:btmSheet="clr-namespace:Syncfusion.Maui.Toolkit.BottomSheet;assembly=Syncfusion.Maui.Toolkit"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"             
+            xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
+            xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
+            x:DataType="vm:HomePageVM"
+             xmlns:Parse ="clr-namespace:Parse;assembly=YBParseLiveQuery"
+            x:Name="myPage"
+            xmlns:sys="clr-namespace:System;assembly=netstandard"
+            xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
+            xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"
+            >
+
+    
+    <Grid RowDefinitions="*,Auto">
+
+        <VerticalStackLayout Grid.Row="1"
+            toolkit:DockLayout.DockPosition="Bottom">
+            <Border x:Name="OGSenderView" BackgroundColor="Transparent" IsVisible="False">
+                <VerticalStackLayout  IsVisible="True" BackgroundColor="Transparent">
+                    <Button BackgroundColor="Transparent"
+                            x:Name="CloseReplyWindow" 
+                            Text="x" Clicked="CloseReplyWindow_Clicked"/>
+                    <Label x:Name="OGSenderUserName" FontAttributes="Bold" />
+                    <Label x:Name="OGSenderLabel" FontSize="18"/>
+                    
+                </VerticalStackLayout>
+            </Border>
+            <Border Stroke="DarkSlateBlue" VerticalOptions="Start"
+                    
+                    StrokeThickness="1" BackgroundColor="#222529"
+                    Margin="10">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                    <Editor Placeholder="{OnPlatform WinUI='Leave a note.. (Tip: Press Windows Key + . for Emojis)'
+                        ,Android='Leave a note..'} " x:Name="ChatMsgView" Keyboard="Chat"
+                                Grid.Column="0" FontSize="20"/>
+                    <HorizontalStackLayout Grid.Column="1" 
+                                           x:Name="SendView"
+                                           BackgroundColor="Transparent" 
+                                           Padding="5">
+                        <ImageButton Source="multipleforwardright.png" ToolTipProperties.Text="Send"
+                                     x:Name="SendTextMsgBtn" Clicked="SendTextMsgBtn_Clicked"/>
+                    </HorizontalStackLayout>
+
+                </Grid>
+            </Border>
+            <cw:MediaPlaybackControlsView 
+                
+                toolkit:DockLayout.DockPosition="Bottom"
+          x:Name="MediaPlayBackCW" />
+        </VerticalStackLayout>
+        
+        <Grid ColumnDefinitions="300,*" Grid.Row="0"
+              RowDefinitions="Auto,*" >
+
+            <Grid RowDefinitions="Auto,*" Grid.Column="0" 
+                  Grid.Row="0"
+                  Margin="5,0">
+                <VerticalStackLayout >
+                    <SearchBar Placeholder="..."/>
+                </VerticalStackLayout>
+                <CollectionView ItemsSource="{Binding AllUsersAvailable}"
+                                 Grid.Row="1">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="Parse:ParseUser">
+                            <Border VerticalOptions="Center">
+                            <syncf:SfEffectsView TouchDown="SepecificUserVew_TouchDown" x:Name="SepecificUserVew"
+                                                 >
+                                <VerticalStackLayout HeightRequest="60"
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding Username}" VerticalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                            </syncf:SfEffectsView>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            </Grid>
+            
+            <CollectionView Grid.Column="1" VerticalOptions="Start"  SelectionMode="Single"                         
+                            ItemsSource="{Binding ChatMessages}" x:Name="UserChatColView"
+                            SelectionChanged="UserChatColView_SelectionChanged" SelectedItem="{Binding LatestActivity}"
+                            EmptyView="Nothing yet..." Grid.Row="1"
+                            Loaded="UserChatColView_Loaded" Unloaded="UserChatColView_Unloaded">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:UserActivity">
+                        <Border x:Name="MsgBorder" Stroke="DarkSlateBlue" 
+                                 BackgroundColor="Transparent">
+                            <Border.Triggers>
+                                <!-- Playback Controls (DarkSlateBlue variations) -->
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="0">
+                                    <!-- Play -->
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    <!-- Primary action, use the main color -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="1">
+                                    <!-- Pause -->
+                                    <Setter Property="Stroke" Value="Red"/>
+                                    <!-- Gray, common for disabled/paused states -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="2">
+                                    <!-- Resume -->
+                                    <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                    <!-- Same as Play, re-engaging -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="3">
+                                    <!-- Completed -->
+                                    <Setter Property="Stroke" Value="Green"/>
+                                    <!-- Success/completion -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="4">
+                                    <!-- Seeked -->
+                                    <Setter Property="Stroke" Value="MediumSlateBlue"/>
+                                    <!-- Lighter variation of DarkSlateBlue, indicating a change in position -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="5">
+                                    <!-- Skipped -->
+                                    <Setter Property="Stroke" Value="#A8A1C7"/>
+                                    <!-- Light purple/gray, visually distinct but related to DarkSlateBlue -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="6">
+                                    <!-- Restarted -->
+                                    <Setter Property="Stroke" Value="RoyalBlue"/>
+                                    <!-- A brighter, more vibrant blue for a fresh start -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="7">
+                                    <!-- SeekRestarted -->
+                                    <Setter Property="Stroke" Value="CornflowerBlue"/>
+                                    <!-- Similar to Restarted, but slightly lighter due to the "seek" aspect -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="8">
+                                    <!-- CustomRepeat -->
+                                    <Setter Property="Stroke" Value="MediumPurple"/>
+                                    <!-- Distinct from other blues, suggesting a custom action -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="9">
+                                    <!-- Previous -->
+                                    <Setter Property="Stroke" Value="LightSlateGray"/>
+                                    <!-- Muted blue-gray, suggests going back -->
+                                </DataTrigger>
+
+                                <!-- Logging and Chat Actions (More diverse, but still related) -->
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="10">
+                                    <!-- LogEvent -->
+                                    <Setter Property="Stroke" Value="DimGray"/>
+                                    <!-- Neutral, informational -->
+                                </DataTrigger>
+
+                                <!-- Chat Actions (Variations of blue/purple, with some exceptions) -->
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="11">
+                                    <!-- ChatSent -->
+                                    <Setter Property="Stroke" Value="#6A5ACD"/>
+                                    <!-- Slightly lighter DarkSlateBlue, indicating outgoing -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="12">
+                                    <!-- ChatReceived -->
+                                    <Setter Property="Stroke" Value="#7B68EE"/>
+                                    <!-- Another variation of DarkSlateBlue, for incoming -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="13">
+                                    <!-- ChatDeleted -->
+                                    <Setter Property="Stroke" Value="Red"/>
+                                    <!-- Standard color for deletion -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="14">
+                                    <!-- ChatEdited -->
+                                    <Setter Property="Stroke" Value="Orange"/>
+                                    <!-- Indicates modification -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="15">
+                                    <!-- ChatPinned -->
+                                    <Setter Property="Stroke" Value="#9370DB"/>
+                                    <!-- Lighter purple, stands out -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="16">
+                                    <!-- ChatUnpinned -->
+                                    <Setter Property="Stroke" Value="#D8BFD8"/>
+                                    <!-- Lighter, desaturated purple, less prominent -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="17">
+                                    <!-- ChatLiked -->
+                                    <Setter Property="Stroke" Value="HotPink"/>
+                                    <!-- Common for likes/favorites -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="18">
+                                    <!-- ChatUnliked -->
+                                    <Setter Property="Stroke" Value="LightPink"/>
+                                    <!-- Paler version of liked color -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="19">
+                                    <!-- ChatShared -->
+                                    <Setter Property="Stroke" Value="#4682B4"/>
+                                    <!-- SteelBlue, distinct but professional -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="20">
+                                    <!-- ChatUnread -->
+                                    <Setter Property="Stroke" Value="Teal"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="21">
+                                    <!-- ChatRead -->
+                                    <Setter Property="Stroke" Value="#ADD8E6"/>
+                                    <!-- LightBlue -->
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="22">
+                                    <!-- ChatMentioned -->
+                                    <Setter Property="Stroke" Value="#00CED1"/>
+                                    <!-- DarkTurquoise-->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="23">
+                                    <!-- ChatUnMentioned -->
+                                    <Setter Property="Stroke" Value="#AFEEEE"/>
+                                    <!-- PaleTurquoise -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="24">
+                                    <!-- ChatReplied -->
+                                    <Setter Property="Stroke" Value="#66CDAA"/>
+                                    <!-- MediumAquaMarine -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="25">
+                                    <!-- ChatUnreplied -->
+                                    <Setter Property="Stroke" Value="#E0FFFF"/>
+                                    <!-- LightCyan -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="26">
+                                    <!-- ChatForwarded -->
+                                    <Setter Property="Stroke" Value="#87CEFA"/>
+                                    <!-- LightSkyBlue-->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="27">
+                                    <!-- ChatUnforwarded -->
+                                    <Setter Property="Stroke" Value="#F0F8FF"/>
+                                    <!-- AliceBlue -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="28">
+                                    <!-- ChatSaved -->
+                                    <Setter Property="Stroke" Value="DarkOliveGreen"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="29">
+                                    <!-- ChatUnsaved -->
+                                    <Setter Property="Stroke" Value="#BDB76B"/>
+                                    <!-- DarkKhaki-->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="30">
+                                    <!-- ChatReported -->
+                                    <Setter Property="Stroke" Value="#B22222"/>
+                                    <!--FireBrick -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="31">
+                                    <!-- ChatUnreported -->
+                                    <Setter Property="Stroke" Value="#F08080"/>
+                                    <!--LightCoral -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="32">
+                                    <!-- ChatBlocked -->
+                                    <Setter Property="Stroke" Value="#2F4F4F"/>
+                                    <!-- DarkSlateGray -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="33">
+                                    <!-- ChatUnblocked -->
+                                    <Setter Property="Stroke" Value="#696969"/>
+                                    <!-- DimGray -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="34">
+                                    <!-- ChatMuted -->
+                                    <Setter Property="Stroke" Value="#708090"/>
+                                    <!-- SlateGray -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="35">
+                                    <!-- ChatUnmuted -->
+                                    <Setter Property="Stroke" Value="#778899"/>
+                                    <!-- LightSlateGray -->
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding ActivityType}" Value="36">
+                                    <!-- ChatPinnedMessage -->
+                                    <Setter Property="Stroke" Value="#9370DB"/>
+                                    <!-- MediumPurple, same as Pinned -->
+                                </DataTrigger>
+
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <PointerGestureRecognizer x:Name="MsgBorderPointerRecog"
+                                                  PointerEntered="MsgBorderPointerRecog_PointerEntered"
+                                                  PointerExited="MsgBorderPointerRecog_PointerExited"
+                                                  />
+                            </Border.GestureRecognizers>
+
+                            <Grid Margin="10,10" 
+                                  
+                                  BackgroundColor="Transparent">
+
+                                <VerticalStackLayout Grid.Column="0">
+                                    <HorizontalStackLayout HorizontalOptions="Center">
+                                        <Label Text="{Binding CreatedAt}" />
+                                        <Label Text="(edited)" IsVisible="{Binding ChatMessage.IsEdited}" />
+                                    </HorizontalStackLayout>
+                                    <Label 
+                                        FontSize="20"
+                                        Text="{Binding ChatMessage.Content}" />
+                                    <Label 
+                                        FontSize="20"
+                                        Text="{Binding ChatMessage.Sender.Username}" />
+                                    <Label  FontSize="14" Text="{Binding DeviceIdiom}" TextColor="DarkOrange"/>
+
+                                    <HorizontalStackLayout>
+                                            <ImageButton  
+                                                Opacity="0.7" CommandParameter="{Binding .}"
+                                                Source="multipleforwardleft.png" x:Name="AddReaction" Clicked="AddReaction_Clicked">
+                                                
+                                            <ImageButton.Behaviors>
+                                                    <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                                            </ImageButton.Behaviors>
+                                        </ImageButton>
+                                        <!--<ImageButton Source="reaction.png" x:Name="EditRemoveReaction" Clicked="EditRemoveReaction_Clicked"/>-->
+
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+                      
+        </Grid>
+
+
+    </Grid>
+    
+</ContentPage>

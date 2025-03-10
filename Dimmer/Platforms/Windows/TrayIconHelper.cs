@@ -50,8 +50,10 @@ public class TrayIconHelper
 
     public TrayIconHelper()
     {
-        _data = new NOTIFYICONDATA();
-        _data.cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA));
+        _data = new NOTIFYICONDATA
+        {
+            cbSize = (uint)Marshal.SizeOf(typeof(NOTIFYICONDATA))
+        };
     }
 
     public void CreateTrayIcon(string tooltip, IntPtr iconHandle)

@@ -6,6 +6,8 @@ global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
 global using Dimmer_MAUI.Views.Mobile.FirstSteps;
 
+global using static Dimmer_MAUI.Utilities.Services.PlaybackUtilsService;
+
 global using Parse;
 global using Parse.LiveQuery;
 global using Syncfusion.Maui.Toolkit.Charts;

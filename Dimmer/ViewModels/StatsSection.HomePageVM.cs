@@ -103,7 +103,7 @@ public partial class HomePageVM
         startDate ??= DateTimeOffset.UtcNow.Date.AddMonths(-6).Date; // Default to 6 months ago for a longer range
         endDate ??= DateTimeOffset.UtcNow.Date.Date; // Default to today
 
-        SongPickedForStats.WeeklyStats = new ObservableCollection<WeeklyStats>();
+        SongPickedForStats.WeeklyStats = [];
 
         // Ensure start date is aligned to the beginning of the week (e.g., Monday)
         var currentStartDate = startDate.Value;
@@ -155,7 +155,7 @@ public partial class HomePageVM
         endDate ??= new DateTimeOffset(DateTimeOffset.UtcNow.Date.Year, DateTimeOffset.UtcNow.Date.Month, 1, 0, 0, 0, TimeSpan.Zero)
                         .AddMonths(1).AddDays(-1); // End of the current month
 
-        SongPickedForStats.MonthlyStats = new ObservableCollection<MonthlyStats>();
+        SongPickedForStats.MonthlyStats = [];
 
         
         var currentMonth = new DateTimeOffset(startDate.Value.Year, startDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
@@ -183,7 +183,7 @@ public partial class HomePageVM
         startDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
         endDate ??= new DateTimeOffset(DateTimeOffset.Now.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
 
-        SongPickedForStats.YearlyStats = new ObservableCollection<YearlyStats>();
+        SongPickedForStats.YearlyStats = [];
 
         
         var currentYear = new DateTimeOffset(startDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -266,7 +266,7 @@ public partial class HomePageVM
 #endif
     }
     [ObservableProperty]
-    ObservableCollection<string> statsFilters = new ObservableCollection<string>{"Daily","Weekly", "Monthly", "Yearly"};
+    ObservableCollection<string> statsFilters = ["Daily","Weekly", "Monthly", "Yearly"];
 
 }
 
@@ -377,7 +377,7 @@ public partial class DailyStats : ObservableObject
         //TotalPlayTime = PlayDates.Count * model.DurationInSeconds / 60;
 
         // Initialize ColforStats collection
-        ColforStats = new ObservableCollection<DataForChart>();
+        ColforStats = [];
 
         // Populate ColforStats initially
         RefreshColforStats();

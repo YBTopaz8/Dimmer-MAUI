@@ -30,6 +30,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SingleSongStatsPageD), typeof(SingleSongStatsPageD));
         Routing.RegisterRoute(nameof(SettingsPageD), typeof(SettingsPageD));
         Routing.RegisterRoute(nameof(LandingPageD), typeof(LandingPageD));
+        Routing.RegisterRoute(nameof(OnlineSpaceD), typeof(OnlineSpaceD));
 
 #if WINDOWS
 
@@ -243,10 +244,9 @@ public partial class AppShell : Shell
             case Windows.System.VirtualKey.ModeChange:
                 break;
             case Windows.System.VirtualKey.Space:
-                if (MyViewModel.IsOnSearchMode)
-                {
+               
                     return;
-                }
+                
                 if (MyViewModel.IsPlaying)
                 {
                     MyViewModel.PauseSong();
@@ -580,7 +580,7 @@ public partial class AppShell : Shell
 
                 var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
                 WindowsEventArgs.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
 
                 if (items.Count > 0)
                 {
@@ -992,7 +992,7 @@ public partial class AppShell : Shell
             case 1:
                 if (MyViewModel.AllSyncLyrics is not null)
                 {
-                    MyViewModel.AllSyncLyrics = new();
+                    MyViewModel.AllSyncLyrics = [];
                 }
                 break;
             case 2:
@@ -1076,5 +1076,6 @@ public enum PageEnum
     FullStatsPage,
     AllArtistsPage,
     AllAlbumsPage,
-    SpecificAlbumPage
+    SpecificAlbumPage,
+    OnlineChatPage
 }

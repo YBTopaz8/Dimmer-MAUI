@@ -252,7 +252,7 @@ public class LyricsService : ILyricsService
     public static ObservableCollection<LyricPhraseModel> LoadSynchronizedAndSortedLyrics(string songPath)
     {
        
-        List<LyricPhraseModel> lyrr = new();
+        List<LyricPhraseModel> lyrr = [];
 
         IList<LyricsPhrase>? lyrics = new Track(songPath).Lyrics.SynchronizedLyrics;
 
@@ -288,7 +288,7 @@ public class LyricsService : ILyricsService
 
     static List<LyricPhraseModel> StringToLyricPhraseModel(string[] lines)
     {
-        List<LyricPhraseModel> lyricPhrases = new();
+        List<LyricPhraseModel> lyricPhrases = [];
         foreach (string line in lines)
         {
             // Regular expression to match lines with timestamps and lyrics.
@@ -686,9 +686,7 @@ public class LyricsService : ILyricsService
 
             //track.Save();
             
-            songObj.SyncLyrics = new ObservableCollection<LyricPhraseModel>(
-                track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase))
-            );
+            songObj.SyncLyrics = [.. track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase))];
 
         }
         songObj.HasLyrics = IsSynched;

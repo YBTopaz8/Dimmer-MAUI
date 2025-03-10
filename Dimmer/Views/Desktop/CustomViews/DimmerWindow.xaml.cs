@@ -12,9 +12,10 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-        
+       
     }
 
+    
     protected override void OnActivated()
     {
         base.OnActivated();
@@ -46,7 +47,7 @@ public partial class DimmerWindow : Window
     }
     public HomePageVM? MyViewModel { get; set; }
 
-    protected override void OnCreated()
+    protected async override void OnCreated()
     {
         base.OnCreated();
         this.MinimumHeight = 950;
@@ -54,10 +55,10 @@ public partial class DimmerWindow : Window
         this.Height = 950;
         this.Width = 1200;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.6a-debug";
+        DimmerTitleBar.Subtitle = "v1.7-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #elif RELEASE
-        DimmerTitleBar.Subtitle = "v1.6a-Release";
+        DimmerTitleBar.Subtitle = "v1.7-Release";
 #endif
 
         if (!InitChecker())
@@ -74,8 +75,12 @@ public partial class DimmerWindow : Window
         {
             onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
         }
+        //MyViewModel.SongsMgtService.GetUserAccount();
+        await MyViewModel.SongsMgtService.GetUserAccountOnline();
 
 
+        await MyViewModel.ConnectToLiveQueriesAsync();
+        await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
     }
     bool InitChecker()
     {
@@ -227,10 +232,10 @@ public partial class DimmerWindow : Window
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     private const int SW_HIDE = 0;
-    private TrayIconHelper _trayIconHelper;
+    private TrayIconHelper? _trayIconHelper;
     private const int SW_SHOW = 5;
     // For hooking the native window procedure.
-    private WndProcDelegate _newWndProcDelegate;
+    private WndProcDelegate? _newWndProcDelegate;
     private IntPtr _oldWndProc = IntPtr.Zero;
     private const int GWL_WNDPROC = -4;
     private const int WM_COMMAND = 0x0111; // Message from thumbnail buttons

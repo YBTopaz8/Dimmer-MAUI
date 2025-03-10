@@ -33,7 +33,7 @@ public partial class ArtistModel : RealmObject
 
 }
 
-// ViewModel for ArtistModel
+// MyViewModel for ArtistModel
 public partial class ArtistModelView : ObservableObject
 {
     [ObservableProperty]

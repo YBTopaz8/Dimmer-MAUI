@@ -186,7 +186,7 @@ public partial class SettingsPageD : ContentPage
                 }
                 break;
             case 3: //LastFM
-                //if(await ViewModel.LogInToLastFMWebsite(false))
+                //if(await MyViewModel.LogInToLastFMWebsite(false))
                 //{
                 //    GeneralStaticUtilities.RunFireAndForget(SwitchUI(0), ex =>
                 //    {

@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 namespace Dimmer_MAUI.ViewModels;
 
 
-public class ChatService : IDisposable
+public partial class HomePageVM
 {
-    private readonly ParseLiveQueryClient _liveQueryClient;
-    private readonly CompositeDisposable _disposables = new();
-    private ParseUser _currentUser;
+    private readonly CompositeDisposable _disposables = [];
+    
 
     // Observables for events
     public IObservable<FriendRequestDisplay> FriendRequestReceived { get; private set; }
@@ -20,17 +19,10 @@ public class ChatService : IDisposable
     public IObservable<(string MessageId, string NewContent)> ChatMessageEdited { get; private set; } // Add for edit
     public IObservable<string> ChatMessageDeleted { get; private set; }  // Add for delete
 
-
-    public ChatService()
-    {
-        _liveQueryClient = new ParseLiveQueryClient();
-        SetupLiveQueryEventHandlers();
-    }
-
     public async Task InitializeAsync()
     {
-        _currentUser = await ParseClient.Instance.GetCurrentUser();
-        if (_currentUser == null)
+        CurrentUserOnline = await ParseClient.Instance.GetCurrentUser();
+        if (CurrentUserOnline == null)
         {
             throw new InvalidOperationException("User must be logged in to use ChatService.");
         }
@@ -44,23 +36,23 @@ public class ChatService : IDisposable
 
     private void SetupLiveQueryEventHandlers()
     {
-        _liveQueryClient.OnConnected
+        LiveQueryClient.OnConnected
             .Subscribe(_ => Debug.WriteLine("LiveQuery connected."))
             ; 
 
-        _liveQueryClient.OnDisconnected
+        LiveQueryClient.OnDisconnected
             .Subscribe(info => Debug.WriteLine($"LiveQuery Disconnected: {info}"));
 
-        _liveQueryClient.OnError
+        LiveQueryClient.OnError
             .Subscribe(ex => Debug.WriteLine($"LiveQuery Error: {ex.Message}"));
 
         // Centralized reconnection (important for robustness)
-        //var reconnect = _liveQueryClient.OnDisconnected.Where(x => !x.userInitiated)
+        //var reconnect = LiveQueryClient.OnDisconnected.Where(x => !x.userInitiated)
         //   .DelaySubscription(TimeSpan.FromSeconds(5))
-        //   .SelectMany(_ => Observable.FromAsync(() => _liveQueryClient.ConnectAsync()))
+        //   .SelectMany(_ => Observable.FromAsync(() => LiveQueryClient.ConnectAsync()))
         //   .Retry()
         //   .Subscribe();
-        _liveQueryClient.OnDisconnected
+        LiveQueryClient.OnDisconnected
                 .Do(info => Debug.WriteLine(info.userInitiated
                     ? "User disconnected."
                     : "Server disconnected."))
@@ -88,7 +80,7 @@ public class ChatService : IDisposable
         }
         // 2. Check existing request
         var existingRequestQuery = ParseClient.Instance.GetQuery<FriendRequest>()
-           .WhereEqualTo("sender", _currentUser)
+           .WhereEqualTo("sender", CurrentUserOnline)
            .WhereEqualTo("recipient", recipient)
            .WhereEqualTo("status", "pending");
 
@@ -100,7 +92,7 @@ public class ChatService : IDisposable
         // 3. Create the FriendRequest object.
         var friendRequest = new FriendRequest
         {
-            Sender = _currentUser,
+            Sender = CurrentUserOnline,
             Receiver= recipient,
             Status = "pending"
         };
@@ -109,18 +101,18 @@ public class ChatService : IDisposable
         //4. Create the activity
         var activity = new UserActivity
         {
-            Sender = _currentUser,
-            Recipient = recipient,
-            ActivityType = "FriendRequest",
-            FriendRequest = friendRequest,
+            Sender = CurrentUserOnline,
+            
+            
+            //FriendRequest = friendRequest,
         };
         await activity.SaveAsync();
     }
     public async Task<List<FriendRequestDisplay>> GetPendingFriendRequestsAsync()
     {
         var query = ParseClient.Instance.GetQuery<UserActivity>()
-            .WhereEqualTo("recipient", _currentUser)
-            .WhereEqualTo("activityType", "FriendRequest")
+            .WhereEqualTo("recipient", CurrentUserOnline)
+            
             .Include("sender"); // Include the sender
 
         var userActivities = await query.FindAsync();
@@ -152,24 +144,24 @@ public class ChatService : IDisposable
         }
 
         // Fetch the FriendRequest object
-        var friendRequest = await userActivity.FriendRequest.FetchIfNeededAsync();
+        //var friendRequest = await userActivity.FriendRequest.FetchIfNeededAsync();
 
-        if (friendRequest.Status != "pending")
-        {
-            throw new InvalidOperationException("Friend request is not pending.");
-        }
+        //if (friendRequest.Status != "pending")
+        //{
+        //    throw new InvalidOperationException("Friend request is not pending.");
+        //}
 
-        // Update the status to "accepted"
-        friendRequest.Status = "accepted";
-        await friendRequest.SaveAsync();
+        //// Update the status to "accepted"
+        //friendRequest.Status = "accepted";
+        //await friendRequest.SaveAsync();
 
-        // Create the Friendship object
-        var friendship = new Friendship
-        {
-            User1 = friendRequest.Sender,
-            User2 = friendRequest.Receiver // _currentUser
-        };
-        await friendship.SaveAsync();
+        //// Create the Friendship object
+        //var friendship = new Friendship
+        //{
+        //    User1 = friendRequest.Sender,
+        //    User2 = friendRequest.Receiver // CurrentUserOnline
+        //};
+        //await friendship.SaveAsync();
         SubscribeToChatMessages();
     }
     public async Task RejectFriendRequestAsync(string userActivityId)
@@ -184,25 +176,25 @@ public class ChatService : IDisposable
         }
 
         // Fetch the FriendRequest object
-        var friendRequest = await userActivity.FriendRequest.FetchIfNeededAsync();
+        //var friendRequest = await userActivity.FriendRequest.FetchIfNeededAsync();
 
         // Update status (or delete, depending on your preference)
-        friendRequest.Status = "rejected";
-        await friendRequest.SaveAsync();
+        //friendRequest.Status = "rejected";
+        //await friendRequest.SaveAsync();
     }
 
     private void SubscribeToFriendRequests()
     {
         var query = ParseClient.Instance.GetQuery<UserActivity>()
-            .WhereEqualTo("recipient", _currentUser)
-            .WhereEqualTo("activityType", "FriendRequest")
+            .WhereEqualTo("recipient", CurrentUserOnline)
+            
             .Include("sender"); // Include sender for display
 
-        var subscription = _liveQueryClient.Subscribe(query);
+        var subscription = LiveQueryClient.Subscribe(query);
         SynchronizationContext s = (SynchronizationContext)SynchronizationContext.Current!;
         
         // Use Rx.NET to handle the events, convert to FriendRequestDisplay, and ensure UI thread safety.
-        FriendRequestReceived = _liveQueryClient.OnObjectEvent
+        FriendRequestReceived = LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription && e.evt == Subscription.Event.Create)
             .Select(e =>
             {
@@ -226,27 +218,26 @@ public class ChatService : IDisposable
     }
     public async Task<bool> CheckIfUserHasFriends()
     {
-        if (_currentUser == null)
+        if (CurrentUserOnline == null)
             return false;
 
-        var query1 = ParseClient.Instance.GetQuery<Friendship>().WhereEqualTo("user1", _currentUser);
-        var query2 = ParseClient.Instance.GetQuery<Friendship>().WhereEqualTo("user2", _currentUser);
+        var query1 = ParseClient.Instance.GetQuery<Friendship>().WhereEqualTo("user1", CurrentUserOnline);
+        var query2 = ParseClient.Instance.GetQuery<Friendship>().WhereEqualTo("user2", CurrentUserOnline);
         return await query1.CountAsync() > 0 || await query2.CountAsync() > 0;
     }
 
     // --- Chat Methods ---
     private void SubscribeToChatMessages()
     {
-        var query = ParseClient.Instance.GetQuery<UserActivity>()
-          .WhereEqualTo("recipient", _currentUser)
-            .WhereEqualTo("activityType", "ChatMessage")
+        var query = ParseClient.Instance.GetQuery<UserActivity>()          
+            
             .Include("chatMessage")
             .Include("chatMessage.sender")
             .Include("chatMessage.chatRoom"); // Include ChatRoom
 
-        var subscription = _liveQueryClient.Subscribe(query);
+        var subscription = LiveQueryClient.Subscribe(query);
 
-        ChatMessageReceived = _liveQueryClient.OnObjectEvent
+        ChatMessageReceived = LiveQueryClient.OnObjectEvent
              .Where(e => e.subscription == subscription && e.evt == Subscription.Event.Create)
              .Select(e =>
              {
@@ -261,7 +252,7 @@ public class ChatService : IDisposable
                          SenderUsername = chatMessage.Sender.Username,
                          Content = chatMessage.Content,
                          IsEdited = chatMessage.IsEdited,
-                         //IsMyMessage = chatMessage.Sender.ObjectId == _currentUser.ObjectId
+                         //IsMyMessage = chatMessage.Sender.ObjectId == CurrentUserOnline.ObjectId
                      });
                  }
                  return (null,null); // Or handle unexpected type appropriately
@@ -272,7 +263,7 @@ public class ChatService : IDisposable
         // Subscribe and manage the subscription.
         ChatMessageReceived.Subscribe();
 
-        ChatMessageEdited = _liveQueryClient.OnObjectEvent
+        ChatMessageEdited = LiveQueryClient.OnObjectEvent
           .Where(e => e.subscription == subscription && e.evt == Subscription.Event.Update)
           .Select(e =>
           {
@@ -287,7 +278,7 @@ public class ChatService : IDisposable
           .ObserveOn(SynchronizationContext.Current);
         ChatMessageEdited.Subscribe();
 
-        ChatMessageDeleted = _liveQueryClient.OnObjectEvent
+        ChatMessageDeleted = LiveQueryClient.OnObjectEvent
             .Where(e => e.subscription == subscription && e.evt == Subscription.Event.Delete)
             .Select(e =>
             {
@@ -308,7 +299,7 @@ public class ChatService : IDisposable
     {
         // Fetch participants (including current user).
         var participants = await FetchParticipantsAsync(participantIds);
-        if (participants == null || participants.Count == 0)
+        if (participants.Count <= 0)
             return null;
 
         // Check for existing chat room.
@@ -335,14 +326,15 @@ public class ChatService : IDisposable
                 return null; // Indicate failure.
             }
         }
-        participants.Add(_currentUser); // Add current user.
+        participants.Add(CurrentUserOnline); // Add current user.
         return participants;
     }
 
     private async Task<ChatRoom?> GetExistingChatRoomAsync(List<ParseUser> participants)
     {
         var query = ParseClient.Instance.GetQuery<ChatRoom>()
-           .WhereContainedIn("Participants", participants);  //All listed participants
+                     .WhereMatchesQuery("Participants", ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", CurrentUserOnline.ObjectId));
+        ;
 
         // Get all potential ChatRooms, and then filter in memory for an *exact* match.
         var potentialMatches = await query.FindAsync();
@@ -367,6 +359,7 @@ public class ChatService : IDisposable
     private async Task<ChatRoom> CreateChatRoomAsync(List<ParseUser> participants)
     {
         var chatRoom = new ChatRoom();
+        
         await chatRoom.SaveAsync();
 
         var relation = chatRoom.Participants;
@@ -395,7 +388,7 @@ public class ChatService : IDisposable
             SenderUsername = msg.Sender.Username,
             Content = msg.Content,
             IsEdited = msg.IsEdited,
-            //IsMyMessage = msg.Sender.ObjectId == _currentUser.ObjectId
+            //IsMyMessage = msg.Sender.ObjectId == CurrentUserOnline.ObjectId
         })];
     }
 
@@ -405,7 +398,7 @@ public class ChatService : IDisposable
         var message = new Message
         {
             ChatRoom = chatRoom,
-            Sender = _currentUser,
+            Sender = CurrentUserOnline,
             Content = content,
             IsEdited = false
         };
@@ -414,8 +407,8 @@ public class ChatService : IDisposable
         // Create UserActivity for the message
         var activity = new UserActivity
         {
-            Sender = _currentUser,
-            Recipient = _currentUser, // Initially, set recipient to sender for simplicity
+            Sender = CurrentUserOnline,
+            
             ActivityType = "ChatMessage",
             ChatMessage = message
         };
@@ -430,7 +423,7 @@ public class ChatService : IDisposable
     {
         // Fetch the participants of the chat room (excluding the sender).
         var participants = await chatRoom.Participants.Query
-            .WhereNotEqualTo("objectId", _currentUser.ObjectId)
+            .WhereNotEqualTo("objectId", CurrentUserOnline.ObjectId)
             .FindAsync();
 
         // Create UserActivity entries for each recipient.
@@ -439,8 +432,8 @@ public class ChatService : IDisposable
             // You could optimize this by batching the save operations.
             var newActivity = new UserActivity
             {
-                Sender = _currentUser,
-                Recipient = recipient,
+                Sender = CurrentUserOnline,
+                
                 ActivityType = "ChatMessage",
                 ChatMessage = activity.ChatMessage
             };
@@ -461,7 +454,7 @@ public class ChatService : IDisposable
             throw new ArgumentException($"Message with ID '{messageId}' not found.");
         }
 
-        if (message.Sender.ObjectId != _currentUser.ObjectId)
+        if (message.Sender.ObjectId != CurrentUserOnline.ObjectId)
         {
             throw new InvalidOperationException("Only the sender can edit a message.");
         }
@@ -481,7 +474,7 @@ public class ChatService : IDisposable
             throw new ArgumentException($"Message with ID '{messageId}' not found.");
         }
 
-        if (message.Sender.ObjectId != _currentUser.ObjectId)
+        if (message.Sender.ObjectId != CurrentUserOnline.ObjectId)
         {
             throw new InvalidOperationException("Only the sender can delete a message.");
         }
@@ -499,6 +492,6 @@ public class ChatService : IDisposable
     public void Dispose()
     {
         _disposables.Dispose();
-        _liveQueryClient.Disconnect();
+        LiveQueryClient.Disconnect();
     }
 }

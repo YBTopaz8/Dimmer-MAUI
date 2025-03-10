@@ -1,6 +1,4 @@
 
-
-
 namespace Dimmer_MAUI;
 
 public partial class AppShellMobile : Shell
@@ -26,7 +24,7 @@ public partial class AppShellMobile : Shell
 
         //this.Navigating += OnNavigating;
 
-        
+
     }
 
     private void OnNavigating(object? sender, ShellNavigatingEventArgs e)

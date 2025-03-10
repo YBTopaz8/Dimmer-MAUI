@@ -41,25 +41,49 @@ public partial class ChatMessageDisplay : ObservableObject
 public partial class FriendRequest : ParseObject
 {
     [ParseFieldName("sender")]
-    public ParseUser Sender { get => GetProperty<ParseUser>("sender"); set => SetProperty(value, "sender"); }
+    public ParseUser Sender 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("receiver")]
-    public ParseUser Receiver { get => GetProperty<ParseUser>("receiver"); set => SetProperty(value, "receiver"); }
+    public ParseUser Receiver 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("status")]
-    public string Status { get => GetProperty<string>("status"); set => SetProperty(value, "status"); } // "pending", "accepted", "rejected"
+    public string Status 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 }
 
 [ParseClassName("Friendship")]
 public partial class Friendship : ParseObject
 {
     [ParseFieldName("User1")]
-    public ParseUser User1 { get => GetProperty<ParseUser>("user1"); set => SetProperty(value, "user1"); }
+    public ParseUser User1 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("User2")]
-    public ParseUser User2 { get => GetProperty<ParseUser>("user2"); set => SetProperty(value, "user2"); }
+    public ParseUser User2 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
-    public string Status { get => GetProperty<string>(); set => SetProperty(value); } // "pending", "accepted"
+    public string Status 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 }
 [ParseClassName("ChatRoom")]
 public partial class ChatRoom : ParseObject
@@ -67,85 +91,164 @@ public partial class ChatRoom : ParseObject
     
     public ParseRelation<ParseUser> Participants
     {
-        get => GetRelation<ParseUser>("Participants");
+        get => GetRelation<ParseUser>(nameof(Participants));
     }
-    // Optional: Type of chat (direct or group)
+    
     public string Type
     {
         get => GetProperty<string>(nameof(Type));
         set => SetProperty(value, nameof(Type));
     }
+  
 
-    // Optional: Name of the chat (for group chats, or auto-generated for direct)
-    public string Name
-    {
-        get => GetProperty<string>(nameof(Name));
-        set => SetProperty(value, nameof(Name));
-    }
 }
 
 [ParseClassName("Message")]
 public partial class Message : ParseObject
 {
     [ParseFieldName("chatRoom")]
-    public ChatRoom ChatRoom { get => GetProperty<ChatRoom>("chatRoom"); set => SetProperty(value, "chatRoom"); }
+    public ChatRoom ChatRoom 
+    {
+        get => GetProperty<ChatRoom>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sender")]
-    public ParseUser Sender { get => GetProperty<ParseUser>("sender"); set => SetProperty(value, "sender"); }
+    public ParseUser Sender 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("content")]
-    public string Content { get => GetProperty<string>("content"); set => SetProperty(value, "content"); }
+    public string Content 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    
+    [ParseFieldName("dateTimeOfMessage")]
+    public DateTimeOffset DateTimeOfMessage
+    {
+        get => GetProperty<DateTimeOffset>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("isEdited")]
-    public bool IsEdited { get => GetProperty<bool>("isEdited"); set => SetProperty(value, "isEdited"); }
+    public bool IsEdited 
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("isDeleted")]
-    public bool IsDeleted { get => GetProperty<bool>("isDeleted"); set => SetProperty(value, "isDeleted"); }
+    public bool IsDeleted 
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("senderReaction")]
+    public string SenderReaction 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("receiverReaction")]
+    public string ReceiverReaction 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    
 }
 
 [ParseClassName("SharedPlaylist")]
 public partial class SharedPlaylist : ParseObject
 {
     [ParseFieldName("name")]
-    public string Name { get => GetProperty<string>("name"); set => SetProperty(value, "name"); }
+    public string Name 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("owner")]
-    public ParseUser Owner { get => GetProperty<ParseUser>("owner"); set => SetProperty(value, "owner"); }
+    public ParseUser Owner 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sharedWith")]
-    public List<ParseUser> SharedWith { get => GetProperty<List<ParseUser>>("sharedWith"); set => SetProperty(value, "sharedWith"); }
+    public List<ParseUser> SharedWith 
+    {
+        get => GetProperty<List<ParseUser>>();
+        set => SetProperty(value);
+    }
+
 }
 
 [ParseClassName("PlaylistTrack")] // For many-to-many relationship
 public partial class PlaylistTrack : ParseObject
 {
     [ParseFieldName("playlist")]
-    public SharedPlaylist Playlist { get => GetProperty<SharedPlaylist>("playlist"); set => SetProperty(value, "playlist"); }
+    public SharedPlaylist Playlist 
+    {
+        get => GetProperty<SharedPlaylist>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("trackId")] // You'll need a Song/Track class
-    public string TrackId { get => GetProperty<string>("trackId"); set => SetProperty(value, "trackId"); }
+    public string TrackId 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 }
 
 [ParseClassName("Achievement")]
 public partial class Achievement : ParseObject
 {
     [ParseFieldName("name")]
-    public string Name { get => GetProperty<string>("name"); set => SetProperty(value, "name"); }
+    public string Name 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("description")]
-    public string Description { get => GetProperty<string>("description"); set => SetProperty(value, "description"); }
+    public string Description 
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("icon")] // ParseFile for the icon
-    public ParseFile Icon { get => GetProperty<ParseFile>("icon"); set => SetProperty(value, "icon"); }
+    public ParseFile Icon 
+    {
+        get => GetProperty<ParseFile>();
+        set => SetProperty(value);
+    }
 }
 [ParseClassName("UserAchievement")]
 public partial class UserAchievement : ParseObject
 {
     [ParseFieldName("user")]
-    public ParseUser User { get => GetProperty<ParseUser>("user"); set => SetProperty(value, "user"); }
+    public ParseUser User 
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("achievement")]
-    public Achievement Achievement { get => GetProperty<Achievement>("achievement"); set => SetProperty(value, "achievement"); }
+    public Achievement Achievement 
+    {
+        get => GetProperty<Achievement>();
+        set => SetProperty(value);
+    }
 }
 
 
@@ -154,29 +257,75 @@ public partial class UserAchievement : ParseObject
 public partial class UserActivity : ParseObject
 {
     [ParseFieldName("activityType")]
-    public string ActivityType { get => GetProperty<string>("activityType"); set => SetProperty(value, "activityType"); }
+    public string ActivityType
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    
+    [ParseFieldName("deviceVersion")]
+    public string DeviceVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("deviceIdiom")]
+    public string DeviceIdiom
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("devicePlatform")]
+    public string DevicePlatform
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sender")]
-    public ParseUser Sender { get => GetProperty<ParseUser>("sender"); set => SetProperty(value, "sender"); }
+    public ParseUser Sender
+    {
+        get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
 
-    [ParseFieldName("recipient")]
-    public ParseUser Recipient { get => GetProperty<ParseUser>("recipient"); set => SetProperty(value, "recipient"); }
 
     [ParseFieldName("chatMessage")]
-    public Message ChatMessage { get => GetProperty<Message>("chatMessage"); set => SetProperty(value, "chatMessage"); }
+    public Message ChatMessage
+    {
+        get => GetProperty<Message>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("achievement")]
-    public UserAchievement Achievement { get => GetProperty<UserAchievement>("achievement"); set => SetProperty(value, "achievement"); }
+    public UserAchievement Achievement 
+    {
+        get => GetProperty<UserAchievement>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sharedPlaylist")]
-    public SharedPlaylist SharedPlaylist { get => GetProperty<SharedPlaylist>("sharedPlaylist"); set => SetProperty(value, "sharedPlaylist"); }
+    public SharedPlaylist SharedPlaylist 
+    {
+        get => GetProperty<SharedPlaylist>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("nowPlaying")]
-    public SongModelView NowPlaying { get => GetProperty<SongModelView>("nowPlaying"); set => SetProperty(value, "nowPlaying"); }
+    public SongModelView NowPlaying 
+    {
+        get => GetProperty<SongModelView>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("isRead")]
-    public bool IsRead { get => GetProperty<bool>("isRead"); set => SetProperty(value, "isRead"); }
+    public bool IsRead 
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
     
-    public FriendRequest? FriendRequest { get => GetProperty<FriendRequest>(); set => SetProperty(value); }
+   
 
 }
+

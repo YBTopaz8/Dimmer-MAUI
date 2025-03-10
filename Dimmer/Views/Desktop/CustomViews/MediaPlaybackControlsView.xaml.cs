@@ -50,6 +50,7 @@ public partial class MediaPlaybackControlsView : ContentView
 
     private async void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
+        
         await this.AnimateFocusModePointerEnter();
     }
 

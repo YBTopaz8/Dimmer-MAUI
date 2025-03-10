@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.Utilities.Services;
 
 public partial class PlaybackUtilsService : ObservableObject
 {
@@ -25,7 +27,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         // Use a HashSet for fast lookup to avoid duplicates
         var processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, SongModelView>();
+        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? [];
         var allSongs = new List<SongModelView>();
 
 
@@ -277,13 +279,15 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (currentQueue.Count < 1 || currentIndex < currentQueue.Count - 1)
         {
-            PlaySong(currentQueue[currentIndex + 1], CurrentPlaybackSource);        
+            PlaySong(currentQueue[currentIndex + 1], CurrentPlaybackSource);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play);
             return;
         }
 
         else if (CurrentRepeatMode == RepeatMode.All && currentQueue.Any()) // Repeat All
         {
             PlaySong(currentQueue.First(), CurrentPlaybackSource);
+            UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play);
             return;
         }
         // If not repeat all and at the end, do nothing or stop playback
@@ -343,6 +347,7 @@ public partial class PlaybackUtilsService : ObservableObject
         }
 
         SongsMgtService.AddPDaCStateLink(links);
+        UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Seeked, currentPositionInSec);
         return;
 #endif
         if (DimmerAudioService.IsPlaying)
@@ -451,7 +456,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = false)
     {
-        _playbackQueue.OnNext(new ObservableCollection<SongModelView>(songs));
+        _playbackQueue.OnNext([.. songs]);
         if (playFirst && songs.Count != 0)
         {
             PlaySong(songs.First(), source: CurrentPlaybackSource);
@@ -466,8 +471,6 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (ObservableCurrentlyPlayingSong != null)
         {
-            //ObservableCurrentlyPlayingSong.IsPlaying = false;
-            //ObservableCurrentlyPlayingSong.IsPlayCompleted = true;
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Completed);
         }
 
@@ -536,11 +539,11 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public ObservableCollection<SongModelView> GetCurrentQueue()
     {
-        return new ObservableCollection<SongModelView>(_playbackQueue.Value); // Return a copy to avoid direct modification from outside
+        return [.. _playbackQueue.Value]; // Return a copy to avoid direct modification from outside
     }
     public void ClearQueue()
     {
-        _playbackQueue.OnNext(new ObservableCollection<SongModelView>()); // Clear the queue
+        _playbackQueue.OnNext([]); // Clear the queue
     }
     public MediaPlayerState GetPlaybackState()
     {
@@ -602,15 +605,78 @@ public partial class PlaybackUtilsService : ObservableObject
             DatePlayed = DateTime.Now,
             PlayType = (int)playType,
             SongId = song.LocalDeviceId,
-            PositionInSeconds = position is null? 0 : (double)position,
+            PositionInSeconds = position is null ? 0 : (double)position,
             WasPlayCompleted = playType == PlayType.Completed,
-            
+
         };
         SongsMgtService.AddPDaCStateLink(link);
+        string MessageContent = string.Empty;
+        if (ViewModel.Value.CurrentUserOnline != null)
+        {
+            ParseUser CurrentUserOnline = ViewModel.Value.CurrentUserOnline;
+            if (position is null)
+            {
+                position = 0;
+            }
+            TimeSpan pos = TimeSpan.FromSeconds((long)position);
+            string formattedPosition = pos.ToString(@"mm\:ss");
+
+            switch (playType)
+            {
+
+                case PlayType.Play:
+                    MessageContent = $"{CurrentUserOnline.Username} Started Playing {song.Title} - {song.ArtistName}";
+                    break;
+                case PlayType.Pause:
+                    MessageContent = $"{CurrentUserOnline.Username} Paused {song.Title} - {song.ArtistName} at {formattedPosition}s";
+                    ;
+                    break;
+                case PlayType.Resume:
+                    MessageContent = $"{CurrentUserOnline.Username} Resumed {song.Title} - {song.ArtistName} at {formattedPosition}s";
+
+                    break;
+                case PlayType.Completed:
+                    MessageContent = $"{CurrentUserOnline.Username} Finished Playing {song.Title} - {song.ArtistName} at {formattedPosition}";
+
+                    break;
+                case PlayType.Seeked:
+                    MessageContent = $"{CurrentUserOnline.Username} Skipped to {formattedPosition}s when playing {song.Title} - {song.ArtistName} ";
+
+                    break;
+                case PlayType.Skipped:
+                    MessageContent = $"{CurrentUserOnline.Username} Skipped {song.Title} - {song.ArtistName} Entirely";
+
+                    break;
+                case PlayType.Restarted:
+                    MessageContent = $"{CurrentUserOnline.Username} Restarted {song.Title} - {song.ArtistName}";
+
+                    break;
+                case PlayType.SeekRestarted:
+                    MessageContent = $"{CurrentUserOnline.Username} Restarted back {song.Title} - {song.ArtistName}";
+
+                    break;
+                case PlayType.CustomRepeat:
+                    break;
+                case PlayType.Previous:
+                    break;
+                case PlayType.LogEvent:
+                    break;
+                default:
+                    break;
+            }
+
+            GeneralStaticUtilities.RunFireAndForget(
+                ViewModel.Value.SendMessageAsync(MessageContent, playType, CurrentlyPlayingSong), 
+                e =>
+                {
+                    Debug.WriteLine(e.Message);
+                });
+
+        }
     }
     #endregion
-
 }
+
 public enum PlaybackSource
 {
     HomePage,
@@ -666,7 +732,36 @@ public enum PlayType
     Restarted = 6,
     SeekRestarted = 7,
     CustomRepeat = 8,
-    Previous=9
+    Previous=9,
+    LogEvent=10,
+    ChatSent=11,
+    ChatReceived = 12,
+    ChatDeleted = 13,
+    ChatEdited = 14,
+    ChatPinned = 15,
+    ChatUnpinned = 16,
+    ChatLiked = 17,
+    ChatUnliked = 18,
+    ChatShared = 19,
+    
+    ChatUnread = 20,
+    ChatRead = 21,
+    ChatMentioned = 22,
+    ChatUnmentioned = 23,
+    ChatReplied = 24,
+    ChatUnreplied = 25,
+    ChatForwarded = 26,
+    ChatUnforwarded = 27,
+    ChatSaved = 28,
+    ChatUnsaved = 29,
+    ChatReported = 30,
+    ChatUnreported = 31,
+    ChatBlocked = 32,
+    ChatUnblocked = 33,
+    ChatMuted = 34,
+    ChatUnmuted = 35,
+    ChatPinnedMessage = 36,
+
 }
 public enum RepeatMode // Using enum for repeat modes
 {

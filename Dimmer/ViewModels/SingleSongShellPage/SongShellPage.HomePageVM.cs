@@ -22,15 +22,15 @@ public partial class HomePageVM
 
     private IObservable<List<PlayDataLink>> _filteredPlaysObservable;
     private IDisposable _filterSubscription;
-    private List<PlayDataLink> _allDimmData = new List<PlayDataLink>();
-    private List<FilterWithId> _currentFilters = new List<FilterWithId>(); // Keep track of filters with IDs
+    private List<PlayDataLink> _allDimmData = [];
+    private List<FilterWithId> _currentFilters = []; // Keep track of filters with IDs
 
     public enum FilterAction
     {
         Add,
         RemoveById // New action to remove by ID
     }
-    private Dictionary<Guid, Func<PlayDataLink, bool>> _filterRegistry = new(); // Store filters with their IDs
+    private Dictionary<Guid, Func<PlayDataLink, bool>> _filterRegistry = []; // Store filters with their IDs
 
     public Guid AddFilter(Func<PlayDataLink, bool> filter)
     {
@@ -48,18 +48,18 @@ public partial class HomePageVM
     #endregion
 
     #region Data Collections and Indexes
-    private Dictionary<string, string>? _songIdToTitleMap = new();
-    private Dictionary<string, string>? _songIdToArtistMap = new();
-    private Dictionary<string, string>? _songIdToAlbumMap = new();
-    private Dictionary<string, string>? _songIdToGenreMap = new();
-    private Dictionary<string, int?>? _songIdToReleaseYearMap = new();
-    private Dictionary<string, double> _songIdToDurationMap = new();
+    private Dictionary<string, string>? _songIdToTitleMap = [];
+    private Dictionary<string, string>? _songIdToArtistMap = [];
+    private Dictionary<string, string>? _songIdToAlbumMap = [];
+    private Dictionary<string, string>? _songIdToGenreMap = [];
+    private Dictionary<string, int?>? _songIdToReleaseYearMap = [];
+    private Dictionary<string, double> _songIdToDurationMap = [];
     private Dictionary<string, List<PlayDataLink>> _playsBySongId
         = new Dictionary<string, List<PlayDataLink>>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<DateTime, List<PlayDataLink>> _playsByDate 
-    = new Dictionary<DateTime, List<PlayDataLink>>();
+    = [];
     private Dictionary<int, List<PlayDataLink>> _playsByPlayType
-    = new Dictionary<int, List<PlayDataLink>>();
+    = [];
 
     #endregion
 
@@ -68,7 +68,7 @@ public partial class HomePageVM
     {
         if (AllArtists == null)
         {
-            _songIdToArtistMap = new Dictionary<string, string>();
+            _songIdToArtistMap = [];
             return;
         }
 
@@ -101,7 +101,7 @@ public partial class HomePageVM
         
         if (AllLinks == null || AllAlbums == null)
         {
-            _songIdToAlbumMap = new Dictionary<string, string>();
+            _songIdToAlbumMap = [];
             return;
         }
 
@@ -252,13 +252,13 @@ public partial class HomePageVM
         public double SpecificSongCompletionRate { get; set; } = 0.0;
         public double SpecificSongSkipRate { get; set; } = 0.0;
         public int SpecificSongLongestListeningStreak { get; set; }
-        public List<PlayDataLink> SpecificSongPlaysStarted { get; set; } = new();
-        public List<PlayDataLink> SpecificSongPlaysPaused { get; set; } = new();
-        public List<PlayDataLink> SpecificSongPlaysResumed { get; set; } = new();
-        public List<PlayDataLink> SpecificSongPlaysCompleted { get; set; } = new();
-        public List<PlayDataLink> SpecificSongPlaysSeeked { get; set; } = new();
-        public List<PlayDataLink> SpecificSongPlaysSkipped { get; set; } = new();
-        public ObservableCollection<DimmData> SpecificSongPlaysDailyCompletedCount { get; set; } = new();
+        public List<PlayDataLink> SpecificSongPlaysStarted { get; set; } = [];
+        public List<PlayDataLink> SpecificSongPlaysPaused { get; set; } = [];
+        public List<PlayDataLink> SpecificSongPlaysResumed { get; set; } = [];
+        public List<PlayDataLink> SpecificSongPlaysCompleted { get; set; } = [];
+        public List<PlayDataLink> SpecificSongPlaysSeeked { get; set; } = [];
+        public List<PlayDataLink> SpecificSongPlaysSkipped { get; set; } = [];
+        public ObservableCollection<DimmData> SpecificSongPlaysDailyCompletedCount { get; set; } = [];
         public double GiniIndex { get; set; }
         public double ParetoRatio { get; set; }
 
@@ -806,7 +806,7 @@ public partial class HomePageVM
             {
                 // End of current streak, start a new one
                 streaks.Add(currentStreak);
-                currentStreak = new List<PlayDataLink> { plays[i] };
+                currentStreak = [plays[i]];
             }
         }
         streaks.Add(currentStreak); // Add the last streak
@@ -1419,7 +1419,7 @@ private Dictionary<string, int> GetMonthData(List<PlayDataLink> playData, int mo
             .ToList();
 
         if (songPlayCounts.Count <= 1)
-            return new List<string>();
+            return [];
 
         double averagePlayCount = songPlayCounts.Average(x => x.Count);
         double stdDev = Math.Sqrt(songPlayCounts.Sum(x => Math.Pow(x.Count - averagePlayCount, 2)) / (songPlayCounts.Count - 1));

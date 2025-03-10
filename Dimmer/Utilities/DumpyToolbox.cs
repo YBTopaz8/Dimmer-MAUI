@@ -2,7 +2,7 @@
 
 class DumpyToolbox
 {
-    //Example of Applying a Preset (Conceptual in your ViewModel or Code-Behind):
+    //Example of Applying a Preset (Conceptual in your MyViewModel or Code-Behind):
     //public void OnPresetSelected(string selectedPresetName)
     //{
     //    if (Enum.TryParse<DimmerAudioService.EqualizerPresetName>(selectedPresetName, out var presetEnum))
