@@ -314,13 +314,13 @@ public partial class RatingControl : ContentView
         {
             RatingShape.Star => new PathGeometry
             {
-                Figures = new PathFigureCollection
-                    {
+                Figures =
+                    [
                         new PathFigure
                         {
                             StartPoint = new Point(12, 0),
-                            Segments = new PathSegmentCollection
-                            {
+                            Segments =
+                            [
                                 new LineSegment { Point = new Point(15, 8) },
                                 new LineSegment { Point = new Point(24, 9) },
                                 new LineSegment { Point = new Point(17, 14) },
@@ -331,20 +331,20 @@ public partial class RatingControl : ContentView
                                 new LineSegment { Point = new Point(0, 9) },
                                 new LineSegment { Point = new Point(9, 8) },
                                 new LineSegment { Point = new Point(12, 0) }
-                            },
+                            ],
                             IsClosed = true
                         }
-                    }
+                    ]
             },
             RatingShape.Heart => new PathGeometry
             {
-                Figures = new PathFigureCollection
-                    {
+                Figures =
+                    [
                         new PathFigure
                         {
                             StartPoint = new Point(12, 21),
-                            Segments = new PathSegmentCollection
-                            {
+                            Segments =
+                            [
                                 new BezierSegment
                                 {
                                     Point1 = new Point(12, 21),
@@ -369,20 +369,20 @@ public partial class RatingControl : ContentView
                                     Point2 = new Point(12, 21),
                                     Point3 = new Point(12, 21)
                                 }
-                            },
+                            ],
                             IsClosed = true
                         }
-                    }
+                    ]
             },
             RatingShape.ThumbUp => new PathGeometry
             {
-                Figures = new PathFigureCollection
-                    {
+                Figures =
+                    [
                         new PathFigure
                         {
                             StartPoint = new Point(2, 12),
-                            Segments = new PathSegmentCollection
-                            {
+                            Segments =
+                            [
                                 new LineSegment { Point = new Point(2, 22) },
                                 new LineSegment { Point = new Point(10, 22) },
                                 new LineSegment { Point = new Point(10, 14) },
@@ -391,20 +391,20 @@ public partial class RatingControl : ContentView
                                 new LineSegment { Point = new Point(10, 12) },
                                 new LineSegment { Point = new Point(10, 4) },
                                 new LineSegment { Point = new Point(2, 12) }
-                            },
+                            ],
                             IsClosed = true
                         }
-                    }
+                    ]
             },
             RatingShape.ThumbDown => new PathGeometry
             {
-                Figures = new PathFigureCollection
-                    {
+                Figures =
+                    [
                         new PathFigure
                         {
                             StartPoint = new Point(2, 12),
-                            Segments = new PathSegmentCollection
-                            {
+                            Segments =
+                            [
                                 new LineSegment { Point = new Point(2, 2) },
                                 new LineSegment { Point = new Point(10, 2) },
                                 new LineSegment { Point = new Point(10, 10) },
@@ -413,10 +413,10 @@ public partial class RatingControl : ContentView
                                 new LineSegment { Point = new Point(10, 12) },
                                 new LineSegment { Point = new Point(10, 20) },
                                 new LineSegment { Point = new Point(2, 12) }
-                            },
+                            ],
                             IsClosed = true
                         }
-                    }
+                    ]
             },
             
             _ => GetDefaultStarPath(),
@@ -427,13 +427,13 @@ public partial class RatingControl : ContentView
     {
         return new PathGeometry
         {
-            Figures = new PathFigureCollection
-                {
+            Figures =
+                [
                     new PathFigure
                     {
                         StartPoint = new Point(12, 0),
-                        Segments = new PathSegmentCollection
-                        {
+                        Segments =
+                        [
                             new LineSegment { Point = new Point(15, 8) },
                             new LineSegment { Point = new Point(24, 9) },
                             new LineSegment { Point = new Point(17, 14) },
@@ -444,10 +444,10 @@ public partial class RatingControl : ContentView
                             new LineSegment { Point = new Point(0, 9) },
                             new LineSegment { Point = new Point(9, 8) },
                             new LineSegment { Point = new Point(12, 0) }
-                        },
+                        ],
                         IsClosed = true
                     }
-                }
+                ]
         };
     }
 

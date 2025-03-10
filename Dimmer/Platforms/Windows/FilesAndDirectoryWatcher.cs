@@ -4,9 +4,9 @@ public class FilesAndDirectoryWatcher
 {
     private readonly string _monitoredDirectory;
     private readonly FileSystemWatcher _fileSystemWatcher;
-    private readonly List<string> _allowedFileExtensions = new List<string> { ".mp3", ".flac", ".m4a", ".wav", ".txt", ".lrc" };
+    private readonly List<string> _allowedFileExtensions = [".mp3", ".flac", ".m4a", ".wav", ".txt", ".lrc"];
     private readonly BackgroundWorker _backgroundWorker = new BackgroundWorker(); // For UI updates
-    private readonly BindingList<string> _fileChanges = new BindingList<string>();  //UI binding
+    private readonly BindingList<string> _fileChanges = [];  //UI binding
 
     //Event handler to raise UI updates (when file changes occur)
     public event EventHandler<FileChangeEventArgs>? FileChanged;

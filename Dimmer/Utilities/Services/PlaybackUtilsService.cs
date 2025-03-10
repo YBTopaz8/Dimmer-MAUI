@@ -428,7 +428,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
              list.Insert((currentIndex+1), song); 
 
             // Update the playback queue
-            _playbackQueue.OnNext(new ObservableCollection<SongModelView>(list));
+            _playbackQueue.OnNext([.. list]);
         }
         else
         {
@@ -444,7 +444,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     #region Region Search
 
-    Dictionary<string, string> normalizationCache = new();
+    Dictionary<string, string> normalizationCache = [];
     List<SongModelView> SearchedSongsList;
 
     public void SearchSong(string songTitleOrArtistName, List<string>? selectedFilters, int Rating)
@@ -602,7 +602,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             {
                 return Enumerable.Empty<SongModelView>().ToList();
             }
-            List<SongModelView> songsinpl = new();
+            List<SongModelView> songsinpl = [];
             songsinpl?.Clear();
             foreach (var song in songsFromPlaylist)
             {
@@ -635,7 +635,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public ObservableCollection<PlaylistModelView> GetAllPlaylists()
     {
         PlaylistManagementService.GetPlaylists();
-        AllPlaylists = new ObservableCollection<PlaylistModelView>(PlaylistManagementService.AllPlaylists);
+        AllPlaylists = [.. PlaylistManagementService.AllPlaylists];
         return AllPlaylists;
     }
 
@@ -645,12 +645,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (SongsMgtService.AllArtists is null)
             return Enumerable.Empty<ArtistModelView>().ToObservableCollection();
 
-        AllArtists = new ObservableCollection<ArtistModelView>(SongsMgtService.AllArtists);
+        AllArtists = [.. SongsMgtService.AllArtists];
         return AllArtists;
     }
     public ObservableCollection<AlbumModelView> GetAllAlbums()
     {        
-        AllAlbums = new ObservableCollection<AlbumModelView>(SongsMgtService.AllAlbums);
+        AllAlbums = [.. SongsMgtService.AllAlbums];
         return AllAlbums;
     }
     

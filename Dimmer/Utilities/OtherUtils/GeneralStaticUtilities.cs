@@ -198,7 +198,7 @@ public static class GeneralStaticUtilities
 
     public static List<string> GetAllFiles(List<string> folderPaths)
     {
-        List<string> allFiles = new();
+        List<string> allFiles = [];
         int countOfScanningErrors = 0;
 
         foreach (var path in folderPaths.Distinct())
@@ -566,4 +566,82 @@ public static class GeneralStaticUtilities
         DimmerAudioService?.Dispose();
     }
 
+}
+
+
+public static class UserActivityLogger
+{
+    public static async Task LogUserActivity(
+        ParseUser sender,        
+        PlayType activityType, //0 - dimmer log, 1 - chatmessage, 2 - playSong,3 - pause, 4 - seeksong, 5 - completed song 
+        ParseUser? recipient = null,
+        Message? chatMessage = null,
+        SharedPlaylist? sharedPlaylist = null,
+        SongModelView? nowPlaying = null,
+        bool? isRead = null,
+        Dictionary<string, object>? additionalData = null,
+        ChatRoom? chatRoomm =null,
+        ParseUser? CurrentUserOnline=null)
+    {
+        // --- Input Validation (Crucial for Robustness) ---
+        
+        if (sender == null)
+        {
+            throw new ArgumentNullException(nameof(sender), "Sender cannot be null.");
+        }
+        
+        
+        if (CurrentUserOnline is null)
+        {
+            return;
+        }
+        // --- Create the UserActivity Object ---
+
+        try
+        {
+            
+
+            UserActivity newActivity = new UserActivity();
+
+            // --- Set Core Fields ---
+
+            newActivity["sender"] = sender;
+            newActivity["activityType"] = (int)activityType;
+
+            // --- Set Optional Related Objects (Pointers) ---
+            // Use null-conditional operator and null-coalescing operator for brevity and safety.
+
+            newActivity["chatMessage"] = chatMessage ?? null; //if chatMessage is not null, set newActivity["chatMessage"] = chatMessage , else set to null.
+            
+
+            // --- Set isRead (if provided) ---
+
+            if (isRead.HasValue)
+            {
+                newActivity["isRead"] = isRead.Value;
+            }
+
+            // --- Add Additional Data (Flexibility) ---
+
+            if (additionalData != null)
+            {
+                foreach (var kvp in additionalData)
+                {
+                    newActivity[kvp.Key] = kvp.Value;
+                }
+            }
+
+            // --- Save the UserActivity ---
+
+            await newActivity.SaveAsync(); //thrown on this line
+        }
+        catch (Exception ex)
+        {
+            // CRITICAL:  Handle errors!  In a real app, you'd log this properly.
+            Console.WriteLine($"Error logging user activity: {ex.Message}");
+            // Consider re-throwing the exception, or returning a result indicating failure,
+            // depending on how you want to handle errors in the calling code.
+            throw; // Re-throw for now, so the caller knows it failed.
+        }
+    }
 }

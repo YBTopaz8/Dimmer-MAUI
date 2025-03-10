@@ -18,7 +18,7 @@ public class PlayListManagementService : IPlaylistManagementService
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
             var realmPlayLists = db.All<PlaylistModel>().ToList();
-            AllPlaylists = new List<PlaylistModelView>(realmPlayLists.Select(playlist => new PlaylistModelView(playlist)));
+            AllPlaylists = [.. realmPlayLists.Select(playlist => new PlaylistModelView(playlist))];
             AllPlaylists ??= Enumerable.Empty<PlaylistModelView>().ToList();
             return [.. AllPlaylists];
         }

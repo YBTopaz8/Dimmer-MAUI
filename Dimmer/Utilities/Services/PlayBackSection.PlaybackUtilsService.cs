@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.Utilities.Services;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.Utilities.Services;
 
 public partial class PlaybackUtilsService : ObservableObject
 {
@@ -25,7 +27,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         // Use a HashSet for fast lookup to avoid duplicates
         var processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, SongModelView>();
+        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? [];
         var allSongs = new List<SongModelView>();
 
 
@@ -451,7 +453,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = false)
     {
-        _playbackQueue.OnNext(new ObservableCollection<SongModelView>(songs));
+        _playbackQueue.OnNext([.. songs]);
         if (playFirst && songs.Count != 0)
         {
             PlaySong(songs.First(), source: CurrentPlaybackSource);
@@ -536,11 +538,11 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public ObservableCollection<SongModelView> GetCurrentQueue()
     {
-        return new ObservableCollection<SongModelView>(_playbackQueue.Value); // Return a copy to avoid direct modification from outside
+        return [.. _playbackQueue.Value]; // Return a copy to avoid direct modification from outside
     }
     public void ClearQueue()
     {
-        _playbackQueue.OnNext(new ObservableCollection<SongModelView>()); // Clear the queue
+        _playbackQueue.OnNext([]); // Clear the queue
     }
     public MediaPlayerState GetPlaybackState()
     {
@@ -591,7 +593,7 @@ public partial class PlaybackUtilsService : ObservableObject
         // ShowMiniPlayBackView();
     }
 
-    private void UpdateSongPlaybackState(SongModelView? song, PlayType playType, double? position = null)
+    private async Task UpdateSongPlaybackState(SongModelView? song, PlayType playType, double? position = null)
     {
         if (song is null)
         {
@@ -607,6 +609,68 @@ public partial class PlaybackUtilsService : ObservableObject
             
         };
         SongsMgtService.AddPDaCStateLink(link);
+        
+        if (ViewModel.Value.CurrentUserOnline != null)
+        {
+            ParseUser CurrentUserOnline = ViewModel.Value.CurrentUserOnline;
+            string Content = string.Empty;
+            TimeSpan pos = TimeSpan.FromSeconds((long)position);
+            string formattedPosition = pos.ToString(@"mm\:ss");
+
+            switch (playType)
+            {
+            
+                case PlayType.Play:
+                Content = $"{CurrentUserOnline.Username} Started Playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
+                break;
+                case PlayType.Pause:
+                Content = $"{CurrentUserOnline.Username} Paused {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}s";
+                ;
+                break;
+                case PlayType.Resume:
+                    Content = $"{CurrentUserOnline.Username} Resumed {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}s";
+
+                    break;
+                case PlayType.Completed:
+                    Content = $"{CurrentUserOnline.Username} Finished Playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} at {formattedPosition}";
+
+                    break;
+                case PlayType.Seeked:
+                    Content = $"{CurrentUserOnline.Username} Skipped to {formattedPosition}s when playing {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} ";
+
+                    break;
+                case PlayType.Skipped:
+                    Content = $"{CurrentUserOnline.Username} Skipped {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName} Entirely";
+
+                    break;
+                case PlayType.Restarted:
+                    Content = $"{CurrentUserOnline.Username} Restarted {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
+
+                    break;
+                case PlayType.SeekRestarted:
+                    Content = $"{CurrentUserOnline.Username} Restarted back {CurrentlyPlayingSong.Title} - {CurrentlyPlayingSong.ArtistName}";
+
+                    break;
+                case PlayType.CustomRepeat:
+                    break;
+                case PlayType.Previous:
+                    break;
+                case PlayType.logEvent:
+                    break;
+                default:
+                    break;
+            }
+            if (CurrentlyPlayingSong is null)
+            {
+
+                await ViewModel.Value.SendMessageAsync(Content, playType);
+            }
+            else
+            {
+
+                await ViewModel.Value.SendMessageAsync(Content, playType, CurrentlyPlayingSong);
+            }
+        }
     }
     #endregion
 
@@ -666,7 +730,9 @@ public enum PlayType
     Restarted = 6,
     SeekRestarted = 7,
     CustomRepeat = 8,
-    Previous=9
+    Previous=9,
+    logEvent,
+
 }
 public enum RepeatMode // Using enum for repeat modes
 {

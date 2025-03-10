@@ -131,7 +131,7 @@ public partial class AlbumsPageD : ContentPage
     }
 
 
-    List<string> supportedFilePaths;
+    List<string>? supportedFilePaths;
     bool isAboutToDropFiles = false;
     private async void DropGestureRecognizer_DragOver(object sender, DragEventArgs e)
     {
@@ -155,7 +155,7 @@ public partial class AlbumsPageD : ContentPage
 
                 var items = await WindowsEventArgs.DataView.GetStorageItemsAsync();
                 e.AcceptedOperation = DataPackageOperation.None;
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
 
                 if (items.Count > 0)
                 {
@@ -215,7 +215,7 @@ public partial class AlbumsPageD : ContentPage
     }
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        supportedFilePaths ??= new();
+        supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         var send = sender as View;
@@ -259,6 +259,9 @@ public partial class AlbumsPageD : ContentPage
     private void ResetAlbumSongsList_Clicked(object sender, EventArgs e)
     {
         MyViewModel.LoadArtistAlbumsAndSongs(MyViewModel.SelectedAlbumOnAlbumPage);
+        AlbumSongsCV.ScrollTo(MyViewModel.MySelectedSong, null, ScrollToPosition.Center, false);
+        AllAlbumsColView.ScrollTo(MyViewModel.SelectedAlbumOnAlbumPage, null, ScrollToPosition.Center, false);
+
     }
 
     private void ImageButton_Clicked(object sender, EventArgs e)

@@ -12,7 +12,7 @@ namespace Dimmer_MAUI.Views.Desktop;
 public partial class MainPageD : ContentPage
 {
 
-    public ObservableCollection<MyDataItem> MyData { get; set; } = new();
+    public ObservableCollection<MyDataItem> MyData { get; set; } = [];
 
 
     //only pass lazy to ctor if needed, else some parts mightn't work
@@ -234,7 +234,7 @@ public partial class MainPageD : ContentPage
                 DataPackageView dataView = e.Data.View;
 
                 e.AcceptedOperation = DataPackageOperation.None; // Default to None.
-                supportedFilePaths = new List<string>();
+                supportedFilePaths = [];
                 bool allFilesSupported = true;
 
                 // Check if the DataPackage contains a list of files.
@@ -407,7 +407,7 @@ public partial class MainPageD : ContentPage
 
     private async void DropGestureRecognizer_Drop(object sender, DropEventArgs e)
     {
-        supportedFilePaths ??= new();
+        supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
         var send = sender as View;

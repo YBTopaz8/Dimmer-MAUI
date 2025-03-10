@@ -73,7 +73,7 @@ public partial class HomePageVM
 
         //if (fromUI || SynchronizedLyrics?.Count < 1)
         //{
-        AllSyncLyrics = new();
+        AllSyncLyrics = [];
         (bool IsSuccessful, Content[]? contentData) = await LyricsManagerService.FetchLyricsOnlineLrcLib(MySelectedSong, true, manualSearchFields);
 
         AllSyncLyrics = contentData.ToObservableCollection();

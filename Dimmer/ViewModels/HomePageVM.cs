@@ -109,7 +109,7 @@ public partial class HomePageVM : ObservableObject
         ToggleRepeatMode();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
-        IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
+        //IsDRPCEnabled = AppSettingsService.DiscordRPCPreference.IsDiscordRPCEnabled;
         
         //SubscribeToDataChanges();
 #if WINDOWS
@@ -128,20 +128,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     
-    private void SetUpParseLiveQueries()
-    {
-        try
-        {
-            LiveQueryClient = new ParseLiveQueryClient();
-            LiveQueryManager LQM = new LiveQueryManager(LiveQueryClient!);
-            
-        }
-        catch (Exception)
-        {
-
-            throw;
-        }
-    }
+  
    
 // Example Usage (e.g., in a ViewModel or a Page's code-behind):
 
@@ -266,7 +253,7 @@ public partial class HomePageVM : ObservableObject
     {
         if (DisplayedSongs == null || DisplayedSongs.Count == 0 || mySelectedSong == null)
         {
-            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            PartOfNowPlayingSongs = [];
             return;
         }
 
@@ -316,7 +303,7 @@ public partial class HomePageVM : ObservableObject
 
         if (selectedSongIndex == -1)
         {
-            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+            PartOfNowPlayingSongs = [];
             Debug.WriteLine("Warning: MySelectedSong not found in MiniQueue list (even in re-center logic!).");
             return;
         }
@@ -336,7 +323,7 @@ public partial class HomePageVM : ObservableObject
         }
 
 
-        PartOfNowPlayingSongs = new ObservableCollection<SongModelView>();
+        PartOfNowPlayingSongs = [];
         for (int i = startIndex; i <= endIndex; i++)
         {
             PartOfNowPlayingSongs.Add(MiniQueue[i]);
@@ -538,7 +525,7 @@ public partial class HomePageVM : ObservableObject
         //LoadSongsFromFolders();//FullFolderPaths);
     }
 
-    List<string> FullFolderPaths = new();
+    List<string> FullFolderPaths = [];
 
     [RelayCommand]
     public async Task LoadSongsFromFolders()
@@ -617,6 +604,7 @@ public partial class HomePageVM : ObservableObject
 
     public void PlaySong(SongModelView selectedSong, bool isPrevieww = false)
     {
+        
         if (isPrevieww)
         {
             IsPreviewing = isPrevieww;
@@ -624,9 +612,11 @@ public partial class HomePageVM : ObservableObject
             PlayBackService.PlaySong(selectedSong, isPreview: true);
             return;
         }
-
-        TemporarilyPickedSong = selectedSong;
-        
+        if (TemporarilyPickedSong is not null)
+        {
+            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+            TemporarilyPickedSong = selectedSong;
+        }
 
         if (selectedSong != null)
         {
@@ -963,7 +953,7 @@ public partial class HomePageVM : ObservableObject
             .Take(number)  
             .ToList(); 
         
-        return new ObservableCollection<SongModelView>(recentSongs);
+        return [.. recentSongs];
     }
 
 
@@ -1123,6 +1113,7 @@ public partial class HomePageVM : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(async state =>
             {
+               
                 switch (state)
                 {
                     case MediaPlayerState.Playing:
@@ -1135,12 +1126,25 @@ public partial class HomePageVM : ObservableObject
 
                         if (TemporarilyPickedSong == PlayBackService.CurrentlyPlayingSong)
                         {
-                            return;
+                                if (CurrentUserOnline is not null)
+                                {
+                                    TimeSpan position = TimeSpan.FromSeconds(CurrentPositionInSeconds);
+                                    string formattedPosition = position.ToString(@"mm\:ss");
+
+                                   
+                                }
+                                return;
                         }
                         TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
                         DoRefreshDependingOnPage();
                         CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
-                    }
+
+                        if (PlayBackService.CurrentlyPlayingSong is not null)
+                        {
+                          
+
+                        }
+                        }
 
                     //await FetchSongCoverImage();
 
@@ -1166,6 +1170,11 @@ public partial class HomePageVM : ObservableObject
                         IsPlaying = false;
 
                         //PlayPauseIcon = MaterialRounded.Play_arrow;
+                        if (PlayBackService.CurrentlyPlayingSong is not null)
+                        {
+                           
+
+                        }
                         break;
                     case MediaPlayerState.Stopped:
                         IsPlaying = false;

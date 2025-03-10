@@ -52,7 +52,7 @@ public static class ImageColorExtractor
 
     public static class ViewLocator
     {
-        private static Dictionary<object, View> itemViewCache = new();
+        private static Dictionary<object, View> itemViewCache = [];
 
         public static event Action<View> ViewAppeared;
 

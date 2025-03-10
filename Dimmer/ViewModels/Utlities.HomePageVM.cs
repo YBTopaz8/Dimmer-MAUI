@@ -506,7 +506,7 @@ public partial class HomePageVM
        var SelectedSongs = new List<SongModelView> { MySelectedSong! };
 
         // Prepare the data to send to the Cloud Code function
-        List<Dictionary<string, object?>> lyricsData = new();
+        List<Dictionary<string, object?>> lyricsData = [];
         foreach (SongModelView song in SelectedSongs)
         {
             //ONLY contribute, if song has lyrics
@@ -586,42 +586,42 @@ public partial class HomePageVM
             return;
         }
 
-        List<object> allPlayDatalinks = new();
+        List<object> allPlayDatalinks = [];
         foreach (PlayDataLink item in AllPlayDataLinks)
         {
             allPlayDatalinks.Add( ObjectMapper.ClassToDictionary(item));
         }
         
-        List<object> AllAlbumModelView = new();
+        List<object> AllAlbumModelView = [];
         foreach (AlbumModelView item in AllAlbums)
         {
             
             AllAlbumModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
-        List<object> AllGenresModelView = new();
+        List<object> AllGenresModelView = [];
         foreach (GenreModelView item in SongsMgtService.AllGenres)
         {
             AllGenresModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
         
-        List<object> ArtistModelV = new();
+        List<object> ArtistModelV = [];
         foreach (ArtistModelView item in AllArtists)
         {
             ArtistModelV.Add(ObjectMapper.ClassToDictionary(item));
         }
-        List<object> AllLinkss = new();
+        List<object> AllLinkss = [];
         foreach (AlbumArtistGenreSongLinkView item in AllLinks)
         {
             AllLinkss.Add(ObjectMapper.ClassToDictionary(item));
         }
         
-        List<object> AllSongModelView = new();
+        List<object> AllSongModelView = [];
         foreach (SongModelView item in DisplayedSongs)
         {
             AllSongModelView.Add(ObjectMapper.ClassToDictionary(item));
         }
         
-        List<object> AllPlayLists = new();
+        List<object> AllPlayLists = [];
         foreach (PlaylistModelView item in DisplayedPlaylists)
         {
             AllPlayLists.Add(ObjectMapper.ClassToDictionary(item));
@@ -641,7 +641,7 @@ public partial class HomePageVM
         };
         
         bool overallSuccess = true;
-        Dictionary<string, object> allBackupErrors = new Dictionary<string, object>();
+        Dictionary<string, object> allBackupErrors = [];
 
         foreach (var dataPair in dataToBackUpToParseInitially)
         {
@@ -760,7 +760,7 @@ public partial class HomePageVM
         }
 
         Console.WriteLine($"No data found for class: {className}");
-        return new List<T>(); // Return an empty list if the class data is not found
+        return []; // Return an empty list if the class data is not found
     }
 
     [ObservableProperty]
@@ -778,7 +778,7 @@ public partial class HomePageVM
 
         var deviceObjects = await query.FindAsync();
 
-        ObservableCollection<CurrentDeviceStatus> devices = new ();
+        ObservableCollection<CurrentDeviceStatus> devices = [];
 
         foreach (var device in deviceObjects)
         {
@@ -922,11 +922,13 @@ public partial class HomePageVM
         }
         else
         {
-            var newDevice = new ParseObject("DeviceStatus");
-            newDevice["deviceOwner"] = currentParseUser.Email;
-            newDevice["deviceName"] = DeviceInfo.Name;
-            newDevice["deviceType"] = DeviceInfo.Idiom.ToString();
-            newDevice["isOnline"] = true;
+            var newDevice = new ParseObject("DeviceStatus")
+            {
+                ["deviceOwner"] = currentParseUser.Email,
+                ["deviceName"] = DeviceInfo.Name,
+                ["deviceType"] = DeviceInfo.Idiom.ToString(),
+                ["isOnline"] = true
+            };
             await newDevice.SaveAsync();
         }
         CurrentUserOnline = currentParseUser;

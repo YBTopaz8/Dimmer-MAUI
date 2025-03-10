@@ -22,10 +22,12 @@ public partial class App : Application
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         DimmerWindow = dimmerWindow;
 
+
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         APIKeys.SetupClientInitializations();
     }
 
-    
+    HomePageVM MyViewModel { get; set; }
 
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
@@ -123,10 +125,10 @@ public partial class App : Application
     protected override Window CreateWindow(IActivationState? activationState)
     {
 
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        
         //DimmerWindow.Page.
 #if WINDOWS
-        DimmerWindow.Page = new AppShell(vm);
+        DimmerWindow.Page = new AppShell(MyViewModel);
 
 #elif ANDROID
         
@@ -143,7 +145,7 @@ public partial class App : Application
 
         // Set the thumbnail icon to "music.png".
 
-        InitializeThumbnailButtons();
+        //InitializeThumbnailButtons();
 #endif
 
 

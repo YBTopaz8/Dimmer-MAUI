@@ -8,13 +8,13 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public List<SongModelView> AllSongs { get; set; }
     public List<PlayDataLink> AllPlayDataLinks { get; set; }
     public List<PlaylistSongLink> AllPLSongLinks { get; set; }
-    HomePageVM ViewModel { get; set; }
+    HomePageVM MyViewModel { get; set; }
 
     public List<AlbumModelView> AllAlbums { get; set; }
     public List<ArtistModelView> AllArtists { get; set; }
     
     public List<GenreModelView> AllGenres { get; set; }
-    public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = new();
+    public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = [];
     public IDataBaseService DataBaseService { get; }
 
 
@@ -29,7 +29,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public ParseUser? CurrentUserOnline { get; set; }
     public void InitApp(HomePageVM vm)
     {        
-        ViewModel = vm;
+        MyViewModel = vm;
     }
 
     bool isSyncingOnline;
@@ -60,15 +60,15 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             db = Realm.GetInstance(DataBaseService.GetRealm());
 
             var realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
-            AllLinks = new List<AlbumArtistGenreSongLinkView>(realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link)));
+            AllLinks = [.. realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link))];
             AllLinks ??= Enumerable.Empty<AlbumArtistGenreSongLinkView>().ToList();
 
-            AllSongs = new();
+            AllSongs = [];
 
             AllSongs.Clear();
 
             var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-            AllSongs = new List<SongModelView>(realmSongs.Select(song => new SongModelView(song)).OrderBy(x => x.DateCreated));
+            AllSongs = [.. realmSongs.Select(song => new SongModelView(song)).OrderBy(x => x.DateCreated)];
             AllPlayDataLinks = Enumerable.Empty<PlayDataLink>().ToList();
             var realmPlayData = db.All<PlayDateAndCompletionStateSongLink>().ToList();
 
@@ -120,7 +120,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     private void LoadPlayData(List<PlayDateAndCompletionStateSongLink> realmPlayData)
     {
-        AllPlayDataLinks = new List<PlayDataLink>(realmPlayData
+        AllPlayDataLinks = [.. realmPlayData
         .Select(model =>
         {
             var link = new PlayDataLink()
@@ -136,14 +136,14 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             return link;
         })
-        .ToList()); // The .ToList() is important here to materialize the results
+        .ToList()]; // The .ToList() is important here to materialize the results
     }
     public void GetGenres()
     {
         db = Realm.GetInstance(DataBaseService.GetRealm());
         AllGenres?.Clear();
         var realmSongs = db.All<GenreModel>().ToList();
-        AllGenres = new List<GenreModelView>(realmSongs.Select(genre => new GenreModelView(genre)).OrderBy(x => x.Name));
+        AllGenres = [.. realmSongs.Select(genre => new GenreModelView(genre)).OrderBy(x => x.Name)];
     }
     public void GetArtists()
     {
@@ -152,7 +152,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             db = Realm.GetInstance(DataBaseService.GetRealm());
             var realmArtists = db.All<ArtistModel>().ToList();
 
-            AllArtists = new List<ArtistModelView>(realmArtists.Select(artist => new ArtistModelView(artist)).OrderBy(x => x.Name));
+            AllArtists = [.. realmArtists.Select(artist => new ArtistModelView(artist)).OrderBy(x => x.Name)];
             AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
         }
         catch (Exception ex)
@@ -166,7 +166,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         db = Realm.GetInstance(DataBaseService.GetRealm());
         AllAlbums?.Clear();
         var realmAlbums = db.All<AlbumModel>().ToList();
-        AllAlbums = new List<AlbumModelView>(realmAlbums.Select(album => new AlbumModelView(album)).OrderBy(x=>x.Name));
+        AllAlbums = [.. realmAlbums.Select(album => new AlbumModelView(album)).OrderBy(x=>x.Name)];
     }
 
     public void AddPlayData(string songId, PlayDataLink playData)
@@ -258,7 +258,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     public async Task GetAllDataFromOnlineAsync()
     {
         if (CurrentUserOnline is null)
-            CurrentUserOnline= ViewModel.CurrentUserOnline!;
+            CurrentUserOnline= MyViewModel.CurrentUserOnline!;
 
         if (CurrentUserOnline is null)
         {
@@ -286,7 +286,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 await LoadAAGSLinkViewToDBFromOnline();
                 await LoadPDaPCModelToDBFromOnline();
                 GetSongs();
-                ViewModel.SyncRefresh();
+                MyViewModel.SyncRefresh();
                 HasOnlineSyncOn = false;
             }
         }
@@ -629,8 +629,6 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
     }
 
-
-
     public bool AddSongBatchAsync(IEnumerable<SongModelView> songs)
     {
         try
@@ -661,12 +659,14 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         if (UpdateSongDetails(song))
         {
-            Track file = new(song.FilePath);
-            file.Title = song.Title;
-            file.Artist = song.ArtistName;
-            file.Album = song.AlbumName;
-            file.Genre = song.GenreName;
-            file.TrackNumber = song.TrackNumber;
+            Track file = new(song.FilePath)
+            {
+                Title = song.Title,
+                Artist = song.ArtistName,
+                Album = song.AlbumName,
+                Genre = song.GenreName,
+                TrackNumber = song.TrackNumber
+            };
             file.SaveTo(song.FilePath);
         }
         return true;
@@ -698,9 +698,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
 
 
-                SongModel song = new(songsModelView);
-
-                song.UserIDOnline = CurrentUserOnline?.ObjectId;
+                SongModel song = new(songsModelView)
+                {
+                    UserIDOnline = CurrentUserOnline?.ObjectId
+                };
 
                 var ex = existingSong.FirstOrDefault();
                 if (ex is not null)
@@ -922,7 +923,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             return null;
         }
 
-        if (dbUser == null)
+        if (dbUser is not null)
         {
             if (usr is not null)
             {
@@ -936,20 +937,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 return CurrentOfflineUser;
                 
             };
+            CurrentOfflineUser = new UserModelView(dbUser.First());
 
-            CurrentOfflineUser = new UserModelView()
-            {
-                UserName = string.Empty,
-                UserEmail = string.Empty,
-                UserPassword = string.Empty,
-              
-            };
-            db = Realm.GetInstance(DataBaseService.GetRealm());
-            db.Write(() =>
-            {
-                UserModel user = new(CurrentOfflineUser);
-                db.Add(user);
-            });
             return CurrentOfflineUser;
         }
         //CurrentOfflineUser = new(dbUser);
@@ -996,7 +985,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             HostManifestData manifest = new HostManifestData()
             {
-                Version = "1.4.0",
+                Version = "1.6.0",
                 Identifier = "com.yvanbrunel.dimmer",
                 Name = "Dimmer",
             };
@@ -1036,12 +1025,13 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         AppSettingsService.RepeatModePreference.RepeatState = 1; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
-        ViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
+        MyViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
 
 
 
         if (CurrentUserOnline is null || await CurrentUserOnline.IsAuthenticatedAsync())
         {
+            
                 //await Shell.Current.DisplayAlert("Hey!", "Please login to save your songs", "OK");
                 return false;           
         }
@@ -1075,7 +1065,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         CurrentOfflineUser.UserEmail= CurrentUserOnline.Email;
         
 
-        ViewModel.CurrentUser = CurrentOfflineUser;
+        MyViewModel.CurrentUser = CurrentOfflineUser;
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
@@ -1092,7 +1082,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
 
 
-    private Dictionary<string, ArtistModelView> artistDict = new Dictionary<string, ArtistModelView>();
+    private Dictionary<string, ArtistModelView> artistDict = [];
 
     private
     (List<ArtistModel>?, List<AlbumModel>?, List<AlbumArtistGenreSongLink>?, List<SongModel>?, List<GenreModel>?)
@@ -1406,7 +1396,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             GetSongs();
 
-            ViewModel.SyncRefresh();
+            MyViewModel.SyncRefresh();
 
             return true;
         }
