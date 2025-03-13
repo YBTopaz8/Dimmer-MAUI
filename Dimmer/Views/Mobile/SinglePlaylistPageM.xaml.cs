@@ -24,7 +24,7 @@ public partial class SinglePlaylistPageM : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        MyViewModel.DisplayedSongsFromPlaylist.Clear();
+        MyViewModel.SelectedPlaylist.DisplayedSongsFromPlaylist.Clear();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)

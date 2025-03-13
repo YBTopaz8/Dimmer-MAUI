@@ -467,7 +467,6 @@ EmptyView="No Syncronized Lyrics ..." >
                                                     <Border.GestureRecognizers>
                                                         <TapGestureRecognizer 
                                 Tapped="CloseBtmSheet_Tapped"
-                                Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
                                 CommandParameter="{Binding .}"/>
                                                     </Border.GestureRecognizers>
                                                     <Label Text="{Binding .}" x:DataType="x:String"

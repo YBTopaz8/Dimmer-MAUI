@@ -29,7 +29,7 @@ public partial class DimmerWindow : Window
         MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
         MyViewModel.InternalSearchSongSBVM= SearchSongSB;
         
-        MyViewModel.ShowNotificationInternally("Window Activated", text: MyViewModel.InternalNotificationLabelVM, bar: MyViewModel.InternalSearchSongSBVM, titleBar: MyViewModel.DimmerTitleBarVM);
+        GeneralStaticUtilities.ShowNotificationInternally("Window Activated");
         
     }
 
@@ -76,7 +76,6 @@ public partial class DimmerWindow : Window
             onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
         }
         //MyViewModel.SongsMgtService.GetUserAccount();
-        await MyViewModel.SongsMgtService.GetUserAccountOnline();
 
 
         await MyViewModel.ConnectToLiveQueriesAsync();

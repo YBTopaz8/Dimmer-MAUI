@@ -42,7 +42,7 @@ public interface IPlaybackUtilsService
     
     //Playlist Section
     ObservableCollection<PlaylistModelView>? AllPlaylists { get; }
-    void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel);    
+    void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL=true);    
     void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
     List<SongModelView> GetSongsFromPlaylistID(string playlistID);

@@ -4,12 +4,10 @@ public partial class SongToPlaylistPopup : Popup
 {
     public HomePageVM MyViewModel { get; }
 
-    public SongToPlaylistPopup(HomePageVM homePageVM, IList<string> AllPlaylists)
+    public SongToPlaylistPopup(HomePageVM homePageVM)
 	{
 		InitializeComponent();
 
-        PlaylistsCV.ItemsSource = null;
-        PlaylistsCV.ItemsSource = AllPlaylists;
         MyViewModel = homePageVM;
     }
 

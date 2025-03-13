@@ -542,8 +542,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public void AddSongToPlayListWithPlayListID(SongModelView song, PlaylistModelView playlistModel)
+    public void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true)
     {
+        if (IsExistingPL)
+        {
+
+            PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
+            return;
+        }
         var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
         if (anyExistingPlaylist is not null)
         {
@@ -552,21 +558,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         else
         {         
             playlistModel.Name = playlistModel.Name;
-         
-            playlistModel.TotalSongsCount = 1;
-            playlistModel.TotalDuration = song.DurationInSeconds;
-            playlistModel.TotalSize = song.FileSize;
-        
         }
         var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
-        {            
-            PlaylistId = playlistModel.LocalDeviceId,
-            SongId = song.LocalDeviceId,
+        {
+            PlaylistId = playlistModel.LocalDeviceId,            
         };
 
-        PlaylistManagementService.UpdatePlayList(playlistModel, newPlaylistSongLinkByUserManual, true);
+        PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
         
-        //GetAllPlaylists(); it's called in HomePageVM but let's see
     }
 
     public void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID)

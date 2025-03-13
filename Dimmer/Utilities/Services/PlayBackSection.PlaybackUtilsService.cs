@@ -583,8 +583,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
     private void UpdateSongPlaybackDetails(SongModelView song)
     {
-        song.IsCurrentPlayingHighlight = true;
-        song.IsPlaying = true;
+        
         (song.HasSyncedLyrics, song.SyncLyrics) = LyricsService.HasLyrics(song);
         if (song.DurationInSeconds == 0)
         {

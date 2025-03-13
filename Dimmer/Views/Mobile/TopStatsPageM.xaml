@@ -29,7 +29,7 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid x:Name="MainPage" Margin="5,0" >
+    
         <Grid x:Name="MainDock" Margin="5,5" RowDefinitions="*,auto" RowSpacing="5">
 
             <dx:DXDockLayout IsVisible="True" StretchLastItem="False" 
@@ -37,10 +37,6 @@
                              Grid.Row="0" 
                             >
 
-                <dx:DXStackLayout x:Name="SearchModeUI" dx:DXDockLayout.Dock="Top"
-                            IsVisible="False">
-
-                </dx:DXStackLayout>
 
                 <dx:TabView IsSelectedItemIndicatorVisible="False" SwipeEnabled="True"
                     x:Name="HomeTabView" HeaderPanelPosition="Bottom"  PropertyChanged="HomeTabView_PropertyChanged"
@@ -312,16 +308,7 @@
                         <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*,Auto,Auto"  >
 
 
-                            <customControl:MarqueeLabel Grid.Row="0" Text="{Binding MySelectedSong.Title}" SizeChanged="MarqueeLabel_SizeChanged"
-      LineBreakMode="HeadTruncation" FontSize="35"/>
 
-                            <customControl:MarqueeLabel  Text="{Binding MySelectedSong.ArtistName}" 
-      LineBreakMode="TailTruncation" Opacity="0.6" 
-                   FontSize="22" SizeChanged="MarqueeLabel_SizeChanged"/>
-
-                            <customControl:MarqueeLabel  Text="{Binding MySelectedSong.AlbumName}" 
-             LineBreakMode="HeadTruncation" SizeChanged="MarqueeLabel_SizeChanged"
-                   FontSize="15"/>
                             <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
                                      Grid.Column="0" x:Name="TopBtmBarView"
                                      Orientation="Horizontal" >
@@ -424,10 +411,16 @@ Icon="shuffle.png"  BackgroundColor="Transparent">
                                 </dx:RadialProgressBar>
 
                                 <dx:DXStackLayout>
-                                    <Label Text="{Binding TemporarilyPickedSong.Title}" 
-                              FontSize="20" x:Name="BtmBarTitle" />
-                                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" FontSize="14"
-                                  x:Name="BtmBarArtistName"/>
+                                    <customControl:MarqueeLabel Grid.Row="0" Text="{Binding MySelectedSong.Title}" SizeChanged="MarqueeLabel_SizeChanged"
+LineBreakMode="HeadTruncation" FontSize="24"/>
+
+                                    <customControl:MarqueeLabel  Text="{Binding MySelectedSong.ArtistName}" 
+LineBreakMode="TailTruncation" Opacity="0.6" 
+             FontSize="22" SizeChanged="MarqueeLabel_SizeChanged"/>
+
+                                    <customControl:MarqueeLabel  Text="{Binding MySelectedSong.AlbumName}" 
+       LineBreakMode="HeadTruncation" SizeChanged="MarqueeLabel_SizeChanged"
+             FontSize="15"/>
 
                                 </dx:DXStackLayout>
 
@@ -490,21 +483,6 @@ Icon="shuffle.png"  BackgroundColor="Transparent">
                 </Grid>
 
             </dx:DXStackLayout>
-
+           
         </Grid>
-
-        <dx:BottomSheet x:Name="ContextBtmSheet"
-             IsVisible="False">
-            <dx:BottomSheet.Content>
-                <Label Text="CntxtBtmSheet"/>
-            </dx:BottomSheet.Content>
-        </dx:BottomSheet>
-
-        <dx:DXPopup x:Name="SongsMenuPopup" PlacementTarget="{x:Reference myPage}"
-         AllowScrim="True" CloseOnScrimTap="True" 
-         WidthRequest="{Binding Width,Source={x:Reference MainPage}}">
-            <Label Text="CntxtBtmSheet"/>
-
-        </dx:DXPopup>
-    </Grid>
 </ContentPage>

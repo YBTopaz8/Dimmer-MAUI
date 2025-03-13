@@ -124,6 +124,7 @@ public partial class MainPageD : ContentPage
             isIniAssign = true;
         }
         ScrollToSong_Clicked(this, EventArgs.Empty);
+
     }
 
     protected override void OnDisappearing()
@@ -508,11 +509,12 @@ public partial class MainPageD : ContentPage
                 Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
                 {
+                    
+                    MyViewModel.ToggleFlyout(); 
+                    return;
                     MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
                     SongStatsView.IsVisible = !SongStatsView.IsVisible;
-                    return;
-                    MyViewModel.ToggleFlyout();
-
+                   
                     Debug.WriteLine("Right Mouse was Clicked!");
                 }
                 if (properties.IsXButton1Pressed)

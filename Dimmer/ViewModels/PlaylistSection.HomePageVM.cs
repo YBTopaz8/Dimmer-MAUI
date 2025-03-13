@@ -7,8 +7,6 @@ public partial class HomePageVM
     public partial string? SelectedPlaylistPageTitle { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? DisplayedSongsFromPlaylist{get;set;}
-    [ObservableProperty]
     public partial PlaylistModelView SelectedPlaylistToOpenBtmSheet {get;set;} = null;
     
 
@@ -24,8 +22,8 @@ public partial class HomePageVM
     {
 
         SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
-        DisplayedSongsFromPlaylist?.Clear();
-        DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).OrderBy(x => x.Title).ToObservableCollection();
+        SelectedPlaylist.DisplayedSongsFromPlaylist?.Clear();
+        SelectedPlaylist.DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).OrderBy(x => x.Title).ToObservableCollection();
         
         SelectedPlaylistPageTitle = PlayBackService.SelectedPlaylistName;
         
@@ -50,10 +48,11 @@ public partial class HomePageVM
         }
         if (IsAddSong)
         {
-            PlayBackService.AddSongToPlayListWithPlayListID(song, playlistModel);
+            var songIDs = new List<string> { song.LocalDeviceId! };
+            PlayBackService.AddSongsToPlaylist(songIDs, playlistModel);
             if (CurrentPage == PageEnum.PlaylistsPage)
             {
-                DisplayedSongsFromPlaylist.Add(song);
+                SelectedPlaylist.DisplayedSongsFromPlaylist?.Add(song);
 
             }
             var toast = Toast.Make(songAddedToPlaylistText, duration);
@@ -61,7 +60,7 @@ public partial class HomePageVM
         }
         else if (IsRemoveSong)
         {
-            DisplayedSongsFromPlaylist.Remove(song);
+            SelectedPlaylist.DisplayedSongsFromPlaylist?.Remove(song);
             SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
             if (SelectedPlaylist is not null)
             {
@@ -69,6 +68,7 @@ public partial class HomePageVM
                 var toast = Toast.Make(songDeletedFromPlaylistText, duration);
                 //await toast.Show(cts.Token);
             }
+            
         }
         else if (IsDeletePlaylist)
         {
@@ -115,8 +115,7 @@ public partial class HomePageVM
     [RelayCommand]
     void OpenPlaylistMenuBtmSheet(PlaylistModelView playlist)
     {
-        SelectedPlaylistToOpenBtmSheet = playlist;
-        
+        SelectedPlaylistToOpenBtmSheet = playlist;        
     }
 
     [RelayCommand]
@@ -126,18 +125,28 @@ public partial class HomePageVM
         //HiDisplayedPlaylists = PlayListService.GetAllPlaylists();
     }
 
-    [RelayCommand]
-    async Task AddToPlaylist()
+    
+    public void AddToPlaylist(PlaylistModelView playlist, List<string>? songIDs=null)
     {
-        if(!EnableContextMenuItems) return;
+        songIDs ??= [MySelectedSong!.LocalDeviceId!];
+        if (!EnableContextMenuItems) return;
         if (DisplayedPlaylists is null)
         {
             RefreshPlaylists();
         }
-        MySelectedSong = PickedSong;
-        var allPlaylistNames = DisplayedPlaylists?.Select(x => x.Name).ToList();
-        _ = await Shell.Current.ShowPopupAsync(new SongToPlaylistPopup(this, allPlaylistNames!));
+        foreach (var id in songIDs)
+        {
+            var songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
+            if (SelectedPlaylist.DisplayedSongsFromPlaylist.Contains(songg))
+            {
+                songIDs.Remove(id);
+                continue;
+            }
+            SelectedPlaylist.DisplayedSongsFromPlaylist?.Add(songg);
+        }
+        PlayBackService.AddSongsToPlaylist(songIDs, playlist);
         
+        GeneralStaticUtilities.ShowNotificationInternally($"Added {songIDs.Count} to Playlist: {playlist.Name}");
     }
 
    

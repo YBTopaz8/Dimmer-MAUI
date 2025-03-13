@@ -3,6 +3,7 @@
 using DevExpress.Maui.CollectionView;
 using Parse;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using Windows.ApplicationModel.Chat;
 //using TView = YB.MauiDataGridView.TableView;
@@ -27,6 +28,7 @@ public partial class HomePageVM : ObservableObject
         //    CanSwipeTab = true;
         //}
     }
+
     [ObservableProperty]
     public partial int BtmSheetIndex { get; set; } = 0;
 
@@ -223,14 +225,6 @@ public partial class HomePageVM : ObservableObject
     public void DoRefreshDependingOnPage()
     {
         
-        //CurrentPositionInSeconds = 0;
-        //CurrentPositionPercentage = 0;
-        LyricsSearchSongTitle = MySelectedSong?.Title;
-        LyricsSearchArtistName = MySelectedSong?.ArtistName;
-        LyricsSearchAlbumName = MySelectedSong?.AlbumName;
-        
-        //LastFifteenPlayedSongs = GetLastXPlayedSongs(DisplayedSongs).ToObservableCollection();
-        PartOfNowPlayingSongs?.Clear();
 
         if (AllSyncLyrics is not null)
         {
@@ -240,8 +234,7 @@ public partial class HomePageVM : ObservableObject
         switch (CurrentPage)
         {
             case PageEnum.MainPage:
-                SearchPlaceHolder = "Type to search...";
-               
+                SearchPlaceHolder = "Type to search...";               
                 break;
             case PageEnum.NowPlayingPage:
                 //LastfmTracks.Clear();
@@ -253,6 +246,9 @@ public partial class HomePageVM : ObservableObject
                         break;
                         
                     case 1:
+                        LyricsSearchSongTitle = MySelectedSong?.Title;
+                        LyricsSearchArtistName = MySelectedSong?.ArtistName;
+                        LyricsSearchAlbumName = MySelectedSong?.AlbumName;
                         IsFetching = false;
                         break;
                         
@@ -656,9 +652,9 @@ public partial class HomePageVM : ObservableObject
             selectedSong.IsCurrentPlayingHighlight = false;
             MySelectedSong = selectedSong;
 
-            if (CurrentPage == PageEnum.PlaylistsPage && DisplayedSongsFromPlaylist != null)
+            if (CurrentPage == PageEnum.PlaylistsPage && SelectedPlaylist.DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongsFromPlaylist], playImmediately: false); // Set the queue
+                PlayBackService.ReplaceAndPlayQueue([.. SelectedPlaylist.DisplayedSongsFromPlaylist], playImmediately: false); // Set the queue
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
@@ -1109,7 +1105,11 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.SecondaryQueue.Subscribe(songs =>
         {
-            DisplayedSongsFromPlaylist = songs;
+            if (SelectedPlaylist is null)
+            {
+                SelectedPlaylist??=new();
+            }
+            SelectedPlaylist.DisplayedSongsFromPlaylist = songs;
         });
     }
     private void SubscribeToCurrentSongPosition()
@@ -1268,9 +1268,7 @@ public partial class HomePageVM : ObservableObject
         }
         if (PickedSong != null)
         {
-            PickedSong.IsPlaying = false;
-            PickedSong.IsCurrentPlayingHighlight = false;
-
+            
             PickedSong = newValue;
             
         }

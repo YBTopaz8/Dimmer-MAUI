@@ -842,7 +842,6 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
-        return false;
         if (CurrentUser is null)
         {
             return false;

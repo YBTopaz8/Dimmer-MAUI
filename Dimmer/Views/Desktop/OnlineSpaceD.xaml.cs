@@ -73,7 +73,7 @@ public partial class OnlineSpaceD : ContentPage
 
     private void UserChatColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {   
-        UserChatColView.ScrollTo(UserChatColView.SelectedItem, null, ScrollToPosition.End, true);
+        //UserChatColView.ScrollTo(UserChatColView.SelectedItem, null, ScrollToPosition.End, true);
     }
 
     private void UserChatColView_Loaded(object sender, EventArgs e)

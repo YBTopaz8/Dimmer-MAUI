@@ -30,60 +30,52 @@
             Stroke="Transparent"
             HeightRequest="300" WidthRequest="500"
             BackgroundColor="Transparent">
-        <VerticalStackLayout BackgroundColor="Black" Padding="10">
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
+        <Grid BackgroundColor="Black" Padding="10" RowDefinitions="Auto,*">
+            <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="2">
                 <Label Text="{Binding MySelectedSong.Title}"/>
                 <Label Text=" by "/>
                 <Label Text="{Binding MySelectedSong.ArtistName}"/>
             </HorizontalStackLayout>
-            <Rectangle Fill="DarkSlateBlue" HeightRequest="5" WidthRequest="30"
-            RadiusX="15" Margin="0,10"/>
 
-            <VerticalStackLayout x:Name="AddSongToPlayListPageBtmSheet" IsVisible="True" Spacing="10"
-                      Margin="20,5">
-                <Label Text="Choose A Playlist"/>
-                <CollectionView x:Name="PlaylistsCV" HeightRequest="150" 
-                          VerticalScrollBarVisibility="Always">
+            <Grid Grid.Row="1" RowDefinitions="auto,*,auto" x:Name="AddSongToPlayListPageBtmSheet"                                 
+                               IsVisible="True" 
+                    Margin="20,5">
+                <Label Text="Choose As Playlist" Grid.Row="0"/>
+
+                <CollectionView Grid.Row="1" 
+                  ItemsSource="{Binding DisplayedPlaylists}"
+                  x:Name="PlaylistsCV" HeightRequest="150" 
+                        VerticalScrollBarVisibility="Always">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                                                     
-                            <Border Margin="0,10" StrokeThickness="0.8"
-                                    Stroke="Transparent" Padding="0,5"
-                                StrokeShape="RoundRectangle, 8">
-                                                                        
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer 
-                                        Tapped="CloseBtmSheet_Tapped"
-                                        Command="{Binding  BindingContext.AddSongToSpecifcPlaylistCommand, Source={x:Reference myPage}}" 
-                                        CommandParameter="{Binding .}"/>
-                                </Border.GestureRecognizers>
-                                <Label Text="{Binding .}" x:DataType="x:String"
-                                       FontSize="16" TextColor="White"/>
-                            </Border>
-                            
+                        <DataTemplate x:DataType="models:PlaylistModelView">
+                            <Label Text="{Binding Name}" 
+                                 HorizontalOptions="Center" HorizontalTextAlignment="Center"
+     FontSize="16" TextColor="White"/>
+
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-                
-                <HorizontalStackLayout HorizontalOptions="End" Spacing="10" VerticalOptions="End">
-                    
+
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="10" 
+                                     Grid.Row="2">
+
                     <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
-                 TextColor="Red"/>
+               TextColor="Red"/>
                     <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
                 </HorizontalStackLayout>
-            </VerticalStackLayout>
+            </Grid>
 
-            <VerticalStackLayout x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
-                      Spacing="10" Margin="10,5">
+            <VerticalStackLayout Grid.Row="1" x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+                    Spacing="10" Margin="10,5">
                 <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
                     <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
                     <Button Text="Create" x:Name="CreatePlaylistBtn" 
-                 Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
-                 Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+               Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+               Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
-        </VerticalStackLayout>
+        </Grid>
 
     </Border>
     

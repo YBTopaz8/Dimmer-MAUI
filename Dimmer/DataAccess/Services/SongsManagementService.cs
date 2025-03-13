@@ -922,9 +922,13 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             return null;
         }
-
+        var usrr = dbUser.First();
         if (dbUser is not null)
         {
+            if (usrr.UserPassword is null)
+            {
+                return null;
+            }
             if (usr is not null)
             {
                 CurrentOfflineUser = new UserModelView(usr);
@@ -937,7 +941,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 return CurrentOfflineUser;
                 
             };
-            CurrentOfflineUser = new UserModelView(dbUser.First());
+            CurrentOfflineUser = new UserModelView(usrr);
 
             return CurrentOfflineUser;
         }
@@ -945,13 +949,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         return CurrentOfflineUser;
     }
        
-    // THIS IS PRODUCTION READY
-    //private bool InitializeParseClient(string ApplicationId, string ServerUri, string ClientKey, string MasterKey, bool PublicizedAfterInitializing)
-
-
-    //ParseClient ParseClient.Instance;
-    //testing only
-
+   
 
     public static bool InitializeParseClient()
     {

@@ -55,7 +55,7 @@
                     </dx:ChoiceChipGroup>
                 </dx:DXStackLayout>
 
-                <dx:TabView IsSelectedItemIndicatorVisible="False" SwipeEnabled="True"
+                <dx:TabView IsSelectedItemIndicatorVisible="True" SwipeEnabled="True"
                     x:Name="HomeTabView" HeaderPanelPosition="Bottom"  PropertyChanged="HomeTabView_PropertyChanged"
                         HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
                         HeaderPanelHeight="0" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
@@ -140,9 +140,7 @@
                     </dx:TabViewItem>
                     <dx:TabViewItem x:Name="NowPlayingView" >
                         <Grid x:Name="NowPlayingUI">
-                            <dx:DXImage Opacity="0.2"
-                                        Aspect="AspectFill"
-                                        Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
+                           
                             <dx:DXCollectionView IsScrollBarVisible="False" VerticalOptions="Center"
 x:Name="LyricsColView" HeightRequest="300"
                      SelectionChanged="LyricsColView_SelectionChanged"
@@ -429,17 +427,18 @@ BackgroundColor="#626680">
            
         </Grid>
         
-        <dx:BottomSheet x:Name="ContextBtmSheet"
+        <dx:BottomSheet x:Name="ContextBtmSheet" CornerRadius="5"
              IsVisible="False" HalfExpandedRatio="0.8">
             <dx:BottomSheet.Content>
                 <Grid>
 
                     <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                                   Aspect="AspectFill"
+                                   Aspect="AspectFill" IsVisible="False"
                                    Opacity="0.24"/>
                     <dx:TabView SelectedItemIndex="{Binding BtmSheetIndex}">
                     <dx:TabViewItem HeaderText="Now Playing Queue">
-                        <dx:DXDockLayout x:Name="NowPlayingQueueView">
+                            
+                        <dx:DXDockLayout x:Name="NowPlayingQueueView" >
                             <Grid Margin="20,0" ColumnDefinitions="*,Auto" dx:DXDockLayout.Dock="Top">
                                 <dx:DXStackLayout Grid.Column="0">
                                     <Label Text="{Binding MySelectedSong.Title}" FontSize="24"/>
@@ -450,7 +449,7 @@ BackgroundColor="#626680">
                                 <dx:DXButton Icon="bookmark.png" Grid.Column="1"
                                          BackgroundColor="Transparent"
                                          Content="Save Playlist"/>
-                            </Grid>
+                                    </Grid>
                             <dx:DXCollectionView ItemsSource="{Binding PartOfNowPlayingSongs}" 
                                                  Margin="5,5" Grid.Row="1" Tap="CurrQueueColView_Tap"
                                                  Header="Songs Queue" VerticalOptions="End" 
@@ -723,8 +722,7 @@ x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
         </dx:BottomSheet>
 
         <dx:DXPopup x:Name="SongsMenuPopup" PlacementTarget="{x:Reference myPage}"
-         AllowScrim="True" CloseOnScrimTap="True" 
-         WidthRequest="{Binding Width,Source={x:Reference MainPage}}">
+         AllowScrim="True" CloseOnScrimTap="True" >
             <Grid>
                 <dx:DXImage Source="{Binding MySelectedSong.CoverImagePath}"
                  Opacity="0.1"/>
