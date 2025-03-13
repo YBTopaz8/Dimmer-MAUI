@@ -1014,7 +1014,7 @@ public partial class AppShell : Shell
 
     private void GoToArtistPageEff_TouchDown(object sender, EventArgs e)
     {
-
+        // Todo
     }
 
     private void GoToAlbumPageEff_TouchDown(object sender, EventArgs e)

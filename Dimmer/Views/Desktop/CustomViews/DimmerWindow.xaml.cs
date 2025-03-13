@@ -78,8 +78,8 @@ public partial class DimmerWindow : Window
         //MyViewModel.SongsMgtService.GetUserAccount();
 
 
-        await MyViewModel.ConnectToLiveQueriesAsync();
-        await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
+        //await MyViewModel.ConnectToLiveQueriesAsync();
+        //await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
     }
     bool InitChecker()
     {

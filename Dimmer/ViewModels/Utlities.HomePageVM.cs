@@ -902,7 +902,10 @@ public partial class HomePageVM
                 return false;
             }
         }
-
+        if (currentParseUser.ObjectId is null)
+        {
+            return false;
+        }
         if (!isSilent)
         {
             await Shell.Current.DisplayAlert("Success !", $"Welcome Back {currentParseUser.Username}!", "Thanks");

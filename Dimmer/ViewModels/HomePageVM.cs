@@ -182,6 +182,10 @@ public partial class HomePageVM : ObservableObject
         }
         if (CurrentUserOnline is null || string.IsNullOrEmpty(CurrentUserOnline.Username) )
         {
+            if (ParseClient.Instance is null)
+            {
+                return;
+            }
 
             if( await LogInParseOnline(true))
             {
