@@ -39,7 +39,7 @@ public partial class HomePageVM
                 }
                 LyricsManagerService.InitializeLyrics(lyr);
                 SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong!.LocalDeviceId)!.HasLyrics = true;
-                ShowNotificationInternally("Saved Synced Lyrics To Device");
+                GeneralStaticUtilities.ShowNotificationInternally("Saved Synced Lyrics To Device");
             }
         }
     }
@@ -321,13 +321,13 @@ public partial class HomePageVM
         var favPlaylist = new PlaylistModelView { Name = "Favorites" };
         if (MySelectedSong.IsFavorite && willBeFav)
         {
-            ShowNotificationInternally("Already Favorite");
+            GeneralStaticUtilities.ShowNotificationInternally("Already Favorite");
 
             return;
         }
         if (!MySelectedSong.IsFavorite && !willBeFav)
         {
-            ShowNotificationInternally("Not Fav");
+            GeneralStaticUtilities.ShowNotificationInternally("Not Fav");
 
 
             return;
@@ -335,14 +335,14 @@ public partial class HomePageVM
         if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
         {
             UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
-            ShowNotificationInternally("Removed from Favorites");
+            GeneralStaticUtilities.ShowNotificationInternally("Removed from Favorites");
 
             return;
         }
         else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
         {
             UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
-            ShowNotificationInternally("Added to Favorites");
+            GeneralStaticUtilities.ShowNotificationInternally("Added to Favorites");
             return;
         }
         //if (CurrentUser.IsLoggedInLastFM)
@@ -353,43 +353,5 @@ public partial class HomePageVM
     }
     [ObservableProperty]
     public partial TitleBar? DimmerTitleBarVM { get; set; } = new();
-    public void ShowNotificationInternally(string msgText, int delayBtnSwitch = 800, Label? text = null, SearchBar? bar = null, TitleBar? titleBar=null)
-    {
-        MainThread.BeginInvokeOnMainThread(async () =>
-            {
-
-                if (text is null || bar is null || titleBar is null)
-                    return;
-
-                text.Text = msgText;
-                text.Opacity = 1; // Ensure the label is fully opaque initially.
-                text.IsVisible = true; // Ensure label is visible
-                bar.Opacity = 0.01;  // Make Search Bar almost invisible
-                bar.IsVisible = false; // Ensure Search Bar is hidden initially.
-
-                // Fade out the search bar completely and hide it.
-                await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
-                await bar.DimmOutCompletelyAndHide();
-
-
-                // Fade in the notification label and show it.
-                await text.DimmInCompletelyAndShow();
-
-                // Wait for the specified delay.
-                await Task.Delay(delayBtnSwitch);
-
-                // Fade out the notification label and hide.
-                await text.DimmOutCompletelyAndHide();
-
-                // Fade in the search bar and show it.
-                await bar.DimmInCompletelyAndShow();
-
-#if DEBUG
-
-                await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
-#elif RELEASE
-        await titleBar.BackgroundColorTo(Colors.Black, length: 500);
-#endif
-            });
-    }
+  
 }

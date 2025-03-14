@@ -24,7 +24,7 @@ public partial class App : Application
 
 
         MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-        APIKeys.SetupClientInitializations();
+        //APIKeys.SetupClientInitializations();
     }
 
     HomePageVM MyViewModel { get; set; }

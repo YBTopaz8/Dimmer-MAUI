@@ -842,7 +842,6 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task<bool> LogInParseOnline(bool isSilent=true)
     {
-        return false;
         if (CurrentUser is null)
         {
             return false;
@@ -903,7 +902,10 @@ public partial class HomePageVM
                 return false;
             }
         }
-
+        if (currentParseUser.ObjectId is null)
+        {
+            return false;
+        }
         if (!isSilent)
         {
             await Shell.Current.DisplayAlert("Success !", $"Welcome Back {currentParseUser.Username}!", "Thanks");

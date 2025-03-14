@@ -92,6 +92,7 @@ public partial class SongModelView : ObservableObject
     public partial string? LocalDeviceId { get; set; }
     [ObservableProperty]
     public partial string? Title {get;set;}=string.Empty;
+   
     [ObservableProperty]
     public partial string? FilePath {get;set;}
     [ObservableProperty]
@@ -202,6 +203,7 @@ public partial class SongModelView : ObservableObject
             HasLyrics = model.HasLyrics;
             HasSyncedLyrics = model.HasSyncedLyrics;
             IsFileExists = model.IsFileExists;
+            
             Track s = new Track
             {
                 Lyrics = new LyricsInfo()
@@ -212,6 +214,7 @@ public partial class SongModelView : ObservableObject
                 IList<LyricsPhrase>? syncLyr = s.Lyrics.SynchronizedLyrics;
                 SyncLyrics = syncLyr.Select(x => new LyricPhraseModel(x) ).ToObservableCollection();
             }
+            
         }
 
         else

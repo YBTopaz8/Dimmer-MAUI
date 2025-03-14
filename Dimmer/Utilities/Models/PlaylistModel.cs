@@ -48,6 +48,8 @@ public partial class PlaylistModelView : ObservableObject
     public partial double TotalSize { get; set; }
     [ObservableProperty]
     public partial int TotalSongsCount { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? DisplayedSongsFromPlaylist { get; set; }
 
     public PlaylistModelView()
     {

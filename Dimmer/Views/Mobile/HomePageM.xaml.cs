@@ -107,7 +107,7 @@ public partial class HomePageM : ContentPage
         var song = (SongModelView)s.BindingContext;
         MyViewModel.SetContextMenuSong(song);
         SongsMenuPopup.Show();
-
+        SongsMenuPopup.WidthRequest = this.Width;
     }
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {

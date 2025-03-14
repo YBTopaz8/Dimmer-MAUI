@@ -73,40 +73,38 @@
                   HeightRequest="200" Margin="10,0"
                   BackgroundColor="Transparent">
                 <VerticalStackLayout BackgroundColor="Transparent">
-                    <Label Text="{Binding MySelectedSong.Title}" FontSize="25"/>
-                    <Label Text="{Binding MySelectedSong.ArtistName}" FontSize="25"/>
-                    <Label Text="{Binding MySelectedSong.AlbumName}" FontSize="32" TextColor="DarkSlateBlue"/>
+                    
+                    <Label Text="{Binding SelectedAlbumOnAlbumPage.Name}" FontSize="25"/>
+                    <Label Text="{Binding SelectedAlbumOnAlbumPage.NumberOfTracks}" FontSize="32" TextColor="DarkSlateBlue"/>
                 </VerticalStackLayout>
                 <ScrollView Orientation="Horizontal">
 
                 </ScrollView>
             </Grid>
-            <Grid RowDefinitions="Auto,*" Margin="5,0"
+            <Grid RowDefinitions="Auto,*" Margin="5,0" WidthRequest="310"
                   toolkit:DockLayout.DockPosition="Left"
        >
                 <toolkit:Expander Grid.Row="0" BackgroundColor="Transparent">
                     <toolkit:Expander.Header>
-                        <VerticalStackLayout BackgroundColor="#1E1E1E"
-                                             Padding="10">
+                        <VerticalStackLayout HorizontalOptions="Start"
+                                             Margin="5,0" Spacing="5">
 
-                            <Label HorizontalOptions="Start"
+                            <Label HorizontalOptions="Start" TextColor="DarkSlateBlue"
+                                 FontSize="25" FontAttributes="Bold"
                                    x:Name="FilterLetterLabel"/>
                             
-                            <FlexLayout>
                                 
-                                <Label HorizontalOptions="End" 
+                                <Label 
                                        Text="{Binding AllAlbums.Count, StringFormat='{0} Albums'}"/>
                                 
                                 <SearchBar x:Name="SearchArtistBar" 
-                                    Margin="5,0" Placeholder="Search Album..." 
+                                    Placeholder="Search Album..." 
                                            TextChanged="SearchBar_TextChanged"/>
-
-                            </FlexLayout>
                             
                         </VerticalStackLayout>
                     </toolkit:Expander.Header>
                     <toolkit:Expander.Content>
-                        <Grid RowDefinitions="200"  >
+                        <Grid>
                             
                             <CollectionView x:Name="ArtistLetterColView" Grid.Row="0"
                          HorizontalOptions="Center" SelectionMode="Single" 
@@ -148,7 +146,7 @@
                 <CollectionView Grid.Row="1" 
              x:Name="AllAlbumsColView"
              EmptyView="No Artists Existing..." SelectionMode="None" 
-             WidthRequest="250" Margin="5,0"
+             Margin="5,0"
              ItemsSource="{Binding AllAlbums}" >
 
                     <CollectionView.ItemsLayout>

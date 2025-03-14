@@ -177,9 +177,9 @@ public partial class HomePageVM
        
         if (AllAlbums.Count > 0)
         {
-#if WINDOWS
-            SelectedAlbumOnAlbumPage ??= AllAlbums.First(x=>x.Name == MySelectedSong.ArtistName);
-#endif
+
+            SelectedAlbumOnAlbumPage ??= AllAlbums.First(x=>x.Name == MySelectedSong.AlbumName);
+
         }
         
     }

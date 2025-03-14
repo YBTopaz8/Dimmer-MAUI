@@ -1777,7 +1777,10 @@ private Dictionary<string, int> GetMonthData(List<PlayDataLink> playData, int mo
 
     public void UnAssignSyncLyricsCV()
     {
-        SyncLyricsCV.SelectionChanged -= SyncLyricsCV_SelectionChanged;
+        if (SyncLyricsCV is not null)
+        {
+            SyncLyricsCV.SelectionChanged -= SyncLyricsCV_SelectionChanged;
+        }
     }
 
     [ObservableProperty]

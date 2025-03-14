@@ -33,17 +33,18 @@
         </toolkit:DockLayout.GestureRecognizers>
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
                                       x:Name="MediaPlayBackCV"/>
-        <VerticalStackLayout toolkit:DockLayout.DockPosition="Left" Spacing="5"
-                             WidthRequest="200" Margin="10,0" >
+        <Grid toolkit:DockLayout.DockPosition="Left" ColumnSpacing ="5"
+                             WidthRequest="300" Margin="10,0"
+              RowDefinitions="Auto,*">
+            <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
+HorizontalOptions="Start" Grid.Row="0"
+IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeToVis}}"/>
             
-        <CollectionView ItemsSource="{Binding DisplayedPlaylists}" x:Name="DisplayedPlaylistsCV"
+            
+            
+            <CollectionView Grid.Row="1" ItemsSource="{Binding DisplayedPlaylists}" x:Name="DisplayedPlaylistsCV"
                         EmptyView="No Playlists Existing..." SelectionMode="Single" 
                         SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
-                <CollectionView.Header>
-                    <Label Text="{Binding DisplayedPlaylists.Count, StringFormat='{0} Playlists'}"
-                           HorizontalOptions="Center" 
-                           IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeToVis}}"/>
-                </CollectionView.Header>
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical"
                                        ItemSpacing="4"/>
@@ -88,7 +89,7 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </VerticalStackLayout>
+        </Grid>
 
         <FlexLayout JustifyContent="SpaceBetween" IsVisible="False" 
                 HeightRequest="50">
@@ -96,7 +97,81 @@
             <SearchBar Text="" Placeholder="Search Song (Not Yet Working)"/>
         </FlexLayout>
 
-        <CollectionView ItemsSource="{Binding DisplayedSongsFromPlaylist}" SelectedItem="{Binding PickedSong}"
+        <Grid RowDefinitions="Auto,*">
+            <toolkit:Expander  Grid.Row="0">
+                <toolkit:Expander.Header>
+                    <Grid ColumnDefinitions="*,Auto" >
+                        
+                        <syncf:SfEffectsView Grid.Column="1" TouchDownEffects="Ripple">
+                            <ImageButton Source="addcircle.png" 
+         HeightRequest="30"/>
+
+                        </syncf:SfEffectsView>
+                    </Grid>
+                </toolkit:Expander.Header>
+                <toolkit:Expander.Content>
+                    <Grid BackgroundColor="Black" Padding="10" RowDefinitions="Auto,*">
+                        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="2">
+                            <Label Text="{Binding MySelectedSong.Title}"/>
+                            <Label Text=" by "/>
+                            <Label Text="{Binding MySelectedSong.ArtistName}"/>
+                        </HorizontalStackLayout>
+
+                        <Grid Grid.Row="1" RowDefinitions="auto,*,auto" x:Name="AddSongToPlayListPageBtmSheet"                                 
+                   IsVisible="True" 
+        Margin="20,5">
+                            <Label Text="Choose As Playlist" Grid.Row="0"/>
+
+                            <CollectionView Grid.Row="1" 
+      ItemsSource="{Binding DisplayedPlaylists}"
+      x:Name="PlaylistsCV" 
+            VerticalScrollBarVisibility="Always">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlaylistModelView">
+                                        <Border Margin="0,10" StrokeThickness="0.8"
+                        Stroke="Transparent" Padding="0,5" BackgroundColor="Transparent"
+                    StrokeShape="RoundRectangle, 8">
+
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer 
+                                        Tapped="AddToPlayListGR_Tapped" x:Name="AddToPlayListGR"
+                                        CommandParameter="{Binding .}"/>
+                                            </Border.GestureRecognizers>
+                                            <Label Text="{Binding Name}" 
+                           FontSize="16" TextColor="White"/>
+                                        </Border>
+
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="10" 
+                         Grid.Row="2">
+
+                                <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
+   TextColor="Red"/>
+                                <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
+                            </HorizontalStackLayout>
+                        </Grid>
+
+                        <VerticalStackLayout Grid.Row="1" x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+        Spacing="10" Margin="10,5">
+                            <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
+                            <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                                <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
+                                <Button Text="Create" x:Name="CreatePlaylistBtn" 
+   Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+   Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                </toolkit:Expander.Content>
+            </toolkit:Expander>
+        
+            <CollectionView 
+                Grid.Row="1"
+                ItemsSource="{Binding SelectedPlaylist.DisplayedSongsFromPlaylist}" SelectedItem="{Binding MySelectedSong}"
                         SelectionMode="Single" x:Name="SongsColView" EmptyView="No Songs To Display...">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
@@ -123,16 +198,17 @@
                             
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                <Setter Property="Stroke" Value="DarkSlateBlue" />
-                            </DataTrigger>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                    <Setter Property="Stroke" Value="DarkSlateBlue" /> 
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                </DataTrigger>
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
-                                <Setter Property="Stroke" Value="Transparent" />
-                                <Setter Property="StrokeThickness" Value="1"/>
+                                    <Setter Property="Stroke" Value="Transparent" />
+                                    <Setter Property="StrokeThickness" Value="0"/>
 
-                            </DataTrigger>
+                                </DataTrigger>
                         </Border.Triggers>
 
                         <syncf:SfEffectsView TouchDownEffects="Ripple">
@@ -141,13 +217,29 @@
                                 <Label Text="{Binding Title}" FontSize="16"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" 
                                         TextColor="Gray"/>
+                                        <Image Source="songc.png"
+        WidthRequest="25" Opacity="1"
+        HorizontalOptions="Start">
+                                            <Image.Triggers>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </Image.Triggers>
+                                        </Image>
 
-                            </VerticalStackLayout>
+                                    </VerticalStackLayout>
 
                             <VerticalStackLayout>
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                        <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+       Source="lyrics.png">
 
-                            </VerticalStackLayout>
+                                        </Image>
+
+                                    </VerticalStackLayout>
                             </FlexLayout>
                         </syncf:SfEffectsView>
                     </Border>
@@ -155,7 +247,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
+        </Grid>
 
     </toolkit:DockLayout>
 </ContentPage>

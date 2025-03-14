@@ -34,7 +34,7 @@
 
         <Grid RowDefinitions="Auto,*" toolkit:DockLayout.DockPosition="Top" >
             
-            <CollectionView 
+            <CollectionView SelectionMode="Single" SelectedItem="{Binding SelectedAlbumOnAlbumPage}"
                         HeightRequest="150" x:Name="AllAlbumsColView" 
                         VerticalOptions="Start" HorizontalScrollBarVisibility="Default"
                         ItemsSource="{Binding AllArtistsAlbums}">
@@ -115,9 +115,9 @@
             </toolkit:Expander.Content>
             </toolkit:Expander>
 
-            <CollectionView Grid.Row="1" 
+            <CollectionView Grid.Row="1"  SelectionMode="Single" SelectedItem="{Binding SelectedArtistOnArtistPage}"
                     x:Name="AllArtistsColView"
-                    EmptyView="No Artists Existing..." SelectionMode="None" 
+                    EmptyView="No Artists Existing..."
                     WidthRequest="250" Margin="10,0"
                     ItemsSource="{Binding AllArtists}" >
                
@@ -172,7 +172,7 @@
             Placeholder="Search Song..." TextChanged="SearchSongInAlbum_TextChanged"/>
 
             </HorizontalStackLayout>
-            <CollectionView SelectionMode="Single" x:Name="AlbumSongsCV" Grid.Row="1"
+            <CollectionView SelectionMode="Single" x:Name="AlbumSongsCV" Grid.Row="1" SelectedItem="{Binding MySelectedSong}"
         ItemsSource="{Binding AllArtistsAlbumSongs}" EmptyView="No Songs to display, Please Select an Album...">
             <CollectionView.Header>
                 <FlexLayout JustifyContent="SpaceBetween">

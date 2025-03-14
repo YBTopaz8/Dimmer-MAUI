@@ -1,5 +1,7 @@
 ﻿
 
+using CommunityToolkit.Maui.Extensions;
+
 namespace Dimmer_MAUI.Utilities.OtherUtils;
 public static class GeneralStaticUtilities
 {
@@ -567,7 +569,45 @@ public static class GeneralStaticUtilities
         var DimmerAudioService = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>() as DimmerAudioService;
         DimmerAudioService?.Dispose();
     }
+    public static void ShowNotificationInternally(string msgText, int delayBtnSwitch = 500, Label? text = null, SearchBar? bar = null, TitleBar? titleBar = null)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
 
+            if (text is null || bar is null || titleBar is null)
+                return;
+
+            text.Text = msgText;
+            text.Opacity = 1; // Ensure the label is fully opaque initially.
+            text.IsVisible = true; // Ensure label is visible
+            bar.Opacity = 0.01;  // Make Search Bar almost invisible
+            bar.IsVisible = false; // Ensure Search Bar is hidden initially.
+
+            // Fade out the search bar completely and hide it.
+            await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
+            await bar.DimmOutCompletelyAndHide();
+
+
+            // Fade in the notification label and show it.
+            await text.DimmInCompletelyAndShow();
+
+            // Wait for the specified delay.
+            await Task.Delay(delayBtnSwitch);
+
+            // Fade out the notification label and hide.
+            await text.DimmOutCompletelyAndHide();
+
+            // Fade in the search bar and show it.
+            await bar.DimmInCompletelyAndShow();
+
+#if DEBUG
+
+            await titleBar.BackgroundColorTo(Color.FromArgb("#483D8B"), length: 500);
+#elif RELEASE
+        await titleBar.BackgroundColorTo(Colors.Black, length: 500);
+#endif
+        });
+    }
 }
 
 
@@ -649,4 +689,6 @@ public static class UserActivityLogger
             throw; // Re-throw for now, so the caller knows it failed.
         }
     }
+
+    
 }

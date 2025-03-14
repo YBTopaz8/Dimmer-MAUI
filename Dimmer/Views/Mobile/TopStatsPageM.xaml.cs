@@ -23,7 +23,7 @@ public partial class TopStatsPageM : ContentPage
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.FullStatsPage;
         var itemHandle = UserChatColView.GetItemHandle(MyViewModel.ChatMessages.Count);
-        UserChatColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
+        //UserChatColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
 
 
         //MyViewModel.LoadDailyData();
@@ -302,8 +302,8 @@ public partial class TopStatsPageM : ContentPage
                             else
                             {
                                 MyViewModel.LoadArtistSongs();
-                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                                //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                                //ContextBtmSheet.HalfExpandedRatio = 0.8;
                                 //await NowPlayingQueueView.DimmOutCompletely();
                                 //NowPlayingQueueView.IsVisible=false;
                                 //await ArtistSongsView.DimmInCompletely();
@@ -360,13 +360,13 @@ public partial class TopStatsPageM : ContentPage
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
         MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
     }
     private void ContextIcon_Tap(object sender, HandledEventArgs e)
     {
         MyViewModel.LoadArtistSongs();
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.HalfExpandedRatio = 0.8;
     }
 
 

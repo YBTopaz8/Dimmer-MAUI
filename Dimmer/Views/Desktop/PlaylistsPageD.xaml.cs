@@ -25,7 +25,7 @@ public partial class PlaylistsPageD : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        MyViewModel.DisplayedSongsFromPlaylist.Clear();
+        MyViewModel.SelectedPlaylist?.DisplayedSongsFromPlaylist?.Clear();
     }
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
@@ -144,4 +144,48 @@ public partial class PlaylistsPageD : ContentPage
         }
     }
 
+    private void AddToPlaylist_Tapped(object sender, TappedEventArgs e)
+    {
+        CreateNewPlayListPageBtmSheet.IsVisible = false;
+        AddSongToPlayListPageBtmSheet.IsVisible = true;
+    }
+    private void ShowPlaylistCreationBtmPage_Clicked(object sender, EventArgs e)
+    {
+        AddSongToPlayListPageBtmSheet.IsVisible = false;
+        CreateNewPlayListPageBtmSheet.IsVisible = true;
+    }
+
+    private void CancelAddSongToPlaylist_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private void CancelCreateNewPlaylist_Clicked(object sender, EventArgs e)
+    {
+        CreateNewPlayListPageBtmSheet.IsVisible = false;
+        AddSongToPlayListPageBtmSheet.IsVisible = true;
+    }
+
+    private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        //this.Close();
+    }
+
+    private void PlaylistsCV_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+
+    }
+
+    private void AddToPlayListGR_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var playlist = (PlaylistModelView)send.BindingContext;
+        if (MyViewModel.MySelectedSong is null)
+        {
+            return;
+        }
+        MyViewModel.AddToPlaylist(playlist);
+
+    }
 }

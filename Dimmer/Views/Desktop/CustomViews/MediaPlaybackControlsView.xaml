@@ -57,7 +57,7 @@
     </ContentView.Resources>
 
     <Grid >
-        <Grid ColumnDefinitions="Auto,*,200" BackgroundColor="#191919">
+        <Grid ColumnDefinitions="*,*,200" BackgroundColor="#191919">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
             </Grid.GestureRecognizers>
