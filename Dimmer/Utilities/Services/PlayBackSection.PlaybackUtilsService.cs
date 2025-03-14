@@ -104,16 +104,17 @@ public partial class PlaybackUtilsService : ObservableObject
 
 
     private Random random = Random.Shared;  // Reuse the same Random instance
+    private ObservableCollection<SongModelView> _internalNowPlayingQueue { get; set; }
     private void UpdateActiveQueue()
     {
-        var currentQueue = _playbackQueue.Value.ToObservableCollection(); // Work with a copy
+        _internalNowPlayingQueue  = _playbackQueue.Value.ToObservableCollection(); // Work with a copy
         if (IsShuffleOn)
         {
-            _playbackQueue.OnNext(ShuffleList(currentQueue)); // Shuffle your master list
+            _playbackQueue.OnNext(ShuffleList(_internalNowPlayingQueue)); // Shuffle your master list
         }
         else
         {
-            _playbackQueue.OnNext(currentQueue); // Use the original order
+            _playbackQueue.OnNext(_internalNowPlayingQueue); // Use the original order
         }
     }
     private ObservableCollection<SongModelView> ShuffleList(ObservableCollection<SongModelView> list)

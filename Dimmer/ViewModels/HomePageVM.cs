@@ -1167,21 +1167,22 @@ public partial class HomePageVM : ObservableObject
                                 {
                                     TimeSpan position = TimeSpan.FromSeconds(CurrentPositionInSeconds);
                                     string formattedPosition = position.ToString(@"mm\:ss");
-
-                                   
                                 }
                                 return;
                         }
-                        TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
+                        else
+                        {
+                            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;                            
+                            MySelectedSong = PlayBackService.CurrentlyPlayingSong;
+                            MySelectedSong.IsPlaying = false;
+                            MySelectedSong.IsCurrentPlayingHighlight = false;
+                        }
+                        MySelectedSong.IsPlaying = true;
+                        MySelectedSong.IsCurrentPlayingHighlight = true;
                         DoRefreshDependingOnPage();
                         CurrentRepeatCount = PlayBackService.CurrentRepeatCount;
 
-                        if (PlayBackService.CurrentlyPlayingSong is not null)
-                        {
-                          
-
-                        }
-                        }
+                    }
 
                     //await FetchSongCoverImage();
 

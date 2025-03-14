@@ -198,16 +198,17 @@ IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeT
                             
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                <Setter Property="BackgroundColor" Value="DarkSlateBlue" />
-                                <Setter Property="Stroke" Value="DarkSlateBlue" />
-                            </DataTrigger>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                    <Setter Property="Stroke" Value="DarkSlateBlue" /> 
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                </DataTrigger>
                             <DataTrigger TargetType="Border"
                                          Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
                                 <Setter Property="BackgroundColor" Value="Transparent" />
-                                <Setter Property="Stroke" Value="Transparent" />
-                                <Setter Property="StrokeThickness" Value="1"/>
+                                    <Setter Property="Stroke" Value="Transparent" />
+                                    <Setter Property="StrokeThickness" Value="0"/>
 
-                            </DataTrigger>
+                                </DataTrigger>
                         </Border.Triggers>
 
                         <syncf:SfEffectsView TouchDownEffects="Ripple">
@@ -216,13 +217,29 @@ IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeT
                                 <Label Text="{Binding Title}" FontSize="16"/>
                                 <Label Text="{Binding ArtistName}" FontSize="13" 
                                         TextColor="Gray"/>
+                                        <Image Source="songc.png"
+        WidthRequest="25" Opacity="1"
+        HorizontalOptions="Start">
+                                            <Image.Triggers>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </Image.Triggers>
+                                        </Image>
 
-                            </VerticalStackLayout>
+                                    </VerticalStackLayout>
 
                             <VerticalStackLayout>
                                 <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                        <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+       Source="lyrics.png">
 
-                            </VerticalStackLayout>
+                                        </Image>
+
+                                    </VerticalStackLayout>
                             </FlexLayout>
                         </syncf:SfEffectsView>
                     </Border>
