@@ -185,9 +185,16 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public bool PauseResumeSong(double currentPosition, bool isPause = false)
     {
-        if (ObservableCurrentlyPlayingSong is null)
+        if (ObservableCurrentlyPlayingSong is null | ObservableCurrentlyPlayingSong.LocalDeviceId == null)
         {
-            ObservableCurrentlyPlayingSong = _playbackQueue.Value.ToList().FirstOrDefault();
+            if (ViewModel.Value.TemporarilyPickedSong is not null)
+            {
+                ObservableCurrentlyPlayingSong = ViewModel.Value.TemporarilyPickedSong;                
+            }
+            else
+            {
+                ObservableCurrentlyPlayingSong = _playbackQueue.Value.ToList().FirstOrDefault();
+            }
             
             if (ObservableCurrentlyPlayingSong == null)
                 return false;

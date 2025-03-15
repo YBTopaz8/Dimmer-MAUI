@@ -5,8 +5,8 @@ public interface ILyricsService
     IObservable<LyricPhraseModel> CurrentLyricStream { get; }
     IObservable<string> UnSynchedLyricsStream { get; }
 
-    Task LoadLyrics(SongModelView song);
-    IList<LyricPhraseModel> GetSpecificSongLyrics(SongModelView song);
+    Task LoadLyrics(SongModelView? song);
+    IList<LyricPhraseModel>? GetSpecificSongLyrics(SongModelView? song);
     Task UpdateCurrentLyricIndex(double currentPositionInSeconds);
     void StartLyricIndexUpdateTimer();
     void StopLyricIndexUpdateTimer();

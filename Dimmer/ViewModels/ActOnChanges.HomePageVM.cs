@@ -7,7 +7,7 @@ public partial class HomePageVM
     public bool IsControlKeyPressed { get; set; }
     public bool IsShiftKeyPressed { get; set; }
     
-    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView> oldValue, ObservableCollection<AlbumModelView> newValue)
+    partial void OnAllAlbumsChanging(ObservableCollection<AlbumModelView>? oldValue, ObservableCollection<AlbumModelView>? newValue)
     {
         //Debug.WriteLine($"Old alb {oldValue?.Count} new {newValue?.Count}");
     }
@@ -29,6 +29,7 @@ public partial class HomePageVM
             if (newValue is not null && newValue.Count > 0)
             {
 
+                //TODO MOBILE
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     if (SyncLyricsCV is not null)
@@ -38,7 +39,7 @@ public partial class HomePageVM
 
                         if (SyncLyricsCV is not null && CurrentAppState == AppState.OnForeGround)
                         {
-                            SyncLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                            SyncLyricsCV.ScrollTo(index: 0, position: ScrollToPosition.Start, animate: true);
                         }
                     }
 

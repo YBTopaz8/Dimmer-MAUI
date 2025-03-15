@@ -5,6 +5,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"  
+             xmlns:popup="clr-namespace:Syncfusion.Maui.Toolkit.Popup;assembly=Syncfusion.Maui.Toolkit"
             
             xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
             xmlns:models="clr-namespace:Dimmer_MAUI.Utilities.Models"     
@@ -97,83 +98,73 @@ IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeT
             <SearchBar Text="" Placeholder="Search Song (Not Yet Working)"/>
         </FlexLayout>
 
-        <Grid RowDefinitions="Auto,*">
-            <toolkit:Expander  Grid.Row="0">
-                <toolkit:Expander.Header>
-                    <Grid ColumnDefinitions="*,Auto" >
+        <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,Auto">
+            
+            <Grid ColumnDefinitions="*,Auto" Grid.Row="0" Grid.ColumnSpan="2">
 
-                        <HorizontalStackLayout Grid.Column="1">
-                            <syncf:SfEffectsView  TouchDownEffects="Ripple">
-                                <ImageButton Source="songfind.png" HeightRequest="30"/>
-                            </syncf:SfEffectsView>
-                            <syncf:SfEffectsView  TouchDownEffects="Ripple">
-                                <ImageButton Source="addcircle.png" HeightRequest="30"/>
-                            </syncf:SfEffectsView>
-                        </HorizontalStackLayout>
-                        
-                    </Grid>
-                </toolkit:Expander.Header>
-                <toolkit:Expander.Content>
-                    <Grid BackgroundColor="Black" Padding="10" RowDefinitions="Auto,*">
-                        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="{Binding MySelectedSong.Title}"/>
-                            <Label Text=" by "/>
-                            <Label Text="{Binding MySelectedSong.ArtistName}"/>
-                        </HorizontalStackLayout>
+                <HorizontalStackLayout Grid.Column="1">
+                    <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
+        Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
+        Source="sortvertical.png">
+                    </ImageButton>
+                    <syncf:SfEffectsView  TouchDownEffects="Ripple">
+                        <ImageButton Source="songfind.png" HeightRequest="30"/>
+                    </syncf:SfEffectsView>
+                    <syncf:SfEffectsView  TouchDownEffects="Ripple">
+                        <ImageButton Source="addcircle.png" HeightRequest="30"/>
+                    </syncf:SfEffectsView>
 
-                        <Grid Grid.Row="1" RowDefinitions="auto,*,auto" x:Name="AddSongToPlayListPageBtmSheet"                                 
-                   IsVisible="True" 
-        Margin="20,5">
-                            <Label Text="Choose As Playlist" Grid.Row="0"/>
+                    <popup:SfPopup x:Name="popup" AppearanceMode="TwoButton" AcceptButtonText="SAVE"  DeclineButtonText="CANCEL" ShowCloseButton="True" ShowFooter="True">
+                        <popup:SfPopup.HeaderTemplate>
+                            <DataTemplate>
+                                <Label Text="Sort by..." VerticalTextAlignment="Center" FontSize="18" HorizontalTextAlignment="Start" FontAttributes="Bold"/>
+                            </DataTemplate>
+                        </popup:SfPopup.HeaderTemplate>
 
-                            <CollectionView Grid.Row="1" 
-      ItemsSource="{Binding DisplayedPlaylists}"
-      x:Name="PlaylistsCV" 
-            VerticalScrollBarVisibility="Always">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:PlaylistModelView">
-                                        <Border Margin="0,10" StrokeThickness="0.8"
-                        Stroke="Transparent" Padding="0,5" BackgroundColor="Transparent"
-                    StrokeShape="RoundRectangle, 8">
+                        <popup:SfPopup.ContentTemplate>
+                            <DataTemplate>
+                                <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+            
+ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+            >
+                                    <syncf:SfChipGroup.ChipLayout>
+                                        <VerticalStackLayout Spacing="10" WidthRequest="300" 
+                      HorizontalOptions="Start"/>
+                                    </syncf:SfChipGroup.ChipLayout>
+                                    <syncf:SfChipGroup.Items>
 
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer 
-                                        Tapped="AddToPlayListGR_Tapped" x:Name="AddToPlayListGR"
-                                        CommandParameter="{Binding .}"/>
-                                            </Border.GestureRecognizers>
-                                            <Label Text="{Binding Name}" 
-                           FontSize="16" TextColor="White"/>
-                                        </Border>
+                                        <syncf:SfChip Text="Title - Ascending" CommandParameter="0" TextColor="White"/>
+                                        <syncf:SfChip Text="Title - Descending" CommandParameter="1" TextColor="White"/>
+                                        <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2" TextColor="White"/>
+                                        <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3" TextColor="White"/>
+                                        <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4" TextColor="White"/>
+                                        <syncf:SfChip Text="Date Added - Descending" CommandParameter="5" TextColor="White"/>
+                                        <syncf:SfChip Text="Duration - Ascending" CommandParameter="6" TextColor="White"/>
+                                        <syncf:SfChip Text="Duration - Descending" CommandParameter="7" TextColor="White"/>
+                                        <syncf:SfChip Text="Year - Ascending" CommandParameter="8"  TextColor="White"/>
+                                        <syncf:SfChip Text="Year - Descending" CommandParameter="9" TextColor="White"/>
+                                        <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
+                                        <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11" TextColor="White"/>
+                                        <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12" TextColor="White"/>
+                                        <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>
+                                        <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
+                                        <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
+                                        <syncf:SfChip ImageSource="lyrics.png" Text="Has Lyrics" CommandParameter="16"  TextColor="White"/>
+                                        <syncf:SfChip ImageSource="lyrics.png" Text="Has No Lyrics" CommandParameter="17"  TextColor="Gray"/>
 
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                                    </syncf:SfChipGroup.Items>
+                                </syncf:SfChipGroup>
+                            </DataTemplate>
+                        </popup:SfPopup.ContentTemplate>
+                        <popup:SfPopup.PopupStyle>
+                            <popup:PopupStyle CornerRadius="0"/>
+                        </popup:SfPopup.PopupStyle>
+                    </popup:SfPopup>
+                </HorizontalStackLayout>
 
-                            <HorizontalStackLayout HorizontalOptions="End" Spacing="10" 
-                         Grid.Row="2">
-
-                                <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
-   TextColor="Red"/>
-                                <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
-                            </HorizontalStackLayout>
-                        </Grid>
-
-                        <VerticalStackLayout Grid.Row="1" x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
-        Spacing="10" Margin="10,5">
-                            <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
-                            <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
-                                <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
-                                <Button Text="Create" x:Name="CreatePlaylistBtn" 
-   Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
-   Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
-                    </Grid>
-
-                </toolkit:Expander.Content>
-            </toolkit:Expander>
-        
-            <CollectionView 
+            </Grid>
+            <CollectionView Grid.Column="0"
                 Grid.Row="1"
                 ItemsSource="{Binding SelectedPlaylist.DisplayedSongsFromPlaylist}" SelectedItem="{Binding MySelectedSong}"
                         SelectionMode="Single" x:Name="SongsColView" EmptyView="No Songs To Display...">
@@ -235,22 +226,99 @@ IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeT
                                         </Image>
 
                                     </VerticalStackLayout>
-
-                            <VerticalStackLayout>
-                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
-                                        <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
-       Source="lyrics.png">
-
-                                        </Image>
-
-                                    </VerticalStackLayout>
-                            </FlexLayout>
+                                    <HorizontalStackLayout>
+                                        
+                                    <VerticalStackLayout VerticalOptions="Center">
+                                        <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                            <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+                                               Source="lyrics.png" />
+                                        </VerticalStackLayout>
+                                        <ImageButton Source="more1.png" x:Name="ShowContextMenu"
+                                                     Clicked="ShowContextMenu_Clicked"
+                                                     HeightRequest="35"/>
+                                    </HorizontalStackLayout>
+                                </FlexLayout>
                         </syncf:SfEffectsView>
                     </Border>
 
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+            <toolkit:DockLayout Grid.Column="1" WidthRequest="400" x:Name="ContextMenuView" IsVisible="False">
+                <HorizontalStackLayout>
+                    <Button Text="Close" x:Name="CloseContxtMenu" 
+                            Clicked="CloseContxtMenu_Clicked"/>
+                    
+                </HorizontalStackLayout>
+                <Grid RowDefinitions="Auto,*">
+
+                    <toolkit:Expander  IsVisible="True">
+                        <toolkit:Expander.Content>
+                            <Grid BackgroundColor="Black" Padding="10" RowDefinitions="Auto,*">
+                                <HorizontalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding MySelectedSong.Title}"/>
+                                    <Label Text=" by "/>
+                                    <Label Text="{Binding MySelectedSong.ArtistName}"/>
+                                </HorizontalStackLayout>
+
+                                <Grid Grid.Row="1" RowDefinitions="auto,*,auto" x:Name="AddSongToPlayListPageBtmSheet"                                 
+                    IsVisible="True" 
+         Margin="20,5">
+                                    <Label Text="Choose As Playlist" Grid.Row="0"/>
+
+                                    <CollectionView Grid.Row="1" 
+       ItemsSource="{Binding DisplayedPlaylists}"
+       x:Name="PlaylistsCV" 
+             VerticalScrollBarVisibility="Always">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:PlaylistModelView">
+                                                <Border Margin="0,10" StrokeThickness="0.8"
+                         Stroke="Transparent" Padding="0,5" BackgroundColor="Transparent"
+                     StrokeShape="RoundRectangle, 8">
+
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer 
+                                         Tapped="AddToPlayListGR_Tapped" x:Name="AddToPlayListGR"
+                                         CommandParameter="{Binding .}"/>
+                                                    </Border.GestureRecognizers>
+                                                    <Label Text="{Binding Name}" 
+                            FontSize="16" TextColor="White"/>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="10" 
+                          Grid.Row="2">
+
+                                        <Button Text="Cancel" Clicked="CancelAddSongToPlaylist_Clicked" x:Name="CancelAddSongToPlaylist" 
+    TextColor="Red"/>
+                                        <Button Text="Create New" Clicked="ShowPlaylistCreationBtmPage_Clicked" TextColor="White"/>
+                                    </HorizontalStackLayout>
+                                </Grid>
+
+                                <VerticalStackLayout Grid.Row="1" x:Name="CreateNewPlayListPageBtmSheet" IsVisible="False" 
+         Spacing="10" Margin="10,5">
+                                    <Entry Placeholder="Playlist Name" x:Name="NewPlaylistName"/>
+                                    <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
+                                        <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
+                                        <Button Text="Create" x:Name="CreatePlaylistBtn" 
+    Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
+    Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                        </toolkit:Expander.Content>
+                    </toolkit:Expander>
+                    <VerticalStackLayout>
+                        
+                    </VerticalStackLayout>
+                </Grid>
+            </toolkit:DockLayout>
+
         </Grid>
 
     </toolkit:DockLayout>

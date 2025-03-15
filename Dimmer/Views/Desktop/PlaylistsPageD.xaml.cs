@@ -190,4 +190,36 @@ public partial class PlaylistsPageD : ContentPage
         MyViewModel.AddToPlaylist(playlist);
 
     }
+    int CurrentIndex;
+    private void SortBtn_Clicked(object sender, EventArgs e)
+    {
+
+        popup.Show();
+        //MyViewModel.OpenSortingPopupCommand.Execute(null);
+    }
+
+    private void ShowContextMenu_Clicked(object sender, EventArgs e)
+    {
+        ContextMenuView.IsVisible = true;
+
+    }
+
+    private void CloseContxtMenu_Clicked(object sender, EventArgs e)
+    {
+        ContextMenuView.IsVisible = false;
+
+    }
+    private void SfChipGroup_ChipClicked(object sender, EventArgs e)
+    {
+        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        var param = ee.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
+
+        CurrentIndex =int.Parse(param);
+        MyViewModel.Sort(CurrentIndex);
+        popup.Dismiss();
+    }
 }

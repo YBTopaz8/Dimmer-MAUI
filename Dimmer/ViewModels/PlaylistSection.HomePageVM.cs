@@ -17,7 +17,8 @@ public partial class HomePageVM
     public void RefreshPlaylists()
     {
         DisplayedPlaylists?.Clear();
-        DisplayedPlaylists = PlayBackService.GetAllPlaylists();
+        PlaylistManagementService.GetPlaylists();
+        DisplayedPlaylists = PlaylistManagementService.AllPlaylists;
     }
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(string PlaylistID)//string playlistName)

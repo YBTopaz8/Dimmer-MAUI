@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 #if WINDOWS
-using static Dimmer_MAUI.Platforms.Windows.SHSTOCKICONINFO;
+
 #endif
 namespace Dimmer_MAUI;
 
@@ -151,51 +151,6 @@ public partial class App : Application
 
         return DimmerWindow;
     }
-
-
-#if WINDOWS
-    // Call this method after your window is created.
-    private void InitializeThumbnailButtons()
-    {
-        IntPtr hwnd = PlatSpecificUtils.DimmerHandle;
-
-            // Hook the native window procedure to handle WM_COMMAND.
-            _newWndProcDelegate = new WndProcDelegate(WndProc);
-            _oldWndProc = SetWindowLongPtr(hwnd, GWL_WNDPROC, _newWndProcDelegate);
-
-            // Add thumbnail toolbar buttons.
-            TaskbarThumbnailHelper.AddThumbnailButtons(hwnd);
-     
-    }
-
-    private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
-    {
-        if (msg == WM_COMMAND)
-        {
-            int commandId = wParam.ToInt32() & 0xffff;
-            switch (commandId)
-            {
-                case 100:
-                    System.Diagnostics.Debug.WriteLine("Play clicked.");
-                    break;
-                case 101:
-                    System.Diagnostics.Debug.WriteLine("Pause clicked.");
-                    break;
-                case 102:
-                    System.Diagnostics.Debug.WriteLine("Resume clicked.");
-                    break;
-                case 103:
-                    System.Diagnostics.Debug.WriteLine("Previous clicked.");
-                    break;
-                case 104:
-                    System.Diagnostics.Debug.WriteLine("Next clicked.");
-                    break;
-            }
-            return IntPtr.Zero;
-        }
-        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
-    }
-#endif
 
 
 #if WINDOWS

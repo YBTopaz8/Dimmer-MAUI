@@ -109,6 +109,7 @@ public partial class HomePageVM : ObservableObject
     IPlaybackUtilsService PlayBackService { get; }
     ILyricsService LyricsManagerService { get; }
     public ISongsManagementService SongsMgtService { get; }
+    public IPlaylistManagementService PlaylistManagementService { get; }
     [ObservableProperty]
     public partial string? UnSyncedLyrics { get; set; }
     [ObservableProperty]
@@ -119,13 +120,14 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial int CurrentQueue { get; set; } = 0;
     public HomePageVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver,
-                      ILyricsService lyricsService, ISongsManagementService songsMgtService)
+                      ILyricsService lyricsService, ISongsManagementService songsMgtService, IPlaylistManagementService playlistManagementService)
     {
         this.FolderPicker = folderPickerService;
         FileSaver = fileSaver;
         PlayBackService = PlaybackManagerService;
         LyricsManagerService = lyricsService;
         SongsMgtService = songsMgtService;
+        PlaylistManagementService=playlistManagementService;
         SongsMgtService.InitApp(this);
         CurrentSortingOption = AppSettingsService.SortingModePreference.GetSortingPref();
 
@@ -637,7 +639,8 @@ public partial class HomePageVM : ObservableObject
 
     public void PlaySong(SongModelView selectedSong, bool isPrevieww = false)
     {
-        
+        CurrentPositionInSeconds = 0;
+        CurrentPositionPercentage = 0;
         if (isPrevieww)
         {
             IsPreviewing = isPrevieww;
@@ -738,6 +741,8 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void PlayNextSong()
     {
+        CurrentPositionInSeconds = 0;
+        CurrentPositionPercentage = 0;
         if (TemporarilyPickedSong is not null)
         {
             TemporarilyPickedSong!.IsCurrentPlayingHighlight = TemporarilyPickedSong is null;
@@ -753,6 +758,8 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     void PlayPreviousSong()
     {
+        CurrentPositionInSeconds = 0;
+        CurrentPositionPercentage = 0;
         PlayBackService.PlayPreviousSong(true);  // Double press: play previous song.
     }
     [RelayCommand]
@@ -1458,37 +1465,38 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    async Task OpenSortingPopup()
+    public async Task OpenSortingPopup()
     {
-        var result = await Shell.Current.ShowPopupAsync(new SortingPopUp(this, CurrentSortingOption));
-        
+     
+        IsLoadingSongs = false;
+    }
 
-        if (result != null)
+    public void Sort(int result)
+    {
+        var e = (SortingEnum)result;
+        IsLoadingSongs = true;
+        CurrentSortingOption = e;
+        switch (CurrentPage)
         {
-            var e = (SortingEnum)result;
-            IsLoadingSongs = true;
-            CurrentSortingOption = e;
-            if (CurrentPage == PageEnum.MainPage)
-            {
+            case PageEnum.MainPage:
                 DisplayedSongs = ApplySorting(DisplayedSongs!, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
                 DisplayedSongsColView.ItemsSource = null;
                 DisplayedSongsColView.ItemsSource = DisplayedSongs;
 
-            }
-            else if (CurrentPage == PageEnum.AllArtistsPage)
-            {
+                break;
+            case PageEnum.AllArtistsPage:
                 AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
-                
-            }
-            else if (CurrentPage == PageEnum.SpecificAlbumPage)
-            {
+
+                break;
+            case PageEnum.SpecificAlbumPage:
                 AllArtistsAlbumSongs = ApplySorting(AllArtistsAlbumSongs, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
-            }
+                break;
+            case PageEnum.PlaylistsPage:
+                SelectedPlaylist.DisplayedSongsFromPlaylist = ApplySorting(SelectedPlaylist.DisplayedSongsFromPlaylist, CurrentSortingOption, SongsMgtService.AllPlayDataLinks);
+                break;
+
         }
-
-        IsLoadingSongs = false;
     }
-
 
     public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
     {

@@ -46,7 +46,7 @@ public static class MauiProgram
 #endif
 
 #if WINDOWS
-        builder.Services.AddSingleton(IDimmerAudioService => DimmerAudioService.Current);
+        builder.Services.AddSingleton(_ => DimmerAudioService.Current);
 
         builder.ConfigureLifecycleEvents(events =>
         {
@@ -96,7 +96,7 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
-                                            
+
                                             Application.Current.CloseWindow(win);
                                             Application.Current.Quit();
                                             Environment.Exit(0); // Forcefully kill all threads

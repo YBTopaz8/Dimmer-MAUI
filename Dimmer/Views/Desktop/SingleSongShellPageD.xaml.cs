@@ -238,7 +238,7 @@ public partial class SingleSongShellPageD : ContentPage
         if (title == "Plain Lyrics")
         {
             LyricsEditor.Text = thisContent!.PlainLyrics;
-            PasteLyricsFromClipBoardBtn_Clicked(send, e);            
+            
         }
     }
 
@@ -813,5 +813,20 @@ public partial class SingleSongShellPageD : ContentPage
         
         await SyncLyrView.DimmOut();
         SyncLyrView.IsVisible=false;
+    }
+
+    private void PasteLyrPlainLyr_Clicked(object sender, EventArgs e)
+    {
+        if (MyViewModel.AllSyncLyrics.Count < 1)
+        {
+            return;
+
+        }
+        LyricsEditor.Text = MyViewModel.AllSyncLyrics[0].PlainLyrics;
+    }
+
+    private void PasteLyrClipboard_Clicked(object sender, EventArgs e)
+    {
+        PasteLyricsFromClipBoardBtn_Clicked(sender, e);
     }
 }

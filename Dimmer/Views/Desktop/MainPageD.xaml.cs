@@ -371,7 +371,7 @@ public partial class MainPageD : ContentPage
 
     private void SortBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.OpenSortingPopupCommand.Execute(null);
+        popup.Show();
     }
 
     private void Slider_OnValueChanged(object? sender, ValueChangedEventArgs e)
@@ -603,11 +603,6 @@ public partial class MainPageD : ContentPage
 
     }
 
-    private void MyTable_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-
-    }
-
 
     //private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     //{
@@ -653,7 +648,20 @@ public partial class MainPageD : ContentPage
         Debug.WriteLine("single tap");
     }
 #endif
+    int CurrentIndex;
+    private void SfChipGroup_ChipClicked(object sender, EventArgs e)
+    {
+        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        var param = ee.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
 
+        CurrentIndex =int.Parse(param);
+        MyViewModel.Sort(CurrentIndex);
+        popup.Dismiss();
+    }
 
 }
 public enum ContextMenuPageCaller

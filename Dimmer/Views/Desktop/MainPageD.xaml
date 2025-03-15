@@ -7,7 +7,8 @@
              xmlns:cw="clr-namespace:Dimmer_MAUI.Views.CustomViews"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"               
              xmlns:btmSheet="clr-namespace:Syncfusion.Maui.Toolkit.BottomSheet;assembly=Syncfusion.Maui.Toolkit"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"             
+             xmlns:popup="clr-namespace:Syncfusion.Maui.Toolkit.Popup;assembly=Syncfusion.Maui.Toolkit"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"             
              xmlns:converters="clr-namespace:Dimmer_MAUI.Utilities.TypeConverters"
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              x:DataType="vm:HomePageVM"
@@ -92,6 +93,54 @@
                         </ImageButton>
 
                         <Button Text="Toggle Drawer" x:Name="toggleDrawer" Clicked="ToggleDrawer_Clicked" IsVisible="False"/>
+
+                        <popup:SfPopup x:Name="popup" AppearanceMode="TwoButton" AcceptButtonText="SAVE"  DeclineButtonText="CANCEL" ShowCloseButton="True" ShowFooter="True">
+                            <popup:SfPopup.HeaderTemplate>
+                                <DataTemplate>
+                                    <Label Text="Sort by..." VerticalTextAlignment="Center" FontSize="18" HorizontalTextAlignment="Start" FontAttributes="Bold"/>
+                                </DataTemplate>
+                            </popup:SfPopup.HeaderTemplate>
+                            
+                            <popup:SfPopup.ContentTemplate>
+                                <DataTemplate>
+                                    <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+                   
+       ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+       HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+                   >
+                                        <syncf:SfChipGroup.ChipLayout>
+                                            <VerticalStackLayout Spacing="10" WidthRequest="300" 
+                             HorizontalOptions="Start"/>
+                                        </syncf:SfChipGroup.ChipLayout>
+                                        <syncf:SfChipGroup.Items>
+
+                                            <syncf:SfChip Text="Title - Ascending" CommandParameter="0" TextColor="White"/>
+                                            <syncf:SfChip Text="Title - Descending" CommandParameter="1" TextColor="White"/>
+                                            <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2" TextColor="White"/>
+                                            <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3" TextColor="White"/>
+                                            <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4" TextColor="White"/>
+                                            <syncf:SfChip Text="Date Added - Descending" CommandParameter="5" TextColor="White"/>
+                                            <syncf:SfChip Text="Duration - Ascending" CommandParameter="6" TextColor="White"/>
+                                            <syncf:SfChip Text="Duration - Descending" CommandParameter="7" TextColor="White"/>
+                                            <syncf:SfChip Text="Year - Ascending" CommandParameter="8"  TextColor="White"/>
+                                            <syncf:SfChip Text="Year - Descending" CommandParameter="9" TextColor="White"/>
+                                            <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
+                                            <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11" TextColor="White"/>
+                                            <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12" TextColor="White"/>
+                                            <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>
+                                            <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
+                                            <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
+                                            <syncf:SfChip ImageSource="lyrics.png" Text="Has Lyrics" CommandParameter="16"  TextColor="White"/>
+                                            <syncf:SfChip ImageSource="lyrics.png" Text="Has No Lyrics" CommandParameter="17"  TextColor="Gray"/>
+
+                                        </syncf:SfChipGroup.Items>
+                                    </syncf:SfChipGroup>
+                                </DataTemplate>    
+                            </popup:SfPopup.ContentTemplate>
+                            <popup:SfPopup.PopupStyle>
+                                <popup:PopupStyle CornerRadius="0"/>
+                            </popup:SfPopup.PopupStyle>
+                        </popup:SfPopup>
                     </HorizontalStackLayout>
 
                 </FlexLayout>

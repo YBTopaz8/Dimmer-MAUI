@@ -47,14 +47,19 @@ public partial class HomePageVM
     public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-
+        var lyrr = LyricsManagerService.GetSpecificSongLyrics(TemporarilyPickedSong);
+        if (lyrr is not null && lyrr.Count>0)
+        {
+            await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
+            return true;
+        }
         if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
             return false;
         }
         LyricsSearchSongTitle = string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.Title : LyricsSearchSongTitle;
-        LyricsSearchArtistName= string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.ArtistName : LyricsSearchArtistName;
-        LyricsSearchAlbumName = string.IsNullOrEmpty(LyricsSearchSongTitle) ? MySelectedSong.AlbumName : LyricsSearchAlbumName;
+        LyricsSearchArtistName= string.IsNullOrEmpty(LyricsSearchArtistName) ? MySelectedSong.ArtistName : LyricsSearchArtistName;
+        LyricsSearchAlbumName = string.IsNullOrEmpty(LyricsSearchAlbumName) ? MySelectedSong.AlbumName : LyricsSearchAlbumName;
         
 
         List<string> manualSearchFields =
