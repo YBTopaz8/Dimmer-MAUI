@@ -101,12 +101,16 @@ IsVisible="{Binding DisplayedPlaylists.Count, Converter={StaticResource ColSizeT
             <toolkit:Expander  Grid.Row="0">
                 <toolkit:Expander.Header>
                     <Grid ColumnDefinitions="*,Auto" >
-                        
-                        <syncf:SfEffectsView Grid.Column="1" TouchDownEffects="Ripple">
-                            <ImageButton Source="addcircle.png" 
-         HeightRequest="30"/>
 
-                        </syncf:SfEffectsView>
+                        <HorizontalStackLayout Grid.Column="1">
+                            <syncf:SfEffectsView  TouchDownEffects="Ripple">
+                                <ImageButton Source="songfind.png" HeightRequest="30"/>
+                            </syncf:SfEffectsView>
+                            <syncf:SfEffectsView  TouchDownEffects="Ripple">
+                                <ImageButton Source="addcircle.png" HeightRequest="30"/>
+                            </syncf:SfEffectsView>
+                        </HorizontalStackLayout>
+                        
                     </Grid>
                 </toolkit:Expander.Header>
                 <toolkit:Expander.Content>

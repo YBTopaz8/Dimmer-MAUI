@@ -127,11 +127,11 @@
                         </syncf:SfChipGroup.ChipLayout>
                         <syncf:SfChipGroup.Items>
                             <syncf:SfChip Text="❤️" x:Name="LoveRate" CommandParameter="5"                                          
-                                          Clicked="RatingChipCtrl_ChipClicked"
+                                          
                                           ToolTipProperties.Text="Love It" TextColor="DarkSlateBlue"/>
-                            <syncf:SfChip Text="🤖" x:Name="NeutralRate" CommandParameter="0" Clicked="RatingChipCtrl_ChipClicked"
+                            <syncf:SfChip Text="🤖" x:Name="NeutralRate" CommandParameter="0"
                                           ToolTipProperties.Text="Neutral"/>
-                            <syncf:SfChip Text="💔" x:Name="HateRate" CommandParameter="1" Clicked="RatingChipCtrl_ChipClicked"
+                            <syncf:SfChip Text="💔" x:Name="HateRate" CommandParameter="1"
                                           TextColor="White"
                                           ToolTipProperties.Text="Dislike It"/>
                         </syncf:SfChipGroup.Items>

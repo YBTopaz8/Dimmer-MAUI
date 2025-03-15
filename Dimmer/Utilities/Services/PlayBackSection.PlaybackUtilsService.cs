@@ -128,6 +128,8 @@ public partial class PlaybackUtilsService : ObservableObject
         if (song == null)
             return false;
 
+        ObservableCurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        song.IsCurrentPlayingHighlight = false;
         CurrentPlaybackSource = source;
 
         if (DimmerAudioService.IsPlaying)

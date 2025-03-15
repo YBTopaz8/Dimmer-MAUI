@@ -584,52 +584,45 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
         PlaylistManagementService.UpdatePlayList(specificPlaylist, IsRemoveSong: true);
     }
-
     public List<SongModelView> GetSongsFromPlaylistID(string playlistID)
     {
         try
         {
-            var specificPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
+            var specificPlaylist = PlaylistManagementService.AllPlaylists
+                .FirstOrDefault(x => x.LocalDeviceId == playlistID);
             if (specificPlaylist is null)
             {
-                return Enumerable.Empty<SongModelView>().ToList();
+                return new List<SongModelView>();
             }
-            var songsIdsFromPL = new HashSet<string>(PlaylistManagementService.GetSongsIDsFromPlaylistID(specificPlaylist.LocalDeviceId));
-            
+
+            var songsIdsFromPL = new HashSet<string>(
+                PlaylistManagementService.GetSongIdsForPlaylist(specificPlaylist.LocalDeviceId));
+
             var songsFromPlaylist = SongsMgtService.AllSongs;
             if (songsFromPlaylist is null)
             {
-                return Enumerable.Empty<SongModelView>().ToList();
+                return new List<SongModelView>();
             }
-            List<SongModelView> songsinpl = [];
-            songsinpl?.Clear();
-            foreach (var song in songsFromPlaylist)
-            {
-                if (song is null)
-                {
-                    continue;
-                }
-                if (songsIdsFromPL.Contains(song.LocalDeviceId))
-                {
-                    songsinpl.Add(song);
-                }
-            }
+
+            // Materialize the filtered list first.
+            var songsInPlaylist = songsFromPlaylist
+                .Where(song => song != null && songsIdsFromPL.Contains(song.LocalDeviceId))
+                .ToList();
+
             SelectedPlaylistName = specificPlaylist.Name;
-            
-            if (songsinpl is null)
-            {
-                return Enumerable.Empty<SongModelView>().ToList();
-            }
-            _secondaryQueueSubject.OnNext(songsinpl.ToObservableCollection());
-            return songsinpl;
+            // Create a new ObservableCollection from the list instead of using ToObservableCollection()
+            _secondaryQueueSubject.OnNext(new ObservableCollection<SongModelView>(songsInPlaylist));
+
+            return songsInPlaylist;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error getting songs from playlist: {ex.Message}");
-            return Enumerable.Empty<SongModelView>().ToList();
+            return new List<SongModelView>();
         }
-
     }
+
+
 
     public ObservableCollection<PlaylistModelView> GetAllPlaylists()
     {
@@ -657,8 +650,12 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public bool DeletePlaylistThroughID(string playlistID)
     {
-        //TODO: DO THIS TOO
-        throw new NotImplementedException();
+        
+
+        var pl = PlaylistManagementService.AllPlaylists?.First(x => x.LocalDeviceId == playlistID!);
+        PlaylistManagementService.AllPlaylists?.Remove(pl);
+
+        return true;
     }
 
     public void DeleteSongFromHomePage(SongModelView song)

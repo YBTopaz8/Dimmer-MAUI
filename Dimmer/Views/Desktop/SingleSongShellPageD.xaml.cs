@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml;
 
 
 
+using System.Threading.Tasks;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SingleSongShellPageD : ContentPage
@@ -327,11 +329,11 @@ public partial class SingleSongShellPageD : ContentPage
             : kvp.Value.AnimateFadeOutBack()));
         return;
     }
-    private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
+    private async void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
         var ee = (SfChip)sender;
 
-        MyViewModel.RateSongCommand.Execute(ee.CommandParameter.ToString()!);
+        MyViewModel.RateSong(ee.CommandParameter.ToString()!);
     }
 
     List<string> SelectedSongIds = [];

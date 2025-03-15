@@ -289,8 +289,8 @@ public partial class HomePageVM
 
     }
     System.Timers.Timer _showAndHideFavGif;
-    [RelayCommand]
-    public async Task RateSong(string value)
+    
+    public void RateSong(string value)
     {
         if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
@@ -317,33 +317,34 @@ public partial class HomePageVM
         MySelectedSong.Rating = rateValue;
         SongsMgtService.UpdateSongDetails(MySelectedSong);
 
-
-        var favPlaylist = new PlaylistModelView { Name = "Favorites" };
-        if (MySelectedSong.IsFavorite && willBeFav)
+        var favPlaylist =  PlayBackService.AllPlaylists.Where(x=>x.Name == "Favorites").FirstOrDefault();
+        if (favPlaylist == null)
         {
-            GeneralStaticUtilities.ShowNotificationInternally("Already Favorite");
-
             return;
         }
-        if (!MySelectedSong.IsFavorite && !willBeFav)
+
+            if (MySelectedSong.IsFavorite && willBeFav)
+            {
+                UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
+                GeneralStaticUtilities.ShowNotificationInternally("Added to Favorites");
+                return;
+            }
+            if (MySelectedSong.IsFavorite && !willBeFav)
+            {
+                UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
+                GeneralStaticUtilities.ShowNotificationInternally("Removed from Favorites");
+
+                return;
+            }
+        
+        favPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
+        if (SelectedPlaylist == favPlaylist)
         {
-            GeneralStaticUtilities.ShowNotificationInternally("Not Fav");
-
-
-            return;
+            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
         }
-        if (MySelectedSong.IsFavorite && !willBeFav) // UNLOVE
+        if (DisplayedPlaylists.Contains(favPlaylist))
         {
-            UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
-            GeneralStaticUtilities.ShowNotificationInternally("Removed from Favorites");
-
-            return;
-        }
-        else if (!MySelectedSong.IsFavorite && willBeFav) // LOVE
-        {
-            UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
-            GeneralStaticUtilities.ShowNotificationInternally("Added to Favorites");
-            return;
+            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
         }
         //if (CurrentUser.IsLoggedInLastFM)
         //{

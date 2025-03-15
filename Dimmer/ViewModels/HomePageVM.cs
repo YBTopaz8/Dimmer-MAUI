@@ -1171,11 +1171,13 @@ public partial class HomePageVM : ObservableObject
                                 return;
                         }
                         else
-                        {
-                            TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;                            
+                            {
+                                TemporarilyPickedSong.IsPlaying = false;
+                                TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                                MySelectedSong.IsPlaying = false;
+                                MySelectedSong.IsCurrentPlayingHighlight = false;
+                                TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;                            
                             MySelectedSong = PlayBackService.CurrentlyPlayingSong;
-                            MySelectedSong.IsPlaying = false;
-                            MySelectedSong.IsCurrentPlayingHighlight = false;
                         }
                         MySelectedSong.IsPlaying = true;
                         MySelectedSong.IsCurrentPlayingHighlight = true;

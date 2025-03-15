@@ -1,4 +1,6 @@
-﻿namespace Dimmer_MAUI.ViewModels;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM
 {
     [ObservableProperty]
@@ -20,8 +22,11 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task OpenSpecificPlaylistPage(string PlaylistID)//string playlistName)
     {
-
-        SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
+        if (PlayBackService.AllPlaylists is null)
+        {
+            return;
+        }
+        SelectedPlaylist = PlayBackService.AllPlaylists.FirstOrDefault(x => x.LocalDeviceId == PlaylistID)!;
         SelectedPlaylist.DisplayedSongsFromPlaylist?.Clear();
         SelectedPlaylist.DisplayedSongsFromPlaylist= PlayBackService.GetSongsFromPlaylistID(PlaylistID).OrderBy(x => x.Title).ToObservableCollection();
         
@@ -40,28 +45,26 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public void UpSertPlayList(SongModelView song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public void UpSertPlayList(SongModelView? song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
         if (song is null)
         {
             return;
         }
+        SelectedPlaylist = PlayBackService.AllPlaylists!.First(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
         if (IsAddSong)
         {
             var songIDs = new List<string> { song.LocalDeviceId! };
+            
             PlayBackService.AddSongsToPlaylist(songIDs, playlistModel);
-            if (CurrentPage == PageEnum.PlaylistsPage)
-            {
-                SelectedPlaylist.DisplayedSongsFromPlaylist?.Add(song);
-
-            }
+            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Add(song);
+            
             var toast = Toast.Make(songAddedToPlaylistText, duration);
             //await toast.Show(cts.Token);
         }
         else if (IsRemoveSong)
         {
-            SelectedPlaylist.DisplayedSongsFromPlaylist?.Remove(song);
-            SelectedPlaylist = DisplayedPlaylists.FirstOrDefault(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
+            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(song);
             if (SelectedPlaylist is not null)
             {
                 PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId!);
@@ -72,19 +75,21 @@ public partial class HomePageVM
         }
         else if (IsDeletePlaylist)
         {
+            PlayBackService.AllPlaylists?.Remove(SelectedPlaylist);
             PlayBackService.DeletePlaylistThroughID(SelectedPlaylist.LocalDeviceId!);
+            
             DisplayedPlaylists = PlayBackService.GetAllPlaylists();
             var toast = Toast.Make(PlaylistDeletedText, duration);
             //await toast.Show(cts.Token);
         }
         song.IsFavorite = !song.IsFavorite;
     }
-    public void LoadFirstPlaylist()
+    public async Task LoadFirstPlaylist()
     {
         RefreshPlaylists();
         if (DisplayedPlaylists is not null && DisplayedPlaylists.Count > 0)
         {
-            GeneralStaticUtilities.RunFireAndForget(OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!));
+            await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!);
         }
     }
     [RelayCommand]

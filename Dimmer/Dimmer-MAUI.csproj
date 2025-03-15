@@ -190,17 +190,17 @@
     
     <!--<PackageReference Include="Hqub.Last.fm" Version="2.5.0" />-->
     
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.40" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.40" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.50" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.50" />
     <!--<PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />-->
-    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.3" />
+    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.4" />
     <!--<PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />-->
     <PackageReference Include="Realm" Version="20.1.0" />
     
     
-    <PackageReference Include="z440.atl.core" Version="6.18.0" />
+    <PackageReference Include="z440.atl.core" Version="6.19.0" />
 
   </ItemGroup>
 

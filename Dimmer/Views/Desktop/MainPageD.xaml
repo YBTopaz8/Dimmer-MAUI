@@ -182,17 +182,10 @@
                                                 
                                             </Image>
 
-                                            <Image Source="songc.png"
+                                                <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
                                                    WidthRequest="25" Opacity="1"
                                                    HorizontalOptions="Start">
-                                                <Image.Triggers>
-                                                    <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                                        <Setter Property="IsVisible" Value="True" />
-                                                    </DataTrigger>
-                                                    <DataTrigger TargetType="Image" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                                        <Setter Property="IsVisible" Value="False" />
-                                                    </DataTrigger>
-                                                </Image.Triggers>
+                                                
                                             </Image>
 
                                         </VerticalStackLayout>
