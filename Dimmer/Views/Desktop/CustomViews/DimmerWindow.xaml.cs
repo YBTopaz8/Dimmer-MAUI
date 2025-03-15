@@ -228,59 +228,143 @@ public partial class DimmerWindow : Window
 
     }
 #if WINDOWS
+    private TrayIconHelper? _trayIconHelper;
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindow(string className, string windowTitle);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindowEx(IntPtr parentWindow, IntPtr childWindow, string className, string windowTitle);
+
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     private const int SW_HIDE = 0;
-    private TrayIconHelper? _trayIconHelper;
     private const int SW_SHOW = 5;
-    // For hooking the native window procedure.
-    private WndProcDelegate? _newWndProcDelegate;
-    private IntPtr _oldWndProc = IntPtr.Zero;
-    private const int GWL_WNDPROC = -4;
-    private const int WM_COMMAND = 0x0111; // Message from thumbnail buttons
-    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]
-    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, WndProcDelegate newProc);  
-    // Overload for unhooking (passing an IntPtr)
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, WndProcDelegate newProc);
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr newProc);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    private WndProcDelegate? _newWndProcDelegate;
+    private IntPtr _oldWndProc = IntPtr.Zero;
+    private const int GWL_WNDPROC = -4;
+    private const int WM_COMMAND = 0x0111;
+    private const int WM_NOTIFY = 0x004E;
+    private IntPtr _thumbnailPreviewWindowHandle = IntPtr.Zero; // Store the handle
+
+    public void InitializeThumbnailHandling()
+    {
+        // 1. Find the Thumbnail Preview Window Handle
+        _thumbnailPreviewWindowHandle = FindThumbnailPreviewWindow();
+
+        if (_thumbnailPreviewWindowHandle != IntPtr.Zero)
+        {
+            // 2. Hook the Window Procedure
+            _newWndProcDelegate = WndProc;
+            _oldWndProc = SetWindowLongPtr(_thumbnailPreviewWindowHandle, GWL_WNDPROC, _newWndProcDelegate);
+
+            if (_oldWndProc == IntPtr.Zero)
+            {
+                Debug.WriteLine("Failed to hook window procedure. Error code: " + Marshal.GetLastWin32Error());
+            }
+        }
+        else
+        {
+            Debug.WriteLine("Could not find thumbnail preview window.");
+        }
+    }
+
     private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-        // Check if this is our tray icon callback.
-        if (msg == TrayIconHelper.WM_TRAYICON)
+        if (msg == WM_NOTIFY)
         {
-            int lParamInt = lParam.ToInt32();
-            // Check for WM_LBUTTONUP (0x0202) or WM_LBUTTONDBLCLK (0x0203)
-            if (lParamInt == 0x0202 || lParamInt == 0x0203)
+            NMHDR nmhdr = (NMHDR)Marshal.PtrToStructure(lParam, typeof(NMHDR));
+
+            if (nmhdr.code == TTN_COMMAND)
             {
-                ShowWindow(hWnd, SW_SHOW);
-                SetWindowLongPtr(hWnd, GWL_WNDPROC, _oldWndProc);
-                return IntPtr.Zero;
+                var commandId = nmhdr.idFrom;
+                //int commandId = nmhdr.idCommand;
+
+                if (commandId == 100)
+                {
+                    Debug.WriteLine("Play button clicked (Thumbnail).");
+                    // Your Play button logic here
+                }
+                else if (commandId == 101)
+                {
+                    Debug.WriteLine("Pause button clicked (Thumbnail).");
+                    // Your Pause button logic here
+                }
+                else if (commandId == 102)
+                {
+                    Debug.WriteLine("Resume button clicked (Thumbnail).");
+                    // Your Resume button logic here
+                }
+                else if (commandId == 103)
+                {
+                    Debug.WriteLine("Previous button clicked (Thumbnail).");
+                    // Your Previous button logic here
+                }
+                else if (commandId == 104)
+                {
+                    Debug.WriteLine("Next button clicked (Thumbnail).");
+                    // Your Next button logic here
+                }
             }
         }
-        else  // Handle WM_COMMAND for thumbnail button clicks.
-        if (msg == WM_COMMAND)
+        else if (msg == WM_COMMAND)
         {
-            // The low-order word of wParam is the button command ID.
-            int commandId = wParam.ToInt32() & 0xffff;
-            if (commandId == 100)
-            {                
-                Debug.WriteLine("Play button clicked.");
-                return IntPtr.Zero;
-            }
-            else if (commandId == 101)
-            {
-                System.Diagnostics.Debug.WriteLine("Stop button clicked.");
-                return IntPtr.Zero;
-            }
+            // Handle WM_COMMAND if needed (e.g., for other window messages)
         }
+
         return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
     }
+
+    private IntPtr FindThumbnailPreviewWindow()
+    {
+        // **IMPORTANT:** Replace these with the correct class name and window title
+        // obtained using Spy++.  These are just placeholders.
+        string className = "Shell_ThumbPreview"; // Example - likely incorrect
+        string windowTitle = "Your Application Title"; // Example - likely incorrect
+
+        IntPtr hwnd = FindWindow(className, windowTitle);
+
+        if (hwnd == IntPtr.Zero)
+        {
+            // Try finding a child window if the direct search fails
+            hwnd = FindWindowEx(IntPtr.Zero, IntPtr.Zero, className, windowTitle);
+        }
+
+        return hwnd;
+    }
+
+    public void UnhookThumbnailHandling()
+    {
+        if (_thumbnailPreviewWindowHandle != IntPtr.Zero)
+        {
+            SetWindowLongPtr(_thumbnailPreviewWindowHandle, GWL_WNDPROC, _oldWndProc);
+            _thumbnailPreviewWindowHandle = IntPtr.Zero;
+        }
+    }
+
+
+// Structures needed for WM_NOTIFY handling
+[StructLayout(LayoutKind.Sequential)]
+public struct NMHDR
+{
+    public IntPtr hwndFrom;
+    public uint idFrom;
+    public uint code;
+    }
+
+    public const int TTN_COMMAND = 0x0100;
 
 #endif
 

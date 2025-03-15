@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml;
 
 
 
+using System.Threading.Tasks;
+
 namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class SingleSongShellPageD : ContentPage
@@ -236,7 +238,7 @@ public partial class SingleSongShellPageD : ContentPage
         if (title == "Plain Lyrics")
         {
             LyricsEditor.Text = thisContent!.PlainLyrics;
-            PasteLyricsFromClipBoardBtn_Clicked(send, e);            
+            
         }
     }
 
@@ -327,11 +329,11 @@ public partial class SingleSongShellPageD : ContentPage
             : kvp.Value.AnimateFadeOutBack()));
         return;
     }
-    private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
+    private async void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
         var ee = (SfChip)sender;
 
-        MyViewModel.RateSongCommand.Execute(ee.CommandParameter.ToString()!);
+        MyViewModel.RateSong(ee.CommandParameter.ToString()!);
     }
 
     List<string> SelectedSongIds = [];
@@ -811,5 +813,20 @@ public partial class SingleSongShellPageD : ContentPage
         
         await SyncLyrView.DimmOut();
         SyncLyrView.IsVisible=false;
+    }
+
+    private void PasteLyrPlainLyr_Clicked(object sender, EventArgs e)
+    {
+        if (MyViewModel.AllSyncLyrics.Count < 1)
+        {
+            return;
+
+        }
+        LyricsEditor.Text = MyViewModel.AllSyncLyrics[0].PlainLyrics;
+    }
+
+    private void PasteLyrClipboard_Clicked(object sender, EventArgs e)
+    {
+        PasteLyricsFromClipBoardBtn_Clicked(sender, e);
     }
 }

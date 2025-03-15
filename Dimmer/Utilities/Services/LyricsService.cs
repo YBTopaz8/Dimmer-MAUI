@@ -651,17 +651,17 @@ public class LyricsService : ILyricsService
 
 #endregion
 
-    public static (bool,ObservableCollection<LyricPhraseModel>?) HasLyrics(SongModelView? song)
+    public static (bool,ObservableCollection<LyricPhraseModel>) HasLyrics(SongModelView? song)
     {
         if (song is null)
         {
-            return (false, null);
+            return (false, Enumerable.Empty<LyricPhraseModel>().ToObservableCollection());
         }
 
         var track = new Track(song.FilePath);
         if (track.Lyrics.SynchronizedLyrics is null || track.Lyrics.SynchronizedLyrics.Count < 1)
         {
-            return (false, null);
+            return (false, Enumerable.Empty<LyricPhraseModel>().ToObservableCollection());
         }
 
         return (true, track.Lyrics.SynchronizedLyrics.Select(phrase => new LyricPhraseModel(phrase)).ToObservableCollection());

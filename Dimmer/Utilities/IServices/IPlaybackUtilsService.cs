@@ -41,7 +41,7 @@ public interface IPlaybackUtilsService
     void MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
     
     //Playlist Section
-    ObservableCollection<PlaylistModelView>? AllPlaylists { get; }
+    ObservableCollection<PlaylistModelView> AllPlaylists { get; }
     void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL=true);    
     void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
     ObservableCollection<PlaylistModelView> GetAllPlaylists();

@@ -31,10 +31,12 @@ public partial class App : MauiWinUIApplication
         
         this.InitializeComponent();
 
-        
+        //_thumbnailHandler = new TaskbarThumbnailHelper();
+
     }
-    
-    
+    private TaskbarThumbnailHelper _thumbnailHandler;
+
+
 
     private void MainInstance_Activated(object? sender, AppActivationArguments e)
     {
@@ -49,6 +51,7 @@ public partial class App : MauiWinUIApplication
         base.OnLaunched(args);
 
 
+        //_thumbnailHandler.InitializeThumbnailHandling();
 
         var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         do

@@ -53,6 +53,13 @@ public partial class DimmerAudioService : IDimmerAudioService, INotifyPropertyCh
             {
                 mediaPlayer.Volume = Math.Clamp(value, 0, 1);
             }
+            else
+            {
+                ViewModel = IPlatformApplication.Current.Services.GetService<HomePageVM>();
+                
+                Initialize(ViewModel.TemporarilyPickedSong, null);
+                mediaPlayer.Volume = Math.Clamp(value, 0, 1);
+            }
         }
     }
     public bool Muted

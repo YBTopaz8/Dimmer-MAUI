@@ -127,11 +127,11 @@
                         </syncf:SfChipGroup.ChipLayout>
                         <syncf:SfChipGroup.Items>
                             <syncf:SfChip Text="❤️" x:Name="LoveRate" CommandParameter="5"                                          
-                                          Clicked="RatingChipCtrl_ChipClicked"
+                                          
                                           ToolTipProperties.Text="Love It" TextColor="DarkSlateBlue"/>
-                            <syncf:SfChip Text="🤖" x:Name="NeutralRate" CommandParameter="0" Clicked="RatingChipCtrl_ChipClicked"
+                            <syncf:SfChip Text="🤖" x:Name="NeutralRate" CommandParameter="0"
                                           ToolTipProperties.Text="Neutral"/>
-                            <syncf:SfChip Text="💔" x:Name="HateRate" CommandParameter="1" Clicked="RatingChipCtrl_ChipClicked"
+                            <syncf:SfChip Text="💔" x:Name="HateRate" CommandParameter="1"
                                           TextColor="White"
                                           ToolTipProperties.Text="Dislike It"/>
                         </syncf:SfChipGroup.Items>
@@ -246,10 +246,16 @@
 
                                 </Grid.Resources>
 
-                                <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Grid.ColumnSpan="2">
+                                <Grid ColumnDefinitions="*,*" Grid.Row="1" Grid.ColumnSpan="2">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="10">
+                                        <Button Text="Paste From Plain Lyrics" x:Name="PasteLyrPlainLyr" Clicked="PasteLyrPlainLyr_Clicked"/>
+                                        <Button Text="Paste From Plain Lyrics" x:Name="PasteLyrClipboard" Clicked="PasteLyrClipboard_Clicked"/>
+                                    </HorizontalStackLayout>
                                     
-<ImageButton Source="backb.png" x:Name="CancelAction" Clicked="CancelAction_Clicked" />
-                                </HorizontalStackLayout>
+                                    <ImageButton 
+                                        Grid.Column="1" HorizontalOptions="End"
+                                        Source="backb.png" x:Name="CancelAction" Clicked="CancelAction_Clicked" />
+                                </Grid>
                                 
                                 <VerticalStackLayout Grid.Row="0" Spacing="10" 
                                                      Margin="5" Grid.ColumnSpan="2">

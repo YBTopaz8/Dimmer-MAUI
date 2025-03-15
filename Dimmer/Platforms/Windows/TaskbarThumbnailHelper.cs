@@ -1,194 +1,163 @@
 ﻿using System.Runtime.InteropServices;
 
 namespace Dimmer_MAUI.Platforms.Windows;
-
-// Stock icon identifiers (from SHSTOCKICONID)
-public enum SHSTOCKICONID : uint
+public partial class TaskbarThumbnailHelper
 {
-    SIID_MEDIA_PLAY = 31,
-    SIID_MEDIA_PAUSE = 32,
-    SIID_MEDIA_STOP = 33,   // Use Play for Resume, so no separate resume icon.
-    SIID_MEDIA_PREV = 34,
-    SIID_MEDIA_NEXT = 35
-}
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-[Flags]
-public enum SHGSI : uint
-{
-    SHGSI_ICON = 0x000000100,
-    SHGSI_SMALLICON = 0x000000001
-}
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
 
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-public struct SHSTOCKICONINFO
-{
-    public uint cbSize;
-    public IntPtr hIcon;
-    public int iSysImageIndex;
-    public int iIcon;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-    public string szPath;
-    
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    public static extern int SHGetStockIconInfo(SHSTOCKICONID siid, uint uFlags, ref SHSTOCKICONINFO psii);
+    private const int SW_HIDE = 0;
+    private const int SW_SHOW = 5;
 
-    public static class StockIconHelper
-{
-    public static IntPtr GetStockIconHandle(SHSTOCKICONID iconId, SHGSI flags)
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    private const int GWL_WNDPROC = -4;
+    private const int WM_COMMAND = 0x0111;
+    private const int WM_NOTIFY = 0x004E;
+    private const int WM_DESTROY = 0x0002;
+
+    // Replace with actual values from Spy++ or your inspection tool.
+    private const string ThumbnailClassName = "Shell_ThumbPreview";
+    private const string ThumbnailWindowTitle = null;
+
+    private bool _thumbnailHandlingInitialized = false;
+    private IntPtr _thumbnailPreviewWindowHandle = IntPtr.Zero;
+    private IntPtr _oldWndProc = IntPtr.Zero;
+    // Keep the delegate alive to avoid garbage collection.
+    private WndProcDelegate _newWndProcDelegate;
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    public void InitializeThumbnailHandling()
     {
-            SHSTOCKICONINFO info = new SHSTOCKICONINFO
+        if (_thumbnailHandlingInitialized)
+        {
+            Debug.WriteLine("Thumbnail handling already initialized.");
+            return;
+        }
+
+        _thumbnailPreviewWindowHandle = FindThumbnailPreviewWindow();
+
+        if (_thumbnailPreviewWindowHandle != IntPtr.Zero)
+        {
+            _newWndProcDelegate = new WndProcDelegate(WndProc);
+            IntPtr newProcPtr = Marshal.GetFunctionPointerForDelegate(_newWndProcDelegate);
+            _oldWndProc = SetWindowLongPtr(_thumbnailPreviewWindowHandle, GWL_WNDPROC, newProcPtr);
+
+            if (_oldWndProc == IntPtr.Zero)
             {
-                cbSize = (uint)Marshal.SizeOf(typeof(SHSTOCKICONINFO))
-            };
-            int hr = SHGetStockIconInfo(iconId, (uint)flags, ref info);
-        return (hr == 0) ? info.hIcon : IntPtr.Zero;
+                Debug.WriteLine("Failed to hook window procedure. Error: " + Marshal.GetLastWin32Error());
+            }
+            else
+            {
+                _thumbnailHandlingInitialized = true;
+                Debug.WriteLine("Thumbnail handling initialized.");
+            }
+        }
+        else
+        {
+            Debug.WriteLine("Could not find thumbnail preview window.");
+        }
     }
-}
 
-// COM interfaces for the taskbar thumbnail toolbar.
-[ComImport]
-[Guid("56FDF344-FD6D-11d0-958A-006097C9A090")]
-[ClassInterface(ClassInterfaceType.None)]
-public class CTaskbarList { }
-
-[ComImport]
-[Guid("C43DC798-95D1-4BEA-9030-BB99E2983A1A")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface ITaskbarList3
-{
-    void HrInit();
-    void AddTab(IntPtr hwnd);
-    void DeleteTab(IntPtr hwnd);
-    void ActivateTab(IntPtr hwnd);
-    void SetActiveAlt(IntPtr hwnd);
-    void MarkFullscreenWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fFullscreen);
-    void SetProgressValue(IntPtr hwnd, ulong ullCompleted, ulong ullTotal);
-    void SetProgressState(IntPtr hwnd, TBPFLAG tbpFlags);
-    void RegisterTab(IntPtr hwndTab, IntPtr hwndMDI);
-    void UnregisterTab(IntPtr hwndTab);
-    void SetTabOrder(IntPtr hwndTab, IntPtr hwndInsertBefore);
-    void SetTabActive(IntPtr hwndTab, IntPtr hwndMDI, TBATFLAG tbatFlags);
-    void ThumbBarAddButtons(IntPtr hwnd, uint cButtons, [MarshalAs(UnmanagedType.LPArray)] THUMBBUTTON[] pButton);
-    void ThumbBarUpdateButtons(IntPtr hwnd, uint cButtons, [MarshalAs(UnmanagedType.LPArray)] THUMBBUTTON[] pButton);
-}
-
-public enum TBPFLAG
-{
-    TBPF_NOPROGRESS = 0,
-    TBPF_INDETERMINATE = 1,
-    TBPF_NORMAL = 2,
-    TBPF_ERROR = 4,
-    TBPF_PAUSED = 8
-}
-
-[Flags]
-public enum TBATFLAG
-{
-    TBATF_USEMDITHUMBNAIL = 1,
-    TBATF_USEMDILIVEPREVIEW = 2
-}
-
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-public struct THUMBBUTTON
-{
-    public THUMBBUTTONMASK dwMask;
-    public uint iId;
-    public uint iBitmap;
-    public IntPtr hIcon;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-    public string szTip;
-    public THUMBBUTTONFLAGS dwFlags;
-}
-
-[Flags]
-public enum THUMBBUTTONMASK : uint
-{
-    THB_BITMAP = 0x1,
-    THB_ICON = 0x2,
-    THB_TOOLTIP = 0x4,
-    THB_FLAGS = 0x8
-}
-
-[Flags]
-public enum THUMBBUTTONFLAGS : uint
-{
-    THBF_ENABLED = 0,
-    THBF_DISABLED = 1,
-    THBF_DISMISSONCLICK = 2,
-    THBF_NOBACKGROUND = 4,
-    THBF_HIDDEN = 8,
-    THBF_NONINTERACTIVE = 16
-}
-
-public static class TaskbarThumbnailHelper
-{
-    private static ITaskbarList3 _taskbarList = (ITaskbarList3)new CTaskbarList();
-
-    static TaskbarThumbnailHelper()
+    private static IntPtr FindThumbnailPreviewWindow()
     {
-        _taskbarList.HrInit();
+        IntPtr hwnd = FindWindow(ThumbnailClassName, ThumbnailWindowTitle);
+        if (hwnd == IntPtr.Zero)
+        {
+            hwnd = FindWindowEx(IntPtr.Zero, IntPtr.Zero, ThumbnailClassName, ThumbnailWindowTitle);
+        }
+        return hwnd;
     }
 
-    /// <summary>
-    /// Adds five thumbnail toolbar buttons for media control:
-    /// Play (ID 100), Pause (101), Resume (102), Previous (103), and Next (104).
-    /// </summary>
-    public static void AddThumbnailButtons(IntPtr hwnd)
+    private IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-        THUMBBUTTON[] buttons = new THUMBBUTTON[5];
-
-        // Button 0: Play
-        buttons[0] = new THUMBBUTTON
+        if (msg == WM_NOTIFY)
         {
-            dwMask = THUMBBUTTONMASK.THB_ICON | THUMBBUTTONMASK.THB_TOOLTIP | THUMBBUTTONMASK.THB_FLAGS,
-            iId = 100,
-            hIcon = StockIconHelper.GetStockIconHandle(SHSTOCKICONID.SIID_MEDIA_PLAY, SHGSI.SHGSI_SMALLICON),
-            szTip = "Play",
-            dwFlags = THUMBBUTTONFLAGS.THBF_ENABLED
-        };
-
-        // Button 1: Pause
-        buttons[1] = new THUMBBUTTON
+            NMHDR nmhdr = Marshal.PtrToStructure<NMHDR>(lParam);
+            if (nmhdr.code == TTN_COMMAND)
+            {
+                // Retrieve COMMANDINFO structure.
+                COMMANDINFO commandInfo = Marshal.PtrToStructure<COMMANDINFO>(lParam);
+                uint commandId = commandInfo.commandId;
+                switch (commandId)
+                {
+                    case 100:
+                        Debug.WriteLine("Play button clicked (Thumbnail).");
+                        break;
+                    case 101:
+                        Debug.WriteLine("Pause button clicked (Thumbnail).");
+                        break;
+                    case 102:
+                        Debug.WriteLine("Resume button clicked (Thumbnail).");
+                        break;
+                    case 103:
+                        Debug.WriteLine("Previous button clicked (Thumbnail).");
+                        break;
+                    case 104:
+                        Debug.WriteLine("Next button clicked (Thumbnail).");
+                        break;
+                    default:
+                        Debug.WriteLine("Unknown command: " + commandId);
+                        break;
+                }
+            }
+        }
+        else if (msg == WM_DESTROY)
         {
-            dwMask = THUMBBUTTONMASK.THB_ICON | THUMBBUTTONMASK.THB_TOOLTIP | THUMBBUTTONMASK.THB_FLAGS,
-            iId = 101,
-            hIcon = StockIconHelper.GetStockIconHandle(SHSTOCKICONID.SIID_MEDIA_PAUSE, SHGSI.SHGSI_SMALLICON),
-            szTip = "Pause",
-            dwFlags = THUMBBUTTONFLAGS.THBF_ENABLED
-        };
-
-        // Button 2: Resume (using the Play icon)
-        buttons[2] = new THUMBBUTTON
-        {
-            dwMask = THUMBBUTTONMASK.THB_ICON | THUMBBUTTONMASK.THB_TOOLTIP | THUMBBUTTONMASK.THB_FLAGS,
-            iId = 102,
-            hIcon = StockIconHelper.GetStockIconHandle(SHSTOCKICONID.SIID_MEDIA_PLAY, SHGSI.SHGSI_SMALLICON),
-            szTip = "Resume",
-            dwFlags = THUMBBUTTONFLAGS.THBF_ENABLED
-        };
-
-        // Button 3: Previous
-        buttons[3] = new THUMBBUTTON
-        {
-            dwMask = THUMBBUTTONMASK.THB_ICON | THUMBBUTTONMASK.THB_TOOLTIP | THUMBBUTTONMASK.THB_FLAGS,
-            iId = 103,
-            hIcon = StockIconHelper.GetStockIconHandle(SHSTOCKICONID.SIID_MEDIA_PREV, SHGSI.SHGSI_SMALLICON),
-            szTip = "Previous",
-            dwFlags = THUMBBUTTONFLAGS.THBF_ENABLED
-        };
-
-        // Button 4: Next
-        buttons[4] = new THUMBBUTTON
-        {
-            dwMask = THUMBBUTTONMASK.THB_ICON | THUMBBUTTONMASK.THB_TOOLTIP | THUMBBUTTONMASK.THB_FLAGS,
-            iId = 104,
-            hIcon = StockIconHelper.GetStockIconHandle(SHSTOCKICONID.SIID_MEDIA_NEXT, SHGSI.SHGSI_SMALLICON),
-            szTip = "Next",
-            dwFlags = THUMBBUTTONFLAGS.THBF_ENABLED
-        };
-
-        _taskbarList.ThumbBarAddButtons(hwnd, (uint)buttons.Length, buttons);
+            UnhookThumbnailHandling();
+        }
+        // Call the original window procedure.
+        return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
     }
-}
+
+    public void UnhookThumbnailHandling()
+    {
+        if (_thumbnailPreviewWindowHandle != IntPtr.Zero && _oldWndProc != IntPtr.Zero)
+        {
+            try
+            {
+                SetWindowLongPtr(_thumbnailPreviewWindowHandle, GWL_WNDPROC, _oldWndProc);
+                _thumbnailPreviewWindowHandle = IntPtr.Zero;
+                _oldWndProc = IntPtr.Zero;
+                _thumbnailHandlingInitialized = false;
+                Debug.WriteLine("Unhooked thumbnail handling.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error unhooking thumbnail handling: " + ex.Message);
+            }
+        }
+    }
+
+    // Structures for WM_NOTIFY handling.
+    [StructLayout(LayoutKind.Sequential)]
+    public struct NMHDR
+    {
+        public IntPtr hwndFrom;
+        public UIntPtr idFrom;
+        public uint code;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct COMMANDINFO
+    {
+        public uint cbSize;
+        public IntPtr hwnd;
+        public uint commandId;
+        public IntPtr extraInfo;
+    }
+
+    public const int TTN_COMMAND = 0x0100;
 }
