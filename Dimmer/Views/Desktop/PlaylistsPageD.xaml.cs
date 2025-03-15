@@ -191,11 +191,11 @@ public partial class PlaylistsPageD : ContentPage
 
     }
     int CurrentIndex;
-    private void SortBtn_Clicked(object sender, EventArgs e)
+    private async void SortBtn_Clicked(object sender, EventArgs e)
     {
 
-        popup.Show();
-        //MyViewModel.OpenSortingPopupCommand.Execute(null);
+        //popup.Show();
+        await MyViewModel.OpenSortingPopup();
     }
 
     private void ShowContextMenu_Clicked(object sender, EventArgs e)
@@ -219,7 +219,6 @@ public partial class PlaylistsPageD : ContentPage
         }
 
         CurrentIndex =int.Parse(param);
-        MyViewModel.Sort(CurrentIndex);
-        popup.Dismiss();
+        //popup.Dismiss();
     }
 }

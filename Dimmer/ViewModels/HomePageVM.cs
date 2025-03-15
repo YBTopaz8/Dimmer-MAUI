@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using Windows.ApplicationModel.Chat;
+using static SkiaSharp.HarfBuzz.SKShaper;
 //using TView = YB.MauiDataGridView.TableView;
 #endif
 namespace Dimmer_MAUI.ViewModels;
@@ -1467,8 +1468,8 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public async Task OpenSortingPopup()
     {
-     
-        IsLoadingSongs = false;
+      var res = await Shell.Current.ShowPopupAsync (new SortingPopUp(this,CurrentSortingOption));
+        Sort((int)res);
     }
 
     public void Sort(int result)
