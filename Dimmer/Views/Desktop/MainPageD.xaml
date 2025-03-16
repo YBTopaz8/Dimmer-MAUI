@@ -13,7 +13,6 @@
              xmlns:ratingsView="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl.RatingsView.Views"
              x:DataType="vm:HomePageVM"
              x:Name="myPage"  
-             
              xmlns:sys="clr-namespace:System;assembly=netstandard"
              xmlns:viewsD="clr-namespace:Dimmer_MAUI.Views.Desktop"
              xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"
@@ -39,8 +38,27 @@
         </Grid.GestureRecognizers>
 
         <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
-                x:Name="MediaPlayBackCW" Grid.Row="1"/>
+ 
+                                      
+                                      x:Name="MediaPlayBackCW" Grid.Row="1"/>
+        <CollectionView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <!--<MauiDG:MauiDataGrid ItemsSource="{Binding DisplayedSongs}"
+                             >
+            <MauiDG:MauiDataGrid.Columns>
+                <MauiDG:TableViewTemplateColumn Header="Test">
+                    <MauiDG:TableViewTemplateColumn.CellTemplate>
 
+                    </MauiDG:TableViewTemplateColumn.CellTemplate>
+                </MauiDG:TableViewTemplateColumn>
+            </MauiDG:MauiDataGrid.Columns>
+        </MauiDG:MauiDataGrid>-->
+        
         <!--<viewsD:MyTableView SelectionMode="None" IsVisible="False"
                             AutoGenerateColumns="True"
                             KeyDown="MyTable_KeyDown"
@@ -172,7 +190,7 @@
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
                 
             <Grid Grid.Column="0" Grid.Row="0"
-                ColumnDefinitions="*,*,*,*,180,180,180"
+                ColumnDefinitions="*,*,*,*,*,*,*"
                   Margin="10,0,0,0"
                   RowDefinitions="90" ColumnSpacing="5" toolkit:DockLayout.DockPosition="Top">
                 <Label Text="Title" Grid.Column="0" FontSize="26"/>
@@ -210,7 +228,9 @@
                                 <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}" TouchDown="SfEffectsView_TouchDown"
                                                      TouchDownEffects="Ripple,Selection" 
                                                      >
-                                    <Grid ColumnDefinitions="*,*,*,*,180,180,180" RowDefinitions="90" ColumnSpacing="5">
+                                        <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+                                              
+                                              RowDefinitions="90" ColumnSpacing="15">
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
@@ -218,26 +238,28 @@
                                                                       PointerExited="UserHoverOutSongInColView"/>
                                             
                                         </Grid.GestureRecognizers>
-                                        <VerticalStackLayout Grid.Column="0" Margin="5,0,0,0" 
+                                        <HorizontalStackLayout Grid.Column="0" Margin="5,0,0,0" 
                                         VerticalOptions="Center">
+                                                <VerticalStackLayout>
 
-                                            <Label Text="{Binding Title}" Grid.Column="1" 
+                                                    <Image WidthRequest="30" HeightRequest="30" HorizontalOptions="Start"  
+IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
+       BackgroundColor="Transparent">
+
+                                                    </Image>
+
+                                                    <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
+       WidthRequest="25" Opacity="1"
+       HorizontalOptions="Start">
+
+                                                    </Image>
+                                                </VerticalStackLayout>
+                                                <Label Text="{Binding Title}" Grid.Column="1" 
                                             FontSize="22" 
                                             LineBreakMode="TailTruncation"/>
+                                               
 
-                                            <Image WidthRequest="30" HeightRequest="30" HorizontalOptions="Start"  
-                                            IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
-                                                   BackgroundColor="Transparent">
-                                                
-                                            </Image>
-
-                                                <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
-                                                   WidthRequest="25" Opacity="1"
-                                                   HorizontalOptions="Start">
-                                                
-                                            </Image>
-
-                                        </VerticalStackLayout>
+                                            </HorizontalStackLayout>
 
                                         <Label Grid.Column="1" FontSize="16" HorizontalOptions="Start"
                                     Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>

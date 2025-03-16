@@ -8,7 +8,7 @@
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
     x:DataType="vm:HomePageVM"         
     x:Name="myPage"
-             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"    
+    xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"    
     Shell.FlyoutBehavior="Flyout"
     FlyoutIsPresented="{Binding IsFlyoutPresented, Mode=TwoWay}"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
