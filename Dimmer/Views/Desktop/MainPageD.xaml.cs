@@ -1,4 +1,5 @@
 #if WINDOWS
+using DevExpress.Maui.CollectionView;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.UI.Xaml;
 //using YB.MauiDataGridView;
@@ -18,6 +19,7 @@ public partial class MainPageD : ContentPage
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
+
         InitializeComponent();
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
@@ -509,8 +511,7 @@ public partial class MainPageD : ContentPage
                 Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
                 {
-                    
-                    MyViewModel.ToggleFlyout(); 
+                    //MyViewModel.ToggleFlyout(); 
                     return;
                     MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
                     SongStatsView.IsVisible = !SongStatsView.IsVisible;

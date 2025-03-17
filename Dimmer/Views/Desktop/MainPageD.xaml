@@ -167,7 +167,8 @@
                         Margin="10,0,10,0" x:Name="MultiSelectUtilBar" 
                             IsVisible="{Binding IsMultiSelectOn}">
                     <HorizontalStackLayout>
-                        <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked">
+                        <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked"
+                                     BackgroundColor="Red">
 
                         </ImageButton>
                         <Label Text="{Binding ContextViewText}" FontSize="28" VerticalTextAlignment="End"
@@ -177,7 +178,8 @@
 
                     <HorizontalStackLayout Spacing="10">
 
-                        <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" IsVisible="{Binding IsMultiSelectOn}">
+                        <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
+                                     Source="backb.png"  >
 
                             <ImageButton.CommandParameter>
                                 <x:Int32>0</x:Int32>

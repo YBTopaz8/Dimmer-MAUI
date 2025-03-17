@@ -757,10 +757,8 @@ public partial class AppShell : Shell
 
                 if (properties.IsRightButtonPressed)
                 {
-                    if (MyViewModel.IsMultiSelectOn)
-                    {
-                        MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
-                    }
+                    MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
+                
                      
                     Debug.WriteLine("Right mouse button pressed.");
                 }
