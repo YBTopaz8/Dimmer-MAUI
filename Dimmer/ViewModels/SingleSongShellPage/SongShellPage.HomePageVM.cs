@@ -559,7 +559,7 @@ public partial class HomePageVM
                 timeOfDayCounts["Night"]++;
         }
 
-        return timeOfDayCounts.OrderByDescending(kv => kv.Value).First().Key;
+        return timeOfDayCounts.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
     }
 
     public static Dictionary<DayOfWeek, int> GetPlayFrequencyDistribution(string songId, List<PlayDataLink> playDataLinks)

@@ -143,7 +143,6 @@ public partial class HomePageVM : ObservableObject
         SubscribeToLyricIndexChanges();
 
         IsPlaying = false;
-        ToggleShuffleState();
         ToggleRepeatMode();
         //AppSettingsService.MusicFoldersPreference.ClearListOfFolders();
         FolderPaths = AppSettingsService.MusicFoldersPreference.GetMusicFolders().ToObservableCollection();
@@ -154,7 +153,7 @@ public partial class HomePageVM : ObservableObject
         //ToggleFlyout();
 #endif
         CurrentUser = SongsMgtService.CurrentOfflineUser;
-        SyncRefresh();
+        
         
 
         LoadData();
@@ -640,7 +639,7 @@ public partial class HomePageVM : ObservableObject
     [ObservableProperty]
     public partial bool IsPreviewing { get; set; } = false;
 
-    public void PlaySong(SongModelView selectedSong, bool isPrevieww = false)
+    public void PlaySong(SongModelView? selectedSong, bool isPrevieww = false)
     {
         CurrentPositionInSeconds = 0;
         CurrentPositionPercentage = 0;
@@ -888,16 +887,13 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    void ToggleShuffleState(bool IsCalledByUI = false)
+    void ToggleShuffleState()
     {
-        IsShuffleOn = PlayBackService.IsShuffleOn;
         
-        if (IsCalledByUI)
-        {
-            IsShuffleOn = !IsShuffleOn;
-            PlayBackService.ToggleShuffle(IsShuffleOn);
-        }
-    
+        IsShuffleOn = !IsShuffleOn;
+        PlayBackService.ToggleShuffle(IsShuffleOn);
+
+
     }
 #endregion
     [ObservableProperty]
@@ -971,7 +967,7 @@ public partial class HomePageVM : ObservableObject
             TemporarilyPickedSong = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == lastID);
             if (TemporarilyPickedSong is null)
             {
-                TemporarilyPickedSong= DisplayedSongs!.First();
+                TemporarilyPickedSong= DisplayedSongs!.FirstOrDefault();
             }
 
         }

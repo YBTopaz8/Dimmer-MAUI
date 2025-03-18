@@ -48,11 +48,11 @@ public partial class HomePageVM
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
         var lyrr = LyricsManagerService.GetSpecificSongLyrics(TemporarilyPickedSong);
-        if (lyrr is not null && lyrr.Count>0)
-        {
-            await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
-            return true;
-        }
+        //if (lyrr is not null && lyrr.Count>0)
+        //{
+        //    await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
+        //    return true;
+        //}
         if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
             return false;

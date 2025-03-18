@@ -41,7 +41,7 @@ public partial class HomePageVM
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongModelView song)
     {
         MySelectedSong = song;
-        var songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).First();
+        var songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).FirstOrDefault();
         
         await NavigateToSpecificAlbumPage(songAlbum);
 
@@ -51,7 +51,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task NavigateToSpecificAlbumPage(AlbumModelView selectedAlbum)
     {
-        SelectedArtistOnArtistPage = GetAllArtistsFromAlbumID(selectedAlbum.LocalDeviceId).First();
+        SelectedArtistOnArtistPage = GetAllArtistsFromAlbumID(selectedAlbum.LocalDeviceId).FirstOrDefault();
         SelectedAlbumOnArtistPage = AllAlbums.First(x => x.LocalDeviceId == selectedAlbum.LocalDeviceId);
         //SelectedAlbumOnArtistPage.NumberOfTracks = SongsMgtService.GetSongsCountFromAlbumID(selectedAlbum.LocalDeviceId);
         SelectedAlbumOnArtistPage.AlbumImagePath = SongsMgtService.AllSongs.First(x => x.AlbumName == SelectedAlbumOnArtistPage.Name).CoverImagePath;
@@ -78,7 +78,7 @@ public partial class HomePageVM
         await Shell.Current.GoToAsync(nameof(ArtistsPageD));
 #elif ANDROID
         await Shell.Current.GoToAsync(nameof(ArtistsPageM));
-        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).First();
+        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).FirstOrDefault();
         LoadArtistAlbumsAndSongs(SelectedArtistOnArtistPage);
 #endif
 
@@ -92,7 +92,7 @@ public partial class HomePageVM
                 return;
             }
         }
-        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).First();
+        SelectedArtistOnArtistPage = GetAllArtistsFromSongID(MySelectedSong!.LocalDeviceId!).FirstOrDefault();
         LoadArtistAlbumsAndSongs(SelectedArtistOnArtistPage);
     }
     [RelayCommand]
@@ -124,7 +124,7 @@ public partial class HomePageVM
 
         foreach (var group in groupedSongs)
         {
-            var firstSong = group.First();
+            var firstSong = group.FirstOrDefault();
             // Create an AlbumGroup and add all the songs in the grAlbumGroup?AlbumGroup?AlbumGroup? to it.
             var AlbumGroup = new AlbumGroup(
                 group.Key, // AlbumName
@@ -199,7 +199,7 @@ public partial class HomePageVM
 
         foreach (var group in groupedSongs)
         {
-            var firstSong = group.First();
+            var firstSong = group.FirstOrDefault();
                                                               // Create an ArtistGroup and add all the songs in the group to it.
             var artistGroup = new ArtistGroup(
                 group.Key, // ArtistName
@@ -310,7 +310,7 @@ public partial class HomePageVM
         else if(album is not null)
         {
             SelectedAlbumOnAlbumPage = album;
-            SelectedAlbumOnAlbumPage = AllAlbums!.Where(x => x.LocalDeviceId== album.LocalDeviceId!).First();
+            SelectedAlbumOnAlbumPage = AllAlbums!.Where(x => x.LocalDeviceId== album.LocalDeviceId!).FirstOrDefault();
             SelectedAlbumOnAlbumPage.IsCurrentlySelected = true;
             
             if (SelectedAlbumOnAlbumPage is null)
@@ -332,7 +332,7 @@ public partial class HomePageVM
                     SelectedAlbumOnAlbumPage = AllAlbums?.FirstOrDefault(x => x.Name == TemporarilyPickedSong!.AlbumName);
                 }
             }
-            SelectedArtistOnAlbumPage = GetAllArtistsFromSongID(TemporarilyPickedSong!.LocalDeviceId!).First();
+            SelectedArtistOnAlbumPage = GetAllArtistsFromSongID(TemporarilyPickedSong!.LocalDeviceId!).FirstOrDefault();
             SelectedArtistOnAlbumPage.IsCurrentlySelected=true;
         }
         if (AllArtists?.Count < 1)
@@ -427,7 +427,8 @@ public partial class HomePageVM
                 : [];
         }
 
-        return [.. AllArtists.Where(artist => artistIds.Contains(artist.LocalDeviceId!))];
+        var e = AllArtists.Where(artist => artistIds.Contains(artist.LocalDeviceId!)).ToObservableCollection();
+        return e;
     }
     public ObservableCollection<AlbumModelView> GetAlbumFromSongID(string songId)
     {
@@ -529,8 +530,8 @@ public partial class HomePageVM
             return;
         }
 
-        SelectedAlbumOnArtistPage = AllArtistsAlbums.First();
-        SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.First().AlbumImagePath;
+        SelectedAlbumOnArtistPage = AllArtistsAlbums.FirstOrDefault();
+        SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault().AlbumImagePath;
         
         AllArtistsAlbumSongs= GetAllSongsFromArtistID(artist.LocalDeviceId!);
         SelectedArtistOnArtistPage.IsCurrentlySelected=true;
@@ -680,7 +681,7 @@ public partial class HomePageVM
             {
                 return;
             }
-            SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.First().AlbumImagePath;
+            SelectedArtistOnArtistPage.ImagePath = AllArtistsAlbums.FirstOrDefault().AlbumImagePath;
 
             AllArtistsAlbumSongs= GetAllSongsFromArtistID(SelectedArtistOnArtistPage.LocalDeviceId!);
             SelectedArtistOnArtistPage.IsCurrentlySelected=true;
@@ -717,14 +718,14 @@ public partial class HomePageVM
         }
         if (AllAlbums.Count > 0)
         {
-            SelectedAlbumOnAlbumPage = AllAlbums.First();
+            SelectedAlbumOnAlbumPage = AllAlbums.FirstOrDefault();
             
             //await GetAlbumsFromAlbumIDAsync(artist.LocalDeviceId);
             if (AllAlbums is null || AllAlbums.Count<1)
             {
                 return;
             }
-            SelectedAlbumOnAlbumPage.AlbumImagePath = AllAlbums.First().AlbumImagePath;
+            SelectedAlbumOnAlbumPage.AlbumImagePath = AllAlbums.FirstOrDefault().AlbumImagePath;
 
             AllArtistsAlbumSongs= GetAllSongsFromAlbumID(SelectedAlbumOnAlbumPage.LocalDeviceId!);
             SelectedAlbumOnAlbumPage.IsCurrentlySelected=true;

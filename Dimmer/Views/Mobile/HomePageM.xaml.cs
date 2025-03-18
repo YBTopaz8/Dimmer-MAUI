@@ -332,7 +332,7 @@ public partial class HomePageM : ContentPage
                         {
                             if (HomeTabView.SelectedItemIndex != 0)
                             {
-                                HomeTabView.SelectedItemIndex=0;
+                                HomeTabView.SelectedItemIndex = 0;
                             }
                             var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
                             SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
@@ -349,6 +349,18 @@ public partial class HomePageM : ContentPage
                             {
                                 HomeTabView.SelectedItemIndex = 1;                                
                                 await MyViewModel.AssignSyncLyricsCV(LyricsColView);
+
+                                //SongsColView.FilterString = string.Empty;
+
+                                await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
+                                    );
+                                //CurrentView!.AnimateFadeOutBack());
+                                isOnFocusMode = false;
+                                //CurrentView = SearchModeUI;
+
+                                SearchBy.Unfocus();
+                                SearchParam = string.Empty;
+
                             }
                             else
                             {
@@ -540,7 +552,8 @@ public partial class HomePageM : ContentPage
 
     private async void SearchBy_ClearIconClicked(object sender, HandledEventArgs e)
     {
-        SongsColView.RefreshData();
+
+        SongsColView.FilterString = string.Empty;
         await ToggleSearchPanel();
     }
 
@@ -682,10 +695,6 @@ public partial class HomePageM : ContentPage
     private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
     {
         MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
-    }
-    private void Chip_Tap_1(object sender, HandledEventArgs e)
-    {
-        MyViewModel.ToggleShuffleStateCommand.Execute(true);
     }
 
     private async void StartSyncing_Clicked(object sender, EventArgs e)

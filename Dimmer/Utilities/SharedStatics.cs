@@ -32,7 +32,7 @@ public static class ImageColorExtractor
                 }
             }
         }
-        return colorCounts.OrderByDescending(kv => kv.Value).First().Key;
+        return colorCounts.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
     }
 
     private static SKColor DimColor(SKColor color)

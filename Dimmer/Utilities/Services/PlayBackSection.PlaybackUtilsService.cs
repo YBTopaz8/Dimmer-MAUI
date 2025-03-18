@@ -111,6 +111,7 @@ public partial class PlaybackUtilsService : ObservableObject
         if (IsShuffleOn)
         {
             _playbackQueue.OnNext(ShuffleList(_internalNowPlayingQueue)); // Shuffle your master list
+
         }
         else
         {
@@ -297,7 +298,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         else if (CurrentRepeatMode == RepeatMode.All && currentQueue.Any()) // Repeat All
         {
-            PlaySong(currentQueue.First(), CurrentPlaybackSource);
+            PlaySong(currentQueue.FirstOrDefault(), CurrentPlaybackSource);
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Play);
             return;
         }
@@ -470,7 +471,7 @@ public partial class PlaybackUtilsService : ObservableObject
         _playbackQueue.OnNext([.. songs]);
         if (playFirst && songs.Count != 0)
         {
-            PlaySong(songs.First(), source: CurrentPlaybackSource);
+            PlaySong(songs.FirstOrDefault(), source: CurrentPlaybackSource);
         }
     }
 

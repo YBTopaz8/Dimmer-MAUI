@@ -828,4 +828,19 @@ public partial class SingleSongShellPageD : ContentPage
     {
         PasteLyricsFromClipBoardBtn_Clicked(sender, e);
     }
+
+    private void SyncLyrLine_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (Border)sender;
+        send.Stroke = Colors.DarkSlateBlue;
+        send.StrokeThickness = 2;
+
+    }
+
+    private void SyncLyrLine_PointerExited(object sender, PointerEventArgs e)
+    {
+        var send = (Border)sender;
+        send.Stroke = Colors.Transparent;
+        send.StrokeThickness = 0;
+    }
 }

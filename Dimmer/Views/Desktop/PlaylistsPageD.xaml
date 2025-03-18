@@ -305,7 +305,6 @@ HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
                                     <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
                                         <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
                                         <Button Text="Create" x:Name="CreatePlaylistBtn" 
-    Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
     Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>

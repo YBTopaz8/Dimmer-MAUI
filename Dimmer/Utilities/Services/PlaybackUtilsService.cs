@@ -537,7 +537,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         var firstPlaylist = PlaylistManagementService?.AllPlaylists?.ToList();
         if (firstPlaylist is not null && firstPlaylist.Count > 0)
         {           
-            SelectedPlaylistName = firstPlaylist.First().Name;
+            SelectedPlaylistName = firstPlaylist.FirstOrDefault().Name;
             GetSongsFromPlaylistID(firstPlaylist.FirstOrDefault().LocalDeviceId);
         }
     }

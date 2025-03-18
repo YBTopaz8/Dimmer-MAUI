@@ -683,8 +683,8 @@ public class PlayListManagementService : IPlaylistManagementService
             return TimeSpan.Zero;
 
         var maxDuration = TimeSpan.Zero;
-        var currentSessionStart = playData.First().DateStarted;
-        var currentSessionEnd = playData.First().DateStarted;
+        var currentSessionStart = playData.FirstOrDefault().DateStarted;
+        var currentSessionEnd = playData.FirstOrDefault().DateStarted;
 
         for (int i = 1; i < playData.Count; i++)
         {

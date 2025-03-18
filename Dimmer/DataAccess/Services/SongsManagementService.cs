@@ -922,7 +922,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             return null;
         }
-        var usrr = dbUser.First();
+        var usrr = dbUser.FirstOrDefault();
         if (dbUser is not null)
         {
             if (usrr.UserPassword is null)
