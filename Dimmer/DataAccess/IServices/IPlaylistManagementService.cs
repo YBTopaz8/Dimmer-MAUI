@@ -10,5 +10,6 @@ public interface IPlaylistManagementService
                                bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false);
     bool RenamePlaylist(string playlistID, string newPlaylistName);
     bool DeletePlaylist(string playlistID);
-    bool AddSongsToPlaylist(string playlistID, List<string> songIDs);
+    bool AddSongsToPlaylist(PlaylistModelView playlist, List<string> songIDs);
+    bool RemoveSongsFromPlaylist(string playlistID, List<string> songIDs);
 }

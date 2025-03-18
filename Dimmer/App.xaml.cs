@@ -48,7 +48,7 @@ public partial class App : Application
         Debug.WriteLine(errorDetails);
 
         // Log to file
-        LogException(e.Exception);
+       LogException(e.Exception);
 
         // Print to Shell.Current
         if (Shell.Current != null)

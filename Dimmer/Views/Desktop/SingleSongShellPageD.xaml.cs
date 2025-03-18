@@ -329,11 +329,10 @@ public partial class SingleSongShellPageD : ContentPage
             : kvp.Value.AnimateFadeOutBack()));
         return;
     }
-    private async void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
+    private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
         var ee = (SfChip)sender;
-
-        MyViewModel.RateSong(ee.CommandParameter.ToString()!);
+        
     }
 
     List<string> SelectedSongIds = [];

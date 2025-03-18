@@ -47,13 +47,13 @@ public partial class DimmerWindow : Window
     }
     public HomePageVM? MyViewModel { get; set; }
 
-    protected async override void OnCreated()
+    protected override void OnCreated()
     {
         base.OnCreated();
-        this.MinimumHeight = 750;
-        this.MinimumWidth = 1000;
-        this.Height = 950;
-        this.Width = 1200;
+        this.MinimumHeight = 700;
+        this.MinimumWidth = 900;
+        this.Height = 850;
+        this.Width = 900;
 #if DEBUG
         DimmerTitleBar.Subtitle = "v1.7-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;

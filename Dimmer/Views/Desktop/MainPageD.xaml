@@ -94,100 +94,147 @@
             <VerticalStackLayout toolkit:DockLayout.DockPosition="Top" >
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
-                            Margin="10,0,10,0" x:Name="NormalMiniUtilBar" 
-                            IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}">
+                        Margin="10,0,10,0" x:Name="NormalMiniUtilBar" 
+                        IsVisible="{Binding IsMultiSelectOn, Converter={x:StaticResource BoolToInverse}}">
                     <Label Text="{Binding DisplayedSongs.Count, StringFormat='{0} Songs'}" FontSize="16"
-                FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
+            FontAttributes="Bold" TextColor="DarkSlateBlue" VerticalTextAlignment="End"/>
 
                     <HorizontalStackLayout Spacing="10">
 
                         <ImageButton Clicked="ScrollToSong_Clicked" ToolTipProperties.Text="Scroll To Currently Playing Song"
-                            Source="eye.png">
+                        Source="eye.png">
 
                         </ImageButton>
-                        <ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
-                            Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
-                            Source="sortvertical.png">
-                        </ImageButton>
+                        <!--<ImageButton HeightRequest="40" BackgroundColor="#1e1e1e"
+                        Clicked="SortBtn_Clicked" x:Name="SortBtn" Grid.Column="1" 
+                        Source="sortvertical.png">
+                    </ImageButton>-->
 
                         <Button Text="Toggle Drawer" x:Name="toggleDrawer" Clicked="ToggleDrawer_Clicked" IsVisible="False"/>
 
-                        <popup:SfPopup x:Name="popup" AppearanceMode="TwoButton" AcceptButtonText="SAVE"  DeclineButtonText="CANCEL" ShowCloseButton="True" ShowFooter="True">
-                            <popup:SfPopup.HeaderTemplate>
-                                <DataTemplate>
-                                    <Label Text="Sort by..." VerticalTextAlignment="Center" FontSize="18" HorizontalTextAlignment="Start" FontAttributes="Bold"/>
-                                </DataTemplate>
-                            </popup:SfPopup.HeaderTemplate>
-                            
-                            <popup:SfPopup.ContentTemplate>
-                                <DataTemplate>
-                                    <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
-                   
-       ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
-       HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
-                   >
-                                        <syncf:SfChipGroup.ChipLayout>
-                                            <VerticalStackLayout Spacing="10" WidthRequest="300" 
-                             HorizontalOptions="Start"/>
-                                        </syncf:SfChipGroup.ChipLayout>
-                                        <syncf:SfChipGroup.Items>
-
-                                            <syncf:SfChip Text="Title - Ascending" CommandParameter="0" TextColor="White"/>
-                                            <syncf:SfChip Text="Title - Descending" CommandParameter="1" TextColor="White"/>
-                                            <syncf:SfChip Text="Artist Name - Ascending" CommandParameter="2" TextColor="White"/>
-                                            <syncf:SfChip Text="Artist Name - Descending" CommandParameter="3" TextColor="White"/>
-                                            <syncf:SfChip Text="Date Added - Ascending" CommandParameter="4" TextColor="White"/>
-                                            <syncf:SfChip Text="Date Added - Descending" CommandParameter="5" TextColor="White"/>
-                                            <syncf:SfChip Text="Duration - Ascending" CommandParameter="6" TextColor="White"/>
-                                            <syncf:SfChip Text="Duration - Descending" CommandParameter="7" TextColor="White"/>
-                                            <syncf:SfChip Text="Year - Ascending" CommandParameter="8"  TextColor="White"/>
-                                            <syncf:SfChip Text="Year - Descending" CommandParameter="9" TextColor="White"/>
-                                            <syncf:SfChip Text="Number Of Times Played - Ascending" CommandParameter="10" TextColor="White"/>
-                                            <syncf:SfChip Text="Number Of Times Played - Descending" CommandParameter="11" TextColor="White"/>
-                                            <syncf:SfChip Text="Number Of Times Played Completely- Ascending" CommandParameter="12" TextColor="White"/>
-                                            <syncf:SfChip Text="Number Of Times Played Completely- Descending" CommandParameter="13" TextColor="White"/>
-                                            <syncf:SfChip Text="Rating - Ascending" CommandParameter="14" TextColor="White"/>
-                                            <syncf:SfChip Text="Rating - Descending" CommandParameter="15"  TextColor="White"/>
-                                            <syncf:SfChip ImageSource="lyrics.png" Text="Has Lyrics" CommandParameter="16"  TextColor="White"/>
-                                            <syncf:SfChip ImageSource="lyrics.png" Text="Has No Lyrics" CommandParameter="17"  TextColor="Gray"/>
-
-                                        </syncf:SfChipGroup.Items>
-                                    </syncf:SfChipGroup>
-                                </DataTemplate>    
-                            </popup:SfPopup.ContentTemplate>
-                            <popup:SfPopup.PopupStyle>
-                                <popup:PopupStyle CornerRadius="0"/>
-                            </popup:SfPopup.PopupStyle>
-                        </popup:SfPopup>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
 
                 <FlexLayout JustifyContent="SpaceBetween" toolkit:DockLayout.DockPosition="Top" 
-                        Margin="10,0,10,0" x:Name="MultiSelectUtilBar" 
-                            IsVisible="{Binding IsMultiSelectOn}">
+                    Margin="10,0,10,0" x:Name="MultiSelectUtilBar" 
+                        IsVisible="{Binding IsMultiSelectOn}">
                     <HorizontalStackLayout>
-                        <ImageButton WidthRequest="30" Clicked="CancelMultiSelect_Clicked"
-                                     BackgroundColor="Red">
 
-                        </ImageButton>
                         <Label Text="{Binding ContextViewText}" FontSize="28" VerticalTextAlignment="End"
-                            FontAttributes="Bold" TextColor="DarkSlateBlue"/>
+                        FontAttributes="Bold" TextColor="DarkSlateBlue"/>
                     </HorizontalStackLayout>
 
 
                     <HorizontalStackLayout Spacing="10">
+                        <syncf:SfChipGroup ChipType="Action" Grid.Row="0" 
+                    x:Name="CntxtMenuChipGroup" ChipImageSize="40" ChipStroke="DarkSlateBlue" 
+        ChipClicked="CntxtMenuChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+        HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+                    >
+                            <syncf:SfChipGroup.ChipLayout>
+                                <HorizontalStackLayout Spacing="10" 
+                                                    HorizontalOptions="Start"/>
+                            </syncf:SfChipGroup.ChipLayout>
+                            <syncf:SfChipGroup.Items>
 
-                        <ImageButton Command="{Binding MultiSelectUtilClickedCommand}" 
-                                     Source="backb.png"  >
+                                <syncf:SfChip ImageSource="addcircle.png"
+                                            ShowIcon="True" ImageSize="40" StrokeThickness="0"
+                                            CommandParameter="3" TextColor="White" />
 
-                            <ImageButton.CommandParameter>
-                                <x:Int32>0</x:Int32>
-                            </ImageButton.CommandParameter>
-                        </ImageButton>
+                                <syncf:SfChip ImageSource="heartangle.png" IsVisible="False"
+                                            ShowIcon="True" ImageSize="40" StrokeThickness="0"
+                                            CommandParameter="2" TextColor="White"/>
+
+                                <syncf:SfChip ToolTipProperties.Text="Show More"  ImageSource="hamburgermenu.png"
+                                            ShowIcon="True" ImageSize="40" StrokeThickness="0"
+                                            CommandParameter="1" TextColor="White"/>
+
+
+                                <syncf:SfChip ToolTipProperties.Text="Back" ImageSource="backb.png" StrokeThickness="0"
+                                            ShowIcon="True" ImageSize="40" 
+                                            CommandParameter="0" TextColor="White"/>
+
+                            </syncf:SfChipGroup.Items>
+                        </syncf:SfChipGroup>
                     </HorizontalStackLayout>
 
                 </FlexLayout>
+
+                <syncf:SfExpander x:Name="ContextMenuExpander"  IsVisible="{Binding IsContextMenuExpanded}" IsExpanded="{Binding IsContextMenuExpanded}">
+                    <syncf:SfExpander.Content>
+                        <Grid RowDefinitions="auto,*">
+
+                            <VerticalStackLayout Grid.Row="0" >
+                                <HorizontalStackLayout 
+                                    Spacing="15"
+                                    HorizontalOptions="Center">
+                                    
+                                    <Entry Placeholder="New Playlist Name" ClearButtonVisibility="WhileEditing"
+                                           WidthRequest="220"
+                                       TextChanged="NewPlaylistEntry_TextChanged" x:Name="NewPlaylistEntry"/>
+                                    <!--<Button Text="Create" x:Name="SimpleCreatePLBtn" 
+                                            Clicked="AddToPLBtn_Clicked"
+                                            CommandParameter="0"/>-->
+                                    <Button Text="Create and Add" x:Name="CreatePLAndAddBtn"
+                                            Clicked="AddToPLBtn_Clicked" CommandParameter="0"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <CollectionView  Grid.Row="1" ItemsSource="{Binding DisplayedPlaylists}" x:Name="DisplayedPlaylistsCV"
+            EmptyView="No Playlists Existing..." SelectionMode="Single" 
+            SelectedItem="{Binding SelectedPlaylistToOpenBtmSheet}">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                           ItemSpacing="4"/>
+                                </CollectionView.ItemsLayout>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border StrokeShape="RoundRectangle 5" 
+                                                HorizontalOptions="Center"
+                                                
+                                                Margin="10,10">
+
+                                            <VisualStateManager.VisualStateGroups>
+                                                <VisualStateGroup x:Name="CommonStates">
+                                                    <VisualState x:Name="Normal" />
+
+                                                    <VisualState x:Name="PointerOver">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                            <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+                                                    <VisualState Name="Selected">
+                                                        <VisualState.Setters>
+                                                            <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                        </VisualState.Setters>
+                                                    </VisualState>
+                                                </VisualStateGroup>
+                                            </VisualStateManager.VisualStateGroups>
+                                            <Border.GestureRecognizers>
+
+                                                <PointerGestureRecognizer                                     
+                        PointerEnteredCommand="{Binding BindingContext.SetPickedPlaylistCommand, Source={x:Reference myPage}}"
+                        PointerEnteredCommandParameter="{Binding .}"/>
+
+                                                <TapGestureRecognizer 
+                        Command="{Binding BindingContext.OpenSpecificPlaylistPageCommand, Source={x:Reference myPage}}"/>
+
+                                            </Border.GestureRecognizers>
+
+                                            <Label Text="{Binding Name}" x:DataType="models:PlaylistModelView"
+                       Padding="10,5" Margin="0,5" HorizontalTextAlignment="Center"/>
+
+                                        </Border>
+
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                                </CollectionView>
+                        </Grid>
+                       
+                    </syncf:SfExpander.Content>
+                </syncf:SfExpander>
             </VerticalStackLayout>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
                 

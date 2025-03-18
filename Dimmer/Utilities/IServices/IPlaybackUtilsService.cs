@@ -43,7 +43,7 @@ public interface IPlaybackUtilsService
     //Playlist Section
     ObservableCollection<PlaylistModelView> AllPlaylists { get; }
     void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL=true);    
-    void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
+      
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
     List<SongModelView> GetSongsFromPlaylistID(string playlistID);
     bool DeletePlaylistThroughID(string playlistID);
@@ -56,6 +56,8 @@ public interface IPlaybackUtilsService
     void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true);
     void ReplaceAndPlayQueue(List<SongModelView> songs, bool playImmediately = false);
     ObservableCollection<SongModelView> GetCurrentQueue();
+    void RemoveSongFromPlayListWithPlayListID(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true);
+
     //void ApplyEqualizerPreset(EqualizerPresetName presetName);
     //void SetEqualizerSettings(float[] bands);
 

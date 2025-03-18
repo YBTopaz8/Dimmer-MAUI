@@ -68,7 +68,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             AllSongs.Clear();
 
             var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-            AllSongs = [.. realmSongs.Select(song => new SongModelView(song)).OrderBy(x => x.DateCreated)];
+            AllSongs = [.. realmSongs.Select(song => new SongModelView(song))];
             AllPlayDataLinks = Enumerable.Empty<PlayDataLink>().ToList();
             var realmPlayData = db.All<PlayDateAndCompletionStateSongLink>().ToList();
 

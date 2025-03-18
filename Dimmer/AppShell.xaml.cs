@@ -758,8 +758,8 @@ public partial class AppShell : Shell
                 if (properties.IsRightButtonPressed)
                 {
                     MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
-                
-                     
+                    MyViewModel.IsContextMenuExpanded= false;
+
                     Debug.WriteLine("Right mouse button pressed.");
                 }
 
@@ -968,7 +968,7 @@ public partial class AppShell : Shell
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        
         //this.Close();
     }
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)

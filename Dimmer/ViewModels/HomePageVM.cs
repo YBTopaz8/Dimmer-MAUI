@@ -399,6 +399,8 @@ public partial class HomePageVM : ObservableObject
     
     [ObservableProperty]
     public partial bool IsMultiSelectOn { get; set; }
+    [ObservableProperty]
+    public partial bool IsContextMenuExpanded { get; set; }
     
     [ObservableProperty]
     public partial CollectionView DisplayedSongsColView { get; set; }

@@ -542,12 +542,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
     }
 
-    public void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true)
+    public void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = false)
     {
-        if (IsExistingPL)
+        if (!IsExistingPL)
         {
-
-            PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
+            PlaylistManagementService.AddSongsToPlaylist(playlistModel, songIDs);
             return;
         }
         var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
@@ -564,25 +563,34 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             PlaylistId = playlistModel.LocalDeviceId,            
         };
 
-        PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
+        PlaylistManagementService.AddSongsToPlaylist(playlistModel, songIDs);
         
     }
 
-    public void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID)
+    public void RemoveSongFromPlayListWithPlayListID(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true)
     {
-        var playlists = PlaylistManagementService.GetPlaylists();
-        var specificPlaylist = playlists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
-        if (specificPlaylist is not null)
+        if (IsExistingPL)
         {
-            var songsInPlaylist = _secondaryQueueSubject.Value;
-            songsInPlaylist.Remove(song);
-            _secondaryQueueSubject.OnNext(songsInPlaylist);
-            specificPlaylist.TotalSongsCount -= 1;
-            specificPlaylist.TotalDuration -= song.DurationInSeconds;
-            specificPlaylist.TotalSize -= song.FileSize;
+            PlaylistManagementService.RemoveSongsFromPlaylist(playlistModel.LocalDeviceId!, songIDs);
+            return;
         }
+        var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Name == playlistModel.Name);
+        if (anyExistingPlaylist is not null)
+        {
+            playlistModel = anyExistingPlaylist;
+        }
+        else
+        {
+            playlistModel.Name = playlistModel.Name;
+        }
+        var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
+        {
+            PlaylistId = playlistModel.LocalDeviceId,
+        };
 
-        PlaylistManagementService.UpdatePlayList(specificPlaylist, IsRemoveSong: true);
+        PlaylistManagementService.RemoveSongsFromPlaylist(playlistModel.LocalDeviceId!, songIDs);
+
+      
     }
     public List<SongModelView> GetSongsFromPlaylistID(string playlistID)
     {

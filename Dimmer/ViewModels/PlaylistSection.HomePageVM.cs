@@ -46,32 +46,22 @@ public partial class HomePageVM
     const ToastDuration duration = ToastDuration.Short;
 
     
-    public void UpSertPlayList(SongModelView? song, PlaylistModelView playlistModel, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
+    public void UpSertPlayList(PlaylistModelView playlistModel, List<string>? songIDs = null, bool IsAddSong = false, bool IsRemoveSong = false, bool IsDeletePlaylist = false)
     {
-        if (song is null)
+        if (songIDs is null)
         {
             return;
         }
         SelectedPlaylist = PlayBackService.AllPlaylists!.First(x => x.LocalDeviceId == playlistModel.LocalDeviceId!);
         if (IsAddSong)
         {
-            var songIDs = new List<string> { song.LocalDeviceId! };
-            
-            PlayBackService.AddSongsToPlaylist(songIDs, playlistModel);
-            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Add(song);
-            
-            var toast = Toast.Make(songAddedToPlaylistText, duration);
+
+            AddToPlaylist(playlistModel, songIDs);              
             //await toast.Show(cts.Token);
         }
         else if (IsRemoveSong)
         {
-            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(song);
-            if (SelectedPlaylist is not null)
-            {
-                PlayBackService.RemoveSongFromPlayListWithPlayListID(song, SelectedPlaylist.LocalDeviceId!);
-                var toast = Toast.Make(songDeletedFromPlaylistText, duration);
-                //await toast.Show(cts.Token);
-            }
+            RemoveFromPlaylist(playlistModel, songIDs);
             
         }
         else if (IsDeletePlaylist)
@@ -83,7 +73,6 @@ public partial class HomePageVM
             var toast = Toast.Make(PlaylistDeletedText, duration);
             //await toast.Show(cts.Token);
         }
-        song.IsFavorite = !song.IsFavorite;
     }
     public async Task LoadFirstPlaylist()
     {
@@ -93,21 +82,7 @@ public partial class HomePageVM
             await OpenSpecificPlaylistPage(DisplayedPlaylists[0].LocalDeviceId!);
         }
     }
-    [RelayCommand]
-    public void CreatePlaylistAndAddSong(string PlaylistName)
-    {
-        if (!string.IsNullOrEmpty(PlaylistName))
-        {
-            var newPlaylist = new PlaylistModelView()
-            {
-                Name = PlaylistName,
-            };
-            UpSertPlayList(MySelectedSong!, newPlaylist, IsAddSong: true);
-            DisplayedPlaylists = PlayBackService.GetAllPlaylists();
-            var toast = Toast.Make(songAddedToPlaylistText, duration);
-            //await toast.Show(cts.Token);
-        }
-    }
+   
 
     [RelayCommand]
     public void DeletePlaylist()
@@ -132,14 +107,12 @@ public partial class HomePageVM
     }
 
     
-    public void AddToPlaylist(PlaylistModelView playlist, List<string>? songIDs=null)
+    public void AddToPlaylist(PlaylistModelView playlist, List<string?> songIDs)
     {
-        songIDs ??= [MySelectedSong!.LocalDeviceId!];
+        songIDs = songIDs.ToList();
+
         if (!EnableContextMenuItems) return;
-        if (DisplayedPlaylists is null)
-        {
-            RefreshPlaylists();
-        }
+        
         foreach (var id in songIDs)
         {
             var songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
@@ -152,7 +125,28 @@ public partial class HomePageVM
         }
         PlayBackService.AddSongsToPlaylist(songIDs, playlist);
         
+            RefreshPlaylists();
+        
         GeneralStaticUtilities.ShowNotificationInternally($"Added {songIDs.Count} to Playlist: {playlist.Name}");
+    }
+    
+    public void RemoveFromPlaylist(PlaylistModelView playlist, List<string>? songIDs=null)
+    {
+        songIDs ??= [MySelectedSong!.LocalDeviceId!];
+        if (!EnableContextMenuItems) return;
+        if (DisplayedPlaylists is null)
+        {
+            RefreshPlaylists();
+        }
+        foreach (var id in songIDs)
+        {
+            var songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
+            
+            SelectedPlaylist.DisplayedSongsFromPlaylist?.Remove(songg);
+        }
+        PlayBackService.RemoveSongFromPlayListWithPlayListID(songIDs, playlist);
+        
+        GeneralStaticUtilities.ShowNotificationInternally($"Removed {songIDs.Count} to Playlist: {playlist.Name}");
     }
 
    

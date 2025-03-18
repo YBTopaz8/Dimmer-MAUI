@@ -170,7 +170,7 @@ public partial class PlaylistsPageD : ContentPage
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        //MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
         //this.Close();
     }
 
@@ -187,7 +187,7 @@ public partial class PlaylistsPageD : ContentPage
         {
             return;
         }
-        MyViewModel.AddToPlaylist(playlist);
+        //MyViewModel.AddToPlaylist(playlist);
 
     }
     int CurrentIndex;

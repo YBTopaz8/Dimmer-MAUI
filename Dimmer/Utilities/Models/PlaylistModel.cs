@@ -38,7 +38,7 @@ public partial class PlaylistSongLink : RealmObject
 public partial class PlaylistModelView : ObservableObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = string.Empty;
+    public string? LocalDeviceId { get; set; } = GeneralStaticUtilities.GenerateLocalDeviceID(nameof(PlaylistModelView));
 
     [ObservableProperty]
     public partial string? Name { get; set; }
@@ -114,8 +114,7 @@ public partial class PlaylistModelView : ObservableObject
     }
 
     public PlaylistModelView(PlaylistModel model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         TotalDuration = model.TotalDuration;
