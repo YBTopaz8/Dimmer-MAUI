@@ -489,7 +489,7 @@ public partial class HomePageVM
         SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
         IsSyncingSongs = true;
         await SongsMgtService.SendAllDataToServerAsInitialSync();
-        await SongsMgtService.GetAllDataFromOnlineAsync();
+        
 
         SyncRefresh();
 
@@ -780,11 +780,11 @@ public partial class HomePageVM
 
         ObservableCollection<CurrentDeviceStatus> devices = [];
 
-        foreach (var device in deviceObjects)
-        {
-            var s = GeneralStaticUtilities.MapFromParseObjectToClassObject<CurrentDeviceStatus>(device);
-            devices.Add(s);
-        }
+        //foreach (var device in deviceObjects)
+        //{
+        //    //var s = GeneralStaticUtilities.MapFromParseObjectToClassObject<CurrentDeviceStatus>(device);
+        //    //devices.Add(s);
+        //}
         OtherConnectedDevices = devices;
     }
 

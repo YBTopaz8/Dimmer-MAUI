@@ -13,10 +13,20 @@ namespace Dimmer_MAUI.ViewModels;
 public partial class HomePageVM : ObservableObject
 {
 
+
+    [ObservableProperty]
+    public partial SongLoadProgress? LatestLoadingProgress { get; set; }
+    
     [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
     [ObservableProperty]
     public partial bool CanSwipeTab { get; set; } = true;
+
+
+    public void UpdateLatestScanData(SongLoadProgress? newProg)
+    {
+        LatestLoadingProgress=newProg;
+    }
 
     partial void OnSettingsPageIndexChanging(int oldValue, int newValue)
     {
@@ -685,7 +695,7 @@ public partial class HomePageVM : ObservableObject
             }
             else // Default playing on the main page (HomePage)
             {
-                PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongs], playImmediately: false);
+                //PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongs], playImmediately: false);
                 PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
             }
         }
@@ -887,7 +897,7 @@ public partial class HomePageVM : ObservableObject
     }
 
     [RelayCommand]
-    void ToggleShuffleState()
+    public void ToggleShuffleState()
     {
         
         IsShuffleOn = !IsShuffleOn;
@@ -1320,6 +1330,8 @@ public partial class HomePageVM : ObservableObject
     {
         PlayBackService.NowPlayingSongs.Subscribe(songs =>
         {
+            DisplayedSongs = new ObservableCollection<SongModelView>(songs);
+            
             //UpdateContextMenuData(TemporarilyPickedSong, songs);
             //PartOfNowPlayingSongs = songs.ToObservableCollection();
             //if (PartOfNowPlayingSongsCV is not null)

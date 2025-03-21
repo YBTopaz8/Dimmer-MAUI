@@ -298,9 +298,9 @@ BackgroundColor="#626680">
                                     </dx:Chip.Triggers>
                                 </dx:Chip>
 
-                                <dx:Chip  BorderColor="Transparent"
-                                         IconSize="35,35" IconColor="MediumPurple"                                          
-                                         TapCommand="{Binding ToggleShuffleStateCommand}"
+                                <dx:Chip  BorderColor="Transparent" Tap="ToggleShuffle_Tap"
+                                         IconSize="35,35" IconColor="MediumPurple"         x:Name="ToggleShuffle"                                 
+                                         
      Icon="shuffle.png"  BackgroundColor="Transparent">
                                     <dx:Chip.Triggers>
                                             <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:Chip">

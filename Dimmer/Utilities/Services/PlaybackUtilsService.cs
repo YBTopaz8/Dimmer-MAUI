@@ -4,6 +4,9 @@ namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
+    // Declare a global subject for song loading progress.
+    public Subject<SongLoadProgress> SongProgressSubject { get; } = new Subject<SongLoadProgress>();
+
     IDimmerAudioService DimmerAudioService;
     public IObservable<ObservableCollection<SongModelView>> NowPlayingSongs => _playbackQueue.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _playbackQueue = new([]);
@@ -109,9 +112,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
     {
-       await SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
+        // Subscribe to the subject.
+        SongProgressSubject.Subscribe(progress =>
+        {
+            ViewModel.Value.UpdateLatestScanData(progress);
+        });
+        await SongsMgtService.LoadSongsFromFolderAsync(folderPaths, SongProgressSubject);
 
-    return true;
+        return true;
     }
 
     public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
@@ -646,12 +654,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return Enumerable.Empty<ArtistModelView>().ToObservableCollection();
 
         AllArtists = [.. SongsMgtService.AllArtists];
-        return AllArtists;
+        return SongsMgtService.AllArtists.ToObservableCollection();
     }
     public ObservableCollection<AlbumModelView> GetAllAlbums()
     {        
         AllAlbums = [.. SongsMgtService.AllAlbums];
-        return AllAlbums;
+        return AllAlbums.ToObservableCollection();
+        ;
     }
     
 

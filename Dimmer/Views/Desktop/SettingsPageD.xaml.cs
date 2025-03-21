@@ -67,7 +67,7 @@ public partial class SettingsPageD : ContentPage
     }
     private async void SyncPDaCS_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+       
     }
 
 

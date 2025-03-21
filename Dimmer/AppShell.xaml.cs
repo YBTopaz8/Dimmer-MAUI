@@ -20,7 +20,7 @@ public partial class AppShell : Shell
         MyViewModel = vm;
         BindingContext = vm;
         InitializeComponent();
-
+        
         Routing.RegisterRoute(nameof(MainPageD), typeof(MainPageD));
         Routing.RegisterRoute(nameof(SingleSongShellPageD), typeof(SingleSongShellPageD));
         Routing.RegisterRoute(nameof(PlaylistsPageD), typeof(PlaylistsPageD));

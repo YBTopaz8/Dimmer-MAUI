@@ -12,7 +12,7 @@ public partial class DimmerWindow : Window
 	public DimmerWindow()
 	{
         InitializeComponent();
-       
+        
     }
 
     
@@ -53,12 +53,12 @@ public partial class DimmerWindow : Window
         this.MinimumHeight = 700;
         this.MinimumWidth = 900;
         this.Height = 850;
-        this.Width = 900;
+        this.Width = 1100;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.7-debug";
+        DimmerTitleBar.Subtitle = "v1.8-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #elif RELEASE
-        DimmerTitleBar.Subtitle = "v1.7-Release";
+        DimmerTitleBar.Subtitle = "v1.8-Release";
 #endif
 
         if (!InitChecker())

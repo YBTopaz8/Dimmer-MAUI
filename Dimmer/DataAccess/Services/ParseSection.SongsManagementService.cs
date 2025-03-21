@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Parse.Infrastructure;
+using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.DataAccess.Services;
 public partial class SongsManagementService
@@ -231,4 +232,135 @@ public partial class SongsManagementService
         return;
     }
 
+    #region Region 2
+    public async Task SendAllDataToServerAsInitialSync()
+    {
+
+        GetUserAccount();
+        GetSongs();
+
+        if (!CurrentOfflineUser.IsAuthenticated)
+        {
+
+            try
+            {
+                _ = await GetUserAccountOnline();
+            }
+            catch (Exception ex)
+            {
+                // Handle GetUserAccountOnline exceptions
+                Debug.WriteLine($"Error in GetUserAccountOnline: {ex.Message}");
+            }
+        }
+        try
+        {
+
+            //GeneralStaticUtilities.RunFireAndForget(AddSongToArtistWithArtistIDAndAlbumAndGenreOnlineAsync(AllArtists, AllAlbums, AllSongs, AllGenres, AllLinks, AllPlayDataLinks), ex =>
+            //{
+            //    // Log or handle the exception as needed
+            //    Debug.WriteLine($"Task error: {ex.Message}");
+            //});
+
+        }
+        catch (Exception ex)
+        {
+            // Handle GetAllDataFromOnlineAsync exceptions
+            Debug.WriteLine($"Error in GetAllDataFromOnlineAsync: {ex.Message}");
+        }
+
+    }
+
+    public UserModelView? GetUserAccount(ParseUser? usr = null)
+    {
+        if (CurrentOfflineUser is not null)//&& CurrentOfflineUser.IsAuthenticated && usr == null)
+        {
+            return CurrentOfflineUser;
+        }
+        db = Realm.GetInstance(DataBaseService.GetRealm());
+        var dbUser = db.All<UserModel>().ToList();
+        if (dbUser is null)
+        {
+            return null;
+        }
+        var usrr = dbUser.FirstOrDefault();
+        if (usrr is not null)
+        {
+            if (usrr.UserPassword is null)
+            {
+                return null;
+            }
+            if (usr is not null)
+            {
+                CurrentOfflineUser = new UserModelView(usr);
+                db.Write(() =>
+                {
+                    UserModel user = new(CurrentOfflineUser);
+
+                    db.Add(user, true);
+                });
+                return CurrentOfflineUser;
+
+            }
+            ;
+            CurrentOfflineUser = new UserModelView(usrr);
+
+        }
+        //CurrentOfflineUser = new(dbUser);
+        return CurrentOfflineUser;
+    }
+
+
+
+    public static bool InitializeParseClient()
+    {
+
+        try
+        {
+            if (ParseClient.Instance is not null)
+            {
+                return true;
+            }
+            // Check for internet connection
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                Debug.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
+                return false;
+            }
+
+            // Validate API Keys
+            if (string.IsNullOrEmpty(APIKeys.ApplicationId) ||
+                string.IsNullOrEmpty(APIKeys.ServerUri) ||
+                string.IsNullOrEmpty(APIKeys.DotNetKEY))
+            {
+                Debug.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
+                return false;
+            }
+
+            // Create ParseClient
+            ParseClient client = new ParseClient(new ServerConnectionData()
+            {
+                ApplicationID = APIKeys.ApplicationId,
+                ServerURI = APIKeys.ServerUri,
+                Key = APIKeys.DotNetKEY,
+            }
+            );
+
+            HostManifestData manifest = new HostManifestData()
+            {
+                Version = "1.6.0",
+                Identifier = "com.yvanbrunel.dimmer",
+                Name = "Dimmer",
+            };
+            client.Publicize();
+
+            Debug.WriteLine("ParseClient initialized successfully.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error initializing ParseClient: {ex.Message}");
+            return false;
+        }
+    }
+    #endregion
 }

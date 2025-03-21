@@ -22,7 +22,7 @@ public partial class MainPageD : ContentPage
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
-
+        
         InitializeComponent();
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;

@@ -1,11 +1,12 @@
 ﻿
+
 namespace Dimmer_MAUI.DataAccess.IServices;
 public interface ISongsManagementService
 {
     
     bool AddSongBatchAsync(IEnumerable<SongModelView> song);
     bool AddArtistsBatch(IEnumerable<ArtistModelView> artists);
-    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath);//to load songs from folder
+    Task<bool> LoadSongsFromFolderAsync(List<string> folderPath, Subject<SongLoadProgress> loadingSubj);//to load songs from folder
     void GetSongs();
 
     /// <summary>
@@ -45,12 +46,11 @@ public interface ISongsManagementService
     bool RequestPasswordResetAsync(string email);
     Task<bool> LogUserOnlineAsync(string email, string password);
     
-    Task GetAllDataFromOnlineAsync();
     UserModelView? GetUserAccount(ParseUser? usr = null);
     Task SendAllDataToServerAsInitialSync();
     void UpdateUserLoginDetails(ParseUser usrr);
     void InitApp(HomePageVM vm);
-    Task<bool> SyncPlayDataAndCompletionData();
+    
 
     public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model);
     public void RestoreAllOnlineData(List<PlayDateAndCompletionStateSongLink> playDataLinks, List<SongModel> songs,
@@ -58,5 +58,5 @@ public interface ISongsManagementService
         List<PlaylistModel> allPlaylists, List<AlbumArtistGenreSongLink> otherLinks);
 
     public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
-
+    
 }

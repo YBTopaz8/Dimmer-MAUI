@@ -313,7 +313,7 @@ public partial class PlayDataLink : ObservableObject
 public partial class PlayDateAndCompletionStateSongLink : RealmObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public string? LocalDeviceId { get; set; } = MusicFileProcessor.GenerateLocalDeviceID("PDL");
     public string? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.    

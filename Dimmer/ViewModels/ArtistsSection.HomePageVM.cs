@@ -302,7 +302,7 @@ public partial class HomePageVM
                 {
                     return;
                 }
-                SongsMgtService.LoadSongsFromFolderAsync([song.FilePath]);
+                //SongsMgtService.LoadSongsFromFolderAsync([song.FilePath]);
                 
             }
             
@@ -337,10 +337,9 @@ public partial class HomePageVM
         }
         if (AllArtists?.Count < 1)
         {
-            AllArtists = PlayBackService.GetAllArtists()
-                .OrderBy(x => x.Name)
+            AllArtists = PlayBackService.GetAllArtists()                
                 .ToObservableCollection();
-
+            AllArtists= AllArtists.OrderBy(x => x.Name).ToObservableCollection();
             if (AllArtists?.Count < 1)
             {
                 return;

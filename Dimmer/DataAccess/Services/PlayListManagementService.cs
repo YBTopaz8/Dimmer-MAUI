@@ -66,7 +66,7 @@ public class PlayListManagementService : IPlaylistManagementService
                     { 
                         SongId = songID,
                         PlaylistId = newPlaylist.LocalDeviceId,
-                        LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID(nameof(PlaylistSongLink))
+                        LocalDeviceId = Guid.NewGuid().ToString()
                     });
                     _db.Add(liss);
                     
@@ -82,7 +82,7 @@ public class PlayListManagementService : IPlaylistManagementService
                         {
                             _db.Add(new PlaylistSongLink
                             {
-                                LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID(nameof(PlaylistSongLink)),
+                                LocalDeviceId = Guid.NewGuid().ToString(),
                                 PlaylistId = playlist.LocalDeviceId,
                                 SongId = songID
                             });
@@ -169,7 +169,7 @@ public class PlayListManagementService : IPlaylistManagementService
                 {
                     _db.Add(new PlaylistModel(playlist), true);
                     if (string.IsNullOrEmpty(playlistSongLink.LocalDeviceId))
-                        playlistSongLink.LocalDeviceId = GeneralStaticUtilities.GenerateLocalDeviceID(nameof(PlaylistSongLink));
+                        playlistSongLink.LocalDeviceId = Guid.NewGuid().ToString();
                     _db.Add(playlistSongLink);
                     UpdatePlaylistMetadata(playlist.LocalDeviceId);
                 });

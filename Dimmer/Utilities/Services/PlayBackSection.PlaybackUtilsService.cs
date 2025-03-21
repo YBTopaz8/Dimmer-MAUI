@@ -468,7 +468,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
     public void ReplaceAndPlayQueue(List<SongModelView> songs, bool playFirst = false)
     {
-        _playbackQueue.OnNext([.. songs]);
+        _secondaryQueueSubject.OnNext([.. songs]);
         if (playFirst && songs.Count != 0)
         {
             PlaySong(songs.FirstOrDefault(), source: CurrentPlaybackSource);

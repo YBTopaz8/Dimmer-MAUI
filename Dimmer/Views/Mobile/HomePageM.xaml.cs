@@ -782,4 +782,9 @@ public partial class HomePageM : ContentPage
         var curSel = send.BindingContext as AlbumModelView;
         MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
+
+    private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.ToggleShuffleState();
+    }
 }
