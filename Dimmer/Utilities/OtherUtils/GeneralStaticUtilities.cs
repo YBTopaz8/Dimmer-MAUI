@@ -46,6 +46,12 @@ public static class GeneralStaticUtilities
         var DimmerAudioService = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>() as DimmerAudioService;
         DimmerAudioService?.Dispose();
     }
+
+    public static Label? InternalNotificationLabel { get; set; }
+
+    public static SearchBar? DimmerGlobalSearchBar { get; set; }
+    public static SearchBar? InternalSearchSongSB { get; set; }
+    public static TitleBar? InternalTitleBar { get; set; }
     public static void ShowNotificationInternally(string msgText, int delayBtnSwitch = 500, Label? text = null, SearchBar? bar = null, TitleBar? titleBar = null)
     {
         MainThread.BeginInvokeOnMainThread(async () =>

@@ -4,15 +4,15 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class PlaylistsPageD : ContentPage
 {
-    public HomePageVM MyViewModel { get; }
+    public PlaylistVM MyViewModel { get; }
 
-    public PlaylistsPageD(HomePageVM homePageVM)
+    public PlaylistsPageD(PlaylistVM vm)
     {
         InitializeComponent();
-        BindingContext = homePageVM;
-        MyViewModel = homePageVM;
+        BindingContext = vm;
+        MyViewModel = vm;
     }
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         if (MyViewModel.TemporarilyPickedSong is null)
@@ -21,7 +21,7 @@ public partial class PlaylistsPageD : ContentPage
         }
         MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        await MyViewModel.LoadFirstPlaylist();
+        
     }
 
     protected override void OnDisappearing()

@@ -58,5 +58,5 @@ public interface ISongsManagementService
         List<PlaylistModel> allPlaylists, List<AlbumArtistGenreSongLink> otherLinks);
 
     public List<PlayDataLink> AllPlayDataLinks { get; internal set; }
-    
+    List<PlaylistSongLink> PlaylistSongsLinksCol { get; set; }
 }

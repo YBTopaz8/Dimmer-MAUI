@@ -118,11 +118,11 @@ public partial class SettingsPageD : ContentPage
         var viewss = new Dictionary<int, View>
         {
             {0, AlreadyInView},
-            {1, FoldersView},
+            {1, AppSettingsView},
             {2, LoginParseUI},
             {3, SignUpParseUI},
             {4, LogInLastFMUI},
-            {5,SocialView }
+            
         };
         if (!viewss.ContainsKey(selectedStatView))
             return;
@@ -213,6 +213,13 @@ public partial class SettingsPageD : ContentPage
 
     private void UserSelect_Tapped(object sender, TappedEventArgs e)
     {
+
+    }
+
+
+    private void ShowCloseConf_CheckedChanged(object sender, CheckedChangedEventArgs e)
+    {
+        AppSettingsService.ShowCloseConfirmationPopUp.ToggleCloseConfirmation(e.Value);
 
     }
 }

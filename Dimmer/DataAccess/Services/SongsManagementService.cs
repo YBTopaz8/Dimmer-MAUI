@@ -7,12 +7,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     
     public List<SongModelView> AllSongs { get; set; }
     public List<PlayDataLink> AllPlayDataLinks { get; set; }
-    public List<PlaylistSongLink> AllPLSongLinks { get; set; }
+    public List<PlaylistSongLink> PlaylistSongsLinksCol { get; set; }
     HomePageVM MyViewModel { get; set; }
 
     public List<AlbumModelView> AllAlbums { get; set; }
-    public List<ArtistModelView> AllArtists { get; set; }
-    
+    public List<ArtistModelView> AllArtists { get; set; }    
     public List<GenreModelView> AllGenres { get; set; }
     public List<AlbumArtistGenreSongLinkView> AllLinks { get; set; } = [];
     public IDataBaseService DataBaseService { get; }
@@ -200,8 +199,11 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 TrackNumber = song.TrackNumber
             };
             file.SaveTo(song.FilePath);
+            GeneralStaticUtilities.ShowNotificationInternally($"{song.Title} was updated in db ");
+            return true;
+
         }
-        return true;
+        return false;
 
     }
     public bool UpdateSongDetails(SongModelView songsModelView)
@@ -246,6 +248,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 db.Add(song, update: true);
             });
 
+
+            GeneralStaticUtilities.ShowNotificationInternally($"{songsModelView.Title} was updated" );
             return true;
         }
         catch (Exception ex)
@@ -430,6 +434,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         SyncAllDataToDatabase(db, result.Songs, result.Artists, result.Albums, result.Genres, result.Links, null);
 
         await Shell.Current.DisplayAlert("Scan Completed", "All Songs have been scanned", "OK");
+        GetSongs();
         MyViewModel.SetPlayerState(MediaPlayerState.DoneScanningData);
 
         // User authentication checks

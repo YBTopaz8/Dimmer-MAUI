@@ -684,7 +684,7 @@ public partial class MainPageD : ContentPage
                     await Shell.Current.DisplayAlert("Error", "No Songs Selected", "OK");
                     return;
                 }
-                MyViewModel.AddToPlaylist( newPlaylist, songIds);
+                //MyViewModel.AddToPlaylist( newPlaylist, songIds);
                 break;
             case "1":
                 //MyViewModel.AddToPlaylist(NewPlaylistEntry.Text);

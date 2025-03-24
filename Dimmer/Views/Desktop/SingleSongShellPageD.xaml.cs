@@ -151,11 +151,16 @@ public partial class SingleSongShellPageD : ContentPage
     }
     private async void ToggleFocusModeClicked(object sender, EventArgs e)
     {
-        if (FocusModeUI.IsVisible)
+        await SwitchPlayUIs(FocusModeUI,NormalNowPlayingUI);
+    }
+
+    private async Task SwitchPlayUIs(View view1, View view2)
+    {
+        if (view1.IsVisible)
         {
             await Task.WhenAll(
-            FocusModeUI.AnimateFadeOutBack(),
-            NormalNowPlayingUI.AnimateFadeInFront()
+            view1.AnimateFadeOutBack(),
+            view2.AnimateFadeInFront()
 
             );
 
@@ -164,13 +169,11 @@ public partial class SingleSongShellPageD : ContentPage
         else
         {
             await Task.WhenAll(
-            FocusModeUI.AnimateFadeInFront(),
-            NormalNowPlayingUI.AnimateFadeOutBack());
+            view1.AnimateFadeInFront(),
+            view2.AnimateFadeOutBack());
             isOnFocusMode = true;
         }
     }
-
-
 
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {

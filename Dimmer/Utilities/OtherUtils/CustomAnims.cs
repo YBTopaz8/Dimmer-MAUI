@@ -873,7 +873,6 @@ public static class CustomAnimsExtensions
     public static async Task ConnectedSlide(this VisualElement view1, VisualElement view2, bool slideRight, uint duration = 300)
     {
         double distance = Application.Current.MainPage.Width; //slide distance
-        double startX1 = 0; //startX for View1
         double endX1 = slideRight ? -distance : distance; //endX for View1
         double startX2 = slideRight ? distance : -distance; //start X for view2
         double endX2 = 0; //endX for view 2

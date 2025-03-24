@@ -7,10 +7,7 @@ public partial class HomePageVM
 {
     [ObservableProperty]
     public partial int NPLyricsFontSize { get; set; }
-    [ObservableProperty]
-    public partial Label? InternalNotificationLabelVM { get; set; }
-    [ObservableProperty]
-    public partial SearchBar? InternalSearchSongSBVM { get; set; }
+    
     [RelayCommand]
     public void IncreaseNowPlayingLyricsFontSize()
     {
@@ -331,10 +328,10 @@ public partial class HomePageVM
             processedCount++;
 
             // Use UpSertPlayList to add or remove the song from Favorites
-            if (isFav)
-                UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsAddSong: true);
-            else
-                UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsRemoveSong: true);
+            //if (isFav)
+            //    UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsAddSong: true);
+            //else
+            //    UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsRemoveSong: true);
         }
 
         if (processedCount > 0)

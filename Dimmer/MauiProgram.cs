@@ -80,7 +80,11 @@ public static class MauiProgram
                             //OLP.SetBorderAndTitleBar(false, false);
                             winuiAppWindow.Closing += async (s, e) =>
                             {
-
+                                if (!AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation)
+                                {
+                                    AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation=true;
+                                    return;
+                                }
                                 e.Cancel = true;
                                 var allWins = Application.Current!.Windows.ToList<Window>();
                                 foreach (var win in allWins)
@@ -96,6 +100,7 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
+                                            AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation=false;
 
                                             Application.Current.CloseWindow(win);
                                             Application.Current.Quit();
@@ -187,9 +192,7 @@ public static class MauiProgram
         new Lazy<HomePageVM>(() => provider.GetRequiredService<HomePageVM>()));
 
         builder.Services.AddSingleton<HomePageVM>();
-
-
-
+        builder.Services.AddTransient<PlaylistVM>();
 
         /* Registering the Mobile Views */
         //builder.Services.AddSingleton<NowPlayingPage>();

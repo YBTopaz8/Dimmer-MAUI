@@ -9,16 +9,42 @@ namespace Dimmer_MAUI.DataAccess.Services;
 
 public class PlayListManagementService : IPlaylistManagementService
 {
-    Realm? _db;
+    Realm _db;
+    private IDisposable _playlistNotificationToken;
     public IDataBaseService DataBaseService { get; }
+    public ISongsManagementService SongsManagementService { get; }
     public ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = new();
-
-    public PlayListManagementService(IDataBaseService dataBaseService)
+    public IList<PlaylistSongLink> PlaylistSongLink { get; set; } 
+    public PlayListManagementService(IDataBaseService dataBaseService, ISongsManagementService songsManagementService)
     {
         DataBaseService = dataBaseService;
-        LoadPlaylists();
+        SongsManagementService=songsManagementService;
+        //LoadPlaylists();
+        SubscribeToPlaylistChanges();
     }
 
+    private void SubscribeToPlaylistChanges()
+    {
+        _db = Realm.GetInstance(DataBaseService.GetRealm());
+        var playlists = _db.All<PlaylistModel>();
+        _playlistNotificationToken = playlists.SubscribeForNotifications((sender, changes) =>
+        {
+            // Update AllPlaylists based on the current Realm collection.
+            AllPlaylists.Clear();
+            foreach (var playlist in sender)
+            {
+                AllPlaylists.Add(new PlaylistModelView(playlist));
+            }
+        });
+    }
+    // Optimized method: query without materializing the full list repeatedly.
+    public List<string?> GetSongIdsForPlaylist(string playlistID)
+    {
+        return _db.All<PlaylistSongLink>()
+                  .Where(link => link.PlaylistId == playlistID)
+                  .Select(link => link.SongId)
+                  .ToList();
+    }
     private void LoadPlaylists()
     {
         _db = Realm.GetInstance(DataBaseService.GetRealm());
@@ -31,61 +57,51 @@ public class PlayListManagementService : IPlaylistManagementService
     }
 
     public ObservableCollection<PlaylistModelView> GetPlaylists()
-    {
-        LoadPlaylists();
-        return new ObservableCollection<PlaylistModelView>(AllPlaylists);
+    {        
+        return AllPlaylists;
     }
 
-    public List<string?> GetSongIdsForPlaylist(string? playlistID)
-    {
-        _db = Realm.GetInstance(DataBaseService.GetRealm());
-        var links = _db.All<PlaylistSongLink>().ToList()
-                    .Where(link => link.PlaylistId == playlistID)
-                    .ToList();
-        return links.Select(link => link.SongId).ToList();
-    }
-
+    // Improved AddSongsToPlaylist with filtered queries for existence.
     public bool AddSongsToPlaylist(PlaylistModelView playlist, List<string> songIDs)
     {
         try
         {
-            bool isNew;
-            _db = Realm.GetInstance(DataBaseService.GetRealm());
             var existingPlaylist = _db.Find<PlaylistModel>(playlist.LocalDeviceId);
-           
 
             _db.Write(() =>
             {
-                if (existingPlaylist is null)
+                if (existingPlaylist == null)
                 {
                     var newPlaylist = new PlaylistModel(playlist);
-                    isNew = true;
-
                     _db.Add(newPlaylist);
-                    var liss = songIDs.Select(songID => new PlaylistSongLink() 
-                    { 
-                        SongId = songID,
-                        PlaylistId = newPlaylist.LocalDeviceId,
-                        LocalDeviceId = Guid.NewGuid().ToString()
-                    });
-                    _db.Add(liss);
-                    
+
+                    foreach (var songID in songIDs)
+                    {
+                        if (!_db.All<PlaylistSongLink>().Any(link => link.PlaylistId == newPlaylist.LocalDeviceId && link.SongId == songID))
+                        {
+                            var link = new PlaylistSongLink
+                            {
+                                LocalDeviceId = Guid.NewGuid().ToString(),
+                                PlaylistId = newPlaylist.LocalDeviceId,
+                                SongId = songID
+                            };
+                            _db.Add(link);
+                        }
+                    }
                 }
                 else
                 {
                     foreach (var songID in songIDs)
                     {
-                        // Materialize the links then check in memory.
-                        var allLinks = _db.All<PlaylistSongLink>().ToList();
-                        var exists = allLinks.Any(link => link.PlaylistId == playlist.LocalDeviceId && link.SongId == songID);
-                        if (!exists)
+                        if (!_db.All<PlaylistSongLink>().Any(link => link.PlaylistId == playlist.LocalDeviceId && link.SongId == songID))
                         {
-                            _db.Add(new PlaylistSongLink
+                            var link = new PlaylistSongLink
                             {
                                 LocalDeviceId = Guid.NewGuid().ToString(),
                                 PlaylistId = playlist.LocalDeviceId,
                                 SongId = songID
-                            });
+                            };
+                            _db.Add(link);
                         }
                     }
                 }
@@ -97,9 +113,16 @@ public class PlayListManagementService : IPlaylistManagementService
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error adding songs to playlist: {ex.Message}");
+            Debug.WriteLine("Error adding songs to playlist: " + ex.Message);
             return false;
         }
+    }
+
+
+    public void Dispose()
+    {
+        _playlistNotificationToken?.Dispose();
+        _db?.Dispose();
     }
 
     public bool RemoveSongsFromPlaylist(string playlistID, List<string> songIDs)

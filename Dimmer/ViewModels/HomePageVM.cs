@@ -23,6 +23,8 @@ public partial class HomePageVM : ObservableObject
     public partial bool CanSwipeTab { get; set; } = true;
 
 
+    [ObservableProperty]
+    public partial PlaylistModelView? SelectedPlaylist { get; set; }
     public void UpdateLatestScanData(SongLoadProgress? newProg)
     {
         LatestLoadingProgress=newProg;
@@ -146,7 +148,7 @@ public partial class HomePageVM : ObservableObject
         SubscribetoDisplayedSongsChanges();
 
         SubscribeToCurrentSongPosition();
-        SubscribeToPlaylistChanges();
+        
 
         //Subscriptions to LyricsServices
         SubscribeToSyncedLyricsChanges();
@@ -232,9 +234,6 @@ public partial class HomePageVM : ObservableObject
         AllLinks = SongsMgtService.AllLinks;
         AllPlayDataLinks = SongsMgtService.AllPlayDataLinks;
 
-        RefreshPlaylists();
-
-
     }
 
     
@@ -315,9 +314,6 @@ public partial class HomePageVM : ObservableObject
                 }
             }
         }
-
-        // **2. Check if index is in the "edge" ranges (0-10 or 90-101, assuming max 101 size)**
-        bool shouldRecenter = false;
         int edgeMargin = 10; // Define the margin for "edge" (0-10 and from 101-10 down)
         int listSize = PartOfNowPlayingSongs?.Count ?? 0; // Get current list size, handle null case
 
@@ -325,7 +321,6 @@ public partial class HomePageVM : ObservableObject
         {
             if (selectedSongIndexInCurrentList <= edgeMargin || selectedSongIndexInCurrentList >= Math.Max(0, listSize - 1 - edgeMargin))
             {
-                shouldRecenter = true; // Yes, re-center because it's at the edge
             }
         }
 
@@ -834,8 +829,6 @@ public partial class HomePageVM : ObservableObject
     {
         double windowHeight = Shell.Current.Window?.Height ?? DeviceDisplay.MainDisplayInfo.Height;
         double targetTranslationYPageCaller = -windowHeight * 0.5; // Target translation for pageCaller (move up - you can adjust or remove this if only height animation is desired)
-        double desiredCallerViewHeight = 50; // **Define your desired full height for callerView here (e.g., 50)**
-        double collapsedCallerViewHeight = 0; // Height when context menu is closed (collapsed)
 
         
         var pageCaller = CurrentPageMainLayout; // Assuming CurrentPageMainLayout is your pageCaller ContentView
@@ -989,7 +982,9 @@ public partial class HomePageVM : ObservableObject
         SongPickedForStats.Song = TemporarilyPickedSong;
 
         SelectedArtistOnArtistPage = GetAllArtistsFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
+        SelectedArtistOnAlbumPage = SelectedArtistOnArtistPage;
         SelectedAlbumOnArtistPage = GetAlbumFromSongID(TemporarilyPickedSong.LocalDeviceId!).FirstOrDefault();
+        SelectedAlbumOnAlbumPage = SelectedAlbumOnArtistPage;
 
 
     }
@@ -1101,7 +1096,7 @@ public partial class HomePageVM : ObservableObject
                 }
                 break;
             case MediaPlayerState.DoneScanningData:
-                //SyncRefresh();
+                SyncRefresh();
                 //SetLoadingProgressValue(100);
                 break;
             default:
@@ -1119,17 +1114,6 @@ public partial class HomePageVM : ObservableObject
             {
                 CurrentLyricPhrase = highlightedLyric;                 
             }
-        });
-    }
-    private void SubscribeToPlaylistChanges()
-    {
-        PlayBackService.SecondaryQueue.Subscribe(songs =>
-        {
-            if (SelectedPlaylist is null)
-            {
-                SelectedPlaylist??=new();
-            }
-            SelectedPlaylist.DisplayedSongsFromPlaylist = songs;
         });
     }
     private void SubscribeToCurrentSongPosition()
@@ -1663,11 +1647,6 @@ public partial class HomePageVM : ObservableObject
 
     
 
-    [RelayCommand]
-    void SetPickedPlaylist(PlaylistModelView pl)
-    {
-        SelectedPlaylistToOpenBtmSheet = pl;
-    }
     [RelayCommand]
     public void SetContextMenuSong(SongModelView song)
     {

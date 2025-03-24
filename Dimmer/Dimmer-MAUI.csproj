@@ -214,6 +214,9 @@
     <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\QuickSettingsPopupView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

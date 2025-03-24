@@ -3,7 +3,7 @@ namespace Dimmer_MAUI.Views.Mobile;
 public partial class PlaylistsPageM : ContentPage
 {
     NowPlayingBtmSheet btmSheet { get; set; }
-    public PlaylistsPageM(HomePageVM homePageVM)
+    public PlaylistsPageM(PlaylistVM homePageVM)
     {
 		InitializeComponent();
         MyViewModel = homePageVM;
@@ -12,7 +12,7 @@ public partial class PlaylistsPageM : ContentPage
         //this.Attachments.Add(btmSheet);
 
     }
-    public HomePageVM MyViewModel { get; }
+    public PlaylistVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {
