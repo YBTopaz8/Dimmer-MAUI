@@ -646,10 +646,7 @@ public partial class PlaybackUtilsService : ObservableObject
         if (ViewModel.Value.CurrentUserOnline != null)
         {
             ParseUser CurrentUserOnline = ViewModel.Value.CurrentUserOnline;
-            if (position is null)
-            {
-                position = 0;
-            }
+            position ??= 0;
             TimeSpan pos = TimeSpan.FromSeconds((long)position);
             string formattedPosition = pos.ToString(@"mm\:ss");
 

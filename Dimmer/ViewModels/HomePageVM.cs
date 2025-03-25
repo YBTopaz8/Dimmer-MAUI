@@ -325,10 +325,7 @@ public partial class HomePageVM : ObservableObject
         }
 
 
-        if (MiniQueue is null)
-        {
-            MiniQueue = DisplayedSongs;
-        }
+        MiniQueue ??= DisplayedSongs;
 
         // **3. (If shouldRecenter is true) -  Regenerate PartOfNowPlayingSongs (the original logic)**
         int selectedSongIndex = -1; // Index in the *full* DisplayedSongs list
@@ -461,10 +458,7 @@ public partial class HomePageVM : ObservableObject
 #endif
         if (TemporarilyPickedSong is not null)
         {
-            if (MySelectedSong is null)
-            {
-                MySelectedSong = TemporarilyPickedSong;
-            }
+            MySelectedSong ??= TemporarilyPickedSong;
             if (string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
             {
                 return;
@@ -970,10 +964,7 @@ public partial class HomePageVM : ObservableObject
         {
             var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
             TemporarilyPickedSong = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == lastID);
-            if (TemporarilyPickedSong is null)
-            {
-                TemporarilyPickedSong= DisplayedSongs!.FirstOrDefault();
-            }
+            TemporarilyPickedSong??= DisplayedSongs!.FirstOrDefault();
 
         }
         PickedSong = TemporarilyPickedSong;

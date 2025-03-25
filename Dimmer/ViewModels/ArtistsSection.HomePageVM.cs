@@ -116,10 +116,7 @@ public partial class HomePageVM
     public void GetAllAlbums()
     {
         AllAlbums = PlayBackService.GetAllAlbums();
-        if (MySelectedSong is null)
-        {
-            MySelectedSong = TemporarilyPickedSong;
-        }
+        MySelectedSong ??= TemporarilyPickedSong;
         var groupedSongs = DisplayedSongs.GroupBy(song => song.AlbumName);
 
         foreach (var group in groupedSongs)
@@ -206,8 +203,10 @@ public partial class HomePageVM
         // Initialize or clear existing collection
         if (GroupedArtists == null)
             GroupedArtists = new ObservableCollection<ArtistGroup>();
-        else
-            GroupedArtists.Clear();
+        else if(GroupedArtists.Count>0)
+        {
+            return;
+        }
 
         foreach (var group in groupedSongs)
         {
@@ -442,8 +441,7 @@ public partial class HomePageVM
         }
 
         // Ensure AllAlbums is initialized
-        if (AllAlbums == null)
-            AllAlbums = SongsMgtService.AllAlbums.ToObservableCollection();
+        AllAlbums ??= SongsMgtService.AllAlbums.ToObservableCollection();
 
         return new ObservableCollection<AlbumModelView>(AllAlbums.Where(album => albumIds.Contains(album.LocalDeviceId)));
     }

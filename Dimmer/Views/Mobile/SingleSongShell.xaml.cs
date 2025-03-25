@@ -126,13 +126,13 @@ NoLyricsFoundMsg.AnimateFadeInFront());
         if (title == "Synced Lyrics")
         {
 
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, false);
+            await MyViewModel.SaveLyricToFile(thisContent, false);
         }
         else
         if (title == "Plain Lyrics")
         {
 
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, true);
+            await MyViewModel.SaveLyricToFile(thisContent, true);
         }
     }
     private void NowPlayingBtn_TapReleased(object sender, DevExpress.Maui.Core.DXTapEventArgs e)

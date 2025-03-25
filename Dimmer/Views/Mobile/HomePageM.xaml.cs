@@ -736,7 +736,7 @@ public partial class HomePageM : ContentPage
         var thisContent = (Content)send.BindingContext;
         if (title == "Synced Lyrics")
         {
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent!, false);
+            await MyViewModel.SaveLyricToFile(thisContent!, false);
         }
         else
         if (title == "Plain Lyrics")

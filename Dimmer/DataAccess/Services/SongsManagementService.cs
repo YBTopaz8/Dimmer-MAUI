@@ -716,10 +716,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         try
         {
             AddOrUpdateSingleRealmItem(db, model, link => link.LocalDeviceId == model.LocalDeviceId);
-            if (model.LocalDeviceId is null)
-            {
-                model.LocalDeviceId = MusicFileProcessor.GenerateLocalDeviceID("PDL");
-            }
+            model.LocalDeviceId ??= MusicFileProcessor.GenerateLocalDeviceID("PDL");
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {

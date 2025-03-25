@@ -283,9 +283,10 @@
                                 
 
                                 <Grid Grid.Row="2" ColumnDefinitions="*,*" 
+                                      
+                                      Grid.Column="0" Grid.ColumnSpan="2" 
                                       RowDefinitions="Auto,*"
-                                      x:Name="ManualSyncLyricsView"
-                                      Grid.Column="0" Grid.ColumnSpan="2" >
+                                      x:Name="ManualSyncLyricsView">
                                     <ScrollView Grid.Column="0" Grid.Row="1" HorizontalOptions="Start">                                        
                                     <VerticalStackLayout 
                                                          x:Name="PlainLyricSection" Spacing="5"
@@ -333,60 +334,90 @@ x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
                                     </Grid>
                                 </Grid>
 
-                                <CollectionView Grid.Row="2" x:Name="OnlineLyricsResView"
-                                                ItemsSource="{Binding AllSyncLyrics}" 
-                                                x:DataType="vm:HomePageVM">
-                                    <CollectionView.EmptyView>
-                                        <ContentView>
-                                            <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
-                                 BackgroundColor="Transparent"
-                                 x:Name="emptyV">
-                                                <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
+                                <Grid  Grid.Row="2" ColumnDefinitions="*,*" >
+                                    <CollectionView  x:Name="OnlineLyricsResView" Grid.ColumnSpan="1" 
+                             ItemsSource="{Binding AllSyncLyrics}" 
+                             x:DataType="vm:HomePageVM">
+                                        <CollectionView.EmptyView>
+                                            <ContentView>
+                                                <VerticalStackLayout HorizontalOptions="Center" Spacing="5"
+              BackgroundColor="Transparent"
+              x:Name="emptyV">
+                                                    <Label Text="Searching..." IsVisible="{Binding IsFetching}"/>
 
-                                                <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
-                   HeightRequest="0" WidthRequest="0" />
-                                                <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
-                   IsVisible="False" IsAnimationPlaying="False"/>
+                                                    <Image x:Name="Lookgif" Source="eyes.gif" IsVisible="False" IsAnimationPlaying="False"
+HeightRequest="0" WidthRequest="0" />
+                                                    <Image x:Name="fetchFailed" Source="disappointed_face.gif" HeightRequest="100" WidthRequest="100"                                                               
+IsVisible="False" IsAnimationPlaying="False"/>
 
-                                                <Label Text="Service is Unavailable, try again !" 
-                   x:Name="NoLyricsFoundMsg" IsVisible="False"
-                   />
+                                                    <Label Text="Service is Unavailable, try again !" 
+x:Name="NoLyricsFoundMsg" IsVisible="False"
+/>
+                                                </VerticalStackLayout>
+
+                                            </ContentView>
+                                        </CollectionView.EmptyView>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Content">
+
+                                                <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
+         Padding="10" Margin="0,5">
+                                                    <VerticalStackLayout HorizontalOptions="Start" >
+
+                                                        <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
+
+                                                        <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
+
+                                                        <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
+
+                                                        <HorizontalStackLayout IsVisible="{Binding Instrumental}">
+                                                            <Label Text="Song is an Intrumental" />
+                                                        </HorizontalStackLayout>
+
+                                                        <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
+
+                                                            <Button Text="Plain Lyrics" HorizontalOptions="Center" 
+                     Clicked="ViewLyricsBtn_Clicked" BackgroundColor="#5A4CA3"
+                     IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"/>
+
+                                                            <Button Text="Synced Lyrics" HorizontalOptions="Center" 
+                     IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
+                                                        </HorizontalStackLayout>
+                                                    </VerticalStackLayout>
+                                                </Border>
+
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <ScrollView Grid.Column="1" x:Name="LyricPrewiewUI" IsVisible="False">
+                                        <Grid BackgroundColor="Transparent" 
+                                          x:Name="LyricsResultView" IsVisible="True"
+                                              Padding="10" RowDefinitions="30,Auto,50">
+                                            <VerticalStackLayout HorizontalOptions="Center" Grid.Row="0">
+                                                <HorizontalStackLayout HorizontalOptions="Center">
+                                                    <Label x:Name="SynceOrPlainTitle"/>
+                                                </HorizontalStackLayout>
+
                                             </VerticalStackLayout>
 
-                                        </ContentView>
-                                    </CollectionView.EmptyView>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate x:DataType="models:Content">
+                                                <Label Text="Lyrics" 
+                                                       Grid.Row="1"
+                                                       x:Name="LyricsView" LineBreakMode="WordWrap" 
+      VerticalOptions="Start" HorizontalTextAlignment="Start"
+      Padding="10"/>
 
-                                            <Border Stroke="DarkSlateBlue" StrokeShape="RoundRectangle, 10"
-                            Padding="10" Margin="0,5">
-                                                <VerticalStackLayout HorizontalOptions="Start" >
-
-                                                    <Label Text="{Binding TrackName, StringFormat='Song Title: {0}'}" HorizontalTextAlignment="Center"/>
-
-                                                    <Label Text="{Binding ArtistName, StringFormat='Artist Name : {0}'}"/>
-
-                                                    <Label Text="{Binding AlbumName, StringFormat='Album Name: {0}'}"/>
-
-                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental}">
-                                                        <Label Text="Song is an Intrumental" />
-                                                    </HorizontalStackLayout>
-
-                                                    <HorizontalStackLayout IsVisible="{Binding Instrumental, Converter={StaticResource BoolToInverse}}">
-
-                                                        <Button Text="Plain Lyrics" HorizontalOptions="Center" 
-                                        Clicked="ViewLyricsBtn_Clicked" BackgroundColor="#5A4CA3"
-                                        IsVisible="{Binding IsSynced, Converter= {x:StaticResource BoolToInverse}}"/>
-
-                                                        <Button Text="Synced Lyrics" HorizontalOptions="Center" 
-                                        IsVisible="{Binding IsSynced}" Clicked="ViewLyricsBtn_Clicked" />
-                                                    </HorizontalStackLayout>
-                                                </VerticalStackLayout>
-                                            </Border>
-
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
+                                            <HorizontalStackLayout HorizontalOptions="End" 
+                     Grid.Row="2">
+                                                <Button Text="Cancel" BackgroundColor="Black" BorderColor="Black"
+          TextColor="Red" 
+          Clicked="CloseButton_Clicked"/>
+                                                <Button Text="Save" Clicked="OkButton_Clicked"/>
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </ScrollView>
+                                </Grid>
+                                
                             </Grid>
                         </Border>
                     </Grid>

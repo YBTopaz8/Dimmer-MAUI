@@ -69,10 +69,7 @@ public partial class HomePageVM
     public CollectionView? userChatColView;
     async Task ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e)
     {
-        if (ChatMessages is null)
-        {
-            ChatMessages =new();
-        }
+        ChatMessages ??=new();
 
         var objData = e.objectDictionnary as Dictionary<string, object>;
         if (objData is null)
@@ -491,10 +488,7 @@ public partial class HomePageVM
             CurrentChatRoom = await GetExistingChatRoom(participants);
 
             // 3. Create if it doesn't exist.
-            if (CurrentChatRoom == null)
-            {
-                CurrentChatRoom = await CreateChatRoomAsync(participants);
-            }
+            CurrentChatRoom ??= await CreateChatRoomAsync(participants);
 
             // 4. Clear Existing Messages, for safety
             ChatMessages.Clear();

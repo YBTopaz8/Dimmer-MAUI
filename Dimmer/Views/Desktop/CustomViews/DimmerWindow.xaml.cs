@@ -46,15 +46,15 @@ public partial class DimmerWindow : Window
     protected override void OnCreated()
     {
         base.OnCreated();
-        this.MinimumHeight = 700;
+        this.MinimumHeight = 750;
         this.MinimumWidth = 900;
         this.Height = 850;
         this.Width = 1100;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.7d-debug";
+        DimmerTitleBar.Subtitle = "v1.7e-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #elif RELEASE
-        DimmerTitleBar.Subtitle = "v1.7d-Release";
+        DimmerTitleBar.Subtitle = "v1.7e-Release";
 #endif
 
         if (!InitChecker())

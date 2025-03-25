@@ -97,7 +97,7 @@ public partial class HomePageVM
     [ObservableProperty]
     public partial List<string>? LinkToFetchSongCoverImage { get; set; } = new();
 
-    public async Task ShowSingleLyricsPreviewPopup(Content cont, bool IsPlain)
+    public async Task SaveLyricToFile(Content cont, bool IsPlain)
     {
         if (IsPlain)
         {
@@ -105,14 +105,10 @@ public partial class HomePageVM
             
             SongsMgtService.UpdateSongDetails(MySelectedSong);
             return;
-        }
-        var result = (bool)await Shell.Current.ShowPopupAsync(new SingleLyricsPreviewPopUp(cont!, IsPlain, this));
-        if (result)
-        {
-            await SaveSelectedLyricsToFile(!IsPlain, cont);
-            if (TemporarilyPickedSong is null)
-                TemporarilyPickedSong = MySelectedSong;
-        }
+        }        
+        await SaveSelectedLyricsToFile(!IsPlain, cont);
+        TemporarilyPickedSong ??= MySelectedSong;
+        
     }
 
     public async Task SaveSelectedLyricsToFile(bool isSync, Content cont) // rework this!
