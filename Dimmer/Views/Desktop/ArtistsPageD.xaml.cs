@@ -11,7 +11,7 @@ public partial class ArtistsPageD : ContentPage
         InitializeComponent();
         MyViewModel = homePageVM;
         this.BindingContext = homePageVM;
-        MyViewModel.GetAllArtistsCommand.Execute(null);
+        
     }
 
   

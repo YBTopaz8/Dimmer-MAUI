@@ -48,8 +48,8 @@
     <IsAotCompatible>True</IsAotCompatible>
 
     <OutputType>Exe</OutputType>
-    <AndroidLinkSkip>Realm</AndroidLinkSkip>
     <LangVersion>preview</LangVersion>
+    <AndroidLinkSkip>Realm</AndroidLinkSkip>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.yvanbrunel.dimmermaui</ApplicationId>
@@ -212,6 +212,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\CustomRepeatPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="CustomPopUpViews\QuickSettingsPopupView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomPopUpViews\SingleLyricsPreviewPopUp.xaml">

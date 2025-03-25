@@ -237,7 +237,7 @@ public partial class TopStatsPageM : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.PlayNextSongCommand.Execute(null);
+                                MyViewModel.PlayPreviousSong();
 
                                 var colorTask = AnimateColor(send, Colors.SlateBlue);
                                 var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
@@ -247,7 +247,7 @@ public partial class TopStatsPageM : ContentPage
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.PlayPreviousSongCommand.Execute(null);
+                                MyViewModel.PlayPreviousSong();
 
                                 var colorTask = AnimateColor(send, Colors.MediumPurple);
                                 var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
@@ -263,7 +263,7 @@ public partial class TopStatsPageM : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.PlayPreviousSongCommand.Execute(null);
+                            MyViewModel.PlayPreviousSong();
                             Debug.WriteLine("Swiped left");
                             var t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
                             var t2 = Task.Delay(500);

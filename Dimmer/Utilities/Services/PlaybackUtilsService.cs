@@ -4,13 +4,13 @@ namespace Dimmer_MAUI.Utilities.Services;
 public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsService
 {
 
+    // Declare a global subject for song loading progress.
+    public Subject<SongLoadProgress> SongProgressSubject { get; } = new Subject<SongLoadProgress>();
+
     IDimmerAudioService DimmerAudioService;
     public IObservable<ObservableCollection<SongModelView>> NowPlayingSongs => _playbackQueue.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _playbackQueue = new([]);
    
-    
-    public IObservable<ObservableCollection<SongModelView>> SecondaryQueue => _secondaryQueueSubject.AsObservable();
-    BehaviorSubject<ObservableCollection<SongModelView>> _secondaryQueueSubject = new([]);
     public IObservable<ObservableCollection<SongModelView>> TertiaryQueue => _tertiaryQueueSubject.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _tertiaryQueueSubject = new([]);
 
@@ -109,9 +109,14 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public async Task<bool> LoadSongsFromFolder(List<string> folderPaths)
     {
-       await SongsMgtService.LoadSongsFromFolderAsync(folderPaths);
+        // Subscribe to the subject.
+        SongProgressSubject.Subscribe(progress =>
+        {
+            ViewModel.Value.UpdateLatestScanData(progress);
+        });
+        await SongsMgtService.LoadSongsFromFolderAsync(folderPaths, SongProgressSubject);
 
-    return true;
+        return true;
     }
 
     public ObservableCollection<SongModelView> ApplySorting(ObservableCollection<SongModelView> colToSort, SortingEnum mode, List<PlayDataLink> allPlayDataLinks)
@@ -395,7 +400,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     {
         CurrentQueue = QueueNumber;
-        _secondaryQueueSubject.OnNext(value: songs.ToObservableCollection());
+        _playbackQueue.OnNext(value: songs.ToObservableCollection());
     }
     public void UpdateSongToFavoritesPlayList(SongModelView song)
     {
@@ -537,17 +542,16 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         var firstPlaylist = PlaylistManagementService?.AllPlaylists?.ToList();
         if (firstPlaylist is not null && firstPlaylist.Count > 0)
         {           
-            SelectedPlaylistName = firstPlaylist.First().Name;
+            SelectedPlaylistName = firstPlaylist.FirstOrDefault().Name;
             GetSongsFromPlaylistID(firstPlaylist.FirstOrDefault().LocalDeviceId);
         }
     }
 
-    public void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true)
+    public void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = false)
     {
-        if (IsExistingPL)
+        if (!IsExistingPL)
         {
-
-            PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
+            PlaylistManagementService.AddSongsToPlaylist(playlistModel, songIDs);
             return;
         }
         var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
@@ -564,25 +568,34 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             PlaylistId = playlistModel.LocalDeviceId,            
         };
 
-        PlaylistManagementService.AddSongsToPlaylist(playlistModel.LocalDeviceId!, songIDs);
+        PlaylistManagementService.AddSongsToPlaylist(playlistModel, songIDs);
         
     }
 
-    public void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID)
+    public void RemoveSongFromPlayListWithPlayListID(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true)
     {
-        var playlists = PlaylistManagementService.GetPlaylists();
-        var specificPlaylist = playlists.FirstOrDefault(x => x.LocalDeviceId == playlistID);
-        if (specificPlaylist is not null)
+        if (IsExistingPL)
         {
-            var songsInPlaylist = _secondaryQueueSubject.Value;
-            songsInPlaylist.Remove(song);
-            _secondaryQueueSubject.OnNext(songsInPlaylist);
-            specificPlaylist.TotalSongsCount -= 1;
-            specificPlaylist.TotalDuration -= song.DurationInSeconds;
-            specificPlaylist.TotalSize -= song.FileSize;
+            PlaylistManagementService.RemoveSongsFromPlaylist(playlistModel.LocalDeviceId!, songIDs);
+            return;
         }
+        var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Name == playlistModel.Name);
+        if (anyExistingPlaylist is not null)
+        {
+            playlistModel = anyExistingPlaylist;
+        }
+        else
+        {
+            playlistModel.Name = playlistModel.Name;
+        }
+        var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
+        {
+            PlaylistId = playlistModel.LocalDeviceId,
+        };
 
-        PlaylistManagementService.UpdatePlayList(specificPlaylist, IsRemoveSong: true);
+        PlaylistManagementService.RemoveSongsFromPlaylist(playlistModel.LocalDeviceId!, songIDs);
+
+      
     }
     public List<SongModelView> GetSongsFromPlaylistID(string playlistID)
     {
@@ -611,7 +624,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             SelectedPlaylistName = specificPlaylist.Name;
             // Create a new ObservableCollection from the list instead of using ToObservableCollection()
-            _secondaryQueueSubject.OnNext(new ObservableCollection<SongModelView>(songsInPlaylist));
+            _playbackQueue.OnNext(new ObservableCollection<SongModelView>(songsInPlaylist));
 
             return songsInPlaylist;
         }
@@ -638,12 +651,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             return Enumerable.Empty<ArtistModelView>().ToObservableCollection();
 
         AllArtists = [.. SongsMgtService.AllArtists];
-        return AllArtists;
+        return SongsMgtService.AllArtists.ToObservableCollection();
     }
     public ObservableCollection<AlbumModelView> GetAllAlbums()
     {        
         AllAlbums = [.. SongsMgtService.AllAlbums];
-        return AllAlbums;
+        return AllAlbums.ToObservableCollection();
+        ;
     }
     
 
@@ -695,4 +709,5 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _playbackQueue.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
     }
 
+   
 }

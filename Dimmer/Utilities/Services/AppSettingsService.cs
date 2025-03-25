@@ -4,6 +4,25 @@ using System.Text.Json.Serialization.Metadata;
 namespace Dimmer_MAUI.Utilities.Services;
 public class AppSettingsService : IAppSettingsService
 {
+
+    public static class ShowCloseConfirmationPopUp
+    {
+        const bool showCloseConfirmation = false;
+        public static bool ShowCloseConfirmation
+        {
+            get => Preferences.Default.Get(nameof(ShowCloseConfirmation), showCloseConfirmation);
+            set => Preferences.Default.Set(nameof(ShowCloseConfirmation), value);
+        }
+        public static void ToggleCloseConfirmation(bool showClose)
+        {
+            ShowCloseConfirmation = showClose;
+        }
+        public static bool GetCloseConfirmation()
+        {
+            return ShowCloseConfirmation;
+        }
+    }
+
     public static class VolumeSettingsPreference
     {
         const double defaultVolume = 15;

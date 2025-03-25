@@ -288,7 +288,7 @@ public partial class HomePageM : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.PlayNextSongCommand.Execute(null);
+                                MyViewModel.PlayPreviousSong();
 
                                 var colorTask = AnimateColor(send, Colors.SlateBlue);
                                 var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
@@ -298,7 +298,7 @@ public partial class HomePageM : ContentPage
                              else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.PlayPreviousSongCommand.Execute(null);
+                                MyViewModel.PlayPreviousSong();
 
                                 var colorTask = AnimateColor(send, Colors.MediumPurple);
                                 var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
@@ -314,7 +314,7 @@ public partial class HomePageM : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.PlayPreviousSongCommand.Execute(null);
+                            MyViewModel.PlayPreviousSong();
                             Debug.WriteLine("Swiped left");
                             var t1= send.MyBackgroundColorTo(Colors.MediumPurple, length: 300); 
                             var t2=  Task.Delay(500);
@@ -332,7 +332,7 @@ public partial class HomePageM : ContentPage
                         {
                             if (HomeTabView.SelectedItemIndex != 0)
                             {
-                                HomeTabView.SelectedItemIndex=0;
+                                HomeTabView.SelectedItemIndex = 0;
                             }
                             var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
                             SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
@@ -349,6 +349,18 @@ public partial class HomePageM : ContentPage
                             {
                                 HomeTabView.SelectedItemIndex = 1;                                
                                 await MyViewModel.AssignSyncLyricsCV(LyricsColView);
+
+                                //SongsColView.FilterString = string.Empty;
+
+                                await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
+                                    );
+                                //CurrentView!.AnimateFadeOutBack());
+                                isOnFocusMode = false;
+                                //CurrentView = SearchModeUI;
+
+                                SearchBy.Unfocus();
+                                SearchParam = string.Empty;
+
                             }
                             else
                             {
@@ -540,7 +552,8 @@ public partial class HomePageM : ContentPage
 
     private async void SearchBy_ClearIconClicked(object sender, HandledEventArgs e)
     {
-        SongsColView.RefreshData();
+
+        SongsColView.FilterString = string.Empty;
         await ToggleSearchPanel();
     }
 
@@ -683,10 +696,6 @@ public partial class HomePageM : ContentPage
     {
         MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
     }
-    private void Chip_Tap_1(object sender, HandledEventArgs e)
-    {
-        MyViewModel.ToggleShuffleStateCommand.Execute(true);
-    }
 
     private async void StartSyncing_Clicked(object sender, EventArgs e)
     {
@@ -772,5 +781,10 @@ public partial class HomePageM : ContentPage
 
         var curSel = send.BindingContext as AlbumModelView;
         MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
+    }
+
+    private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.ToggleShuffleState();
     }
 }

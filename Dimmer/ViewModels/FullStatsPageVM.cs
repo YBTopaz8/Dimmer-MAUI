@@ -10,7 +10,7 @@ public partial class HomePageVM
     {           
         HourlyPlayEventDataPlot = playData
             .GroupBy(p => new { p.SongId, Hour = p.EventDate.Hour })
-            .Select(g => g.First())
+            .Select(g => g.FirstOrDefault())
             .GroupBy(p => p.EventDate.Hour)
             .Select(g => new DimmData
             {

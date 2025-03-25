@@ -151,11 +151,16 @@ public partial class SingleSongShellPageD : ContentPage
     }
     private async void ToggleFocusModeClicked(object sender, EventArgs e)
     {
-        if (FocusModeUI.IsVisible)
+        await SwitchPlayUIs(FocusModeUI,NormalNowPlayingUI);
+    }
+
+    private async Task SwitchPlayUIs(View view1, View view2)
+    {
+        if (view1.IsVisible)
         {
             await Task.WhenAll(
-            FocusModeUI.AnimateFadeOutBack(),
-            NormalNowPlayingUI.AnimateFadeInFront()
+            view1.AnimateFadeOutBack(),
+            view2.AnimateFadeInFront()
 
             );
 
@@ -164,13 +169,11 @@ public partial class SingleSongShellPageD : ContentPage
         else
         {
             await Task.WhenAll(
-            FocusModeUI.AnimateFadeInFront(),
-            NormalNowPlayingUI.AnimateFadeOutBack());
+            view1.AnimateFadeInFront(),
+            view2.AnimateFadeOutBack());
             isOnFocusMode = true;
         }
     }
-
-
 
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
@@ -329,11 +332,10 @@ public partial class SingleSongShellPageD : ContentPage
             : kvp.Value.AnimateFadeOutBack()));
         return;
     }
-    private async void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
+    private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
         var ee = (SfChip)sender;
-
-        MyViewModel.RateSong(ee.CommandParameter.ToString()!);
+        
     }
 
     List<string> SelectedSongIds = [];
@@ -828,5 +830,20 @@ public partial class SingleSongShellPageD : ContentPage
     private void PasteLyrClipboard_Clicked(object sender, EventArgs e)
     {
         PasteLyricsFromClipBoardBtn_Clicked(sender, e);
+    }
+
+    private void SyncLyrLine_PointerEntered(object sender, PointerEventArgs e)
+    {
+        var send = (Border)sender;
+        send.Stroke = Colors.DarkSlateBlue;
+        send.StrokeThickness = 2;
+
+    }
+
+    private void SyncLyrLine_PointerExited(object sender, PointerEventArgs e)
+    {
+        var send = (Border)sender;
+        send.Stroke = Colors.Transparent;
+        send.StrokeThickness = 0;
     }
 }

@@ -35,7 +35,7 @@ public partial class SongToPlaylistPopup : Popup
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text); 
+        
         this.Close();
     }
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)

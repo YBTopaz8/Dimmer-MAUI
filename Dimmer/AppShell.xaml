@@ -8,7 +8,7 @@
     xmlns:vm="clr-namespace:Dimmer_MAUI.ViewModels"
     x:DataType="vm:HomePageVM"         
     x:Name="myPage"
-             xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"    
+    xmlns:customControl="clr-namespace:Dimmer_MAUI.Utilities.OtherUtils.CustomControl"    
     Shell.FlyoutBehavior="Flyout"
     FlyoutIsPresented="{Binding IsFlyoutPresented, Mode=TwoWay}"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
@@ -491,7 +491,6 @@ EmptyView="No Syncronized Lyrics ..." >
                                     <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
                                         <Button Text="Cancel" x:Name="CancelCreateNewPlaylist" Clicked="CancelCreateNewPlaylist_Clicked" TextColor="Red"/>
                                         <Button Text="Create" x:Name="CreatePlaylistBtn" 
-         Command="{Binding CreatePlaylistAndAddSongCommand}" CommandParameter="{Binding Text, Source={x:Reference NewPlaylistName}}"
          Clicked="CreatePlaylistBtn_Clicked" TextColor="White" />
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
@@ -536,7 +535,7 @@ EmptyView="No Syncronized Lyrics ..." >
             <ShellContent ContentTemplate="{DataTemplate viewsD:FullStatsPageD}"
                 Route="FullStatsD"/>
         </Tab>
-        <Tab Title="User" x:Name="settingsTab" Icon="user.png">
+        <Tab Title="Settings" x:Name="settingsTab" Icon="user.png">
             <ShellContent ContentTemplate="{DataTemplate viewsD:SettingsPageD}"
                 Route="SettingsPageD"/>
         </Tab>

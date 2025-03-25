@@ -23,17 +23,17 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <ScrollView  x:Name="MainDock">
-        <VerticalStackLayout Padding="10,0" Spacing="15">
+    
+        <VerticalStackLayout Padding="10,0" Spacing="15" x:Name="MainDock">
             <Label Text="Settings" FontSize="16" FontAttributes="Bold" />
 
             <syncf:SfChipGroup Grid.Row="0" HorizontalOptions="Center" 
                                ChipType="Choice" ChoiceMode="Single" SelectionChanged="SongShellChip_SelectionChanged"
                                x:Name="SettingsTab">
 
-                <syncf:SfChip ImageSource="peopb.png" Text="Buddies" CommandParameter="5"/>
-                <syncf:SfChip Text="Folders Management" CommandParameter="1"/>
-                <syncf:SfChip Text="User Page" CommandParameter="0"/>
+            <syncf:SfChip Text="User Page" CommandParameter="0"/>
+                <syncf:SfChip Text="App Settings" CommandParameter="1"/>
+                
                 <syncf:SfChip Text="Online Login" CommandParameter="2"/>
 
 
@@ -41,69 +41,6 @@
                 <!--<syncf:SfChip Text="SongStats" x:Name="SongStatsChip"  CommandParameter="4"/>-->
             </syncf:SfChipGroup>
 
-            <Grid x:Name="SocialView" IsVisible="False"
-                RowSpacing="5" BackgroundColor="Transparent"
-                    Scale="0.9" ColumnDefinitions="Auto,*">
-                <CollectionView Header="All Buddies" Grid.Column="0">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:UserModelView">
-                            <VerticalStackLayout>
-                                <VerticalStackLayout.GestureRecognizers>
-                                    <TapGestureRecognizer x:Name="UserSelect" Tapped="UserSelect_Tapped">
-
-                                    </TapGestureRecognizer>
-                                </VerticalStackLayout.GestureRecognizers>
-
-                                <Label Text="{Binding UserName}"/>
-                                <Label Text="{Binding LastSessionDate}"/>
-
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
-                <Grid Grid.Column="1">
-
-                    <Grid x:Name="ChatView" RowDefinitions="100,*">
-                        <CollectionView >
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:ChatMessageDisplay">
-                                    <Grid >
-                                        <Grid.Triggers>
-                                            <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsDeleted}" Value="False">
-                                                <Setter Property="IsVisible" Value="False"/>
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding IsDeleted}" Value="True">
-                                                <Setter Property="IsVisible" Value="False"/>
-                                            </DataTrigger>
-                                        </Grid.Triggers>
-
-                                        <Border>
-                                            <VerticalStackLayout>
-                                                <Grid ColumnDefinitions="*,Auto">
-                                                    <Label Text="{Binding Content}" Grid.Column="0"/>
-
-                                                    <VerticalStackLayout Grid.Column="1">
-                                                        <Label Text="{Binding SenderUsername}"/>
-                                                    </VerticalStackLayout>
-                                                </Grid>
-                                            </VerticalStackLayout>
-
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </Grid>
-
-                    <VerticalStackLayout IsVisible="False" x:Name="UserProfileView">
-                        <Label Text="User Profile"/>
-                        <Label Text="{Binding CurrentUser.UserName}"/>
-                        <Label Text="{Binding CurrentUser.UserEmail}"/>
-                        <Label Text="{Binding CurrentUser.UserPassword}"/>
-                    </VerticalStackLayout>
-                </Grid>
-            </Grid>
             <VerticalStackLayout x:Name="AlreadyInView">
                 <VerticalStackLayout>
 
@@ -133,11 +70,16 @@
                 </VerticalStackLayout>
             </VerticalStackLayout>
 
-            <VerticalStackLayout x:Name="FoldersView" IsVisible="False"
+            <VerticalStackLayout x:Name="AppSettingsView" IsVisible="False"
                 Spacing="5" BackgroundColor="Transparent"
                     Scale="0.9" >
+            <HorizontalStackLayout Spacing="10">
+                <Label Text="Show Close Confirmation" FontSize="20"/>
+                <CheckBox IsChecked="{Binding IsShowCloseConfirmation}"
+            x:Name="ShowCloseConf" CheckedChanged="ShowCloseConf_CheckedChanged"/>
 
-                <syncf:SfChip Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
+            </HorizontalStackLayout>
+            <syncf:SfChip Text="Select Folder" Command="{Binding SelectSongFromFolderCommand}" 
                         TextColor="White" />
 
                 <syncf:SfChip Text="Scan All" Command="{Binding LoadSongsFromFoldersCommand}"
@@ -263,5 +205,5 @@
                      TextColor="White" />
             </VerticalStackLayout>
         </VerticalStackLayout>
-    </ScrollView>
+    
 </ContentPage>

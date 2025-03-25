@@ -33,6 +33,7 @@
                            DragLeave="DropGestureRecognizer_DragLeave"
                            Drop="DropGestureRecognizer_Drop"/>
         </Grid.GestureRecognizers>
+        
         <Image Source="{Binding MySelectedSong.CoverImagePath}" Opacity="0.10"
                 Aspect="AspectFill" x:Name="PageBGImg"
             x:DataType="vm:HomePageVM"/>
@@ -246,6 +247,29 @@
 
                                 </Grid.Resources>
 
+                                <VerticalStackLayout Grid.Row="0" Spacing="10" 
+                                                     Margin="5" Grid.ColumnSpan="2">
+
+                                    <Label Text="{Binding MySelectedSong.FilePath,StringFormat='Full Path: {0}'}"/>
+                                    <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}" ClearButtonVisibility="WhileEditing"/>
+                                    <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}" ClearButtonVisibility="WhileEditing"/>
+                                    <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}" ClearButtonVisibility="WhileEditing"/>
+
+                                    <HorizontalStackLayout Spacing="10">
+
+                                        <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
+                                                Clicked="SearchLyricsOnLyrLib_Clicked">
+
+                                            <Button.CommandParameter>
+                                                <x:Boolean>True</x:Boolean>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        <Button Text="Paste Lyrics"
+                                                x:Name="PasteLyricsFromClipBoardBtn"
+                                                Clicked="PasteLyricsFromClipBoardBtn_Clicked"/>
+                                    </HorizontalStackLayout>
+
+                                </VerticalStackLayout>
                                 <Grid ColumnDefinitions="*,*" Grid.Row="1" Grid.ColumnSpan="2">
                                     <HorizontalStackLayout Grid.Column="0" Spacing="10">
                                         <Button Text="Paste From Plain Lyrics" x:Name="PasteLyrPlainLyr" Clicked="PasteLyrPlainLyr_Clicked"/>
@@ -257,29 +281,6 @@
                                         Source="backb.png" x:Name="CancelAction" Clicked="CancelAction_Clicked" />
                                 </Grid>
                                 
-                                <VerticalStackLayout Grid.Row="0" Spacing="10" 
-                                                     Margin="5" Grid.ColumnSpan="2">
-
-                                    <Label Text="{Binding MySelectedSong.FilePath,StringFormat='Full Path: {0}'}"/>
-                                    <Entry Placeholder="Song Title" Text="{Binding LyricsSearchSongTitle}"/>
-                                    <Entry Placeholder="Song Album" Text="{Binding LyricsSearchAlbumName}"/>
-                                    <Entry Placeholder="Song Artist" Text="{Binding LyricsSearchArtistName}"/>
-                                
-                                    <HorizontalStackLayout Spacing="10">
-
-                                        <Button Text="Search Lyrics" x:Name="SearchLyricsOnLyrLib"
-                                                Clicked="SearchLyricsOnLyrLib_Clicked">
-                                            
-                                            <Button.CommandParameter>
-                                                <x:Boolean>True</x:Boolean>
-                                            </Button.CommandParameter>
-                                        </Button>
-                                        <Button Text="Paste Lyrics"
-                                                x:Name="PasteLyricsFromClipBoardBtn"
-                                                Clicked="PasteLyricsFromClipBoardBtn_Clicked"/>
-                                    </HorizontalStackLayout>
-
-                                </VerticalStackLayout>
 
                                 <Grid Grid.Row="2" ColumnDefinitions="*,*" 
                                       RowDefinitions="Auto,*"
@@ -305,16 +306,24 @@
                                         <CollectionView Grid.Row="0" ItemsSource="{Binding LyricsLines}">
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="models:LyricPhraseModel">
-                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
-                                                        <Editor Text="{Binding Text}" Grid.Column="0"/>
-                                                        <HorizontalStackLayout Grid.Column="1">
-                                                            <Editor Text="{Binding TimeStampText}" WidthRequest="70"/>
-                                                            <ImageButton Source="backk.png" CommandParameter="{Binding .}"
+                                                    <Border x:Name="SyncLyrLine">
+                                                        <Border.GestureRecognizers>
+                                                            <PointerGestureRecognizer 
+                                                                                      PointerEntered="SyncLyrLine_PointerEntered"
+                                                                                      PointerExited="SyncLyrLine_PointerExited"/>
+                                                        </Border.GestureRecognizers>
+                                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                                                            <Editor Text="{Binding Text}" Grid.Column="0"/>
+                                                            <HorizontalStackLayout Grid.Column="1">
+                                                                <Editor Text="{Binding TimeStampText}" WidthRequest="70"/>
+                                                                <ImageButton Source="backk.png" CommandParameter="{Binding .}"
 x:Name="DeleteLine" Clicked="DeleteLine_Clicked"/>
-                                                            <ImageButton Source="time.png" CommandParameter="{Binding .}"
+                                                                <ImageButton Source="time.png" CommandParameter="{Binding .}"
 x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
-                                                        </HorizontalStackLayout>
-                                                    </Grid>
+                                                            </HorizontalStackLayout>
+                                                        </Grid>
+                                                    </Border>
+                                                    
                                                 </DataTemplate>
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>

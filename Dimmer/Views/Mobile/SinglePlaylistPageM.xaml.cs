@@ -3,16 +3,16 @@ namespace Dimmer_MAUI.Views.Mobile;
 public partial class SinglePlaylistPageM : ContentPage
 {
     NowPlayingBtmSheet btmSheet { get; set; }
-    public SinglePlaylistPageM(HomePageVM playlistsPageVM, HomePageVM homePageVM)
+    public SinglePlaylistPageM(PlaylistVM playlistsPageVM)
 	{
 		InitializeComponent();
-        MyViewModel = homePageVM;
+        MyViewModel = playlistsPageVM;
         BindingContext = playlistsPageVM;
         btmSheet = IPlatformApplication.Current!.Services.GetService<NowPlayingBtmSheet>()!;
         //this.Attachments.Add(btmSheet);
     }
 
-    public HomePageVM MyViewModel { get; }
+    public PlaylistVM MyViewModel { get; }
 
     protected override void OnAppearing()
     {

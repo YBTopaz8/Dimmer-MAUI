@@ -20,7 +20,7 @@ public partial class AppShell : Shell
         MyViewModel = vm;
         BindingContext = vm;
         InitializeComponent();
-
+        
         Routing.RegisterRoute(nameof(MainPageD), typeof(MainPageD));
         Routing.RegisterRoute(nameof(SingleSongShellPageD), typeof(SingleSongShellPageD));
         Routing.RegisterRoute(nameof(PlaylistsPageD), typeof(PlaylistsPageD));
@@ -171,6 +171,9 @@ public partial class AppShell : Shell
             //nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
 
         }
+
+        MyViewModel.IsShowCloseConfirmation = AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation();
+
     }
 
     private void DimmerUIElement_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
@@ -757,11 +760,9 @@ public partial class AppShell : Shell
 
                 if (properties.IsRightButtonPressed)
                 {
-                    if (MyViewModel.IsMultiSelectOn)
-                    {
-                        MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
-                    }
-                     
+                    MyViewModel.IsMultiSelectOn = !MyViewModel.IsMultiSelectOn;
+                    MyViewModel.IsContextMenuExpanded= false;
+
                     Debug.WriteLine("Right mouse button pressed.");
                 }
 
@@ -970,7 +971,7 @@ public partial class AppShell : Shell
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        
         //this.Close();
     }
     private void CloseBtmSheet_Tapped(object sender, TappedEventArgs e)

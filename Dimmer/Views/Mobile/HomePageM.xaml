@@ -41,7 +41,7 @@
                             IsVisible="False">
                     <dx:TextEdit x:Name="SearchBy" TextChanged="SearchBy_TextChanged"
         LabelText="Search by" dx:DXDockLayout.Dock="Bottom"
-        TextChangedCommandParameter="Title" ClearIconClicked="SearchBy_ClearIconClicked"/>
+        TextChangedCommandParameter="All" ClearIconClicked="SearchBy_ClearIconClicked"/>
 
                     <dx:ChoiceChipGroup HorizontalOptions="Center"
                                     BackgroundColor="Transparent"
@@ -140,7 +140,10 @@
                     </dx:TabViewItem>
                     <dx:TabViewItem x:Name="NowPlayingView" >
                         <Grid x:Name="NowPlayingUI">
-                           
+
+                            <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" Opacity="0.10"
+                Aspect="AspectFill" x:Name="PageBGImg"
+            />
                             <dx:DXCollectionView IsScrollBarVisible="False" VerticalOptions="Center"
 x:Name="LyricsColView" HeightRequest="300"
                      SelectionChanged="LyricsColView_SelectionChanged"
@@ -295,10 +298,9 @@ BackgroundColor="#626680">
                                     </dx:Chip.Triggers>
                                 </dx:Chip>
 
-                                <dx:Chip  BorderColor="Transparent"
-                                         IconSize="35,35" IconColor="MediumPurple"
-                                          Tap="Chip_Tap_1"
-                                         TapCommand="{Binding ToggleShuffleStateCommand}"
+                                <dx:Chip  BorderColor="Transparent" Tap="ToggleShuffle_Tap"
+                                         IconSize="35,35" IconColor="MediumPurple"         x:Name="ToggleShuffle"                                 
+                                         
      Icon="shuffle.png"  BackgroundColor="Transparent">
                                     <dx:Chip.Triggers>
                                             <DataTrigger Binding="{Binding IsShuffleOn}" Value="True" TargetType="dx:Chip">
@@ -428,12 +430,12 @@ BackgroundColor="#626680">
         </Grid>
         
         <dx:BottomSheet x:Name="ContextBtmSheet" CornerRadius="5"
-             IsVisible="False" HalfExpandedRatio="0.8">
+              HalfExpandedRatio="0.8">
             <dx:BottomSheet.Content>
                 <Grid>
 
                     <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}" 
-                                   Aspect="AspectFill" IsVisible="False"
+                                   Aspect="AspectFill" IsVisible="True"
                                    Opacity="0.24"/>
                     <dx:TabView SelectedItemIndex="{Binding BtmSheetIndex}">
                     <dx:TabViewItem HeaderText="Now Playing Queue">

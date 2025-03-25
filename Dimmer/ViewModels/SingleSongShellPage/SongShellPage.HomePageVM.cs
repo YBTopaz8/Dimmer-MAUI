@@ -139,7 +139,6 @@ public partial class HomePageVM
         if (SongsMgtService.AllSongs == null || SongsMgtService.AllSongs.Count < 1)
             return;
 
-        AllPlayDataLinks = [.. SongsMgtService.AllPlayDataLinks];  // .ToList() is fine here
         AllLinks = SongsMgtService.AllLinks; // Assuming AllLinks is already a List or similar
 
         // Use LINQ's Where and ToDictionary to filter out null LocalDeviceIds.
@@ -559,7 +558,7 @@ public partial class HomePageVM
                 timeOfDayCounts["Night"]++;
         }
 
-        return timeOfDayCounts.OrderByDescending(kv => kv.Value).First().Key;
+        return timeOfDayCounts.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
     }
 
     public static Dictionary<DayOfWeek, int> GetPlayFrequencyDistribution(string songId, List<PlayDataLink> playDataLinks)

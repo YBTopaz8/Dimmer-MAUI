@@ -7,10 +7,7 @@ public partial class HomePageVM
 {
     [ObservableProperty]
     public partial int NPLyricsFontSize { get; set; }
-    [ObservableProperty]
-    public partial Label? InternalNotificationLabelVM { get; set; }
-    [ObservableProperty]
-    public partial SearchBar? InternalSearchSongSBVM { get; set; }
+    
     [RelayCommand]
     public void IncreaseNowPlayingLyricsFontSize()
     {
@@ -48,11 +45,11 @@ public partial class HomePageVM
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
         var lyrr = LyricsManagerService.GetSpecificSongLyrics(TemporarilyPickedSong);
-        if (lyrr is not null && lyrr.Count>0)
-        {
-            await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
-            return true;
-        }
+        //if (lyrr is not null && lyrr.Count>0)
+        //{
+        //    await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
+        //    return true;
+        //}
         if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
         {
             return false;
@@ -177,7 +174,7 @@ public partial class HomePageVM
         {
             await Shell.Current.DisplayAlert("Warning", "You must be playing a song to capture a timestamp.", "OK");
             return;
-            //PlaySong(TemporarilyPickedSong);
+            //PlaySongWithPosition(TemporarilyPickedSong);
         }
 
         if (CurrPosition < 0)
@@ -294,69 +291,59 @@ public partial class HomePageVM
 
     }
     System.Timers.Timer _showAndHideFavGif;
-    
-    public void RateSong(string value)
+
+    public void RateSongs(string value, List<string>? songIDs = null)
     {
-        if (MySelectedSong is null || TemporarilyPickedSong is null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+        // Use current song if none provided
+        if (songIDs == null || songIDs.Count == 0)
         {
-            return;
+            if (MySelectedSong?.LocalDeviceId != null)
+                songIDs = new List<string> { MySelectedSong.LocalDeviceId };
+            else
+                return;
         }
-        bool willBeFav = false;
-        var rateValue = int.Parse(value);
-        switch (rateValue)
-        {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                willBeFav = false;
-                break;
-            case 4:
-            case 5:
-                willBeFav = true;
-                break;
-            default:
-                break;
-        }
-        MySelectedSong.IsFavorite = willBeFav;
-        MySelectedSong.Rating = rateValue;
-        SongsMgtService.UpdateSongDetails(MySelectedSong);
 
-        var favPlaylist =  PlayBackService.AllPlaylists.Where(x=>x.Name == "Favorites").FirstOrDefault();
+        // Validate temporary song
+        if (TemporarilyPickedSong == null || string.IsNullOrEmpty(TemporarilyPickedSong.FilePath))
+            return;
+
+        int rating = int.Parse(value);
+        bool isFav = rating >= 4 && rating <= 5;
+
+        // Get the Favorites playlist
+        var favPlaylist = PlayBackService.AllPlaylists.FirstOrDefault(x => x.Name == "Favorites");
         if (favPlaylist == null)
-        {
             return;
-        }
 
-            if (MySelectedSong.IsFavorite && willBeFav)
-            {
-                UpSertPlayList(MySelectedSong, IsAddSong: true, playlistModel: favPlaylist);
-                GeneralStaticUtilities.ShowNotificationInternally("Added to Favorites");
-                return;
-            }
-            if (MySelectedSong.IsFavorite && !willBeFav)
-            {
-                UpSertPlayList(MySelectedSong, IsRemoveSong: true, playlistModel: favPlaylist);
-                GeneralStaticUtilities.ShowNotificationInternally("Removed from Favorites");
-
-                return;
-            }
-        
-        favPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
-        if (SelectedPlaylist == favPlaylist)
+        int processedCount = 0;
+        foreach (var id in songIDs)
         {
-            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
-        }
-        if (DisplayedPlaylists.Contains(favPlaylist))
-        {
-            SelectedPlaylist?.DisplayedSongsFromPlaylist?.Remove(MySelectedSong);
-        }
-        //if (CurrentUser.IsLoggedInLastFM)
-        //{
-        //    //LastFMUtils.RateSong(MySelectedSong, willBeFav);
-        //}
+            var song = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == id);
+            if (song == null)
+                continue;
 
+            song.Rating = rating;
+            song.IsFavorite = isFav;
+            SongsMgtService.UpdateSongDetails(song);
+            processedCount++;
+
+            // Use UpSertPlayList to add or remove the song from Favorites
+            //if (isFav)
+            //    UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsAddSong: true);
+            //else
+            //    UpSertPlayList(favPlaylist, new List<string> { song.LocalDeviceId }, IsRemoveSong: true);
+        }
+
+        if (processedCount > 0)
+        {
+            string message = isFav
+                ? $"Added {processedCount} to Favorites"
+                : $"Removed {processedCount} from Favorites";
+            GeneralStaticUtilities.ShowNotificationInternally(message);
+        }
     }
+
+
     [ObservableProperty]
     public partial TitleBar? DimmerTitleBarVM { get; set; } = new();
   

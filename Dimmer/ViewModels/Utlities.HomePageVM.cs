@@ -32,8 +32,6 @@ public partial class HomePageVM
 
     [ObservableProperty]
     public partial bool IsSearchBarVisible { get; set; } = true;
-    [ObservableProperty]
-    public partial SearchBar? DimmerGlobalSearchBar { get; set; }
     
     [RelayCommand]
     void DummyFunc()
@@ -489,7 +487,7 @@ public partial class HomePageVM
         SongsMgtService.CurrentUserOnline = this.CurrentUserOnline;
         IsSyncingSongs = true;
         await SongsMgtService.SendAllDataToServerAsInitialSync();
-        await SongsMgtService.GetAllDataFromOnlineAsync();
+        
 
         SyncRefresh();
 
@@ -622,7 +620,7 @@ public partial class HomePageVM
         }
         
         List<object> AllPlayLists = [];
-        foreach (PlaylistModelView item in DisplayedPlaylists)
+        foreach (PlaylistModelView item in PlaylistManagementService.AllPlaylists)
         {
             AllPlayLists.Add(ObjectMapper.ClassToDictionary(item));
         }
@@ -728,7 +726,7 @@ public partial class HomePageVM
                     // Call RestoreAllOnlineData with the extracted data
                     SongsMgtService.RestoreAllOnlineData(playDataLinks, songsData, albums, allGenres, allPlaylists, otherLinks);
 
-                    RefreshPlaylists();
+                    
                 }
                 else
                 {
@@ -780,11 +778,11 @@ public partial class HomePageVM
 
         ObservableCollection<CurrentDeviceStatus> devices = [];
 
-        foreach (var device in deviceObjects)
-        {
-            var s = GeneralStaticUtilities.MapFromParseObjectToClassObject<CurrentDeviceStatus>(device);
-            devices.Add(s);
-        }
+        //foreach (var device in deviceObjects)
+        //{
+        //    //var s = GeneralStaticUtilities.MapFromParseObjectToClassObject<CurrentDeviceStatus>(device);
+        //    //devices.Add(s);
+        //}
         OtherConnectedDevices = devices;
     }
 
@@ -960,6 +958,15 @@ public partial class HomePageVM
         CurrentUser.LastSessionDate = DateTime.Now;
         CurrentUserOnline = null;
         return true;
+    }
+
+    [ObservableProperty]
+    public partial bool IsShowCloseConfirmation { get; set; }
+    
+    public void SetIsShowPopUpConfirmation(bool isShow)
+    {
+        AppSettingsService.ShowCloseConfirmationPopUp.ToggleCloseConfirmation(isShow);
+        IsShowCloseConfirmation = isShow;
     }
 
     [ObservableProperty]

@@ -20,14 +20,7 @@ public partial class MediaPlaybackControlsView : ContentView
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName==nameof(MyViewModel.IsPlaying))
-        {
-            bool isPlaying = MyViewModel.IsPlaying;
-            if (isPlaying)
-            {
-                
-            }
-        }
+        
     }
 
     private bool _isThrottling = false;
@@ -155,64 +148,13 @@ public partial class MediaPlaybackControlsView : ContentView
 
     }
 
+    private void PlayPrevious_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.PlayPreviousSong();
+    }
 
-    //private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
-    //{
-    //    var selectedTab = StatsTabs.SelectedItem;
-    //    var send = (SfChipGroup)sender;
-    //    var selected = send.SelectedItem as SfChip;
-    //    if (selected is null)
-    //    {
-    //        return;
-    //    }
-    //    _ = int.TryParse(selected.CommandParameter.ToString(), out int selectedStatView);
-
-    //    switch (selectedStatView)
-    //    {
-    //        case 0:
-
-    //            //GeneralStatsView front, rest back
-    //            break;
-    //        case 1:
-    //            break;
-    //        case 2:
-    //            break;
-    //        case 3:
-    //            break;
-    //        case 4:
-    //            MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
-
-
-    //            break;
-    //        case 5:
-
-    //            break;
-    //        case 6:
-
-    //            break;
-    //        default:
-
-    //            break;
-    //    }
-
-    //    var viewss = new Dictionary<int, View>
-    //    {
-    //        {0, NowPlayingPlaylist},
-    //        {1, SongAlbumSongs},
-    //        {2, SongArtistSongs},
-    //        {3, SongInfo},
-    //        //{4, SongStatsGrid},
-
-    //    };
-    //    if (!viewss.ContainsKey(selectedStatView))
-    //        return;
-
-    //    await Task.WhenAll
-    //        (viewss.Select(kvp =>
-    //        kvp.Key == selectedStatView
-    //        ? kvp.Value.AnimateFadeInFront()
-    //        : kvp.Value.AnimateFadeOutBack()));
-    //    return;
-    //}
-
+    private void PlayNext_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.PlayNextSong();
+    }
 }

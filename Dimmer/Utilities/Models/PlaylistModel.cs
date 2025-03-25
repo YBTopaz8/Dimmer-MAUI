@@ -4,7 +4,7 @@ public partial class PlaylistModel : RealmObject
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } 
     
-    public string? Name { get; set; } = "Unknown Playlist";
+    public string? Name { get; set; } = "Unknown AlbumsQueue";
     public double TotalDuration { get; set; }
     public double TotalSize { get; set; }
     public int TotalSongsCount { get; set; }
@@ -38,7 +38,7 @@ public partial class PlaylistSongLink : RealmObject
 public partial class PlaylistModelView : ObservableObject
 {
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = string.Empty;
+    public string? LocalDeviceId { get; set; } = MusicFileProcessor.GenerateLocalDeviceID(nameof(PlaylistModelView));
 
     [ObservableProperty]
     public partial string? Name { get; set; }
@@ -114,8 +114,7 @@ public partial class PlaylistModelView : ObservableObject
     }
 
     public PlaylistModelView(PlaylistModel model)
-    {
-        
+    {        
         LocalDeviceId = model.LocalDeviceId;
         Name = model.Name;
         TotalDuration = model.TotalDuration;

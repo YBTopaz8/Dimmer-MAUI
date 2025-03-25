@@ -178,3 +178,10 @@ public partial class PlaybackStats : ObservableObject
     [ObservableProperty]
     public partial double TotalPlayHours { get; set; } = 0.0;
 }
+public class SongLoadProgress
+{
+    public int ProcessedFiles { get; set; }
+    public int TotalFiles { get; set; }
+    public SongModel? LatestSong { get; set; }
+    public double ProgressPercent { get; set; }
+}

@@ -126,9 +126,9 @@ public partial class SettingsPageM : ContentPage
          await MyViewModel.SelectSongFromFolder();
     }
 
-    private async void SyncPDaCS_Clicked(object sender, EventArgs e)
+    private void SyncPDaCS_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
+        //await MyViewModel.SongsMgtService.SyncPlayDataAndCompletionData();
     }
 
 

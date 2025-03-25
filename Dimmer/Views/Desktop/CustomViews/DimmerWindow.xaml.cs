@@ -4,18 +4,20 @@ using Microsoft.UI.Xaml.Input;
 #endif
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Dimmer_MAUI.Views.Desktop.CustomViews;
 
 public partial class DimmerWindow : Window
 {
-	public DimmerWindow()
+	public DimmerWindow(Lazy<HomePageVM> vM)
 	{
         InitializeComponent();
-       
+        MyViewModel=vM;
     }
+    public Lazy<HomePageVM>? MyViewModel { get; set; }
 
-    
+
     protected override void OnActivated()
     {
         base.OnActivated();
@@ -24,10 +26,7 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        MyViewModel.CurrentAppState = AppState.OnForeGround;
-        MyViewModel.DimmerGlobalSearchBar = SearchSongSB;
-        MyViewModel.InternalNotificationLabelVM = InternalNotificationLabel;
-        MyViewModel.InternalSearchSongSBVM= SearchSongSB;
+        MyViewModel.Value.CurrentAppState = AppState.OnForeGround;
         
         GeneralStaticUtilities.ShowNotificationInternally("Window Activated");
         
@@ -41,24 +40,21 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        MyViewModel.CurrentAppState = AppState.OnBackGround;
-        MyViewModel.InternalNotificationLabelVM = null;
-        MyViewModel.InternalSearchSongSBVM= null;
+        MyViewModel.Value.CurrentAppState = AppState.OnBackGround;
     }
-    public HomePageVM? MyViewModel { get; set; }
 
-    protected async override void OnCreated()
+    protected override void OnCreated()
     {
         base.OnCreated();
-        this.MinimumHeight = 950;
-        this.MinimumWidth = 1200;
-        this.Height = 950;
-        this.Width = 1200;
+        this.MinimumHeight = 700;
+        this.MinimumWidth = 900;
+        this.Height = 850;
+        this.Width = 1100;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.7-debug";
+        DimmerTitleBar.Subtitle = "v1.7d-debug";
         DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
 #elif RELEASE
-        DimmerTitleBar.Subtitle = "v1.7-Release";
+        DimmerTitleBar.Subtitle = "v1.7d-Release";
 #endif
 
         if (!InitChecker())
@@ -69,21 +65,20 @@ public partial class DimmerWindow : Window
         {
             return;
         }
-        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
-        if(MyViewModel.CurrentUser is not null)
+        StickTopImgBtn.IsVisible = MyViewModel.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.Value.IsStickToTop;
+        if(MyViewModel.Value.CurrentUser is not null)
         {
-            onlineCloud.IsVisible = MyViewModel.CurrentUser.IsAuthenticated;
+            onlineCloud.IsVisible = MyViewModel.Value.CurrentUser.IsAuthenticated;
         }
-        //MyViewModel.SongsMgtService.GetUserAccount();
+        //MyViewModel.Value.SongsMgtService.GetUserAccount();
 
 
-        //await MyViewModel.ConnectToLiveQueriesAsync();
-        //await MyViewModel.SetChatRoom(ChatRoomOptions.PersonalRoom);
+        //await MyViewModel.Value.ConnectToLiveQueriesAsync();
+        //await MyViewModel.Value.SetChatRoom(ChatRoomOptions.PersonalRoom);
     }
     bool InitChecker()
     {
-        MyViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
         if (MyViewModel is null)
         {
@@ -112,7 +107,7 @@ public partial class DimmerWindow : Window
         var token = _debounceTimer.Token;
 
         // Determine the delay based on the page.  This makes the code cleaner.
-        int delayMilliseconds = MyViewModel.CurrentPage == PageEnum.AllAlbumsPage ? 300 : 600;
+        int delayMilliseconds = MyViewModel.Value.CurrentPage == PageEnum.AllAlbumsPage ? 300 : 600;
 
         try
         {
@@ -127,7 +122,7 @@ public partial class DimmerWindow : Window
             // Use Dispatcher to update the UI on the main thread
             Dispatcher.Dispatch(() =>
             {
-                switch (MyViewModel.CurrentPage)
+                switch (MyViewModel.Value.CurrentPage)
                 {
                     case PageEnum.SetupPage:
                     case PageEnum.SettingsPage:
@@ -155,76 +150,76 @@ public partial class DimmerWindow : Window
     }
     private void SearchSongs(string? searchText)
     {
-        if (MyViewModel.SongsMgtService.AllSongs is null || MyViewModel.DisplayedSongs is null)
+        if (MyViewModel.Value.SongsMgtService.AllSongs is null || MyViewModel.Value.DisplayedSongs is null)
         {
             return; // Nothing to search
         }
 
         if (string.IsNullOrEmpty(searchText))
         {
-            MyViewModel.IsOnSearchMode = false;
-            MyViewModel.DisplayedSongs.Clear();
-            MyViewModel.CurrentQueue = 0;
+            MyViewModel.Value.IsOnSearchMode = false;
+            MyViewModel.Value.DisplayedSongs.Clear();
+            MyViewModel.Value.CurrentQueue = 0;
             // Repopulate with all songs when search is empty
-            foreach (var song in MyViewModel.SongsMgtService.AllSongs)
+            foreach (var song in MyViewModel.Value.SongsMgtService.AllSongs)
             {
-                MyViewModel.DisplayedSongs.Add(song);
+                MyViewModel.Value.DisplayedSongs.Add(song);
             }
-            OnPropertyChanged(nameof(MyViewModel.DisplayedSongs)); // Notify UI after *all* changes
+            OnPropertyChanged(nameof(MyViewModel.Value.DisplayedSongs)); // Notify UI after *all* changes
             return;
         }
         // Search text is not empty, perform search
-        MyViewModel.IsOnSearchMode = true;
-        MyViewModel.DisplayedSongs.Clear();
+        MyViewModel.Value.IsOnSearchMode = true;
+        MyViewModel.Value.DisplayedSongs.Clear();
 
         // Filter with null checks. This is your existing logic, and it's correct.
-        var fSongs = MyViewModel.SongsMgtService.AllSongs
+        var fSongs = MyViewModel.Value.SongsMgtService.AllSongs
             .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                            (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                            (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
             .ToList();
-        MyViewModel.FilteredSongs = fSongs;
-        MyViewModel.CurrentQueue = 1;
+        MyViewModel.Value.FilteredSongs = fSongs;
+        MyViewModel.Value.CurrentQueue = 1;
         foreach (var song in fSongs)
         {
-            MyViewModel.DisplayedSongs.Add(song);
+            MyViewModel.Value.DisplayedSongs.Add(song);
         }
-        OnPropertyChanged(nameof(MyViewModel.DisplayedSongs));
+        OnPropertyChanged(nameof(MyViewModel.Value.DisplayedSongs));
     }
     private void SearchAlbums(string? searchText)
     {
-        if (MyViewModel.SongsMgtService.AllAlbums is null || MyViewModel.AllAlbums is null)
+        if (MyViewModel.Value.SongsMgtService.AllAlbums is null || MyViewModel.Value.AllAlbums is null)
         {
             return;
         }
 
         if (string.IsNullOrEmpty(searchText))
         {
-            MyViewModel.IsOnSearchMode = false; // Consistent naming
-            MyViewModel.AllAlbums.Clear();
+            MyViewModel.Value.IsOnSearchMode = false; // Consistent naming
+            MyViewModel.Value.AllAlbums.Clear();
 
-            foreach (var album in MyViewModel.SongsMgtService.AllAlbums)
+            foreach (var album in MyViewModel.Value.SongsMgtService.AllAlbums)
             {
-                MyViewModel.AllAlbums.Add(album);
+                MyViewModel.Value.AllAlbums.Add(album);
             }
 
-            OnPropertyChanged(nameof(MyViewModel.AllAlbums));
+            OnPropertyChanged(nameof(MyViewModel.Value.AllAlbums));
             return;
         }
         // Search text is not empty, perform search
 
-        MyViewModel.AllAlbums.Clear();
+        MyViewModel.Value.AllAlbums.Clear();
 
         // Filter with null checks
-        var fAlbums = MyViewModel.SongsMgtService.AllAlbums
+        var fAlbums = MyViewModel.Value.SongsMgtService.AllAlbums
             .Where(item => (!string.IsNullOrEmpty(item.Name) && item.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
             .ToList();
         foreach (var album in fAlbums)
         {
-            MyViewModel.AllAlbums.Add(album);
+            MyViewModel.Value.AllAlbums.Add(album);
         }
 
-        OnPropertyChanged(nameof(MyViewModel.AllAlbums));
+        OnPropertyChanged(nameof(MyViewModel.Value.AllAlbums));
 
     }
 #if WINDOWS
@@ -379,9 +374,9 @@ public struct NMHDR
         {
             return;
         }
-        MyViewModel.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+        MyViewModel.Value.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = MyViewModel.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.Value.IsStickToTop;
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
@@ -390,9 +385,9 @@ public struct NMHDR
         {
             return;
         }
-        MyViewModel.ToggleStickToTopCommand.Execute(null);
-        StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
-        UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+        MyViewModel.Value.ToggleStickToTopCommand.Execute(null);
+        StickTopImgBtn.IsVisible = MyViewModel.Value.IsStickToTop;
+        UnStickTopImgBtn.IsVisible = !MyViewModel.Value.IsStickToTop;
     }
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
@@ -441,12 +436,16 @@ public struct NMHDR
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
-        MyViewModel.IsOnSearchMode = true;
+        MyViewModel.Value.IsOnSearchMode = true;
 
     }
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
-        MyViewModel.IsOnSearchMode = false;
+        MyViewModel.Value.IsOnSearchMode = false;
+    }
+
+    private void QuickSettingsView_TouchDown(object sender, EventArgs e)
+    {
     }
 }

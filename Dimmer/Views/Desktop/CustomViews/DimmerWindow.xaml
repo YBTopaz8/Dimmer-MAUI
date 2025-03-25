@@ -68,6 +68,7 @@
                         <Image Source="onlinecloud.gif" x:Name="onlineCloud" 
                                HeightRequest="30" HorizontalOptions="Start"/>
                     </syncf:SfEffectsView>
+                   
                     
                 </HorizontalStackLayout>                
             </TitleBar.TrailingContent>

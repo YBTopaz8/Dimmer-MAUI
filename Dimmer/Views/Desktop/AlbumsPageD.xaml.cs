@@ -81,7 +81,7 @@ public partial class AlbumsPageD : ContentPage
     //    MyViewModel.CurrentQueue = 1;
     //    var s = (View)sender;
     //    var song = s.BindingContext as SongModelView;
-    //    MyViewModel.PlaySong(song);
+    //    MyViewModel.PlaySongWithPosition(song);
     //}
     private void SongPointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {

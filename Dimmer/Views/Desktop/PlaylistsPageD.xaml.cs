@@ -4,15 +4,15 @@ namespace Dimmer_MAUI.Views.Desktop;
 
 public partial class PlaylistsPageD : ContentPage
 {
-    public HomePageVM MyViewModel { get; }
+    public PlaylistVM MyViewModel { get; }
 
-    public PlaylistsPageD(HomePageVM homePageVM)
+    public PlaylistsPageD(PlaylistVM vm)
     {
         InitializeComponent();
-        BindingContext = homePageVM;
-        MyViewModel = homePageVM;
+        BindingContext = vm;
+        MyViewModel = vm;
     }
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         if (MyViewModel.TemporarilyPickedSong is null)
@@ -21,7 +21,7 @@ public partial class PlaylistsPageD : ContentPage
         }
         MyViewModel.CurrentPage = PageEnum.PlaylistsPage;
         MyViewModel.CurrentPageMainLayout = MainDock;
-        await MyViewModel.LoadFirstPlaylist();
+        
     }
 
     protected override void OnDisappearing()
@@ -170,7 +170,7 @@ public partial class PlaylistsPageD : ContentPage
 
     private void CreatePlaylistBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
+        //MyViewModel.CreatePlaylistAndAddSongCommand.Execute(NewPlaylistName.Text);
         //this.Close();
     }
 
@@ -187,15 +187,15 @@ public partial class PlaylistsPageD : ContentPage
         {
             return;
         }
-        MyViewModel.AddToPlaylist(playlist);
+        //MyViewModel.AddToPlaylist(playlist);
 
     }
     int CurrentIndex;
-    private void SortBtn_Clicked(object sender, EventArgs e)
+    private async void SortBtn_Clicked(object sender, EventArgs e)
     {
 
-        popup.Show();
-        //MyViewModel.OpenSortingPopupCommand.Execute(null);
+        //popup.Show();
+        await MyViewModel.OpenSortingPopup();
     }
 
     private void ShowContextMenu_Clicked(object sender, EventArgs e)
@@ -219,7 +219,6 @@ public partial class PlaylistsPageD : ContentPage
         }
 
         CurrentIndex =int.Parse(param);
-        MyViewModel.Sort(CurrentIndex);
-        popup.Dismiss();
+        //popup.Dismiss();
     }
 }

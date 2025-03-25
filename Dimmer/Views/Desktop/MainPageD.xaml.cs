@@ -1,6 +1,10 @@
 #if WINDOWS
+using DevExpress.Maui.CollectionView;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.UI.Xaml;
+using System.Diagnostics;
+using System.Threading.Tasks;
+
 //using YB.MauiDataGridView;
 using DragEventArgs = Microsoft.Maui.Controls.DragEventArgs;
 
@@ -18,6 +22,7 @@ public partial class MainPageD : ContentPage
     //only pass lazy to ctor if needed, else some parts mightn't work
     public MainPageD(Lazy<HomePageVM> homePageVM)
     {
+        
         InitializeComponent();
         MyViewModel = homePageVM.Value;
         this.BindingContext = homePageVM.Value;
@@ -97,7 +102,7 @@ public partial class MainPageD : ContentPage
         public string? Name { get; set; }
         public int Age { get; set; }
     }
-    public HomePageVM? MyViewModel { get; }
+    HomePageVM MyViewModel { get; }
 
     bool isIniAssign;
     protected override async void OnAppearing()
@@ -369,10 +374,6 @@ public partial class MainPageD : ContentPage
 
     }
 
-    private void SortBtn_Clicked(object sender, EventArgs e)
-    {
-        popup.Show();
-    }
 
     private void Slider_OnValueChanged(object? sender, ValueChangedEventArgs e)
     {
@@ -509,8 +510,7 @@ public partial class MainPageD : ContentPage
                 Debug.WriteLine("By the way! Use to detect keys like CTRL, SHFT etc.. " + e.KeyModifiers);
                 if (properties.IsRightButtonPressed)
                 {
-                    
-                    MyViewModel.ToggleFlyout(); 
+                    //MyViewModel.ToggleFlyout(); 
                     return;
                     MyViewModel.CalculateGeneralSongStatistics(MyViewModel.MySelectedSong.LocalDeviceId);
                     SongStatsView.IsVisible = !SongStatsView.IsVisible;
@@ -604,52 +604,14 @@ public partial class MainPageD : ContentPage
     }
 
 
-    //private void MyTable_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-    //{
-    //    if (MyViewModel.TemporarilyPickedSong is not null)
-    //    {
-    //        MyViewModel.TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-    //    }
-    //    if (MyViewModel.PickedSong is not null)
-    //    {
-    //        MyViewModel.PickedSong.IsCurrentPlayingHighlight = false;
-    //    }
-
-        
-    //    FrameworkElement? send = (FrameworkElement)e.OriginalSource;
-    //    var song = (SongModelView)send.DataContext;
-    //    MyViewModel.MySelectedSong = song;
-        
-    //    //var song = (SongModelView)send.da;
-    //    if (song is not null)
-    //    {
-    //        song.IsCurrentPlayingHighlight = false;
-    //    }
-
-    //    MyViewModel.PlaySong(song);
-    //    MyTable.SelectedItem = song;
-    //}
-
-    //private void MyTable_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
-    //{
-
-
-    //    FrameworkElement? send = (FrameworkElement)e.OriginalSource;
-
-    //    var song = (SongModelView)send.DataContext;
-    //    MyViewModel.MySelectedSong = song;
-    //    MyViewModel.ToggleFlyout();
-    //    MyTable.SelectedItem = song;
-    //    Debug.WriteLine("r tap");
-    //}
-
     private void MyTable_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
     {
         Debug.WriteLine("single tap");
     }
 #endif
-    int CurrentIndex;
-    private void SfChipGroup_ChipClicked(object sender, EventArgs e)
+ 
+
+    private void CntxtMenuChipGroup_ChipClicked(object sender, EventArgs e)
     {
         var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         var param = ee.CommandParameter.ToString();
@@ -657,12 +619,80 @@ public partial class MainPageD : ContentPage
         {
             return;
         }
-
-        CurrentIndex =int.Parse(param);
-        MyViewModel.Sort(CurrentIndex);
-        popup.Dismiss();
+        switch (param)
+        {
+            case "0":
+                MyViewModel.IsMultiSelectOn= false;
+                break;
+            case "1":
+                MyViewModel.ToggleFlyout();
+                //MyViewModel.AddNextInQueueCommand.Execute(MyViewModel.MySelectedSong);
+                break;
+            case "2":
+                // share song
+                //MyViewModel.AddToQueueCommand.Execute(MyViewModel.MySelectedSong);
+                break;
+                case "3":
+                MyViewModel.IsContextMenuExpanded= true;
+                
+                // add to playlist
+                break;
+            case "4":
+                // view Stats
+                break;
+            default:
+                break;
+        }
     }
 
+    private void NewPlaylistEntry_TextChanged(object sender, TextChangedEventArgs e)
+    {
+
+    }
+
+    private async void AddToPLBtn_Clicked(object sender, EventArgs e) //0 for create new, 1 for create new and, 2 for add to existing
+    {
+        var send = (Button)sender;
+        var param = send.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
+        switch (param)
+        {
+            case "0":
+
+                
+
+                var newPlaylist = new PlaylistModelView();
+                newPlaylist.Name = NewPlaylistEntry.Text;
+                if (string.IsNullOrEmpty(NewPlaylistEntry.Text))
+                {
+                    await Shell.Current.DisplayAlert("Error", "Please enter a name for the playlist", "OK");
+                    return;
+                }
+                List<string?>? songIds = new();
+                var songs = SongsColView.SelectedItems;
+                
+                foreach (var item in songs)
+                {
+                    var songId = ((SongModelView)item).LocalDeviceId;
+                    songIds.Add(songId);
+                }
+                if (songIds.Count<1)
+                {
+                    await Shell.Current.DisplayAlert("Error", "No Songs Selected", "OK");
+                    return;
+                }
+                //MyViewModel.AddToPlaylist( newPlaylist, songIds);
+                break;
+            case "1":
+                //MyViewModel.AddToPlaylist(NewPlaylistEntry.Text);
+                break;
+            default:
+                break;
+        }
+    }
 }
 public enum ContextMenuPageCaller
 {

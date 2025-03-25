@@ -1,7 +1,16 @@
-﻿namespace Dimmer_MAUI.DataAccess.Services;
+﻿
+
+namespace Dimmer_MAUI.DataAccess.Services;
 public class DataBaseService : IDataBaseService
 {
-    public void DeleteDB() => throw new NotImplementedException();
+    Realm? db;
+
+    public required AppPreferencesModel ApplicationPreferences { get; set; }
+
+    public void DeleteDB()
+    {
+        throw new NotImplementedException();
+    }
 
     public RealmConfiguration GetRealm()
     {
@@ -25,6 +34,33 @@ public class DataBaseService : IDataBaseService
         };
 
         return config;
+    }
+
+    public DataBaseService()
+    {
+        LoadAppPreference();
+    }
+    public void LoadAppPreference()
+    {
+        db = Realm.GetInstance(GetRealm());
+        var ApplicationPreferencesList = db.All<AppPreferencesModel>().ToList();
+        if (ApplicationPreferencesList is null || ApplicationPreferencesList.Count<1 )
+        {
+
+            ApplicationPreferences = new AppPreferencesModel();
+            ApplicationPreferences.ShowCloseConfirmation = true;
+            db.Write(() =>
+            {
+                db.Add(ApplicationPreferences);
+            });
+        }
+
+    }
+
+    public void SetAppPreference(AppPreferencesModel model)
+    {
+        db = Realm.GetInstance(GetRealm());
+        
     }
 }
 

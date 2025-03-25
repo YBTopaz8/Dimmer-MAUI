@@ -4,9 +4,9 @@ public interface IPlaybackUtilsService
 {
 
     IObservable<ObservableCollection<SongModelView>> NowPlayingSongs { get; } //to display songs in queue
-    IObservable<ObservableCollection<SongModelView>> SecondaryQueue { get; } // This will be used to show songs from playlist
+    
     IObservable<ObservableCollection<SongModelView>> TertiaryQueue { get; } //This will be used to show songs loaded externally
-    bool PlaySong(SongModelView? song, PlaybackSource source, double positionInSec = 0);
+    bool PlaySongWithPosition(SongModelView song, double positionInSec);
     bool PlaySong(SongModelView song, bool isPreview=true);
     void PlayNextSong(bool isUserInitiated = true); //to play next song
     void PlayPreviousSong(bool isUserInitiated = true); //to play previous song
@@ -40,10 +40,10 @@ public interface IPlaybackUtilsService
     void DeleteSongFromHomePage(SongModelView song);
     void MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs);
     
-    //Playlist Section
+    //AlbumsQueue Section
     ObservableCollection<PlaylistModelView> AllPlaylists { get; }
     void AddSongsToPlaylist(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL=true);    
-    void RemoveSongFromPlayListWithPlayListID(SongModelView song, string playlistID);    
+      
     ObservableCollection<PlaylistModelView> GetAllPlaylists();
     List<SongModelView> GetSongsFromPlaylistID(string playlistID);
     bool DeletePlaylistThroughID(string playlistID);
@@ -54,8 +54,10 @@ public interface IPlaybackUtilsService
     ObservableCollection<AlbumModelView> GetAllAlbums();
     void LoadSongsWithSorting(ObservableCollection<SongModelView>? songss = null, bool isFromSearch = false);
     void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true);
-    void ReplaceAndPlayQueue(List<SongModelView> songs, bool playImmediately = false);
+    void ReplaceAndPlayQueue(SongModelView song, List<SongModelView> songs, PlaybackSource source);
     ObservableCollection<SongModelView> GetCurrentQueue();
+    void RemoveSongFromPlayListWithPlayListID(List<string> songIDs, PlaylistModelView playlistModel, bool IsExistingPL = true);
+
     //void ApplyEqualizerPreset(EqualizerPresetName presetName);
     //void SetEqualizerSettings(float[] bands);
 

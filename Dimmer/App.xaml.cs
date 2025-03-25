@@ -29,6 +29,7 @@ public partial class App : Application
 
     HomePageVM MyViewModel { get; set; }
 
+    private static readonly object _logLock = new();
     private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
@@ -48,7 +49,7 @@ public partial class App : Application
         Debug.WriteLine(errorDetails);
 
         // Log to file
-        LogException(e.Exception);
+       LogException(e.Exception);
 
         // Print to Shell.Current
         if (Shell.Current != null)
@@ -60,23 +61,26 @@ public partial class App : Application
         }
     }
 
-    private void LogException(Exception ex)
+    public static void LogException(Exception ex)
     {
-
         try
         {
-            // Define the directory path
+            // Define the directory path.
             string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
 
-            // Ensure the directory exists; if not, create it
+            // Ensure the directory exists.
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            string filePath = Path.Combine(directoryPath, "crashlog.txt");
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg:{ex.Message}\nStackTrace:{ex.StackTrace}\n\n";
 
-            // Retry mechanism for file writing
+            // Use a date-specific file name.
+            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string filePath = Path.Combine(directoryPath, fileName);
+
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";
+
+            // Retry mechanism for file writing.
             bool success = false;
             int retries = 3;
             int delay = 500; // Delay between retries in milliseconds
@@ -89,13 +93,13 @@ public partial class App : Application
                     {
 #if RELEASE || DEBUG
                         File.AppendAllText(filePath, logContent);
-                        success = true; // Write successful
+                        success = true; // Write successful.
 #endif
                     }
                     catch (IOException ioEx) when (retries > 0)
                     {
                         Debug.WriteLine($"Failed to log, retrying... ({ioEx.Message})");
-                        Thread.Sleep(delay); // Wait and retry
+                        Thread.Sleep(delay);
                     }
                 }
 
@@ -110,7 +114,7 @@ public partial class App : Application
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
-
+    
     //private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     //{
 
@@ -171,7 +175,6 @@ public partial class App : Application
 
 
 
-    private static readonly Lock _logLock = new();
 
     public DimmerWindow DimmerWindow { get; }
 

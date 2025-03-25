@@ -63,8 +63,8 @@
     </ContentPage.Resources>
 
     <Grid>
-        <Image Source="{Binding SelectedAlbumOnAlbumPage.AlbumImagePath}" Opacity="0.1" 
-               Aspect="AspectFill"/>
+        <Image Source="{Binding SelectedAlbumOnAlbumPage.AlbumImagePath}" Opacity="0.52" 
+               Aspect="AspectFit"/>
         
         <toolkit:DockLayout x:Name="MainDock" BackgroundColor="Transparent">
             <cw:MediaPlaybackControlsView toolkit:DockLayout.DockPosition="Bottom"
