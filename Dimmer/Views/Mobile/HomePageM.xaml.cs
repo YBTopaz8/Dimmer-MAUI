@@ -107,7 +107,6 @@ public partial class HomePageM : ContentPage
         var song = (SongModelView)s.BindingContext;
         MyViewModel.SetContextMenuSong(song);
         SongsMenuPopup.Show();
-        SongsMenuPopup.WidthRequest = this.Width;
     }
     private async void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
@@ -122,6 +121,11 @@ public partial class HomePageM : ContentPage
     
     private void SearchBy_TextChanged(object sender, EventArgs e)
     {
+        if (string.IsNullOrEmpty(SearchBy.Text))
+        {
+            ByAll();
+            return;
+        }
         switch (SearchParam)
         {
             case "Title":
@@ -288,7 +292,7 @@ public partial class HomePageM : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.PlayPreviousSong();
+                                MyViewModel.PlayNextSong();
 
                                 var colorTask = AnimateColor(send, Colors.SlateBlue);
                                 var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
@@ -364,13 +368,10 @@ public partial class HomePageM : ContentPage
                             }
                             else
                             {
-                                MyViewModel.LoadArtistSongs();
+                                MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
                                 ContextBtmSheet.State = BottomSheetState.HalfExpanded;
                                 ContextBtmSheet.HalfExpandedRatio = 0.8;
-                                await NowPlayingQueueView.DimmOutCompletely();
-                                NowPlayingQueueView.IsVisible=false;
-                                await ArtistSongsView.DimmInCompletely();
-                                ArtistSongsView.IsVisible=true;
+                                
                                 //HomeTabView.SelectedItemIndex = prevViewIndex;
                             }
                         }
@@ -402,6 +403,11 @@ public partial class HomePageM : ContentPage
     {
         MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
         ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+
+        MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        
     }
 
     //mini bar tap play/pause
@@ -584,10 +590,7 @@ public partial class HomePageM : ContentPage
         MyViewModel.LoadArtistSongs();
         ContextBtmSheet.State = BottomSheetState.HalfExpanded;
         ContextBtmSheet.HalfExpandedRatio = 0.8;
-        await NowPlayingQueueView.DimmOutCompletely();
-        NowPlayingQueueView.IsVisible=false;    
-        await ArtistSongsView.DimmInCompletely();
-        ArtistSongsView.IsVisible=true;
+        
     }
 
     private void ShowSongInAlbum_Tap(object sender, HandledEventArgs e)
@@ -616,6 +619,7 @@ public partial class HomePageM : ContentPage
         MyViewModel.CurrentQueue = 1;
         var s = (View)sender;
         var song = s.BindingContext as SongModelView;
+        MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
         MyViewModel.PlaySong(song);
 
     }
@@ -663,10 +667,7 @@ public partial class HomePageM : ContentPage
         MyViewModel.LoadArtistSongs();
         ContextBtmSheet.State = BottomSheetState.HalfExpanded;
         ContextBtmSheet.HalfExpandedRatio = 0.8;
-        await NowPlayingQueueView.DimmOutCompletely();
-        NowPlayingQueueView.IsVisible=false;
-        await ArtistSongsView.DimmInCompletely();
-        ArtistSongsView.IsVisible=true;
+        
     }
     private void SearchOnline_Clicked(object sender, EventArgs e)
     {
@@ -786,5 +787,10 @@ public partial class HomePageM : ContentPage
     private void ToggleShuffle_Tap(object sender, HandledEventArgs e)
     {
         MyViewModel.ToggleShuffleState();
+    }
+
+    private void ToggleRepeat_Tapped(object sender, Microsoft.Maui.Controls.TappedEventArgs e)
+    {
+        MyViewModel.ToggleRepeatModeCommand.Execute(true);
     }
 }

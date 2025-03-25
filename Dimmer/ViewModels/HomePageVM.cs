@@ -674,7 +674,7 @@ public partial class HomePageVM : ObservableObject
                 PlayBackService.ReplaceAndPlayQueue( selectedSong, topTenSongs, PlaybackSource.PlaylistQueue);
                 
             }
-            else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
+            else if ((CurrentPage == PageEnum.SpecificAlbumPage ||CurrentPage == PageEnum.AllAlbumsPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
                 PlayBackService.ReplaceAndPlayQueue( selectedSong, [.. AllArtistsAlbumSongs], PlaybackSource.PlaylistQueue);
                 
