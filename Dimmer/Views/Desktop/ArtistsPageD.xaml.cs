@@ -47,8 +47,8 @@ public partial class ArtistsPageD : ContentPage
         MyViewModel.CurrentPageMainLayout = MainDock;
 
         //AllArtistsColView.SelectedItem = MyViewModel.SelectedArtistOnArtistPage;
-
-        if(MyViewModel.MySelectedSong is null)
+        MyViewModel.GetAllArtists();
+        if (MyViewModel.MySelectedSong is null)
         {
             if (MyViewModel.TemporarilyPickedSong is not null)
             {
@@ -63,6 +63,7 @@ public partial class ArtistsPageD : ContentPage
         }
        
         MyViewModel.IsSearchBarVisible = false;
+
     }
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)

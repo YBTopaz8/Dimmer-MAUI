@@ -563,10 +563,7 @@ public class MediaPlayerService : Service,
         if (mediaSession == null || mediaPlayer == null)
             return;
 
-        if (mediaController == null)
-        {
-            mediaController = new MediaController(Platform.AppContext, mediaSession.SessionToken);
-        }
+        mediaController ??= new MediaController(Platform.AppContext, mediaSession.SessionToken);
         if (SeekedPosition == 0)
         {
             SeekedPosition = Position;

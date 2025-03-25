@@ -22,12 +22,12 @@ public partial class FetchLyricsResultsView : ContentView
         if (title == "Synced Lyrics")
         {
 
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, false);
+            await MyViewModel.SaveLyricToFile(thisContent, false);
         }else
         if (title == "Plain Lyrics")
         {
 
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent, true);
+            await MyViewModel.SaveLyricToFile(thisContent, true);
         }
     }
 

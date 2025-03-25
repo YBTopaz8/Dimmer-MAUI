@@ -226,23 +226,24 @@ public partial class SingleSongShellPageD : ContentPage
         CanScroll = true;
     }
 
-
+    string lyrType = string.Empty;
+    Content SelectedContent { get; set; }
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         LyricsEditor.Text = string.Empty;
         var send = (Button)sender;
-        var title = send.Text;
-        var thisContent = (Content)send.BindingContext;
-        if (title == "Synced Lyrics")
+        lyrType = send.Text;
+        SelectedContent = (Content)send.BindingContext;
+        LyricsView.Text = SelectedContent.PlainLyrics is null ? SelectedContent.SyncedLyrics : SelectedContent.PlainLyrics;
+        if (lyrType.Equals("Synced Lyrics"))
         {
-            await MyViewModel.ShowSingleLyricsPreviewPopup(thisContent!, false);
+            SynceOrPlainTitle.Text ="Synced Lyrics";            
         }
         else
-        if (title == "Plain Lyrics")
         {
-            LyricsEditor.Text = thisContent!.PlainLyrics;
-            
+            SynceOrPlainTitle.Text ="Plain Lyrics";
         }
+        await LyricPrewiewUI.AnimateFadeInFront();
     }
 
     private void ShowHideChart_CheckChanged(object sender, EventArgs e)
@@ -845,5 +846,27 @@ public partial class SingleSongShellPageD : ContentPage
         var send = (Border)sender;
         send.Stroke = Colors.Transparent;
         send.StrokeThickness = 0;
+    }
+
+
+    private async void CloseButton_Clicked(object sender, EventArgs e)
+    {
+        await LyricPrewiewUI.AnimateFadeOutBack();
+        
+    }
+
+    private async void OkButton_Clicked(object sender, EventArgs e)
+    {
+        if (lyrType == "Synced Lyrics")
+        {
+            await MyViewModel.SaveLyricToFile(SelectedContent, false);
+            
+        }
+        else
+        if (lyrType == "Plain Lyrics")
+        {
+            await MyViewModel.SaveLyricToFile(SelectedContent, true);
+        }
+        await LyricPrewiewUI.AnimateFadeOutBack();
     }
 }
