@@ -445,9 +445,7 @@ public struct NMHDR
         MyViewModel.Value.IsOnSearchMode = false;
     }
 
-    private async void QuickSettingsView_TouchDown(object sender, EventArgs e)
+    private void QuickSettingsView_TouchDown(object sender, EventArgs e)
     {
-        
-        await MyViewModel.Value.ShowQuickSettingsPopUp();
     }
 }

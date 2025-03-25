@@ -648,6 +648,7 @@ public partial class HomePageVM : ObservableObject
     {
         CurrentPositionInSeconds = 0;
         CurrentPositionPercentage = 0;
+        
         if (isPrevieww)
         {
             IsPreviewing = isPrevieww;
@@ -665,33 +666,34 @@ public partial class HomePageVM : ObservableObject
         {
             selectedSong.IsCurrentPlayingHighlight = false;
             MySelectedSong = selectedSong;
-
+            
+            
             if (CurrentPage == PageEnum.PlaylistsPage && SelectedPlaylist.DisplayedSongsFromPlaylist != null)
             {
-                PlayBackService.ReplaceAndPlayQueue([.. SelectedPlaylist.DisplayedSongsFromPlaylist], playImmediately: false); // Set the queue
-                PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist);
+                
+                PlayBackService.PlaySong(selectedSong);
             }
             else if (CurrentPage == PageEnum.FullStatsPage)
             {
                 // Assuming TopTenPlayedSongs is available
                 var topTenSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic
-                PlayBackService.ReplaceAndPlayQueue(topTenSongs, playImmediately: false);
-                PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or a more appropriate source
+                PlayBackService.ReplaceAndPlayQueue( selectedSong, topTenSongs, PlaybackSource.PlaylistQueue);
+                
             }
             else if ((CurrentPage == PageEnum.SpecificAlbumPage || CurrentPage == PageEnum.AllArtistsPage) && AllArtistsAlbumSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue([.. AllArtistsAlbumSongs], playImmediately: false);
-                PlayBackService.PlaySong(selectedSong, PlaybackSource.Playlist); // Or Album source
+                PlayBackService.ReplaceAndPlayQueue( selectedSong, [.. AllArtistsAlbumSongs], PlaybackSource.PlaylistQueue);
+                
             }
             else if (IsOnSearchMode && FilteredSongs != null)
             {
-                PlayBackService.ReplaceAndPlayQueue([.. FilteredSongs], playImmediately: false);
-                PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage); // Or Search source
+                PlayBackService.ReplaceAndPlayQueue(selectedSong, [.. FilteredSongs], PlaybackSource.PlaylistQueue);
+
+                PlayBackService.PlaySong(selectedSong); // Or Search source
             }
-            else // Default playing on the main page (HomePage)
+            else // Default playing on the main page (MainQueue)
             {
-                //PlayBackService.ReplaceAndPlayQueue([.. DisplayedSongs], playImmediately: false);
-                PlayBackService.PlaySong(selectedSong, PlaybackSource.HomePage);
+                PlayBackService.ReplaceAndPlayQueue( selectedSong, [.. DisplayedSongs], PlaybackSource.MainQueue);
             }
         }
         else
@@ -745,8 +747,8 @@ public partial class HomePageVM : ObservableObject
         PlayBackService.StopSong();
     }
 
-    [RelayCommand]
-    void PlayNextSong()
+    
+    public void PlayNextSong()
     {
         CurrentPositionInSeconds = 0;
         CurrentPositionPercentage = 0;
@@ -762,8 +764,8 @@ public partial class HomePageVM : ObservableObject
     
     private int _backPressCount = 0;
 
-    [RelayCommand]
-    void PlayPreviousSong()
+    
+    public void PlayPreviousSong()
     {
         CurrentPositionInSeconds = 0;
         CurrentPositionPercentage = 0;
@@ -1312,44 +1314,13 @@ public partial class HomePageVM : ObservableObject
     //}
     private void SubscribetoDisplayedSongsChanges()
     {
-        PlayBackService.NowPlayingSongs.Subscribe(songs =>
+        PlayBackService.NowPlayingSongs
+            .Take(130)
+            .Subscribe(songs =>
         {
-            DisplayedSongs = new ObservableCollection<SongModelView>(songs);
+            PartOfNowPlayingSongs = new ObservableCollection<SongModelView>(songs);
             
-            //UpdateContextMenuData(TemporarilyPickedSong, songs);
-            //PartOfNowPlayingSongs = songs.ToObservableCollection();
-            //if (PartOfNowPlayingSongsCV is not null)
-            //{
-            //    PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
-            //}
-            //TemporarilyPickedSong = PlayBackService.CurrentlyPlayingSong;
-
-
-            //if (AllLinks is null || AllLinks.Count < 0)
-            //{
-            //    if (SongsMgtService.AllLinks is not null && SongsMgtService.AllLinks.Count > 0)
-            //    {
-            //        AllLinks = SongsMgtService.AllLinks;
-            //    }
-
-            //}
-            //MainThread.BeginInvokeOnMainThread(() =>
-            //{
-            //    NowPlayingSongsUI = songs;
-            //    if (DisplayedSongs is null)
-            //    {
-            //        return;
-            //    }
-            //    if (DisplayedSongsColView is null)
-            //    {
-            //        return;
-            //    }
-            //    DisplayedSongsColView.ItemsSource = songs;
-            //    TotalNumberOfSongs = songs.Count;
-            //    //ReloadSizeAndDuration();
-            //});
-
-            //ReloadSizeAndDuration();
+            
         });
         IsLoadingSongs = false;
 
@@ -1760,7 +1731,7 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        PlayBackService.ReplaceAndPlayQueue(songs);
+        PlayBackService.ReplaceAndPlayQueue( song, songs, PlaybackSource.External);
     }
 
 

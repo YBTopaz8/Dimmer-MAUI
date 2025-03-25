@@ -961,11 +961,12 @@ public partial class HomePageVM
     }
 
     [ObservableProperty]
-    public partial bool IsShowCloseConfirmation { get; set; } = false;
+    public partial bool IsShowCloseConfirmation { get; set; }
     
-    public async Task ShowQuickSettingsPopUp()
+    public void SetIsShowPopUpConfirmation(bool isShow)
     {
-         await Shell.Current.ShowPopupAsync(new QuickSettingsPopupView(this));
+        AppSettingsService.ShowCloseConfirmationPopUp.ToggleCloseConfirmation(isShow);
+        IsShowCloseConfirmation = isShow;
     }
 
     [ObservableProperty]

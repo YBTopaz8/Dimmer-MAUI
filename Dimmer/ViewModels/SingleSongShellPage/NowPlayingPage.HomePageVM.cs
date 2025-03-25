@@ -174,7 +174,7 @@ public partial class HomePageVM
         {
             await Shell.Current.DisplayAlert("Warning", "You must be playing a song to capture a timestamp.", "OK");
             return;
-            //PlaySong(TemporarilyPickedSong);
+            //PlaySongWithPosition(TemporarilyPickedSong);
         }
 
         if (CurrPosition < 0)

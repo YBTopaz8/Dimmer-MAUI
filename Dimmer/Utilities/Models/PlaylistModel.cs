@@ -4,7 +4,7 @@ public partial class PlaylistModel : RealmObject
     [PrimaryKey]
     public string? LocalDeviceId { get; set; } 
     
-    public string? Name { get; set; } = "Unknown Playlist";
+    public string? Name { get; set; } = "Unknown AlbumsQueue";
     public double TotalDuration { get; set; }
     public double TotalSize { get; set; }
     public int TotalSongsCount { get; set; }

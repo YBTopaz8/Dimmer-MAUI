@@ -171,6 +171,9 @@ public partial class AppShell : Shell
             //nativeElement.KeyDown += NativeElement_KeyDown; // Re-add for global key press detection
 
         }
+
+        MyViewModel.IsShowCloseConfirmation = AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation();
+
     }
 
     private void DimmerUIElement_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)

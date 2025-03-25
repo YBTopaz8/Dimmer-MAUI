@@ -11,9 +11,6 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public IObservable<ObservableCollection<SongModelView>> NowPlayingSongs => _playbackQueue.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _playbackQueue = new([]);
    
-    
-    public IObservable<ObservableCollection<SongModelView>> SecondaryQueue => _secondaryQueueSubject.AsObservable();
-    BehaviorSubject<ObservableCollection<SongModelView>> _secondaryQueueSubject = new([]);
     public IObservable<ObservableCollection<SongModelView>> TertiaryQueue => _tertiaryQueueSubject.AsObservable();
     BehaviorSubject<ObservableCollection<SongModelView>> _tertiaryQueueSubject = new([]);
 
@@ -403,7 +400,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void UpdateCurrentQueue(IList<SongModelView> songs, int QueueNumber = 1) //0 = main queue, 1 = playlistQ, 2 = externallyloadedsongs Queue
     {
         CurrentQueue = QueueNumber;
-        _secondaryQueueSubject.OnNext(value: songs.ToObservableCollection());
+        _playbackQueue.OnNext(value: songs.ToObservableCollection());
     }
     public void UpdateSongToFavoritesPlayList(SongModelView song)
     {
@@ -627,7 +624,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
             SelectedPlaylistName = specificPlaylist.Name;
             // Create a new ObservableCollection from the list instead of using ToObservableCollection()
-            _secondaryQueueSubject.OnNext(new ObservableCollection<SongModelView>(songsInPlaylist));
+            _playbackQueue.OnNext(new ObservableCollection<SongModelView>(songsInPlaylist));
 
             return songsInPlaylist;
         }
@@ -712,4 +709,5 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         _playbackQueue.OnNext(SongsMgtService.AllSongs.ToObservableCollection());
     }
 
+   
 }

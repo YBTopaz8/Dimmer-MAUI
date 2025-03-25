@@ -7,10 +7,10 @@ public partial class HomePageVM
 
 
     CancellationTokenSource cts = new();
-    const string songAddedToPlaylistText = "Song Added to Playlist";
-    const string songDeletedFromPlaylistText = "Song Removed from Playlist";
-    const string PlaylistCreatedText = "Playlist Created Successfully!";
-    const string PlaylistDeletedText = "Playlist Deleted Successfully!";
+    const string songAddedToPlaylistText = "Song Added to AlbumsQueue";
+    const string songDeletedFromPlaylistText = "Song Removed from AlbumsQueue";
+    const string PlaylistCreatedText = "AlbumsQueue Created Successfully!";
+    const string PlaylistDeletedText = "AlbumsQueue Deleted Successfully!";
     const ToastDuration duration = ToastDuration.Short;
 
     

@@ -137,8 +137,9 @@
 
 
                     <Border>
-                        <ImageButton Command="{Binding PlayPreviousSongCommand}" Source="skipprevious.png" 
-                                     ToolTipProperties.Text="Play Previous">
+                        <ImageButton  Source="skipprevious.png" 
+                                     ToolTipProperties.Text="Play Previous"
+                                      x:Name="PlayPrevious" Clicked="PlayPrevious_Clicked">
                         </ImageButton>
                     </Border>
 
@@ -161,7 +162,8 @@
                     </Border>
 
                     <Border>
-                        <ImageButton Command="{Binding PlayNextSongCommand}"
+                        <ImageButton 
+                                     x:Name="PlayNext" Clicked="PlayNext_Clicked"
                             ToolTipProperties.Text="Play Next" Source="skipnext.png">
                         </ImageButton>
                     </Border>

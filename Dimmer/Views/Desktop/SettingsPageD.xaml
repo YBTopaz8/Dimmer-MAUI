@@ -75,7 +75,7 @@
                     Scale="0.9" >
             <HorizontalStackLayout Spacing="10">
                 <Label Text="Show Close Confirmation" FontSize="20"/>
-                <CheckBox IsChecked="{Binding IsShowCloseConfirmation, Mode=TwoWay}"
+                <CheckBox IsChecked="{Binding IsShowCloseConfirmation}"
             x:Name="ShowCloseConf" CheckedChanged="ShowCloseConf_CheckedChanged"/>
 
             </HorizontalStackLayout>

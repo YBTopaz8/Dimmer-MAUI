@@ -5,6 +5,7 @@ global using Dimmer_MAUI.ViewModels;
 global using Dimmer_MAUI.Views.Desktop;
 global using Dimmer_MAUI.Views.Mobile;
 global using Dimmer_MAUI.Views.Mobile.FirstSteps;
+global using Dimmer_MAUI.Common.Exceptions;
 
 global using static Dimmer_MAUI.Utilities.Services.PlaybackUtilsService;
 

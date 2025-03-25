@@ -82,7 +82,6 @@ public static class MauiProgram
                             {
                                 if (!AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation)
                                 {
-                                    AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation=true;
                                     return;
                                 }
                                 e.Cancel = true;
@@ -100,7 +99,6 @@ public static class MauiProgram
                                             "Cancel");
                                         if (result)
                                         {
-                                            AppSettingsService.ShowCloseConfirmationPopUp.ShowCloseConfirmation=false;
 
                                             Application.Current.CloseWindow(win);
                                             Application.Current.Quit();

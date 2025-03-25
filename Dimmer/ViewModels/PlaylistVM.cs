@@ -19,12 +19,12 @@ public partial class PlaylistVM : HomePageVM
     public PlaylistVM(IPlaybackUtilsService PlaybackManagerService, IFolderPicker folderPickerService, IFileSaver fileSaver, ILyricsService lyricsService, ISongsManagementService songsMgtService, IPlaylistManagementService playlistManagementService) : base(PlaybackManagerService, folderPickerService, fileSaver, lyricsService, songsMgtService, playlistManagementService)
     {
         PlayBackService =PlaybackManagerService;
-        SubscribeToPlaylistChanges();
+        SubscribeToQueueChanges();
     }
 
-    private void SubscribeToPlaylistChanges()
+    private void SubscribeToQueueChanges()
     {
-        PlayBackService.SecondaryQueue.Subscribe(songs =>
+        PlayBackService.NowPlayingSongs.Subscribe(songs =>
         {
             if (SelectedPlaylist is null)
             {
@@ -128,7 +128,7 @@ public partial class PlaylistVM : HomePageVM
 
         RefreshPlaylists();
 
-        GeneralStaticUtilities.ShowNotificationInternally($"Added {songIDs.Count} to Playlist: {playlist.Name}");
+        GeneralStaticUtilities.ShowNotificationInternally($"Added {songIDs.Count} to AlbumsQueue: {playlist.Name}");
     }
 
     public void RemoveFromPlaylist(PlaylistModelView playlist, List<string>? songIDs = null)
@@ -148,7 +148,7 @@ public partial class PlaylistVM : HomePageVM
         }
         PlayBackService.RemoveSongFromPlayListWithPlayListID(songIDs, playlist);
 
-        GeneralStaticUtilities.ShowNotificationInternally($"Removed {songIDs.Count} to Playlist: {playlist.Name}");
+        GeneralStaticUtilities.ShowNotificationInternally($"Removed {songIDs.Count} to AlbumsQueue: {playlist.Name}");
     }
 
 

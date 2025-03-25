@@ -19,7 +19,7 @@ public partial class AlbumsM : ContentPage
     //    MyViewModel.CurrentQueue = 1;
     //    var s = (View)sender;
     //    var song = s.BindingContext as SongsModelView;
-    //    MyViewModel.PlaySong(song);
+    //    MyViewModel.PlaySongWithPosition(song);
     //}
     string previousAlbID = string.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)

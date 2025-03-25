@@ -9,11 +9,13 @@ public partial class SettingsPageD : ContentPage
         this.MyViewModel = ViewModel;
     }
     public bool ToLogin { get; }
-    public HomePageVM MyViewModel { get; }
+    public HomePageVM? MyViewModel { get; internal set; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 
         _ = MyViewModel.GetLoggedInDevicesForUser();
         MyViewModel.CurrentPageMainLayout = MainDock;
@@ -97,6 +99,7 @@ public partial class SettingsPageD : ContentPage
                 //GeneralStatsView front, rest back
                 break;
             case 1:
+                MyViewModel.IsShowCloseConfirmation = AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation();
                 break;
             case 2:
                 break;
@@ -219,8 +222,11 @@ public partial class SettingsPageD : ContentPage
 
     private void ShowCloseConf_CheckedChanged(object sender, CheckedChangedEventArgs e)
     {
-        AppSettingsService.ShowCloseConfirmationPopUp.ToggleCloseConfirmation(e.Value);
+        if (MyViewModel is not null)
+        {
+            MyViewModel.SetIsShowPopUpConfirmation(e.Value);
 
+        }
     }
 }
 
