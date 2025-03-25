@@ -22,7 +22,7 @@ public partial class TopStatsPageM : ContentPage
     {
         base.OnAppearing();
         MyViewModel.CurrentPage = PageEnum.FullStatsPage;
-        var itemHandle = UserChatColView.GetItemHandle(MyViewModel.ChatMessages.Count);
+        int itemHandle = UserChatColView.GetItemHandle(MyViewModel.ChatMessages.Count);
         //UserChatColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
 
 
@@ -31,8 +31,8 @@ public partial class TopStatsPageM : ContentPage
 
     private void ShowSongStats_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (FlexLayout)sender;
-        var song = send.BindingContext as SingleSongStatistics;
+        FlexLayout send = (FlexLayout)sender;
+        SingleSongStatistics? song = send.BindingContext as SingleSongStatistics;
         if (song is null)
         {
             return;
@@ -58,8 +58,8 @@ public partial class TopStatsPageM : ContentPage
     int SelectedGeneralView;
     private async void AddReaction_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
-        var uAct = send.BindingContext as UserActivity;
+        ImageButton send = (ImageButton)sender;
+        UserActivity? uAct = send.BindingContext as UserActivity;
         await OGSenderView.DimmInCompletely();
         OGSenderUserName.Text = uAct.Sender.Username;
         OGSenderLabel.Text = uAct.ChatMessage.Content;
@@ -115,7 +115,7 @@ public partial class TopStatsPageM : ContentPage
 
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (DXBorder)sender;
+        DXBorder send = (DXBorder)sender;
 
         if (MyViewModel.IsPlaying)
         {
@@ -149,14 +149,14 @@ public partial class TopStatsPageM : ContentPage
         bView.BorderColor= strokeColor;
 
         // Define a single animation to embiggen the stroke
-        var expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
+        Animation expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
             0,                                   // Start with 0 thickness
             5,                                  // Expand to 10 thickness
             Easing.CubicInOut                    // Smooth easing
         );
 
         // Shrink the stroke back to zero after embiggen
-        var shrinkAnimation = new Animation(
+        Animation shrinkAnimation = new Animation(
             v => bView.BorderThickness = v,
             5,                                   // Start at 10 thickness
             0,                                    // Reduce to 0 thickness
@@ -164,7 +164,7 @@ public partial class TopStatsPageM : ContentPage
         );
 
         // Combine expand and shrink animations into one sequence
-        var animationSequence = new Animation
+        Animation animationSequence = new Animation
         {
             { 0, 0.5, expandAnimation },   // Embiggen in the first half
             { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
@@ -199,7 +199,7 @@ public partial class TopStatsPageM : ContentPage
 
     private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
-        var send = (DXBorder)sender;
+        DXBorder send = (DXBorder)sender;
 
         switch (e.StatusType)
         {
@@ -239,8 +239,8 @@ public partial class TopStatsPageM : ContentPage
 
                                 MyViewModel.PlayPreviousSong();
 
-                                var colorTask = AnimateColor(send, Colors.SlateBlue);
-                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                                Task colorTask = AnimateColor(send, Colors.SlateBlue);
+                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
                                 await Task.WhenAll(colorTask, bounceTask);
                             }
@@ -249,8 +249,8 @@ public partial class TopStatsPageM : ContentPage
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                                 MyViewModel.PlayPreviousSong();
 
-                                var colorTask = AnimateColor(send, Colors.MediumPurple);
-                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                                Task colorTask = AnimateColor(send, Colors.MediumPurple);
+                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
                                 await Task.WhenAll(colorTask, bounceTask);
                             }
@@ -265,9 +265,9 @@ public partial class TopStatsPageM : ContentPage
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                             MyViewModel.PlayPreviousSong();
                             Debug.WriteLine("Swiped left");
-                            var t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
-                            var t2 = Task.Delay(500);
-                            var t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
+                            Task t2 = Task.Delay(500);
+                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
                             await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
@@ -337,8 +337,8 @@ public partial class TopStatsPageM : ContentPage
     }
     private void Chip_Tap(object sender, HandledEventArgs e)
     {
-        var send = (Chip)sender;
-        var param = send.TapCommandParameter.ToString();
+        Chip send = (Chip)sender;
+        string? param = send.TapCommandParameter.ToString();
         switch (param)
         {
             case "repeat":
@@ -402,7 +402,7 @@ public partial class TopStatsPageM : ContentPage
     private double GetTextWidth()
     {
         // Measures the text width based on available height
-        var size = Measure(double.PositiveInfinity, Height);
+        Size size = Measure(double.PositiveInfinity, Height);
         return size.Width;
     }
 

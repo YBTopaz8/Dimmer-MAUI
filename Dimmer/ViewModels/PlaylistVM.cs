@@ -114,9 +114,9 @@ public partial class PlaylistVM : HomePageVM
         if (!EnableContextMenuItems)
             return;
 
-        foreach (var id in songIDs)
+        foreach (string? id in songIDs)
         {
-            var songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
+            SongModelView songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
             if (SelectedPlaylist.DisplayedSongsFromPlaylist.Contains(songg))
             {
                 songIDs.Remove(id);
@@ -140,9 +140,9 @@ public partial class PlaylistVM : HomePageVM
         {
             RefreshPlaylists();
         }
-        foreach (var id in songIDs)
+        foreach (string id in songIDs)
         {
-            var songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
+            SongModelView songg = DisplayedSongs.First(x => x.LocalDeviceId == id);
 
             SelectedPlaylist.DisplayedSongsFromPlaylist?.Remove(songg);
         }

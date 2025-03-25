@@ -3,7 +3,7 @@ public class BoolToImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        HomePageVM? vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         return null;
     }
 

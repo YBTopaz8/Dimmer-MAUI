@@ -99,12 +99,12 @@ public partial class DimmerWindow : Window
             return;
         }
 
-        var searchBar = (SearchBar)sender;
-        var txt = searchBar.Text;
+        SearchBar searchBar = (SearchBar)sender;
+        string txt = searchBar.Text;
 
         _debounceTimer?.Cancel();
         _debounceTimer = new CancellationTokenSource();
-        var token = _debounceTimer.Token;
+        CancellationToken token = _debounceTimer.Token;
 
         // Determine the delay based on the page.  This makes the code cleaner.
         int delayMilliseconds = MyViewModel.Value.CurrentPage == PageEnum.AllAlbumsPage ? 300 : 600;
@@ -161,7 +161,7 @@ public partial class DimmerWindow : Window
             MyViewModel.Value.DisplayedSongs.Clear();
             MyViewModel.Value.CurrentQueue = 0;
             // Repopulate with all songs when search is empty
-            foreach (var song in MyViewModel.Value.SongsMgtService.AllSongs)
+            foreach (SongModelView song in MyViewModel.Value.SongsMgtService.AllSongs)
             {
                 MyViewModel.Value.DisplayedSongs.Add(song);
             }
@@ -173,14 +173,14 @@ public partial class DimmerWindow : Window
         MyViewModel.Value.DisplayedSongs.Clear();
 
         // Filter with null checks. This is your existing logic, and it's correct.
-        var fSongs = MyViewModel.Value.SongsMgtService.AllSongs
+        List<SongModelView> fSongs = MyViewModel.Value.SongsMgtService.AllSongs
             .Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                            (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                            (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
             .ToList();
         MyViewModel.Value.FilteredSongs = fSongs;
         MyViewModel.Value.CurrentQueue = 1;
-        foreach (var song in fSongs)
+        foreach (SongModelView? song in fSongs)
         {
             MyViewModel.Value.DisplayedSongs.Add(song);
         }
@@ -198,7 +198,7 @@ public partial class DimmerWindow : Window
             MyViewModel.Value.IsOnSearchMode = false; // Consistent naming
             MyViewModel.Value.AllAlbums.Clear();
 
-            foreach (var album in MyViewModel.Value.SongsMgtService.AllAlbums)
+            foreach (AlbumModelView album in MyViewModel.Value.SongsMgtService.AllAlbums)
             {
                 MyViewModel.Value.AllAlbums.Add(album);
             }
@@ -211,10 +211,10 @@ public partial class DimmerWindow : Window
         MyViewModel.Value.AllAlbums.Clear();
 
         // Filter with null checks
-        var fAlbums = MyViewModel.Value.SongsMgtService.AllAlbums
+        List<AlbumModelView> fAlbums = MyViewModel.Value.SongsMgtService.AllAlbums
             .Where(item => (!string.IsNullOrEmpty(item.Name) && item.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
             .ToList();
-        foreach (var album in fAlbums)
+        foreach (AlbumModelView? album in fAlbums)
         {
             MyViewModel.Value.AllAlbums.Add(album);
         }

@@ -44,7 +44,7 @@ public partial class HomePageVM
     public partial bool IsFetching { get; set; } = false;
     public async Task<bool> FetchLyrics(bool fromUI = false)
     {
-        var lyrr = LyricsManagerService.GetSpecificSongLyrics(TemporarilyPickedSong);
+        IList<LyricPhraseModel>? lyrr = LyricsManagerService.GetSpecificSongLyrics(TemporarilyPickedSong);
         //if (lyrr is not null && lyrr.Count>0)
         //{
         //    await LyricsManagerService.LoadLyrics(TemporarilyPickedSong);
@@ -165,7 +165,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task CaptureTimestamp(LyricPhraseModel lyricPhraseModel)
     {
-        var CurrPosition = CurrentPositionInSeconds;
+        double CurrPosition = CurrentPositionInSeconds;
         if (!IsPlaying)
         {
             await Shell.Current.DisplayAlert("Warning", "You must be playing a song to capture a timestamp.", "OK");
@@ -226,7 +226,7 @@ public partial class HomePageVM
         LyricsLines?.Clear();
 
         // Add the new items.  This will trigger *another* UI update.
-        foreach (var item in splittedLyricsLines)
+        foreach (string item in splittedLyricsLines)
         {
             LyricsLines.Add(new LyricPhraseModel(new LyricsPhrase(0, item)));
         }
@@ -257,7 +257,7 @@ public partial class HomePageVM
         }
         else
         {
-            var str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title!, song.ArtistName!, song.AlbumName!, song);
+            string str = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title!, song.ArtistName!, song.AlbumName!, song);
             MySelectedSong.CoverImagePath = str;
         }
 
@@ -266,7 +266,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task FetchAlbumCoverImage(AlbumModelView album)
     {
-        var firstSong = DisplayedSongs.Where(x => x.LocalDeviceId == album.LocalDeviceId).FirstOrDefault();
+        SongModelView? firstSong = DisplayedSongs.Where(x => x.LocalDeviceId == album.LocalDeviceId).FirstOrDefault();
         if (album is not null)
         {
 
@@ -307,14 +307,14 @@ public partial class HomePageVM
         bool isFav = rating >= 4 && rating <= 5;
 
         // Get the Favorites playlist
-        var favPlaylist = PlayBackService.AllPlaylists.FirstOrDefault(x => x.Name == "Favorites");
+        PlaylistModelView? favPlaylist = PlayBackService.AllPlaylists.FirstOrDefault(x => x.Name == "Favorites");
         if (favPlaylist == null)
             return;
 
         int processedCount = 0;
-        foreach (var id in songIDs)
+        foreach (string id in songIDs)
         {
-            var song = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == id);
+            SongModelView? song = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == id);
             if (song == null)
                 continue;
 

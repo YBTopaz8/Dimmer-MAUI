@@ -252,9 +252,9 @@ public partial class RatingControl : ContentView
         {
             _layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            var shapePath = GetShapePath();
+            Geometry shapePath = GetShapePath();
 
-            var shape = new Path
+            Path shape = new Path
             {
                 Data = shapePath,
                 Fill = (i < Math.Floor(Value)) ? FillColor : EmptyColor,
@@ -277,7 +277,7 @@ public partial class RatingControl : ContentView
             }
 
             // Add Tap Gesture
-            var tapGesture = new TapGestureRecognizer
+            TapGestureRecognizer tapGesture = new TapGestureRecognizer
             {
                 Command = new Command(() => OnStarTapped(i + 1))
             };
@@ -454,8 +454,8 @@ public partial class RatingControl : ContentView
     private void AddAnimations(View view)
     {
         // Scale Animation on Tap
-        var scaleUp = new ScaleToAnimation(view, 1.2, 100);
-        var scaleDown = new ScaleToAnimation(view, 1.0, 100);
+        ScaleToAnimation scaleUp = new ScaleToAnimation(view, 1.2, 100);
+        ScaleToAnimation scaleDown = new ScaleToAnimation(view, 1.0, 100);
 
         view.GestureRecognizers.Add(new TapGestureRecognizer
         {

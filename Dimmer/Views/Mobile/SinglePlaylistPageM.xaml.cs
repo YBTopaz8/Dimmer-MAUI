@@ -30,8 +30,8 @@ public partial class SinglePlaylistPageM : ContentPage
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var view = (FlexLayout)sender;
-        var song = view.BindingContext as SongModelView;
+        FlexLayout view = (FlexLayout)sender;
+        SongModelView? song = view.BindingContext as SongModelView;
         MyViewModel.PlaySong(song);
     }
 }

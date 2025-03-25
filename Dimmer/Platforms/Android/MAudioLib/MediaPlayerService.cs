@@ -185,7 +185,7 @@ public class MediaPlayerService : Service,
                 mediaSession = new MediaSession(Platform.AppContext, "MauiStreamingAudio"/*, remoteComponentName*/); //TODO
                 //mediaSession.SetMediaButtonBroadcastReceiver(remoteComponentName);
 
-                var pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
+                PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
 
                 mediaSession.SetSessionActivity(pendingIntent);
                 mediaSession.SetRatingType(RatingStyle.Heart);
@@ -387,7 +387,7 @@ public class MediaPlayerService : Service,
 
                 mediaPlayer.SetWakeMode(Platform.AppContext, WakeLockFlags.Partial);
 
-                var file = mediaPlay.URL;
+                string file = mediaPlay.URL;
 
                 if (File.Exists(file))
                 {
@@ -397,10 +397,10 @@ public class MediaPlayerService : Service,
                     }
                     catch
                     {
-                        var context = Platform.AppContext; 
-                        var encodedPath =  Uri.Encode(file)
+                        Context context = Platform.AppContext;
+                        string encodedPath =  Uri.Encode(file)
                             ?? throw new Exception("Unable to generate encoded path.");
-                        var uri = Uri.Parse(encodedPath)
+                        Uri uri = Uri.Parse(encodedPath)
                             ?? throw new Exception("Unable to parse encoded path.");
 
                         mediaPlayer.SetDataSource(context, uri);
@@ -413,7 +413,7 @@ public class MediaPlayerService : Service,
 
                 if (OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
-                    var focusResult = audioManager.RequestAudioFocus(new AudioFocusRequestClass
+                    AudioFocusRequest focusResult = audioManager.RequestAudioFocus(new AudioFocusRequestClass
                     .Builder(AudioFocus.Gain)!
                     .SetOnAudioFocusChangeListener(this)!
                     .Build()!)!;
@@ -602,8 +602,8 @@ public class MediaPlayerService : Service,
     {
         if (mediaSession == null)
             return;
-        var s = Application.Context;
-        var notif = NotificationHelper
+        Context s = Application.Context;
+        Notification notif = NotificationHelper
             .StartNotification(s, mediaController.Metadata!, 
             mediaSession, Cover, 
             MediaPlayerState == PlaybackStateCode.Playing);

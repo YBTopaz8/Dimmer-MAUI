@@ -42,8 +42,8 @@ public class CurrentActivityImplementation : ICurrentActivity
         if (Activity != null)
             return Activity;
 
-        var tcs = new TaskCompletionSource<Activity>();
-        var handler = new EventHandler<ActivityEventArgs>((sender, args) =>
+        TaskCompletionSource<Activity> tcs = new TaskCompletionSource<Activity>();
+        EventHandler<ActivityEventArgs> handler = new EventHandler<ActivityEventArgs>((sender, args) =>
         {
             if (args.Event == ActivityEvent.Created || args.Event == ActivityEvent.Resumed)
                 tcs.TrySetResult(args.Activity);
@@ -111,7 +111,7 @@ class ActivityLifecycleContextListener : Java.Lang.Object, AndroidApp.Applicatio
 
     public Activity Activity
     {
-        get => currentActivity.TryGetTarget(out var a) ? a : null;
+        get => currentActivity.TryGetTarget(out Activity? a) ? a : null;
         set => currentActivity.SetTarget(value);
     }
 

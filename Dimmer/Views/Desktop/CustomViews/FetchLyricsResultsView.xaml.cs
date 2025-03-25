@@ -9,16 +9,16 @@ public partial class FetchLyricsResultsView : ContentView
 	{
 		InitializeComponent();
 
-        var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        HomePageVM? vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         MyViewModel = vm;
         
 	}
 
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
-        var send = (Button)sender;
-        var title = send.Text;
-        var thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
+        Button send = (Button)sender;
+        string title = send.Text;
+        Content? thisContent = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
         if (title == "Synced Lyrics")
         {
 

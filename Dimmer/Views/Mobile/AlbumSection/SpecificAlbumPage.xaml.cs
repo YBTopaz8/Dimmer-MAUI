@@ -22,8 +22,8 @@ public partial class SpecificAlbumPage : ContentPage
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
+        Border s = (Border)sender;
+        SongModelView? song = s.BindingContext as SongModelView;
         MyViewModel.PlaySong(song);
     }
 

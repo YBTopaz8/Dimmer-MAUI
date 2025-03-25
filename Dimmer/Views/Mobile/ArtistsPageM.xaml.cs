@@ -42,25 +42,25 @@ public partial class ArtistsPageM : ContentPage
 
     private void SingleAlbum_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
 
-        var curSel = send.BindingContext as AlbumModelView;
+        AlbumModelView? curSel = send.BindingContext as AlbumModelView;
         MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
 
     private void SingleSongBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var s = (View)sender;
-        var song = s.BindingContext as SongModelView;
+        View s = (View)sender;
+        SongModelView? song = s.BindingContext as SongModelView;
         MyViewModel.PlaySong(song);
 
     }
 
     private void ShowArtistAlbums_Tapped(object sender, EventArgs e)
     {
-        var send = (DXButton)sender;
-        var curSel = send.BindingContext as AlbumModelView;
+        DXButton send = (DXButton)sender;
+        AlbumModelView? curSel = send.BindingContext as AlbumModelView;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);

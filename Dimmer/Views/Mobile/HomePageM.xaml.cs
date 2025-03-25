@@ -59,7 +59,7 @@ public partial class HomePageM : ContentPage
         if (MyViewModel.IsOnSearchMode)
         {
             MyViewModel.CurrentQueue = 1;
-            var filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
+            List<SongModelView?> filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
                      .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
                      .Where(handle => handle != -1)
                      .Select(handle => SongsColView.GetItem(handle) as SongModelView)
@@ -103,8 +103,8 @@ public partial class HomePageM : ContentPage
 
     private void ShowMoreBtn_Clicked(object sender, EventArgs e)
     {
-        var s = (View)sender;
-        var song = (SongModelView)s.BindingContext;
+        View s = (View)sender;
+        SongModelView song = (SongModelView)s.BindingContext;
         MyViewModel.SetContextMenuSong(song);
         SongsMenuPopup.Show();
     }
@@ -254,7 +254,7 @@ public partial class HomePageM : ContentPage
 
     private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
-        var send = (DXBorder)sender;
+        DXBorder send = (DXBorder)sender;
 
         switch (e.StatusType)
         {
@@ -294,8 +294,8 @@ public partial class HomePageM : ContentPage
 
                                 MyViewModel.PlayNextSong();
 
-                                var colorTask = AnimateColor(send, Colors.SlateBlue);
-                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                                Task colorTask = AnimateColor(send, Colors.SlateBlue);
+                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
                                 await Task.WhenAll(colorTask, bounceTask);
                             }
@@ -304,8 +304,8 @@ public partial class HomePageM : ContentPage
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                                 MyViewModel.PlayPreviousSong();
 
-                                var colorTask = AnimateColor(send, Colors.MediumPurple);
-                                var bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
+                                Task colorTask = AnimateColor(send, Colors.MediumPurple);
+                                Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
                                 await Task.WhenAll(colorTask, bounceTask);
                             }
@@ -320,9 +320,9 @@ public partial class HomePageM : ContentPage
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                             MyViewModel.PlayPreviousSong();
                             Debug.WriteLine("Swiped left");
-                            var t1= send.MyBackgroundColorTo(Colors.MediumPurple, length: 300); 
-                            var t2=  Task.Delay(500);
-                            var t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
+                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
+                            Task t2 =  Task.Delay(500);
+                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300); 
                             await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
@@ -338,7 +338,7 @@ public partial class HomePageM : ContentPage
                             {
                                 HomeTabView.SelectedItemIndex = 0;
                             }
-                            var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
                             SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
                             
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
@@ -414,7 +414,7 @@ public partial class HomePageM : ContentPage
 
     private async void BtmBarTapGest_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (DXBorder)sender;
+        DXBorder send = (DXBorder)sender;
         
         if (MyViewModel.IsPlaying)
         {
@@ -449,14 +449,14 @@ public partial class HomePageM : ContentPage
         bView.BorderColor= strokeColor;
 
         // Define a single animation to embiggen the stroke
-        var expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
+        Animation expandAnimation = new Animation(v => bView.BorderThickness = v, // Only animating BorderThickness now
             0,                                   // Start with 0 thickness
             5,                                  // Expand to 10 thickness
             Easing.CubicInOut                    // Smooth easing
         );
 
         // Shrink the stroke back to zero after embiggen
-        var shrinkAnimation = new Animation(
+        Animation shrinkAnimation = new Animation(
             v => bView.BorderThickness = v,
             5,                                   // Start at 10 thickness
             0,                                    // Reduce to 0 thickness
@@ -464,7 +464,7 @@ public partial class HomePageM : ContentPage
         );
 
         // Combine expand and shrink animations into one sequence
-        var animationSequence = new Animation
+        Animation animationSequence = new Animation
         {
             { 0, 0.5, expandAnimation },   // Embiggen in the first half
             { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
@@ -491,7 +491,7 @@ public partial class HomePageM : ContentPage
 
     private void SongsColView_Scrolled(object sender, DevExpress.Maui.CollectionView.DXCollectionViewScrolledEventArgs e)
     {
-        var itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+        int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
         bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
         
     }
@@ -509,8 +509,8 @@ public partial class HomePageM : ContentPage
 
     private void SingleSongRow_TapReleased(object sender, DXTapEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
@@ -521,7 +521,7 @@ public partial class HomePageM : ContentPage
 
     private void LyricsColView_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
-        var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
+        LyricPhraseModel? CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
         
         if (!this.IsLoaded)
         {
@@ -550,8 +550,8 @@ public partial class HomePageM : ContentPage
     {
         if (MyViewModel.IsPlaying)
         {
-            var bor = (Label)sender;
-            var lyr = (LyricPhraseModel)bor.BindingContext;
+            Label bor = (Label)sender;
+            LyricPhraseModel lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
     }
@@ -565,8 +565,8 @@ public partial class HomePageM : ContentPage
 
     private void SearchFiltersChips_ChipTap(object sender, ChipEventArgs e)
     {
-        var send = (ChoiceChipGroup)sender;
-        var chip = (Chip)send.SelectedItem;
+        ChoiceChipGroup send = (ChoiceChipGroup)sender;
+        Chip chip = (Chip)send.SelectedItem;
         SearchParam = chip.TapCommandParameter.ToString()!;
     }
 
@@ -602,8 +602,8 @@ public partial class HomePageM : ContentPage
 
     private void ShowArtistAlbums_Tapped(object sender, EventArgs e)
     {
-        var send = (DXButton)sender;
-        var curSel = send.BindingContext as AlbumModelView;
+        DXButton send = (DXButton)sender;
+        AlbumModelView? curSel = send.BindingContext as AlbumModelView;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         send.PressedBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
@@ -617,8 +617,8 @@ public partial class HomePageM : ContentPage
     private void SingleSongBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var s = (View)sender;
-        var song = s.BindingContext as SongModelView;
+        View s = (View)sender;
+        SongModelView? song = s.BindingContext as SongModelView;
         MyViewModel.CurrentPage = PageEnum.AllAlbumsPage;
         MyViewModel.PlaySong(song);
 
@@ -626,8 +626,8 @@ public partial class HomePageM : ContentPage
 
     private void Chip_Tap(object sender, HandledEventArgs e)
     {
-        var send = (Chip)sender;
-        var param = send.TapCommandParameter.ToString();
+        Chip send = (Chip)sender;
+        string? param = send.TapCommandParameter.ToString();
         MyViewModel.ToggleRepeatModeCommand.Execute(true);
         switch (param)
         {
@@ -652,7 +652,7 @@ public partial class HomePageM : ContentPage
         Debug.WriteLine(e.Item.GetType());
         if (MyViewModel.IsPlaying)
         {
-            var lyr = (LyricPhraseModel)e.Item;
+            LyricPhraseModel lyr = (LyricPhraseModel)e.Item;
             MyViewModel.SeekSongPosition(lyr);
         }
     }
@@ -671,7 +671,7 @@ public partial class HomePageM : ContentPage
     }
     private void SearchOnline_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
         MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
 
     }
@@ -680,14 +680,14 @@ public partial class HomePageM : ContentPage
 
     private void Stamp_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
         MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
 
     }
 
     private void DeleteLine_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
 
         MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
 
@@ -732,9 +732,9 @@ public partial class HomePageM : ContentPage
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         LyricsEditor.Text = string.Empty;
-        var send = (Button)sender;
-        var title = send.Text;
-        var thisContent = (Content)send.BindingContext;
+        Button send = (Button)sender;
+        string title = send.Text;
+        Content thisContent = (Content)send.BindingContext;
         if (title == "Synced Lyrics")
         {
             await MyViewModel.SaveLyricToFile(thisContent!, false);
@@ -764,7 +764,7 @@ public partial class HomePageM : ContentPage
         if (MyViewModel.IsOnSearchMode)
         {
             MyViewModel.CurrentQueue = 1;
-            var filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
+            List<SongModelView?> filterSongs = Enumerable.Range(0, SongsColView.VisibleItemCount)
                      .Select(i => SongsColView.GetItemHandleByVisibleIndex(i))
                      .Where(handle => handle != -1)
                      .Select(handle => SongsColView.GetItem(handle) as SongModelView)
@@ -778,9 +778,9 @@ public partial class HomePageM : ContentPage
 
     private void DXCollectionView_Tap(object sender, CollectionViewGestureEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
 
-        var curSel = send.BindingContext as AlbumModelView;
+        AlbumModelView? curSel = send.BindingContext as AlbumModelView;
         MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
     }
 

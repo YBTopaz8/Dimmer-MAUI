@@ -59,19 +59,19 @@ public partial class HomePageVM
     async Task StartSleepTimer(double value)
     {
         // Convert value to milliseconds (e.g., value in minutes * 60 * 1000)
-        var valueInMilliseconds = value * 60 * 1000;
+        double valueInMilliseconds = value * 60 * 1000;
 
         // Cancel any existing timer
         _sleepTimerCancellationTokenSource?.Cancel();
 
         // Create a new CancellationTokenSource
         _sleepTimerCancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _sleepTimerCancellationTokenSource.Token;
+        CancellationToken cancellationToken = _sleepTimerCancellationTokenSource.Token;
 
         try
         {
             string min = value < 2 ? "Minute" : "Minutes";
-            var toast = Toast.Make($"Started ! Song will pause after {value}{min}}}");
+            IToast toast = Toast.Make($"Started ! Song will pause after {value}{min}}}");
             await toast.Show(cts.Token);
 
             await Task.Delay((int)valueInMilliseconds, cancellationToken);
@@ -123,7 +123,7 @@ public partial class HomePageVM
                     PlatSpecificUtils.MultiDeleteSongFiles(MultiSelectSongs);
                     
                     // Loop through all songs in MultiSelectSongs and remove them from DisplayedSongs if they exist
-                    foreach (var selectedSong in MultiSelectSongs)
+                    foreach (SongModelView selectedSong in MultiSelectSongs)
                     {
                         DisplayedSongs?.Remove(selectedSong);
                     }
@@ -401,7 +401,7 @@ public partial class HomePageVM
     [RelayCommand]
     async Task DownloadAlbumImage(AlbumModelView album)
     {
-      var firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault()!;
+        SongModelView firstSongOfSpectifAlbum = AllArtistsAlbumSongs.FirstOrDefault()!;
       SelectedAlbumOnArtistPage.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(firstSongOfSpectifAlbum.Title,firstSongOfSpectifAlbum.ArtistName!, firstSongOfSpectifAlbum.AlbumName!);
     }
 
@@ -501,7 +501,7 @@ public partial class HomePageVM
     public async Task ContributeLyricsAsync()
     {
 
-       var SelectedSongs = new List<SongModelView> { MySelectedSong! };
+        List<SongModelView> SelectedSongs = new List<SongModelView> { MySelectedSong! };
 
         // Prepare the data to send to the Cloud Code function
         List<Dictionary<string, object?>> lyricsData = [];
@@ -534,7 +534,7 @@ public partial class HomePageVM
 
         try
         {
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("contributeLyrics", new Dictionary<string, object> { { "data", lyricsData } });
+            object result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("contributeLyrics", new Dictionary<string, object> { { "data", lyricsData } });
             // Handle the result (check for success/partial success/error)
             if (result is string successMessage && successMessage == "Lyrics contribution successful!")
             {
@@ -548,7 +548,7 @@ public partial class HomePageVM
                     string errorsMessage = "Lyrics contribution completed with errors:\n";
                     if (dictResult.ContainsKey("errors") && dictResult["errors"] is List<object> errorsList)
                     {
-                        foreach (var errorObj in errorsList)
+                        foreach (object errorObj in errorsList)
                         {
                             if (errorObj is Dictionary<string, object> errorDict)
                             {
@@ -641,7 +641,7 @@ public partial class HomePageVM
         bool overallSuccess = true;
         Dictionary<string, object> allBackupErrors = [];
 
-        foreach (var dataPair in dataToBackUpToParseInitially)
+        foreach (KeyValuePair<string, object> dataPair in dataToBackUpToParseInitially)
         {
             string className = dataPair.Key;
             object data = dataPair.Value;
@@ -653,7 +653,7 @@ public partial class HomePageVM
 
             try
             {
-                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("backupUserData", singleClassBackupData);
+                string result = await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("backupUserData", singleClassBackupData);
 
                 if (result != "Back Up Complete" && result.StartsWith("Failed on class"))
                 {
@@ -703,25 +703,25 @@ public partial class HomePageVM
     {
         try
         {
-            var response = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("restoreUserData", new Dictionary<string, object>());
+            Dictionary<string, object> response = await ParseClient.Instance.CallCloudCodeFunctionAsync<Dictionary<string, object>>("restoreUserData", new Dictionary<string, object>());
 
             if (response != null && response.ContainsKey("data"))
             {
-                var data = response["data"] as Dictionary<string, object>;
+                Dictionary<string, object>? data = response["data"] as Dictionary<string, object>;
 
                 if (data != null)
                 {
                     // Extract and convert data for each class
-                    var songs = ExtractData<SongModelView>(data, "SongModelView");
+                    List<SongModelView> songs = ExtractData<SongModelView>(data, "SongModelView");
                     PlayBackService.LoadSongsWithSorting(songs.ToObservableCollection());
 
-                    var playDataLinks = ExtractData<PlayDateAndCompletionStateSongLink>(data, "PlayDataLink");
+                    List<PlayDateAndCompletionStateSongLink> playDataLinks = ExtractData<PlayDateAndCompletionStateSongLink>(data, "PlayDataLink");
 
-                    var albums = ExtractData<AlbumModel>(data, "AlbumModelView");
-                    var allGenres = ExtractData<GenreModel>(data, "GenresModelView");
-                    var allPlaylists = ExtractData<PlaylistModel>(data, "AllPlayLists");
-                    var otherLinks = ExtractData<AlbumArtistGenreSongLink>(data, "AllLinks");
-                    var songsData = ExtractData<SongModel>(data, "SongModelView");
+                    List<AlbumModel> albums = ExtractData<AlbumModel>(data, "AlbumModelView");
+                    List<GenreModel> allGenres = ExtractData<GenreModel>(data, "GenresModelView");
+                    List<PlaylistModel> allPlaylists = ExtractData<PlaylistModel>(data, "AllPlayLists");
+                    List<AlbumArtistGenreSongLink> otherLinks = ExtractData<AlbumArtistGenreSongLink>(data, "AllLinks");
+                    List<SongModel> songsData = ExtractData<SongModel>(data, "SongModelView");
 
                     // Call RestoreAllOnlineData with the extracted data
                     SongsMgtService.RestoreAllOnlineData(playDataLinks, songsData, albums, allGenres, allPlaylists, otherLinks);
@@ -765,16 +765,16 @@ public partial class HomePageVM
     public partial ObservableCollection<CurrentDeviceStatus> OtherConnectedDevices { get; set; } = Enumerable.Empty<CurrentDeviceStatus>().ToObservableCollection();
     public async Task GetLoggedInDevicesForUser()
     {
-        var user = CurrentUserOnline;
+        ParseUser? user = CurrentUserOnline;
         if (user == null)
         {
             return;
         }
-        var query = ParseClient.Instance.GetQuery("DeviceStatus")
+        ParseQuery<ParseObject> query = ParseClient.Instance.GetQuery("DeviceStatus")
             .WhereEqualTo("deviceOwner", user)
             .WhereEqualTo("isOnline", true); // Assuming 'isOnline' field indicates current login status
 
-        var deviceObjects = await query.FindAsync();
+        IEnumerable<ParseObject> deviceObjects = await query.FindAsync();
 
         ObservableCollection<CurrentDeviceStatus> devices = [];
 
@@ -824,7 +824,7 @@ public partial class HomePageVM
                 Email = CurrentUser.UserEmail
             };
 
-            var usr = await ParseClient.Instance.SignUpWithAsync(user);
+            ParseUser usr = await ParseClient.Instance.SignUpWithAsync(user);
 
             await Shell.Current.DisplayAlert("Last Step!", "Please Verify Your Email!", "Ok");
             ParseClient.Instance.LogOut();
@@ -883,7 +883,7 @@ public partial class HomePageVM
         try
         {
 
-            var currentParseUser = await ParseClient
+            ParseUser? currentParseUser = await ParseClient
                 .Instance
                 .LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
 
@@ -908,12 +908,12 @@ public partial class HomePageVM
         {
             await Shell.Current.DisplayAlert("Success !", $"Welcome Back {currentParseUser.Username}!", "Thanks");
         }
-        var query = ParseClient.Instance.GetQuery("DeviceStatus")
+            ParseQuery<ParseObject> query = ParseClient.Instance.GetQuery("DeviceStatus")
             .WhereEqualTo("deviceOwner", currentParseUser.Email)
             .WhereEqualTo("deviceName", DeviceInfo.Name);
 
-        var existingDevices = await query.FindAsync();
-        var existingDevice = existingDevices.FirstOrDefault();
+            IEnumerable<ParseObject> existingDevices = await query.FindAsync();
+            ParseObject? existingDevice = existingDevices.FirstOrDefault();
         if (existingDevice != null)
         {
             existingDevice["isOnline"] = true;
@@ -922,7 +922,7 @@ public partial class HomePageVM
         }
         else
         {
-            var newDevice = new ParseObject("DeviceStatus")
+                ParseObject newDevice = new ParseObject("DeviceStatus")
             {
                 ["deviceOwner"] = currentParseUser.Email,
                 ["deviceName"] = DeviceInfo.Name,
@@ -997,7 +997,7 @@ public partial class HomePageVM
             default:
                 break;
         }
-        var result =await Shell.Current.ShowPopupAsync(new SongContextMenuPopupView(this, MySelectedSong!));
+        object? result =await Shell.Current.ShowPopupAsync(new SongContextMenuPopupView(this, MySelectedSong!));
         if (result is null)
         {
             return;

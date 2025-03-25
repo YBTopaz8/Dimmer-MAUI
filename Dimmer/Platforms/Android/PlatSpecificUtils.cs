@@ -26,7 +26,7 @@ public static class PlatSpecificUtils
         try
         {
             
-            foreach (var song in songs)
+            foreach (SongModelView song in songs)
             {
                 if (File.Exists(song.FilePath))
                 {
@@ -49,16 +49,16 @@ public static class PlatSpecificUtils
 
     public static bool IsItemVisible (this CollectionView colView, object item)
     {
-        var platformCollectionView = colView.Handler.PlatformView as RecyclerView;
+        RecyclerView? platformCollectionView = colView.Handler.PlatformView as RecyclerView;
 
         if (platformCollectionView == null)
             return false;
 
-        var layoutManager = platformCollectionView.GetLayoutManager() as LinearLayoutManager;
+        LinearLayoutManager? layoutManager = platformCollectionView.GetLayoutManager() as LinearLayoutManager;
         if (layoutManager == null)
             return false;
 
-        var index = (colView.ItemsSource as System.Collections.IList).IndexOf(item);
+        int index = (colView.ItemsSource as System.Collections.IList).IndexOf(item);
 
         // Check if the item is within the visible range
         int firstVisibleItemPosition = layoutManager.FindFirstVisibleItemPosition();

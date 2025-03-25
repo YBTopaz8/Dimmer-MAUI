@@ -388,13 +388,13 @@ public partial class HomePageVM : ObservableObject
         {
             return;
         }
-        var pickedSong = TemporarilyPickedSong;
+        SongModelView pickedSong = TemporarilyPickedSong;
         if (TemporarilyPickedSong != MySelectedSong)
             pickedSong = MySelectedSong;
 
         SelectedAlbumOnAlbumPage = GetAlbumFromSongID(pickedSong.LocalDeviceId!).FirstOrDefault();
         //SelectedArtistOnAlbumPage = GetAllArtistsFromSongID(pickedSong.LocalDeviceId!).FirstOrDefault();
-        var SpecificAlbumSongs = GetAllSongsFromAlbumID(SelectedAlbumOnAlbumPage!.LocalDeviceId);
+        ObservableCollection<SongModelView> SpecificAlbumSongs = GetAllSongsFromAlbumID(SelectedAlbumOnAlbumPage!.LocalDeviceId);
 
     }
     
@@ -449,7 +449,7 @@ public partial class HomePageVM : ObservableObject
         //ToggleFlyout();
         
 #elif ANDROID
-        var currentPage = Shell.Current.CurrentPage;
+        Page currentPage = Shell.Current.CurrentPage;
 
         if (currentPage.GetType() != typeof(SingleSongShell))
         {
@@ -473,10 +473,10 @@ public partial class HomePageVM : ObservableObject
             return;
         }
         if (MySelectedSong.SyncLyrics is null || MySelectedSong.SyncLyrics.Count < 1)
-        {            
-            var ee = LyricsManagerService.GetSpecificSongLyrics(MySelectedSong).ToObservableCollection();
+        {
+            ObservableCollection<LyricPhraseModel> ee = LyricsManagerService.GetSpecificSongLyrics(MySelectedSong).ToObservableCollection();
             SynchronizedLyrics?.Clear();
-            foreach (var item in ee)
+            foreach (LyricPhraseModel? item in ee)
             {
                 SynchronizedLyrics?.Add(item);
             }
@@ -509,7 +509,7 @@ public partial class HomePageVM : ObservableObject
         CurrentPage = PageEnum.NowPlayingPage;
         if (!string.IsNullOrEmpty(MySelectedSong.CoverImagePath) && !File.Exists(MySelectedSong.CoverImagePath))
         {
-            var coverImg = await LyricsManagerService
+            string coverImg = await LyricsManagerService
                 .FetchAndDownloadCoverImage(MySelectedSong.Title!, MySelectedSong.ArtistName!, MySelectedSong.AlbumName!, MySelectedSong);
             SongsMgtService.AllSongs
                 .FirstOrDefault(x => x.LocalDeviceId == MySelectedSong.LocalDeviceId)!.CoverImagePath = coverImg;
@@ -537,17 +537,17 @@ public partial class HomePageVM : ObservableObject
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
 #if ANDROID
-        var  status = await Permissions.RequestAsync<CheckPermissions>();
+        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 #endif
 
 #if WINDOWS || ANDROID 
-        var res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
+        FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
         {
             return;
         }
-        var folder = res.Folder?.Path;
+        string? folder = res.Folder?.Path;
 #elif IOS || MACCATALYST && NET9_0
         string folder = null;
 #endif
@@ -608,12 +608,12 @@ public partial class HomePageVM : ObservableObject
 
     async Task UpdateRelatedPlayingData(SongModelView song)
     {
-        var songArt = song.ArtistName;
+        string? songArt = song.ArtistName;
         if (!string.IsNullOrEmpty(songArt))
         {
             if (AllArtists is not null && AllArtists.Count > 0)
             {
-                var art= GetAllArtistsFromSongID(song.LocalDeviceId!).FirstOrDefault();
+                ArtistModelView? art = GetAllArtistsFromSongID(song.LocalDeviceId!).FirstOrDefault();
 
                 if (art is null)
                 {
@@ -670,7 +670,7 @@ public partial class HomePageVM : ObservableObject
             else if (CurrentPage == PageEnum.FullStatsPage)
             {
                 // Assuming TopTenPlayedSongs is available
-                var topTenSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic
+                List<SongModelView> topTenSongs = Enumerable.Empty<SongModelView>().ToList(); // Replace with your actual logic
                 PlayBackService.ReplaceAndPlayQueue( selectedSong, topTenSongs, PlaybackSource.PlaylistQueue);
                 
             }
@@ -826,8 +826,8 @@ public partial class HomePageVM : ObservableObject
         double windowHeight = Shell.Current.Window?.Height ?? DeviceDisplay.MainDisplayInfo.Height;
         double targetTranslationYPageCaller = -windowHeight * 0.5; // Target translation for pageCaller (move up - you can adjust or remove this if only height animation is desired)
 
-        
-        var pageCaller = CurrentPageMainLayout; // Assuming CurrentPageMainLayout is your pageCaller ContentView
+
+        View pageCaller = CurrentPageMainLayout; // Assuming CurrentPageMainLayout is your pageCaller ContentView
 
         if (pageCaller == null || callerView == null)
         {
@@ -913,7 +913,7 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     async Task UpdateSongToDB(SongModelView song)
     {
-        var res = await Shell.Current.DisplayAlert("Confirm Action", "Confirm Update?", "Yes", "Cancel");
+        bool res = await Shell.Current.DisplayAlert("Confirm Action", "Confirm Update?", "Yes", "Cancel");
         if (res)
         {
             if(SongsMgtService.UpdateSongDetails(song))
@@ -953,7 +953,7 @@ public partial class HomePageVM : ObservableObject
             CurrentPositionPercentage = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition();
             CurrentPositionInSeconds = AppSettingsService.LastPlayedSongPositionPref.GetLastPosition() * TemporarilyPickedSong.DurationInSeconds;
 
-            var s = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId);
+            SongModelView? s = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId);
             if (s is not null)
             {
                 DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == TemporarilyPickedSong.LocalDeviceId)!.IsCurrentPlayingHighlight = true;
@@ -962,7 +962,7 @@ public partial class HomePageVM : ObservableObject
         }
         else
         {
-            var lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
+            string? lastID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
             TemporarilyPickedSong = DisplayedSongs!.FirstOrDefault(x => x.LocalDeviceId == lastID);
             TemporarilyPickedSong??= DisplayedSongs!.FirstOrDefault();
 
@@ -985,7 +985,7 @@ public partial class HomePageVM : ObservableObject
     private ObservableCollection<SongModelView> GetXRecentlyAddedSongs(ObservableCollection<SongModelView> displayedSongs, int number=15)
     {
         // Sort by DateAdded in descending order and take the top X songs
-        var recentSongs = displayedSongs
+        List<SongModelView> recentSongs = displayedSongs
             .OrderByDescending(song => song.DateCreated)  
             .Take(number)  
             .ToList(); 
@@ -1371,7 +1371,7 @@ public partial class HomePageVM : ObservableObject
     {
         IsLoadingSongs = true;
         
-        foreach (var song in SongsMgtService.AllSongs)
+        foreach (SongModelView song in SongsMgtService.AllSongs)
         {
            await FetchSongCoverImage(song);
         }
@@ -1424,13 +1424,13 @@ public partial class HomePageVM : ObservableObject
     [RelayCommand]
     public async Task OpenSortingPopup()
     {
-      var res = await Shell.Current.ShowPopupAsync (new SortingPopUp(this,CurrentSortingOption));
+        object? res = await Shell.Current.ShowPopupAsync (new SortingPopUp(this,CurrentSortingOption));
         Sort((int)res);
     }
 
     public void Sort(int result)
     {
-        var e = (SortingEnum)result;
+        SortingEnum e = (SortingEnum)result;
         IsLoadingSongs = true;
         CurrentSortingOption = e;
         switch (CurrentPage)
@@ -1564,7 +1564,7 @@ public partial class HomePageVM : ObservableObject
 
         // Update the ObservableCollection *once* at the end.
         colToSort.Clear();
-        foreach (var song in sortedSongs)
+        foreach (SongModelView song in sortedSongs)
         {
             colToSort.Add(song);
         }
@@ -1588,7 +1588,7 @@ public partial class HomePageVM : ObservableObject
         PickedSong = MySelectedSong;
 #endif
 
-        var result = ((int)await Shell.Current.ShowPopupAsync(new CustomRepeatPopup(CurrentRepeatMaxCount, PickedSong!)));
+        int result = ((int)await Shell.Current.ShowPopupAsync(new CustomRepeatPopup(CurrentRepeatMaxCount, PickedSong!)));
 
         if (result > 0)
         {
@@ -1659,8 +1659,8 @@ public partial class HomePageVM : ObservableObject
         try
         {
             LiveQueryClient = new ParseLiveQueryClient();
-            var SongQuery = ParseClient.Instance.GetQuery("SongModelView");
-            var subscription = LiveQueryClient.Subscribe(SongQuery);
+            ParseQuery<ParseObject> SongQuery = ParseClient.Instance.GetQuery("SongModelView");
+            Subscription<ParseObject> subscription = LiveQueryClient.Subscribe(SongQuery);
         
             LiveQueryClient.OnConnected.
                 Subscribe(_ =>
@@ -1684,7 +1684,7 @@ public partial class HomePageVM : ObservableObject
                 .Where(e => e.evt == Subscription.Event.Update)
                 .Subscribe(e =>
                 {
-                    var objData = (e.objectData as Dictionary<string, object>);
+                    Dictionary<string, object>? objData = (e.objectData as Dictionary<string, object>);
                     
                     SongModelView song = new();
                     
@@ -1706,7 +1706,7 @@ public partial class HomePageVM : ObservableObject
     public void AddNextInQueue(SongModelView song)
     {
 
-        var ind = PartOfNowPlayingSongs.IndexOf(TemporarilyPickedSong);
+        int ind = PartOfNowPlayingSongs.IndexOf(TemporarilyPickedSong);
         if (ind == 0)
         {
             return;
@@ -1717,7 +1717,7 @@ public partial class HomePageVM : ObservableObject
             PartOfNowPlayingSongsCV.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Start, false);
             Debug.WriteLine("Context menu list re-centered because MySelectedSong was at the edge.");
         }
-        var songs = PartOfNowPlayingSongs.ToList();
+        List<SongModelView> songs = PartOfNowPlayingSongs.ToList();
         if (song is null)
         {
             return;

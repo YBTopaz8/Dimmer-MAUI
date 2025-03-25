@@ -7,22 +7,22 @@ public static class ImageColorExtractor
 {
     public static (string DominantHex, string DimmedHex) GetDominantColor(string imagePath)
     {
-        using var bitmap = SKBitmap.Decode(imagePath);
-        var dominantColor = GetMostFrequentColor(bitmap);
-        var dimmedColor = DimColor(dominantColor);
+        using SKBitmap bitmap = SKBitmap.Decode(imagePath);
+        SKColor dominantColor = GetMostFrequentColor(bitmap);
+        SKColor dimmedColor = DimColor(dominantColor);
 
         return (ColorToHex(dominantColor), ColorToHex(dimmedColor));
     }
 
     private static SKColor GetMostFrequentColor(SKBitmap bitmap)
     {
-        var colorCounts = new Dictionary<SKColor, int>();
+        Dictionary<SKColor, int> colorCounts = new Dictionary<SKColor, int>();
 
         for (int x = 0; x < bitmap.Width; x++)
         {
             for (int y = 0; y < bitmap.Height; y++)
             {
-                var color = bitmap.GetPixel(x, y);
+                SKColor color = bitmap.GetPixel(x, y);
                 if (color.Alpha > 0) // To ignore transparent pixels
                 {
                     if (colorCounts.ContainsKey(color))
@@ -65,7 +65,7 @@ public static class ImageColorExtractor
         public static View GetView(object item)
         {
             int key = RuntimeHelpers.GetHashCode(item);
-            if (itemViewCache.TryGetValue(key, out var view))
+            if (itemViewCache.TryGetValue(key, out View? view))
             {
                 return view;
             }

@@ -86,7 +86,7 @@ public partial class AppShell : Shell
         switch (MyViewModel.CurrentPage)
         {
             case PageEnum.MainPage:
-                var mainPage = Current.CurrentPage as MainPageD;
+                MainPageD? mainPage = Current.CurrentPage as MainPageD;
                 if (MyViewModel.DisplayedSongs.Count < 1)
                 {
                     return;
@@ -892,8 +892,8 @@ public partial class AppShell : Shell
     } 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
         if (song is null)
         {
             return;
@@ -923,8 +923,8 @@ public partial class AppShell : Shell
         {
             Debug.WriteLine("Error when scrolling " + ex.Message);
         }
-        var send = (View)sender;
-        var song = send.BindingContext! as SongModelView;
+        View send = (View)sender;
+        SongModelView? song = send.BindingContext! as SongModelView;
         //MyViewModel.SetContextMenuSong(song!);
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
         //isPointerEntered = true;
@@ -933,7 +933,7 @@ public partial class AppShell : Shell
 
     private void UserHoverOutSongInColView(object sender, Microsoft.Maui.Controls.PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
@@ -1039,7 +1039,7 @@ public partial class AppShell : Shell
     private double GetTextWidth()
     {
         // Measures the text width based on available height
-        var size = Measure(double.PositiveInfinity, Height);
+        Size size = Measure(double.PositiveInfinity, Height);
         return size.Width;
     }
 

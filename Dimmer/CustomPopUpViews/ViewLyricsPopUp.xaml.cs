@@ -8,7 +8,7 @@ public partial class ViewLyricsPopUp : Popup
 	{
 		InitializeComponent();
 		btnText = buttonText;
-		var vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        HomePageVM? vm = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
 		VM = vm;
 		
 	}

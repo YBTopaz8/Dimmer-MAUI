@@ -28,7 +28,7 @@ public class DataBaseService : IDataBaseService
         
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
         //File.Delete(filePath);
-        var config = new RealmConfiguration(filePath)
+        RealmConfiguration config = new RealmConfiguration(filePath)
         {
             SchemaVersion = 3,
         };
@@ -43,7 +43,7 @@ public class DataBaseService : IDataBaseService
     public void LoadAppPreference()
     {
         db = Realm.GetInstance(GetRealm());
-        var ApplicationPreferencesList = db.All<AppPreferencesModel>().ToList();
+        List<AppPreferencesModel>? ApplicationPreferencesList = db.All<AppPreferencesModel>().ToList();
         if (ApplicationPreferencesList is null || ApplicationPreferencesList.Count<1 )
         {
 

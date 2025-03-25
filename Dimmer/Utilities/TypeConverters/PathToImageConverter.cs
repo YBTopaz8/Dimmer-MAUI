@@ -6,7 +6,7 @@ public class PathToImageConverter : IValueConverter
         if (value == null)
             return "musicnoteslider.png";
 
-        var path = LyricsService.SaveOrGetCoverImageToFilePath((string)value);
+        string path = LyricsService.SaveOrGetCoverImageToFilePath((string)value);
         if (string.IsNullOrEmpty(path))
         {
             path = "musicnoteslider.png";

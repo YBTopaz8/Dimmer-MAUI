@@ -58,7 +58,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
 
-            var realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
+            List<AlbumArtistGenreSongLink> realmLinks = db.All<AlbumArtistGenreSongLink>().ToList();
             AllLinks = [.. realmLinks.Select(link => new AlbumArtistGenreSongLinkView(link))];
             AllLinks ??= Enumerable.Empty<AlbumArtistGenreSongLinkView>().ToList();
 
@@ -66,7 +66,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
             AllSongs.Clear();
 
-            var realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+            List<SongModel> realmSongs = db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
             AllSongs = [.. realmSongs.Select(song => new SongModelView(song))];
 
             GetAlbums();
@@ -83,7 +83,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         db = Realm.GetInstance(DataBaseService.GetRealm());
         AllGenres?.Clear();
-        var realmSongs = db.All<GenreModel>().ToList();
+        List<GenreModel> realmSongs = db.All<GenreModel>().ToList();
         AllGenres = [.. realmSongs.Select(genre => new GenreModelView(genre)).OrderBy(x => x.Name)];
     }
     public void GetArtists()
@@ -91,7 +91,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-            var realmArtists = db.All<ArtistModel>().ToList();
+            List<ArtistModel> realmArtists = db.All<ArtistModel>().ToList();
 
             AllArtists = [.. realmArtists.Select(artist => new ArtistModelView(artist)).OrderBy(x => x.Name)];
             AllArtists ??= Enumerable.Empty<ArtistModelView>().ToList();
@@ -106,14 +106,14 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
     {
         db = Realm.GetInstance(DataBaseService.GetRealm());
         AllAlbums?.Clear();
-        var realmAlbums = db.All<AlbumModel>().ToList();
+        List<AlbumModel> realmAlbums = db.All<AlbumModel>().ToList();
         AllAlbums = [.. realmAlbums.Select(album => new AlbumModelView(album)).OrderBy(x=>x.Name)];
     }
 
     public void AddPlayData(string songId, PlayDataLink playData)
     {
         // 1. Add to the specific SongModelView's PlayDates
-        var songView = AllSongs.FirstOrDefault(s => s.LocalDeviceId == songId);
+        SongModelView? songView = AllSongs.FirstOrDefault(s => s.LocalDeviceId == songId);
         if (songView != null)
         {
             songView.PlayData.Add(playData);
@@ -122,7 +122,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         }
         
         // 2. Save to the database (Realm) separately
-        using (var realm = Realm.GetInstance(DataBaseService.GetRealm()))
+        using (Realm realm = Realm.GetInstance(DataBaseService.GetRealm()))
         {
             realm.Write(() =>
             {
@@ -166,7 +166,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
 
-            var songsToAdd = songs
+            List<SongModel> songsToAdd = songs
                 .Where(song => !AllSongs.Any(s => s.Title == song.Title && s.DurationInSeconds == song.DurationInSeconds && s.ArtistName == song.ArtistName))
                 .Select(song => new SongModel(song))
                 .ToList();
@@ -214,7 +214,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                var existingSong = db.All<SongModel>()
+                List<SongModel>? existingSong = db.All<SongModel>()
                 .Where(x => x.LocalDeviceId == songsModelView.LocalDeviceId)
                 .ToList();
 
@@ -237,7 +237,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                     UserIDOnline = CurrentUserOnline?.ObjectId
                 };
 
-                var ex = existingSong.FirstOrDefault();
+                SongModel? ex = existingSong.FirstOrDefault();
                 if (ex is not null)
                 {
                     song.LocalDeviceId = ex.LocalDeviceId;
@@ -265,7 +265,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         try
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
-            var artists = new List<ArtistModel>();
+            List<ArtistModel> artists = new List<ArtistModel>();
             artists.AddRange(artistss.Select(art => new ArtistModel(art)));
 
             db.Write(() =>
@@ -296,7 +296,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             db = Realm.GetInstance(DataBaseService.GetRealm());
             db.Write(() =>
             {
-                var existingAlbum = db.Find<AlbumModel>(album.LocalDeviceId);
+                AlbumModel? existingAlbum = db.Find<AlbumModel>(album.LocalDeviceId);
 
                 if (existingAlbum != null)
                 {
@@ -308,7 +308,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                 }
                 else
                 {
-                    var newSong = new AlbumModel(album);
+                    AlbumModel newSong = new AlbumModel(album);
                     db.Add(newSong);
                 }
             });
@@ -336,34 +336,34 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
             db = Realm.GetInstance(DataBaseService.GetRealm());
             await db.WriteAsync(() =>
             {
-                foreach (var song in songs)
+                foreach (SongModelView song in songs)
                 {
-                    var songID = song.LocalDeviceId;
-                    var existingSong = db.Find<SongModel>(songID);
+                    string? songID = song.LocalDeviceId;
+                    SongModel? existingSong = db.Find<SongModel>(songID);
                     if (existingSong != null)
                     {
-                        var artistSongLinks = db.All<AlbumArtistGenreSongLink>()
+                        List<AlbumArtistGenreSongLink> artistSongLinks = db.All<AlbumArtistGenreSongLink>()
                                                 .Where(link => link.SongId == songID)
                                                 .ToList();
 
-                        var artistIDs = artistSongLinks.Select(link => link.ArtistId).ToList();
+                        List<string?> artistIDs = artistSongLinks.Select(link => link.ArtistId).ToList();
 
-                        var albumIDs = artistSongLinks.Select(link => link.AlbumId).ToList();
+                        List<string?> albumIDs = artistSongLinks.Select(link => link.AlbumId).ToList();
 
-                        foreach (var link in artistSongLinks)
+                        foreach (AlbumArtistGenreSongLink? link in artistSongLinks)
                         {
                             db.Remove(link);
                         }
 
                         db.Remove(existingSong);
 
-                        foreach (var artistID in artistIDs)
+                        foreach (string? artistID in artistIDs)
                         {
                             bool isArtistLinkedToOtherSongs = db.All<AlbumArtistGenreSongLink>()
                                                                 .Any(link => link.ArtistId == artistID && link.SongId != songID);
                             if (!isArtistLinkedToOtherSongs)
                             {
-                                var artistToDelete = db.Find<ArtistModel>(artistID);
+                                ArtistModel? artistToDelete = db.Find<ArtistModel>(artistID);
                                 if (artistToDelete != null)
                                 {
                                     db.Remove(artistToDelete);
@@ -371,13 +371,13 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
                             }
                         }
 
-                        foreach (var albumID in albumIDs)
+                        foreach (string? albumID in albumIDs)
                         {
                             bool isAlbumLinkedToOtherSongs = db.All<AlbumArtistGenreSongLink>()
                                                               .Any(link => link.AlbumId == albumID && link.SongId != songID);
                             if (!isAlbumLinkedToOtherSongs)
                             {
-                                var albumToDelete = db.Find<AlbumModel>(albumID);
+                                AlbumModel? albumToDelete = db.Find<AlbumModel>(albumID);
                                 if (albumToDelete != null)
                                 {
                                     db.Remove(albumToDelete);
@@ -411,9 +411,9 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     public async Task<bool> LoadSongsFromFolderAsync(List<string> folderPaths, Subject<SongLoadProgress> loadingSubj)
     {
-     
+
         // Run the file scan and processing on a background thread.
-        var result = await Task.Run(() => LoadSongsAsync(folderPaths, loadingSubj));
+        LoadSongsResult? result = await Task.Run(() => LoadSongsAsync(folderPaths, loadingSubj));
 
         if (result == null || result.Songs == null || result.Artists == null ||
             result.Albums == null || result.Genres == null)
@@ -453,7 +453,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
 
     private LoadSongsResult? LoadSongsAsync(List<string> folderPaths, IObserver<SongLoadProgress> progressObserver)
     {
-        var allFiles = MusicFileProcessor.GetAllFiles(folderPaths);
+        List<string> allFiles = MusicFileProcessor.GetAllFiles(folderPaths);
         Debug.WriteLine("Got All Files");
 
         if (allFiles.Count == 0)
@@ -464,32 +464,32 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         GetInitialValues();
 
         // Use existing data or empty lists if null.
-        var existingArtists = realmArtists ?? new List<ArtistModel>();
-        var existingLinks = realmAAGSL ?? new List<AlbumArtistGenreSongLink>();
-        var existingAlbums = realmAlbums ?? new List<AlbumModel>();
-        var existingGenres = realGenres ?? new List<GenreModel>();
-        var oldSongs = realmSongs ?? new List<SongModel>();
+        List<ArtistModel> existingArtists = realmArtists ?? new List<ArtistModel>();
+        List<AlbumArtistGenreSongLink> existingLinks = realmAAGSL ?? new List<AlbumArtistGenreSongLink>();
+        List<AlbumModel> existingAlbums = realmAlbums ?? new List<AlbumModel>();
+        List<GenreModel> existingGenres = realGenres ?? new List<GenreModel>();
+        List<SongModel> oldSongs = realmSongs ?? new List<SongModel>();
 
-        var newArtists = new List<ArtistModel>();
-        var newAlbums = new List<AlbumModel>();
-        var newLinks = new List<AlbumArtistGenreSongLink>();
-        var newGenres = new List<GenreModel>();
-        var allSongs = new List<SongModel>();
+        List<ArtistModel> newArtists = new List<ArtistModel>();
+        List<AlbumModel> newAlbums = new List<AlbumModel>();
+        List<AlbumArtistGenreSongLink> newLinks = new List<AlbumArtistGenreSongLink>();
+        List<GenreModel> newGenres = new List<GenreModel>();
+        List<SongModel> allSongs = new List<SongModel>();
 
         // Dictionaries to prevent duplicate processing.
-        var artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
-        var albumDict = new Dictionary<string, AlbumModel>();
-        var genreDict = new Dictionary<string, GenreModel>();
+        Dictionary<string, ArtistModel> artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AlbumModel> albumDict = new Dictionary<string, AlbumModel>();
+        Dictionary<string, GenreModel> genreDict = new Dictionary<string, GenreModel>();
 
         int totalFiles = allFiles.Count;
         int processedFiles = 0;
         
-        foreach (var file in allFiles)
+        foreach (string file in allFiles)
         {
             processedFiles++;
             if (MusicFileProcessor.IsValidFile(file))
             {
-                var songData = MusicFileProcessor.ProcessFile(
+                SongModel? songData = MusicFileProcessor.ProcessFile(
                     file,
                     existingAlbums, albumDict, newAlbums, oldSongs,
                     newArtists, artistDict, newLinks, existingLinks, existingArtists,
@@ -550,8 +550,8 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         {
             db = Realm.GetInstance(DataBaseService.GetRealm());
             // Ensure UserModel exists
-            var userList = db.All<UserModel>().ToList();
-            var user = userList.FirstOrDefault();
+            List<UserModel> userList = db.All<UserModel>().ToList();
+            UserModel? user = userList.FirstOrDefault();
 
             if (user == null)
             {
@@ -626,7 +626,7 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
-            foreach (var item in items)
+            foreach (T item in items)
             {
                 if (!db.All<T>().Any(existsCondition))
                 {
@@ -698,10 +698,10 @@ public partial class SongsManagementService : ISongsManagementService, IDisposab
         db = Realm.GetInstance(DataBaseService.GetRealm());
         db.Write(() =>
         {
-            var userdb = db.All<UserModel>();
+            IQueryable<UserModel> userdb = db.All<UserModel>();
             if (userdb.Any())
             {
-                var usr = userdb.FirstOrDefault()!;
+                UserModel usr = userdb.FirstOrDefault()!;
                 usr.UserIDOnline = CurrentUserOnline.ObjectId;
                 db.Add(usr, update: true);
             }
@@ -757,33 +757,33 @@ public class CsvExporter
         };
 
         // Open the file with a StreamWriter and include BOM for UTF-8
-        using (var writer = new StreamWriter(csvFilePath, false, new UTF8Encoding(true)))
+        using (StreamWriter writer = new StreamWriter(csvFilePath, false, new UTF8Encoding(true)))
         {
             // Write the header line
              writer.WriteLine(string.Join(",", headers));
 
             // Iterate through each song
-            foreach (var song in songs)
+            foreach (SongModel song in songs)
             {
                 // Create a list to hold all action dates with their corresponding action
-                var actionEntries = new List<(int Action, DateTimeOffset ActionDate)>();
+                List<(int Action, DateTimeOffset ActionDate)> actionEntries = new List<(int Action, DateTimeOffset ActionDate)>();
 
                 // Only proceed if there are any action entries
                 if (actionEntries.Count != 0)
                 {
                     // Sort the combined list by ActionDate in ascending order
-                    var sortedActions = actionEntries
+                    List<(int Action, DateTimeOffset ActionDate)> sortedActions = actionEntries
                         .OrderBy(a => a.ActionDate)
                         .ToList();
 
-                    foreach (var entry in sortedActions)
+                    foreach ((int Action, DateTimeOffset ActionDate) entry in sortedActions)
                     {
                         if (entry.Action != 1 && entry.Action != 0)
                         {
                             Debug.WriteLine("Skipped!!");
                         }
 
-                        var row = new List<string>
+                        List<string> row = new List<string>
                             {
                                 EscapeCsvField(song.Title),
                                 EscapeCsvField(song.ArtistName is null ? string.Empty : song.ArtistName),

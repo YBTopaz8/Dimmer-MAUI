@@ -71,7 +71,7 @@ public partial class HomePageVM
     {
         ChatMessages ??=new();
 
-        var objData = e.objectDictionnary as Dictionary<string, object>;
+        Dictionary<string, object>? objData = e.objectDictionnary as Dictionary<string, object>;
         if (objData is null)
             return;
 
@@ -113,12 +113,12 @@ public partial class HomePageVM
 
 
 
-                        var qa = ParseClient.Instance.GetQuery<Message>()
+                        ParseQuery<Message> qa = ParseClient.Instance.GetQuery<Message>()
                             .WhereEqualTo("objectId", uMsg.ObjectId);
                         uMsg = await qa.FirstOrDefaultAsync();
 
 
-                        var q1 = ParseClient.Instance.GetQuery<ParseUser>()
+                        ParseQuery<ParseUser> q1 = ParseClient.Instance.GetQuery<ParseUser>()
                             .WhereEqualTo("objectId", emptyUsr.ObjectId);
                         uMsg.Sender = await q1.FirstOrDefaultAsync();
                         activity.Sender= uMsg.Sender;
@@ -126,9 +126,9 @@ public partial class HomePageVM
 
                         if (uMsg.ChatRoom is not null)
                         {
-                            var q2 = ParseClient.Instance.GetQuery<ChatRoom>()
+                            ParseQuery<ChatRoom> q2 = ParseClient.Instance.GetQuery<ChatRoom>()
                                 .WhereEqualTo("objectId", uMsg.ChatRoom.ObjectId);
-                            var resChatRoom = await q2.FirstOrDefaultAsync();
+                            ChatRoom resChatRoom = await q2.FirstOrDefaultAsync();
                             uMsg.ChatRoom = resChatRoom;
                         }
 
@@ -147,7 +147,7 @@ public partial class HomePageVM
                 break;
             case Subscription.Event.Update:
                 activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
-                var obj = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+                UserActivity? obj = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
 
                 if (obj != null)
                 {
@@ -157,7 +157,7 @@ public partial class HomePageVM
 
             case Subscription.Event.Delete:
                 activity = ObjectMapper.MapFromDictionary<UserActivity>(objData);
-                var objToDelete = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
+                UserActivity? objToDelete = ChatMessages.FirstOrDefault(x => x.ObjectId == activity.ObjectId);
 
                 if (objToDelete != null)
                 {
@@ -214,10 +214,10 @@ public partial class HomePageVM
         try
         {
 
-            var query = ParseClient.Instance.GetQuery<UserActivity>()
+            ParseQuery<UserActivity> query = ParseClient.Instance.GetQuery<UserActivity>()
                 .WhereEqualTo("recipient", CurrentUserOnline);
-                
-            var subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
+
+            Subscription<UserActivity> subscription = LiveQueryClient!.Subscribe(query, "FriendRequestsSub");
             LiveQueryClient.ConnectIfNeeded();
             int retryDelaySeconds = 5;
             int maxRetries = 10;
@@ -311,8 +311,8 @@ public partial class HomePageVM
         try
         {
             // Fetch the sender's user data
-            var sender = await friendRequest.Sender.FetchIfNeededAsync();
-            var newRequest = new FriendRequestDisplay
+            ParseUser sender = await friendRequest.Sender.FetchIfNeededAsync();
+            FriendRequestDisplay newRequest = new FriendRequestDisplay
             {
                 RequestId = friendRequest.ObjectId,
                 SenderUsername = sender.Username,
@@ -336,7 +336,7 @@ public partial class HomePageVM
         try
         {
             // Listen for UserActivity objects of type "ChatMessage"
-            var query = ParseClient.Instance.GetQuery<UserActivity>()
+            ParseQuery<UserActivity> query = ParseClient.Instance.GetQuery<UserActivity>()
 
                 .Include("chatMessage")  // Important: Include the chatMessage pointer
                 .Include("chatMessage.Sender") // Include sender details
@@ -435,7 +435,7 @@ public partial class HomePageVM
 #elif ANDROID
             if (userChatColViewDX is not null)
             {
-                var itemHandle = userChatColViewDX.FindItemHandle(LatestActivity);
+                int itemHandle = userChatColViewDX.FindItemHandle(LatestActivity);
                 userChatColViewDX.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.End);
             }
 #endif
@@ -467,10 +467,10 @@ public partial class HomePageVM
             List<ParseUser> participants = [];
 
             //Fetch users
-            foreach (var id in participantIds)
+            foreach (string id in participantIds)
             {
-                var q = ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", id);
-                var user = await q.FirstOrDefaultAsync(); // Use FirstOrDefaultAsync to handle nulls
+                ParseQuery<ParseUser> q = ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", id);
+                ParseUser user = await q.FirstOrDefaultAsync(); // Use FirstOrDefaultAsync to handle nulls
                 if (user != null)
                 {
                     participants.Add(user);
@@ -512,14 +512,14 @@ public partial class HomePageVM
         if (CurrentChatRoom == null)
             return;
 
-        var query = ParseClient.Instance.GetQuery<Message>()
+        ParseQuery<Message> query = ParseClient.Instance.GetQuery<Message>()
             .WhereEqualTo(nameof(Message.ChatRoom), CurrentChatRoom)
             .Include(nameof(Message.Sender))
-            .OrderBy(nameof(Message.CreatedAt)); 
+            .OrderBy(nameof(Message.CreatedAt));
 
-        var existingMessages = await query.FindAsync();
+        IEnumerable<Message> existingMessages = await query.FindAsync();
         ChatMessages??=new();   
-        foreach (var msg in ChatMessages)
+        foreach (UserActivity msg in ChatMessages)
         {
             await Task.WhenAll(msg.Sender.FetchIfNeededAsync(),
                 msg.ChatMessage.FetchIfNeededAsync());
@@ -536,17 +536,17 @@ public partial class HomePageVM
         // Efficiently check for an existing activity room with ALL the given participants.
         // Using Any or Contains will not work. We need to use ContainsAll in a smart way.
 
-        var query = ParseClient.Instance.GetQuery<ChatRoom>()
+        ParseQuery<ChatRoom> query = ParseClient.Instance.GetQuery<ChatRoom>()
                      .WhereMatchesQuery("Participants", ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", CurrentUserOnline.ObjectId));
         ;
 
         // Get all potential ChatRooms, and then filter in memory for an *exact* match.
-        var potentialMatches = await query.FindAsync();
+        IEnumerable<ChatRoom> potentialMatches = await query.FindAsync();
 
-        foreach (var chatRoom in potentialMatches)
+        foreach (ChatRoom chatRoom in potentialMatches)
         {
             // Fetch the participants for this ChatRoom.
-            var chatRoomParticipants = await chatRoom.GetRelation<ParseUser>("Participants").Query.FindAsync();
+            IEnumerable<ParseUser> chatRoomParticipants = await chatRoom.GetRelation<ParseUser>("Participants").Query.FindAsync();
 
             //Compare. must have same counts and contains all.
             if (chatRoomParticipants.Count() == participants.Count &&
@@ -561,21 +561,21 @@ public partial class HomePageVM
     }
     private async Task<ChatRoom> CreateChatRoomAsync2(List<ParseUser> participants)
     {
-        var chatRoom = new ChatRoom();
+        ChatRoom chatRoom = new ChatRoom();
         await chatRoom.SaveAsync(); // Save first to get an ObjectId
 
         // Add all participants to the relation.
-        var relation = chatRoom.GetRelation<ParseUser>("Participants");
-        foreach (var participant in participants)
+        ParseRelation<ParseUser> relation = chatRoom.GetRelation<ParseUser>("Participants");
+        foreach (ParseUser participant in participants)
         {
             relation.Add(participant);
         }
         await chatRoom.SaveAsync(); // Save again to update the relation
 
         //add this chatroom to other users,
-        foreach (var p in participants)
+        foreach (ParseUser p in participants)
         {
-            var u = await ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", p.ObjectId).FirstOrDefaultAsync();
+            ParseUser? u = await ParseClient.Instance.GetQuery<ParseUser>().WhereEqualTo("objectId", p.ObjectId).FirstOrDefaultAsync();
             if (u != null)
             {
                 u.GetRelation<ChatRoom>("ChatRooms").Add(chatRoom);
@@ -593,9 +593,9 @@ public partial class HomePageVM
     {
         try
         {
-            
+
             // Remove the request from the UI list
-            var requestToRemove = PendingFriendRequests.FirstOrDefault(r => r.RequestId == requestId);
+            FriendRequestDisplay? requestToRemove = PendingFriendRequests.FirstOrDefault(r => r.RequestId == requestId);
             if (requestToRemove != null)
             {
                 PendingFriendRequests.Remove(requestToRemove);
@@ -625,7 +625,7 @@ public partial class HomePageVM
                 return false;
             }
 
-            var query1 = ParseClient.Instance.GetQuery("Friendship")
+            ParseQuery<ParseObject> query1 = ParseClient.Instance.GetQuery("Friendship")
                 .WhereEqualTo("user1", currentUser);
             int count1 = await query1.CountAsync();
             if (count1 > 0)
@@ -633,7 +633,7 @@ public partial class HomePageVM
                 return true; // Early return if we find friends in the first query
             }
 
-            var query2 = ParseClient.Instance.GetQuery("Friendship")
+            ParseQuery<ParseObject> query2 = ParseClient.Instance.GetQuery("Friendship")
                 .WhereEqualTo("user2", currentUser);
             int count2 = await query2.CountAsync();
 
@@ -678,7 +678,7 @@ public partial class HomePageVM
         
         try
         {
-            var message = new Message
+            Message message = new Message
             {
                 Sender = CurrentUserOnline,                
                 Content = messageContent,
@@ -713,14 +713,14 @@ public partial class HomePageVM
         {
             return;
         }
-        var user = new List<string>
+        List<string> user = new List<string>
         {
             CurrentUserOnline.ObjectId
         };
 
         CurrentChatRoom = await StartOrJoinChatAsync(user);
         Message newMessage = new();
-        var date = DateTime.Now;
+        DateTime date = DateTime.Now;
         newMessage.Content = $"{CurrentUser.UserName} on {date:dd}{GetDaySuffix(date.Day)} of {date:MMMM yyyy} at {date:HH'h'mm:ss}";
 
       

@@ -10,7 +10,7 @@ public class CrossCurrentActivity
     {
         get
         {
-            var ret = implementation.Value;
+            ICurrentActivity ret = implementation.Value;
             if (ret == null)
             {
                 throw NotImplementedInReferenceAssembly();

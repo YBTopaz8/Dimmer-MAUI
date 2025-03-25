@@ -29,7 +29,7 @@ public static class MusicFileProcessor
     // Global method to sanitize and extract unique artist names.
     public static List<string> SanitizeArtistNames(string? artist, string? albumArtist)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         names.UnionWith(ParseNames(artist, removeAmpersand: true));
         names.UnionWith(ParseNames(albumArtist));
         return names.ToList();
@@ -120,7 +120,7 @@ public static class MusicFileProcessor
         GenreModel genre = GetOrCreateGenre(genreName, genreDict, newGenres, existingGenres);
 
         // Process artists and create links.
-        foreach (var artistName in artistNames)
+        foreach (string artistName in artistNames)
         {
             ArtistModel artist = GetOrCreateArtist(artistName, artistDict, newArtists, existingArtists);
             CreateLinks(artist, album, song, genre, newLinks, existingLinks);
@@ -134,12 +134,12 @@ public static class MusicFileProcessor
     {
         List<string> allFiles = new List<string>();
         int countOfScanningErrors = 0;
-        var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        HashSet<string> supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".mp3", ".flac", ".wav", ".m4a"
         };
 
-        foreach (var path in folderPaths.Distinct())
+        foreach (string? path in folderPaths.Distinct())
         {
             if (string.IsNullOrWhiteSpace(path))
                 continue;
@@ -148,7 +148,7 @@ public static class MusicFileProcessor
             {
                 if (Directory.Exists(path))
                 {
-                    var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                    List<string> files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                                          .Where(s => supportedExtensions.Contains(Path.GetExtension(s)))
                                          .ToList();
                     allFiles.AddRange(files);
@@ -180,7 +180,7 @@ public static class MusicFileProcessor
         List<GenreModel> newGenres,
         List<GenreModel> existingGenres)
     {
-        if (!genreDict.TryGetValue(genreName, out var genre))
+        if (!genreDict.TryGetValue(genreName, out GenreModel? genre))
         {
             genre = existingGenres.FirstOrDefault(g =>
                 string.Equals(g.Name, genreName, StringComparison.OrdinalIgnoreCase));
@@ -208,7 +208,7 @@ public static class MusicFileProcessor
         List<AlbumModel> newAlbums)
     {
         albumName = string.IsNullOrWhiteSpace(albumName) ? "Unknown Album" : albumName;
-        if (!albumDict.TryGetValue(albumName, out var album))
+        if (!albumDict.TryGetValue(albumName, out AlbumModel? album))
         {
             album = new AlbumModel
             {
@@ -233,7 +233,7 @@ public static class MusicFileProcessor
         List<ArtistModel> newArtists,
         List<ArtistModel> existingArtists)
     {
-        if (!artistDict.TryGetValue(artistName, out var artist))
+        if (!artistDict.TryGetValue(artistName, out ArtistModel? artist))
         {
             artist = existingArtists.FirstOrDefault(a =>
                 a.Name.Equals(artistName, StringComparison.OrdinalIgnoreCase));
@@ -271,7 +271,7 @@ public static class MusicFileProcessor
 
         if (!linkExists)
         {
-            var newLink = new AlbumArtistGenreSongLink
+            AlbumArtistGenreSongLink newLink = new AlbumArtistGenreSongLink
             {
                 LocalDeviceId = GenerateLocalDeviceID("Lnk"),
                 ArtistId = artist.LocalDeviceId,
@@ -288,7 +288,7 @@ public static class MusicFileProcessor
     public static SongModel CreateSongModel(Track track, string title, string albumName, string artistName, string filePath)
     {
         FileInfo fileInfo = new FileInfo(filePath);
-        var song = new SongModel
+        SongModel song = new SongModel
         {
             LocalDeviceId = Guid.NewGuid().ToString(),
             Title = title,
@@ -322,7 +322,7 @@ public static class MusicFileProcessor
     // Update cover image paths for all songs.
     public static ObservableCollection<SongModel> CheckCoverImage(ObservableCollection<SongModel> songs)
     {
-        foreach (var song in songs)
+        foreach (SongModel song in songs)
         {
             if (!string.IsNullOrWhiteSpace(song.FilePath))
                 song.CoverImagePath = GetCoverImagePath(song.FilePath);
@@ -348,7 +348,7 @@ public static class MusicFileProcessor
         // Check for embedded pictures.
         if (track.EmbeddedPictures != null && track.EmbeddedPictures.Any())
         {
-            var picture = track.EmbeddedPictures.FirstOrDefault();
+            ATL.PictureInfo? picture = track.EmbeddedPictures.FirstOrDefault();
             if (picture != null)
             {
                 return LyricsService.SaveOrGetCoverImageToFilePath(filePath, picture.PictureData);
@@ -368,7 +368,7 @@ public static class MusicFileProcessor
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        var imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.*", SearchOption.TopDirectoryOnly)
+        List<string> imageFiles = Directory.GetFiles(folderPath, $"{fileNameWithoutExtension}.*", SearchOption.TopDirectoryOnly)
                                   .Where(f => new[] { ".jpg", ".jpeg", ".png" }
                                   .Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
                                   .ToList();

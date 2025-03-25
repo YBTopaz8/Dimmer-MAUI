@@ -33,16 +33,16 @@ public static class NotificationHelper
             return;
         }
 
-        var name = "Dimmer";
-        var description = "The count from MainActivity.";
-        var channel = new NotificationChannel(CHANNEL_ID, name, NotificationImportance.Min)
+        string name = "Dimmer";
+        string description = "The count from MainActivity.";
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, NotificationImportance.Min)
         {
             Description = description,
         };
 
         channel.SetSound(null, null);
 
-        var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService)!;
+        NotificationManager notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService)!;
 
         notificationManager.CreateNotificationChannel(channel);
     }
@@ -61,17 +61,17 @@ public static class NotificationHelper
             Intent intent = new(context, typeof(MainActivity));
             intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
 
-            var pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
+            PendingIntentFlags pendingIntentFlags = (Build.VERSION.SdkInt >= BuildVersionCodes.S)
                 ? PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Mutable
                 : PendingIntentFlags.UpdateCurrent;
 
-            var pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
+            PendingIntent? pendingIntent = PendingIntent.GetActivity(context, 2, intent, pendingIntentFlags);
                         
             MediaMetadata currentTrack = mediaMetadata;
 
             MediaStyle style = new MediaStyle();
             style.SetMediaSession(mediaSession.SessionToken);
-            var builder = new Builder(context, CHANNEL_ID)
+            Builder builder = new Builder(context, CHANNEL_ID)
                .SetStyle(style)
                .SetContentTitle(currentTrack.GetString(MediaMetadata.MetadataKeyTitle))
                .SetContentText(currentTrack.GetString(MediaMetadata.MetadataKeyArtist))
@@ -94,7 +94,7 @@ public static class NotificationHelper
             {
                 builder.SetLargeIcon(largeIcon);
             }
-            var notif = builder.Build();
+            Notification notif = builder.Build();
             return notif;
         }
         catch (Exception ex)

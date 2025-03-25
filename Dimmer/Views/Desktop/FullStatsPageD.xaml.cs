@@ -30,9 +30,9 @@ public partial class FullStatsPageD : ContentPage
 
     private async void StatsTabs_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
     {
-        var selectedTab = StatsTabs.SelectedItem;
-        var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
+        object? selectedTab = StatsTabs.SelectedItem;
+        SfChipGroup send = (SfChipGroup)sender;
+        SfChip? selected = send.SelectedItem as SfChip;
         if (selected is null)
         {
             return; 
@@ -80,7 +80,7 @@ public partial class FullStatsPageD : ContentPage
                 break;
         }
 
-        var viewss = new Dictionary<int, View>
+        Dictionary<int, View> viewss = new Dictionary<int, View>
         {
             {0, GeneralStatsView},
             {1, SongsStatsView},
@@ -105,7 +105,7 @@ public partial class FullStatsPageD : ContentPage
 
     private void SfEffectsView_TouchUp(object sender, EventArgs e)
     {
-        var send = (SfEffectsView)sender;
+        SfEffectsView send = (SfEffectsView)sender;
         int.TryParse(send.TouchUpCommandParameter.ToString(), out SelectedGeneralView);
 
         switch (SelectedGeneralView)
@@ -143,29 +143,29 @@ public partial class FullStatsPageD : ContentPage
 
     private async void FocusModePointerRec_PEntered(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmIn(500);
      
     }
     private async void FocusModePointerRec_PExited(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmOut(300);
      
     }
 
     private void StatView_Loaded(object sender, EventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         _ = send.DimmOut(300);
     }
 
     private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
-        var send = sender as PieSeries;
-        var itemss = send.ItemsSource as ObservableCollection<DimmData>;
-        
-        var song = MyViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+        PieSeries? send = sender as PieSeries;
+        ObservableCollection<DimmData>? itemss = send.ItemsSource as ObservableCollection<DimmData>;
+
+        SongModelView? song = MyViewModel.DisplayedSongs.FirstOrDefault(X=> X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
 
         MyViewModel.MySelectedSong = song;
         if (ClickToPreview)

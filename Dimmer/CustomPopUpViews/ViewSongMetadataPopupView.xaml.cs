@@ -17,7 +17,7 @@ public partial class ViewSongMetadataPopupView : Popup
     private void SearchSongOn_Clicked(object sender, EventArgs e)
     {
         this.Close();
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
 
         MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
     }

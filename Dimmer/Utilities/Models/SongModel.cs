@@ -69,7 +69,7 @@ public partial class SongModel : RealmObject
         Achievement = string.IsNullOrEmpty(model.Achievement) ? "No Achievements" : model.Achievement;
         
         IsFileExists = model.IsFileExists;
-        var s = new Track();
+        Track s = new Track();
         LyricsInfo lyrics = new LyricsInfo();
         if (model.SyncLyrics is not null && model.SyncLyrics.Count > 0)
         {

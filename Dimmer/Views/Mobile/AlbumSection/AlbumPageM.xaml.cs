@@ -17,9 +17,9 @@ public partial class AlbumPageM : ContentPage
     
     string previousAlbID = string.Empty;
     private async void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
-    {        
-        var t = (VerticalStackLayout)sender;
-        var album = t.BindingContext as AlbumModelView;
+    {
+        VerticalStackLayout t = (VerticalStackLayout)sender;
+        AlbumModelView? album = t.BindingContext as AlbumModelView;
         if (previousAlbID == album!.LocalDeviceId)
         {
             return;
@@ -47,8 +47,8 @@ public partial class AlbumPageM : ContentPage
     }
     private async void ImageButton_Clicked(object sender, EventArgs e)
     {
-        var send = (View)sender;
-        var album = send.BindingContext as AlbumModelView;
+        View send = (View)sender;
+        AlbumModelView? album = send.BindingContext as AlbumModelView;
         await MyViewModel.ShowSpecificArtistsSongsWithAlbum(album!);
     }
 
@@ -66,7 +66,7 @@ public partial class AlbumPageM : ContentPage
     {
         MyViewModel.CurrentQueue = 1;
 
-        var song = e.Item as SongModelView;
+        SongModelView? song = e.Item as SongModelView;
         MyViewModel.PlaySong(song);
     }
 }

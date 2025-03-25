@@ -32,8 +32,8 @@ public partial class PlaylistsPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
 
         if (song is not null)
         {
@@ -58,7 +58,7 @@ public partial class PlaylistsPageD : ContentPage
             {
                 isAboutToDropFiles = true;
 
-                var send = sender as View;
+                View? send = sender as View;
                 if (send is null)
                 {
                     return;
@@ -117,7 +117,7 @@ public partial class PlaylistsPageD : ContentPage
         try
         {
             isAboutToDropFiles = false;
-            var send = sender as View;
+            View? send = sender as View;
             if (send is null)
             {
                 return;
@@ -134,7 +134,7 @@ public partial class PlaylistsPageD : ContentPage
         supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
+        View? send = sender as View;
         if (send is null)
         {
             return;
@@ -181,8 +181,8 @@ public partial class PlaylistsPageD : ContentPage
 
     private void AddToPlayListGR_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var playlist = (PlaylistModelView)send.BindingContext;
+        View send = (View)sender;
+        PlaylistModelView playlist = (PlaylistModelView)send.BindingContext;
         if (MyViewModel.MySelectedSong is null)
         {
             return;
@@ -211,8 +211,8 @@ public partial class PlaylistsPageD : ContentPage
     }
     private void SfChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
-        var param = ee.CommandParameter.ToString();
+        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        string? param = ee.CommandParameter.ToString();
         if (param is null)
         {
             return;

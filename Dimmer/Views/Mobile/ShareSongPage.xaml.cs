@@ -53,16 +53,16 @@ public partial class ShareSongPage : ContentPage
 
         UtilsHSL.IsVisible = false;
         //myPage.IsEnabled = false;
-        var screenshot = await myPage.CaptureAsync();
+        IScreenshotResult? screenshot = await myPage.CaptureAsync();
         if (screenshot != null)
         {
 
-            var directoryPath = Path.Combine("/storage/emulated/0/Documents", "Dimmer");
+            string directoryPath = Path.Combine("/storage/emulated/0/Documents", "Dimmer");
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            var savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png");
+            string savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png");
             using Stream fileStream = File.OpenWrite(savePath);
             await screenshot.CopyToAsync(fileStream, ScreenshotFormat.Png);
             await Share.Default.RequestAsync(new ShareFileRequest
@@ -81,16 +81,16 @@ public partial class ShareSongPage : ContentPage
     {
         UtilsHSL.IsVisible = false;
         //myPage.IsEnabled = false;
-        var screenshot = await myPage.CaptureAsync();
+        IScreenshotResult? screenshot = await myPage.CaptureAsync();
         if (screenshot != null)
         {
 
-            var directoryPath = Path.Combine("/storage/emulated/0/Documents", "Dimmer");
+            string directoryPath = Path.Combine("/storage/emulated/0/Documents", "Dimmer");
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            var savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm}.png");
+            string savePath = Path.Combine(directoryPath, $"DimmerStory_{DateTime.Now:yyyy-MM-dd_HH-mm}.png");
             if (File.Exists(savePath))
             {
                 File.Delete(savePath);
@@ -140,7 +140,7 @@ public partial class ShareSongPage : ContentPage
     {
         if (e.NewValue)
         {
-            var res = await FilePicker.Default.PickMultipleAsync(
+            IEnumerable<FileResult> res = await FilePicker.Default.PickMultipleAsync(
             new PickOptions()
             {
                 PickerTitle = "Select Image To Share",
@@ -148,7 +148,7 @@ public partial class ShareSongPage : ContentPage
             });
             if (res != null)
             {
-                foreach (var imgPicked in res)
+                foreach (FileResult imgPicked in res)
                 {
                 }
             }
@@ -157,7 +157,7 @@ public partial class ShareSongPage : ContentPage
         {
             if (!string.IsNullOrEmpty(customImgPath))
             {
-                var ress = await Shell.Current.DisplayAlert("Confirm Action", "Are you sure you want to remove the custom image?", "Yes", "No");
+                bool ress = await Shell.Current.DisplayAlert("Confirm Action", "Are you sure you want to remove the custom image?", "Yes", "No");
 
                 if (ress)
                 {
@@ -170,7 +170,7 @@ public partial class ShareSongPage : ContentPage
     }
     private async Task<bool> ConfirmActionPopup(string action)
     {
-        var ress = await Shell.Current.DisplayAlert("Confirm Action", $"Are you sure you want to {action}?", "Yes", "No");
+        bool ress = await Shell.Current.DisplayAlert("Confirm Action", $"Are you sure you want to {action}?", "Yes", "No");
 
         return ress;
     }
@@ -204,7 +204,7 @@ public partial class ShareSongPage : ContentPage
 
     private void LyricsColView_TapConfirmed(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        var ee = e.Item as LyricPhraseModel;
+        LyricPhraseModel? ee = e.Item as LyricPhraseModel;
         
         
         LyricPickerBtmSheet.Close();
@@ -240,7 +240,7 @@ public partial class ShareSongPage : ContentPage
 
     private void HandleDrag(object sender, PanUpdatedEventArgs e)
     {
-        var view = sender as View;
+        View? view = sender as View;
         double xOffset = view.TranslationX;
         double yOffset = view.TranslationY;
 
@@ -263,7 +263,7 @@ public partial class ShareSongPage : ContentPage
     double startScale = 1;
     private void PinchGestureRecognizer_PinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
     {
-        var ZoomableLabel = sender as View;
+        View? ZoomableLabel = sender as View;
 
         if (e.Status == GestureStatus.Started)
         {
@@ -293,7 +293,7 @@ public partial class ShareSongPage : ContentPage
 
     private async void ToggleBGImg_ChipTap(object sender, ChipEventArgs e)
     {
-        var send = sender as ChoiceChipGroup;
+        ChoiceChipGroup? send = sender as ChoiceChipGroup;
         PageGrid.BackgroundColor = Colors.Transparent;
         switch (send!.SelectedIndex)
         {
@@ -311,7 +311,7 @@ public partial class ShareSongPage : ContentPage
                 customImgPath = string.Empty;
                 if (await ConfirmActionPopup("Pick A Single Image"))
                 {
-                    var res = await FilePicker.Default.PickAsync(
+                    FileResult? res = await FilePicker.Default.PickAsync(
                     new PickOptions()
                     {
                         PickerTitle = "Select Image To Share",
@@ -326,7 +326,7 @@ public partial class ShareSongPage : ContentPage
             case 3:
                 if (await ConfirmActionPopup("Pick Mulitple Images"))
                 {
-                    var res = await FilePicker.Default.PickMultipleAsync(
+                    IEnumerable<FileResult> res = await FilePicker.Default.PickMultipleAsync(
                     new PickOptions()
                     {
                         PickerTitle = "Select Images To Share",
@@ -335,7 +335,7 @@ public partial class ShareSongPage : ContentPage
                     if (res != null)
                     {
                         
-                        foreach (var imgPicked in res)
+                        foreach (FileResult imgPicked in res)
                         {
 
                         }
@@ -349,7 +349,7 @@ public partial class ShareSongPage : ContentPage
 
     private async void ToggleSongCard_ChipTap(object sender, ChipEventArgs e)
     {
-        var send = sender as ChoiceChipGroup;
+        ChoiceChipGroup? send = sender as ChoiceChipGroup;
         switch (send.SelectedIndex)
         {
             case 0: //no cover
@@ -373,10 +373,10 @@ public partial class ShareSongPage : ContentPage
 
     private void SolidBGColor_TapPressed(object sender, DXTapEventArgs e)
     {
-        var send = sender as DXColorSelector;
-        var color = send!.ItemsSource.ToList();
-        
-        var sIndex = send.SelectedIndex;
+        DXColorSelector? send = sender as DXColorSelector;
+        List<Color> color = send!.ItemsSource.ToList();
+
+        int sIndex = send.SelectedIndex;
         
         PageGrid.BackgroundColor = color[sIndex];
 
@@ -385,7 +385,7 @@ public partial class ShareSongPage : ContentPage
     private void CustomText_Clicked(object sender, EventArgs e)
     {
         // Create a StackLayout to hold the expander and buttons
-        var itemSL = new DXStackLayout()
+        DXStackLayout itemSL = new DXStackLayout()
         {
             Orientation = StackOrientation.Vertical,
             HeightRequest = 490

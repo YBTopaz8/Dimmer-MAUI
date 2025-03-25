@@ -3,7 +3,7 @@ public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
+        HomePageVM? MyViewModel = IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         switch (parameter)
         {
             
@@ -26,7 +26,7 @@ public class BoolToInverseConverter : IValueConverter
                     return true;
                 }
             default:
-                var val = !(bool)value;
+                bool val = !(bool)value;
                 
                 return val;
         }
@@ -44,7 +44,7 @@ public class BoolToYesNoConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var val = (bool)value;
+        bool val = (bool)value;
         if (val)
         {
             return "Yes";

@@ -27,7 +27,7 @@ public partial class SongsManagementService
         try
         {
             // Log the user in
-            var e = await ParseClient.Instance.LogInWithAsync(email, password);
+            ParseUser e = await ParseClient.Instance.LogInWithAsync(email, password);
 
             // Check if the email is verified (if applicable)
             if (CurrentUserOnline is not null)
@@ -38,7 +38,7 @@ public partial class SongsManagementService
                 }
 
             }
-            var user = await ParseClient.Instance.GetCurrentUser();
+            ParseUser user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
                 Debug.WriteLine("Login successful. Email is verified.");
@@ -90,7 +90,7 @@ public partial class SongsManagementService
             }
 
         }
-        var user = await ParseClient.Instance.GetCurrentUser();
+        ParseUser user = await ParseClient.Instance.GetCurrentUser();
 
         if (user != null && user.Get<bool>("emailVerified"))
         {
@@ -113,7 +113,7 @@ public partial class SongsManagementService
                 };
             if (CurrentUserOnline is null)
             {
-                var oUser = await ParseClient.Instance.LogInWithAsync(CurrentOfflineUser.UserName, CurrentOfflineUser.UserPassword);
+                ParseUser? oUser = await ParseClient.Instance.LogInWithAsync(CurrentOfflineUser.UserName, CurrentOfflineUser.UserPassword);
 
                 if (oUser is null)
                 {
@@ -140,10 +140,10 @@ public partial class SongsManagementService
                 };
 
 
-                var userdb = db.All<UserModel>();
+                IQueryable<UserModel> userdb = db.All<UserModel>();
                 if (userdb.Any())
                 {
-                    var usr = userdb.FirstOrDefault()!;
+                    UserModel usr = userdb.FirstOrDefault()!;
                     usr.UserEmail = user.UserEmail;
                     usr.UserName = user.UserName;
                     usr.UserPassword = user.UserPassword;
@@ -171,7 +171,7 @@ public partial class SongsManagementService
             await ParseClient.Instance.LogInWithAsync(username, password);
 
             // Check if the email is verified
-            var user = await ParseClient.Instance.GetCurrentUser();
+            ParseUser user = await ParseClient.Instance.GetCurrentUser();
             if (user.Get<bool>("emailVerified"))
             {
                 Debug.WriteLine("Login successful and email verified!");
@@ -206,7 +206,7 @@ public partial class SongsManagementService
                 return false;
 
             }
-            var user = await ParseClient.Instance.GetCurrentUser();
+            ParseUser user = await ParseClient.Instance.GetCurrentUser();
 
             if (user != null)
             {
@@ -277,12 +277,12 @@ public partial class SongsManagementService
             return CurrentOfflineUser;
         }
         db = Realm.GetInstance(DataBaseService.GetRealm());
-        var dbUser = db.All<UserModel>().ToList();
+        List<UserModel>? dbUser = db.All<UserModel>().ToList();
         if (dbUser is null)
         {
             return null;
         }
-        var usrr = dbUser.FirstOrDefault();
+        UserModel? usrr = dbUser.FirstOrDefault();
         if (usrr is not null)
         {
             if (usrr.UserPassword is null)

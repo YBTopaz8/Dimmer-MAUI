@@ -160,7 +160,7 @@ public class AppSettingsService : IAppSettingsService
 
         public static void SetSortingPref(SortingEnum sortingMode)
         {
-            var mode = (int)sortingMode;
+            int mode = (int)sortingMode;
             if (mode != SortingMode)
             {
                 SortingMode = mode;
@@ -192,8 +192,8 @@ public class AppSettingsService : IAppSettingsService
 
         public static void AddMusicFolder(List<string> folderPaths)
         {
-            var folders = MusicFolders;
-            foreach (var folderPath in folderPaths)
+            List<string> folders = MusicFolders;
+            foreach (string folderPath in folderPaths)
             {
                 if (!folders.Contains(folderPath))
                 {
@@ -207,8 +207,8 @@ public class AppSettingsService : IAppSettingsService
 
         public static void RemoveMusicFolder(string[] folderPaths)
         {
-            var folders = MusicFolders;
-            foreach (var folderPath in folderPaths)
+            List<string> folders = MusicFolders;
+            foreach (string folderPath in folderPaths)
             {
                 if (folders.Contains(folderPath))
                 {

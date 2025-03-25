@@ -9,7 +9,7 @@ public class CheckPermissions : Permissions.BasePlatformPermission
     {
         get
         {
-            var result = new List<(string androidPermission, bool isRuntime)>();
+            List<(string androidPermission, bool isRuntime)> result = new List<(string androidPermission, bool isRuntime)>();
             if (OperatingSystem.IsAndroidVersionAtLeast(33))
             {
                 result.Add((Manifest.Permission.PostNotifications, true));

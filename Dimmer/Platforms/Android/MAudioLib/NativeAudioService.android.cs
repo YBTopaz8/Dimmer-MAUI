@@ -21,7 +21,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
         {
             if (instance != null)
             {
-                var service = instance.Binder.GetMediaPlayerService();
+                MediaPlayerService service = instance.Binder.GetMediaPlayerService();
                 if (service != null)
                 {
                     return service.mediaPlayer;
@@ -110,7 +110,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
     }
     public void Resume(double positionInSeconds)
     {
-        var posInMs = positionInSeconds * 1000;
+        double posInMs = positionInSeconds * 1000;
         
         instance.Binder.GetMediaPlayerService().Play();
         instance.Binder.GetMediaPlayerService().Seek((int)posInMs);    
@@ -169,7 +169,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
 
         // Validate input, ensuring it's within a valid range.
         double clampedPosition = Java.Lang.Math.Clamp(positionInSeconds, 0, duration);
-        var posInMs = (int)(clampedPosition * 1000);
+        int posInMs = (int)(clampedPosition * 1000);
 
         try
         {
@@ -212,7 +212,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
 
             if (instance == null)
             {
-                var activity = CrossCurrentActivity.Current;
+                ICurrentActivity activity = CrossCurrentActivity.Current;
                 instance = (activity.Activity as IAudioActivity)!;
             }
             else
@@ -221,7 +221,7 @@ public class DimmerAudioService : IDimmerAudioService, INotifyPropertyChanged
                 instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
             }
 
-            var mediaPlayerService = instance.Binder.GetMediaPlayerService();
+            MediaPlayerService mediaPlayerService = instance.Binder.GetMediaPlayerService();
             mediaPlayerService.mediaPlay = CurrentMedia;
 
             if (mediaPlayerService.mediaPlayer == null)

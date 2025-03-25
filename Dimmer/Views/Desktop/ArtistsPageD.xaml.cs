@@ -68,8 +68,8 @@ public partial class ArtistsPageD : ContentPage
 
     private async void SetSongCoverAsAlbumCover_Clicked(object sender, EventArgs e)
     {
-        var send = (MenuFlyoutItem)sender;
-        var song = send.BindingContext as SongModelView;
+        MenuFlyoutItem send = (MenuFlyoutItem)sender;
+        SongModelView? song = send.BindingContext as SongModelView;
         await MyViewModel.SetSongCoverAsAlbumCover(song!);
     }
 
@@ -78,10 +78,10 @@ public partial class ArtistsPageD : ContentPage
         MyViewModel.SearchArtistCommand.Execute(SearchArtistBar.Text);
     }
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
-    {        
-        var send = (View)sender;
+    {
+        View send = (View)sender;
 
-        var curSel = send.BindingContext as AlbumModelView;
+        AlbumModelView? curSel = send.BindingContext as AlbumModelView;
         MyViewModel.AllArtistsAlbumSongs=MyViewModel.GetAllSongsFromAlbumID(curSel!.LocalDeviceId);
         //await MyViewModel.GetAllAlbumInfos(curSel);
         //await MyViewModel.ShowSpecificArtistsSongsWithAlbum(curSel);
@@ -89,8 +89,8 @@ public partial class ArtistsPageD : ContentPage
 
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
 
         if (song is not null)
         {
@@ -102,8 +102,8 @@ public partial class ArtistsPageD : ContentPage
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
-        var send = (Border)sender;
-        var song = send.BindingContext! as SongModelView;
+        Border send = (Border)sender;
+        SongModelView? song = send.BindingContext! as SongModelView;
         MyViewModel.SetContextMenuSong(song!);
     }
 
@@ -122,8 +122,8 @@ public partial class ArtistsPageD : ContentPage
     }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
-        var send = (MenuFlyoutItem)sender;
-        var song = send.BindingContext as SongModelView;
+        MenuFlyoutItem send = (MenuFlyoutItem)sender;
+        SongModelView? song = send.BindingContext as SongModelView;
         MyViewModel.AddNextInQueueCommand.Execute(song);
     }
     List<string> supportedFilePaths;
@@ -137,7 +137,7 @@ public partial class ArtistsPageD : ContentPage
             {
                 isAboutToDropFiles = true;
 
-                var send = sender as View;
+                View? send = sender as View;
                 if (send is null)
                 {
                     return;
@@ -195,7 +195,7 @@ public partial class ArtistsPageD : ContentPage
         supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
+        View? send = sender as View;
         if (send is null)
         {
             return;
@@ -212,7 +212,7 @@ public partial class ArtistsPageD : ContentPage
         try
         {
             isAboutToDropFiles = false;
-            var send = sender as View;
+            View? send = sender as View;
             if (send is null)
             {
                 return;
@@ -232,8 +232,8 @@ public partial class ArtistsPageD : ContentPage
     string FilterLetter = string.Empty;
     private void ArtistLetterGestureRecog_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (Label)sender;
-        var letter = send.Text;
+        Label send = (Label)sender;
+        string letter = send.Text;
 
         MyViewModel.FilterArtistList(letter);
         FilterLetter = letter;

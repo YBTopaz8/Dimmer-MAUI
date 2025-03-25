@@ -121,12 +121,12 @@ public class LyricsService : ILyricsService
             lastSongIDLyrics = song.LocalDeviceId!;
             //Debug.WriteLine($"Loaded song lyrics {");
             song.HasLyrics = true;
-            var e = songSyncLyrics;
+            List<LyricPhraseModel>? e = songSyncLyrics;
             if (e is null )
             {
                 return;
             }
-            var t = songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : e;
+            List<LyricPhraseModel> t = songSyncLyrics?.Count < 1 ? Enumerable.Empty<LyricPhraseModel>().ToList() : e;
             _synchronizedLyricsSubject.OnNext(t);
             StartLyricIndexUpdateTimer();
         }
@@ -197,7 +197,7 @@ public class LyricsService : ILyricsService
 
     private List<LyricPhraseModel> LoadLyrFromFile(string? songPath)
     {
-        var lyrr = new List<LyricPhraseModel>();
+        List<LyricPhraseModel> lyrr = new List<LyricPhraseModel>();
         if (string.IsNullOrEmpty(songPath) || !File.Exists(songPath))
         {
             return Enumerable.Empty<LyricPhraseModel>().ToList();
@@ -208,13 +208,13 @@ public class LyricsService : ILyricsService
         string lrcPath = Path.ChangeExtension(songPath, ".lrc");
         if (File.Exists(lrcPath))
         {
-            var lrcLines = File.ReadAllLines(lrcPath);
-            var parsedLyrics = new List<LyricPhraseModel>();
+            string[] lrcLines = File.ReadAllLines(lrcPath);
+            List<LyricPhraseModel> parsedLyrics = new List<LyricPhraseModel>();
 
-            foreach (var line in lrcLines)
+            foreach (string line in lrcLines)
             {
                 // Parse each line in .lrc format
-                var match = Regex.Match(line, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
+                Match match = Regex.Match(line, @"\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)");
                 if (match.Success)
                 {
                     int minutes = int.Parse(match.Groups[1].Value);
@@ -222,7 +222,7 @@ public class LyricsService : ILyricsService
                     int milliseconds = int.Parse(match.Groups[3].Value.PadRight(3, '0')); // Ensure ms has 3 digits
                     string text = match.Groups[4].Value.Trim();
 
-                    var timestampMs = (minutes * 60 * 1000) + (seconds * 1000) + milliseconds;
+                    int timestampMs = (minutes * 60 * 1000) + (seconds * 1000) + milliseconds;
 
                     parsedLyrics.Add(new LyricPhraseModel
                     {
@@ -320,7 +320,7 @@ public class LyricsService : ILyricsService
         }
         hasSyncedLyrics = true;
         songSyncLyrics?.Clear();
-        var lines = synclyrics.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] lines = synclyrics.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
         //StartLyricIndexUpdateTimer();
         songSyncLyrics = StringToLyricPhraseModel(lines);
@@ -345,7 +345,7 @@ public class LyricsService : ILyricsService
         }
 
         StopLyricIndexUpdateTimer();
-        var sampleTime = 780;
+        int sampleTime = 780;
         _lyricUpdateSubscription = PlayBackService.CurrentPosition
             .Sample(TimeSpan.FromMilliseconds(sampleTime))
             .Subscribe (async position =>
@@ -359,7 +359,7 @@ public class LyricsService : ILyricsService
 
     public async Task UpdateCurrentLyricIndex(double currentPositionInSeconds)
     {
-        var lyrics = _synchronizedLyricsSubject.Value;
+        IList<LyricPhraseModel>? lyrics = _synchronizedLyricsSubject.Value;
         if (lyrics is null || lyrics?.Count < 1)
         {
             if (!hasSyncedLyrics)
@@ -377,7 +377,7 @@ public class LyricsService : ILyricsService
 
         double currentPositionInMs = currentPositionInSeconds * 1000;
         int offsetValue = 1050;
-        var highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
+        LyricPhraseModel highlightedLyric = FindClosestLyric(currentPositionInMs + offsetValue);
 
         if (highlightedLyric == null)
         {
@@ -532,10 +532,10 @@ public class LyricsService : ILyricsService
 
     public async Task<string> FetchAndDownloadCoverImage(string? songTitle, string? songArtistName, string? albumName, SongModelView? song =null)
     {
-        var stringAlbumName = albumName;
-        var stringSongTitle = songTitle;
-        var stringArtistName = songArtistName;
-        var localCopyOfSong = song; 
+        string? stringAlbumName = albumName;
+        string? stringSongTitle = songTitle;
+        string? stringArtistName = songArtistName;
+        SongModelView? localCopyOfSong = song; 
         try
         {
             if (localCopyOfSong is not null)
@@ -658,7 +658,7 @@ public class LyricsService : ILyricsService
             return (false, Enumerable.Empty<LyricPhraseModel>().ToObservableCollection());
         }
 
-        var track = new Track(song.FilePath);
+        Track track = new Track(song.FilePath);
         if (track.Lyrics.SynchronizedLyrics is null || track.Lyrics.SynchronizedLyrics.Count < 1)
         {
             return (false, Enumerable.Empty<LyricPhraseModel>().ToObservableCollection());
@@ -680,7 +680,7 @@ public class LyricsService : ILyricsService
         }
         else
         {
-            var track = new Track(songObj.FilePath);
+            Track track = new Track(songObj.FilePath);
             track.Lyrics.ParseLRC(Lyrics);
             songObj.HasSyncedLyrics = IsSynched;
 

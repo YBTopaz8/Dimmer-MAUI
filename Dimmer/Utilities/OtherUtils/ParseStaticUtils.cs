@@ -10,10 +10,10 @@ public static class ParseStaticUtils
         {
             return;
         }
-        var query = ParseClient.Instance.GetQuery(nameof(SongModelView))
+        ParseQuery<ParseObject> query = ParseClient.Instance.GetQuery(nameof(SongModelView))
             .WhereEqualTo(nameof(Song.LocalDeviceId), Song.LocalDeviceId);
-        var parseObjects = await query.FindAsync();
-        var pObj = parseObjects.FirstOrDefault();
+        IEnumerable<ParseObject> parseObjects = await query.FindAsync();
+        ParseObject pObj = parseObjects.FirstOrDefault();
         if (pObj != null)
         {
             pObj[nameof(Song.IsPlaying)] = Song.IsPlaying;

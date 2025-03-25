@@ -28,7 +28,7 @@ public partial class SongStatView : ContentView
 
     public static async Task CaptureCurrentViewAsync(VisualElement view, string filePath)
     {
-        var screenshot = await view.CaptureAsync();
+        IScreenshotResult? screenshot = await view.CaptureAsync();
 
         if (screenshot != null)
         {

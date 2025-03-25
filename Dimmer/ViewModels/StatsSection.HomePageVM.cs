@@ -106,7 +106,7 @@ public partial class HomePageVM
         SongPickedForStats.WeeklyStats = [];
 
         // Ensure start date is aligned to the beginning of the week (e.g., Monday)
-        var currentStartDate = startDate.Value;
+        DateTimeOffset currentStartDate = startDate.Value;
         if (currentStartDate.DayOfWeek != DayOfWeek.Monday)
         {
             int daysToMonday = ((int)DayOfWeek.Monday - (int)currentStartDate.DayOfWeek + 7) % 7;
@@ -116,14 +116,14 @@ public partial class HomePageVM
         // Loop through each week in the specified range
         while (currentStartDate <= endDate.Value)
         {
-            var weekEndDate = currentStartDate.AddDays(6);
+            DateTimeOffset weekEndDate = currentStartDate.AddDays(6);
 
             // Adjust the week end date if it exceeds the end date
             if (weekEndDate > endDate.Value)
             {
                 weekEndDate = endDate.Value;
             }
-            var weekStat = new WeeklyStats(song, currentStartDate, weekEndDate);
+            WeeklyStats weekStat = new WeeklyStats(song, currentStartDate, weekEndDate);
             if (weekStat.Count>0)
             {
                 SongPickedForStats.WeeklyStats.Add(weekStat);
@@ -157,14 +157,14 @@ public partial class HomePageVM
 
         SongPickedForStats.MonthlyStats = [];
 
-        
-        var currentMonth = new DateTimeOffset(startDate.Value.Year, startDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
-        var lastMonth = new DateTimeOffset(endDate.Value.Year, endDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
+
+        DateTimeOffset currentMonth = new DateTimeOffset(startDate.Value.Year, startDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset lastMonth = new DateTimeOffset(endDate.Value.Year, endDate.Value.Month, 1, 0, 0, 0, TimeSpan.Zero);
 
         while (currentMonth <= lastMonth)
         {
-            
-            var monthEndDate = currentMonth.AddMonths(1).AddDays(-1);
+
+            DateTimeOffset monthEndDate = currentMonth.AddMonths(1).AddDays(-1);
 
             
             SongPickedForStats.MonthlyStats.Add(new MonthlyStats(song, currentMonth, monthEndDate));
@@ -185,14 +185,14 @@ public partial class HomePageVM
 
         SongPickedForStats.YearlyStats = [];
 
-        
-        var currentYear = new DateTimeOffset(startDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
-        var lastYear = new DateTimeOffset(endDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        DateTimeOffset currentYear = new DateTimeOffset(startDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset lastYear = new DateTimeOffset(endDate.Value.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         while (currentYear <= lastYear)
         {
-            
-            var yearEndDate = new DateTimeOffset(currentYear.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
+
+            DateTimeOffset yearEndDate = new DateTimeOffset(currentYear.Year, 12, 31, 23, 59, 59, TimeSpan.Zero);
 
             // Create and add each yearly stat entry
             SongPickedForStats.YearlyStats.Add(new YearlyStats(song, currentYear, yearEndDate));

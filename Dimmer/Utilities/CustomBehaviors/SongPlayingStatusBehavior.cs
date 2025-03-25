@@ -42,7 +42,7 @@ public partial class SongPlayingStatusBehavior : Behavior<Border>
         
         if (sender is HomePageVM viewModel)
         {
-            var song= viewModel.TemporarilyPickedSong;
+            SongModelView? song = viewModel.TemporarilyPickedSong;
             if(song is not null)
             {
                 if (e.PropertyName == nameof(song.IsCurrentPlayingHighlight))

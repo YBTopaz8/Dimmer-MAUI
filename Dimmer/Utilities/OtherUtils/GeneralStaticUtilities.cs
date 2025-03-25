@@ -43,7 +43,7 @@ public static class GeneralStaticUtilities
 
     public static void ClearUp()
     {
-        var DimmerAudioService = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>() as DimmerAudioService;
+        DimmerAudioService? DimmerAudioService = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>() as DimmerAudioService;
         DimmerAudioService?.Dispose();
     }
 
@@ -153,7 +153,7 @@ public static class UserActivityLogger
 
             if (additionalData != null)
             {
-                foreach (var kvp in additionalData)
+                foreach (KeyValuePair<string, object> kvp in additionalData)
                 {
                     newActivity[kvp.Key] = kvp.Value;
                 }

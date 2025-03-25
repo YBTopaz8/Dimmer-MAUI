@@ -208,8 +208,8 @@ public partial class MainPageD : ContentPage
 
     private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
-        var song = send.BindingContext! as SongModelView;
+        View send = (View)sender;
+        SongModelView? song = send.BindingContext! as SongModelView;
         MyViewModel.SetContextMenuSong(song!);
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
         isPointerEntered = true;
@@ -217,7 +217,7 @@ public partial class MainPageD : ContentPage
 
     private void UserHoverOutSongInColView(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
@@ -300,8 +300,8 @@ public partial class MainPageD : ContentPage
 
     private void FavImagStatView_HoveredAndExited(object sender, EventArgs e)
     {
-        var send = (View)sender;
-        var song = send.BindingContext! as SongModelView;
+        View send = (View)sender;
+        SongModelView? song = send.BindingContext! as SongModelView;
         if (song is null)
             return;
         if (song.IsFavorite)
@@ -355,8 +355,8 @@ public partial class MainPageD : ContentPage
         }
 
 
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
@@ -383,8 +383,8 @@ public partial class MainPageD : ContentPage
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var s = (Border)sender;
-        var song = s.BindingContext as SongModelView;
+        Border s = (Border)sender;
+        SongModelView? song = s.BindingContext as SongModelView;
         MyViewModel.PlaySong(song!);
     }
 
@@ -410,7 +410,7 @@ public partial class MainPageD : ContentPage
         supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
+        View? send = sender as View;
         if (send is null)
         {
             return;
@@ -450,7 +450,7 @@ public partial class MainPageD : ContentPage
         try
         {
             isAboutToDropFiles = false;
-            var send = sender as View;
+            View? send = sender as View;
             if (send is null)
             {
                 return;
@@ -466,10 +466,10 @@ public partial class MainPageD : ContentPage
 
     private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
-        var send = sender as PieSeries;
-        var itemss = send.ItemsSource as ObservableCollection<DimmData>;
+        PieSeries? send = sender as PieSeries;
+        ObservableCollection<DimmData>? itemss = send.ItemsSource as ObservableCollection<DimmData>;
 
-        var song = MyViewModel.DisplayedSongs.FirstOrDefault(X => X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
+        SongModelView? song = MyViewModel.DisplayedSongs.FirstOrDefault(X => X.LocalDeviceId == itemss[e.NewIndexes[0]].SongId);
 
         MyViewModel.MySelectedSong = song;
         if (ClickToPreview)
@@ -613,8 +613,8 @@ public partial class MainPageD : ContentPage
 
     private void CntxtMenuChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
-        var param = ee.CommandParameter.ToString();
+        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        string? param = ee.CommandParameter.ToString();
         if (param is null)
         {
             return;
@@ -652,8 +652,8 @@ public partial class MainPageD : ContentPage
 
     private async void AddToPLBtn_Clicked(object sender, EventArgs e) //0 for create new, 1 for create new and, 2 for add to existing
     {
-        var send = (Button)sender;
-        var param = send.CommandParameter.ToString();
+        Button send = (Button)sender;
+        string? param = send.CommandParameter.ToString();
         if (param is null)
         {
             return;
@@ -662,9 +662,9 @@ public partial class MainPageD : ContentPage
         {
             case "0":
 
-                
 
-                var newPlaylist = new PlaylistModelView();
+
+                PlaylistModelView newPlaylist = new PlaylistModelView();
                 newPlaylist.Name = NewPlaylistEntry.Text;
                 if (string.IsNullOrEmpty(NewPlaylistEntry.Text))
                 {
@@ -672,11 +672,11 @@ public partial class MainPageD : ContentPage
                     return;
                 }
                 List<string?>? songIds = new();
-                var songs = SongsColView.SelectedItems;
+                IList<object> songs = SongsColView.SelectedItems;
                 
-                foreach (var item in songs)
+                foreach (object? item in songs)
                 {
-                    var songId = ((SongModelView)item).LocalDeviceId;
+                    string? songId = ((SongModelView)item).LocalDeviceId;
                     songIds.Add(songId);
                 }
                 if (songIds.Count<1)

@@ -4,7 +4,7 @@ public class CountToVisibilityConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         string param = (string)parameter;
-        var val = (Content)value;
+        Content? val = (Content)value;
 
         if (param == "syncview")
         {

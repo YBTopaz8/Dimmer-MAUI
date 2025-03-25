@@ -26,8 +26,8 @@ public partial class OnlineSpaceD : ContentPage
     }
     private async void AddReaction_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
-        var uAct = send.BindingContext as UserActivity;
+        ImageButton send = (ImageButton)sender;
+        UserActivity? uAct = send.BindingContext as UserActivity;
         await OGSenderView.DimmInCompletely();
         OGSenderUserName.Text = uAct.Sender.Username;
         OGSenderLabel.Text = uAct.ChatMessage.Content;

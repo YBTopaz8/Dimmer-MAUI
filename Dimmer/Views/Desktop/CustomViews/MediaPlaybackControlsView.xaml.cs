@@ -11,7 +11,7 @@ public partial class MediaPlaybackControlsView : ContentView
 	public MediaPlaybackControlsView() 
     {
 		InitializeComponent();
-        var VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        HomePageVM VM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         MyViewModel = VM;
         //BindingContext = VM;
 
@@ -32,8 +32,8 @@ public partial class MediaPlaybackControlsView : ContentView
             return;
 
         _isThrottling = true;
-        var send = (Slider)sender;
-        var s = send.Value;
+        Slider send = (Slider)sender;
+        double s = send.Value;
         MyViewModel.SeekSongPosition(currPosPer:s);
 
         
@@ -79,8 +79,8 @@ public partial class MediaPlaybackControlsView : ContentView
     }
     private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
-        var thiss = this as View;
-        var par = thiss.Parent as View;
+        View thiss = this as View;
+        View? par = thiss.Parent as View;
         MyViewModel.MySelectedSong = MyViewModel.TemporarilyPickedSong;
         MyViewModel.ToggleFlyout();
 
@@ -89,8 +89,8 @@ public partial class MediaPlaybackControlsView : ContentView
     }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
 
         if (song is not null)
         {

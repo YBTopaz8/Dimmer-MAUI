@@ -40,8 +40,8 @@ public partial class SyncedLyricsView : ContentView
         ViewModel ??= IPlatformApplication.Current!.Services.GetService<HomePageVM>();
         if (ViewModel != null && ViewModel.IsPlaying)
         {
-            var bor = (Border)sender;
-            var lyr = (LyricPhraseModel)bor.BindingContext;
+            Border bor = (Border)sender;
+            LyricPhraseModel lyr = (LyricPhraseModel)bor.BindingContext;
             ViewModel.SeekSongPosition(lyr);
         }
     }

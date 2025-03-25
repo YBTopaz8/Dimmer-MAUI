@@ -14,8 +14,8 @@ public partial class SongContextMenuPopupView : Popup
     }
     private void SfChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        var ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
-        var param = ee.CommandParameter.ToString();
+        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        string? param = ee.CommandParameter.ToString();
         if (param is null)
         {
             return;

@@ -31,7 +31,7 @@ public partial class MiniControlNotificationView : ContentPage
       
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            var window = Application.Current?.Windows.FirstOrDefault(win => win.Page is MiniControlNotificationView);
+            Window? window = Application.Current?.Windows.FirstOrDefault(win => win.Page is MiniControlNotificationView);
 
             if (window != null)
             {

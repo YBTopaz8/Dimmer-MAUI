@@ -94,7 +94,7 @@ public partial class SingleSongShellPageD : ContentPage
   
     private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        var CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
+        LyricPhraseModel? CurrLyric = LyricsColView.SelectedItem as LyricPhraseModel;
         if (CurrLyric is null)
             return;
         if (MyViewModel.IsPlaying)
@@ -177,19 +177,19 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.AnimateHighlightPointerPressed();
     }
 
     private async void PointerGestureRecognizer_PointerReleased(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.AnimateHighlightPointerReleased();
     }
 
     private void FocusModePlayResume_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (Border)sender;
+        Border send = (Border)sender;
         if (MyViewModel.IsPlaying)
         {
             MyViewModel.PauseSongCommand.Execute(null);
@@ -209,8 +209,8 @@ public partial class SingleSongShellPageD : ContentPage
     {
         if (MyViewModel.IsPlaying)
         {
-            var bor = (View)sender;
-            var lyr = (LyricPhraseModel)bor.BindingContext;
+            View bor = (View)sender;
+            LyricPhraseModel lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
     }
@@ -231,7 +231,7 @@ public partial class SingleSongShellPageD : ContentPage
     private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         LyricsEditor.Text = string.Empty;
-        var send = (Button)sender;
+        Button send = (Button)sender;
         lyrType = send.Text;
         SelectedContent = (Content)send.BindingContext;
         LyricsView.Text = SelectedContent.PlainLyrics is null ? SelectedContent.SyncedLyrics : SelectedContent.PlainLyrics;
@@ -262,8 +262,8 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
     {
-        var selectedTab = StatsTabs.SelectedItem;
-        var send = (SfChipGroup)sender;
+        object? selectedTab = StatsTabs.SelectedItem;
+        SfChipGroup send = (SfChipGroup)sender;
         if (send.SelectedItem is not SfChip selected)
         {
             return;
@@ -314,7 +314,7 @@ public partial class SingleSongShellPageD : ContentPage
                 break;
         }
 
-        var viewss = new Dictionary<int, View>
+        Dictionary<int, View> viewss = new Dictionary<int, View>
         {
             {0, SyncedLyricGrid},
             {1, PlainLyricsGrid},
@@ -335,7 +335,7 @@ public partial class SingleSongShellPageD : ContentPage
     }
     private void RatingChipCtrl_ChipClicked(object sender, EventArgs e)
     {
-        var ee = (SfChip)sender;
+        SfChip ee = (SfChip)sender;
         
     }
 
@@ -377,21 +377,21 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void FocusModePointerRec_PointerEntered(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmIn(500);
 
     }
     private async void FocusModePointerRec_PointerExited(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmOut(300);
 
     }
 
     private async void PreviewImage_Clicked(object sender, EventArgs e)
     {
-        var send = (Button)sender;
-        var item = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
+        Button send = (Button)sender;
+        Content? item = send.BindingContext as Dimmer_MAUI.Utilities.Models.Content;
         NormalNowPlayingUI.IsVisible = false;
         PageBGImg.Source = item.LinkToCoverImage;
         await Task.Delay(2000);
@@ -412,20 +412,20 @@ public partial class SingleSongShellPageD : ContentPage
 
     private async void FocusModePointerRec_PEntered(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmIn(500);
 
     }
     private async void FocusModePointerRec_PExited(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         await send.DimmOut(300);
 
     }
 
     private void StatView_Loaded(object sender, EventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         _ = send.DimmOut(300);
 
     }
@@ -545,7 +545,7 @@ public partial class SingleSongShellPageD : ContentPage
         try
         {
             isAboutToDropFiles = false;
-            var send = sender as View;
+            View? send = sender as View;
             if (send is null)
             {
                 return;
@@ -693,27 +693,27 @@ public partial class SingleSongShellPageD : ContentPage
 
     private void SearchOnline_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
         MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
 
     }
     Border LyrBorder { get; set; }
     private void LyrBorder_Loaded(object sender, EventArgs e)
     {
-        var LoadedLyric = (Border)sender;
+        Border LoadedLyric = (Border)sender;
         LoadedLyric = LyrBorder;
     }
 
     private void Stamp_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
         MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
         
     }
 
     private void DeleteLine_Clicked(object sender, EventArgs e)
     {
-        var send = (ImageButton)sender;
+        ImageButton send = (ImageButton)sender;
         
         MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
 
@@ -835,7 +835,7 @@ public partial class SingleSongShellPageD : ContentPage
 
     private void SyncLyrLine_PointerEntered(object sender, PointerEventArgs e)
     {
-        var send = (Border)sender;
+        Border send = (Border)sender;
         send.Stroke = Colors.DarkSlateBlue;
         send.StrokeThickness = 2;
 
@@ -843,7 +843,7 @@ public partial class SingleSongShellPageD : ContentPage
 
     private void SyncLyrLine_PointerExited(object sender, PointerEventArgs e)
     {
-        var send = (Border)sender;
+        Border send = (Border)sender;
         send.Stroke = Colors.Transparent;
         send.StrokeThickness = 0;
     }

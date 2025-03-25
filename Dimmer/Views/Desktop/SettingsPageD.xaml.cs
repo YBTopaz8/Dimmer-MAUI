@@ -23,7 +23,7 @@ public partial class SettingsPageD : ContentPage
     }
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
-        var reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
+        string reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
 
         await Browser.Default.OpenAsync(reportingLink, BrowserLaunchMode.SystemPreferred);
     }
@@ -75,9 +75,9 @@ public partial class SettingsPageD : ContentPage
 
     private void SongShellChip_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
     {
-        var selectedTab = SettingsTab.SelectedItem;
-        var send = (SfChipGroup)sender;
-        var selected = send.SelectedItem as SfChip;
+        object? selectedTab = SettingsTab.SelectedItem;
+        SfChipGroup send = (SfChipGroup)sender;
+        SfChip? selected = send.SelectedItem as SfChip;
         if (selected is null)
         {
             return;
@@ -118,7 +118,7 @@ public partial class SettingsPageD : ContentPage
                 break;
         }
 
-        var viewss = new Dictionary<int, View>
+        Dictionary<int, View> viewss = new Dictionary<int, View>
         {
             {0, AlreadyInView},
             {1, AppSettingsView},
@@ -139,7 +139,7 @@ public partial class SettingsPageD : ContentPage
 
     private void SignLoginUp_Clicked(object sender, EventArgs e)
     {
-        var send = (SfChip)sender;
+        SfChip send = (SfChip)sender;
         _ = int.TryParse(send.CommandParameter.ToString(), out int selectedStatView);
         GeneralStaticUtilities.RunFireAndForget(SwitchUI(selectedStatView), ex =>
         {
@@ -150,13 +150,13 @@ public partial class SettingsPageD : ContentPage
 
     private void SfChip_Clicked(object sender, EventArgs e)
     {
-        var send = (SfChip)sender;
+        SfChip send = (SfChip)sender;
         MyViewModel.FolderPaths.Remove(send.CommandParameter as string);
     }
 
     private async void SettingsAction(object sender, EventArgs e)
     {
-        var send = (SfChip)sender;
+        SfChip send = (SfChip)sender;
         _ = int.TryParse(send.CommandParameter.ToString(), out int selectedStatView);
 
         switch (selectedStatView)

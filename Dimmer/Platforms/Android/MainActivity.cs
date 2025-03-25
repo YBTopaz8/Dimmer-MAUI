@@ -25,9 +25,9 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
         {
             return;
         }
-        var plat = DeviceInfo.Platform.ToString();
-        var plate = DeviceInfo.Name.ToString();
-        var platee = DeviceInfo.Manufacturer.ToString();
+        string plat = DeviceInfo.Platform.ToString();
+        string plate = DeviceInfo.Name.ToString();
+        string platee = DeviceInfo.Manufacturer.ToString();
 
         if (!Android.OS.Environment.IsExternalStorageManager)
         {
@@ -60,7 +60,7 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
     private void InitializeMedia()
     {
         mediaPlayerServiceConnection = new MediaPlayerServiceConnection(this);
-        var mediaPlayerServiceIntent = new Intent(Platform.AppContext, typeof(MediaPlayerService));
+        Intent mediaPlayerServiceIntent = new Intent(Platform.AppContext, typeof(MediaPlayerService));
         BindService(mediaPlayerServiceIntent, mediaPlayerServiceConnection, Bind.AutoCreate);
     }
 
@@ -68,7 +68,7 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
     {
         base.OnStop();
 
-        var homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
+        HomePageVM homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
         await homeVM.ExitingApp();
     }
 }

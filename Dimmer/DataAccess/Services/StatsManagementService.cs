@@ -15,7 +15,7 @@ public class StatsManagementService : IStatsManagementService
         {
             await db.WriteAsync(() =>
             {
-                var existingSong = db.Find<SongModel>(songID);
+                SongModel? existingSong = db.Find<SongModel>(songID);
                 if (existingSong != null)
                 {
                 }
@@ -32,7 +32,7 @@ public class StatsManagementService : IStatsManagementService
     {
         try
         {
-            var song = db.Find<SongModel>(songID);
+            SongModel? song = db.Find<SongModel>(songID);
 
             if (song is null)
             {

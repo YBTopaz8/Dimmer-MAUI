@@ -61,7 +61,7 @@ public static class CustomAnimsExtensions
     }
     public static async Task AnimateHeight(this View view, double targetHeight, uint duration = 250, Easing? easing = null)
     {
-        var animation = new Animation(v => view.HeightRequest = v, view.HeightRequest, targetHeight);
+        Animation animation = new Animation(v => view.HeightRequest = v, view.HeightRequest, targetHeight);
         animation.Commit(view, "HeightAnimation", 16, duration, easing, null, null);
 
         await Task.Delay((int)duration);
@@ -143,7 +143,7 @@ public static class CustomAnimsExtensions
     // IMPORTANT: This is the implementation of AnimateAsync
     public static Task AnimateAsync(this IAnimatable element, string name, Action<double> callback, uint length, Easing easing = null)
     {
-        var tcs = new TaskCompletionSource<bool>();
+        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
         element.Animate(name, callback, 16, length, easing, (v, c) => tcs.SetResult(c), null);
         return tcs.Task;
     }
@@ -166,7 +166,7 @@ public static class CustomAnimsExtensions
         await island.ScaleTo(1.2, duration, Easing.CubicOut);
 
         // 2. Fade in and position the controls (assuming they're initially hidden)
-        foreach (var control in controls)
+        foreach (View control in controls)
         {
             control.Opacity = 0; // Start invisible
             control.IsVisible = true;
@@ -184,7 +184,7 @@ public static class CustomAnimsExtensions
     public static async Task AnimateIslandCollapse(this View island, IList<View> controls, uint duration = 200)
     {
         // 1. Fade out and hide the controls
-        foreach (var control in controls)
+        foreach (View control in controls)
         {
             await control.FadeTo(0.0, duration, Easing.CubicIn);
             control.IsVisible = false;
@@ -327,10 +327,10 @@ public static class CustomAnimsExtensions
         double initialHeight = element.Height;
 
         // Asymmetrical Expansion (Width first)
-        var widthAnimation = new Animation(v => element.WidthRequest = v, initialWidth, targetWidth, Easing.CubicOut);
+        Animation widthAnimation = new Animation(v => element.WidthRequest = v, initialWidth, targetWidth, Easing.CubicOut);
         widthAnimation.Commit(element, "WidthExpansion", length: ((uint)(duration * 0.8))); // 80% of duration
         await Task.Delay(25);
-        var heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight, Easing.CubicOut);
+        Animation heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight, Easing.CubicOut);
         heightAnimation.Commit(element, "HeightExpansion", length: duration);
         await Task.Delay(50);
 
@@ -343,11 +343,11 @@ public static class CustomAnimsExtensions
         double initialHeight = element.Height;
 
         // Asymmetrical Contraction (Height first)
-        var heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight, Easing.CubicIn);
+        Animation heightAnimation = new Animation(v => element.HeightRequest = v, initialHeight, targetHeight, Easing.CubicIn);
         heightAnimation.Commit(element, "HeightContraction", length: duration);
         await Task.Delay(50);
 
-        var widthAnimation = new Animation(v => element.WidthRequest = v, initialWidth, targetWidth, Easing.CubicIn);
+        Animation widthAnimation = new Animation(v => element.WidthRequest = v, initialWidth, targetWidth, Easing.CubicIn);
         widthAnimation.Commit(element, "WidthContraction", length: (uint)(duration * 0.8)); // 80% of duration
         await Task.Delay(25);
 
@@ -537,10 +537,10 @@ public static class CustomAnimsExtensions
         double initialHeight = container.Height;
 
         // Expand the container (use asymmetrical timing)
-        var widthAnimation = new Animation(v => container.WidthRequest = v, initialWidth, targetWidth, Easing.CubicOut);
+        Animation widthAnimation = new Animation(v => container.WidthRequest = v, initialWidth, targetWidth, Easing.CubicOut);
         widthAnimation.Commit(container, "WidthExpansion", length: (uint)(duration * 0.8));
         await Task.Delay(50);
-        var heightAnimation = new Animation(v => container.HeightRequest = v, initialHeight, targetHeight, Easing.CubicOut);
+        Animation heightAnimation = new Animation(v => container.HeightRequest = v, initialHeight, targetHeight, Easing.CubicOut);
         heightAnimation.Commit(container, "HeightExpansion", length: duration);
         await Task.Delay(100);
 
@@ -571,12 +571,12 @@ public static class CustomAnimsExtensions
 
         // Shrink the container (use asymmetrical timing, height first)
 
-        var heightAnimation = new Animation(v => container.HeightRequest = v, initialHeight, targetHeight, Easing.CubicIn);
+        Animation heightAnimation = new Animation(v => container.HeightRequest = v, initialHeight, targetHeight, Easing.CubicIn);
         heightAnimation.Commit(container, "HeightContraction", length: duration);
 
         await Task.Delay(50);
 
-        var widthAnimation = new Animation(v => container.WidthRequest = v, initialWidth, targetWidth, Easing.CubicIn);
+        Animation widthAnimation = new Animation(v => container.WidthRequest = v, initialWidth, targetWidth, Easing.CubicIn);
         widthAnimation.Commit(container, "WidthContraction", length: (uint)(duration * 0.8));
     }
     //Usage, similar to the previous one
@@ -626,7 +626,7 @@ public static class CustomAnimsExtensions
     public static async Task AnimateCounter(this Label counterLabel, int startValue, int endValue, uint duration = 500)
     {
         // Use a custom animation to update the label's text.
-        var animation = new Animation(v => counterLabel.Text = ((int)v).ToString(), startValue, endValue);
+        Animation animation = new Animation(v => counterLabel.Text = ((int)v).ToString(), startValue, endValue);
         animation.Commit(counterLabel, "CounterAnimation", length: duration, easing: Easing.CubicInOut);
 
         // Pulse the label for emphasis.
@@ -745,7 +745,7 @@ public static class CustomAnimsExtensions
         box.IsVisible = true;
 
         // Animate the HeightRequest to simulate filling.
-        var animation = new Animation(v => box.HeightRequest = v, 0, targetHeight);
+        Animation animation = new Animation(v => box.HeightRequest = v, 0, targetHeight);
 
         // Use a custom easing function to simulate liquid motion (slightly "wobbly").
         animation.Commit(box, "LiquidFillAnimation", length: duration, easing: new Easing(t => {
@@ -760,7 +760,7 @@ public static class CustomAnimsExtensions
     public static async Task PulsatingGradient(this BoxView box, Color color1, Color color2, uint duration = 1000)
     {
         //we'll use linear gradient, we can set it to radial.
-        var gradientBrush = new LinearGradientBrush
+        LinearGradientBrush gradientBrush = new LinearGradientBrush
         {
             StartPoint = new Point(0, 0),
             EndPoint = new Point(1, 1), // Diagonal gradient
@@ -778,10 +778,10 @@ public static class CustomAnimsExtensions
         double startOffset = 0;
         double endOffset = 0.3;
 
-        var animation = new Animation(v => {
+        Animation animation = new Animation(v => {
             gradientBrush.GradientStops[1].Offset = (float)v;
         }, startOffset, endOffset);
-        var animation2 = new Animation(v => {
+        Animation animation2 = new Animation(v => {
             gradientBrush.GradientStops[1].Offset = (float)v;
         }, endOffset, startOffset);
 
@@ -800,7 +800,7 @@ public static class CustomAnimsExtensions
     public static async Task CircularReveal(this BoxView box, bool reveal, uint duration = 500)
     {
         // Use clipping with an EllipseGeometry.
-        var ellipseGeometry = new EllipseGeometry();
+        EllipseGeometry ellipseGeometry = new EllipseGeometry();
         box.Clip = ellipseGeometry;
 
         // Initial state:  Either fully revealed or fully hidden.
@@ -821,8 +821,8 @@ public static class CustomAnimsExtensions
         }
 
         // Animate the RadiusX and RadiusY properties.
-        var targetRadius = reveal ? Math.Max(box.Width, box.Height) : 0; //final value will depend on whether we're revealing or hiding.
-        var animation = new Animation(v =>
+        double targetRadius = reveal ? Math.Max(box.Width, box.Height) : 0; //final value will depend on whether we're revealing or hiding.
+        Animation animation = new Animation(v =>
         {
             ellipseGeometry.RadiusX = v;
             ellipseGeometry.RadiusY = v;
@@ -841,7 +841,7 @@ public static class CustomAnimsExtensions
         // This is a clever trick, as MAUI doesn't have native dashed borders on BoxView.
 
         box.IsVisible = true;
-        var gradientBrush = new LinearGradientBrush
+        LinearGradientBrush gradientBrush = new LinearGradientBrush
         {
             StartPoint = new Point(0, 0.5), // Horizontal line
             EndPoint = new Point(1, 0.5),
@@ -857,7 +857,7 @@ public static class CustomAnimsExtensions
         box.Background = gradientBrush; //initially set the gradient
 
         // Animate the StartPoint and EndPoint to move the dashes.
-        var animation = new Animation(v =>
+        Animation animation = new Animation(v =>
         {
             gradientBrush.StartPoint = new Point(-v, 0.5);
             gradientBrush.EndPoint = new Point(1 - v, 0.5);
@@ -1107,14 +1107,14 @@ public static class CustomAnimsExtensions
         avatarView.Stroke = strokeColor;
 
         // Define a single animation to embiggen the stroke
-        var expandAnimation = new Animation(v => avatarView.StrokeThickness = v, // Only animating StrokeThickness now
+        Animation expandAnimation = new Animation(v => avatarView.StrokeThickness = v, // Only animating StrokeThickness now
             0,                                   // Start with 0 thickness
             5,                                  // Expand to 10 thickness
             Easing.CubicInOut                    // Smooth easing
         );
 
         // Shrink the stroke back to zero after embiggen
-        var shrinkAnimation = new Animation(
+        Animation shrinkAnimation = new Animation(
             v => avatarView.StrokeThickness = v,
             5,                                   // Start at 10 thickness
             0,                                    // Reduce to 0 thickness
@@ -1122,7 +1122,7 @@ public static class CustomAnimsExtensions
         );
 
         // Combine expand and shrink animations into one sequence
-        var animationSequence = new Animation
+        Animation animationSequence = new Animation
         {
             { 0, 0.5, expandAnimation },   // Embiggen in the first half
             { 0.5, 1, shrinkAnimation }    // Shrink back in the second half
@@ -1239,8 +1239,8 @@ public static class CustomAnimsExtensions
     // 9. OpacityPulse (Continuous Opacity Fluctuation)
     public static async Task OpacityPulse(this VisualElement element, double minOpacity = 0.5, uint duration = 500)
     {
-        var fadeInAnim = new Animation(v => element.Opacity = v, minOpacity, 1, Easing.SinInOut);
-        var fadeOutAnim = new Animation(v => element.Opacity = v, 1, minOpacity, Easing.SinInOut);
+        Animation fadeInAnim = new Animation(v => element.Opacity = v, minOpacity, 1, Easing.SinInOut);
+        Animation fadeOutAnim = new Animation(v => element.Opacity = v, 1, minOpacity, Easing.SinInOut);
 
         fadeInAnim.Commit(element, "OpacityPulseIn", length: duration / 2, repeat: () =>
         {
@@ -1289,14 +1289,14 @@ public static class CustomAnimsExtensions
         // Simulate a parabolic path using combined TranslationX and TranslationY with different easings.
 
         // Upward and forward motion
-        var jumpUp = new Animation(v =>
+        Animation jumpUp = new Animation(v =>
         {
             element.TranslationY = -v; // Move up
             element.TranslationX = distance * (v / height); // Move forward proportionally
         }, 0, height, Easing.CubicOut);  // Easing.CubicOut for the upward motion
 
         // Downward and forward motion
-        var jumpDown = new Animation(v =>
+        Animation jumpDown = new Animation(v =>
         {
             element.TranslationY = -height + v; // Move from peak down to original Y
             element.TranslationX = distance * ((height + v) / (2 * height));   // Continue moving forward
@@ -1371,9 +1371,9 @@ public static class CustomAnimsExtensions
     // 17. Wobble (Continuous Tilting)
     public static async Task Wobble(this VisualElement element, double angle = 15, uint duration = 500)
     {
-        var wobbleRight = new Animation(v => element.Rotation = v, 0, angle, Easing.SinInOut); //go to +angle
-        var wobbleLeft = new Animation(v => element.Rotation = v, angle, -angle, Easing.SinInOut); //go to -angle
-        var wobbleCenter = new Animation(v => element.Rotation = v, -angle, 0, Easing.SinInOut);  //return to center
+        Animation wobbleRight = new Animation(v => element.Rotation = v, 0, angle, Easing.SinInOut); //go to +angle
+        Animation wobbleLeft = new Animation(v => element.Rotation = v, angle, -angle, Easing.SinInOut); //go to -angle
+        Animation wobbleCenter = new Animation(v => element.Rotation = v, -angle, 0, Easing.SinInOut);  //return to center
 
         wobbleRight.Commit(element, "WobbleRight", length: duration / 4, finished: (_, _) =>
         {

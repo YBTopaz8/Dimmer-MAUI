@@ -147,8 +147,8 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
 
     private void QuickPlaySong_Clicked(object sender, EventArgs e)
     {
-        var send = sender as DXButton;
-        var song = send.BindingContext  as SongModelView;
+        DXButton? send = sender as DXButton;
+        SongModelView? song = send.BindingContext  as SongModelView;
 
         MyViewModel.MySelectedSong = song;
         MyViewModel.PlaySong(song);
@@ -180,7 +180,7 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     private void SyncLyricsColView_Loaded(object sender, EventArgs e)
     {
 #if ANDROID
-        var nativeView = (global::Android.Views.View )SyncLyricsColView.Handler?.PlatformView;
+        Android.Views.View? nativeView = (global::Android.Views.View )SyncLyricsColView.Handler?.PlatformView;
         if (nativeView is not null)
         {
             if (nativeView is RecyclerView recyclerView)
@@ -215,9 +215,9 @@ public partial class NowPlayingBtmSheet : DevExpress.Maui.Controls.BottomSheet
     {
         if (MyViewModel.IsPlaying)
         {
-            
-            var bor = (View)sender;
-            var lyr = (LyricPhraseModel)bor.BindingContext;
+
+            View bor = (View)sender;
+            LyricPhraseModel lyr = (LyricPhraseModel)bor.BindingContext;
             MyViewModel.SeekSongPosition(lyr);
         }
     }

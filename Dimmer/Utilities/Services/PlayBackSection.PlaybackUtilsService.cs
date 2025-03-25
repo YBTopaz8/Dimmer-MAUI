@@ -17,7 +17,7 @@ public partial class PlaybackUtilsService : ObservableObject
             return false;
 
         // Filter the files upfront by extension and size
-        var filteredFiles = filePaths
+        List<string> filteredFiles = filePaths
             .Where(path => new[] { ".mp3", ".flac", ".wav", ".m4a" }.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
             .Where(path => new FileInfo(path).Length >= 1000) // Exclude small files (< 1KB)
             .ToList();
@@ -26,17 +26,17 @@ public partial class PlaybackUtilsService : ObservableObject
             return false;
 
         // Use a HashSet for fast lookup to avoid duplicates
-        var processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? [];
-        var allSongs = new List<SongModelView>();
+        HashSet<string> processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, SongModelView> existingSongDictionary = _tertiaryQueueSubject.Value?.ToDictionary(song => song.FilePath!, StringComparer.OrdinalIgnoreCase) ?? [];
+        List<SongModelView> allSongs = new List<SongModelView>();
 
 
-        foreach (var file in filteredFiles)
+        foreach (string? file in filteredFiles)
         {
             if (!processedFilePaths.Add(file))
                 continue; // Skip duplicate file paths
 
-            if (existingSongDictionary.TryGetValue(file, out var existingSong))
+            if (existingSongDictionary.TryGetValue(file, out SongModelView? existingSong))
             {
                 // Use the existing song
                 allSongs.Add(existingSong);
@@ -44,10 +44,10 @@ public partial class PlaybackUtilsService : ObservableObject
             else
             {
                 // Create a new SongModelView
-                var track = new Track(file);
-                var fileInfo = new FileInfo(file);
+                Track track = new Track(file);
+                FileInfo fileInfo = new FileInfo(file);
 
-                var newSong = new SongModelView
+                SongModelView newSong = new SongModelView
                 {
 
                     Title = track.Title,
@@ -120,7 +120,7 @@ public partial class PlaybackUtilsService : ObservableObject
     }
     private ObservableCollection<SongModelView> ShuffleList(ObservableCollection<SongModelView> list)
     {
-        var shuffledList = list.OrderBy(_ => random.Next()).ToObservableCollection(); // Simple shuffle
+        ObservableCollection<SongModelView> shuffledList = list.OrderBy(_ => random.Next()).ToObservableCollection(); // Simple shuffle
         return shuffledList;
     }
 
@@ -139,7 +139,7 @@ public partial class PlaybackUtilsService : ObservableObject
         }
 
         ObservableCurrentlyPlayingSong = song;
-        var coverImage = GetCoverImage(song.FilePath, true);
+        byte[]? coverImage = GetCoverImage(song.FilePath, true);
         DimmerAudioService.Initialize(song, coverImage);
 
         if (positionInSec > 0)
@@ -171,7 +171,7 @@ public partial class PlaybackUtilsService : ObservableObject
         song.IsCurrentPlayingHighlight = false;
 
         ObservableCurrentlyPlayingSong = song;
-        var coverImage = GetCoverImage(song.FilePath, true);
+        byte[]? coverImage = GetCoverImage(song.FilePath, true);
         DimmerAudioService.Initialize(song, coverImage);
 
         DimmerAudioService.Play();
@@ -217,7 +217,7 @@ public partial class PlaybackUtilsService : ObservableObject
         {
             if (!File.Exists(ObservableCurrentlyPlayingSong.FilePath))
                 return false;
-            var coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
+            byte[]? coverImage = GetCoverImage(ObservableCurrentlyPlayingSong.FilePath, true);
             DimmerAudioService.Initialize(ObservableCurrentlyPlayingSong, coverImage);
             DimmerAudioService.Resume(currentPosition);
             StartPositionTimer();
@@ -241,8 +241,8 @@ public partial class PlaybackUtilsService : ObservableObject
     Random _random { get; } = new Random();
     public void ShuffleQueue()
     {
-        var currentQueue = _playbackQueue.Value.ToList();
-        var shuffledQueue = currentQueue.OrderBy(_ => _random.Next()).ToObservableCollection();
+        List<SongModelView> currentQueue = _playbackQueue.Value.ToList();
+        ObservableCollection<SongModelView> shuffledQueue = currentQueue.OrderBy(_ => _random.Next()).ToObservableCollection();
         _playbackQueue.OnNext(shuffledQueue);
     }
 
@@ -289,7 +289,7 @@ public partial class PlaybackUtilsService : ObservableObject
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Skipped);
         }
 
-        var currentQueue = _playbackQueue.Value.Count == 0? SongsMgtService.AllSongs.ToObservableCollection() : _playbackQueue.Value;
+        ObservableCollection<SongModelView> currentQueue = _playbackQueue.Value.Count == 0? SongsMgtService.AllSongs.ToObservableCollection() : _playbackQueue.Value;
 
         CurrentIndexInMasterList = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
 
@@ -317,7 +317,7 @@ public partial class PlaybackUtilsService : ObservableObject
 
         if (prevCounter == 1)
         {
-            var currentQueue = _playbackQueue.Value;
+            ObservableCollection<SongModelView> currentQueue = _playbackQueue.Value;
             int currentIndex = currentQueue.IndexOf(ObservableCurrentlyPlayingSong);
             UpdateSongPlaybackState(ObservableCurrentlyPlayingSong, PlayType.Previous);            
             PlaySong(currentQueue[currentIndex - 1]);
@@ -345,7 +345,7 @@ public partial class PlaybackUtilsService : ObservableObject
         {
             return;
         }
-        var CurrentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
+        double CurrentPercentage = currentPositionInSec / ObservableCurrentlyPlayingSong.DurationInSeconds * 100;
 
 #if ANDROID
         DimmerAudioService.SetCurrentTime(positionInSec);
@@ -447,7 +447,7 @@ public partial class PlaybackUtilsService : ObservableObject
     // Method to add songs to the playback queuenext
     public void AddToImmediateNextInQueue(List<SongModelView> songs, bool playNext = true)
     {
-        var currentQueue = _playbackQueue.Value.ToList(); // Work with a copy
+        List<SongModelView> currentQueue = _playbackQueue.Value.ToList(); // Work with a copy
 
         if (playNext && ObservableCurrentlyPlayingSong != null)
         {
@@ -632,7 +632,7 @@ public partial class PlaybackUtilsService : ObservableObject
         {
             return;
         }
-        var link = new PlayDateAndCompletionStateSongLink
+        PlayDateAndCompletionStateSongLink link = new PlayDateAndCompletionStateSongLink
         {
             DatePlayed = DateTime.Now,
             PlayType = (int)playType,

@@ -215,7 +215,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             songss = SongsMgtService.AllSongs.ToObservableCollection();
         }
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
-        var sortedSongs = ApplySorting(songss, CurrentSorting, SongsMgtService.AllPlayDataLinks);
+        ObservableCollection<SongModelView> sortedSongs = ApplySorting(songss, CurrentSorting, SongsMgtService.AllPlayDataLinks);
 
         _playbackQueue.OnNext(sortedSongs);
         ToggleShuffle(IsShuffleOn);
@@ -228,11 +228,11 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             return;
         }
-       
-        var songss = SongsMgtService.AllSongs.ToObservableCollection();
+
+        ObservableCollection<SongModelView> songss = SongsMgtService.AllSongs.ToObservableCollection();
        
         CurrentSorting = AppSettingsService.SortingModePreference.GetSortingPref();
-        var sortedSongs = ApplySorting(songss, CurrentSorting, SongsMgtService.AllPlayDataLinks);
+        ObservableCollection<SongModelView> sortedSongs = ApplySorting(songss, CurrentSorting, SongsMgtService.AllPlayDataLinks);
         
         _playbackQueue.OnNext(sortedSongs);
 
@@ -249,7 +249,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             return;
         }
-        var lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
+        string? lastPlayedSongID = AppSettingsService.LastPlayedSongSettingPreference.GetLastPlayedSong();
         if (lastPlayedSongID is not null)
         {
             lastPlayedSong = SongsMgtService.AllSongs.FirstOrDefault(x => x.LocalDeviceId == (string)lastPlayedSongID);
@@ -269,7 +269,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public static ObservableCollection<SongModelView> CheckCoverImage(ObservableCollection<SongModelView> col) 
     {
-        foreach (var item in col)
+        foreach (SongModelView item in col)
         {
             item.CoverImagePath = GetCoverImagePath(item.FilePath);
 
@@ -280,7 +280,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     public static string? GetCoverImagePath(string filePath)
     {
-        var LoadTrack = new Track(filePath);
+        Track LoadTrack = new Track(filePath);
         byte[]? coverImage = null;
 
         if (LoadTrack.EmbeddedPictures?.Count > 0)
@@ -338,7 +338,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     byte[]? GetCoverImage(string? filePath, bool isToGetByteArrayImages)
     {
-        var LoadTrack = new Track(filePath);
+        Track LoadTrack = new Track(filePath);
         byte[]? coverImage = null;
 
         if (LoadTrack.EmbeddedPictures?.Count > 0)
@@ -416,7 +416,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         //_playbackQueue.OnNext(list);
 
 
-        var list = _playbackQueue.Value;
+        ObservableCollection<SongModelView> list = _playbackQueue.Value;
 
         // Find the current index of the song
         int currentIndex = list.IndexOf(ObservableCurrentlyPlayingSong);
@@ -424,7 +424,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         if (currentIndex >= 0 && currentIndex < list.Count - 1)
         {
             // Move to the next index
-            var nextSong = list[currentIndex + 1];
+            SongModelView nextSong = list[currentIndex + 1];
 
             // Perform operations with `nextSong` as needed
             Console.WriteLine($"Moving to next song: {nextSong.Title}");
@@ -442,7 +442,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     }
     public void RemoveSongFromQueue(SongModelView song)
     {
-        var list = _playbackQueue.Value;
+        ObservableCollection<SongModelView> list = _playbackQueue.Value;
         list.Remove(song);
         _playbackQueue.OnNext(list);
     }
@@ -469,7 +469,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             SearchedSongsList?.Clear();
 
             // Step 1: Start with all songs and apply the rating filter
-            var filteredSongs = SongsMgtService.AllSongs
+            IEnumerable<SongModelView> filteredSongs = SongsMgtService.AllSongs
                 .Where(s => s.Rating >= Rating);
 
             // Step 2: Apply additional filters from selectedFilters if any
@@ -509,13 +509,13 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
         // Normalize the string (spaces are preserved)
-        var normalizedString = text.Normalize(NormalizationForm.FormD);
-        var stringBuilder = new StringBuilder();
+        string normalizedString = text.Normalize(NormalizationForm.FormD);
+        StringBuilder stringBuilder = new StringBuilder();
 
-        foreach (var c in normalizedString)
+        foreach (char c in normalizedString)
         {
             // Retain characters that are not non-spacing marks
-            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
             if (unicodeCategory != UnicodeCategory.NonSpacingMark)
             {
                 stringBuilder.Append(c);
@@ -523,7 +523,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         }
 
         // Convert back to Form C and cache the result
-        var result = stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        string result = stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         normalizationCache[text] = result;
         return result;
     }
@@ -539,7 +539,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public void LoadFirstPlaylist()
     {
-        var firstPlaylist = PlaylistManagementService?.AllPlaylists?.ToList();
+        List<PlaylistModelView>? firstPlaylist = PlaylistManagementService?.AllPlaylists?.ToList();
         if (firstPlaylist is not null && firstPlaylist.Count > 0)
         {           
             SelectedPlaylistName = firstPlaylist.FirstOrDefault().Name;
@@ -554,7 +554,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             PlaylistManagementService.AddSongsToPlaylist(playlistModel, songIDs);
             return;
         }
-        var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
+        PlaylistModelView? anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x=>x.Name == playlistModel.Name);
         if (anyExistingPlaylist is not null)
         {
             playlistModel = anyExistingPlaylist;
@@ -563,7 +563,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {         
             playlistModel.Name = playlistModel.Name;
         }
-        var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
+        PlaylistSongLink newPlaylistSongLinkByUserManual = new PlaylistSongLink()
         {
             PlaylistId = playlistModel.LocalDeviceId,            
         };
@@ -579,7 +579,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
             PlaylistManagementService.RemoveSongsFromPlaylist(playlistModel.LocalDeviceId!, songIDs);
             return;
         }
-        var anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Name == playlistModel.Name);
+        PlaylistModelView? anyExistingPlaylist = PlaylistManagementService.AllPlaylists.FirstOrDefault(x => x.Name == playlistModel.Name);
         if (anyExistingPlaylist is not null)
         {
             playlistModel = anyExistingPlaylist;
@@ -588,7 +588,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
         {
             playlistModel.Name = playlistModel.Name;
         }
-        var newPlaylistSongLinkByUserManual = new PlaylistSongLink()
+        PlaylistSongLink newPlaylistSongLinkByUserManual = new PlaylistSongLink()
         {
             PlaylistId = playlistModel.LocalDeviceId,
         };
@@ -601,24 +601,24 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     {
         try
         {
-            var specificPlaylist = PlaylistManagementService.AllPlaylists
+            PlaylistModelView? specificPlaylist = PlaylistManagementService.AllPlaylists
                 .FirstOrDefault(x => x.LocalDeviceId == playlistID);
             if (specificPlaylist is null)
             {
                 return new List<SongModelView>();
             }
 
-            var songsIdsFromPL = new HashSet<string>(
+            HashSet<string> songsIdsFromPL = new HashSet<string>(
                 PlaylistManagementService.GetSongIdsForPlaylist(specificPlaylist.LocalDeviceId));
 
-            var songsFromPlaylist = SongsMgtService.AllSongs;
+            List<SongModelView>? songsFromPlaylist = SongsMgtService.AllSongs;
             if (songsFromPlaylist is null)
             {
                 return new List<SongModelView>();
             }
 
             // Materialize the filtered list first.
-            var songsInPlaylist = songsFromPlaylist
+            List<SongModelView> songsInPlaylist = songsFromPlaylist
                 .Where(song => song != null && songsIdsFromPL.Contains(song.LocalDeviceId))
                 .ToList();
 
@@ -664,9 +664,9 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
 
     public bool DeletePlaylistThroughID(string playlistID)
     {
-        
 
-        var pl = PlaylistManagementService.AllPlaylists?.First(x => x.LocalDeviceId == playlistID!);
+
+        PlaylistModelView? pl = PlaylistManagementService.AllPlaylists?.First(x => x.LocalDeviceId == playlistID!);
         PlaylistManagementService.AllPlaylists?.Remove(pl);
 
         return true;
@@ -675,10 +675,10 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void DeleteSongFromHomePage(SongModelView song)
     {
         // Get the current list from the subject
-        var list = _playbackQueue.Value.ToList();
+        List<SongModelView> list = _playbackQueue.Value.ToList();
 
         // Find the index of the song using its unique ID
-        var index = list.FindIndex(x => x.LocalDeviceId == song.LocalDeviceId); // Assuming each song has a unique Id
+        int index = list.FindIndex(x => x.LocalDeviceId == song.LocalDeviceId); // Assuming each song has a unique Id
 
         if (index != -1) // If the song was found
         {
@@ -695,7 +695,7 @@ public partial class PlaybackUtilsService : ObservableObject, IPlaybackUtilsServ
     public void MultiDeleteSongFromHomePage(ObservableCollection<SongModelView> songs)
     {
         // Get the current list from the subject
-        var list = _playbackQueue.Value;
+        ObservableCollection<SongModelView> list = _playbackQueue.Value;
 
         // Filter out all songs in the passed collection
         list = list.Where(x => !songs.Any(s => s.LocalDeviceId == x.LocalDeviceId)).ToObservableCollection();

@@ -17,7 +17,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
         {
             instance.Binder = binder;
 
-            var mediaPlayerService = binder.GetMediaPlayerService();
+            MediaPlayerService mediaPlayerService = binder.GetMediaPlayerService();
             //mediaPlayerService.CoverReloaded += (object sender, EventArgs e) => { instance.CoverReloaded?.Invoke(sender, e); };
             //mediaPlayerService.StatusChanged += (object sender, EventArgs e) => { instance.StatusChanged?.Invoke(sender, e); };
             //mediaPlayerService.Playing += (object sender, EventArgs e) => { instance.Playing?.Invoke(sender, e); };

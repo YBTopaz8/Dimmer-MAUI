@@ -26,7 +26,7 @@ public partial class MarqueeLabel : Label
     private double GetTextWidth()
     {
         // Measures the text width based on available height
-        var size = Measure(double.PositiveInfinity, Height);
+        Size size = Measure(double.PositiveInfinity, Height);
         return size.Width;
     }
 

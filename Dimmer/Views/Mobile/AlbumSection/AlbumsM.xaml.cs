@@ -24,8 +24,8 @@ public partial class AlbumsM : ContentPage
     string previousAlbID = string.Empty;
     private void ShowArtistAlbums_Tapped(object sender, TappedEventArgs e)
     {
-        var t = (View)sender;
-        var album = t.BindingContext as AlbumModelView;
+        View t = (View)sender;
+        AlbumModelView? album = t.BindingContext as AlbumModelView;
         if (previousAlbID == album!.LocalDeviceId)
         {
             return;
@@ -54,8 +54,8 @@ public partial class AlbumsM : ContentPage
 
     private void AlbumNameTextEdit_TextChanged(object sender, EventArgs e)
     {
-        var searchBar = (TextEdit)sender;
-        var txt = searchBar.Text;
+        TextEdit searchBar = (TextEdit)sender;
+        string txt = searchBar.Text;
 
         if (!string.IsNullOrEmpty(txt))
         {
@@ -80,7 +80,7 @@ public partial class AlbumsM : ContentPage
 
     private void UILayoutToggled_SelectionChanged(object sender, EventArgs e)
     {
-        var s = sender as ChoiceChipGroup;
+        ChoiceChipGroup? s = sender as ChoiceChipGroup;
         switch (s.SelectedIndex)
         {
             case 0:
@@ -105,8 +105,8 @@ public partial class AlbumsM : ContentPage
 
     private void SpecificAlbum_Clicked(object sender, EventArgs e)
     {
-        var send = (View)sender;
-        var album = send.BindingContext as AlbumModelView;
+        View send = (View)sender;
+        AlbumModelView? album = send.BindingContext as AlbumModelView;
         MyViewModel.CurrentQueue = 1;
         MyViewModel.NavigateToSpecificAlbumPageCommand.Execute(album);
     }

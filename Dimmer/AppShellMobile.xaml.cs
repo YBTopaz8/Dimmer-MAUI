@@ -35,9 +35,9 @@ public partial class AppShellMobile : Shell
 
     protected override bool OnBackButtonPressed()
     {
-        var currentPage = Current.CurrentPage;
+        Page currentPage = Current.CurrentPage;
 
-        var targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
+        Type[] targetPages = new[] { typeof(PlaylistsPageM), typeof(AlbumsM), typeof(TopStatsPageM) };
 
         if (targetPages.Contains(currentPage.GetType()))
         {

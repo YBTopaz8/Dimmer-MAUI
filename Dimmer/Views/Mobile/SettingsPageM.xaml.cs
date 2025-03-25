@@ -16,7 +16,7 @@ public partial class SettingsPageM : ContentPage
 
     private async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
-        var reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
+        string reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
 
         await Browser.Default.OpenAsync(reportingLink, BrowserLaunchMode.SystemPreferred);
     }
@@ -84,9 +84,9 @@ public partial class SettingsPageM : ContentPage
 
         try
         {
-            var uname= LoginUname.Text.Trim();
-            var pass = LoginPass.Text.Trim();
-            var oUser = await ParseClient.Instance.LogInWithAsync(uname,pass);
+            string uname = LoginUname.Text.Trim();
+            string pass = LoginPass.Text.Trim();
+            ParseUser oUser = await ParseClient.Instance.LogInWithAsync(uname,pass);
             MyViewModel.SongsMgtService.UpdateUserLoginDetails(oUser);
             MyViewModel.SongsMgtService.CurrentOfflineUser.UserPassword = LoginPass.Text;
             MyViewModel.CurrentUserOnline = oUser;

@@ -45,7 +45,7 @@ public partial class AlbumsPageD : ContentPage
         {
             SelectedBorderView.Stroke = Colors.Transparent;            
         }
-        var send = (Border)sender;
+        Border send = (Border)sender;
         SelectedBorderView ??= send;
         AlbumModelView curSel = (send.BindingContext as AlbumModelView)!;
        
@@ -60,9 +60,9 @@ public partial class AlbumsPageD : ContentPage
 
     private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
-     
-        var song = send.BindingContext! as SongModelView;
+        View send = (View)sender;
+
+        SongModelView? song = send.BindingContext! as SongModelView;
         MyViewModel.SetContextMenuSong(song!);
 
         send.BackgroundColor = Colors.DarkSlateBlue;
@@ -71,7 +71,7 @@ public partial class AlbumsPageD : ContentPage
 
     private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
     {
-        var send = (View)sender;
+        View send = (View)sender;
         send.BackgroundColor = Microsoft.Maui.Graphics.Colors.Transparent;
 
     }
@@ -85,16 +85,16 @@ public partial class AlbumsPageD : ContentPage
     //}
     private void SongPointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
-        var send = (Border)sender;
-        var song = send.BindingContext! as SongModelView;
+        Border send = (Border)sender;
+        SongModelView? song = send.BindingContext! as SongModelView;
         MyViewModel.SetContextMenuSong(song!);
     }
 
     private void SongInAlbumFromArtistPage_TappedToPlay(object sender, TappedEventArgs e)
     {
         MyViewModel.CurrentQueue = 1;
-        var s = (View)sender;
-        var song = s.BindingContext as SongModelView;
+        View s = (View)sender;
+        SongModelView? song = s.BindingContext as SongModelView;
         MyViewModel.PlaySong(song!);
     }
 
@@ -114,7 +114,7 @@ public partial class AlbumsPageD : ContentPage
 
     private void DataPointSelectionBehavior_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Charts.ChartSelectionChangedEventArgs e)
     {
-        var send = sender as DoughnutSeries;
+        DoughnutSeries? send = sender as DoughnutSeries;
       
         
     }
@@ -125,8 +125,8 @@ public partial class AlbumsPageD : ContentPage
     }
     private void PlayNext_Clicked(object sender, EventArgs e)
     {
-        var send = (MenuFlyoutItem)sender;
-        var song = send.BindingContext as SongModelView;
+        MenuFlyoutItem send = (MenuFlyoutItem)sender;
+        SongModelView? song = send.BindingContext as SongModelView;
         MyViewModel.AddNextInQueueCommand.Execute(song);
     }
 
@@ -142,7 +142,7 @@ public partial class AlbumsPageD : ContentPage
             {
                 isAboutToDropFiles = true;
 
-                var send = sender as View;
+                View? send = sender as View;
                 if (send is null)
                 {
                     return;
@@ -201,7 +201,7 @@ public partial class AlbumsPageD : ContentPage
         try
         {
             isAboutToDropFiles = false;
-            var send = sender as View;
+            View? send = sender as View;
             if (send is null)
             {
                 return;
@@ -218,7 +218,7 @@ public partial class AlbumsPageD : ContentPage
         supportedFilePaths ??= [];
         isAboutToDropFiles = false;
         MyViewModel.LoadLocalSongFromOutSideApp(supportedFilePaths);
-        var send = sender as View;
+        View? send = sender as View;
         if (send is null)
         {
             return;
@@ -244,8 +244,8 @@ public partial class AlbumsPageD : ContentPage
     string FilterLetter = string.Empty;
     private void ArtistLetterGestureRecog_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (Label)sender;
-        var letter = send.Text;
+        Label send = (Label)sender;
+        string letter = send.Text;
 
         MyViewModel.FilterAlbumList(letter);
         FilterLetter = letter;
@@ -270,8 +270,8 @@ public partial class AlbumsPageD : ContentPage
     }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
 
         if (song is not null)
         {

@@ -29,7 +29,7 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
         {
             //The event will fire twice, up and down.
             // we only want to handle the down event though.
-            var key = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);
+            KeyEvent? key = (KeyEvent)intent.GetParcelableExtra(Intent.ExtraKeyEvent);
             if (key.Action != KeyEventActions.Down)
                 return;
 
@@ -60,7 +60,7 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
                     return;
             }
 
-            var remoteIntent = new Intent(action);
+            Intent remoteIntent = new Intent(action);
             context.StartService(remoteIntent);
         }
         else

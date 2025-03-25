@@ -41,7 +41,7 @@ public partial class HomePageVM
     public async Task NavigateToSpecificAlbumPageFromBtmSheet(SongModelView song)
     {
         MySelectedSong = song;
-        var songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).FirstOrDefault();
+        AlbumModelView? songAlbum = GetAlbumFromSongID(song.LocalDeviceId!).FirstOrDefault();
         
         await NavigateToSpecificAlbumPage(songAlbum);
 
@@ -117,13 +117,13 @@ public partial class HomePageVM
     {
         AllAlbums = PlayBackService.GetAllAlbums();
         MySelectedSong ??= TemporarilyPickedSong;
-        var groupedSongs = DisplayedSongs.GroupBy(song => song.AlbumName);
+        IEnumerable<IGrouping<string?, SongModelView>> groupedSongs = DisplayedSongs.GroupBy(song => song.AlbumName);
 
-        foreach (var group in groupedSongs)
+        foreach (IGrouping<string?, SongModelView> group in groupedSongs)
         {
-            var firstSong = group.FirstOrDefault();
+            SongModelView? firstSong = group.FirstOrDefault();
             // Create an AlbumGroup and add all the songs in the grAlbumGroup?AlbumGroup?AlbumGroup? to it.
-            var AlbumGroup = new AlbumGroup(
+            AlbumGroup AlbumGroup = new AlbumGroup(
                 group.Key, // AlbumName
                 firstSong.AlbumName, // Use Album name as ID since that's what you grouped by                
                 group.ToObservableCollection()
@@ -198,7 +198,7 @@ public partial class HomePageVM
             return;
 
         // Group songs by ArtistName
-        var groupedSongs = DisplayedSongs.GroupBy(song => song.ArtistName);
+        IEnumerable<IGrouping<string?, SongModelView>> groupedSongs = DisplayedSongs.GroupBy(song => song.ArtistName);
 
         // Initialize or clear existing collection
         if (GroupedArtists == null)
@@ -208,14 +208,14 @@ public partial class HomePageVM
             return;
         }
 
-        foreach (var group in groupedSongs)
+        foreach (IGrouping<string?, SongModelView> group in groupedSongs)
         {
-            var firstSong = group.FirstOrDefault();
+            SongModelView? firstSong = group.FirstOrDefault();
             if (firstSong == null)
                 continue;
 
             // Create an ArtistGroup with the group key as both name and identifier.
-            var artistGroup = new ArtistGroup(
+            ArtistGroup artistGroup = new ArtistGroup(
                 group.Key,               // ArtistName
                 firstSong.ArtistName,    // Artist ID (using name here)
                 group.ToObservableCollection()  // Grouped songs
@@ -224,7 +224,7 @@ public partial class HomePageVM
         }
 
         // Compute distinct first letters for grouping (only once after loop)
-        var firstLetters = GroupedArtists
+        List<string> firstLetters = GroupedArtists
             .Select(ag =>
             {
                 string name = ag.ArtistName?.Trim().ToUpper() ?? string.Empty;
@@ -250,7 +250,7 @@ public partial class HomePageVM
             SelectedGroupedArtist = GroupedArtists.FirstOrDefault(x => x.ArtistName == TemporarilyPickedSong.ArtistName);
 
         // Refresh AllArtists from the playback service if count mismatch
-        var serviceArtists = PlayBackService.GetAllArtists();
+        ObservableCollection<ArtistModelView> serviceArtists = PlayBackService.GetAllArtists();
         if (AllArtists == null || AllArtists.Count != serviceArtists.Count)
         {
             AllArtists = serviceArtists.OrderBy(x => x.Name).ToObservableCollection();
@@ -286,7 +286,7 @@ public partial class HomePageVM
         if (isFromSong && song != null)
         {
             // Load based on song selection
-            var artistsFromSong = GetAllArtistsFromSongID(song.LocalDeviceId);
+            ObservableCollection<ArtistModelView> artistsFromSong = GetAllArtistsFromSongID(song.LocalDeviceId);
             SelectedArtistOnAlbumPage = artistsFromSong.FirstOrDefault();
             if (SelectedArtistOnAlbumPage != null)
                 SelectedArtistOnAlbumPage.IsCurrentlySelected = true;
@@ -343,7 +343,7 @@ public partial class HomePageVM
         if (AllArtistsAlbums == null || AllArtistsAlbums.Count < 1)
         {
             // Try to locate the artist via a linking table (AllLinks)
-            var selectedLink = AllLinks.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
+            AlbumArtistGenreSongLinkView? selectedLink = AllLinks.FirstOrDefault(link => link.AlbumId == album.LocalDeviceId);
             if (AllArtists != null)
                 SelectedArtistOnArtistPage = AllArtists.FirstOrDefault(artist => artist.LocalDeviceId == selectedLink?.ArtistId);
 
@@ -358,14 +358,14 @@ public partial class HomePageVM
                     .Distinct()
                     .ToList()!;
             }
-            var allAlbumsSet = new HashSet<string>(allAlbums);
+            HashSet<string> allAlbumsSet = new HashSet<string>(allAlbums);
             AllArtistsAlbums = AllAlbums.Where(albumItem => allAlbumsSet.Contains(albumItem.LocalDeviceId))
                                         .ToObservableCollection();
         }
         else
         {
             // Update selected artist based on the first album from AllArtistsAlbums
-            var selArt = GetAllArtistsFromAlbumID(AllArtistsAlbums.FirstOrDefault()!.LocalDeviceId).FirstOrDefault();
+            ArtistModelView? selArt = GetAllArtistsFromAlbumID(AllArtistsAlbums.FirstOrDefault()!.LocalDeviceId).FirstOrDefault();
             if (selArt != null)
                 SelectedArtistOnArtistPage = selArt;
         }
@@ -378,7 +378,7 @@ public partial class HomePageVM
         SelectedAlbumOnArtistPage.IsCurrentlySelected = true;
 
         // Load album cover image asynchronously if needed
-        var song = AllArtistsAlbumSongs.FirstOrDefault();
+        SongModelView? song = AllArtistsAlbumSongs.FirstOrDefault();
         if (!string.IsNullOrEmpty(SelectedAlbumOnArtistPage.AlbumImagePath))
         {
             if (!File.Exists(SelectedAlbumOnArtistPage.AlbumImagePath) && song != null)
@@ -395,7 +395,7 @@ public partial class HomePageVM
     /// </summary>
     public ObservableCollection<ArtistModelView> GetAllArtistsFromSongID(string songId)
     {
-        var artistIds = AllLinks
+        HashSet<string> artistIds = AllLinks
             .Where(link => link.SongId == songId && link.ArtistId != null)
             .Select(link => link.ArtistId!)
             .Distinct()
@@ -403,12 +403,12 @@ public partial class HomePageVM
 
         if (artistIds.Count < 1)
         {
-            var song = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId);
+            SongModelView? song = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId);
             if (song == null)
                 return new ObservableCollection<ArtistModelView>();
 
             string artName = song.ArtistName;
-            var matchingArtist = AllArtists?.FirstOrDefault(x => x.Name.Equals(artName, StringComparison.OrdinalIgnoreCase));
+            ArtistModelView? matchingArtist = AllArtists?.FirstOrDefault(x => x.Name.Equals(artName, StringComparison.OrdinalIgnoreCase));
             return matchingArtist != null
                 ? new ObservableCollection<ArtistModelView> { matchingArtist }
                 : new ObservableCollection<ArtistModelView>();
@@ -422,7 +422,7 @@ public partial class HomePageVM
     /// </summary>
     public ObservableCollection<AlbumModelView> GetAlbumFromSongID(string songId)
     {
-        var albumIds = AllLinks?
+        HashSet<string> albumIds = AllLinks?
             .Where(link => link.SongId == songId && link.AlbumId != null)
             .Select(link => link.AlbumId!)
             .Distinct()
@@ -430,11 +430,11 @@ public partial class HomePageVM
 
         if (albumIds.Count < 1)
         {
-            var albumName = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId)?.AlbumName;
+            string? albumName = DisplayedSongs.FirstOrDefault(x => x.LocalDeviceId == songId)?.AlbumName;
             if (string.IsNullOrEmpty(albumName))
                 return new ObservableCollection<AlbumModelView>();
 
-            var matchingAlbum = AllAlbums?.FirstOrDefault(x => x.Name.Equals(albumName, StringComparison.OrdinalIgnoreCase));
+            AlbumModelView? matchingAlbum = AllAlbums?.FirstOrDefault(x => x.Name.Equals(albumName, StringComparison.OrdinalIgnoreCase));
             return matchingAlbum != null
                 ? new ObservableCollection<AlbumModelView> { matchingAlbum }
                 : new ObservableCollection<AlbumModelView>();
@@ -448,7 +448,7 @@ public partial class HomePageVM
 
     public ObservableCollection<ArtistModelView> GetAllArtistsFromAlbumID(string albumId)
     {
-        var artistIds = AllLinks
+        HashSet<string> artistIds = AllLinks
             .Where(link => link.AlbumId == albumId && link.ArtistId != null)
             .Select(link => link.ArtistId!)
             .Distinct()
@@ -462,7 +462,7 @@ public partial class HomePageVM
     /// </summary>
     public ObservableCollection<SongModelView> GetAllSongsFromAlbumID(string albumId)
     {
-        var songIds = AllLinks
+        HashSet<string> songIds = AllLinks
             .Where(link => link.AlbumId == albumId && link.SongId != null)
             .Select(link => link.SongId!)
             .Distinct()
@@ -476,7 +476,7 @@ public partial class HomePageVM
     /// </summary>
     public ObservableCollection<AlbumModelView> GetAllAlbumsFromArtistID(string artistId)
     {
-        var albumIds = AllLinks
+        HashSet<string> albumIds = AllLinks
             .Where(link => link.ArtistId == artistId && link.AlbumId != null)
             .Select(link => link.AlbumId!)
             .Distinct()
@@ -500,7 +500,7 @@ public partial class HomePageVM
     /// </summary>
     public ObservableCollection<SongModelView> GetAllSongsFromArtistID(string artistId)
     {
-        var songIds = AllLinks
+        HashSet<string> songIds = AllLinks
             .Where(link => link.ArtistId == artistId && link.SongId != null)
             .Select(link => link.SongId!)
             .Distinct()
@@ -571,7 +571,7 @@ public partial class HomePageVM
     [RelayCommand]
     public async Task SetSongCoverAsAlbumCover(SongModelView song)
     {
-        var specificAlbum = AllArtistsAlbums.FirstOrDefault(x => x.Name == song.AlbumName)!;
+        AlbumModelView specificAlbum = AllArtistsAlbums.FirstOrDefault(x => x.Name == song.AlbumName)!;
         specificAlbum.AlbumImagePath = await LyricsManagerService.FetchAndDownloadCoverImage(song.Title, song!.ArtistName!, song!.AlbumName!, song);
         specificAlbum.NumberOfTracks = AllArtistsAlbumSongs.Count;
         SongsMgtService.UpdateAlbum(specificAlbum);
@@ -595,7 +595,7 @@ public partial class HomePageVM
             if (AllArtists.Count > 0)
             {
                 SelectedArtistOnArtistPage = AllArtists.FirstOrDefault();
-                var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
+                SongModelView? song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
                 LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: song, isFromSong: true);
             
             }
@@ -631,7 +631,7 @@ public partial class HomePageVM
                     return;
                 }
                 SelectedAlbumOnAlbumPage = AllAlbums.FirstOrDefault();
-                var song = DisplayedSongs.FirstOrDefault(x => x.AlbumName == SelectedAlbumOnAlbumPage.Name);
+                SongModelView? song = DisplayedSongs.FirstOrDefault(x => x.AlbumName == SelectedAlbumOnAlbumPage.Name);
                 LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: song, isFromSong: true);            
             }
             else
@@ -658,7 +658,7 @@ public partial class HomePageVM
             return;
         }
         AllArtists.Clear();
-        foreach (var art in SongsMgtService.AllArtists)
+        foreach (ArtistModelView art in SongsMgtService.AllArtists)
         {
             if (art.Name is not null)
             {
@@ -702,7 +702,7 @@ public partial class HomePageVM
             return;
         }
         AllAlbums.Clear();
-        foreach (var art in SongsMgtService.AllAlbums)
+        foreach (AlbumModelView art in SongsMgtService.AllAlbums)
         {
             if (art.Name is not null)
             {
@@ -744,7 +744,7 @@ public partial class HomePageVM
         }
 
         SelectedArtistOnArtistPage = selectedArtist;
-        var song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
+        SongModelView? song = DisplayedSongs.FirstOrDefault(x => x.ArtistName == SelectedArtistOnArtistPage.Name);
         LoadAllArtistsAlbumsAndLoadAnAlbumSong(song: song, isFromSong: true);
           
     }
@@ -767,7 +767,7 @@ public partial class HomePageVM
     public void ReCheckSongsBelongingToAlbum(string id)
     {
         AllArtistsAlbumSongs?.Clear();
-        var alb = AllAlbums.FirstOrDefault(x => x.LocalDeviceId == id);
+        AlbumModelView? alb = AllAlbums.FirstOrDefault(x => x.LocalDeviceId == id);
         
         AllArtistsAlbumSongs= GetAllSongsFromAlbumID(id);
         
@@ -838,7 +838,7 @@ public partial class HomePageVM
     {
         TopCompleted = songs.Select(song =>
         {
-            var completedPlays = AllPlayDataLinks
+            List<PlayDataLink> completedPlays = AllPlayDataLinks
                 .Where(p => p.SongId == song.LocalDeviceId && p.PlayType == 3)
                 .ToList();
 
@@ -863,7 +863,7 @@ public partial class HomePageVM
     {
         TopSkipped = songs.Select(song =>
         {
-            var skippedPlays = AllPlayDataLinks
+            ObservableCollection<PlayDataLink> skippedPlays = AllPlayDataLinks
                 .Where(p => p.SongId == song.LocalDeviceId && p.PlayType == 5) // 5 = Skipped
                 .ToObservableCollection();
 
@@ -886,7 +886,7 @@ public partial class HomePageVM
     {
         OverallStats = songs.Select(song =>
         {
-            var allPlays = AllPlayDataLinks
+            ObservableCollection<PlayDataLink> allPlays = AllPlayDataLinks
                 .Where(p => p.SongId == song.LocalDeviceId)
                 .ToObservableCollection();
 
@@ -907,11 +907,11 @@ public partial class HomePageVM
     }
     public void GetRecentlyPlayedSongs(IEnumerable<SongModelView> songs, int days = 7)
     {
-        var recentDate = DateTime.UtcNow.AddDays(-days);
+        DateTime recentDate = DateTime.UtcNow.AddDays(-days);
 
         RecentPlays = songs.Select(song =>
         {
-            var recentPlays = AllPlayDataLinks
+            ObservableCollection<PlayDataLink> recentPlays = AllPlayDataLinks
                 .Where(p => p.SongId == song.LocalDeviceId && p.EventDate >= recentDate)
                 .ToObservableCollection();
 
@@ -942,17 +942,17 @@ public partial class HomePageVM
     {
         startDate ??= DateTime.Now.AddDays(-14);
         endDate ??= DateTime.Now;
-        var stats = songs.Select(song =>
+        ObservableCollection<PlaybackStats> stats = songs.Select(song =>
         {
-            var filteredPlays = AllPlayDataLinks
+            ObservableCollection<PlayDataLink> filteredPlays = AllPlayDataLinks
                 .Where(p => p.SongId == song.LocalDeviceId && p.EventDate >= startDate && p.EventDate <= endDate)
                 .ToObservableCollection();
 
-            var skippedPlays = includeSkips
+            ObservableCollection<PlayDataLink> skippedPlays = includeSkips
                 ? filteredPlays.Where(p => p.PlayType == 5).ToObservableCollection()
                 : [];
 
-            var completedPlays = includeCompletions
+            ObservableCollection<PlayDataLink> completedPlays = includeCompletions
                 ? filteredPlays.Where(p => p.WasPlayCompleted).ToObservableCollection()
                 : [];
 
