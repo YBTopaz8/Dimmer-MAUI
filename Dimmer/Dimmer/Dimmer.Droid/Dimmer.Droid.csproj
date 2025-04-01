@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0-android</TargetFramework>
+		<SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Dimmer</RootNamespace>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseMaui>true</UseMaui>
+    <LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.Controls" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.Core" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.Editors" Version="24.2.3" />
+    <PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.3" />
+
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.50" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Views\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Database\" />
+	</ItemGroup>
+
+</Project>

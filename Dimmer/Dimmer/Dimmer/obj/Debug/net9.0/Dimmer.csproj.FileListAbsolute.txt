@@ -1,0 +1,16 @@
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\bin\Debug\net9.0\Dimmer.deps.json
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\bin\Debug\net9.0\Dimmer.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\bin\Debug\net9.0\Dimmer.pdb
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.csproj.AssemblyReference.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.AssemblyInfoInputs.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.AssemblyInfo.cs
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.csproj.CoreCompileInputs.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.sourcelink.json
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.csproj.Fody.CopyLocal.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.csproj.Fody.RuntimeCopyLocal.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\XamlC.stamp
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\refint\Dimmer.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\Dimmer.pdb
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer\obj\Debug\net9.0\ref\Dimmer.dll

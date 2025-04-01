@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dimmer-MAUI", "Dimmer-MAUI.csproj", "{70A39173-241E-446E-AD20-5BFFD7380F7F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer", "Dimmer\Dimmer\Dimmer.csproj", "{51C2E416-6CCB-4659-8A58-38210335263C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj", "{34777247-6BBC-4A72-C39F-EE4C3536EFAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimmer.Droid\Dimmer.Droid.csproj", "{635BE060-4FD3-4299-B9A9-356D36CF9B8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{003C8BE4-A343-477A-A5AA-FB2F21E2A873}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,16 +15,20 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{70A39173-241E-446E-AD20-5BFFD7380F7F}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{34777247-6BBC-4A72-C39F-EE4C3536EFAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34777247-6BBC-4A72-C39F-EE4C3536EFAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34777247-6BBC-4A72-C39F-EE4C3536EFAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34777247-6BBC-4A72-C39F-EE4C3536EFAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51C2E416-6CCB-4659-8A58-38210335263C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51C2E416-6CCB-4659-8A58-38210335263C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51C2E416-6CCB-4659-8A58-38210335263C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51C2E416-6CCB-4659-8A58-38210335263C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{635BE060-4FD3-4299-B9A9-356D36CF9B8A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Debug|Any CPU.Build.0 = Debug|x64
+		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Release|Any CPU.ActiveCfg = Release|x64
+		{003C8BE4-A343-477A-A5AA-FB2F21E2A873}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
