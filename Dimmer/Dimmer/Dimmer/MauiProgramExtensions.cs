@@ -5,6 +5,7 @@ using Dimmer.Interfaces.IDatabase;
 using Dimmer.Orchestration;
 using Dimmer.ViewModel;
 using Microsoft.Extensions.Logging;
+using Syncfusion.Maui.Toolkit.Hosting;
 
 namespace Dimmer;
 
@@ -25,10 +26,11 @@ public static class MauiProgramExtensions
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
+            })
+            .ConfigureSyncfusionToolkit();
 
 #if DEBUG
-		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
         
         builder.Services.AddSingleton<Realm>(serviceProvider =>
