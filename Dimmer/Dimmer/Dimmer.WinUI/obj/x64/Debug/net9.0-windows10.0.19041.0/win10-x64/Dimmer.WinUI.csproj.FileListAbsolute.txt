@@ -867,3 +867,5 @@ C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\obj\x64\Debug
 C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\obj\x64\Debug\net9.0-windows10.0.19041.0\win10-x64\qualifiers.txt
 C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\obj\x64\Debug\net9.0-windows10.0.19041.0\win10-x64\qualifiers.txt.intermediate
 C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\obj\x64\Debug\net9.0-windows10.0.19041.0\win10-x64\MultipleQualifiersPerDimensionFound.txt
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\bin\x64\Debug\net9.0-windows10.0.19041.0\win10-x64\Syncfusion.Maui.Toolkit.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\Dimmer\Dimmer.WinUI\bin\x64\Debug\net9.0-windows10.0.19041.0\win10-x64\en-US\Syncfusion.Maui.Toolkit.resources.dll

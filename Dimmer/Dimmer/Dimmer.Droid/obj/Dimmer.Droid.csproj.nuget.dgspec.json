@@ -210,6 +210,10 @@
               "target": "Package",
               "version": "[20.1.0, )"
             },
+            "Syncfusion.Maui.Toolkit": {
+              "target": "Package",
+              "version": "[1.0.4, )"
+            },
             "YB.ParseLiveQueryDotNet": {
               "target": "Package",
               "version": "[3.4.0, )"

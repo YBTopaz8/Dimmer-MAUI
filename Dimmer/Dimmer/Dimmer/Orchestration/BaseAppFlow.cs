@@ -1,11 +1,26 @@
 ﻿using Dimmer.Data.Models;
 using Dimmer.Database.ModelView;
 using Dimmer.Interfaces.IDatabase;
+using Dimmer.Utilities;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
 namespace Dimmer.Orchestration;
-public class BaseAppFlow
+public class BaseAppFlow : IDisposable
 {
+
+
+    #region FolderWatcher Region
+    
+    private readonly object _lock = new object(); // For thread safety
+    private bool _isDisposed = false; // To prevent multiple disposals
+
+
+
+
+    #endregion
+
+
 
     public IObservable<bool> IsPlaying=> _isPlayingSubj.AsObservable();
     BehaviorSubject<bool> _isPlayingSubj = new(false);
@@ -36,6 +51,22 @@ public class BaseAppFlow
         this.AudioService.PlayEnded += AudioService_PlayEnded;
         this.AudioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
 
+        SetupFolderMonitoring();
+    }
+
+    void SetupFolderMonitoring()
+    {
+        List<string>? folds = AppSettingsService.MusicFoldersPreference.MusicFolders;
+        if (folds == null || folds.Count == 0)
+        {
+            return;
+        }
+        foreach (var path in folds)
+        {
+            SingleFolderMonitor? newSingleFolderMonitor = new SingleFolderMonitor(path);
+            newSingleFolderMonitor.StartMonitoring();
+            
+        }
     }
     #region Audio Service Event Handlers
     private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
@@ -107,4 +138,37 @@ public class BaseAppFlow
     {
         Debug.WriteLine(Db.GetType());
     }
+    private bool _disposed = false;
+
+    // Other members...
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources.
+                _positionTimer?.Dispose();
+                _isPlayingSubj?.Dispose();
+            }
+
+            // Dispose unmanaged resources.
+            // Set large fields to null.
+
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~BaseAppFlow()
+    {
+        Dispose(false);
+    }
 }
+

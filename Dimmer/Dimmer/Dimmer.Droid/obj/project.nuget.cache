@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "e9pLU8WfO6s=",
+  "dgSpecHash": "jij/y2bTzik=",
   "success": true,
   "projectFilePath": "C:\\Users\\8brun\\Source\\Repos\\Dimmer-MAUI\\Dimmer\\Dimmer\\Dimmer.Droid\\Dimmer.Droid.csproj",
   "expectedPackageFiles": [
@@ -50,6 +50,7 @@
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.views\\3.116.1\\skiasharp.views.3.116.1.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.views.maui.controls\\2.88.9\\skiasharp.views.maui.controls.2.88.9.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.views.maui.core\\2.88.9\\skiasharp.views.maui.core.2.88.9.nupkg.sha512",
+    "C:\\Users\\8brun\\.nuget\\packages\\syncfusion.maui.toolkit\\1.0.4\\syncfusion.maui.toolkit.1.0.4.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.drawing.common\\4.7.2\\system.drawing.common.4.7.2.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.dynamic.runtime\\4.3.0\\system.dynamic.runtime.4.3.0.nupkg.sha512",

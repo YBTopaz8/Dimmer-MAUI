@@ -2,16 +2,24 @@ int attr alpha 0x0
 int attr font 0x0
 int attr fontProviderAuthority 0x0
 int attr fontProviderCerts 0x0
+int attr fontProviderFallbackQuery 0x0
 int attr fontProviderFetchStrategy 0x0
 int attr fontProviderFetchTimeout 0x0
 int attr fontProviderPackage 0x0
 int attr fontProviderQuery 0x0
+int attr fontProviderSystemFontFamily 0x0
 int attr fontStyle 0x0
 int attr fontVariationSettings 0x0
 int attr fontWeight 0x0
+int attr lStar 0x0
+int attr nestedScrollViewStyle 0x0
+int attr queryPatterns 0x0
+int attr shortcutMatchRequired 0x0
 int attr ttcIndex 0x0
 int color androidx_core_ripple_material_light 0x0
 int color androidx_core_secondary_text_default_material_light 0x0
+int color call_notification_answer_color 0x0
+int color call_notification_decline_color 0x0
 int color notification_action_color_filter 0x0
 int color notification_icon_bg_color 0x0
 int dimen compat_button_inset_horizontal_material 0x0
@@ -36,6 +44,12 @@ int dimen notification_small_icon_size_as_large 0x0
 int dimen notification_subtext_size 0x0
 int dimen notification_top_pad 0x0
 int dimen notification_top_pad_large_text 0x0
+int drawable ic_call_answer 0x0
+int drawable ic_call_answer_low 0x0
+int drawable ic_call_answer_video 0x0
+int drawable ic_call_answer_video_low 0x0
+int drawable ic_call_decline 0x0
+int drawable ic_call_decline_low 0x0
 int drawable notification_action_background 0x0
 int drawable notification_bg 0x0
 int drawable notification_bg_low 0x0
@@ -44,6 +58,7 @@ int drawable notification_bg_low_pressed 0x0
 int drawable notification_bg_normal 0x0
 int drawable notification_bg_normal_pressed 0x0
 int drawable notification_icon_background 0x0
+int drawable notification_oversize_large_icon_bg 0x0
 int drawable notification_template_icon_bg 0x0
 int drawable notification_template_icon_low_bg 0x0
 int drawable notification_tile_bg 0x0
@@ -90,7 +105,9 @@ int id async 0x0
 int id blocking 0x0
 int id chronometer 0x0
 int id dialog_button 0x0
+int id edit_text_id 0x0
 int id forever 0x0
+int id hide_ime_id 0x0
 int id icon 0x0
 int id icon_group 0x0
 int id info 0x0
@@ -107,22 +124,36 @@ int id tag_accessibility_actions 0x0
 int id tag_accessibility_clickable_spans 0x0
 int id tag_accessibility_heading 0x0
 int id tag_accessibility_pane_title 0x0
+int id tag_on_apply_window_listener 0x0
+int id tag_on_receive_content_listener 0x0
+int id tag_on_receive_content_mime_types 0x0
 int id tag_screen_reader_focusable 0x0
+int id tag_state_description 0x0
 int id tag_transition_group 0x0
 int id tag_unhandled_key_event_manager 0x0
 int id tag_unhandled_key_listeners 0x0
+int id tag_window_insets_animation_callback 0x0
 int id text 0x0
 int id text2 0x0
 int id time 0x0
 int id title 0x0
 int integer status_bar_notification_info_maxnum 0x0
 int layout custom_dialog 0x0
+int layout ime_base_split_test_activity 0x0
+int layout ime_secondary_split_test_activity 0x0
 int layout notification_action 0x0
 int layout notification_action_tombstone 0x0
 int layout notification_template_custom_big 0x0
 int layout notification_template_icon_group 0x0
 int layout notification_template_part_chronometer 0x0
 int layout notification_template_part_time 0x0
+int string call_notification_answer_action 0x0
+int string call_notification_answer_video_action 0x0
+int string call_notification_decline_action 0x0
+int string call_notification_hang_up_action 0x0
+int string call_notification_incoming_text 0x0
+int string call_notification_ongoing_text 0x0
+int string call_notification_screening_text 0x0
 int string status_bar_notification_info_overflow 0x0
 int style TextAppearance_Compat_Notification 0x0
 int style TextAppearance_Compat_Notification_Info 0x0
@@ -131,17 +162,24 @@ int style TextAppearance_Compat_Notification_Time 0x0
 int style TextAppearance_Compat_Notification_Title 0x0
 int style Widget_Compat_NotificationActionContainer 0x0
 int style Widget_Compat_NotificationActionText 0x0
-int[] styleable ColorStateListItem { 0x0, 0x101031f, 0x10101a5 }
+int[] styleable Capability { 0x0, 0x0 }
+int styleable Capability_queryPatterns 0
+int styleable Capability_shortcutMatchRequired 1
+int[] styleable ColorStateListItem { 0x0, 0x101031f, 0x10101a5, 0x1010647, 0x0 }
 int styleable ColorStateListItem_alpha 0
 int styleable ColorStateListItem_android_alpha 1
 int styleable ColorStateListItem_android_color 2
-int[] styleable FontFamily { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 }
+int styleable ColorStateListItem_android_lStar 3
+int styleable ColorStateListItem_lStar 4
+int[] styleable FontFamily { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 }
 int styleable FontFamily_fontProviderAuthority 0
 int styleable FontFamily_fontProviderCerts 1
-int styleable FontFamily_fontProviderFetchStrategy 2
-int styleable FontFamily_fontProviderFetchTimeout 3
-int styleable FontFamily_fontProviderPackage 4
-int styleable FontFamily_fontProviderQuery 5
+int styleable FontFamily_fontProviderFallbackQuery 2
+int styleable FontFamily_fontProviderFetchStrategy 3
+int styleable FontFamily_fontProviderFetchTimeout 4
+int styleable FontFamily_fontProviderPackage 5
+int styleable FontFamily_fontProviderQuery 6
+int styleable FontFamily_fontProviderSystemFontFamily 7
 int[] styleable FontFamilyFont { 0x1010532, 0x101053f, 0x1010570, 0x1010533, 0x101056f, 0x0, 0x0, 0x0, 0x0, 0x0 }
 int styleable FontFamilyFont_android_font 0
 int styleable FontFamilyFont_android_fontStyle 1

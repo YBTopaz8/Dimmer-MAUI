@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="autofill_inline_suggestion_icon_size">20dp</dimen>
+    <style name="Theme.AutofillInlineSuggestion" parent="@android:style/Theme.DeviceDefault">
+        <item name="isAutofillInlineSuggestionTheme">true</item>
+        <item name="autofillInlineSuggestionChip">@style/Widget.Autofill.InlineSuggestionChip</item>
+        <item name="autofillInlineSuggestionStartIconStyle">
+            @style/Widget.Autofill.InlineSuggestionStartIconStyle
+        </item>
+        <item name="autofillInlineSuggestionTitle">
+            @style/Widget.Autofill.InlineSuggestionTitle
+        </item>
+        <item name="autofillInlineSuggestionSubtitle">
+            @style/Widget.Autofill.InlineSuggestionSubtitle
+        </item>
+        <item name="autofillInlineSuggestionEndIconStyle">
+            @style/Widget.Autofill.InlineSuggestionEndIconStyle
+        </item>
+    </style>
+    <style name="Widget.Autofill" parent="android:Widget"/>
+    <style name="Widget.Autofill.InlineSuggestionChip">
+        <item name="android:background">@drawable/autofill_inline_suggestion_chip_background</item>
+        <item name="android:paddingStart">13dp</item>
+        <item name="android:paddingLeft">13dp</item>
+        <item name="android:paddingEnd">13dp</item>
+        <item name="android:paddingRight">13dp</item>
+    </style>
+    <style name="Widget.Autofill.InlineSuggestionEndIconStyle">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:maxWidth">@dimen/autofill_inline_suggestion_icon_size</item>
+        <item name="android:adjustViewBounds">true</item>
+    </style>
+    <style name="Widget.Autofill.InlineSuggestionStartIconStyle">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:maxWidth">@dimen/autofill_inline_suggestion_icon_size</item>
+        <item name="android:adjustViewBounds">true</item>
+    </style>
+    <style name="Widget.Autofill.InlineSuggestionSubtitle" parent="@android:style/TextAppearance">
+        <item name="android:textColor">#99202124</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:layout_marginEnd">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+    </style>
+    <style name="Widget.Autofill.InlineSuggestionTitle" parent="@android:style/TextAppearance">
+        <item name="android:textColor">#FF202124</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:typeface">sans</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:layout_marginEnd">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+    </style>
+    <declare-styleable name="Autofill.InlineSuggestion">
+        <!-- Private boolean attribute to identify the theme and the child of the theme.  -->
+        <attr format="boolean" name="isAutofillInlineSuggestionTheme"/>
+        <!-- Defines the overall style for the entire chip, such as the background.  -->
+        <attr format="reference" name="autofillInlineSuggestionChip"/>
+        <!-- Defines the style for the start icon, such as the scaleType.  -->
+        <attr format="reference" name="autofillInlineSuggestionStartIconStyle"/>
+        <!-- Defines the style of the title TextView, such as the color, size, etc.  -->
+        <attr format="reference" name="autofillInlineSuggestionTitle"/>
+        <!-- Defines the style of the subtitle TextView, such as the color, size, etc.  -->
+        <attr format="reference" name="autofillInlineSuggestionSubtitle"/>
+        <!-- Defines the style for the end icon, such as the scaleType.  -->
+        <attr format="reference" name="autofillInlineSuggestionEndIconStyle"/>
+    </declare-styleable>
+</resources>

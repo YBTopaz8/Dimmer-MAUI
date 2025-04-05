@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dimmer.Droid")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5334e4a18567daaea4d59333ed2cd82d0da70ad7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c118e147c44734206f23486ee54b75d7ccfee0e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dimmer.Droid")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dimmer.Droid")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

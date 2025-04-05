@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "pIcaNL6gCHs=",
+  "dgSpecHash": "LUDJt3hUGrg=",
   "success": true,
   "projectFilePath": "C:\\Users\\8brun\\Source\\Repos\\Dimmer-MAUI\\Dimmer\\Dimmer\\Dimmer.WinUI\\Dimmer.WinUI.csproj",
   "expectedPackageFiles": [
@@ -83,6 +83,7 @@
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.nativeassets.win32\\3.116.1\\skiasharp.nativeassets.win32.3.116.1.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.nativeassets.winui\\3.116.1\\skiasharp.nativeassets.winui.3.116.1.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\skiasharp.views.winui\\3.116.1\\skiasharp.views.winui.3.116.1.nupkg.sha512",
+    "C:\\Users\\8brun\\.nuget\\packages\\syncfusion.maui.toolkit\\1.0.4\\syncfusion.maui.toolkit.1.0.4.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\system.collections.concurrent\\4.3.0\\system.collections.concurrent.4.3.0.nupkg.sha512",

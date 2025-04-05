@@ -15,17 +15,8 @@
   ~ limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="androidx.startup" >
+    package="androidx.tracing" >
 
-    <uses-sdk android:minSdkVersion="21" />
-
-    <application>
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge" />
-    </application>
+    <uses-sdk android:minSdkVersion="14" />
 
 </manifest>

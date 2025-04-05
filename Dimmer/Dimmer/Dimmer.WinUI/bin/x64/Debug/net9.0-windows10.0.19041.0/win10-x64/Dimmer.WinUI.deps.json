@@ -1732,6 +1732,19 @@
           }
         }
       },
+      "Syncfusion.Maui.Toolkit/1.0.4": {
+        "runtime": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "assemblyVersion": "1.0.4.0",
+            "fileVersion": "1.0.4.0"
+          }
+        },
+        "resources": {
+          "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll": {
+            "locale": "en-US"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {},
       "System.Collections/4.3.0": {
         "dependencies": {
@@ -2396,6 +2409,7 @@
           "Microsoft.Maui.Controls": "9.0.50",
           "Microsoft.Maui.Graphics.Skia": "9.0.50",
           "Realm": "20.1.0",
+          "Syncfusion.Maui.Toolkit": "1.0.4",
           "YB.ParseLiveQueryDotNet": "3.4.0",
           "z440.atl.core": "6.19.0"
         },
@@ -3005,6 +3019,13 @@
       "sha512": "sha512-KF4Hn0atdhFA2yXPk2Jzg0jZzDMYdhsbUpwLswAC2Vxai749GHFVdNkWsANxHl6fnJl7JaMm96WtGmFeg+FCFg==",
       "path": "skiasharp.views.winui/3.116.1",
       "hashPath": "skiasharp.views.winui.3.116.1.nupkg.sha512"
+    },
+    "Syncfusion.Maui.Toolkit/1.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MIkDVxuWZ3QSY0McMM4v60bz49LmzAB/o9tMhBkUwm8ywfSo/XN0YghgUxBX2FwYLi2MJ0W8kFMafi6rIo9LiQ==",
+      "path": "syncfusion.maui.toolkit/1.0.4",
+      "hashPath": "syncfusion.maui.toolkit.1.0.4.nupkg.sha512"
     },
     "System.Buffers/4.5.1": {
       "type": "package",

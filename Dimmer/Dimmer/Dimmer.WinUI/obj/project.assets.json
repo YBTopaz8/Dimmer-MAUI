@@ -1202,6 +1202,24 @@
           }
         }
       },
+      "Syncfusion.Maui.Toolkit/1.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "resource": {
+          "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll": {
+            "locale": "en-US"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {
         "type": "package",
         "compile": {
@@ -2370,6 +2388,7 @@
           "Microsoft.Maui.Controls": "9.0.50",
           "Microsoft.Maui.Graphics.Skia": "9.0.50",
           "Realm": "20.1.0",
+          "Syncfusion.Maui.Toolkit": "1.0.4",
           "YB.ParseLiveQueryDotNet": "3.4.0",
           "z440.atl.core": "6.19.0"
         },
@@ -3599,6 +3618,24 @@
           }
         }
       },
+      "Syncfusion.Maui.Toolkit/1.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "resource": {
+          "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll": {
+            "locale": "en-US"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {
         "type": "package",
         "compile": {
@@ -4730,6 +4767,7 @@
           "Microsoft.Maui.Controls": "9.0.50",
           "Microsoft.Maui.Graphics.Skia": "9.0.50",
           "Realm": "20.1.0",
+          "Syncfusion.Maui.Toolkit": "1.0.4",
           "YB.ParseLiveQueryDotNet": "3.4.0",
           "z440.atl.core": "6.19.0"
         },
@@ -5959,6 +5997,24 @@
           }
         }
       },
+      "Syncfusion.Maui.Toolkit/1.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "resource": {
+          "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll": {
+            "locale": "en-US"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {
         "type": "package",
         "compile": {
@@ -7090,6 +7146,7 @@
           "Microsoft.Maui.Controls": "9.0.50",
           "Microsoft.Maui.Graphics.Skia": "9.0.50",
           "Realm": "20.1.0",
+          "Syncfusion.Maui.Toolkit": "1.0.4",
           "YB.ParseLiveQueryDotNet": "3.4.0",
           "z440.atl.core": "6.19.0"
         },
@@ -8319,6 +8376,24 @@
           }
         }
       },
+      "Syncfusion.Maui.Toolkit/1.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll": {
+            "related": ".deps.json;.pdb;.pri;.xml"
+          }
+        },
+        "resource": {
+          "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll": {
+            "locale": "en-US"
+          }
+        }
+      },
       "System.Buffers/4.5.1": {
         "type": "package",
         "compile": {
@@ -9450,6 +9525,7 @@
           "Microsoft.Maui.Controls": "9.0.50",
           "Microsoft.Maui.Graphics.Skia": "9.0.50",
           "Realm": "20.1.0",
+          "Syncfusion.Maui.Toolkit": "1.0.4",
           "YB.ParseLiveQueryDotNet": "3.4.0",
           "z440.atl.core": "6.19.0"
         },
@@ -12676,6 +12752,74 @@
         "lib/net8.0-windows10.0.19041/SkiaSharp.Views.Windows.pdb",
         "skiasharp.views.winui.3.116.1.nupkg.sha512",
         "skiasharp.views.winui.nuspec"
+      ]
+    },
+    "Syncfusion.Maui.Toolkit/1.0.4": {
+      "sha512": "MIkDVxuWZ3QSY0McMM4v60bz49LmzAB/o9tMhBkUwm8ywfSo/XN0YghgUxBX2FwYLi2MJ0W8kFMafi6rIo9LiQ==",
+      "type": "package",
+      "path": "syncfusion.maui.toolkit/1.0.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.txt",
+        "README.md",
+        "lib/net8.0-android34.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net8.0-android34.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net8.0-android34.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net8.0-android34.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net8.0-ios16.1/Syncfusion.Maui.Toolkit.dll",
+        "lib/net8.0-ios16.1/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net8.0-ios16.1/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net8.0-ios16.1/Syncfusion.Maui.Toolkit.xml",
+        "lib/net8.0-maccatalyst16.1/Syncfusion.Maui.Toolkit.dll",
+        "lib/net8.0-maccatalyst16.1/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net8.0-maccatalyst16.1/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net8.0-maccatalyst16.1/Syncfusion.Maui.Toolkit.xml",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.deps.json",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.pri",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/CarouselStyles.xaml",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/CarouselStyles.xbf",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/Resources.xaml",
+        "lib/net8.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/Resources.xbf",
+        "lib/net8.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net8.0/Syncfusion.Maui.Toolkit.deps.json",
+        "lib/net8.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net8.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net8.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net8.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net9.0-android35.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net9.0-android35.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net9.0-android35.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net9.0-android35.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net9.0-ios18.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net9.0-ios18.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net9.0-ios18.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net9.0-ios18.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net9.0-maccatalyst18.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net9.0-maccatalyst18.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net9.0-maccatalyst18.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net9.0-maccatalyst18.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.deps.json",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.pri",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit.xml",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/CarouselStyles.xaml",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/CarouselStyles.xbf",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/Resources.xaml",
+        "lib/net9.0-windows10.0.19041.0/Syncfusion.Maui.Toolkit/Carousel/Platform/Windows/Styles/Resources.xbf",
+        "lib/net9.0-windows10.0.19041.0/en-US/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net9.0/Syncfusion.Maui.Toolkit.deps.json",
+        "lib/net9.0/Syncfusion.Maui.Toolkit.dll",
+        "lib/net9.0/Syncfusion.Maui.Toolkit.pdb",
+        "lib/net9.0/Syncfusion.Maui.Toolkit.resources.dll",
+        "lib/net9.0/Syncfusion.Maui.Toolkit.xml",
+        "syncfusion.maui.toolkit.1.0.4.nupkg.sha512",
+        "syncfusion.maui.toolkit.nuspec",
+        "syncfusion_logo.png"
       ]
     },
     "System.Buffers/4.5.1": {

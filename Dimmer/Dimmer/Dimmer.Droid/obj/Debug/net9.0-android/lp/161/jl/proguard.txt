@@ -1,4 +1,4 @@
-# Copyright (C) 2020 The Android Open Source Project
+# Copyright (C) 2022 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A rule that will keep classes that implement SidecarInterface$SidecarCallback if Sidecar seems
-# be used. See b/157286362 and b/165268619 for details.
-# TODO(b/208543178) investigate how to pass header jar to R8 so we don't need this rule
--if class androidx.window.layout.adapter.sidecar.SidecarCompat {
-  public *** setExtensionCallback(androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat$ExtensionCallbackInterface);
+# These interfaces must be kept for the client library to invoke methods in extensions.
+-keep interface androidx.window.extensions.core.util.function.Consumer {
+  public void accept(***);
 }
--keep class androidx.window.layout.adapter.sidecar.SidecarCompat$TranslatingCallback,
- androidx.window.layout.adapter.sidecar.DistinctElementSidecarCallback {
-  public *** onDeviceStateChanged(androidx.window.sidecar.SidecarDeviceState);
-  public *** onWindowLayoutChanged(android.os.IBinder, androidx.window.sidecar.SidecarWindowLayoutInfo);
+-keep interface androidx.window.extensions.core.util.function.Predicate {
+  public boolean test(***);
 }
-# Required for window area API reflection guard
--keep interface androidx.window.area.reflectionguard.* {*;}
-# Required to support kotlin-reflect
--keep,allowshrinking class androidx.window.layout.adapter.extensions.MulticastConsumer {
-  void accept(androidx.window.extensions.layout.WindowLayoutInfo);
+-keep interface androidx.window.extensions.core.util.function.Function {
+  public *** apply(***);
 }

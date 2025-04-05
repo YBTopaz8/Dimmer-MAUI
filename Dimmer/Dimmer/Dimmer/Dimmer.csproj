@@ -41,8 +41,4 @@
 		<PackageReference Include="z440.atl.core" Version="6.19.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Utilities\" />
-	</ItemGroup>
-
 </Project>
