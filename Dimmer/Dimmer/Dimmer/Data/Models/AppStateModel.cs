@@ -12,6 +12,7 @@ public class AppStateModel :RealmObject
     public string? CurrentLanguage { get; set; }
     public string? CurrentCountry { get; set; }
     public double LastKnownPosition { get; set; }
+    public IList<string> UserMusicFoldersPreference { get; } = new List<string>();
     public AppStateModel()
     {
         

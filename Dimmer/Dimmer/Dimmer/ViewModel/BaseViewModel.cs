@@ -1,11 +1,21 @@
 ﻿
 
+using Dimmer.UIUtils;
+
 namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
 {
     private readonly IMapper mapper;
     [ObservableProperty]
-    public partial ObservableCollection<SongModel> DisplayedSongs { get; set; } = new ObservableCollection<SongModel>();
+    public partial ObservableCollection<SongModelView> DisplayedSongs { get; set; } = new ObservableCollection<SongModelView>();
+
+    [ObservableProperty]
+    public partial SongModelView MySelectedSong { get; set; }
+
+    [ObservableProperty]
+    public partial View MySelectedSongView { get; set; }
+    public BaseAppFlow BaseAppFlow { get; }
+
     public BaseViewModel(BaseAppFlow baseAppFlow, IMapper mapper)
     {
         BaseAppFlow=baseAppFlow;
@@ -17,14 +27,24 @@ public partial class BaseViewModel : ObservableObject
     {
         BaseAppFlow.AllSongs.Subscribe(songs =>
         {
-            DisplayedSongs = mapper.Map<List<SongModel>>(songs).ToObservableCollection();
+            DisplayedSongs = mapper.Map<List<SongModelView>>(songs).ToObservableCollection();
         });
     }
 
-    public BaseAppFlow BaseAppFlow { get; }
-
-    public virtual void Sum()
+    public void SetSelectedSong(SongModelView song)
     {
-        Debug.WriteLine("Yvan");
+        if (MySelectedSong is not null)
+        {
+            MySelectedSong.IsCurrentPlayingHighlight = false;
+        }
+        song.IsCurrentPlayingHighlight = true;
+        MySelectedSong = song;        
     }
+
+    public void PlaySong(SongModelView song)
+    {
+        
+        //BaseAppFlow.AudioService.PlaySong(song.Song);
+    }
+
 }

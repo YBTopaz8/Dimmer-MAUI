@@ -9,10 +9,9 @@ namespace Dimmer.Orchestration;
 public partial class SongsMgtFlow : ObservableObject
 {
 
-    public SongsMgtFlow(BaseAppFlow baseFlow)
+    public SongsMgtFlow(IDimmerAudioService dimmerAudioService)
     {
-        BaseFlow = baseFlow;
+        DimmerAudioService=dimmerAudioService;
     }
-
-    public BaseAppFlow BaseFlow { get; }
+    public IDimmerAudioService DimmerAudioService { get; }
 }

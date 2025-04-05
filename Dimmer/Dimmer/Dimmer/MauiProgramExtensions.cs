@@ -32,7 +32,8 @@ public static class MauiProgramExtensions
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        
+
+        builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
         builder.Services.AddSingleton<Realm>(serviceProvider =>
         {
             return BaseDBInstance.GetRealm();

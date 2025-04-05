@@ -56,7 +56,7 @@ public class BaseAppFlow : IDisposable
 
     void SetupFolderMonitoring()
     {
-        List<string>? folds = AppSettingsService.MusicFoldersPreference.MusicFolders;
+        List<string>? folds = null;
         if (folds == null || folds.Count == 0)
         {
             return;

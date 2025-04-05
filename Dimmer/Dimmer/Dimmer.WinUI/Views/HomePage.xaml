@@ -4,11 +4,92 @@
              x:Class="Dimmer.WinUI.Views.HomePage"
              xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
              x:DataType="vm:HomeViewModel"
-             xmlns:models ="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+             xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+             x:Name="myPage"
              Title="HomePage">
 
     <Grid x:Name="MainPage">
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" />
+        <CollectionView ItemsSource="{Binding DisplayedSongs}" 
+                            VerticalScrollBarVisibility="Default"                        
+                            x:Name="SongsColView" Loaded="SongsColView_Loaded" 
+                            Margin="5,0">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center">
+                    <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
+                        HorizontalOptions="Center"
+                        FontSize="16"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongModelView">
+                    <Border BackgroundColor="Transparent" Padding="2"
+                                    StrokeShape="RoundRectangle 12">
+
+                        <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"                                             
+                                            TouchDownEffects="Ripple,Selection" >
+                            <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+                                              
+                                              RowDefinitions="90" ColumnSpacing="15">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+
+                                    <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" 
+                                                            PointerExited="UserHoverOutSongInColView"
+                                                              />
+
+                                </Grid.GestureRecognizers>
+                                <HorizontalStackLayout Grid.Column="0" Margin="5,0,0,0" 
+                                        VerticalOptions="Center">
+                                    <VerticalStackLayout>
+
+                                        <Image WidthRequest="30" HeightRequest="30" HorizontalOptions="Start"  
+IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
+       BackgroundColor="Transparent">
+
+                                        </Image>
+
+                                        <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
+       WidthRequest="25" Opacity="1"
+       HorizontalOptions="Start">
+
+                                        </Image>
+                                    </VerticalStackLayout>
+                                    <Label Text="{Binding Title}" Grid.Column="1" 
+                                            FontSize="22" 
+                                            LineBreakMode="TailTruncation"/>
+
+
+                                </HorizontalStackLayout>
+
+                                <Label Grid.Column="1" FontSize="16" HorizontalOptions="Start"
+                                    Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>
+
+                                <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" 
+                                               FontSize="16" />
+
+                                <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
+                                Text="{Binding GenreName}" 
+                                               FontSize="16" />
+
+                                <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
+                            HorizontalOptions="Center" FontSize="16"/>
+                                <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
+                                <Label Grid.Column="6" HorizontalOptions="Center" IsVisible="True"
+                                               Text="{Binding NumberOfTimesPlayedCompletely}" />
+
+                            </Grid>
+
+                        </syncf:SfEffectsView>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </Grid>
     
 </ContentPage>

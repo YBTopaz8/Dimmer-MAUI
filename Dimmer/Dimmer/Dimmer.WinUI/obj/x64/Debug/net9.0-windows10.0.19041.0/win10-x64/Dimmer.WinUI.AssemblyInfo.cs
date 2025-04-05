@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("A Cross Platform Music Player App")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.8.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.8.0+7c118e147c44734206f23486ee54b75d7ccfee0e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.8.0+3d9fd139f09b3831f35c9dd20645546842617807")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dimmer.WinUI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dimmer.WinUI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.8.0.0")]

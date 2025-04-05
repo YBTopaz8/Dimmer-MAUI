@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Data;
-public class BaseDBInstance
+public static class BaseDBInstance
 {
     public static Realm GetRealm()
     {
@@ -11,7 +11,7 @@ public class BaseDBInstance
         }
 
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
-        //File.Delete(filePath);
+        
         RealmConfiguration config = new RealmConfiguration(filePath)
         {
             SchemaVersion = 3,
@@ -19,4 +19,30 @@ public class BaseDBInstance
         return Realm.GetInstance(config);
 
     }
+}
+public interface IRealmFactory
+{
+    Realm CreateRealm();
+}
+
+public class RealmFactory : IRealmFactory
+{
+    private readonly RealmConfiguration _config;
+
+    public RealmFactory()
+    {
+        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
+        if (!Directory.Exists(dbPath))
+        {
+            Directory.CreateDirectory(dbPath);
+        }
+
+        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+        _config = new RealmConfiguration(filePath)
+        {
+            SchemaVersion = 3,
+        };
+    }
+
+    public Realm CreateRealm() => Realm.GetInstance(_config);
 }
