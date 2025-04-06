@@ -1,1 +1,0 @@
-<animated-vector android:drawable="@drawable/ic_checkbox_checked" xmlns:android="http://schemas.android.com/apk/res/android"><target android:name="border" android:animation="@anim/ic_checkbox_checked_to_indeterminate_border" /><target android:name="check" android:animation="@anim/ic_checkbox_checked_to_indeterminate_check" /></animated-vector>

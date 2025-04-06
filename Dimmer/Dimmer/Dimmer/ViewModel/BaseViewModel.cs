@@ -1,25 +1,30 @@
 ﻿
 
+using Dimmer.Interfaces;
 using Dimmer.UIUtils;
 
 namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
 {
     private readonly IMapper mapper;
+    private readonly SongsMgtFlow songsMgtFlow;
+    private readonly IDimmerAudioService dimmerAudioService;
+    
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> DisplayedSongs { get; set; } = new ObservableCollection<SongModelView>();
 
-    [ObservableProperty]
-    public partial SongModelView MySelectedSong { get; set; }
 
     [ObservableProperty]
-    public partial View MySelectedSongView { get; set; }
-    public BaseAppFlow BaseAppFlow { get; }
+    public partial SongModelView? TemporarilyPickedSong { get; set; }
+    [ObservableProperty]
+    public partial View? MySelectedSongView { get; set; }
 
-    public BaseViewModel(BaseAppFlow baseAppFlow, IMapper mapper)
+    public BaseViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow
+        ,IDimmerAudioService dimmerAudioService)
     {
-        BaseAppFlow=baseAppFlow;
         this.mapper=mapper;
+        this.songsMgtFlow=songsMgtFlow;
+        this.dimmerAudioService=dimmerAudioService;
         SubscribeToDisplayedSongs();
     }
 
@@ -31,20 +36,22 @@ public partial class BaseViewModel : ObservableObject
         });
     }
 
+    public void PlaySong(SongModelView song)
+    {
+        TemporarilyPickedSong = song;        
+        songsMgtFlow.PlaySongInAudioService();
+    }
+    SongModelView MySelectedSong { get; set; } = new SongModelView();
     public void SetSelectedSong(SongModelView song)
     {
+        songsMgtFlow.CurrentlyPlayingSong ??=song;
+        
         if (MySelectedSong is not null)
         {
             MySelectedSong.IsCurrentPlayingHighlight = false;
         }
-        song.IsCurrentPlayingHighlight = true;
-        MySelectedSong = song;        
-    }
 
-    public void PlaySong(SongModelView song)
-    {
-        
-        //BaseAppFlow.AudioService.PlaySong(song.Song);
+        MySelectedSong = song;
+        MySelectedSong.IsCurrentPlayingHighlight = true;
     }
-
 }

@@ -4,23 +4,32 @@
 using Dimmer.UIUtils;
 
 namespace Dimmer.WinUI.Views;
-public partial class HomeViewModel : BaseViewModel
+public partial class HomeViewModel : ObservableObject
 {
+
+    #region private fields
+    public BaseViewModel BaseVM;
+    private readonly IMapper _mapper;
+    #endregion
+
+    #region public properties
     [ObservableProperty]
     public partial CollectionView SongsCV { get; set; }
-    public readonly BaseViewModel _base;
-    private readonly IMapper _mapper;
-    public HomeViewModel(BaseViewModel baseVm, IMapper mapper) : base(baseVm.BaseAppFlow, mapper)
+    #endregion
+
+
+
+    public HomeViewModel(BaseViewModel baseVm, IMapper mapper) 
     {
-        _base = baseVm;
+        BaseVM = baseVm;
         _mapper= mapper;
 
     }
 
+
     public void PlaySongOnDoubleTap(SongModelView song)
-    {
-        base.SetSelectedSong(song);       
-        base.PlaySong(song);
+    {     
+        BaseVM.PlaySong(song);
     }
     public void SetCollectionView(CollectionView collectionView)
     {
@@ -29,10 +38,8 @@ public partial class HomeViewModel : BaseViewModel
 
     public void PointerEntered(SongModelView song, View mySelectedView)
     {
-        Debug.WriteLine(song.GetType());
-
         GeneralViewUtil.PointerOnView(mySelectedView);
-        base.SetSelectedSong(MySelectedSong);
+        BaseVM.SetSelectedSong(song);
     }
     public void PointerExited(View mySelectedView)
     {

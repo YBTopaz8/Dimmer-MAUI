@@ -1,1 +1,0 @@
-Platform/Android/Resources/values/attrs.xml;values/attrs.xml

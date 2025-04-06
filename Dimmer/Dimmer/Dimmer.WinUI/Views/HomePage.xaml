@@ -4,13 +4,20 @@
              x:Class="Dimmer.WinUI.Views.HomePage"
              xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
              x:DataType="vm:HomeViewModel"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
              xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
              x:Name="myPage"
              Title="HomePage">
 
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+
+
+    </ContentPage.Resources>
+
     <Grid x:Name="MainPage">
-        <CollectionView ItemsSource="{Binding DisplayedSongs}" 
+        <CollectionView BackgroundColor="Transparent"
                             VerticalScrollBarVisibility="Default"                        
                             x:Name="SongsColView" Loaded="SongsColView_Loaded" 
                             Margin="5,0">
@@ -31,10 +38,9 @@
                     <Border BackgroundColor="Transparent" Padding="2"
                                     StrokeShape="RoundRectangle 12">
 
-                        <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"                                             
+                        <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"        BackgroundColor="Transparent"                                     
                                             TouchDownEffects="Ripple,Selection" >
-                            <Grid ColumnDefinitions="*,*,*,*,*,*,*"
-                                              
+                            <Grid ColumnDefinitions="300,*,*,*,*,*,*"         BackgroundColor="Transparent"                                     
                                               RowDefinitions="90" ColumnSpacing="15">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
@@ -45,6 +51,7 @@
 
                                 </Grid.GestureRecognizers>
                                 <HorizontalStackLayout Grid.Column="0" Margin="5,0,0,0" 
+                                                       HorizontalOptions="Start" 
                                         VerticalOptions="Center">
                                     <VerticalStackLayout>
 
@@ -61,7 +68,7 @@ IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
                                         </Image>
                                     </VerticalStackLayout>
                                     <Label Text="{Binding Title}" Grid.Column="1" 
-                                            FontSize="22" 
+                                            FontSize="22" HorizontalOptions="Start"
                                             LineBreakMode="TailTruncation"/>
 
 
@@ -74,14 +81,14 @@ IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
                                                FontSize="16" />
 
                                 <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
-                                Text="{Binding GenreName}" 
+                                Text="{Binding Genre}" 
                                                FontSize="16" />
 
                                 <Label Grid.Column="4" Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" 
                             HorizontalOptions="Center" FontSize="16"/>
                                 <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
-                                <Label Grid.Column="6" HorizontalOptions="Center" IsVisible="True"
-                                               Text="{Binding NumberOfTimesPlayedCompletely}" />
+                                <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding ReleaseYear}" FontSize="16" Opacity="0.8"/>
+                                
 
                             </Grid>
 

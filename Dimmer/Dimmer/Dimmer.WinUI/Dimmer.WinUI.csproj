@@ -24,18 +24,21 @@
 	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
+	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Page Remove="AppShell.xaml" />
 	  <Page Remove="DimmerWindow.xaml" />
+	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+		<PackageReference Include="NAudio" Version="2.2.1" />
 		
 	</ItemGroup>
 
@@ -62,6 +65,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiXaml Include="AppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\HomePage.xaml">

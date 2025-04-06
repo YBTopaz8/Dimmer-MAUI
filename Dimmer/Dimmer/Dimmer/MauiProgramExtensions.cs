@@ -34,17 +34,14 @@ public static class MauiProgramExtensions
 #endif
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
-        builder.Services.AddSingleton<Realm>(serviceProvider =>
-        {
-            return BaseDBInstance.GetRealm();
-            
-        });
+     
 
         
         var mapper = AutoMapperConf.ConfigureAutoMapper();
         builder.Services.AddSingleton(mapper);
 
         builder.Services.AddSingleton<BaseAppFlow>();
+        builder.Services.AddSingleton<SongsMgtFlow>();
         builder.Services.AddSingleton<BaseViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);

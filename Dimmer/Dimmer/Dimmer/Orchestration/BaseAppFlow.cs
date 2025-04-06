@@ -1,7 +1,9 @@
-﻿using Dimmer.Data.Models;
+﻿using Dimmer.Data;
+using Dimmer.Data.Models;
 using Dimmer.Database.ModelView;
-using Dimmer.Interfaces.IDatabase;
+using Dimmer.Interfaces;
 using Dimmer.Utilities;
+using Dimmer.Utilities.Events;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
@@ -20,26 +22,47 @@ public class BaseAppFlow : IDisposable
 
     #endregion
 
-
-
-    public IObservable<bool> IsPlaying=> _isPlayingSubj.AsObservable();
-    BehaviorSubject<bool> _isPlayingSubj = new(false);
-    System.Timers.Timer? _positionTimer;
-
+    #region static behavior subjects 
     public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
-
     public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
     public static BehaviorSubject<List<AlbumArtistGenreSongLink>> AllLinks { get; } = new([]);
     public static BehaviorSubject<List<GenreModel>> AllGenre { get; } = new([]);
-    public static BehaviorSubject<List<ArtistModel>> AllArtists{ get; } = new([]);
+    public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
     public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
 
-    
 
-    public BaseAppFlow(Realm appDb, IDimmerAudioService dimmerAudioService)
+    #endregion
+
+    #region private fields
+
+    BehaviorSubject<bool> IsPlayingSubj = new(false);
+    System.Timers.Timer? PositionTimer;
+
+    private Realm Db;
+    
+    private readonly IDimmerAudioService AudioService;
+    private readonly IRealmFactory RealmFactory;
+    private readonly IMapper Mapper;
+    
+    #endregion
+
+    #region public properties
+    public SongModelView CurrentlyPlayingSong { get; set; }
+    public SongModelView PreviouslyPlayingSong { get; }
+    public SongModelView NextPlayingSong { get; }
+    public bool IsShuffleOn { get; set; }
+
+    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
+
+    public RepeatMode CurrentRepeatMode { get; set; }
+    public int CurrentRepeatCount { get; set; }
+    #endregion
+
+    public BaseAppFlow(IRealmFactory _realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper)
     {
-        Db = appDb;
-        AudioService = dimmerAudioService;
+        RealmFactory = _realmFactory;
+        Mapper= mapper;
+        LoadRealm();
         Initialize();
         LoadAppData();        
         SubscribeToCurrentSongChange();
@@ -51,21 +74,40 @@ public class BaseAppFlow : IDisposable
         this.AudioService.PlayEnded += AudioService_PlayEnded;
         this.AudioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
 
-        SetupFolderMonitoring();
     }
 
-    void SetupFolderMonitoring()
+    private void LoadRealm()
     {
-        List<string>? folds = null;
-        if (folds == null || folds.Count == 0)
+        Db = RealmFactory.GetRealmInstance();
+        var AppSettingss = Db.All<AppStateModel>().ToList();
+        if (AppSettingss.Count == 0)
+        {
+            AppStateModel appStateModel = new ();
+            Db.Write(() =>
+            {
+                Db.Add(appStateModel);
+            });
+        }
+        else
+        {
+            AppStateModel appStateModel = AppSettingss[0];
+
+            List<string>? ListOfFolders = [.. appStateModel.UserMusicFoldersPreference];
+            
+            SetupFolderMonitoring(ListOfFolders);
+        }
+    }
+
+    static void SetupFolderMonitoring(List<string>? ListOfFolders)
+    {
+        if (ListOfFolders == null || ListOfFolders.Count == 0)
         {
             return;
         }
-        foreach (var path in folds)
+        foreach (var path in ListOfFolders)
         {
             SingleFolderMonitor? newSingleFolderMonitor = new SingleFolderMonitor(path);
-            newSingleFolderMonitor.StartMonitoring();
-            
+            newSingleFolderMonitor.StartMonitoring();            
         }
     }
     #region Audio Service Event Handlers
@@ -74,38 +116,83 @@ public class BaseAppFlow : IDisposable
         //currentPositionInSec = e/1000;
     }
 
+    public void StartPositionTimer()
+    {
+
+    }
+
     private void AudioService_PlayingChanged(object? sender, bool e)
     {
-        _isPlayingSubj.OnNext(e);
+        IsPlayingSubj.OnNext(e);
         
-        if (_isPlayingSubj.Value != e)
+        if (IsPlayingSubj.Value != e)
         {
-            _isPlayingSubj.OnNext(e);
+            IsPlayingSubj.OnNext(e);
         }
 
-        if (_isPlayingSubj.Value)
+        if (IsPlayingSubj.Value)
         {
-            _positionTimer?.Start();
+            PositionTimer?.Start();
             
         }
         else
         {
-            _positionTimer?.Stop();
+            PositionTimer?.Stop();
             
         }
     }
-    private void StopPositionTimer()
+    SongModelView MySelectedSong { get; set; } = new SongModelView();
+
+
+    public void PlaySong()
     {
-        _positionTimer?.Stop();
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
     }
-    private void AudioService_PlayEnded(object? sender, EventArgs e)
+
+    public void StopPositionTimer()
+    {
+        PositionTimer?.Stop();
+    }
+    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
     {
         StopPositionTimer();
-        
 
+        UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);  
     }
 
 
+    public void UpdateSongPlaybackState(SongModelView? CurrentlyPlayingSong, PlayType playType, double? position = null)
+    {
+        var songDb = Mapper.Map<SongModel>(CurrentlyPlayingSong);
+        PlayDateAndCompletionStateSongLink link = new ()
+        {
+            DatePlayed = DateTime.Now,
+            PlayType = (int)playType,
+            Song = songDb,
+            SongId = songDb.LocalDeviceId,
+            PositionInSeconds = position is null ? 0 : (double)position,
+            WasPlayCompleted = playType == PlayType.Completed,
+
+        };
+        AddPDaCStateLink(link);
+
+    }
+    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model)
+    {
+        try
+        {
+            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PDL");
+            DbUtils.AddOrUpdateSingleRealmItem(Db, model, link => link.LocalDeviceId == model.LocalDeviceId);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+
+        }
+
+    }
     private void AudioService_PlayNext(object? sender, EventArgs e)
     {
         
@@ -131,8 +218,6 @@ public class BaseAppFlow : IDisposable
         });
     }
 
-    public Realm Db { get; }
-    public IDimmerAudioService AudioService { get; }
 
     public void Initialize()
     {
@@ -149,8 +234,8 @@ public class BaseAppFlow : IDisposable
             if (disposing)
             {
                 // Dispose managed resources.
-                _positionTimer?.Dispose();
-                _isPlayingSubj?.Dispose();
+                PositionTimer?.Dispose();
+                IsPlayingSubj?.Dispose();
             }
 
             // Dispose unmanaged resources.

@@ -17,6 +17,7 @@ public partial class HomePage : ContentPage
     {
         try
         {
+            SongsColView.ItemsSource = MyViewModel.BaseVM.DisplayedSongs;
             MyViewModel.SetCollectionView(SongsColView);
             
         }

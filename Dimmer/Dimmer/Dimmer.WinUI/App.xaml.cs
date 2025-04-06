@@ -18,6 +18,7 @@ public partial class App : MauiWinUIApplication
     {
         Debug.WriteLine("Dimmer WinUI :D");
         this.InitializeComponent();
+        
     }
 
     protected override MauiApp CreateMauiApp()
@@ -27,7 +28,7 @@ public partial class App : MauiWinUIApplication
         return MauiProgram.CreateMauiApp();
     }
 
-
+    
 }
 public static class AppPlatform
 {

@@ -16,7 +16,8 @@ global using System.Collections.ObjectModel;
 
 global using Realms;
 global using Dimmer.Interfaces.IDatabase;
-namespace Dimmer;
+global using Dimmer.Data.ModelView;
+global using Dimmer.Utilities.Enums;
 internal class GlobalUsings
 {
 }

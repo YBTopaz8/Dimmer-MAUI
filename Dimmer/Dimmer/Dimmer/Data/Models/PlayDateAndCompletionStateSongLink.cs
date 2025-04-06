@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.Models;
+﻿using Dimmer.Utilities;
+
+namespace Dimmer.Data.Models;
 
 /// <summary>
 /// 
@@ -29,7 +31,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <value>
     /// The type of the play.
     /// </value>
-    public int PlayType { get; set; } = 0;
+    public int PlayType { get; set; }
     /// <summary>
     /// Gets or sets the date played.
     /// </summary>
@@ -99,10 +101,18 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// <value>
     /// The device version.
     /// </value>
+    
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayDateAndCompletionStateSongLink"/> class.
     /// </summary>
+    
+    public SongModel Song { get; set; }
+    public ArtistModel Artist{ get; set; }
+    public AlbumModel Album { get; set; }
+    public GenreModel Genre { get; set; }
+
+
     public PlayDateAndCompletionStateSongLink()
     {
 

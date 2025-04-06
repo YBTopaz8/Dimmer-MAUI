@@ -1,28 +1,14 @@
-﻿namespace Dimmer.Data;
-public static class BaseDBInstance
-{
-    public static Realm GetRealm()
-    {
-        string dbPath;
-        dbPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\DimmerDD";
-        if (!Directory.Exists(dbPath))
-        {
-            Directory.CreateDirectory(dbPath);
-        }
+﻿using System;
+using System.IO;
+using System.Linq;
+using Realms;
 
-        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
-        
-        RealmConfiguration config = new RealmConfiguration(filePath)
-        {
-            SchemaVersion = 3,
-        };
-        return Realm.GetInstance(config);
+namespace Dimmer.Data;
 
-    }
-}
+
 public interface IRealmFactory
 {
-    Realm CreateRealm();
+    Realm GetRealmInstance();
 }
 
 public class RealmFactory : IRealmFactory
@@ -31,6 +17,7 @@ public class RealmFactory : IRealmFactory
 
     public RealmFactory()
     {
+        // Create database directory.
         string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
         if (!Directory.Exists(dbPath))
         {
@@ -38,11 +25,28 @@ public class RealmFactory : IRealmFactory
         }
 
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+
+        // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 3,
+            SchemaVersion = 5,
+            MigrationCallback = (migration, oldSchemaVersion) =>
+            {
+                // Migration for schema version 4: set default for SomeProperty.
+                if (oldSchemaVersion < 4)
+                {
+                    //var newAppStates = migration.NewRealm.All<AppStateModel>().ToList();
+                    
+                }
+                // Migration for schema version 5: set default for IsFirstTime.
+                if (oldSchemaVersion < 5)
+                {
+                    //var newAppStates = migration.NewRealm.All<AppStateModel>().ToList();
+                   
+                }
+            }
         };
     }
 
-    public Realm CreateRealm() => Realm.GetInstance(_config);
+    public Realm GetRealmInstance() => Realm.GetInstance(_config);
 }

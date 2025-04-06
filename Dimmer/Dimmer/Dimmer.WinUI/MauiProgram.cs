@@ -1,6 +1,5 @@
 ﻿
 using Dimmer.Interfaces;
-using Dimmer.Interfaces.IDatabase;
 using Dimmer.WinUI.DimmerAudio;
 using Dimmer.WinUI.Utils;
 using Dimmer.WinUI.Views;

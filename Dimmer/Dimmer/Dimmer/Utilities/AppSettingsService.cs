@@ -242,3 +242,44 @@ public class MyAppJsonContext : JsonSerializerContext
         throw new NotImplementedException();
     }
 }
+public enum RepeatMode // Using enum for repeat modes
+{
+    Off = 0,
+    All = 1,
+    One = 2,
+    Custom = 3, // If you re-implement Custom Repeat
+}
+
+
+public enum PlaybackSource
+{
+    MainQueue,
+    AlbumsQueue,
+    SearchQueue,
+    External,
+    PlaylistQueue,
+    ArtistQueue,
+
+}
+
+public enum MediaPlayerState
+{
+    Stopped,
+    Playing,
+    Paused,
+    Loading,
+    Error,
+    Previewing,
+    LyricsLoad,
+    ShowPlayBtn,
+    ShowPauseBtn,
+    RefreshStats,
+    Initialized,
+    Ended,
+    CoverImageDownload,
+    LoadingSongs,
+    SyncingData,
+    DoneScanningData,
+    PlayCompleted,
+
+}

@@ -1,7 +1,0 @@
-int drawable arrow_group_down 0x0
-int drawable arrow_group_up 0x0
-int drawable watermark 0x0
-int id dx_horizontal_scrollview 0x0
-int id dx_vertical_scrollview 0x0
-int id dx_virtual_scroll_panel 0x0
-int layout dxcollectionview_content 0x0
