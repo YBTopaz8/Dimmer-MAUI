@@ -4,20 +4,23 @@ namespace Dimmer.WinUI.Views;
 
 public partial class HomePage : ContentPage
 {
-    public HomeViewModel MyViewModel { get; }
+    public HomeViewModel MyViewModel { get; internal set; }
     public HomePage(HomeViewModel vm)
 	{
 		InitializeComponent();
-
         BindingContext = vm;
         MyViewModel=vm;
+
+        this.Loaded += SongsColView_Loaded;
     }
 
-    private void SongsColView_Loaded(object sender, EventArgs e)
+
+    private void SongsColView_Loaded(object? sender, EventArgs e)
     {
+       
         try
         {
-            SongsColView.ItemsSource = MyViewModel.BaseVM.DisplayedSongs;
+            //SongsColView.ItemsSource = MyViewModel.BaseVM.DisplayedSongs;
             MyViewModel.SetCollectionView(SongsColView);
             
         }

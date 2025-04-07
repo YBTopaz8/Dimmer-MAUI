@@ -1,12 +1,15 @@
-﻿
+﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
 
-namespace Dimmer.Utilities.TypeConverters;
-public class BoolToImageConverter : IValueConverter
+public class CollectionSizeToVisibility : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        
-        return null;
+        int val = (int)value;
+        if(val < 1)
+        {
+            return false;
+        }
+        return true;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

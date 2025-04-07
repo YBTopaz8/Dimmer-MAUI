@@ -1,8 +1,4 @@
-﻿using CommunityToolkit.Maui.Core.Extensions;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
-
-namespace Dimmer.Database.ModelView;
+﻿namespace Dimmer.Database.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]

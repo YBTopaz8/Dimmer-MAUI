@@ -2,6 +2,7 @@
 
 
 using Dimmer.UIUtils;
+using System.Collections.ObjectModel;
 
 namespace Dimmer.WinUI.Views;
 public partial class HomeViewModel : ObservableObject
@@ -14,7 +15,11 @@ public partial class HomeViewModel : ObservableObject
 
     #region public properties
     [ObservableProperty]
-    public partial CollectionView SongsCV { get; set; }
+    public partial CollectionView? SongsCV { get; set; }
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
     #endregion
 
 
@@ -23,7 +28,8 @@ public partial class HomeViewModel : ObservableObject
     {
         BaseVM = baseVm;
         _mapper= mapper;
-
+        BaseVM.SubscribeToCurrentlyPlayingSong();
+        DisplayedSongs = BaseVM.MasterSongs;
     }
 
 

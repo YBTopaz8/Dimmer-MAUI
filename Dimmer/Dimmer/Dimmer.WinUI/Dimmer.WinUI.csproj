@@ -26,6 +26,7 @@
 	  <None Remove="DimmerWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
+	  <None Remove="Views\SingleSongPage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -33,6 +34,7 @@
 	  <Page Remove="DimmerWindow.xaml" />
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
+	  <Page Remove="Views\SingleSongPage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -71,6 +73,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\SingleSongPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

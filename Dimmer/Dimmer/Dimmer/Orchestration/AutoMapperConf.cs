@@ -1,14 +1,4 @@
-﻿using AutoMapper;
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
-using Dimmer.Database.ModelView;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Orchestration;
+﻿namespace Dimmer.Orchestration;
 public static class AutoMapperConf
 {
     public static IMapper ConfigureAutoMapper()

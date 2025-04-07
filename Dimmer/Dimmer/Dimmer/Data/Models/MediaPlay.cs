@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 public class MediaPlay
 {
     public string? SongId { get; set; }

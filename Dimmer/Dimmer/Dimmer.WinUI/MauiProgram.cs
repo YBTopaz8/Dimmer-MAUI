@@ -1,8 +1,4 @@
 ﻿
-using Dimmer.Interfaces;
-using Dimmer.WinUI.DimmerAudio;
-using Dimmer.WinUI.Utils;
-using Dimmer.WinUI.Views;
 
 namespace Dimmer.WinUI;
 
@@ -15,8 +11,10 @@ public static class MauiProgram
         builder
             .UseSharedMauiApp();
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddScoped<HomePage>();
-        builder.Services.AddScoped<HomeViewModel>();
+        builder.Services.AddSingleton<MediaControlBtmBar>();
+        builder.Services.AddTransient<HomePage>();
+        builder.Services.AddTransient<HomeViewModel>();
+        builder.Services.AddTransient<SingleSongPage>();
         builder.Services.AddScoped<IAppUtil, AppUtil>();
 
         return builder.Build();

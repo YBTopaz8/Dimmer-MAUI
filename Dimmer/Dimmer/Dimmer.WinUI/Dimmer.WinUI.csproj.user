@@ -13,6 +13,9 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <MauiXaml Update="Views\SingleSongPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Views\CustomViews\MediaControlBtmBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

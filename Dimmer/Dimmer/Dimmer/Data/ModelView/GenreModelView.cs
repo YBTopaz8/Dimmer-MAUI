@@ -1,11 +1,4 @@
-﻿using Dimmer.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public partial class GenreModelView : ObservableObject
 {
     [ObservableProperty]

@@ -1,6 +1,4 @@
-﻿using Dimmer.Data.Models;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 
 public partial class PlayDataLink : ObservableObject
 {

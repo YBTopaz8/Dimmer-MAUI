@@ -1,6 +1,4 @@
-﻿using Dimmer.Orchestration;
-
-namespace Dimmer;
+﻿namespace Dimmer;
 
 public partial class MainPage : ContentPage
 {

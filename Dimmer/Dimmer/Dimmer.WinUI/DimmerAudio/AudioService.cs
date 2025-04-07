@@ -3,16 +3,8 @@ using Dimmer.Interfaces;
 using Dimmer.Utilities.Events;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Windows.Devices.Enumeration;
-using Windows.Media.Audio;
-using Windows.Media.Core;
-using Windows.Media.Effects;
-using Windows.Media.Playback;
 using Windows.Media;
 using Windows.Storage.Streams;
-using Microsoft.UI.Dispatching;
-using Windows.Foundation.Collections;
-using System.Windows.Media;
 using Dimmer.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -43,9 +35,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     
     SongModelView? CurrentMedia { get; set; }
-
     
-    public event EventHandler<bool>? IsPlayingChanged;
+    
+    public event EventHandler<PlaybackEventArgs>? IsPlayingChanged;
     public event EventHandler<PlaybackEventArgs>? PlayEnded;
     public event EventHandler? PlayNext; 
     public event EventHandler? PlayPrevious; 
@@ -127,8 +119,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             
             if (SetProperty(ref _isPlaying, value, nameof(IsPlaying)))
             {
-                
-                InvokeOnMainThread(() => IsPlayingChanged?.Invoke(this, _isPlaying));
+                PlaybackEventArgs args
+                    = new PlaybackEventArgs();
+                args.MediaSong = CurrentMedia;
+                args.IsPlaying = _isPlaying;
+                InvokeOnMainThread(() => IsPlayingChanged?.Invoke(this, args));
             }
         }
     }
@@ -216,7 +211,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         if (_soundOut != null && _reader != null)
         {
             SetCurrentTime(positionInSeconds); 
-            Play(true); 
+            Play(true);
+
+            _smtc.PlaybackStatus = MediaPlaybackStatus.Playing;
+            _smtc.IsPlayEnabled = false;
+            _smtc.IsPauseEnabled = true;
+            _smtc.DisplayUpdater.Update();
         }
     }
 

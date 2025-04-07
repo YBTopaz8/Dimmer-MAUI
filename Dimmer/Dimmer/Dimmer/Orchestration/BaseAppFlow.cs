@@ -1,11 +1,7 @@
 ﻿using Dimmer.Data;
-using Dimmer.Data.Models;
-using Dimmer.Database.ModelView;
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
 using Dimmer.Utilities.Events;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 
 namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
@@ -14,7 +10,6 @@ public class BaseAppFlow : IDisposable
 
     #region FolderWatcher Region
     
-    private readonly object _lock = new object(); // For thread safety
     private bool _isDisposed = false; // To prevent multiple disposals
 
 
@@ -65,7 +60,6 @@ public class BaseAppFlow : IDisposable
         LoadRealm();
         Initialize();
         LoadAppData();        
-        SubscribeToCurrentSongChange();
         this.AudioService = dimmerAudioService;
         
         this.AudioService.PlayPrevious += AudioService_PlayPrevious;
@@ -75,6 +69,7 @@ public class BaseAppFlow : IDisposable
         this.AudioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
 
     }
+
 
     private void LoadRealm()
     {
@@ -121,15 +116,10 @@ public class BaseAppFlow : IDisposable
 
     }
 
-    private void AudioService_PlayingChanged(object? sender, bool e)
+    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
     {
-        IsPlayingSubj.OnNext(e);
+        IsPlayingSubj.OnNext(e.IsPlaying);
         
-        if (IsPlayingSubj.Value != e)
-        {
-            IsPlayingSubj.OnNext(e);
-        }
-
         if (IsPlayingSubj.Value)
         {
             PositionTimer?.Start();
@@ -137,13 +127,9 @@ public class BaseAppFlow : IDisposable
         }
         else
         {
-            PositionTimer?.Stop();
-            
+            PositionTimer?.Stop();            
         }
     }
-    SongModelView MySelectedSong { get; set; } = new SongModelView();
-
-
     public void PlaySong()
     {
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
@@ -210,12 +196,20 @@ public class BaseAppFlow : IDisposable
         AllSongs.OnNext(dbb);        
     }
 
-    public void SubscribeToCurrentSongChange()
+  
+
+    /// <summary>
+    /// Toggles repeat mode between 0, 1, and 2
+    ///  0 for repeat OFF
+    ///  1 for repeat ALL
+    ///  2 for repeat ONE
+    /// </summary>
+    public int ToggleRepeatMode()
     {
-        CurrentSong.Subscribe(song =>
-        {
-            
-        });
+        CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % 3); // Cycle through enum values 0, 1, 2
+        
+        AppSettingsService.RepeatModePreference.ToggleRepeatState((int)CurrentRepeatMode); // Store as int
+        return (int)CurrentRepeatMode;
     }
 
 

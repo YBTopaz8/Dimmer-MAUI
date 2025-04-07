@@ -1,5 +1,4 @@
-﻿using Dimmer.Data.Models;
-using Dimmer.Utilities.Events;
+﻿using Dimmer.Utilities.Events;
 
 namespace Dimmer.Interfaces;
 public interface IDimmerAudioService
@@ -59,7 +58,7 @@ public interface IDimmerAudioService
 
         //double Balance { get; set; }
 
-        event EventHandler<bool> IsPlayingChanged;
+        event EventHandler<PlaybackEventArgs> IsPlayingChanged;
         event EventHandler<PlaybackEventArgs> PlayEnded;
         event EventHandler PlayPrevious;
         event EventHandler PlayNext;

@@ -1,16 +1,9 @@
 ﻿using ATL;
+using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data;
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
-using Parse;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
-using Ude.Core;
 
 namespace Dimmer.Orchestration;
 
@@ -18,7 +11,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 {
     private readonly IRealmFactory _realmFactory;
     private readonly IMapper Mapper;
-    private Realm db;
+    
     public SongsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, dimmerAudioService, mapper)
     {
         _realmFactory = realmFactory;
@@ -28,7 +21,6 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     }
     public IDimmerAudioService AudioService { get; }
-
     #region Playback Control Region
 
     private CancellationTokenSource? _debounceTokenSource;
@@ -109,10 +101,6 @@ public partial class SongsMgtFlow : BaseAppFlow
         return true;
     }
 
-    private void AfterCallWork()
-    {
-
-    }
 
     public bool PlaySelectedSongsOutsideAppDebounced(List<string> filePaths)
     {
@@ -133,16 +121,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
 
     private Random random = Random.Shared;  // Reuse the same Random instance
-    private ObservableCollection<SongModelView> _internalNowPlayingQueue { get; set; }
-    private void UpdateActiveQueue(ObservableCollection<SongModelView> songs)
-    {
-        _internalNowPlayingQueue  = songs;
-        if (IsShuffleOn)
-        {
-           songs.OrderBy(_ => random.Next()).ToObservableCollection(); // Simple shuffle
-
-        }
-    }
+   
     public bool PlaySongWithPosition(double positionInSec)
     {
         currentPositionInSec = 0;
@@ -176,7 +155,6 @@ public partial class SongsMgtFlow : BaseAppFlow
         StartPositionTimer();
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
 
-        
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
         CurrentlyPlayingSong.IsPlaying = true; // Update playing status
         
@@ -216,6 +194,37 @@ public partial class SongsMgtFlow : BaseAppFlow
         
         return true;
     }
+
+    public void SeekTo(double positionInSec)
+    {
+        currentPositionInSec = positionInSec;
+        if (CurrentlyPlayingSong is null)
+        {
+            return;
+        }
+        double CurrentPercentage = currentPositionInSec / CurrentlyPlayingSong.DurationInSeconds * 100;
+
+        if (AudioService.IsPlaying)
+        {
+            AudioService.SetCurrentTime(positionInSec);
+
+            PlayDateAndCompletionStateSongLink linkss = new()
+            {
+                DatePlayed = DateTime.Now,
+                PlayType = 4,
+                SongId = CurrentlyPlayingSong.LocalDeviceId,
+                PositionInSeconds = currentPositionInSec
+            };
+            if (CurrentPercentage >= 80)
+            {
+                linkss.PlayType = 7;
+            }
+
+            AddPDaCStateLink(linkss);
+        }
+    }
+
+
     Random _random { get; } = new Random();
 
     #region Audio Service Events Region
@@ -268,58 +277,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         prevCounter++;
     }
     double CurrentPercentage = 0;
-    /// <summary>
-    /// Seeks to a specific position in the currently SELECTED CurrentlyPlayingSong to play but won't play it if it's paused
-    /// </summary>
-    /// <param name="positionInSec"></param>
-    /// <returns></returns>
-    public void SeekTo(double positionInSec)
-    {
-        currentPositionInSec = positionInSec;
-        if (CurrentlyPlayingSong is null)
-        {
-            return;
-        }
-        double CurrentPercentage = currentPositionInSec / CurrentlyPlayingSong.DurationInSeconds * 100;
 
-#if ANDROID
-        AudioService.SetCurrentTime(positionInSec);
-
-        PlayDateAndCompletionStateSongLink links = new()
-        {
-            DatePlayed = DateTime.Now,
-            PlayType = 4,
-            SongId = CurrentlyPlayingSong.LocalDeviceId,
-            PositionInSeconds = currentPositionInSec
-        };
-        if (CurrentPercentage >= 80)
-        {
-            links.PlayType = 7;
-        }
-
-        AddPDaCStateLink(links);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Seeked, currentPositionInSec);
-        return;
-#endif
-        if (AudioService.IsPlaying)
-        {
-            AudioService.SetCurrentTime(positionInSec);
-
-            PlayDateAndCompletionStateSongLink linkss = new()
-            {
-                DatePlayed = DateTime.Now,
-                PlayType = (int) PlayType.Seeked,
-                SongId = CurrentlyPlayingSong.LocalDeviceId,
-                PositionInSeconds = currentPositionInSec
-            };
-            if (CurrentPercentage >= 80)
-            {
-                linkss.PlayType =(int)PlayType.SeekRestarted;
-            }
-
-            AddPDaCStateLink(linkss);
-        }
-    }
     public void ChangeVolume(double newVolumeOver1)
     {
         try
@@ -367,12 +325,12 @@ public partial class SongsMgtFlow : BaseAppFlow
     ///  1 for repeat ALL
     ///  2 for repeat ONE
     /// </summary>
-    public int ToggleRepeatMode()
+    public void SetToggleRepeatMode()
     {
-        CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % 3); // Cycle through enum values 0, 1, 2
-        AppSettingsService.RepeatModePreference.ToggleRepeatState((int)CurrentRepeatMode); // Store as int
-        return (int)CurrentRepeatMode;
+        base.ToggleRepeatMode();        
     }
+
+
 
     double currentPositionInSec = 0;
     #endregion

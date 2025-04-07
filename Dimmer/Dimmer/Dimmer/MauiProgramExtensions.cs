@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using Dimmer.Data;
-using Dimmer.Interfaces.IDatabase;
-using Dimmer.Orchestration;
-using Dimmer.ViewModel;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
 

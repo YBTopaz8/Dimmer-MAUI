@@ -8,6 +8,7 @@
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
              xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
              x:Name="myPage"
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="HomePage">
 
     <ContentPage.Resources>
@@ -16,9 +17,12 @@
 
     </ContentPage.Resources>
 
-    <Grid x:Name="MainPage">
-        <CollectionView BackgroundColor="Transparent"
-                            VerticalScrollBarVisibility="Default"                        
+    <Grid x:Name="MainPage" RowDefinitions="*,auto">
+        <cw:MediaControlBtmBar Grid.Row="1"/>
+        <CollectionView Grid.Row="0"
+            BackgroundColor="Transparent" ItemsSource="{Binding DisplayedSongs}"
+                        VerticalScrollBarVisibility="Default"              
+                        
                             x:Name="SongsColView" Loaded="SongsColView_Loaded" 
                             Margin="5,0">
 
@@ -38,7 +42,9 @@
                     <Border BackgroundColor="Transparent" Padding="2"
                                     StrokeShape="RoundRectangle 12">
 
-                        <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"        BackgroundColor="Transparent"                                     
+                        <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"       
+                                             BackgroundColor="Transparent"                                     
+                                             
                                             TouchDownEffects="Ripple,Selection" >
                             <Grid ColumnDefinitions="300,*,*,*,*,*,*"         BackgroundColor="Transparent"                                     
                                               RowDefinitions="90" ColumnSpacing="15">

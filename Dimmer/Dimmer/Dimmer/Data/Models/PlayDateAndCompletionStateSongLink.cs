@@ -1,6 +1,4 @@
-﻿using Dimmer.Utilities;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 
 /// <summary>
 /// 
