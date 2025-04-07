@@ -20,24 +20,38 @@ public static class DbUtils
     /// <param name="updateAction"></param>
     public static void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool>? existsCondition = null, Action<T>? updateAction = null) where T : RealmObject
     {
-        db.Write(() =>
+        try
         {
-            if (existsCondition is null)
+
+            db.Write(() =>
             {
-                db.Add(item);
-                return;
-            }
-            if (!db.All<T>().Any(existsCondition))
+                if (existsCondition is null)
+                {
+                    db.Add(item);
+                    return;
+                }
+                if (!db.All<T>().Any(existsCondition))
+                {
+                    updateAction?.Invoke(item); // Perform additional updates if needed
+
+                    db.Add(item, update:true);
+                }
+                else
+                {
+                    db.Add(item, update: true); // Update existing item
+
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            db.Write(() =>
             {
-                db.Add(item);
-            }
-            else
-            {
-                updateAction?.Invoke(item); // Perform additional updates if needed
                 db.Add(item, update: true); // Update existing item
 
-            }
-        });
+            });
+            Debug.WriteLine(ex.Message);
+        }
     }
 
 }

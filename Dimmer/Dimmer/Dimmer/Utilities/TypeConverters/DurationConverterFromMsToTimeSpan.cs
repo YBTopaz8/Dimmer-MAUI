@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Dimmer.Utilities.TypeConverters;
+﻿namespace Dimmer.Utilities.TypeConverters;
 public class DurationConverterFromMsToTimeSpan : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

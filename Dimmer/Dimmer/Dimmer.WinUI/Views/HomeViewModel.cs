@@ -1,15 +1,17 @@
 ﻿
 
 
+using Dimmer.Orchestration;
 using Dimmer.UIUtils;
+using Dimmer.Utilities.Enums;
 using System.Collections.ObjectModel;
 
 namespace Dimmer.WinUI.Views;
-public partial class HomeViewModel : ObservableObject
+public partial class HomeViewModel : BaseViewModel
 {
 
-    #region private fields
-    public BaseViewModel BaseVM;
+    #region private fields    
+    
     private readonly IMapper _mapper;
     #endregion
 
@@ -20,35 +22,66 @@ public partial class HomeViewModel : ObservableObject
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
+    [ObservableProperty]
+    public partial List<SongModelView>? FilteredSongs { get; set; }
     #endregion
 
 
+    [ObservableProperty]
+    public partial bool IsOnSearchMode { get; set; }
+    [ObservableProperty]
+    public partial CurrentPage CurrentlySelectedPage { get; set; }
+    [ObservableProperty]
+    public partial int CurrentQueue { get; set; }
+    [ObservableProperty]
+    public partial string SearchText { get; set; }
 
-    public HomeViewModel(BaseViewModel baseVm, IMapper mapper) 
+    public HomeViewModel(SongsMgtFlow songsMgt, IMapper mapper, IDimmerAudioService dimmerAudioService) : base(mapper, songsMgt, dimmerAudioService)
     {
-        BaseVM = baseVm;
-        _mapper= mapper;
-        BaseVM.SubscribeToCurrentlyPlayingSong();
-        DisplayedSongs = BaseVM.MasterSongs;
+        
+        _mapper = mapper;
+        //SubscribeToCurrentlyPlayingSong();
+        //SubscribeToIsPlaying();
+        //SubscribeToCurrentPosition();
+        DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
+        CurrentPositionInSecondsUI=base.CurrentPositionInSeconds;
+        CurrentPositionPercentageUI=base.CurrentPositionPercentage;
     }
 
+    [ObservableProperty]
+    public partial double CurrentPositionInSecondsUI { get; set; } = 0;
+    [ObservableProperty]
+    public partial double CurrentPositionPercentageUI { get; set; } = 0;
+    public new void SubscribeToCurrentlyPlayingSong()
+    {
+        
+        SongsMgtFlow.CurrentSong.DistinctUntilChanged()
+            .Subscribe(song =>
+        {
+            if (song is not null)
+            {
+                TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
+                //SongsCV?.ScrollTo(TemporarilyPickedSong);
+            }
+        });
+    }
 
     public void PlaySongOnDoubleTap(SongModelView song)
-    {     
-        BaseVM.PlaySong(song);
+    {
+        PlaySong(song);
     }
     public void SetCollectionView(CollectionView collectionView)
     {
-        SongsCV = collectionView;        
+        SongsCV = collectionView;
     }
 
     public void PointerEntered(SongModelView song, View mySelectedView)
     {
         GeneralViewUtil.PointerOnView(mySelectedView);
-        BaseVM.SetSelectedSong(song);
+        SetSelectedSong(song);
     }
     public void PointerExited(View mySelectedView)
     {
-        GeneralViewUtil.PointerOffView(mySelectedView);        
+        GeneralViewUtil.PointerOffView(mySelectedView);
     }
 }

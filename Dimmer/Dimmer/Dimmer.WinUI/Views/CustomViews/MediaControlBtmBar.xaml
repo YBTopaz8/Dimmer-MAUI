@@ -9,6 +9,7 @@
              xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"  
              x:Name="BtmBarView"
              x:DataType="vm:HomeViewModel">
+    
     <ContentView.Resources>
         <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
@@ -52,11 +53,11 @@
     
     
     <Grid Margin="10,0" ColumnDefinitions="Auto,*" BackgroundColor="#191919">
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
-            </Grid.GestureRecognizers>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped" NumberOfTapsRequired="2"/>
+        </Grid.GestureRecognizers>
 
-            <HorizontalStackLayout Grid.Column="0" Spacing="5" 
+        <HorizontalStackLayout Grid.Column="0" Spacing="5" 
                                    Padding="5" ToolTipProperties.Text="Click To View">
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="NavToSingleSongShell_Tapped"/>
@@ -64,12 +65,14 @@
                
 
                 <VerticalStackLayout VerticalOptions="Center" BackgroundColor="Transparent" WidthRequest="200">
-                    <Label Text="{Binding BaseVM.TemporarilyPickedSong.Title}" HorizontalOptions="Start"
+                    
+                    
+                    <Label Text="{Binding  TemporarilyPickedSong.Title}" HorizontalOptions="Start"
                 LineBreakMode="HeadTruncation" FontSize="16"/>
-                    <Label Text="{Binding BaseVM.TemporarilyPickedSong.ArtistName}" 
+                    <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
                 LineBreakMode="TailTruncation"
                 Opacity="0.6" HorizontalOptions="Start"/>
-                    <Label Text="{Binding BaseVM.TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
+                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
             LineBreakMode="HeadTruncation"/>
 
                 </VerticalStackLayout>
@@ -94,23 +97,23 @@
 
                         <Image>
                             <Image.Triggers>
-                                <DataTrigger TargetType="Image" Value="0" Binding="{Binding BaseVM.RepeatMode}">
+                                <DataTrigger TargetType="Image" Value="0" Binding="{Binding RepeatMode}">
                                 
                                     <!-- 0 is for repeat off -->
                                     <Setter Property="Source" Value="repoff.png" />
                                 </DataTrigger>
 
-                                <DataTrigger TargetType="Image" Value="1" Binding="{Binding BaseVM.RepeatMode}">
+                                <DataTrigger TargetType="Image" Value="1" Binding="{Binding RepeatMode}">
                                     <!-- 1 is for repeat all -->
                                     <Setter Property="Source" Value="repeat.png"/>
                                 </DataTrigger>
 
-                                <DataTrigger TargetType="Image" Value="2" Binding="{Binding BaseVM.RepeatMode}">
+                                <DataTrigger TargetType="Image" Value="2" Binding="{Binding RepeatMode}">
                                     <!-- 2 is for repeat one-->
                                     <Setter Property="Source" Value="repone.png"/>
                                 </DataTrigger>
 
-                                <DataTrigger TargetType="Image" Value="4" Binding="{Binding BaseVM.RepeatMode}">
+                                <DataTrigger TargetType="Image" Value="4" Binding="{Binding RepeatMode}">
                                     <Setter Property="Source" Value="repone.png"/>
                                 </DataTrigger>
 
@@ -133,14 +136,14 @@
 
                         <Border>
                             <Image Source="pause.png" 
-                               HeightRequest="45" IsVisible="{Binding BaseVM.IsPlaying}"
+                               HeightRequest="45" IsVisible="{Binding IsPlaying}"
                                >
 
                             </Image>
                         </Border>
                         <Border>
                         <Image 
-                            HeightRequest="45" IsVisible="{Binding BaseVM.IsPlaying, Converter={x:StaticResource BoolToInverse}}"
+                            HeightRequest="45" IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
                             Source="playcircle.png" />
                         </Border>
 
@@ -159,10 +162,10 @@
                                      Source="shuffle.png"
                                         WidthRequest="15">
                             <ImageButton.Triggers>
-                                <DataTrigger TargetType="ImageButton" Binding="{Binding BaseVM.IsShuffle}" Value="True">
+                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffle}" Value="True">
                                     <Setter Property="BackgroundColor" Value="#B197FC"/>
                                 </DataTrigger>
-                                <DataTrigger TargetType="ImageButton" Binding="{Binding BaseVM.IsShuffle}" Value="False">
+                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffle}" Value="False">
                                     <Setter Property="BackgroundColor" Value="Transparent"/>
                                 </DataTrigger>
                             </ImageButton.Triggers>
@@ -186,7 +189,7 @@
                     </Slider>
 
                     <Label Grid.Column="2" VerticalOptions="Center"
-                Text="{Binding BaseVM.TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                 Opacity="0.6"/>
 
                 </Grid>
@@ -195,14 +198,14 @@
                                  Loaded="SfEffectsView_Loaded" 
                                  Unloaded="SfEffectsView_Unloaded">
                 <VerticalStackLayout VerticalOptions="Center">
-                    <Label Text="{Binding VolumeSliderValue,StringFormat='Volume {0:0%}'}" HorizontalOptions="Center"/>
+                    <Label Text="{Binding VolumeLevel,StringFormat='Volume {0:0%}'}" HorizontalOptions="Center"/>
 
-                    <Slider Value="{Binding VolumeSliderValue}" VerticalOptions="End"
+                    <Slider Value="{Binding VolumeLevel, Mode=TwoWay}" VerticalOptions="End"
                             Maximum="1" Minimum="0"
-                            MinimumTrackColor="DarkSlateBlue" DragCompletedCommand="{Binding ChangeVolumeCommand}"/>
+                            MinimumTrackColor="DarkSlateBlue" />
                 </VerticalStackLayout>
             </syncf:SfEffectsView>
         </Grid>
 
-        </Grid>
+    </Grid>
 </ContentView>

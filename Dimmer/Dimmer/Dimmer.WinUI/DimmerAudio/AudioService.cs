@@ -1,6 +1,4 @@
-﻿
-using Dimmer.Interfaces;
-using Dimmer.Utilities.Events;
+﻿using Dimmer.Utilities.Events;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Windows.Media;
@@ -20,9 +18,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     
     private IWavePlayer? _soundOut; 
     private WaveStream? _reader;   
-    private SampleChannel? _sampleChannel; 
+    private SampleChannel? _sampleChannel;
 
-    
+    private bool _suppressPlaybackEvents = false;
+
     private bool _isPlaying;
     private bool _isDisposed = false;
     private float _nonMutedVolume = 1.0f; 
@@ -115,15 +114,17 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         get => _isPlaying;
         private set
         {
-            
-            
             if (SetProperty(ref _isPlaying, value, nameof(IsPlaying)))
             {
-                PlaybackEventArgs args
-                    = new PlaybackEventArgs();
-                args.MediaSong = CurrentMedia;
-                args.IsPlaying = _isPlaying;
-                InvokeOnMainThread(() => IsPlayingChanged?.Invoke(this, args));
+                if (!_suppressPlaybackEvents)
+                {
+                    PlaybackEventArgs args = new PlaybackEventArgs(PlaybackEventType.Play)
+                    {
+                        MediaSong = CurrentMedia,
+                        IsPlaying = _isPlaying
+                    };
+                    InvokeOnMainThread(() => IsPlayingChanged?.Invoke(this, args));
+                }
             }
         }
     }
@@ -284,7 +285,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         
         CleanupResources();
-        IsPlaying = false; 
+
+        _suppressPlaybackEvents = true;
+        IsPlaying = false;
+        _suppressPlaybackEvents = false;
+        
         _isPaused = false;
 
         _soundOut?.Stop(); 
@@ -442,9 +447,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             if (_isDisposed)
                 return;
 
-            MediaPlaybackStatus finalStatus = MediaPlaybackStatus.Stopped; // Default assumption
-
-            IsPlaying = false; 
+            MediaPlaybackStatus finalStatus;
+            _suppressPlaybackEvents =true;
+            IsPlaying = false;
+            _suppressPlaybackEvents=false;
             _isPaused = false; 
 
             if (wasError)
@@ -453,20 +459,22 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 finalStatus = MediaPlaybackStatus.Closed; 
 
             }
-            
-            
             else if (reachedEnd && !stoppedManually)
             {
-                PlaybackEventArgs args = new PlaybackEventArgs();
+                PlaybackEventArgs args = new PlaybackEventArgs(PlaybackEventType.StoppedAuto);
                 args.MediaSong = CurrentMedia;
                 PlayEnded?.Invoke(this,  args);
                 Debug.WriteLine("NAudio: Playback naturally ended.");
-                finalStatus = MediaPlaybackStatus.Stopped; // Or Paused if you want it ready to replay
+                finalStatus = MediaPlaybackStatus.Stopped; 
 
                 SetCurrentTime(0);
             }
             else
             {
+                PlaybackEventArgs args = new PlaybackEventArgs(PlaybackEventType.StoppedAuto);
+                args.MediaSong = CurrentMedia;
+                args.EventType = PlaybackEventType.StoppedManually;
+                PlayEnded?.Invoke(this, args);
                 finalStatus = MediaPlaybackStatus.Stopped;
                 Debug.WriteLine($"NAudio: Playback stopped (Position: {_reader?.Position}, Length: {_reader?.Length}, ReachedEnd: {reachedEnd}, StoppedManuallyOrPaused: {stoppedManually || _isPaused}).");
             }

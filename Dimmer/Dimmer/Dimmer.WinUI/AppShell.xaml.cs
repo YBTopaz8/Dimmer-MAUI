@@ -1,5 +1,3 @@
-using Dimmer.WinUI.Views;
-
 namespace Dimmer.WinUI;
 
 public partial class AppShell : Shell

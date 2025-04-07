@@ -8,18 +8,20 @@ namespace Dimmer.WinUI.Views.CustomViews;
 
 public partial class MediaControlBtmBar : ContentView
 {
-    public BaseViewModel MyViewModel { get; internal set; }
+    public HomeViewModel MyViewModel { get; internal set; }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public MediaControlBtmBar()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
 		InitializeComponent();
-        this.Loaded += MediaControlBtmBar_Loaded;
+        
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        BindingContext = MyViewModel;
     }
 
     private void MediaControlBtmBar_Loaded(object? sender, EventArgs e)
     {
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
         BindingContext = MyViewModel;
 
     }

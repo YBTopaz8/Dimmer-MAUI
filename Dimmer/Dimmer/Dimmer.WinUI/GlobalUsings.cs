@@ -10,7 +10,12 @@ global using Dimmer.Interfaces;
 global using Dimmer.WinUI.DimmerAudio;
 global using Dimmer.WinUI.Utils;
 global using Dimmer.WinUI.Views.CustomViews;
-
+global using Dimmer.WinUI.Utils.Helpers;
+global using System.Runtime.InteropServices;
+global using Microsoft.UI.Windowing;
+global using Microsoft.VisualBasic.FileIO;
+global using System.Collections.ObjectModel;
+global using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 global using CommunityToolkit.Maui.Core.Extensions;
 

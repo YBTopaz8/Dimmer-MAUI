@@ -2,6 +2,7 @@
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
 using Dimmer.Utilities.Events;
+using System.Timers;
 
 namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
@@ -18,6 +19,8 @@ public class BaseAppFlow : IDisposable
     #endregion
 
     #region static behavior subjects 
+    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
+    public static BehaviorSubject<double> CurrentSongPosition { get; } = new(0);
     public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
     public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
     public static BehaviorSubject<List<AlbumArtistGenreSongLink>> AllLinks { get; } = new([]);
@@ -30,7 +33,7 @@ public class BaseAppFlow : IDisposable
 
     #region private fields
 
-    BehaviorSubject<bool> IsPlayingSubj = new(false);
+    readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
     System.Timers.Timer? PositionTimer;
 
     private Realm Db;
@@ -38,16 +41,15 @@ public class BaseAppFlow : IDisposable
     private readonly IDimmerAudioService AudioService;
     private readonly IRealmFactory RealmFactory;
     private readonly IMapper Mapper;
-    
+
     #endregion
 
     #region public properties
-    public SongModelView CurrentlyPlayingSong { get; set; }
+    public SongModelView CurrentlyPlayingSong { get; set; } = new();
     public SongModelView PreviouslyPlayingSong { get; }
     public SongModelView NextPlayingSong { get; }
     public bool IsShuffleOn { get; set; }
 
-    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
 
     public RepeatMode CurrentRepeatMode { get; set; }
     public int CurrentRepeatCount { get; set; }
@@ -111,40 +113,59 @@ public class BaseAppFlow : IDisposable
         //currentPositionInSec = e/1000;
     }
 
-    public void StartPositionTimer()
+    private void StartPositionTimer()
     {
-
+        if (PositionTimer == null)
+        {
+            PositionTimer = new System.Timers.Timer(1000);
+            PositionTimer.Elapsed += OnPositionTimerElapsed;
+            PositionTimer.AutoReset = true;
+        }
+        PositionTimer.Start();
     }
-
-    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
+    private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        IsPlayingSubj.OnNext(e.IsPlaying);
-        
         if (IsPlayingSubj.Value)
         {
-            PositionTimer?.Start();
+            double totalDurationInSeconds = CurrentSong.Value.DurationInSeconds;
+            double percentagePlayed = CurrentSongPosition.Value / totalDurationInSeconds;
+            CurrentSongPosition.OnNext(AudioService.CurrentPosition);
             
-        }
-        else
-        {
-            PositionTimer?.Stop();            
-        }
-    }
-    public void PlaySong()
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+            //_currentPositionSubject.OnNext(new PlaybackInfo { CurrentTimeInSeconds = currentPositionInSec, CurrentPercentagePlayed = percentagePlayed });
 
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+        }
     }
 
     public void StopPositionTimer()
     {
         PositionTimer?.Stop();
     }
+    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
+    {
+        IsPlayingSubj.OnNext(e.IsPlaying);
+        
+        if (IsPlayingSubj.Value)
+        {
+            StartPositionTimer();
+        }
+        else
+        {
+            StopPositionTimer();
+        }
+    }
+    public void PlaySong()
+    {
+        CurrentSongPosition.OnNext(0);
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+        
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+    }
+
     private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
     {
-        StopPositionTimer();
-
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        
+        
         UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);  
     }
 
@@ -204,12 +225,12 @@ public class BaseAppFlow : IDisposable
     ///  1 for repeat ALL
     ///  2 for repeat ONE
     /// </summary>
-    public int ToggleRepeatMode()
+    public RepeatMode ToggleRepeatMode()
     {
         CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % 3); // Cycle through enum values 0, 1, 2
         
         AppSettingsService.RepeatModePreference.ToggleRepeatState((int)CurrentRepeatMode); // Store as int
-        return (int)CurrentRepeatMode;
+        return CurrentRepeatMode;
     }
 
 

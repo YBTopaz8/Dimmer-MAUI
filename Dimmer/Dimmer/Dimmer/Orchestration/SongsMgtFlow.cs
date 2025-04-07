@@ -1,5 +1,4 @@
 ﻿using ATL;
-using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data;
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
@@ -124,7 +123,7 @@ public partial class SongsMgtFlow : BaseAppFlow
    
     public bool PlaySongWithPosition(double positionInSec)
     {
-        currentPositionInSec = 0;
+        CurrentPositionInSec = 0;
         
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         AudioService.Initialize(CurrentlyPlayingSong, coverImage);
@@ -132,14 +131,14 @@ public partial class SongsMgtFlow : BaseAppFlow
         if (positionInSec > 0)
         {
             AudioService.Resume(positionInSec);
-            currentPositionInSec = positionInSec;
+            CurrentPositionInSec = positionInSec;
         }
         else
         {
             AudioService.Play();
         }
 
-        base.StartPositionTimer();
+        
         
         CurrentlyPlayingSong.IsPlaying = true; // Update playing status
         
@@ -148,11 +147,12 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     public bool PlaySongInAudioService()
     {
+        
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         AudioService.Initialize(CurrentlyPlayingSong, coverImage);
         AudioService.Play();
         
-        StartPositionTimer();
+        
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
 
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
@@ -169,7 +169,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         {
             AudioService.Pause();
             
-            StopPositionTimer();
+            
             
         }
         else
@@ -177,7 +177,7 @@ public partial class SongsMgtFlow : BaseAppFlow
             byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
             AudioService.Initialize(CurrentlyPlayingSong, coverImage);
             AudioService.Resume(currentPosition);
-            StartPositionTimer();
+           
             
             
         }
@@ -186,7 +186,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     public bool StopSong()
     {
         AudioService.Pause();
-        StopPositionTimer();
+        
         
         base. CurrentlyPlayingSong.IsPlaying = false;
         
@@ -197,12 +197,12 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     public void SeekTo(double positionInSec)
     {
-        currentPositionInSec = positionInSec;
+        CurrentPositionInSec = positionInSec;
         if (CurrentlyPlayingSong is null)
         {
             return;
         }
-        double CurrentPercentage = currentPositionInSec / CurrentlyPlayingSong.DurationInSeconds * 100;
+        double CurrentPercentage = CurrentPositionInSec / CurrentlyPlayingSong.DurationInSeconds * 100;
 
         if (AudioService.IsPlaying)
         {
@@ -213,7 +213,7 @@ public partial class SongsMgtFlow : BaseAppFlow
                 DatePlayed = DateTime.Now,
                 PlayType = 4,
                 SongId = CurrentlyPlayingSong.LocalDeviceId,
-                PositionInSeconds = currentPositionInSec
+                PositionInSeconds = CurrentPositionInSec
             };
             if (CurrentPercentage >= 80)
             {
@@ -286,7 +286,7 @@ public partial class SongsMgtFlow : BaseAppFlow
             {
                 return;
             }
-            AudioService.Volume = newVolumeOver1;
+            AudioService.Volume = Math.Clamp(newVolumeOver1, 0, 1);
 
             AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newVolumeOver1);
         }
@@ -299,6 +299,8 @@ public partial class SongsMgtFlow : BaseAppFlow
     public void DecreaseVolume()
     {
         AudioService.Volume -= 0.01;
+
+        
     }
     public double VolumeLevel => AudioService.Volume;
     public void IncreaseVolume()
@@ -331,8 +333,20 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
 
-
-    double currentPositionInSec = 0;
+    public double CurrentPositionInSec
+    {
+        get
+        {
+            if (AudioService.IsPlaying)
+            {
+                return AudioService.CurrentPosition;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        set; } = 0;
     #endregion
 
 
@@ -368,7 +382,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     #region Audio Service Event Handlers
     private void AudioService_PlayEnded(object? sender, EventArgs e)
     {
-        StopPositionTimer();
+        
         
 
         if (CurrentlyPlayingSong != null)
@@ -429,8 +443,8 @@ public partial class SongsMgtFlow : BaseAppFlow
         if (AudioService.IsPlaying)
         {
             double totalDurationInSeconds = CurrentlyPlayingSong.DurationInSeconds;
-            double percentagePlayed = currentPositionInSec / totalDurationInSeconds;
-            currentPositionInSec = AudioService.CurrentPosition;
+            double percentagePlayed = CurrentPositionInSec / totalDurationInSeconds;
+            CurrentPositionInSec = AudioService.CurrentPosition;
             
 
         }

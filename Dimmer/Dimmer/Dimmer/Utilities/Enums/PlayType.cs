@@ -39,7 +39,6 @@ public enum PlayType
     ChatLiked = 17,
     ChatUnliked = 18,
     ChatShared = 19,
-
     ChatUnread = 20,
     ChatRead = 21,
     ChatMentioned = 22,

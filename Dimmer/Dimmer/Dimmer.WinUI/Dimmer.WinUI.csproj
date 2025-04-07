@@ -92,6 +92,7 @@
 	  <PackageCertificateThumbprint>7CB3027CCE9BE36718A3A7562CB3174364579CA8</PackageCertificateThumbprint>
 	  <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 	  <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<!--
