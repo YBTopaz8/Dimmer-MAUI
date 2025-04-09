@@ -310,14 +310,6 @@ public static class CustomAnimsExtensions
         );
     }
 
-    public static async Task SlideOutToBottom(this VisualElement element, uint duration = 250)
-    {
-        await Task.WhenAll(
-            element.FadeOut(duration),
-            element.TranslateTo(0, Application.Current.MainPage.Height, duration, Easing.CubicIn)
-        );
-        element.IsVisible = false;
-    }
 
     public static async Task Expand(this VisualElement element, double targetWidth, double targetHeight, uint duration = 300)
     {

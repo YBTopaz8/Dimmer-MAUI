@@ -254,25 +254,3 @@ public enum PlaybackSource
     ArtistQueue,
 
 }
-
-public enum MediaPlayerState
-{
-    Stopped,
-    Playing,
-    Paused,
-    Loading,
-    Error,
-    Previewing,
-    LyricsLoad,
-    ShowPlayBtn,
-    ShowPauseBtn,
-    RefreshStats,
-    Initialized,
-    Ended,
-    CoverImageDownload,
-    LoadingSongs,
-    SyncingData,
-    DoneScanningData,
-    PlayCompleted,
-
-}

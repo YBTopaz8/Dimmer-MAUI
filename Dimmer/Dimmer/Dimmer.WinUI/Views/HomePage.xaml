@@ -4,6 +4,7 @@
              x:Class="Dimmer.WinUI.Views.HomePage"
              xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
              x:DataType="vm:HomeViewModel"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
              xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
@@ -29,11 +30,12 @@
             
                 <SearchBar Text="{Binding SearchText}" BackgroundColor="Transparent"
                            Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
-                           x:Name="SearchSongSB" HeightRequest="30"
+                           x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
                            WidthRequest="500" TextChanged="SearchSongSB_TextChanged">
                     
                 </SearchBar>
-                
+            <Button Text="testbtn" Clicked="Button_Clicked"/>
+            <Button Text="testbtn2" Clicked="Button2_Clicked"/>
         </HorizontalStackLayout>
         <CollectionView Grid.Row="1"
             BackgroundColor="Transparent" ItemsSource="{Binding DisplayedSongs}"
@@ -77,13 +79,14 @@
                                         VerticalOptions="Center">
                                     <VerticalStackLayout>
 
-                                        <Image WidthRequest="30" HeightRequest="30" HorizontalOptions="Start"  
+                                        <Image WidthRequest="30" HeightRequest="30" 
+                                               HorizontalOptions="Start"  
 IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
        BackgroundColor="Transparent">
 
                                         </Image>
 
-                                        <Image Source="songc.png" 
+                                        <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
        WidthRequest="25" Opacity="1"
        HorizontalOptions="Start">
 
@@ -124,17 +127,20 @@ IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
             <Grid ColumnDefinitions="470,*,250" Grid.Column="0" Grid.Row="2"
                   Margin="15,0">
             <HorizontalStackLayout Grid.Column="0" >
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+                       />
                 <VerticalStackLayout VerticalOptions="Center" 
                                      HorizontalOptions="Center"
-                                     WidthRequest="460">
+                                     Margin="10,0"
+                                     WidthRequest="400">
 
-                    <Label Text="{Binding  TemporarilyPickedSong.Title}" HorizontalOptions="Center"
-                           
+                    <Label Text="{Binding  TemporarilyPickedSong.Title}" 
+                           HorizontalOptions="Start"
 LineBreakMode="HeadTruncation" FontSize="26"/>
                     <Label Text="{Binding TemporarilyPickedSong.ArtistName}" 
-LineBreakMode="TailTruncation" FontSize="19"
-Opacity="0.6" HorizontalOptions="Center"/>
-                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Center"
+LineBreakMode="TailTruncation" FontSize="16" HorizontalOptions="Start"
+Opacity="0.6" />
+                    <Label Text="{Binding TemporarilyPickedSong.AlbumName}" HorizontalOptions="Start"
 LineBreakMode="HeadTruncation"
                            FontSize="16"/>
 
@@ -229,8 +235,23 @@ LineBreakMode="HeadTruncation"
                     </syncf:SfChipGroup.Items>
                 </syncf:SfChipGroup>
 
-                <Slider Value="{Binding CurrentPositionInSeconds}"
-        Minimum="0" Maximum="100"/>
+                <Grid ColumnDefinitions="auto,*,auto"
+                      ColumnSpacing="5">
+                    
+                <Label Grid.Column="0"
+                    Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
+                       HorizontalOptions="Center" FontSize="16" 
+                       Margin="0,5,0,0"/>
+                    <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted"
+                        x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
+                            VerticalOptions="End"
+                        Value="{Binding CurrentPositionPercentage}"
+        Minimum="0" Maximum="1"/>
+
+                    <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                       HorizontalOptions="Center" FontSize="16" Grid.Column="2"
+                       Margin="0,5,0,0"/>
+                </Grid>
             </VerticalStackLayout>
 
             <syncf:SfEffectsView  BackgroundColor="Transparent"
@@ -240,7 +261,7 @@ LineBreakMode="HeadTruncation"
                     <Label  HorizontalOptions="Center"/>
 
                     <Slider  VerticalOptions="End" Value="{Binding VolumeLevel}"
-                            Maximum="1" Minimum="0"
+                            Maximum="1" Minimum="0" x:Name="VolumeSlider"
                             MinimumTrackColor="DarkSlateBlue" />
                 </VerticalStackLayout>
             </syncf:SfEffectsView>

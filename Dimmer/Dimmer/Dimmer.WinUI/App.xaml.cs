@@ -218,8 +218,6 @@ public partial class App : MauiWinUIApplication
 
     private IntPtr FindThumbnailPreviewWindow()
     {
-        // **IMPORTANT:** Replace these with the correct class name and window title
-        // obtained using Spy++.  These are just placeholders.
         string className = "Shell_ThumbPreview"; // Example - likely incorrect
         string windowTitle = "Your Application Title"; // Example - likely incorrect
 
@@ -259,10 +257,12 @@ public partial class App : MauiWinUIApplication
 }
 public static class AppPlatform
 {
+    public static Window? DimmerWindow { get; set; } 
     public static Window CreatePlatformWindow(IActivationState? state)
     {
-        var DimmerWindow = new Window(new AppShell());// your platform-specific shell
+        DimmerWindow = new Window(new AppShell());
         DimmerWindow.Title = "Dimmer";
+        
         return DimmerWindow;
     }
 }

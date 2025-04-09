@@ -99,10 +99,6 @@ public partial class HomePage : ContentPage
         //await MediaBtmBar.AnimateFocusModePointerExited(endOpacity: 0.4, endScale: 1);
     }
 
-    private static async void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
-    {
-
-    }
 
 
 
@@ -331,5 +327,23 @@ public partial class HomePage : ContentPage
         });
     }
 
-    
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        ApplicationProps.LaunchSecondWindow();  
+    }
+    private void Button2_Clicked(object sender, EventArgs e)
+    {
+        ApplicationProps.LaunchSecondWindow();  
+    }
+
+    private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
+    {
+        MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
+    }
+
+    private void CurrentPositionSlider_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
 }

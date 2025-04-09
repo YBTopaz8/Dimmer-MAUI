@@ -17,8 +17,31 @@ public partial class SongsMgtFlow : BaseAppFlow
         AudioService=dimmerAudioService;
         Mapper=mapper;
         _realmFactory.GetRealmInstance();
-
+        SubscribeToAppCurrentState();
     }
+
+    private void SubscribeToAppCurrentState()
+    {
+        CurrentAppState.DistinctUntilChanged()
+            .Subscribe(state =>
+            {
+                switch (state)
+                {
+                    case MediaPlayerState.Playing:
+
+                        break;
+                    case MediaPlayerState.Paused:
+
+                        break;
+                    case MediaPlayerState.Ended:
+                        PlayNextSong();
+                        break;
+                    default:
+                        break;
+                }
+            });
+    }
+
     public IDimmerAudioService AudioService { get; }
     #region Playback Control Region
 
@@ -147,7 +170,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     public bool PlaySongInAudioService()
     {
-        
+        base.PlaySong();
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         AudioService.Initialize(CurrentlyPlayingSong, coverImage);
         AudioService.Play();
@@ -165,33 +188,24 @@ public partial class SongsMgtFlow : BaseAppFlow
     public bool PauseResumeSong(double currentPosition, bool isPause = false)
     {
 
-        if (AudioService.IsPlaying)
+        if (isPause)
         {
             AudioService.Pause();
-            
-            
-            
+            base.PauseSong();
         }
         else
         {
             byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
             AudioService.Initialize(CurrentlyPlayingSong, coverImage);
             AudioService.Resume(currentPosition);
-           
-            
-            
+            base.ResumeSong();
         }
         return true;
     }
     public bool StopSong()
     {
         AudioService.Pause();
-        
-        
         base. CurrentlyPlayingSong.IsPlaying = false;
-        
-
-        
         return true;
     }
 
@@ -229,27 +243,64 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     #region Audio Service Events Region
 
-    private int repeatCountMax;
-
-
+   
 
     #endregion
 
     int CurrentIndexInMasterList = 0;
-    public void PlayNextSong(bool isUserInitiated = true)
+    private int repeatCountMax;
+
+    public void PlayNextSong(bool isUserInitiated = false)
     {
-        if (CurrentRepeatMode == RepeatMode.One)
-        {
-            PlaySongInAudioService();
-            
-            return;
-        }
+        
 
         if (isUserInitiated)
         {
             UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
         }
 
+        switch (CurrentRepeatMode)
+        {
+            case RepeatMode.One: // Repeat One
+                PlaySongInAudioService();
+                return;
+            case RepeatMode.Custom: // Custom Repeat
+                if (CurrentRepeatCount < repeatCountMax) // still on repeat one for same CurrentlyPlayingSong (later can be same PL/album etc)
+                {
+                    CurrentRepeatCount++;
+                    UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.CustomRepeat);
+                    PlaySong();
+                }
+                return;
+            default:
+                
+
+                break;
+
+        }
+
+        var currentindex = AllSongs.Value.IndexOf(CurrentlyPlayingSongDB);
+        if (currentindex == -1)
+        {
+            return; // Song not found in the list
+        }
+        if (currentindex + 1 < AllSongs.Value.Count)
+        {
+            CurrentlyPlayingSongDB = AllSongs.Value[currentindex + 1];
+            CurrentlyPlayingSong = Mapper.Map<SongModelView>(CurrentlyPlayingSongDB);
+            CurrentIndexInMasterList = currentindex + 1;
+            PlaySongInAudioService();
+
+        }
+        else
+        {
+            if (CurrentRepeatMode == RepeatMode.All)
+            {
+                CurrentlyPlayingSongDB = AllSongs.Value[0];
+                CurrentIndexInMasterList = 0;
+                PlaySongInAudioService();
+            }
+        }
         // If not repeat all and at the end, do nothing or stop playback
     }
 
@@ -379,54 +430,6 @@ public partial class SongsMgtFlow : BaseAppFlow
         
     }
 
-    #region Audio Service Event Handlers
-    private void AudioService_PlayEnded(object? sender, EventArgs e)
-    {
-        
-        
-
-        if (CurrentlyPlayingSong != null)
-        {
-            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Completed);
-        }
-
-        switch (CurrentRepeatMode)
-        {
-            case RepeatMode.One: // Repeat One
-                base.PlaySong();
-                break;
-            case RepeatMode.Custom: // Custom Repeat
-                if (CurrentRepeatCount < repeatCountMax) // still on repeat one for same CurrentlyPlayingSong (later can be same PL/album etc)
-                {
-                    CurrentRepeatCount++;
-                    UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.CustomRepeat);
-                    base.PlaySong();
-                }
-                else
-                {
-                    CurrentRepeatMode = RepeatMode.All;
-                    CurrentRepeatCount = 1;
-                    PlayNextSong(false);
-                }
-                break;
-            default:
-                PlayNextSong(false);
-                break;
-        }
-    }
-
-
-    private void AudioService_PlayNext(object? sender, EventArgs e)
-    {
-        PlayNextSong();
-    }
-
-    private void AudioService_PlayPrevious(object? sender, EventArgs e)
-    {
-        PlayPreviousSong();
-    }
-    #endregion
-
 
  
     public void ClearQueue()
@@ -461,27 +464,5 @@ public enum PlaybackSource
     External,
     PlaylistQueue,
     ArtistQueue,
-
-}
-
-public enum MediaPlayerState
-{
-    Stopped,
-    Playing,
-    Paused,
-    Loading,
-    Error,
-    Previewing,
-    LyricsLoad,
-    ShowPlayBtn,
-    ShowPauseBtn,
-    RefreshStats,
-    Initialized,
-    Ended,
-    CoverImageDownload,
-    LoadingSongs,
-    SyncingData,
-    DoneScanningData,
-    PlayCompleted,
 
 }

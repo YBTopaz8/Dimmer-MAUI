@@ -1,9 +1,11 @@
 ﻿
 
+using Dimmer.Utilities;
 using Dimmer.WinUI.Utils.StaticUtils;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using System.Diagnostics;
 using WinRT.Interop;
 
 namespace Dimmer.WinUI;
@@ -45,13 +47,20 @@ public static class MauiProgram
                                 PlatUtils.IsAppInForeground =s.IsVisible;
                             }
                         };
-
-
+                        ApplicationProps.DisplayArea = DisplayArea.GetFromWindowId(win32WindowsId, DisplayAreaFallback.Primary);
+                        
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
                         PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
-
-
-                        //winuiAppWindow.Title = new CustomTitleBar(homeVM);
+                        
+                        Debug.WriteLine(ApplicationProps.DisplayArea.IsPrimary);
+                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Width);
+                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Height);
+                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Y);
+                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.X);
+                        AppUtils.UserScreenWidth=ApplicationProps.DisplayArea.OuterBounds.Width;
+                        AppUtils.UserScreenHeight=(ApplicationProps.DisplayArea.OuterBounds.Height);
+                        Debug.WriteLine(ApplicationProps.DisplayArea.DisplayId.Value);
+                        
 
 
                         //OLP.SetBorderAndTitleBar(false, false);

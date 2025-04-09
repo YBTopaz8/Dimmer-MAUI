@@ -27,6 +27,7 @@
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
+	  <None Remove="Views\TestPage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -41,6 +42,7 @@
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
+		<PackageReference Include="WinUI.TableView" Version="1.2.2" />
 		
 	</ItemGroup>
 
@@ -82,6 +84,11 @@
 	<ItemGroup>
 	  <Folder Include="Database\" />
 	  <Folder Include="ViewModel\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\TestPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
 	  <WebView2UseWinRT>False</WebView2UseWinRT>

@@ -2,7 +2,9 @@
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
 using Dimmer.Utilities.Events;
+using Dimmer.Utils;
 using System.Timers;
+using MediaPlayerState = Dimmer.Utilities.Enums.MediaPlayerState;
 
 namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
@@ -20,7 +22,7 @@ public class BaseAppFlow : IDisposable
 
     #region static behavior subjects 
     public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
-    public static BehaviorSubject<double> CurrentSongPosition { get; } = new(0);
+    public IObservable<double> CurrentSongPosition => CurrentPosSubj.AsObservable();
     public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
     public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
     public static BehaviorSubject<List<AlbumArtistGenreSongLink>> AllLinks { get; } = new([]);
@@ -28,12 +30,15 @@ public class BaseAppFlow : IDisposable
     public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
     public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
 
+    public IObservable<MediaPlayerState> CurrentAppState => CurrentStateSubj.AsObservable();
 
     #endregion
 
     #region private fields
 
     readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
+    readonly BehaviorSubject<double> CurrentPosSubj = new(0);
+    readonly BehaviorSubject<MediaPlayerState> CurrentStateSubj = new(MediaPlayerState.Stopped);
     System.Timers.Timer? PositionTimer;
 
     private Realm Db;
@@ -46,10 +51,11 @@ public class BaseAppFlow : IDisposable
 
     #region public properties
     public SongModelView CurrentlyPlayingSong { get; set; } = new();
+    public SongModel CurrentlyPlayingSongDB { get; set; } = new();
     public SongModelView PreviouslyPlayingSong { get; }
     public SongModelView NextPlayingSong { get; }
     public bool IsShuffleOn { get; set; }
-
+    
 
     public RepeatMode CurrentRepeatMode { get; set; }
     public int CurrentRepeatCount { get; set; }
@@ -72,6 +78,11 @@ public class BaseAppFlow : IDisposable
 
     }
 
+    private void LoadAppData()
+    {
+        var dbb = Db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+        AllSongs.OnNext(dbb);
+    }
 
     private void LoadRealm()
     {
@@ -128,8 +139,8 @@ public class BaseAppFlow : IDisposable
         if (IsPlayingSubj.Value)
         {
             double totalDurationInSeconds = CurrentSong.Value.DurationInSeconds;
-            double percentagePlayed = CurrentSongPosition.Value / totalDurationInSeconds;
-            CurrentSongPosition.OnNext(AudioService.CurrentPosition);
+            double percentagePlayed = CurrentPosSubj.Value/ totalDurationInSeconds;
+            CurrentPosSubj.OnNext(AudioService.CurrentPosition);
             
             //_currentPositionSubject.OnNext(new PlaybackInfo { CurrentTimeInSeconds = currentPositionInSec, CurrentPercentagePlayed = percentagePlayed });
 
@@ -140,10 +151,44 @@ public class BaseAppFlow : IDisposable
     {
         PositionTimer?.Stop();
     }
+    public void PlaySong()
+    {
+        CurrentPosSubj.OnNext(0);
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+        
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+        IsPlayedCompletely = false;
+    }
+    public void PauseSong()
+    {
+        IsPlayedCompletely = false;
+
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Pause);
+    }
+    public void ResumeSong()
+    {
+        IsPlayedCompletely = false;
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Resume);
+        
+    }
+    public bool IsPlayedCompletely { get; set; }
+
+    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
+    {
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        
+        
+        UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
+        IsPlayingSubj.OnNext(false);
+        IsPlayedCompletely = true;
+        CurrentStateSubj.OnNext(MediaPlayerState.Ended);
+        CurrentPosSubj.OnNext(0);
+    }
+
     private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
     {
         IsPlayingSubj.OnNext(e.IsPlaying);
-        
+
         if (IsPlayingSubj.Value)
         {
             StartPositionTimer();
@@ -153,23 +198,15 @@ public class BaseAppFlow : IDisposable
             StopPositionTimer();
         }
     }
-    public void PlaySong()
+    private void AudioService_PlayNext(object? sender, EventArgs e)
     {
-        CurrentSongPosition.OnNext(0);
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
-        
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+
     }
 
-    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
+    private void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        
-        
-        UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);  
+
     }
-
-
     public void UpdateSongPlaybackState(SongModelView? CurrentlyPlayingSong, PlayType playType, double? position = null)
     {
         var songDb = Mapper.Map<SongModel>(CurrentlyPlayingSong);
@@ -200,22 +237,9 @@ public class BaseAppFlow : IDisposable
         }
 
     }
-    private void AudioService_PlayNext(object? sender, EventArgs e)
-    {
-        
-    }
     
-    private void AudioService_PlayPrevious(object? sender, EventArgs e)
-    {
-        
-    }
     #endregion
 
-    private void LoadAppData()
-    {
-        var dbb = Db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-        AllSongs.OnNext(dbb);        
-    }
 
   
 

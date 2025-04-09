@@ -12,7 +12,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
-    public partial double CurrentPositionPercentage { get; set; } = 0;
+    public partial int CurrentPositionPercentage { get; set; }
     [ObservableProperty]
     public partial RepeatMode RepeatMode { get; set; }
 
@@ -49,18 +49,20 @@ public partial class BaseViewModel : ObservableObject
     }
     void SubscribeToCurrentPosition()
     {
-        SongsMgtFlow.CurrentSongPosition.Subscribe(position =>
+        songsMgtFlow.CurrentSongPosition.Subscribe(position =>
         {
             CurrentPositionInSeconds = position;
-            CurrentPositionPercentage = position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds;
+
+            CurrentPositionPercentage = (int)(position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds);
         }); 
     }
 
     public void SubscribeToIsPlaying()
     {
         songsMgtFlow.IsPlaying.DistinctUntilChanged()
-            .Subscribe(isPlaying =>
+        .Subscribe(isPlaying =>
         {
+            IsPlaying = isPlaying;
             switch (isPlaying)
             {
                 case true:
@@ -68,9 +70,13 @@ public partial class BaseViewModel : ObservableObject
                     break;
                 default:
                     IsPlaying = false;
+                    if (songsMgtFlow.IsPlayedCompletely)
+                    {
+                        PlayNext();
+                    }
                     break;
             }
-            IsPlaying = isPlaying;
+            
             
         });
     }
@@ -97,15 +103,9 @@ public partial class BaseViewModel : ObservableObject
     public SongModelView MySelectedSong { get; set; } = new SongModelView();
     public void SetSelectedSong(SongModelView song)
     {
+        song.IsCurrentPlayingHighlight = false;
         songsMgtFlow.CurrentlyPlayingSong ??=song;
-
-        if (MySelectedSong is not null)
-        {
-            MySelectedSong.IsCurrentPlayingHighlight = false;
-        }
-
-        MySelectedSong = song;
-        MySelectedSong.IsCurrentPlayingHighlight = true;
+        MySelectedSong = song;        
     }
     #region playback controls 
     public void PlayPrevious()
@@ -198,8 +198,9 @@ public partial class BaseViewModel : ObservableObject
     {
         if ( IsPlaying)
         {
+
+            songsMgtFlow.PauseResumeSong(CurrentPositionInSeconds, true);
             
-            PauseSong();
         }
         else
         {
@@ -215,7 +216,6 @@ public partial class BaseViewModel : ObservableObject
     public void PauseSong()
     {
         //CurrentPositionInSeconds = PlayBackService.CurrentPosition;
-        songsMgtFlow.PauseResumeSong(CurrentPositionInSeconds, true);
     }
         public void ResumeSong()
     {
@@ -236,13 +236,14 @@ public partial class BaseViewModel : ObservableObject
     }
     public void SeekSongPosition(double currPosPer = 0)
     {
-        
+        double newPos = 0;
         if (currPosPer !=0)
         {
-            CurrentPositionInSeconds = currPosPer * songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds;
+            newPos = songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds*currPosPer;
+            
 
         }
-        songsMgtFlow.SeekTo(CurrentPositionInSeconds);
+        songsMgtFlow.SeekTo(newPos);
     }
 
     public void ToggleRepeatMode()

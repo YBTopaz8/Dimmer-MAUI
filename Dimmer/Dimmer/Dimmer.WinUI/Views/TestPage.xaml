@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Dimmer.WinUI.Views.TestPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:vm="using:Dimmer.ViewModel"
+    Title="TestPage"
+    
+    xmlns:tableView="using:WinUI.TableView">
+
+    <Grid DataContext="{x:Bind MyViewModel}">
+        <tableView:TableView x:Name="MyTableView"
+                             IsRightTapEnabled="True" IsReadOnly="True"
+                             IsDoubleTapEnabled="True"
+                             ShowOptionsButton="True"
+                             DoubleTapped="MyTableView_DoubleTapped"
+                             ItemsSource="{x:Bind MyViewModel.DisplayedSongs}"
+                             AutoGenerateColumns="False">
+            <tableView:TableView.Columns>
+                <tableView:TableViewCheckBoxColumn Header="IsPlaying" 
+                                                   Binding="{Binding HasLyrics}"/>
+                <tableView:TableViewTextColumn Header="Title" 
+                                                   Binding="{Binding Title}"/>
+                <tableView:TableViewTextColumn Header="Artist Name" 
+                                                   Binding="{Binding ArtistName}"/>
+                <tableView:TableViewTextColumn Header="Album Name" 
+                                                   Binding="{Binding AlbumName}"/>
+                <tableView:TableViewTextColumn Header="Genre" 
+                                                   Binding="{Binding Genre}"/>
+                <tableView:TableViewTextColumn Header="File Format" 
+                                                   Binding="{Binding FileFormat}"/>
+                <tableView:TableViewTextColumn Header="Release Year" 
+                                                   Binding="{Binding ReleaseYear}"/>
+            </tableView:TableView.Columns>
+            
+        </tableView:TableView>
+
+    </Grid>
+</Window>
