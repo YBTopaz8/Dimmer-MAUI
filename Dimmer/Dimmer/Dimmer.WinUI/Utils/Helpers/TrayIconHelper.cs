@@ -13,7 +13,7 @@ public class TrayIconHelper
     public const uint WM_TRAYICON = 0x8000 + 1; // WM_APP + 1 (32769)
 
     private NOTIFYICONDATA _data;
-    private bool _iconAdded = false;
+    private bool _iconAdded;
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpdata);

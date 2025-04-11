@@ -501,7 +501,7 @@ public static class CustomAnimsExtensions
 
     public static async Task SequentialSlideIn(this Layout layout, bool fromRight = true, uint duration = 300, int delay = 75)
     {
-        double startX = fromRight ? Application.Current.MainPage.Width : -Application.Current.MainPage.Width;
+        double startX = fromRight ? AppUtils.UserScreenWidth : -AppUtils.UserScreenWidth;
 
         foreach (VisualElement child in layout.Children.OfType<VisualElement>())
         {
@@ -636,13 +636,13 @@ public static class CustomAnimsExtensions
     public static async Task CarouselTransition(this Image currentImage, Image nextImage, bool slideRight, uint duration = 400)
     {
         
-        nextImage.TranslationX = slideRight ? Application.Current.MainPage.Width : -Application.Current.MainPage.Width;
+        nextImage.TranslationX = slideRight ? AppUtils.UserScreenWidth : -AppUtils.UserScreenWidth;
         nextImage.Opacity = 0;
         nextImage.IsVisible = true; //make next image visible
-
+        
         
         await Task.WhenAll(
-            currentImage.TranslateTo(slideRight ? -Application.Current.MainPage.Width : Application.Current.MainPage.Width, 0, duration, Easing.CubicInOut),
+            currentImage.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
             currentImage.FadeOut(duration),
             nextImage.TranslateTo(0, 0, duration, Easing.CubicInOut),
             nextImage.FadeIn(duration)
@@ -695,13 +695,13 @@ public static class CustomAnimsExtensions
     public static async Task TabSwitchTransition(this VisualElement currentContent, VisualElement nextContent, bool slideRight, uint duration = 300)
     {
         
-        nextContent.TranslationX = slideRight ? Application.Current.MainPage.Width : -Application.Current.MainPage.Width;
+        nextContent.TranslationX = slideRight ? AppUtils.UserScreenWidth : -AppUtils.UserScreenWidth;
         nextContent.Opacity = 0;
         nextContent.IsVisible = true;
 
         
         await Task.WhenAll(
-            currentContent.TranslateTo(slideRight ? -Application.Current.MainPage.Width : Application.Current.MainPage.Width, 0, duration, Easing.CubicInOut),
+            currentContent.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
             currentContent.FadeOut(duration),
             nextContent.TranslateTo(0, 0, duration, Easing.CubicInOut),
             nextContent.FadeIn(duration)
@@ -864,7 +864,7 @@ public static class CustomAnimsExtensions
 
     public static async Task ConnectedSlide(this VisualElement view1, VisualElement view2, bool slideRight, uint duration = 300)
     {
-        double distance = Application.Current.MainPage.Width; //slide distance
+        double distance = AppUtils.UserScreenWidth; //slide distance
         double endX1 = slideRight ? -distance : distance; //endX for View1
         double startX2 = slideRight ? distance : -distance; //start X for view2
         double endX2 = 0; //endX for view 2

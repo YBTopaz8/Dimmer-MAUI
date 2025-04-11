@@ -10,5 +10,5 @@ public class MediaPlay
     
     public byte[]? ImageBytes { get; set; }
 
-    public long DurationInMs { get; set; } = 0;
+    public long DurationInMs { get; set; }
 }

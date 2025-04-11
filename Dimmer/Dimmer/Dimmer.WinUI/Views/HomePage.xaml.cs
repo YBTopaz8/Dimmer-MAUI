@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Input;
 using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
 
@@ -72,7 +73,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private bool _isThrottling = false;
+    private bool _isThrottling;
     private readonly int throttleDelay = 300; 
 
     private async void Slider_DragCompleted(object sender, EventArgs e)
@@ -181,7 +182,7 @@ public partial class HomePage : ContentPage
         MyViewModel.ToggleRepeatMode();
     }
 
-    private void MediaChipBtn_ChipClicked(object sender, EventArgs e)
+    private async void MediaChipBtn_ChipClicked(object sender, EventArgs e)
     {
         SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         string? param = ee.CommandParameter.ToString();
@@ -196,15 +197,15 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                MyViewModel.PlayPrevious();
+                await MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
-                MyViewModel.PlayPauseSong();
+                await MyViewModel.PlayPauseSong();
                 
                 break;
             case 4:
-                MyViewModel.PlayNext();
+                await MyViewModel.PlayNext();
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
@@ -343,9 +344,9 @@ public partial class HomePage : ContentPage
         MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
     }
 
-    private void CurrentPositionSlider_Loaded(object sender, EventArgs e)
-    {
-        
-    }
 
+    private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+    {
+        MyViewModel.SetVolume(VolumeSlider.Value);
+    }
 }

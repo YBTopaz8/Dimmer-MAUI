@@ -12,17 +12,22 @@ public class BaseAppFlow : IDisposable
 
 
     #region FolderWatcher Region
-    
-    private bool _isDisposed = false; // To prevent multiple disposals
+
+
 
 
 
 
     #endregion
 
-    #region static behavior subjects 
+
     public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
     public IObservable<double> CurrentSongPosition => CurrentPosSubj.AsObservable();
+    public IObservable<double> CurrentSongVolume => CurrentVolSubj.AsObservable();
+    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
+
+
+    #region static behavior subjects 
     public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
     public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
     public static BehaviorSubject<List<AlbumArtistGenreSongLink>> AllLinks { get; } = new([]);
@@ -30,16 +35,15 @@ public class BaseAppFlow : IDisposable
     public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
     public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
 
-    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
-
     #endregion
 
     #region private fields
 
     readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
     readonly BehaviorSubject<double> CurrentPosSubj = new(0);
+    readonly BehaviorSubject<double> CurrentVolSubj = new(0);
     readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
-    System.Timers.Timer? PositionTimer;
+    
 
     private Realm Db;
     
@@ -52,8 +56,8 @@ public class BaseAppFlow : IDisposable
     #region public properties
     public SongModelView CurrentlyPlayingSong { get; set; } = new();
     public SongModel CurrentlyPlayingSongDB { get; set; } = new();
-    public SongModelView PreviouslyPlayingSong { get; }
-    public SongModelView NextPlayingSong { get; }
+    public SongModelView? PreviouslyPlayingSong { get; }
+    public SongModelView? NextPlayingSong { get; }
     public bool IsShuffleOn { get; set; }
     
 
@@ -73,9 +77,14 @@ public class BaseAppFlow : IDisposable
         this.AudioService.PlayPrevious += AudioService_PlayPrevious;
         this.AudioService.PlayNext += AudioService_PlayNext;
         this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
-        
+        this.AudioService.PositionChanged +=AudioService_PositionChanged;
         this.AudioService.PlayEnded += AudioService_PlayEnded;
 
+    }
+
+    private void AudioService_PositionChanged(object? sender, double e)
+    {
+        CurrentPosSubj.OnNext(AudioService.CurrentPosition);
     }
 
     private void LoadAppData()
@@ -121,35 +130,7 @@ public class BaseAppFlow : IDisposable
     #region Audio Service Event Handlers
     private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
     {
-        //currentPositionInSec = e/1000;
-    }
-
-    private void StartPositionTimer()
-    {
-        if (PositionTimer == null)
-        {
-            PositionTimer = new System.Timers.Timer(1000);
-            PositionTimer.Elapsed += OnPositionTimerElapsed;
-            PositionTimer.AutoReset = true;
-        }
-        PositionTimer.Start();
-    }
-    private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        if (IsPlayingSubj.Value)
-        {
-            double totalDurationInSeconds = CurrentSong.Value.DurationInSeconds;
-            double percentagePlayed = CurrentPosSubj.Value/ totalDurationInSeconds;
-            CurrentPosSubj.OnNext(AudioService.CurrentPosition);
-            
-            //_currentPositionSubject.OnNext(new PlaybackInfo { CurrentTimeInSeconds = currentPositionInSec, CurrentPercentagePlayed = percentagePlayed });
-
-        }
-    }
-
-    public void StopPositionTimer()
-    {
-        PositionTimer?.Stop();
+        
     }
     public void PlaySong()
     {
@@ -177,14 +158,14 @@ public class BaseAppFlow : IDisposable
     {
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
 
-        if (e.EventType == PlaybackEventType.StoppedAuto)
+        if (e.EventType == DimmerPlaybackState.Ended)
         {
-            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
-            IsPlayingSubj.OnNext(false);
-            IsPlayedCompletely = true;
             CurrentStateSubj.OnNext(DimmerPlaybackState.Ended);
             CurrentPosSubj.OnNext(0);
+            IsPlayingSubj.OnNext(false);
+            IsPlayedCompletely = true;
 
+            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
         }
     }
 
@@ -192,23 +173,23 @@ public class BaseAppFlow : IDisposable
     {
         IsPlayingSubj.OnNext(e.IsPlaying);
 
-        if (IsPlayingSubj.Value)
-        {
-            StartPositionTimer();
-        }
-        else
-        {
-            StopPositionTimer();
-        }
     }
     private void AudioService_PlayNext(object? sender, EventArgs e)
     {
-
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        IsPlayedCompletely = false;
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
     }
 
     private void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
-
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        IsPlayedCompletely = false;
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
     }
     public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, double? position = null)
     {
@@ -231,6 +212,7 @@ public class BaseAppFlow : IDisposable
     {
         try
         {
+            Db = RealmFactory.GetRealmInstance();
             model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PDL");
             DbUtils.AddOrUpdateSingleRealmItem(Db, model, link => link.LocalDeviceId == model.LocalDeviceId);
         }
@@ -266,7 +248,7 @@ public class BaseAppFlow : IDisposable
     {
         Debug.WriteLine(Db.GetType());
     }
-    private bool _disposed = false;
+    private bool _disposed;
 
     // Other members...
 
@@ -277,7 +259,7 @@ public class BaseAppFlow : IDisposable
             if (disposing)
             {
                 // Dispose managed resources.
-                PositionTimer?.Dispose();
+                
                 IsPlayingSubj?.Dispose();
             }
 

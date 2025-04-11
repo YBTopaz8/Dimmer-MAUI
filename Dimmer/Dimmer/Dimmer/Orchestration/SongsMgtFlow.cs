@@ -24,7 +24,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     private void SubscribeToAppCurrentState()
     {
         CurrentAppState.DistinctUntilChanged()
-            .Subscribe(state =>
+            .Subscribe(async state =>
             {
                 switch (state)
                 {
@@ -35,7 +35,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
                         break;
                     case DimmerPlaybackState.Ended:
-                        PlayNextSong();
+                        await PlayNextSong();
                         break;
                     default:
                         break;
@@ -51,7 +51,7 @@ public partial class SongsMgtFlow : BaseAppFlow
    
 
 
-    public bool PlaySelectedSongsOutsideApp(List<string> filePaths)
+    public async Task<bool> PlaySelectedSongsOutsideApp(List<string> filePaths)
     {
         
         if (filePaths == null || filePaths.Count < 1)
@@ -119,21 +119,24 @@ public partial class SongsMgtFlow : BaseAppFlow
             }
         }
 
-        ReplaceAndPlayQueue(allSongs[0], allSongs, PlaybackSource.External);
+        await ReplaceAndPlayQueue(allSongs[0], allSongs, PlaybackSource.External);
         
         return true;
     }
 
 
-    public bool PlaySelectedSongsOutsideAppDebounced(List<string> filePaths)
+    public async Task<bool> PlaySelectedSongsOutsideAppDebounced(List<string> filePaths)
     {
         // Cancel previous execution if still pending
-        _debounceTokenSource?.Cancel();
-        _debounceTokenSource = new CancellationTokenSource();
+        if (_debounceTokenSource is not null)
+        {
+            await _debounceTokenSource.CancelAsync();
+            _debounceTokenSource.Dispose();
+        }
 
         try
         {
-            return PlaySelectedSongsOutsideApp(filePaths);
+            return await PlaySelectedSongsOutsideApp(filePaths);
         }
         catch (TaskCanceledException)
         {
@@ -187,7 +190,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
 
-    public async Task<bool> PauseResumeSong(double currentPosition, bool isPause = false)
+    public async Task<bool> PauseResumeSongAsync(double currentPosition, bool isPause = false)
     {
 
         if (isPause)
@@ -197,9 +200,9 @@ public partial class SongsMgtFlow : BaseAppFlow
         }
         else
         {
-            byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-             await AudioService.InitializeAsync(CurrentlyPlayingSong);
+            
             await AudioService.SeekAsync(currentPosition);
+            await AudioService.PlayAsync();
             base.ResumeSong();
         }
         return true;
@@ -249,10 +252,10 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     #endregion
 
-    int CurrentIndexInMasterList = 0;
+    int CurrentIndexInMasterList;
     private int repeatCountMax;
 
-    public void PlayNextSong(bool isUserInitiated = false)
+    public async Task PlayNextSong(bool isUserInitiated = false)
     {
         
 
@@ -264,7 +267,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         switch (CurrentRepeatMode)
         {
             case RepeatMode.One: // Repeat One
-                PlaySongInAudioService();
+                await PlaySongInAudioService();
                 return;
             case RepeatMode.Custom: // Custom Repeat
                 if (CurrentRepeatCount < repeatCountMax) // still on repeat one for same CurrentlyPlayingSong (later can be same PL/album etc)
@@ -291,7 +294,7 @@ public partial class SongsMgtFlow : BaseAppFlow
             CurrentlyPlayingSongDB = AllSongs.Value[currentindex + 1];
             CurrentlyPlayingSong = Mapper.Map<SongModelView>(CurrentlyPlayingSongDB);
             CurrentIndexInMasterList = currentindex + 1;
-            PlaySongInAudioService();
+            await PlaySongInAudioService();
 
         }
         else
@@ -300,13 +303,13 @@ public partial class SongsMgtFlow : BaseAppFlow
             {
                 CurrentlyPlayingSongDB = AllSongs.Value[0];
                 CurrentIndexInMasterList = 0;
-                PlaySongInAudioService();
+                await PlaySongInAudioService();
             }
         }
         // If not repeat all and at the end, do nothing or stop playback
     }
 
-    int prevCounter = 0;
+    int prevCounter;
     public void PlayPreviousSong(bool isUserInitiated = true)
     {
         if (CurrentlyPlayingSong == null)
@@ -329,7 +332,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         }
         prevCounter++;
     }
-    double CurrentPercentage = 0;
+    double CurrentPercentage;
 
     public void ChangeVolume(double newVolumeOver1)
     {
@@ -399,17 +402,18 @@ public partial class SongsMgtFlow : BaseAppFlow
                 return 0;
             }
         }
-        set; } = 0;
+        set;
+    }
     #endregion
 
 
 
 
-    public void ReplaceAndPlayQueue(SongModelView currentlyPlayingSong, List<SongModelView> songs, PlaybackSource source)
+    public async Task ReplaceAndPlayQueue(SongModelView currentlyPlayingSong, List<SongModelView> songs, PlaybackSource source)
     {
         CurrentlyPlayingSong = currentlyPlayingSong;
         base.PlaySong();
-        PlaySongInAudioService();
+        await PlaySongInAudioService();
 
         switch (source)
         {

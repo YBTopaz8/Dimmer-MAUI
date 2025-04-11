@@ -1,4 +1,5 @@
 ﻿using Dimmer.Interfaces;
+using System.Threading.Tasks;
 
 namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
@@ -43,10 +44,7 @@ public partial class BaseViewModel : ObservableObject
 
     partial void OnMasterSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
     {
-        if (newValue is null || newValue.Count<1)
-        {
-
-        }
+        
     }
     void SubscribeToCurrentPosition()
     {
@@ -57,11 +55,18 @@ public partial class BaseViewModel : ObservableObject
             CurrentPositionPercentage = (position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds);
         }); 
     }
+    public void SubscribeToCurrentVolume()
+    {
+        songsMgtFlow.CurrentSongVolume.Subscribe(volume =>
+        {
+            VolumeLevel = volume;
+        });
+    }
 
     public void SubscribeToIsPlaying()
     {
         songsMgtFlow.IsPlaying.DistinctUntilChanged()
-        .Subscribe(isPlaying =>
+        .Subscribe(async isPlaying =>
         {
             IsPlaying = isPlaying;
             switch (isPlaying)
@@ -73,7 +78,7 @@ public partial class BaseViewModel : ObservableObject
                     IsPlaying = false;
                     if (songsMgtFlow.IsPlayedCompletely)
                     {
-                        PlayNext();
+                        await PlayNext();
                     }
                     break;
             }
@@ -87,10 +92,9 @@ public partial class BaseViewModel : ObservableObject
         BaseAppFlow.CurrentSong
             .DistinctUntilChanged()
             .Subscribe(song =>
-        {
-            var e = mapper.Map<SongModelView>(song);
-            //todo load/reload playlist and mostly stats
-        });
+            {
+                TemporarilyPickedSong = mapper.Map<SongModelView>(song);            
+            });
     }
     private void SubscribeToMasterSongs()
     {
@@ -109,7 +113,7 @@ public partial class BaseViewModel : ObservableObject
         MySelectedSong = song;        
     }
     #region playback controls 
-    public void PlayPrevious()
+    public async Task PlayPrevious()
     {
         if (IsShuffle)
         {
@@ -123,11 +127,11 @@ public partial class BaseViewModel : ObservableObject
                     newIndex = random.Next(0, MasterSongs.Count);
                 }
                 var song = MasterSongs[newIndex];
-                PlaySong(song);
+                await PlaySong(song);
             }
             else
             {
-                PlaySong(TemporarilyPickedSong!);
+               await PlaySong(TemporarilyPickedSong!);
             }
         }
         else
@@ -146,11 +150,11 @@ public partial class BaseViewModel : ObservableObject
             var song = MasterSongs[index];
             if (song != null)
             {
-                PlaySong(song);
+                await PlaySong(song);
             }
         }
     }
-     public void PlayNext()
+     public async Task PlayNext()
     {
         if (IsShuffle)
         {
@@ -164,11 +168,11 @@ public partial class BaseViewModel : ObservableObject
                     newIndex = random.Next(0, MasterSongs.Count);
                 }
                 var song = MasterSongs[newIndex];
-                PlaySong(song);
+                await PlaySong(song);
             }
             else
             {
-                PlaySong(TemporarilyPickedSong!);
+                await PlaySong(TemporarilyPickedSong!);
             }
         }
         else
@@ -178,12 +182,12 @@ public partial class BaseViewModel : ObservableObject
             var song = MasterSongs[index];
             if (song != null)
             {
-                PlaySong(song);
+              await PlaySong(song);
             }
         }
     }
 
-    public void PlaySong(SongModelView song)
+    public async Task PlaySong(SongModelView song)
     {
         if(TemporarilyPickedSong is not null)
         {
@@ -192,35 +196,37 @@ public partial class BaseViewModel : ObservableObject
         songsMgtFlow.CurrentlyPlayingSong = song;
         TemporarilyPickedSong = song;     
         
-        songsMgtFlow.PlaySongInAudioService();
+       await songsMgtFlow.PlaySongInAudioService();
     }
 
-    public void PlayPauseSong()
+    public async Task PlayPauseSong()
     {
         if ( IsPlaying)
         {
 
-            songsMgtFlow.PauseResumeSong(CurrentPositionInSeconds, true);
+           await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, true);
+           
             
         }
         else
         {
             if (CurrentPositionPercentage >= 0.98)
             {
-                PlaySong(TemporarilyPickedSong);
+                await PlaySong(TemporarilyPickedSong);
                 return;
             }
-            ResumeSong();
+            await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, false);
         }
     }
 
-    public void PauseSong()
+    public async Task PauseSong()
     {
-        //CurrentPositionInSeconds = PlayBackService.CurrentPosition;
+        await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds);
+
     }
-        public void ResumeSong()
+    public async Task ResumeSong()
     {
-        songsMgtFlow.PauseResumeSong(CurrentPositionInSeconds);
+        await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds);
     }
 
 
@@ -237,14 +243,7 @@ public partial class BaseViewModel : ObservableObject
     }
     public void SeekSongPosition(double currPosPer = 0)
     {
-        double newPos = 0;
-        if (currPosPer !=0)
-        {
-            newPos = songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds*currPosPer;
-            
-
-        }
-        songsMgtFlow.SeekTo(newPos);
+        songsMgtFlow.SeekTo(currPosPer);
     }
 
     public void ToggleRepeatMode()
@@ -267,7 +266,7 @@ public partial class BaseViewModel : ObservableObject
     public void SetVolume(double vol)
     {
         songsMgtFlow.ChangeVolume(vol);
-        VolumeLevel = songsMgtFlow.VolumeLevel*100;
+        VolumeLevel = songsMgtFlow.VolumeLevel;
     }
 }
 

@@ -32,8 +32,6 @@ public static class MauiProgram
             {
                 wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
-                    //HomePageVM homeVM = IPlatformApplication.Current!.Services.GetService<HomePageVM>()!;
-
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
 
                     if (nativeWindowHandle != IntPtr.Zero)
@@ -62,9 +60,6 @@ public static class MauiProgram
                         AppUtils.UserScreenHeight=(ApplicationProps.DisplayArea.OuterBounds.Height);
                         Debug.WriteLine(ApplicationProps.DisplayArea.DisplayId.Value);
                         
-
-
-                        //OLP.SetBorderAndTitleBar(false, false);
                         winuiAppWindow.Closing += async (s, e) =>
                         {
                             if (!PlatUtils.ShowCloseConfirmationPopUp.ShowCloseConfirmation)
@@ -78,8 +73,6 @@ public static class MauiProgram
                             {
                                 if (win.Title != "MyWin")
                                 {
-                                    //await homeVM.ExitingApp();
-
                                     bool result = await win!.Page!.DisplayAlert(
                                         "Confirm Action",
                                         "You sure want to close app?",

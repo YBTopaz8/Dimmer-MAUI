@@ -15,8 +15,7 @@ public sealed partial class TestPage : Window
     public TestPage(HomeViewModel viewModel)
     {
         this.InitializeComponent();
-        MyViewModel=viewModel;
-        //MyTableView.ScrollIntoView(MyViewModel.TemporarilyPickedSong);
+        MyViewModel=viewModel;        
     }
 
     public HomeViewModel MyViewModel { get; }

@@ -2,7 +2,7 @@
 
 public partial class MainPage : ContentPage
 {
-    int count = 0;
+    int count;
 
     public MainPage(BaseAppFlow baseAppFlow)
     {

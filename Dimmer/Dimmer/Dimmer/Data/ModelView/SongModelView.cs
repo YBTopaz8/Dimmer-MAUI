@@ -34,7 +34,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial byte[] ImageBytes { get; set; } 
+    public partial byte[]? ImageBytes { get; set; } 
     [ObservableProperty]
     public partial string CoverImagePath { get; set; } = "musicnoteslider.png";
     [ObservableProperty]

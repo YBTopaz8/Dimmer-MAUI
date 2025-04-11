@@ -6,6 +6,7 @@ namespace Dimmer.WinUI.DimmerAudio;
 
 using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.Events; // Assuming PlaybackEventArgs, ErrorEventArgs are here
+using Microsoft.Maui.Controls;
 using Microsoft.UI.Dispatching; // For potential UI thread marshaling
 using System;
 using System.Collections.Generic;
@@ -23,52 +24,6 @@ using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using MediaPlayer = Windows.Media.Playback.MediaPlayer;
-
-// --- Define EventArgs if not already present ---
-// namespace Dimmer.Utilities.Events
-// {
-//     public class PlaybackEventArgs : EventArgs
-//     {
-//         public bool IsPlaying { get; }
-//         public PlaybackState State { get; } // More specific state
-//         public double CurrentPosition { get; }
-//         public double Duration { get; }
-//
-//         public PlaybackEventArgs(bool isPlaying, PlaybackState state, double currentPosition, double duration)
-//         {
-//             IsPlaying = isPlaying;
-//             State = state;
-//             CurrentPosition = currentPosition;
-//             Duration = duration;
-//         }
-//     }
-//
-//     // Define PlaybackState enum if needed, mirroring DimmerPlaybackState but potentially simpler
-//     public enum PlaybackState { Stopped, Paused, Playing, Buffering, Opening, Failed, Ended }
-//
-//     public class ErrorEventArgs : EventArgs
-//     {
-//         public string Message { get; }
-//         public Exception? Exception { get; }
-//         public MediaPlayerError? PlayerError { get; } // Specific player error code
-//
-//         public ErrorEventArgs(string message, Exception? exception = null, MediaPlayerError? playerError = null)
-//         {
-//             Message = message;
-//             Exception = exception;
-//             PlayerError = playerError;
-//         }
-//     }
-//
-//     // Example for AudioOutputDevice - adapt as needed
-//     public class AudioOutputDevice
-//     {
-//         public string Id { get; set; } = string.Empty;
-//         public string Name { get; set; } = string.Empty;
-//     }
-// }
-// ---------------------------------------------
-
 
 
 /// <summary>
@@ -88,8 +43,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private readonly DispatcherQueue _dispatcherQueue; // For UI thread safety if needed
     private CancellationTokenSource? _initializationCts;
     private SongModelView? _currentTrackMetadata;
-    private bool _isDisposed = false;
-    private string? _currentAudioDeviceId = null; // Store the ID of the explicitly selected output device
+    private bool _isDisposed;
+    private string? _currentAudioDeviceId; // Store the ID of the explicitly selected output device
 
     public AudioService()
     {
@@ -124,7 +79,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _mediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
         _mediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSession_NaturalDurationChanged;
         _mediaPlayer.PlaybackSession.SeekCompleted += PlaybackSession_SeekCompleted; // Useful for knowing when seek is done
-
+        _mediaPlayer.PlaybackSession.MediaPlayer.VolumeChanged +=MediaPlayer_VolumeChanged;
         // SMTC Command Handlers
         _mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
         _mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
@@ -133,8 +88,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Add more command handlers if needed (e.g., Shuffle, Repeat)
 
         // Enabling rules (can be adjusted based on playlist logic)
-        _mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Auto;
-        _mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Auto;
+        _mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+        _mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+    }
+
+    private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
+    {
+        //throw new NotImplementedException();
     }
 
     private void UnsubscribeFromPlayerEvents()
@@ -187,8 +147,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
 
     // Additional, more granular events
-    public event EventHandler<DimmerPlaybackState>? PlaybackStateChanged; // More detailed state
-    public event EventHandler<ErrorEventArgs>? ErrorOccurred;
+    public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged; // More detailed state
+    public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
     public event EventHandler<double>? DurationChanged;
     public event EventHandler<double>? PositionChanged; // Fired frequently
     public event EventHandler<double>? SeekCompleted; // Fired after seek finishes
@@ -229,19 +189,15 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
-    private double _currentPosition;
     public double CurrentPosition
     {
-        get => _currentPosition;
+        get;
         private set
         {
             // Reduce noise by checking for significant change
-            if (Math.Abs(_currentPosition - value) > 0.1 || value == 0 || value == Duration)
+            if ((Math.Abs(field - value) > 0.1 || Math.Abs(value) < 0.0001 || Math.Abs(value - Duration) < 0.0001)&&SetProperty(ref field, value))
             {
-                if (SetProperty(ref _currentPosition, value))
-                {
-                    PositionChanged?.Invoke(this, value);
-                }
+                PositionChanged?.Invoke(this, value);
             }
         }
     }
@@ -249,7 +205,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private double _volume = 1.0;
     public double Volume
     {
-        get => _mediaPlayer.Volume; // Directly get from player
+        get
+        {
+            return _mediaPlayer.Volume; // Directly get from player
+        }
+
         set
         {
             var clampedValue = Math.Clamp(value, 0.0, 1.0);
@@ -277,12 +237,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
 
     // Balance requires AudioGraph API, not directly supported by MediaPlayer
-    private double _balance = 0;
+    private double _balance;
     public double Balance
     {
         get => _balance;
-        set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet
-        // TODO: Implement balance using AudioGraph if needed
+        set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet        
     }
 
     public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
@@ -302,7 +261,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         ArgumentNullException.ThrowIfNull(metadata);
 
         // Cancel previous initialization if any
-        _initializationCts?.Cancel();
+        if (_initializationCts is not null)
+        {
+            await _initializationCts.CancelAsync();
+        }
         _initializationCts = new CancellationTokenSource();
         var token = _initializationCts.Token;
 
@@ -503,8 +465,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                     // Note: Network streams might require background media capabilities in Package.appxmanifest
                     mediaSource = MediaSource.CreateFromUri(uri);
                     Debug.WriteLine($"[AudioService] Created MediaSource directly from URI: {uri}");
-                    // Guess MIME type for non-file URIs if needed, though often not required
-                    // mimeType = GetMimeType(media.FilePath);
+                    
                 }
             }
             catch (FileNotFoundException fnfEx)
@@ -537,31 +498,46 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         // --- Create MediaPlaybackItem and add Metadata ---
         var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
-        // ... (rest of the metadata/thumbnail logic) ...
+        var props = mediaPlaybackItem.GetDisplayProperties(); // Get the properties object
+
+        props.Type = MediaPlaybackType.Music; // Tell the system it's music
+
+        // Set Music Specific Properties from your SongModelView
+        props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title"; // Use Title, fallback to FileName, then default
+        props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
+        props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
+        
+        // Handle Thumbnail (if image bytes are available in your model)
+        if (media.ImageBytes != null && media.ImageBytes.Length > 0)
+        {
+            try
+            {
+                // Create a stream for the thumbnail
+                using var imageStream = new InMemoryRandomAccessStream();
+                using (var writer = new DataWriter(imageStream.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(media.ImageBytes);
+                    await writer.StoreAsync().AsTask(token); // Use await and token
+                    await writer.FlushAsync().AsTask(token); // Ensure data is written
+                }
+                token.ThrowIfCancellationRequested(); // Check cancellation
+                imageStream.Seek(0); // Reset stream position
+
+                // Create the reference and assign it
+                props.Thumbnail = RandomAccessStreamReference.CreateFromStream(imageStream);
+            }
+            catch (OperationCanceledException) { throw; } // Re-throw cancellation
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AudioService] Error creating thumbnail stream: {ex.Message}");
+                // Non-critical error, continue without thumbnail
+            }
+        }
+
+        // Apply the configured properties back to the item!
+        mediaPlaybackItem.ApplyDisplayProperties(props);
         return mediaPlaybackItem;
 
-    }
-
-    private string GetMimeType(string? filePath)
-    {
-        if (string.IsNullOrEmpty(filePath))
-            return "application/octet-stream";
-
-        // Use a more robust method if possible (e.g., registry lookup or a library)
-        // Basic extension mapping:
-        return Path.GetExtension(filePath)?.ToLowerInvariant() switch
-        {
-            ".mp3" => "audio/mpeg",
-            ".m4a" => "audio/mp4",
-            ".aac" => "audio/aac",
-            ".mp4" => "audio/mp4", // Can contain audio
-            ".wav" => "audio/wav",
-            ".wma" => "audio/x-ms-wma",
-            ".ogg" => "audio/ogg",
-            ".flac" => "audio/flac",
-            ".opus" => "audio/opus",
-            _ => "application/octet-stream", // Generic fallback
-        };
     }
 
     #endregion
@@ -608,8 +584,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Duration = sender.PlaybackSession.NaturalDuration.TotalSeconds;
         CurrentPosition = sender.PlaybackSession.Position.TotalSeconds; // Get current pos
 
-        // State might already be Playing/Paused depending on timing, rely on PlaybackStateChanged
-        // UpdatePlaybackState(ConvertPlaybackState(sender.PlaybackSession.PlaybackState));
     }
 
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
@@ -620,11 +594,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         UpdatePlaybackState(DimmerPlaybackState.Stopped); // Set specific ended state
 
         // Raise the specific PlayEnded event (as per interface)
-        var eventArgs = new PlaybackEventArgs() { EventType=PlaybackEventType.StoppedAuto };
+        var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.Ended };
         _playEnded?.Invoke(this, eventArgs);
 
-        // Optional: Automatically trigger next track logic
-        // NextTrackRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
@@ -813,40 +785,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             OnPropertyChanged(nameof(IsPlaying));
 
             // Raise the specific PlaybackStateChanged event
-            PlaybackStateChanged?.Invoke(this, newState);
+
+            var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  newState };
+            PlaybackStateChanged?.Invoke(this, args);
 
             // Raise the general IsPlayingChanged event (from interface)
             RaiseIsPlayingChanged();
 
-            // Update SMTC state
-            UpdateSmtcState();
-        }
-    }
-
-    private void UpdateSmtcState()
-    {
-        var session = _mediaPlayer.PlaybackSession;
-        if (session == null)
-            return;
-
-        var updater = _mediaPlayer.SystemMediaTransportControls.DisplayUpdater;
-
-        // This updates the state shown in the SMTC (e.g., Play/Pause button icon)
-        // It should align with the PlaybackSession.PlaybackState
-        // No direct call needed here as MediaPlayer usually handles this link internally.
-        // However, ensure metadata is updated if needed:
-
-        if (_currentTrackMetadata != null && updater.Type == MediaPlaybackType.Music)
-        {
-            // Re-apply metadata if needed, though usually done on Initialize
-            // updater.MusicProperties.Title = _currentTrackMetadata.Title ?? "Unknown Title";
-            // updater.MusicProperties.Artist = _currentTrackMetadata.ArtistName ?? "Unknown Artist";
-            // updater.Update(); // Call if you manually change properties
         }
     }
 
     // Converts the Windows enum to our simpler enum
-    private DimmerPlaybackState ConvertPlaybackState(MediaPlaybackState state)
+    private static DimmerPlaybackState ConvertPlaybackState(MediaPlaybackState state)
     {
         switch (state)
         {
@@ -869,9 +819,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void RaiseIsPlayingChanged()
     {
-        // Use current state to construct the event args
-        //var args = new PlaybackEventArgs(){IsPlaying= IsPlaying,  CurrentPlaybackState, CurrentPosition, Duration);
-        PlaybackEventType eventType = IsPlaying ? PlaybackEventType.Play : PlaybackEventType.Stopped;
+        // Use current state to construct the event args        
+        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.Stopped;
       
         var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  eventType };
         _isPlayingChanged?.Invoke(this, args);
@@ -881,89 +830,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         // Log the error details
         Debug.WriteLine($"[AudioService ERROR] {message} | Exception: {exception?.Message} | PlayerError: {playerError}");
-        ErrorOccurred?.Invoke(this, new ErrorEventArgs( exception));
 
-        // Optional: Show user alert via MAUI main thread
-        // _dispatcherQueue.TryEnqueue(() =>
-        // {
-        //     MauiApplication.Current?.MainPage?.DisplayAlert("Audio Error", message, "OK");
-        // });
+        var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  DimmerPlaybackState.Error };
+        ErrorOccurred?.Invoke(this, args);
     }
 
 
     #endregion
 
-    #region Legacy/Compatibility Methods
-
-    // Implement older synchronous methods if strictly needed for compatibility,
-    // but encourage use of Async versions.
-
-    public void Initialize(SongModelView? media, byte[]? ImageBytes)
-    {
-        // Note: ImageBytes parameter is redundant if it's part of SongModelView
-        if (media == null)
-        {
-            // Handle null media case, perhaps by stopping?
-            _ = StopAsync();
-            return;
-        }
-        // Update ImageBytes in the model if provided separately
-        if (media.ImageBytes == null && ImageBytes != null)
-        {
-            media.ImageBytes = ImageBytes;
-        }
-
-        // Call the async version and wait (not recommended on UI thread)
-        InitializeAsync(media).ConfigureAwait(false).GetAwaiter().GetResult();
-    }
-
-    public void Play(bool s) // Parameter 's' seems unused/unclear
-    {
-        _ = PlayAsync(); // Just call the async version
-    }
-
-    public void Pause()
-    {
-        _ = PauseAsync();
-    }
-
-    public void Resume(double positionInSeconds)
-    {
-        // Combine Seek and Play
-        Task.Run(async () =>
-        {
-            await SeekAsync(positionInSeconds);
-            await PlayAsync();
-        }).ConfigureAwait(false); // Run async off thread if called from UI thread
-    }
-
-    public void SetCurrentTime(double positionInSec)
-    {
-        _ = SeekAsync(positionInSec);
-    }
-
-    // --- Methods from interface requiring AudioGraph ---
-    public void ApplyEqualizerSettings(float[] bands)
-    {
-        Debug.WriteLine("[AudioService] ApplyEqualizerSettings - Not Implemented (Requires AudioGraph).");
-        // throw new NotImplementedException("Equalizer requires AudioGraph API.");
-    }
-
-    public void ApplyEqualizerPreset(EqualizerPresetName presetName)
-    {
-        Debug.WriteLine("[AudioService] ApplyEqualizerPreset - Not Implemented (Requires AudioGraph).");
-        // throw new NotImplementedException("Equalizer presets require AudioGraph API.");
-    }
-
-    public Task PreloadNextTrackAsync(SongModelView? nextTrackMetadata)
-    {
-        // MediaPlayer doesn't directly support preloading arbitrary tracks.
-        // Using MediaPlaybackList is the standard way to achieve pre-buffering/gapless.
-        Debug.WriteLine("[AudioService] PreloadNextTrackAsync - Not Directly Supported (Consider MediaPlaybackList).");
-        return Task.CompletedTask;
-    }
-
-    #endregion
 
     #region INotifyPropertyChanged
 
@@ -979,28 +853,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         });
-        return true;
-    }
-
-    // Overload for cases where dispatcher is not strictly needed (e.g., internal updates)
-    // or when the property name is different from the caller member name.
-    private bool SetProperty<T>(ref T backingStore, T value, string propertyName, bool useDispatcher = true)
-    {
-        if (EqualityComparer<T>.Default.Equals(backingStore, value))
-            return false;
-        backingStore = value;
-        if (useDispatcher)
-        {
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            });
-        }
-        else
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         return true;
     }
 
@@ -1039,7 +891,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         MediaDevice.DefaultAudioRenderDeviceChanged -= MediaDevice_DefaultAudioRenderDeviceChanged;
 
         // Cancel any ongoing initialization
-        _initializationCts?.Cancel();
+        if (_initializationCts is not null)
+        {
+            await _initializationCts.CancelAsync();
+        }
         _initializationCts?.Dispose();
         _initializationCts = null;
 
@@ -1069,24 +924,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         Debug.WriteLine("[AudioService] Asynchronous disposal complete.");
 
-        // Suppress finalization
-        GC.SuppressFinalize(this);
 
         await Task.CompletedTask; // Return completed task as cleanup is mostly synchronous
     }
 
-    // Optional Finalizer (safeguard, but rely on DisposeAsync)
-    // ~AudioService()
-    // {
-    //     Debug.WriteLine("[AudioService] Finalizer called - DisposeAsync was likely missed!");
-    //     // Don't call async methods here. Perform minimal sync cleanup if absolutely needed.
-    //     if (!_isDisposed)
-    //     {
-    //         // Unsubscribe sync events? Difficult to do reliably here.
-    //         // Best effort: Try to dispose the player if not already done.
-    //         _mediaPlayer?.Dispose();
-    //     }
-    // }
 
     #endregion
 

@@ -40,7 +40,6 @@ public partial class HomeViewModel : BaseViewModel
     {
         
         _mapper = mapper;
-        //SubscribeToCurrentlyPlayingSong();
         //SubscribeToIsPlaying();
         //SubscribeToCurrentPosition();
         DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);

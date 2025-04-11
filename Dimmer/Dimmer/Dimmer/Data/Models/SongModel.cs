@@ -97,7 +97,7 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The rating.
     /// </value>
-    public int Rating { get; set; } = 0;
+    public int Rating { get; set; }
     /// <summary>
     /// Gets or sets a value indicating whether this instance has lyrics.
     /// </summary>

@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Utilities;
+﻿using System.Diagnostics;
+
+namespace Dimmer.Utilities;
 public static class DbUtils
 {
 
@@ -28,6 +30,7 @@ public static class DbUtils
                 if (existsCondition is null)
                 {
                     db.Add(item);
+                    Debug.WriteLine("added");
                     return;
                 }
                 if (!db.All<T>().Any(existsCondition))
@@ -35,11 +38,12 @@ public static class DbUtils
                     updateAction?.Invoke(item); // Perform additional updates if needed
 
                     db.Add(item, update:true);
+                    Debug.WriteLine("Updated");
                 }
                 else
                 {
                     db.Add(item, update: true); // Update existing item
-
+                    Debug.WriteLine("Updated2");
                 }
             });
         }
@@ -48,7 +52,7 @@ public static class DbUtils
             db.Write(() =>
             {
                 db.Add(item, update: true); // Update existing item
-
+                Debug.WriteLine("Updated crash");
             });
             Debug.WriteLine(ex.Message);
         }

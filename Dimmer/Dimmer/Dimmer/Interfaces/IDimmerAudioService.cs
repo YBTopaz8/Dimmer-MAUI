@@ -4,7 +4,8 @@ namespace Dimmer.Interfaces;
 public interface IDimmerAudioService
 {
 
-        public static IDimmerAudioService Current;
+
+    public static IDimmerAudioService Current;
 
     
     ///<Summary>
@@ -31,39 +32,33 @@ public interface IDimmerAudioService
     ///</Summary>
     bool IsPlaying { get; }
 
-        ///<Summary>
-        /// Gets the current position of audio playback in seconds.
-        ///</Summary>
-        double CurrentPosition { get; }
-
-        ///<Summary>
-        /// Gets the length of audio in seconds.
-        ///</Summary>
-        double Duration { get; }
-
-        ///<Summary>
-        /// Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
-        ///</Summary>
-        double Volume { get; set; }
-    //deviceinfo? CurrentAudioOutputDevice { get; }
+    ///<Summary>
+    /// Gets the current position of audio playback in seconds.
+    ///</Summary>
+    double CurrentPosition { get; }
 
     ///<Summary>
-    /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
+    /// Gets the length of audio in seconds.
     ///</Summary>
+    double Duration { get; }
 
-    //double Balance { get; set; }
+    ///<Summary>
+    /// Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
+    ///</Summary>
+    double Volume { get; set; }
 
-        event EventHandler<PlaybackEventArgs> IsPlayingChanged;
-        event EventHandler<PlaybackEventArgs> PlayEnded;
-        event EventHandler PlayPrevious;
-        event EventHandler PlayNext;
+    event EventHandler<PlaybackEventArgs> IsPlayingChanged;
+    event EventHandler<PlaybackEventArgs> PlayEnded;
+    event EventHandler PlayPrevious;
+    event EventHandler PlayNext;
+    event EventHandler<double>? PositionChanged;
+    event EventHandler<double>? DurationChanged;
+    event EventHandler<double>? SeekCompleted;
+    event EventHandler<PlaybackEventArgs>? PlaybackStateChanged;
+    event EventHandler<PlaybackEventArgs>? ErrorOccurred;
 
-        //event EventHandler<long> IsSeekedFromNotificationBar;
-
-    ValueTask DisposeAsync();    Task PreloadNextTrackAsync(SongModelView? nextTrackMetadata);
-    void ApplyEqualizerSettings(float[] bands);
+    ValueTask DisposeAsync();   
     
-    //void ApplyEqualizerPreset(Dimmer.WinUI.DimmerAudio.EqualizerPresetName presetName);
 }
 
 public class AudioOutputDevice

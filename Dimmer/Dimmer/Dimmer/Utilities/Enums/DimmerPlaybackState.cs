@@ -27,5 +27,6 @@ public enum DimmerPlaybackState
     Buffering,
     DoneScanningData,
     PlayCompleted,
-
+    PlayPrevious,
+    PlayNext,
 }

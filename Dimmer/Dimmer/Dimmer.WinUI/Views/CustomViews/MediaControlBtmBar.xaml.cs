@@ -3,6 +3,7 @@
 using Microsoft.UI.Xaml.Input;
 using Syncfusion.Maui.Toolkit.EffectsView;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views.CustomViews;
 
@@ -31,7 +32,7 @@ public partial class MediaControlBtmBar : ContentView
 
     }
 
-    private bool _isThrottling = false;
+    private bool _isThrottling;
     private readonly int throttleDelay = 300; // Time in milliseconds
 
     private async void Slider_DragCompleted(object sender, EventArgs e)
@@ -73,12 +74,6 @@ public partial class MediaControlBtmBar : ContentView
     }
     private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
-        View thiss = this as View;
-        View? par = thiss.Parent as View;
-      
-
-
-        //await MyViewModel.ShowHideContextMenuFromBtmBar(thiss);
     }
 
     private void SfEffectsView_Loaded(object sender, EventArgs e)
@@ -129,19 +124,19 @@ public partial class MediaControlBtmBar : ContentView
 
     }
 
-    private void PlayPrevious_Clicked(object sender, EventArgs e)
+    private async void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayPrevious();
+        await MyViewModel.PlayPrevious();
     }
 
-    private void PlayNext_Clicked(object sender, EventArgs e)
+    private async void PlayNext_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayNext();
+       await MyViewModel.PlayNext();
     }
 
-    private void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
+    private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.PlayPauseSong();
+        await MyViewModel.PlayPauseSong();
     }
 
     private void ShuffleBtn_Clicked(object sender, EventArgs e)
