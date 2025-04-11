@@ -12,7 +12,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
-    public partial int CurrentPositionPercentage { get; set; }
+    public partial double CurrentPositionPercentage { get; set; }
     [ObservableProperty]
     public partial RepeatMode RepeatMode { get; set; }
 
@@ -38,6 +38,7 @@ public partial class BaseViewModel : ObservableObject
         SubscribeToCurrentlyPlayingSong();
         SubscribeToIsPlaying();
         SubscribeToCurrentPosition();
+        CurrentPositionPercentage = 0;
     }
 
     partial void OnMasterSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
@@ -53,7 +54,7 @@ public partial class BaseViewModel : ObservableObject
         {
             CurrentPositionInSeconds = position;
 
-            CurrentPositionPercentage = (int)(position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds);
+            CurrentPositionPercentage = (position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds);
         }); 
     }
 

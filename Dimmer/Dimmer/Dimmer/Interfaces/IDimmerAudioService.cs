@@ -6,31 +6,25 @@ public interface IDimmerAudioService
 
         public static IDimmerAudioService Current;
 
-        void Initialize(SongModelView? media = null, byte[]? ImageBytes = null);
+    
+    ///<Summary>
+    /// Pauses the currently initialized song.
+    ///</Summary>
+    Task PlayAsync();
 
+    ///<Summary>
+    /// Pauses the currently initialized song.
+    ///</Summary>  
+    Task PauseAsync();
+    Task StopAsync();
 
-        ///<Summary>
-        /// Pauses the currently initialized song.
-        ///</Summary>
-        void Play(bool IsFromPreviousOrNext = false);
+    ///<Summary>
+    /// Set AND PLAY the current playback position (in seconds).
+    ///</Summary>    
+    Task SeekAsync(double positionSeconds);
+    Task InitializeAsync(SongModelView metadata);
 
-        ///<Summary>
-        /// Pauses the currently initialized song.
-        ///</Summary>  
-        void Pause();
-
-        ///<Summary>
-        /// Resumes the currently initialized song.
-        ///</Summary>   
-        void Resume(double positionInSeconds);
-
-        ///<Summary>
-        /// Set the current playback position (in seconds).
-        ///</Summary>    
-        void SetCurrentTime(double value);
-
-        void SetCurrentMedia(SongModelView media);
-
+    Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync();
 
     ///<Summary>
     /// Gets a value indicating whether the currently loaded audio file is playing.
@@ -51,19 +45,29 @@ public interface IDimmerAudioService
         /// Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
         ///</Summary>
         double Volume { get; set; }
+    //deviceinfo? CurrentAudioOutputDevice { get; }
 
-        ///<Summary>
-        /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
-        ///</Summary>
+    ///<Summary>
+    /// Gets or sets the balance left/right: -1 is 100% left : 0% right, 1 is 100% right : 0% left, 0 is equal volume left/right.
+    ///</Summary>
 
-        //double Balance { get; set; }
+    //double Balance { get; set; }
 
         event EventHandler<PlaybackEventArgs> IsPlayingChanged;
         event EventHandler<PlaybackEventArgs> PlayEnded;
         event EventHandler PlayPrevious;
         event EventHandler PlayNext;
 
-        event EventHandler<long> IsSeekedFromNotificationBar;
-    event EventHandler? PlayStopAndShowWindow;
+        //event EventHandler<long> IsSeekedFromNotificationBar;
+
+    ValueTask DisposeAsync();    Task PreloadNextTrackAsync(SongModelView? nextTrackMetadata);
+    void ApplyEqualizerSettings(float[] bands);
+    
+    //void ApplyEqualizerPreset(Dimmer.WinUI.DimmerAudio.EqualizerPresetName presetName);
 }
 
+public class AudioOutputDevice
+{
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+}

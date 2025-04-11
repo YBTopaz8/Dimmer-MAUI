@@ -5,13 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.Utilities.Enums;
-public enum MediaPlayerState
+public enum DimmerPlaybackState
 {
+    Opening,
     Stopped,
     Playing,
     Paused,
     Loading,
     Error,
+    Failed,
     Previewing,
     LyricsLoad,
     ShowPlayBtn,
@@ -22,6 +24,7 @@ public enum MediaPlayerState
     CoverImageDownload,
     LoadingSongs,
     SyncingData,
+    Buffering,
     DoneScanningData,
     PlayCompleted,
 

@@ -41,7 +41,6 @@
 	<ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
-		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="WinUI.TableView" Version="1.2.2" />
 		
 	</ItemGroup>

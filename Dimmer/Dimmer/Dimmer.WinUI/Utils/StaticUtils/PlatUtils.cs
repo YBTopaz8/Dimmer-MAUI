@@ -1,10 +1,12 @@
 ﻿using System.Linq;
+using WinRT.Interop;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
 public static class PlatUtils
 {
 
     public static IntPtr DimmerHandle { get; set; }
+    public static nint DimmerHandleNInt { get; set; }
     public static bool IsAppInForeground { get; set; }
     public static AppWindowPresenter? AppWinPresenter { get; set; }
     public static OverlappedPresenter? OverLappedPres { get; set; }
@@ -125,5 +127,20 @@ public static class PlatUtils
             Debug.WriteLine("An error occurred: " + e.Message);
             return false;
         }
+    }
+    // Helper to retrieve a valid window handle from your main window
+    public static IntPtr GetWindowHandle()
+    {
+        var window = Application.Current.Windows[0];
+        if (window == null)
+            throw new ArgumentNullException(nameof(window));
+        // Get the underlying native window (WinUI).
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+        if (nativeWindow == null)
+            throw new InvalidOperationException("Unable to retrieve the native window.");
+
+        DimmerHandleNInt = WindowNative.GetWindowHandle(nativeWindow);
+        DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
+        return DimmerHandle;
     }
 }

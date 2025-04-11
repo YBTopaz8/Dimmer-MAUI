@@ -4,7 +4,7 @@ using Dimmer.Utilities;
 using Dimmer.Utilities.Events;
 using Dimmer.Utils;
 using System.Timers;
-using MediaPlayerState = Dimmer.Utilities.Enums.MediaPlayerState;
+using DimmerPlaybackState = Dimmer.Utilities.Enums.DimmerPlaybackState;
 
 namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
@@ -30,7 +30,7 @@ public class BaseAppFlow : IDisposable
     public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
     public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
 
-    public IObservable<MediaPlayerState> CurrentAppState => CurrentStateSubj.AsObservable();
+    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
 
     #endregion
 
@@ -38,7 +38,7 @@ public class BaseAppFlow : IDisposable
 
     readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
     readonly BehaviorSubject<double> CurrentPosSubj = new(0);
-    readonly BehaviorSubject<MediaPlayerState> CurrentStateSubj = new(MediaPlayerState.Stopped);
+    readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
     System.Timers.Timer? PositionTimer;
 
     private Realm Db;
@@ -73,8 +73,8 @@ public class BaseAppFlow : IDisposable
         this.AudioService.PlayPrevious += AudioService_PlayPrevious;
         this.AudioService.PlayNext += AudioService_PlayNext;
         this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
+        
         this.AudioService.PlayEnded += AudioService_PlayEnded;
-        this.AudioService.IsSeekedFromNotificationBar += AudioService_IsSeekedFromNotificationBar;
 
     }
 
@@ -176,13 +176,16 @@ public class BaseAppFlow : IDisposable
     private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
     {
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        
-        
-        UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
-        IsPlayingSubj.OnNext(false);
-        IsPlayedCompletely = true;
-        CurrentStateSubj.OnNext(MediaPlayerState.Ended);
-        CurrentPosSubj.OnNext(0);
+
+        if (e.EventType == PlaybackEventType.StoppedAuto)
+        {
+            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
+            IsPlayingSubj.OnNext(false);
+            IsPlayedCompletely = true;
+            CurrentStateSubj.OnNext(DimmerPlaybackState.Ended);
+            CurrentPosSubj.OnNext(0);
+
+        }
     }
 
     private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
@@ -207,9 +210,10 @@ public class BaseAppFlow : IDisposable
     {
 
     }
-    public void UpdateSongPlaybackState(SongModelView? CurrentlyPlayingSong, PlayType playType, double? position = null)
+    public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, double? position = null)
     {
-        var songDb = Mapper.Map<SongModel>(CurrentlyPlayingSong);
+        currentlyPlayingSong??=CurrentlyPlayingSong;
+        var songDb = Mapper.Map<SongModel>(currentlyPlayingSong);
         PlayDateAndCompletionStateSongLink link = new ()
         {
             DatePlayed = DateTime.Now,

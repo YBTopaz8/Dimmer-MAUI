@@ -2,6 +2,7 @@
 
 using Dimmer.Data.ModelView;
 using Dimmer.Orchestration;
+using Dimmer.WinUI.Utils.StaticUtils;
 using Microsoft.UI.Xaml.Input;
 using Syncfusion.Maui.Toolkit.Chips;
 using Syncfusion.Maui.Toolkit.EffectsView;
@@ -25,6 +26,7 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
         MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
+        PlatUtils.GetWindowHandle();
     }
     private void SongsColView_Loaded(object? sender, EventArgs e)
     {

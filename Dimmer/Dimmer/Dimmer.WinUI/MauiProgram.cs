@@ -1,6 +1,7 @@
 ﻿
 
 using Dimmer.Utilities;
+using Dimmer.WinUI.DimmerAudio;
 using Dimmer.WinUI.Utils.StaticUtils;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
@@ -72,6 +73,7 @@ public static class MauiProgram
                             }
                             e.Cancel = true;
                             var allWins = Application.Current!.Windows.ToList<Window>();
+                            
                             foreach (var win in allWins)
                             {
                                 if (win.Title != "MyWin")

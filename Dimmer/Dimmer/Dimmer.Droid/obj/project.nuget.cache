@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "jij/y2bTzik=",
+  "dgSpecHash": "2cSKTVcX7i0=",
   "success": true,
   "projectFilePath": "C:\\Users\\8brun\\Source\\Repos\\Dimmer-MAUI\\Dimmer\\Dimmer\\Dimmer.Droid\\Dimmer.Droid.csproj",
   "expectedPackageFiles": [
@@ -40,7 +40,7 @@
     "C:\\Users\\8brun\\.nuget\\packages\\microsoft.maui.graphics\\9.0.50\\microsoft.maui.graphics.9.0.50.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\microsoft.maui.graphics.skia\\9.0.50\\microsoft.maui.graphics.skia.9.0.50.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\microsoft.maui.resizetizer\\9.0.50\\microsoft.maui.resizetizer.9.0.50.nupkg.sha512",
-    "C:\\Users\\8brun\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.3\\microsoft.net.illink.tasks.9.0.3.nupkg.sha512",
+    "C:\\Users\\8brun\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.4\\microsoft.net.illink.tasks.9.0.4.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\mongodb.bson\\2.21.0\\mongodb.bson.2.21.0.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\realm\\20.1.0\\realm.20.1.0.nupkg.sha512",
     "C:\\Users\\8brun\\.nuget\\packages\\remotion.linq\\2.2.0\\remotion.linq.2.2.0.nupkg.sha512",

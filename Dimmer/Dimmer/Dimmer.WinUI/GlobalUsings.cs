@@ -7,7 +7,6 @@ global using Dimmer.Database.ModelView;
 global using Dimmer.Utilities.CustomAnimations;
 global using Dimmer.WinUI.Views;
 global using Dimmer.Interfaces;
-global using Dimmer.WinUI.DimmerAudio;
 global using Dimmer.WinUI.Utils;
 global using Dimmer.WinUI.Views.CustomViews;
 global using Dimmer.WinUI.Utils.Helpers;

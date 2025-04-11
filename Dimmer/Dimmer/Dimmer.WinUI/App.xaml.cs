@@ -253,7 +253,7 @@ public partial class App : MauiWinUIApplication
 
     public const int TTN_COMMAND = 0x0100;
 
-
+    
 }
 public static class AppPlatform
 {
@@ -262,7 +262,7 @@ public static class AppPlatform
     {
         DimmerWindow = new Window(new AppShell());
         DimmerWindow.Title = "Dimmer";
-        
         return DimmerWindow;
     }
+
 }

@@ -16,15 +16,14 @@ public sealed partial class TestPage : Window
     {
         this.InitializeComponent();
         MyViewModel=viewModel;
-        MyTableView.ScrollIntoView(MyViewModel.TemporarilyPickedSong);
+        //MyTableView.ScrollIntoView(MyViewModel.TemporarilyPickedSong);
     }
 
     public HomeViewModel MyViewModel { get; }
     
     private void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
-        FrameworkElement view = (FrameworkElement)e.OriginalSource;
-        
+        FrameworkElement view = (FrameworkElement)e.OriginalSource;       
 
         SongModelView? song = (SongModelView)view.DataContext;
 
@@ -33,5 +32,10 @@ public sealed partial class TestPage : Window
             song.IsCurrentPlayingHighlight = false;
         }
         MyViewModel.PlaySongOnDoubleTap(song!);
+    }
+
+    private void Slider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+
     }
 }

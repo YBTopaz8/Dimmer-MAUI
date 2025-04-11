@@ -4,15 +4,17 @@ public class PlaybackEventArgs : EventArgs
     public SongModelView? MediaSong { get; set; }
     public bool IsPlaying { get; set; } 
     public PlaybackEventType EventType { get; set; }
-    public PlaybackEventArgs(PlaybackEventType evtType)
+    public PlaybackEventArgs()
     {
-        EventType = evtType;
+        
     }
 }
 
 public enum PlaybackEventType
 {
     None,
+    Started,
+    Stopped,
     Play,
     Pause,
     StoppedManually,

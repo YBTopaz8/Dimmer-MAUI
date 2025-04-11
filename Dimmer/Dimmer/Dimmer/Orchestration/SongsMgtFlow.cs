@@ -2,6 +2,7 @@
 using Dimmer.Data;
 using Dimmer.Interfaces;
 using Dimmer.Utilities;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace Dimmer.Orchestration;
@@ -27,13 +28,13 @@ public partial class SongsMgtFlow : BaseAppFlow
             {
                 switch (state)
                 {
-                    case MediaPlayerState.Playing:
+                    case DimmerPlaybackState.Playing:
 
                         break;
-                    case MediaPlayerState.Paused:
+                    case DimmerPlaybackState.Paused:
 
                         break;
-                    case MediaPlayerState.Ended:
+                    case DimmerPlaybackState.Ended:
                         PlayNextSong();
                         break;
                     default:
@@ -144,21 +145,21 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     private Random random = Random.Shared;  // Reuse the same Random instance
    
-    public bool PlaySongWithPosition(double positionInSec)
+    public async Task<bool> PlaySongWithPosition(double positionInSec)
     {
         CurrentPositionInSec = 0;
         
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-        AudioService.Initialize(CurrentlyPlayingSong, coverImage);
+        await AudioService.InitializeAsync(CurrentlyPlayingSong);
 
         if (positionInSec > 0)
         {
-            AudioService.Resume(positionInSec);
+            await AudioService.SeekAsync(positionInSec);
             CurrentPositionInSec = positionInSec;
         }
         else
         {
-            AudioService.Play();
+            await AudioService.PlayAsync();
         }
 
         
@@ -168,12 +169,13 @@ public partial class SongsMgtFlow : BaseAppFlow
         return true;
     }
 
-    public bool PlaySongInAudioService()
+    public async Task<bool> PlaySongInAudioService()
     {
         base.PlaySong();
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-        AudioService.Initialize(CurrentlyPlayingSong, coverImage);
-        AudioService.Play();
+        CurrentlyPlayingSong.ImageBytes = coverImage;
+        await AudioService.InitializeAsync(CurrentlyPlayingSong);
+        await AudioService.PlayAsync();
         
         
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
@@ -185,26 +187,26 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
 
-    public bool PauseResumeSong(double currentPosition, bool isPause = false)
+    public async Task<bool> PauseResumeSong(double currentPosition, bool isPause = false)
     {
 
         if (isPause)
         {
-            AudioService.Pause();
+            await AudioService.PauseAsync();
             base.PauseSong();
         }
         else
         {
             byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-            AudioService.Initialize(CurrentlyPlayingSong, coverImage);
-            AudioService.Resume(currentPosition);
+             await AudioService.InitializeAsync(CurrentlyPlayingSong);
+            await AudioService.SeekAsync(currentPosition);
             base.ResumeSong();
         }
         return true;
     }
-    public bool StopSong()
+    public async Task<bool> StopSong()
     {
-        AudioService.Pause();
+        await AudioService.PauseAsync();
         base. CurrentlyPlayingSong.IsPlaying = false;
         return true;
     }
@@ -220,7 +222,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
         if (AudioService.IsPlaying)
         {
-            AudioService.SetCurrentTime(positionInSec);
+            AudioService.SeekAsync(positionInSec);
 
             PlayDateAndCompletionStateSongLink linkss = new()
             {
