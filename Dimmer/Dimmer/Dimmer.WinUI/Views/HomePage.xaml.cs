@@ -19,28 +19,14 @@ public partial class HomePage : ContentPage
 		InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
-
-        this.Loaded += SongsColView_Loaded;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
-        PlatUtils.GetWindowHandle();
-    }
-    private void SongsColView_Loaded(object? sender, EventArgs e)
-    {
-       
-        try
-        {
-            MyViewModel.SetCollectionView(SongsColView);
-            
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Error when scrolling " + ex.Message);
-        }
+        
+        MyViewModel.SetCollectionView(SongsColView);
     }
     private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {

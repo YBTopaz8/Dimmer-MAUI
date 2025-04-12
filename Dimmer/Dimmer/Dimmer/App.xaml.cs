@@ -9,8 +9,6 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        //AppDomain.CurrentDomain.ProcessExit += (s, e) => GeneralStaticUtilities.ClearUp();
-        
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
     }

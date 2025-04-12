@@ -2,6 +2,7 @@
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 
+using Dimmer.Utilities;
 using static Dimmer.WinUI.Utils.Helpers.TrayIconHelper;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
@@ -23,7 +24,7 @@ public partial class App : MauiWinUIApplication
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
         AppDomain.CurrentDomain.FirstChanceException +=CurrentDomain_FirstChanceException;
         
-
+        
     }
 
 
@@ -114,7 +115,32 @@ public partial class App : MauiWinUIApplication
     }
     private static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
     {
-        
+        if (!AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState())
+        {
+            return;
+        }
+        //e.Cancel = true;
+        //var allWins = Application.Current!.Windows.ToList<Window>();
+
+        //foreach (var win in allWins)
+        //{
+        //    if (win.Title != "MyWin")
+        //    {
+        //        bool result = await win!.Page!.DisplayAlert(
+        //            "Confirm Action",
+        //            "You sure want to close app?",
+        //            "Yes",
+        //            "Cancel");
+        //        if (result)
+        //        {
+
+        //            Application.Current.CloseWindow(win);
+        //            Application.Current.Quit();
+        //            Environment.Exit(0); // Forcefully kill all threads
+
+        //        }
+        //    }
+        //}
     }
 
     protected override MauiApp CreateMauiApp()

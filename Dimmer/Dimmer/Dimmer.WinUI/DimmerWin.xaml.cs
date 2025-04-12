@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using Vanara.PInvoke;
+using static Vanara.PInvoke.Shell32;
 
 namespace Dimmer.WinUI;
 
@@ -17,8 +18,27 @@ public partial class DimmerWin : Window
 		InitializeComponent();
 		Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
         MyViewModel= vm;
+        
     }
 
+    protected async override void OnDestroying()
+    {
+        if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
+        {
+            return;
+        }
+
+        bool result = await Microsoft.Maui.Controls.Shell.Current.DisplayAlert(
+            "Confirm Action",
+            "You sure want to close app?",
+            "Yes",
+            "Cancel");
+        if (!result)
+        {
+            return;            
+        }
+        base.OnDestroying();
+    }
     protected override void OnActivated()
     {
         base.OnActivated();

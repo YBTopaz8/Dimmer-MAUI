@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 using System.Linq;
 
 namespace Dimmer.Utilities;
-public class AppSettingsService 
+public static class AppSettingsService 
 {
 
     public static class ShowCloseConfirmationPopUp

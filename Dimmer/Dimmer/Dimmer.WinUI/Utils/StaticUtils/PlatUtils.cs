@@ -131,7 +131,7 @@ public static class PlatUtils
     // Helper to retrieve a valid window handle from your main window
     public static IntPtr GetWindowHandle()
     {
-        var window = Application.Current.Windows[0];
+        var window = Application.Current!.Windows[0]!;
         if (window == null)
             throw new ArgumentNullException(nameof(window));
         // Get the underlying native window (WinUI).

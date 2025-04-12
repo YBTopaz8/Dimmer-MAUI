@@ -13,13 +13,10 @@
     xmlns:tableView="using:WinUI.TableView">
 
     <Grid DataContext="{x:Bind MyViewModel}" >
-        <Button Content="{x:Bind MyViewModel.TemporarilyPickedSong.Title}"/>
-        <Image Source="{x:Bind MyViewModel.TemporarilyPickedSong.CoverImagePath}" 
-               Width="200" Height="200" 
-               HorizontalAlignment="Center" VerticalAlignment="Top"/>
+       
         <!--<Slider Value="{x:Bind MyViewModel.CurrentPositionPercentageUI}" ValueChanged="Slider_ValueChanged"/>-->
         
-        <!--<tableView:TableView x:Name="MyTableView"
+        <tableView:TableView x:Name="MyTableView"
                              IsRightTapEnabled="True" IsReadOnly="True"
                              IsDoubleTapEnabled="True"
                              ShowOptionsButton="True"
@@ -43,7 +40,7 @@
                                                    Binding="{Binding ReleaseYear}"/>
             </tableView:TableView.Columns>
             
-        </tableView:TableView>-->
+        </tableView:TableView>
 
     </Grid>
 </Window>

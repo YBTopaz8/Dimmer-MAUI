@@ -67,32 +67,7 @@ public static class MauiProgram
                         
                         winuiAppWindow.Closing += async (s, e) =>
                         {
-                            if (!AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState())
-                            {
-                                return;
-                            }
-                            e.Cancel = true;
-                            var allWins = Application.Current!.Windows.ToList<Window>();
                             
-                            foreach (var win in allWins)
-                            {
-                                if (win.Title != "MyWin")
-                                {
-                                    bool result = await win!.Page!.DisplayAlert(
-                                        "Confirm Action",
-                                        "You sure want to close app?",
-                                        "Yes",
-                                        "Cancel");
-                                    if (result)
-                                    {
-
-                                        Application.Current.CloseWindow(win);
-                                        Application.Current.Quit();
-                                        Environment.Exit(0); // Forcefully kill all threads
-
-                                    }
-                                }
-                            }
                         };
                     }
                     // Check if this is the mini player window by checking its title or other identifying property

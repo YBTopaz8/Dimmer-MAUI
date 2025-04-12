@@ -1,12 +1,54 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.WinUI.Views.SingleSongPage"
+             x:Class="Dimmer.WinUI.Views.SingleSongPage" 
+             xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
+ x:DataType="vm:HomeViewModel"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+ xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+ x:Name="myPage"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="SingleSongPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <ContentPage.Resources>
+        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+        <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+        <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+        <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+        <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+        <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+        <converters:VolumeConverter x:Key="VolConverter" />
+
+    </ContentPage.Resources>
+
+    <Grid ColumnDefinitions="auto,*">
+        <Grid RowDefinitions="600,*,*">
+            <Image Grid.Column="0"
+                Source="{Binding TemporarilyPickedSong.CoverImagePath}"/>
+            <syncf:SfChipGroup ChipType="Choice" Grid.Row="0" 
+                       
+           ChipClicked="SfChipGroup_ChipClicked" ChipTextColor="White" SelectedChipTextColor="White"
+           HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
+                       >
+                <syncf:SfChipGroup.ChipLayout>
+                    <VerticalStackLayout Spacing="10" 
+                                 HorizontalOptions="Start"/>
+                </syncf:SfChipGroup.ChipLayout>
+                <syncf:SfChipGroup.Items>
+                    <syncf:SfChip Text="{Binding TemporarilyPickedSong.Title}" CommandParameter="0" TextColor="White"/>
+                    <syncf:SfChip Text="{Binding TemporarilyPickedSong.ArtistName}" CommandParameter="1" TextColor="White"/>
+                    <syncf:SfChip Text="{Binding TemporarilyPickedSong.AlbumName}" CommandParameter="2" TextColor="White"/>
+                    <syncf:SfChip ShowIcon="{Binding TemporarilyPickedSong.HasSyncedLyrics}" 
+                                  ImageSource="lyrics.png" CommandParameter="3" />
+                </syncf:SfChipGroup.Items>
+            </syncf:SfChipGroup>
+         
+        </Grid>
+        <Grid>
+            
+        </Grid>
+    </Grid>
 </ContentPage>

@@ -26,18 +26,11 @@ public partial class HomeViewModel : BaseViewModel
     public partial List<SongModelView>? FilteredSongs { get; set; }
 
     [ObservableProperty]
-    public partial CollectionView? LyricsCollectionView { get; set; }
-
-    [ObservableProperty]
     public partial bool IsOnSearchMode { get; set; }
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
     [ObservableProperty]
     public partial string? SearchText { get; set; }
-    [ObservableProperty]
-    public partial double CurrentPositionInSecondsUI { get; set; } = 0;
-    [ObservableProperty]
-    public partial double CurrentPositionPercentageUI { get; set; } = 0;
     #endregion
 
 
@@ -50,26 +43,12 @@ public partial class HomeViewModel : BaseViewModel
 
     private void LoadPageViewModel()
     {
-        CurrentPositionInSecondsUI=base.CurrentPositionInSeconds;
-        CurrentPositionPercentageUI=base.CurrentPositionPercentage;
         if (base.MasterSongs is not null)
         {
             DisplayedSongs = [.. MasterSongs];
         }
     }
 
-    public new void SubscribeToCurrentlyPlayingSong()
-    {
-        
-        SongsMgtFlow.CurrentSong.DistinctUntilChanged()
-            .Subscribe(song =>
-        {
-            if (song is not null)
-            {
-                TemporarilyPickedSong = _mapper.Map<SongModelView>(song);                
-            }
-        });
-    }
 
     public async Task PlaySongOnDoubleTap(SongModelView song)
     {

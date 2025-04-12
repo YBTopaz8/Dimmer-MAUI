@@ -1,4 +1,6 @@
-﻿namespace Dimmer.UIUtils;
+﻿using Dimmer.Utilities.CustomAnimations;
+
+namespace Dimmer.UIUtils;
 public static class GeneralViewUtil
 {
     public static void PointerOnView(View theView)
@@ -10,6 +12,26 @@ public static class GeneralViewUtil
         theView.BackgroundColor = Colors.Transparent;
     }
 
+    public static async Task<bool> SwitchPlayUIs(View view1, View view2)
+    {
+        if (view1.IsVisible)
+        {
+            await Task.WhenAll(
+            view1.AnimateFadeOutBack(),
+            view2.AnimateFadeInFront()
+
+            );
+
+            return false;
+        }
+        else
+        {
+            await Task.WhenAll(
+            view1.AnimateFadeInFront(),
+            view2.AnimateFadeOutBack());
+            return true;
+        }
+    }
     public static Task MyBackgroundColorToBuiltIn(this VisualElement element, Color targetColor, uint length = 250, Easing easing = null)
     {
         if (element.BackgroundColor == null)
