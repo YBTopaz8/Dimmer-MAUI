@@ -46,11 +46,6 @@ public partial class SongsMgtFlow : BaseAppFlow
     public IDimmerAudioService AudioService { get; }
     #region Playback Control Region
 
-    private CancellationTokenSource? _debounceTokenSource;
-
-   
-
-
     public async Task<bool> PlaySelectedSongsOutsideApp(List<string> filePaths)
     {
         
@@ -100,11 +95,9 @@ public partial class SongsMgtFlow : BaseAppFlow
                     DurationInSeconds = track.Duration,
                     BitRate = track.Bitrate,
                     FileSize = fileInfo.Length,
-
-
                     FileFormat = Path.GetExtension(file).TrimStart('.'),
                     HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    //CoverImagePath = PlayBackStaticUtils.SaveOrGetCoverImageToFilePath(track.Path, track.EmbeddedPictures?.FirstOrDefault()?.PictureData),
+                    
                 };
                 if (track.Year is not null)
                 {
@@ -127,13 +120,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
     public async Task<bool> PlaySelectedSongsOutsideAppDebounced(List<string> filePaths)
     {
-        // Cancel previous execution if still pending
-        if (_debounceTokenSource is not null)
-        {
-            await _debounceTokenSource.CancelAsync();
-            _debounceTokenSource.Dispose();
-        }
-
+       
         try
         {
             return await PlaySelectedSongsOutsideApp(filePaths);
@@ -145,32 +132,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
 
-
-    private Random random = Random.Shared;  // Reuse the same Random instance
    
-    public async Task<bool> PlaySongWithPosition(double positionInSec)
-    {
-        CurrentPositionInSec = 0;
-        
-        byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-        await AudioService.InitializeAsync(CurrentlyPlayingSong);
-
-        if (positionInSec > 0)
-        {
-            await AudioService.SeekAsync(positionInSec);
-            CurrentPositionInSec = positionInSec;
-        }
-        else
-        {
-            await AudioService.PlayAsync();
-        }
-
-        
-        
-        CurrentlyPlayingSong.IsPlaying = true; // Update playing status
-        
-        return true;
-    }
 
     public async Task<bool> PlaySongInAudioService()
     {
@@ -214,7 +176,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         return true;
     }
 
-    public void SeekTo(double positionInSec)
+    public async Task SeekTo(double positionInSec)
     {
         CurrentPositionInSec = positionInSec;
         if (CurrentlyPlayingSong is null)
@@ -225,7 +187,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
         if (AudioService.IsPlaying)
         {
-            AudioService.SeekAsync(positionInSec);
+            await AudioService.SeekAsync(positionInSec);
 
             PlayDateAndCompletionStateSongLink linkss = new()
             {
@@ -251,10 +213,7 @@ public partial class SongsMgtFlow : BaseAppFlow
    
 
     #endregion
-
-    int CurrentIndexInMasterList;
-    private int repeatCountMax;
-
+    
     public async Task PlayNextSong(bool isUserInitiated = false)
     {
         
@@ -310,6 +269,8 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
     int prevCounter;
+    private int repeatCountMax =0;
+
     public void PlayPreviousSong(bool isUserInitiated = true)
     {
         if (CurrentlyPlayingSong == null)
@@ -317,8 +278,6 @@ public partial class SongsMgtFlow : BaseAppFlow
 
         if (prevCounter == 1)
         {
-
-
             UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Previous);
 
             prevCounter = 0;
@@ -332,7 +291,6 @@ public partial class SongsMgtFlow : BaseAppFlow
         }
         prevCounter++;
     }
-    double CurrentPercentage;
 
     public void ChangeVolume(double newVolumeOver1)
     {
@@ -404,6 +362,8 @@ public partial class SongsMgtFlow : BaseAppFlow
         }
         set;
     }
+
+    public int CurrentIndexInMasterList { get; private set; }
     #endregion
 
 

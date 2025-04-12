@@ -94,7 +94,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
     {
-        //throw new NotImplementedException();
+        
     }
 
     private void UnsubscribeFromPlayerEvents()

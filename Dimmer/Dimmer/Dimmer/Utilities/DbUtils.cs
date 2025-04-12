@@ -38,7 +38,7 @@ public static class DbUtils
                     updateAction?.Invoke(item); // Perform additional updates if needed
 
                     db.Add(item, update:true);
-                    Debug.WriteLine("Updated");
+                    Debug.WriteLine("Updated to db");
                 }
                 else
                 {

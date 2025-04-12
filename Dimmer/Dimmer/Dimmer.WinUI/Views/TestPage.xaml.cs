@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Window = Microsoft.UI.Xaml.Window;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -20,7 +21,7 @@ public sealed partial class TestPage : Window
 
     public HomeViewModel MyViewModel { get; }
     
-    private void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    private async void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
         FrameworkElement view = (FrameworkElement)e.OriginalSource;       
 
@@ -30,7 +31,7 @@ public sealed partial class TestPage : Window
         {
             song.IsCurrentPlayingHighlight = false;
         }
-        MyViewModel.PlaySongOnDoubleTap(song!);
+        await MyViewModel.PlaySongOnDoubleTap(song!);
     }
 
     private void Slider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)

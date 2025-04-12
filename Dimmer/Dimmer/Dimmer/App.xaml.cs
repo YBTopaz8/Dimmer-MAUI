@@ -18,13 +18,11 @@ public partial class App : Application
     protected override Window CreateWindow(IActivationState? activationState)
     {
         IAppUtil appUtil = IPlatformApplication.Current.Services.GetRequiredService<IAppUtil>();
-        var w = appUtil.GetShell();
-        
-        return new Window(w);
+        return appUtil.LoadWindow();
     }
 
     private static readonly object _logLock = new();
-    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +

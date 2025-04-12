@@ -45,7 +45,7 @@ public class BaseAppFlow : IDisposable
     readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
     
 
-    private Realm Db;
+    private Realm? Db;
     
     private readonly IDimmerAudioService AudioService;
     private readonly IRealmFactory RealmFactory;
@@ -54,7 +54,7 @@ public class BaseAppFlow : IDisposable
     #endregion
 
     #region public properties
-    public SongModelView CurrentlyPlayingSong { get; set; } = new();
+    public SongModelView CurrentlyPlayingSong { get; set; } 
     public SongModel CurrentlyPlayingSongDB { get; set; } = new();
     public SongModelView? PreviouslyPlayingSong { get; }
     public SongModelView? NextPlayingSong { get; }
@@ -79,6 +79,7 @@ public class BaseAppFlow : IDisposable
         this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
         this.AudioService.PositionChanged +=AudioService_PositionChanged;
         this.AudioService.PlayEnded += AudioService_PlayEnded;
+        CurrentlyPlayingSong = new();
 
     }
 
@@ -89,7 +90,7 @@ public class BaseAppFlow : IDisposable
 
     private void LoadAppData()
     {
-        var dbb = Db.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+        var dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
         AllSongs.OnNext(dbb);
     }
 
@@ -128,10 +129,7 @@ public class BaseAppFlow : IDisposable
         }
     }
     #region Audio Service Event Handlers
-    private void AudioService_IsSeekedFromNotificationBar(object? sender, long e)
-    {
-        
-    }
+   
     public void PlaySong()
     {
         CurrentPosSubj.OnNext(0);
@@ -167,6 +165,24 @@ public class BaseAppFlow : IDisposable
 
             UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
         }
+
+        switch (CurrentRepeatMode)
+        {
+            case RepeatMode.Off:
+                break;
+            case RepeatMode.All:
+                CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
+
+                break;
+            case RepeatMode.One:
+                CurrentlyPlayingSong=null;
+                
+                break;
+            case RepeatMode.Custom:
+                break;
+            default:
+                break;
+        }
     }
 
     private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
@@ -176,19 +192,19 @@ public class BaseAppFlow : IDisposable
     }
     private void AudioService_PlayNext(object? sender, EventArgs e)
     {
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         IsPlayedCompletely = false;
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
     }
 
     private void AudioService_PlayPrevious(object? sender, EventArgs e)
     {
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         IsPlayedCompletely = false;
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
     }
     public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, double? position = null)
@@ -242,11 +258,16 @@ public class BaseAppFlow : IDisposable
         AppSettingsService.RepeatModePreference.ToggleRepeatState((int)CurrentRepeatMode); // Store as int
         return CurrentRepeatMode;
     }
-
-
-    public void Initialize()
+    
+    public static void ToggleStickToTop(bool isSticktoTop)
     {
-        Debug.WriteLine(Db.GetType());
+        AppSettingsService.IsSticktoTopPreference.ToggleIsSticktoTopState(isSticktoTop);        
+    }
+
+
+    public static void Initialize()
+    {
+        Debug.WriteLine("Db.GetType()");
     }
     private bool _disposed;
 

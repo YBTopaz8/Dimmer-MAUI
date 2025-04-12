@@ -1,5 +1,4 @@
-﻿using Dimmer.Interfaces;
-using System.Threading.Tasks;
+﻿
 
 namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
@@ -11,6 +10,8 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsShuffle { get; set; }
     [ObservableProperty]
+    public partial bool IsStickToTop { get; set; }
+    [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
     public partial double CurrentPositionPercentage { get; set; }
@@ -18,7 +19,7 @@ public partial class BaseViewModel : ObservableObject
     public partial RepeatMode RepeatMode { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView> MasterSongs { get; internal set; }
+    public partial ObservableCollection<SongModelView>? MasterSongs { get; internal set; }
     [ObservableProperty]
     public partial SongModelView? TemporarilyPickedSong { get; set; }
     [ObservableProperty]
@@ -28,24 +29,29 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial double VolumeLevel { get; set; }
     
+    [ObservableProperty]
+    public partial CurrentPage CurrentlySelectedPage { get; set; }
+    
     
     #endregion
-    public BaseViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow
-        ,IDimmerAudioService dimmerAudioService)
+    public BaseViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow ,IDimmerAudioService dimmerAudioService)
     {
+
         this.mapper=mapper;
         this.songsMgtFlow=songsMgtFlow;
+        LoadPageViewModel();
+    }
+
+    private void LoadPageViewModel()
+    {
         SubscribeToMasterSongs();
         SubscribeToCurrentlyPlayingSong();
         SubscribeToIsPlaying();
         SubscribeToCurrentPosition();
         CurrentPositionPercentage = 0;
+        IsStickToTop = AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState();
     }
 
-    partial void OnMasterSongsChanging(ObservableCollection<SongModelView> oldValue, ObservableCollection<SongModelView> newValue)
-    {
-        
-    }
     void SubscribeToCurrentPosition()
     {
         songsMgtFlow.CurrentSongPosition.Subscribe(position =>
@@ -241,9 +247,9 @@ public partial class BaseViewModel : ObservableObject
         }
         return false;
     }
-    public void SeekSongPosition(double currPosPer = 0)
+    public async Task SeekSongPosition(double currPosPer = 0)
     {
-        songsMgtFlow.SeekTo(currPosPer);
+       await songsMgtFlow.SeekTo(currPosPer);
     }
 
     public void ToggleRepeatMode()
@@ -267,6 +273,13 @@ public partial class BaseViewModel : ObservableObject
     {
         songsMgtFlow.ChangeVolume(vol);
         VolumeLevel = songsMgtFlow.VolumeLevel;
+    }
+
+    public void ToggleStickToTop()
+    {
+        IsStickToTop = !IsStickToTop;
+        BaseAppFlow.ToggleStickToTop(IsStickToTop);
+        
     }
 }
 

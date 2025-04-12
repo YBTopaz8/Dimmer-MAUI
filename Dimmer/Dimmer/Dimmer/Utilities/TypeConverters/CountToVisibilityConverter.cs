@@ -4,6 +4,10 @@ public class CountToVisibilityConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value == null || parameter is null)
+        {
+            return false;
+        }
         string param = (string)parameter;
         Content? val = (Content)value;
 

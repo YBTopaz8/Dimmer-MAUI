@@ -27,10 +27,6 @@ public partial class MediaControlBtmBar : ContentView
 
     }
 
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-
-    }
 
     private bool _isThrottling;
     private readonly int throttleDelay = 300; // Time in milliseconds
@@ -43,7 +39,7 @@ public partial class MediaControlBtmBar : ContentView
         _isThrottling = true;
         Slider send = (Slider)sender;
         double s = send.Value;
-        MyViewModel.SeekSongPosition(currPosPer: s);
+        await MyViewModel.SeekSongPosition(currPosPer: s);
 
 
         await Task.Delay(throttleDelay);
@@ -61,9 +57,9 @@ public partial class MediaControlBtmBar : ContentView
         await this.AnimateFocusModePointerExited(endOpacity: 0.4, endScale: 1);
     }
 
-    private static async void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
+    private static void NavToSingleSongShell_Tapped(object sender, TappedEventArgs e)
     {
-        
+        Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
 

@@ -23,6 +23,7 @@
 
 	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
+	  <None Remove="DimmerWin.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
@@ -32,6 +33,7 @@
 
 	<ItemGroup>
 	  <Page Remove="AppShell.xaml" />
+	  <Page Remove="DimmerWin.xaml" />
 	  <Page Remove="DimmerWindow.xaml" />
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
@@ -40,7 +42,18 @@
 
 	<ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
+    <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
+    <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
+    <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
+		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
+		<PackageReference Include="Vanara.Core" Version="4.1.1" />
+		<PackageReference Include="Vanara.PInvoke.CoreAudio" Version="4.1.1" />
+		<PackageReference Include="Vanara.PInvoke.Shared" Version="4.1.1" />
+		<PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.1" />
+		<PackageReference Include="Vanara.PInvoke.User32" Version="4.1.1" />
+		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.1" />
 		<PackageReference Include="WinUI.TableView" Version="1.2.2" />
 		
 	</ItemGroup>
@@ -70,19 +83,29 @@
 	  <MauiXaml Include="AppShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Include="DimmerWin.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Database\" />
+	</ItemGroup>
+	<ItemGroup>
 	  <MauiXaml Include="Views\SingleSongPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Database\" />
-	  <Folder Include="ViewModel\" />
+	  <None Include="..\..\..\..\..\..\Pictures\hellllpppp\dimmerback\Resources\Images\musical_notes.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\TestPage.xaml">
@@ -99,6 +122,8 @@
 	  <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 	  <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <Title>Dimmer</Title>
+	  <PackageIcon>musical_notes.png</PackageIcon>
 	</PropertyGroup>
 
 	<!--

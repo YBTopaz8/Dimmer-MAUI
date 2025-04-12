@@ -50,6 +50,8 @@
           <uap:MediaPlayback>
             <uap:Codec Name="mp3"/>
             <uap:Codec Name="flac"/>
+            <uap:Codec Name="m4a"/>
+            <uap:Codec Name="wav"/>
           </uap:MediaPlayback>
         </uap:Extension>
         <uap:Extension Category="windows.personalAssistantLaunch"/>

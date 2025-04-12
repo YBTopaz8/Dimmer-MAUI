@@ -3,15 +3,19 @@ namespace Dimmer.Utilities.TypeConverters;
 public class BytesToMegabytesConverter : IValueConverter
 {
 
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is long)
+        if (value == null)
         {
-            return ((long)value / 1024.0 / 1024.0).ToString("0.##") + " MB";
+            return "0 MB"; // Default case if value is null
         }
-        else if (value is double)
+        if (value is long vl)
         {
-            return ((double)value / 1024.0 / 1024.0).ToString("0.##") + " MB";
+            return (vl / 1024.0 / 1024.0).ToString("0.##") + " MB";
+        }
+        else if (value is double vd)
+        {
+            return (vd / 1024.0 / 1024.0).ToString("0.##") + " MB";
         }
         return "0 MB"; // Default case if conversion fails
     }

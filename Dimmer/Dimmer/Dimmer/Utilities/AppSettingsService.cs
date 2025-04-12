@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Linq;
+
 namespace Dimmer.Utilities;
 public class AppSettingsService 
 {
@@ -129,6 +131,44 @@ public class AppSettingsService
         }
     }
 
+    public static class IsSticktoTopPreference
+    {
+        public const bool isSticktoTop = false;
+        public static bool IsSticktoTop
+        {
+            get => Preferences.Default.Get(nameof(IsSticktoTop), isSticktoTop);
+            set => Preferences.Default.Set(nameof(IsSticktoTop), value);
+        }
+
+
+        public static void ToggleIsSticktoTopState(bool isSticktoTop)
+        {
+            IsSticktoTop = isSticktoTop;
+        }
+        public static bool GetIsSticktoTopState()
+        {
+            return IsSticktoTop;
+        }
+    }
+    public static class ConfirmAppExitPreference
+    {
+        public const bool confirmAppExit = false;
+        public static bool ConfirmAppExit
+        {
+            get => Preferences.Default.Get(nameof(ConfirmAppExit), confirmAppExit);
+            set => Preferences.Default.Set(nameof(ConfirmAppExit), value);
+        }
+
+
+        public static void ToggleConfirmAppExitState(bool confirmAppExit)
+        {
+            ConfirmAppExit = confirmAppExit;
+        }
+        public static bool GetConfirmAppExitState()
+        {
+            return ConfirmAppExit;
+        }
+    }
     public static class RepeatModePreference
     {
         public const int repeatState = 0; //0 for repeat OFF, 1 for repeat ALL, 2 for repeat ONE, 3 for repeat custom
@@ -186,13 +226,12 @@ public class AppSettingsService
         public static void RemoveMusicFolder(string[] folderPaths)
         {
             List<string> folders = MusicFolders;
-            foreach (string folderPath in folderPaths)
+            foreach (var folderPath in from string folderPath in folderPaths
+                                       where folders.Contains(folderPath)
+                                       select folderPath)
             {
-                if (folders.Contains(folderPath))
-                {
-                    folders.Remove(folderPath);
-                    MusicFolders = folders;
-                }
+                folders.Remove(folderPath);
+                MusicFolders = folders;
             }
         }
 

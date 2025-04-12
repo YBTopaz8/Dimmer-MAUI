@@ -18,7 +18,7 @@ public class SingleFolderMonitor : IDisposable
     private FileSystemWatcher? _parentWatcher;
     private string? _monitoredFolderName; // Store the name for parent watcher events
 
-    public string MonitoredPath { get; private set; }
+    public string? MonitoredPath { get; private set; }
     public bool IsMonitoring { get; private set; }
 
     // Events for consumers to subscribe to
@@ -221,8 +221,6 @@ public class SingleFolderMonitor : IDisposable
         // A simple approach could be to call Cleanup and then try StartMonitoring again after a delay.
         // Or just rely on the consumer to handle the error event.
 
-        // Example: Mark as not monitoring on error? Maybe too drastic.
-        // IsMonitoring = false;
     }
 
 

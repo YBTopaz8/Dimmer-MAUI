@@ -4,10 +4,6 @@ namespace Dimmer.Interfaces;
 public interface IDimmerAudioService
 {
 
-
-    public static IDimmerAudioService Current;
-
-    
     ///<Summary>
     /// Pauses the currently initialized song.
     ///</Summary>

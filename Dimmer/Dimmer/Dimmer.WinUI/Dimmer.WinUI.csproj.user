@@ -10,15 +10,18 @@
     <MauiXaml Update="AppShell.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="DimmerWin.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
-    <Page Update="Views\TestPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <MauiXaml Update="Views\SingleSongPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <Page Update="Views\TestPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <MauiXaml Update="Views\CustomViews\MediaControlBtmBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

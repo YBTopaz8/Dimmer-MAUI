@@ -34,7 +34,6 @@ public partial class HomePage : ContentPage
        
         try
         {
-            //SongsColView.ItemsSource = MyViewModel.BaseVM.DisplayedSongs;
             MyViewModel.SetCollectionView(SongsColView);
             
         }
@@ -43,7 +42,7 @@ public partial class HomePage : ContentPage
             Debug.WriteLine("Error when scrolling " + ex.Message);
         }
     }
-    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
 
         View send = (View)sender;
@@ -53,7 +52,7 @@ public partial class HomePage : ContentPage
             song.IsCurrentPlayingHighlight = false;
         }
 
-        MyViewModel.PlaySongOnDoubleTap(song!);
+       await MyViewModel.PlaySongOnDoubleTap(song!);
     }
     private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
@@ -62,15 +61,11 @@ public partial class HomePage : ContentPage
         MyViewModel.PointerEntered((SongModelView)send.BindingContext, send);
     }
     
-    private void UserHoverOutSongInColView(object sender, PointerEventArgs e)
+    private static void UserHoverOutSongInColView(object sender, PointerEventArgs e)
     {
         View send = (View)sender;
 
-        MyViewModel.PointerExited(send);
-    }
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-
+       HomeViewModel.PointerExited(send);
     }
 
     private bool _isThrottling;
@@ -84,22 +79,11 @@ public partial class HomePage : ContentPage
         _isThrottling = true;
         Slider send = (Slider)sender;
         var s = send;
-        MyViewModel.SeekSongPosition(currPosPer: s.Value);
+        await MyViewModel.SeekSongPosition(currPosPer: s.Value);
 
 
         await Task.Delay(throttleDelay);
         _isThrottling = false;
-    }
-
-    private async void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
-    {
-
-        //await MediaBtmBar.AnimateFocusModePointerEnter();
-    }
-
-    private async void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
-    {
-        //await MediaBtmBar.AnimateFocusModePointerExited(endOpacity: 0.4, endScale: 1);
     }
 
 
@@ -109,9 +93,9 @@ public partial class HomePage : ContentPage
     {
         MyViewModel.ToggleRepeatMode();
     }
-    private void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
+    private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
     {
-        //await MyViewModel.ShowHideContextMenuFromBtmBar(thiss);
+        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 
     private void SfEffectsView_Loaded(object sender, EventArgs e)
@@ -162,19 +146,19 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void PlayPrevious_Clicked(object sender, EventArgs e)
+    private async void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayPrevious();
+        await MyViewModel.PlayPrevious();
     }
 
-    private void PlayNext_Clicked(object sender, EventArgs e)
+    private async void PlayNext_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.PlayNext();
+        await MyViewModel.PlayNext();
     }
 
-    private void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
+    private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
-        MyViewModel.PlayPauseSong();
+        await MyViewModel.PlayPauseSong();
     }
 
     private void ShuffleBtn_Clicked(object sender, EventArgs e)
@@ -221,15 +205,6 @@ public partial class HomePage : ContentPage
     }
 
 
-    private void SearchSongSB_Focused(object sender, FocusEventArgs e)
-    {
-
-    }
-
-
-    private void SearchSongSB_Unfocused(object sender, FocusEventArgs e)
-    {
-    }
     private CancellationTokenSource? _debounceTimer;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -330,23 +305,40 @@ public partial class HomePage : ContentPage
         });
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
+    private static void Button_Clicked(object sender, EventArgs e)
     {
         ApplicationProps.LaunchSecondWindow();  
     }
-    private void Button2_Clicked(object sender, EventArgs e)
+    private static void Button2_Clicked(object sender, EventArgs e)
     {
         ApplicationProps.LaunchSecondWindow();  
     }
 
-    private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
+    private async void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {
-        MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
+       await MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
     }
 
 
     private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
         MyViewModel.SetVolume(VolumeSlider.Value);
+    }
+
+    private async void BtmBarPointerGest_PointerEntered(object sender, PointerEventArgs e)
+    {
+        await BmtBarView.AnimateFocusModePointerEnter();
+
+    }
+
+    private async void BtmBarPointerGest_PointerExited(object sender, PointerEventArgs e)
+    {
+        await BmtBarView.AnimateFocusModePointerExited(endOpacity: 0.4, endScale: 1);
+
+    }
+
+    private static async void PrimarySectionGest_Tapped(object sender, TappedEventArgs e)
+    {
+       await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
 }

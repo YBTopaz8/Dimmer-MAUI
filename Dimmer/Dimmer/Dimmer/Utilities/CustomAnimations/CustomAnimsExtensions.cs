@@ -302,7 +302,7 @@ public static class CustomAnimsExtensions
     public static async Task SlideInFromBottom(this VisualElement element, uint duration = 300)
     {
         element.Opacity = 0;
-        element.TranslationY = Application.Current.MainPage.Height;
+        element.TranslationY = AppUtils.UserScreenHeight;
         element.IsVisible = true;
         await Task.WhenAll(
             element.FadeIn(duration),
@@ -571,7 +571,7 @@ public static class CustomAnimsExtensions
         Animation widthAnimation = new Animation(v => container.WidthRequest = v, initialWidth, targetWidth, Easing.CubicIn);
         widthAnimation.Commit(container, "WidthContraction", length: (uint)(duration * 0.8));
     }
-    //Usage, similar to the previous one
+    
 
     public static async Task ProgressFill(this ProgressBar progressBar, double targetProgress, uint duration = 500)
     {
@@ -582,8 +582,7 @@ public static class CustomAnimsExtensions
         await progressBar.ProgressTo(targetProgress, duration, Easing.CubicInOut);
     }
 
-    
-    //await MyProgressBar.ProgressFill(0.8); 
+
 
     public static async Task ShowNotificationBanner(this Label notificationLabel, string message, uint duration = 400)
     {
@@ -746,8 +745,7 @@ public static class CustomAnimsExtensions
         }));
         await Task.Delay((int)duration); //wait for the anim to finish.
     }
-    //<BoxView x:Name="LiquidBox" />
-    //await LiquidBox.LiquidFill(200, Colors.Blue);
+
 
     public static async Task PulsatingGradient(this BoxView box, Color color1, Color color2, uint duration = 1000)
     {
@@ -786,8 +784,7 @@ public static class CustomAnimsExtensions
         await Task.Delay(-1);
     }
 
-    //<BoxView x:Name="GradientBox" WidthRequest="200" HeightRequest="200" />
-    //await GradientBox.PulsatingGradient(Colors.Red, Colors.Yellow);
+
 
     public static async Task CircularReveal(this BoxView box, bool reveal, uint duration = 500)
     {
@@ -824,9 +821,6 @@ public static class CustomAnimsExtensions
         await Task.Delay((int)duration); //wait for anim
     }
 
-    //<BoxView x:Name="CircleBox" BackgroundColor="Orange" WidthRequest="200" HeightRequest="200" />
-    //await CircleBox.CircularReveal(true); 
-
     public static async Task AnimateDashedBorder(this BoxView box, double dashLength = 10, double gapLength = 5, uint duration = 1000)
     {
         
@@ -859,8 +853,7 @@ public static class CustomAnimsExtensions
         await Task.Delay(-1);
     }
 
-    //<BoxView x:Name="DashedBox" BackgroundColor="Blue" WidthRequest="200" HeightRequest="50" />
-    //await DashedBox.AnimateDashedBorder();
+
 
     public static async Task ConnectedSlide(this VisualElement view1, VisualElement view2, bool slideRight, uint duration = 300)
     {
@@ -1206,14 +1199,14 @@ public static class CustomAnimsExtensions
     {
         await element.TranslateTo(targetX, element.TranslationY, duration, Easing.CubicInOut);
     }
-    //Usage: await myView.TranslateX(250);
+    
 
     
     public static async Task TranslateY(this VisualElement element, double targetY, uint duration = 250)
     {
         await element.TranslateTo(element.TranslationX, targetY, duration, Easing.CubicInOut);
     }
-    //Usage: await myView.TranslateY(250);
+    
 
 
     

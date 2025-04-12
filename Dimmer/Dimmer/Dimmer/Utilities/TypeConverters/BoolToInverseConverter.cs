@@ -4,6 +4,10 @@ public class BoolToInverseConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value == null)
+        {
+            return false;
+        }
         bool val = (bool)value;
         return !val;
     }
@@ -20,6 +24,10 @@ public class BoolToYesNoConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value == null)
+        {
+            return "No";
+        }
         bool val = (bool)value;
         if (val)
         {

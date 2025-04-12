@@ -8,9 +8,9 @@ namespace Dimmer.Utilities.Enums;
 
 public enum CurrentPage
 {
-    SetupPage,
-    SettingsPage,
+    SetupPage, 
     HomePage,
+    SettingsPage,
     NowPlayingPage,
     PlaylistsPage,
     FullStatsPage,

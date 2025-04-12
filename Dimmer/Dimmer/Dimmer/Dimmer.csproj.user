@@ -8,9 +8,6 @@
     <None Update="AppShell.xaml">
       <SubType>Designer</SubType>
     </None>
-    <None Update="MainPage.xaml">
-      <SubType>Designer</SubType>
-    </None>
     <None Update="Resources\Styles\Colors.xaml">
       <SubType>Designer</SubType>
     </None>

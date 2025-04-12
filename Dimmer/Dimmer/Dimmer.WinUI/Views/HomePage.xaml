@@ -28,8 +28,7 @@
     <Grid x:Name="MainPage" RowDefinitions="Auto,*,100">
         <HorizontalStackLayout Grid.Column="0" HorizontalOptions="End">
             
-                <SearchBar Text="{Binding SearchText}" BackgroundColor="Transparent"
-                           Focused="SearchSongSB_Focused" Unfocused="SearchSongSB_Unfocused"
+                <SearchBar Text="{Binding SearchText}" BackgroundColor="Transparent"                           
                            x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
                            WidthRequest="500" TextChanged="SearchSongSB_TextChanged">
                     
@@ -38,11 +37,10 @@
             <Button Text="testbtn2" Clicked="Button2_Clicked"/>
         </HorizontalStackLayout>
         <CollectionView Grid.Row="1"
-            BackgroundColor="Transparent" ItemsSource="{Binding DisplayedSongs}"
-                        VerticalScrollBarVisibility="Default"              
-                        
-                            x:Name="SongsColView" Loaded="SongsColView_Loaded" 
-                            Margin="5,0">
+            BackgroundColor="Transparent" ItemsSource="{Binding MasterSongs}"
+                        VerticalScrollBarVisibility="Default"
+                        x:Name="SongsColView" Loaded="SongsColView_Loaded" 
+                        Margin="5,0">
 
             <CollectionView.EmptyView>
                 <VerticalStackLayout HorizontalOptions="Center">
@@ -123,10 +121,19 @@ IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-
             <Grid ColumnDefinitions="470,*,250" Grid.Column="0" Grid.Row="2"
-                  Margin="15,0">
-            <HorizontalStackLayout Grid.Column="0" >
+                  Margin="15,0" x:Name="BmtBarView">
+            <Grid.GestureRecognizers>
+                <PointerGestureRecognizer x:Name="BtmBarPointerGest" PointerEntered="BtmBarPointerGest_PointerEntered"
+                                          PointerExited="BtmBarPointerGest_PointerExited" />
+                
+            </Grid.GestureRecognizers>
+            <HorizontalStackLayout Grid.Column="0" 
+                                   x:Name="PrimarySection">
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer x:Name="PrimarySectionGest" Tapped="PrimarySectionGest_Tapped"/>
+                </HorizontalStackLayout.GestureRecognizers>
+                   
                 <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
                        />
                 <VerticalStackLayout VerticalOptions="Center" 

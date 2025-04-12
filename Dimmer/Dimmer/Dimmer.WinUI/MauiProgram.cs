@@ -20,10 +20,15 @@ public static class MauiProgram
         builder
             .UseSharedMauiApp();
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddSingleton<MediaControlBtmBar>();
+        builder.Services.AddSingleton<DimmerWin>();
+        
         builder.Services.AddTransient<HomePage>();
         builder.Services.AddTransient<HomeViewModel>();
+
+        builder.Services.AddTransient<SingleSongPageViewModel>();
         builder.Services.AddTransient<SingleSongPage>();
+
+
         builder.Services.AddScoped<IAppUtil, AppUtil>();
 
         builder.ConfigureLifecycleEvents(events =>
@@ -62,7 +67,7 @@ public static class MauiProgram
                         
                         winuiAppWindow.Closing += async (s, e) =>
                         {
-                            if (!PlatUtils.ShowCloseConfirmationPopUp.ShowCloseConfirmation)
+                            if (!AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState())
                             {
                                 return;
                             }

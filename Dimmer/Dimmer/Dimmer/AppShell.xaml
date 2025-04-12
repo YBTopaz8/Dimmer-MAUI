@@ -7,9 +7,4 @@
     Shell.FlyoutBehavior="Disabled"
     Title="Dimmer">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
-
 </Shell>

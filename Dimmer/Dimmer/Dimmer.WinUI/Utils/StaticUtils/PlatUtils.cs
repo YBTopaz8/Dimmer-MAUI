@@ -143,4 +143,11 @@ public static class PlatUtils
         DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
         return DimmerHandle;
     }
+
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    public const int SW_HIDE = 0;
+    public const int SW_RESTORE = 9;
 }
+

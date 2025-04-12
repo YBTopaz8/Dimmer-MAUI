@@ -5,6 +5,21 @@ public class AppUtil : IAppUtil
     {
         return new AppShell();
     }
+    public Window LoadWindow()
+    {
+        var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
+        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+        if (win is null)
+        {
+            dimmerWin = new DimmerWin(vm);            
+        }
+        else
+        {
+            dimmerWin = win;
+        }
+        return dimmerWin;
+    }
+    public DimmerWin? dimmerWin { get; set; }
 }
 
 public static class ApplicationProps
