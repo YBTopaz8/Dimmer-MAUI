@@ -129,13 +129,17 @@ public class BaseAppFlow : IDisposable
         }
     }
     #region Audio Service Event Handlers
-   
+   public void SetCurrentSong(SongModelView song)
+   {
+        SongModel songs = Mapper.Map<SongModel>(song);
+        CurrentSong.OnNext(songs);
+   }
     public void PlaySong()
     {
         CurrentPosSubj.OnNext(0);
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
         
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);        
         IsPlayedCompletely = false;
     }
     public void PauseSong()

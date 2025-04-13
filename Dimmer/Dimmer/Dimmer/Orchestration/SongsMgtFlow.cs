@@ -351,14 +351,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     {
         get
         {
-            if (AudioService.IsPlaying)
-            {
-                return AudioService.CurrentPosition;
-            }
-            else
-            {
-                return 0;
-            }
+            return AudioService.CurrentPosition;
         }
         set;
     }

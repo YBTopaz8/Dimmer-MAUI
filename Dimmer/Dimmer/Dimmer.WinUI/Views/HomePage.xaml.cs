@@ -189,6 +189,45 @@ public partial class HomePage : ContentPage
                 break;
         }
     }
+    private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
+    {
+        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        string? param = ee.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
+        var CurrentIndex = int.Parse(param);
+        switch (CurrentIndex)
+        {
+            case 0:
+                //show the now playing Queue
+                break;
+            case 1:
+                //show the artists songs
+                break;
+            case 2:
+                //show the albums songs
+                break;
+            case 3:
+
+                
+                break;
+            case 4:
+                await MyViewModel.PlayNext();
+                break;
+            case 5:
+                MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
+                break;
+
+            case 6:
+                MyViewModel.IncredeVolume();
+                break;
+
+            default:
+                break;
+        }
+    }
 
 
     private CancellationTokenSource? _debounceTimer;
@@ -268,7 +307,6 @@ public partial class HomePage : ContentPage
             if (token.IsCancellationRequested)
                 return;
 
-            MyViewModel.IsOnSearchMode = wasSearch;
             MyViewModel.CurrentQueue = wasSearch ? 1 : 0;
             
 
@@ -293,11 +331,11 @@ public partial class HomePage : ContentPage
 
     private static void Button_Clicked(object sender, EventArgs e)
     {
-        ApplicationProps.LaunchSecondWindow();  
+        PlatUtils.ApplicationProps.LaunchSecondWindow();  
     }
     private static void Button2_Clicked(object sender, EventArgs e)
     {
-        ApplicationProps.LaunchSecondWindow();  
+        PlatUtils.ApplicationProps.LaunchSecondWindow();  
     }
 
     private async void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)

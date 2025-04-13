@@ -1,4 +1,10 @@
-﻿using System.Linq;
+﻿using Dimmer.Utilities;
+using Dimmer.WinUI.ViewModel;
+using Microsoft.UI;
+using Microsoft.UI.Xaml.Media;
+using System.Linq;
+using System.Windows.Forms;
+using Windows.Graphics;
 using WinRT.Interop;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -6,7 +12,6 @@ public static class PlatUtils
 {
 
     public static IntPtr DimmerHandle { get; set; }
-    public static nint DimmerHandleNInt { get; set; }
     public static bool IsAppInForeground { get; set; }
     public static AppWindowPresenter? AppWinPresenter { get; set; }
     public static OverlappedPresenter? OverLappedPres { get; set; }
@@ -34,7 +39,7 @@ public static class PlatUtils
         try
         {
 
-            var OverLappedPres = appPresenter as OverlappedPresenter;
+            OverLappedPres = appPresenter as OverlappedPresenter;
             if (topMost)
             {
                 OverLappedPres!.IsAlwaysOnTop = true;
@@ -54,7 +59,7 @@ public static class PlatUtils
     {
         try
         {
-            var OverLappedPres = appPresenter as OverlappedPresenter;
+             OverLappedPres = appPresenter as OverlappedPresenter;
             if (IsToFullScreen)
             {
                 OverLappedPres!.IsAlwaysOnTop = true;
@@ -131,7 +136,20 @@ public static class PlatUtils
     // Helper to retrieve a valid window handle from your main window
     public static IntPtr GetWindowHandle()
     {
-        var window = Application.Current!.Windows[0]!;
+        var window = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+        
+        // Get the underlying native window (WinUI).
+        var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+        if (nativeWindow == null)
+            throw new InvalidOperationException("Unable to retrieve the native window.");
+
+        
+        DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
+        return DimmerHandle;
+    }
+    public static IntPtr GetAnyWindowHandle(Window window)
+    {
+        
         if (window == null)
             throw new ArgumentNullException(nameof(window));
         // Get the underlying native window (WinUI).
@@ -139,15 +157,71 @@ public static class PlatUtils
         if (nativeWindow == null)
             throw new InvalidOperationException("Unable to retrieve the native window.");
 
-        DimmerHandleNInt = WindowNative.GetWindowHandle(nativeWindow);
-        DimmerHandle = WindowNative.GetWindowHandle(nativeWindow);
-        return DimmerHandle;
+        var intPtrHandle = WindowNative.GetWindowHandle(nativeWindow);
+        
+        return intPtrHandle;
     }
 
     [DllImport("user32.dll")]
+#pragma warning disable S4200 // Native methods should be wrapped
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning disable CA1401 // P/Invokes should not be visible
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+#pragma warning restore CA1401 // P/Invokes should not be visible
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning restore S4200 // Native methods should be wrapped
 
     public const int SW_HIDE = 0;
     public const int SW_RESTORE = 9;
-}
+    public static class ApplicationProps
+    {
+        public static DisplayArea? DisplayArea { get; set; }
 
+        public static void LaunchSecondWindow()
+        {
+            var vm = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+            var window = new TestPage(vm);
+            window.Activate();
+        }
+        
+        public async static Task LaunchNotificationWindowAndFadeItAwayAfterSixSeconds(BaseViewModelWin vm)
+        {
+
+            SongNotifierWindow newNotif = new SongNotifierWindow(vm);
+        
+            newNotif.Height = 300;
+            newNotif.Width = AppUtils.UserScreenWidth;
+
+            Microsoft.Maui.Controls.Application.Current?.OpenWindow(newNotif);
+
+            //var nativeWindow = newNotif.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+
+
+
+            //var windowHandle = GetAnyWindowHandle(newNotif);
+            //WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(windowHandle);
+            //var appWindow = AppWindow.GetFromWindowId(win32WindowsId);
+            //appWindow.SetPresenter(AppWindowPresenterKind.Overlapped);
+            //appWindow.Resize(new SizeInt32(AppUtils.UserScreenWidth, 300));
+            //appWindow.Move(new PointInt32(0, 0)); // Position at extreme top
+
+
+            //var ovPres = appWindow.Presenter as OverlappedPresenter;
+            //if (ovPres != null)
+            //{
+            //    ovPres.IsResizable = false;
+            //    ovPres.IsMaximizable = false;
+            //    ovPres.IsMinimizable = false;
+            //    ovPres.IsAlwaysOnTop = true;
+            //    ovPres.SetBorderAndTitleBar(false, false);
+            //}
+
+            //nativeWindow.SystemBackdrop = new MicaBackdrop();
+            // Wait 6 seconds while the window remains visible.
+            await Task.Delay(6000);
+
+
+            Microsoft.Maui.Controls.Application.Current?.CloseWindow(newNotif);
+        }
+    }
+}

@@ -3,6 +3,7 @@
 using Dimmer.Utilities;
 using Dimmer.WinUI.DimmerAudio;
 using Dimmer.WinUI.Utils.StaticUtils;
+using Dimmer.WinUI.ViewModel;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -19,11 +20,14 @@ public static class MauiProgram
 
         builder
             .UseSharedMauiApp();
+
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
+        builder.Services.AddSingleton<BaseViewModelWin>();
+
         builder.Services.AddSingleton<DimmerWin>();
         
-        builder.Services.AddTransient<HomePage>();
-        builder.Services.AddTransient<HomeViewModel>();
+        builder.Services.AddSingleton<HomePage>();
+        builder.Services.AddSingleton<HomeViewModel>();
 
         builder.Services.AddTransient<SingleSongPageViewModel>();
         builder.Services.AddTransient<SingleSongPage>();
@@ -38,7 +42,7 @@ public static class MauiProgram
                 wndLifeCycleBuilder.OnWindowCreated(window =>
                 {
                     IntPtr nativeWindowHandle = WindowNative.GetWindowHandle(window);
-
+                    
                     if (nativeWindowHandle != IntPtr.Zero)
                     {
                         PlatUtils.DimmerHandle = nativeWindowHandle;
@@ -50,20 +54,12 @@ public static class MauiProgram
                             {
                                 PlatUtils.IsAppInForeground =s.IsVisible;
                             }
+                            
                         };
-                        ApplicationProps.DisplayArea = DisplayArea.GetFromWindowId(win32WindowsId, DisplayAreaFallback.Primary);
                         
                         PlatUtils.AppWinPresenter = winuiAppWindow.Presenter;
                         PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
-                        
-                        Debug.WriteLine(ApplicationProps.DisplayArea.IsPrimary);
-                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Width);
-                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Height);
-                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.Y);
-                        Debug.WriteLine(ApplicationProps.DisplayArea.WorkArea.X);
-                        AppUtils.UserScreenWidth=ApplicationProps.DisplayArea.OuterBounds.Width;
-                        AppUtils.UserScreenHeight=(ApplicationProps.DisplayArea.OuterBounds.Height);
-                        Debug.WriteLine(ApplicationProps.DisplayArea.DisplayId.Value);
+                      
                         
                         winuiAppWindow.Closing += async (s, e) =>
                         {

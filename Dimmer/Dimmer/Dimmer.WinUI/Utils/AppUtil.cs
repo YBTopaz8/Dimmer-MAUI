@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.Utils;
+﻿using Dimmer.WinUI.ViewModel;
+
+namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
     public Shell GetShell()
@@ -8,7 +10,7 @@ public class AppUtil : IAppUtil
     public Window LoadWindow()
     {
         var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>();
-        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModel>()!;
+        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         if (win is null)
         {
             dimmerWin = new DimmerWin(vm);            
@@ -17,19 +19,13 @@ public class AppUtil : IAppUtil
         {
             dimmerWin = win;
         }
+        dimmerWin.MinimumHeight = 750;
+        dimmerWin.MinimumWidth = 900;
+        dimmerWin.Height = 850;
+        dimmerWin.Width = 1100;
+
         return dimmerWin;
     }
     public DimmerWin? dimmerWin { get; set; }
 }
 
-public static class ApplicationProps
-{
-    public static DisplayArea? DisplayArea { get; set; }
-
-    public static void LaunchSecondWindow()
-    {
-        var vm = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
-        var window = new TestPage(vm);
-        window.Activate();
-    }
-}

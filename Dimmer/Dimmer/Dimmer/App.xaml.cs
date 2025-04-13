@@ -1,4 +1,4 @@
-﻿using Dimmer.Interfaces;
+﻿ using Dimmer.Interfaces;
 
 namespace Dimmer;
 

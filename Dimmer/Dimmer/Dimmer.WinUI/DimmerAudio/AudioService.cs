@@ -207,7 +207,15 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         get
         {
-            return _mediaPlayer.Volume; // Directly get from player
+            if (_mediaPlayer is null)
+            {
+                return _volume;
+            }
+            else
+            {
+                return _mediaPlayer.Volume; // Directly get from player
+            }
+                
         }
 
         set

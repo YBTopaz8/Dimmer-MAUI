@@ -28,17 +28,19 @@
 
     <PackageReference Include="AutoMapper" Version="14.0.0" />
 
-    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.4" />
 
 
     <PackageReference Include="Realm" Version="20.1.0" />
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.50" />
+
+    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.4" />
+
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.60" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.50" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.3" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
 		<PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
-		<PackageReference Include="z440.atl.core" Version="6.19.0" />
+		<PackageReference Include="z440.atl.core" Version="6.20.0" />
 	</ItemGroup>
 
 </Project>

@@ -2,25 +2,29 @@ using Dimmer.Utilities;
 using Dimmer.WinUI.Utils.Helpers;
 using Dimmer.WinUI.Utils.StaticUtils;
 using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
+using Dimmer.WinUI.ViewModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using Vanara.PInvoke;
 using static Vanara.PInvoke.Shell32;
+using Vanara.PInvoke;
+using static Vanara.PInvoke.User32;
+using static Vanara.PInvoke.Kernel32;
+using System.Windows.Forms;
 
 namespace Dimmer.WinUI;
 
 public partial class DimmerWin : Window
 {
-    public BaseViewModel MyViewModel { get; set; }
-	public DimmerWin(BaseViewModel vm)
+    public BaseViewModelWin MyViewModel { get; set; }
+	public DimmerWin(BaseViewModelWin vm)
 	{
 		InitializeComponent();
 		Page = IPlatformApplication.Current!.Services.GetService<IAppUtil>()?.GetShell();
         MyViewModel= vm;
         
     }
-
     protected async override void OnDestroying()
     {
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
@@ -47,15 +51,9 @@ public partial class DimmerWin : Window
     protected override void OnCreated()
     {
         base.OnCreated();
-        this.MinimumHeight = 750;
-        this.MinimumWidth = 900;
-        this.Height = 850;
-        this.Width = 1100;
 #if DEBUG
-        DimmerTitleBar.Subtitle = "v1.8-debug";
-        DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSeaGreen;
+        DimmerTitleBar.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkRed;
 #elif RELEASE
-        DimmerTitleBar.Subtitle = "v1.8-Release";
 #endif
         if (MyViewModel is null)
         {
@@ -73,18 +71,14 @@ public partial class DimmerWin : Window
     private bool _isRestoring = false;
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.ToggleStickToTop();
-        //MyViewModel.ToggleStickToTopCommand.Execute(null);
-        //StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
-        //UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+        PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
+
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
-        MyViewModel.ToggleStickToTop();
-        //MyViewModel.ToggleStickToTopCommand.Execute(null);
-        //StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
-        //UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
+        PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
+
     }
 
     private TrayIconHelper? _trayIconHelper;

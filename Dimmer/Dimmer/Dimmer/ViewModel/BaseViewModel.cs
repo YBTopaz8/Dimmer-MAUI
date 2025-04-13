@@ -10,7 +10,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsShuffle { get; set; }
     [ObservableProperty]
-    public partial bool IsStickToTop { get; set; }
+    public partial bool IsStickToTop { get; set; } = false;
     [ObservableProperty]
     public partial bool IsPlaying { get; set; }
     [ObservableProperty]
@@ -33,6 +33,7 @@ public partial class BaseViewModel : ObservableObject
     public partial CurrentPage CurrentlySelectedPage { get; set; }
     
     
+
     #endregion
     public BaseViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow ,IDimmerAudioService dimmerAudioService)
     {
@@ -92,14 +93,29 @@ public partial class BaseViewModel : ObservableObject
             
         });
     }
-
+    
+#if DEBUG
+    public const string CurrentAppVersion = "Dimmer v1.8-debug";
+#elif RELEASE
+    public const string CurrentAppVersion = "Dimmer v1.8-Release";
+#endif
+    [ObservableProperty]
+public partial string AppTitle { get; set; }
     public void SubscribeToCurrentlyPlayingSong()
     {
         BaseAppFlow.CurrentSong
             .DistinctUntilChanged()
             .Subscribe(song =>
             {
-                TemporarilyPickedSong = mapper.Map<SongModelView>(song);            
+                TemporarilyPickedSong = mapper.Map<SongModelView>(song);
+                if (TemporarilyPickedSong != null)
+                {
+                    AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";
+                }
+                else
+                {
+                    AppTitle = CurrentAppVersion;
+                }
             });
     }
     private void SubscribeToMasterSongs()
@@ -199,7 +215,8 @@ public partial class BaseViewModel : ObservableObject
         {
             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         }
-        songsMgtFlow.CurrentlyPlayingSong = song;
+        songsMgtFlow.SetCurrentSong(song);
+        songsMgtFlow.CurrentlyPlayingSong=song;
         TemporarilyPickedSong = song;     
         
        await songsMgtFlow.PlaySongInAudioService();
@@ -275,11 +292,14 @@ public partial class BaseViewModel : ObservableObject
         VolumeLevel = songsMgtFlow.VolumeLevel;
     }
 
-    public void ToggleStickToTop()
+    public bool ToggleStickToTop()
     {
         IsStickToTop = !IsStickToTop;
         BaseAppFlow.ToggleStickToTop(IsStickToTop);
-        
+        return IsStickToTop;
+    }
+    partial void OnIsStickToTopChanging(bool oldValue, bool newValue)
+    {
     }
 }
 

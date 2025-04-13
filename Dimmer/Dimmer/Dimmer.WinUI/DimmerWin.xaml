@@ -12,9 +12,21 @@
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              >
     <Window.TitleBar>
-        <TitleBar Title="Dimmer"
+        <TitleBar Title="{Binding AppTitle}"
                   x:Name="DimmerTitleBar">
 
+            <TitleBar.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+                <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+                <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+                <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+                <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+                <converters:VolumeConverter x:Key="VolConverter" />
+
+            </TitleBar.Resources>
             <TitleBar.TrailingContent>
                 <HorizontalStackLayout BackgroundColor="Transparent" >
                     <FlyoutBase.ContextFlyout>
@@ -25,11 +37,13 @@
                     </FlyoutBase.ContextFlyout>
                     <ImageButton Source="threesquares.png" Clicked="Minimize_Clicked"/>
 
-                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}"
-                                 Source="pushpined.png" WidthRequest="30" HeightRequest="30">
+                    <ImageButton x:Name="StickTopImgBtn" Clicked="StickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop, Converter={StaticResource  BoolToInverse}}"
+                                 Source="pushpined.png" WidthRequest="30" HeightRequest="30"
+                                 BackgroundColor="Black">
 
                     </ImageButton>
-                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked"
+                    <ImageButton x:Name="UnStickTopImgBtn" Clicked="UnStickTopImgBtn_Clicked" IsVisible="{Binding IsStickToTop}"
+                                 BackgroundColor="Red"
                                  Source="pin.png" WidthRequest="30" HeightRequest="30">
 
                     </ImageButton>
