@@ -8,8 +8,6 @@ public partial class ArtistModel : RealmObject
     public string? Name { get; set; } = "Unknown Artist";
     public string? Bio { get; set; }
     public string? ImagePath { get; set; } = "lyricist.png";
-
-
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();

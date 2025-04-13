@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Dimmer.Utilities;
+﻿namespace Dimmer.Utilities;
 public static class DbUtils
 {
 
@@ -18,27 +16,20 @@ public static class DbUtils
     /// <typeparam name="T"></typeparam>
     /// <param name="db"></param>
     /// <param name="item"></param>
-    /// <param name="existsCondition"></param>
+    /// <param name="IsAdd"></param>
     /// <param name="updateAction"></param>
-    public static void AddOrUpdateSingleRealmItem<T>(Realm db, T item, Func<T, bool>? existsCondition = null, Action<T>? updateAction = null) where T : RealmObject
+    public static void AddOrUpdateSingleRealmItem<T>(Realm db, T item,bool IsAdd) where T : RealmObject
     {
         try
         {
 
             db.Write(() =>
             {
-                if (existsCondition is null)
-                {
+                var s = db.All<T>().ToList();
+                if(s is null || s.Count < 1)
+                { 
                     db.Add(item);
-                    Debug.WriteLine("added");
-                    return;
-                }
-                if (!db.All<T>().Any(existsCondition))
-                {
-                    updateAction?.Invoke(item); // Perform additional updates if needed
-
-                    db.Add(item, update:true);
-                    Debug.WriteLine("Updated to db");
+                    Debug.WriteLine("added");                    
                 }
                 else
                 {

@@ -1,12 +1,5 @@
 
 
-using Dimmer.Data.ModelView;
-using Dimmer.Orchestration;
-using Dimmer.WinUI.Utils.StaticUtils;
-using Microsoft.UI.Xaml.Input;
-using Syncfusion.Maui.Toolkit.Chips;
-using Syncfusion.Maui.Toolkit.EffectsView;
-using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
@@ -19,6 +12,7 @@ public partial class HomePage : ContentPage
 		InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
+
     }
 
     protected override void OnAppearing()
@@ -365,4 +359,118 @@ public partial class HomePage : ContentPage
     {
        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
+    private async void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
+    {
+        if (MyViewModel.IsPlaying)
+        {
+            View bor = (View)sender;
+            LyricPhraseModelView lyr = (LyricPhraseModelView)bor.BindingContext;
+            await MyViewModel.SeekSongPosition(lyr);
+        }
+    }
+
+    private void LyricsColView_Loaded(object sender, EventArgs e)
+    {
+        try
+        {
+            //MyViewModel.
+            var nativeView = LyricsColView.Handler?.PlatformView;
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
+
+                listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
+
+                listView.Background = null;
+                listView.BorderBrush = null;
+                listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+
+                listView.ContainerContentChanging += ListView_ContainerContentChanging;
+                
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
+            {
+                selector.Background = null;
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ItemsControl itemsControl)
+            {
+                itemsControl.Background = null;
+                
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.Control control)
+            {
+                control.Background = null;
+            }
+
+            if (nativeView is Microsoft.UI.Xaml.UIElement uiElement)
+            {
+                uiElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible; // Make sure it's still visible
+            }
+
+            //MyViewModel.ScrollAfterAppearing();
+            Debug.WriteLine($"PlatformView Type: {nativeView?.GetType()}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to remove highlight: {ex.Message}");
+        }
+
+    }
+
+    private static void ListView_ContainerContentChanging(Microsoft.UI.Xaml.Controls.ListViewBase sender, Microsoft.UI.Xaml.Controls.ContainerContentChangingEventArgs args)
+    {
+        if (args.ItemContainer is Microsoft.UI.Xaml.Controls.ListViewItem item)
+        {
+            item.Background = null;
+            item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+            item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+            item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
+        }
+    }
+
+    private void LyricsColView_Unloaded(object sender, EventArgs e)
+    {
+
+        try
+        {
+            var nativeView = LyricsColView.Handler?.PlatformView;
+
+            if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
+            {
+                listView.ContainerContentChanging -= ListView_ContainerContentChanging;
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to remove highlight: {ex.Message}");
+        }
+    }
+    private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    {
+        LyricPhraseModelView? CurrLyric = LyricsColView.SelectedItem as LyricPhraseModelView;
+        if (CurrLyric is null)
+            return;
+        if (MyViewModel.IsPlaying)
+        {
+            if (string.IsNullOrEmpty(CurrLyric.Text))
+            {
+                await Task.WhenAll(BmtBarView.DimmOutCompletely(),
+                    MainGrid.DimmOutCompletely(), PageBGImg.DimmInCompletely());
+
+            }
+            else
+            {
+                await Task.WhenAll(BmtBarView.DimmInCompletely(),
+                    MainGrid.DimmInCompletely(), PageBGImg.DimmInCompletely(),
+                    PageBGImg.DimmOut(endOpacity: 0.15));
+
+            }
+        }
+    }
+
 }

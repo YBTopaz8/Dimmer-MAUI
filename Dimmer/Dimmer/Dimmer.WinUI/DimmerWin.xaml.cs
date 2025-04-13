@@ -1,17 +1,10 @@
 using Dimmer.Utilities;
 using Dimmer.WinUI.Utils.Helpers;
-using Dimmer.WinUI.Utils.StaticUtils;
 using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 using Dimmer.WinUI.ViewModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using Vanara.PInvoke;
-using static Vanara.PInvoke.Shell32;
-using Vanara.PInvoke;
-using static Vanara.PInvoke.User32;
-using static Vanara.PInvoke.Kernel32;
-using System.Windows.Forms;
 
 namespace Dimmer.WinUI;
 
@@ -61,14 +54,7 @@ public partial class DimmerWin : Window
         }
         StickTopImgBtn.IsVisible = MyViewModel.IsStickToTop;
         UnStickTopImgBtn.IsVisible = !MyViewModel.IsStickToTop;
-
-     
-       
-
-
-
     }
-    private bool _isRestoring = false;
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);

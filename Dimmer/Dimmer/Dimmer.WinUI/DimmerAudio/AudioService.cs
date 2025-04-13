@@ -1,29 +1,5 @@
-﻿using Dimmer.Utils;
-using System.IO.Pipelines;
-
+﻿
 namespace Dimmer.WinUI.DimmerAudio;
-#nullable enable // Enable nullable reference types for better compile-time safety
-
-using Dimmer.Utilities.Enums;
-using Dimmer.Utilities.Events; // Assuming PlaybackEventArgs, ErrorEventArgs are here
-using Microsoft.Maui.Controls;
-using Microsoft.UI.Dispatching; // For potential UI thread marshaling
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading; // For CancellationToken
-using System.Threading.Tasks;
-using Windows.Devices.Enumeration; // For GetAvailableAudioOutputsAsync
-using Windows.Media;
-using Windows.Media.Core;
-using Windows.Media.Devices; // For GetAvailableAudioOutputsAsync, DefaultAudioRenderDeviceChangedEventArgs
-using Windows.Media.Playback;
-using Windows.Storage;
-using Windows.Storage.Streams;
-using MediaPlayer = Windows.Media.Playback.MediaPlayer;
 
 
 /// <summary>

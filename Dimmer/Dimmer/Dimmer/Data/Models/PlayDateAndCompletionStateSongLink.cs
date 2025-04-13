@@ -30,6 +30,9 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// The type of the play.
     /// </value>
     public int PlayType { get; set; }
+
+    
+
     /// <summary>
     /// Gets or sets the date played.
     /// </summary>
@@ -105,15 +108,10 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// Initializes a new instance of the <see cref="PlayDateAndCompletionStateSongLink"/> class.
     /// </summary>
     
-    public SongModel Song { get; set; }
-    public ArtistModel Artist{ get; set; }
-    public AlbumModel Album { get; set; }
-    public GenreModel Genre { get; set; }
+    public SongModel? Song { get; set; }
+    public ArtistModel? Artist{ get; set; }
+    public AlbumModel? Album { get; set; }
+    public GenreModel? Genre { get; set; }
 
-
-    public PlayDateAndCompletionStateSongLink()
-    {
-
-    }
 
 }

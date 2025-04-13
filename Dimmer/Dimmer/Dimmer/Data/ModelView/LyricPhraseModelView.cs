@@ -1,34 +1,7 @@
-﻿using static ATL.LyricsInfo;
+﻿using ATL;
 
-namespace Dimmer.Database.ModelView;
-public class Content
-{
-    public int Id { get; set; }
-    public string? Name { get; set; }
-    public string? TrackName { get; set; }
-    public string? ArtistName { get; set; }
-    public string? AlbumName { get; set; }
-    public float Duration { get; set; }
-    public bool Instrumental { get; set; }
-    public string? PlainLyrics { get; set; }
-    public string? SyncedLyrics { get; set; }
-    public string? LinkToCoverImage { get; set; } = "e";
-    public List<string>? ListOfLinksToCoverImages { get; set; }
-    // Read-only property with logic
-    public bool IsSynced => !string.IsNullOrEmpty(SyncedLyrics);
-}
-
-public class LyristApiResponse
-{
-    public string? Lyrics { get; set; }
-    public string? Title { get; set; }
-    public string? Artist { get; set; }
-    public string? Image { get; set; }
-    public int Id { get; set; }
-}
-
-
-public partial class LyricPhraseModel : ObservableObject
+namespace Dimmer.Data.ModelView;
+public partial class LyricPhraseModelView : ObservableObject
 {
     [ObservableProperty]
     public partial int TimeStampMs { get; set; } = 0;
@@ -68,7 +41,7 @@ public partial class LyricPhraseModel : ObservableObject
     public partial bool IsLyricSynced { get; set; }
 
     // Constructor that accepts a LyricsInfo.LyricsPhrase object
-    public LyricPhraseModel(LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
+    public LyricPhraseModelView( LyricsInfo.LyricsPhrase? phrase = null, int? nextPhraseTimestampMs = null)
     {
 
         if (phrase != null)
@@ -88,8 +61,4 @@ public partial class LyricPhraseModel : ObservableObject
         }
     }
 
-
 }
-
-
-

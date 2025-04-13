@@ -1,6 +1,4 @@
-﻿ using Dimmer.Interfaces;
-
-namespace Dimmer;
+﻿namespace Dimmer;
 
 public partial class App : Application
 {

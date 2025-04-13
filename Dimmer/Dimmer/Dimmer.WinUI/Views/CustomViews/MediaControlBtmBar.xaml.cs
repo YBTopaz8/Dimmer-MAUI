@@ -1,10 +1,3 @@
-
-
-using Microsoft.UI.Xaml.Input;
-using Syncfusion.Maui.Toolkit.EffectsView;
-using System.ComponentModel;
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views.CustomViews;
 
 public partial class MediaControlBtmBar : ContentView

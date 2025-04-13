@@ -1,22 +1,7 @@
-﻿using Dimmer.Utilities; // Assuming BaseViewModel is here or accessible
-using Dimmer.WinUI.Utils.StaticUtils; // For PlatUtils
-using Microsoft.Extensions.DependencyInjection; // For IServiceProvider usage if needed
-using Microsoft.UI.Xaml;
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using WinRT.Interop; // Required for WindowNative
-using Vanara.PInvoke; // Core Vanara PInvoke namespace
-using Vanara.Windows.Shell; // For TaskbarList wrapper
-using Microsoft.Maui.ApplicationModel; // For IPlatformApplication (if that's how you get Services)
-using System;
-using System.Diagnostics;
+﻿using Vanara.PInvoke; // Core Vanara PInvoke namespace
 using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Reflection;
 using System.Windows.Forms;
 using static Vanara.PInvoke.Shell32;
-using System.Runtime.InteropServices.Marshalling; // For Point struct (optional)
 
 namespace Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 public static class TaskbarCommands

@@ -8,8 +8,9 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
-             xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+             xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              x:Name="myPage"
+             Shell.NavBarIsVisible="False"
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="HomePage">
 
@@ -25,9 +26,9 @@
         <converters:VolumeConverter x:Key="VolConverter" />
 
     </ContentPage.Resources>
-    <Shell.TitleView>
+    <Grid RowDefinitions="Auto,*">
 
-        <Grid ColumnDefinitions="550,*" Grid.Row="0" 
+        <Grid ColumnDefinitions="650,*" Grid.Row="0" 
                       Margin="15,0" x:Name="BmtBarView">
             <Grid.GestureRecognizers>
                 <PointerGestureRecognizer x:Name="BtmBarPointerGest" PointerEntered="BtmBarPointerGest_PointerEntered"
@@ -47,7 +48,7 @@
                                 <Setter Property="ShowIcon" Value="True"/>
                                 <Setter Property="StrokeThickness" Value="0"/>
                                 <Setter Property="ImageSize" Value="30"/>
-                                
+
                             </Style>
                         </ResourceDictionary>
                     </syncf:SfChipGroup.Resources>
@@ -56,6 +57,9 @@
                                      HorizontalOptions="Start"/>
                     </syncf:SfChipGroup.ChipLayout>
                     <syncf:SfChipGroup.Items>
+
+                        <syncf:SfChip Text="Settings" ShowIcon="False"
+                                      CommandParameter="1" TextColor="White"/>                        
 
                         <syncf:SfChip HorizontalOptions="Center"
                                           CommandParameter="0" >
@@ -86,8 +90,7 @@
 
                         <syncf:SfChip ImageSource="skipprevious.png" 
                                       CommandParameter="1" TextColor="White"/>
-
-                        <syncf:SfChip ImageSource="pause.png" 
+                        <syncf:SfChip ImageSource="pause.png" IsVisible="{Binding IsPlaying}"
                                       CommandParameter="2" TextColor="White"/>
 
                         <syncf:SfChip ImageSource="playcircle.png" IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
@@ -117,15 +120,15 @@
                 </syncf:SfChipGroup>
 
 
-                <syncf:SfEffectsView  BackgroundColor="Transparent" WidthRequest="100"
+                <syncf:SfEffectsView  BackgroundColor="Transparent" 
                                      Loaded="SfEffectsView_Loaded" Grid.Column="2"
                                      Unloaded="SfEffectsView_Unloaded">
-                    <VerticalStackLayout VerticalOptions="Center" >
+                    <VerticalStackLayout VerticalOptions="Start" >
                         <Label  HorizontalOptions="Center"/>
 
-                        <Slider  VerticalOptions="End" Value="{Binding VolumeLevel}"
-                                Maximum="1" Minimum="0" x:Name="VolumeSlider" WidthRequest="100"
-                                 ValueChanged="VolumeSlider_ValueChanged"
+                        <Slider  Value="{Binding VolumeLevel}"
+                                Maximum="1" Minimum="0" x:Name="VolumeSlider" WidthRequest="200"
+                                 ValueChanged="VolumeSlider_ValueChanged" VerticalOptions="Start"
                                 MinimumTrackColor="DarkSlateBlue" />
                     </VerticalStackLayout>
                 </syncf:SfEffectsView>
@@ -136,7 +139,7 @@
 
                 <Label Grid.Column="0"
                         Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
-                           HorizontalOptions="Center" FontSize="16" 
+                           HorizontalOptions="Center" FontSize="14" 
                            Margin="0,5,0,0"/>
                 <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted"
                             x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
@@ -145,171 +148,229 @@
             Minimum="0" Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"/>
 
                 <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
-                           HorizontalOptions="Center" FontSize="16" Grid.Column="2"
+                           HorizontalOptions="Center" FontSize="14" Grid.Column="2"
                            Margin="0,5,0,0"/>
             </Grid>
         </Grid>
 
-    </Shell.TitleView>
-    <Grid x:Name="MainPage" Margin="10,5">
-        
-        <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
-               Aspect="AspectFit" Opacity="0.06"/>
-        <Grid  ColumnDefinitions="200,*">
-            <VerticalStackLayout Grid.Column="0">
-                <Border StrokeShape="RoundRectangle 20">
-                    <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+        <Grid x:Name="MainPage" Margin="10,5" Grid.Row="1">
+
+            <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+               Aspect="AspectFit" Opacity="0.06" x:Name="PageBGImg"/>
+            <Grid  ColumnDefinitions="200,*" x:Name="MainGrid">
+                <VerticalStackLayout Grid.Column="0">
+                    <Border StrokeShape="RoundRectangle 20" BackgroundColor="Transparent">
+                        <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
                        Aspect="AspectFit" WidthRequest="200"
                        HeightRequest="200">
 
-                    </Image>
-                </Border>
-                <syncf:SfChipGroup ChipType="Action" 
+                        </Image>
+                    </Border>
+                    <syncf:SfChipGroup ChipType="Action" 
                               x:Name="TempSongChipGroup"
                               ChipClicked="TempSongChipGroup_ChipClicked" 
                               HorizontalOptions="Center" SelectionIndicatorColor="DarkSlateBlue"
                               >
-                    <syncf:SfChipGroup.Resources>
-                        <ResourceDictionary>
-                            <Style TargetType="syncf:SfChip">
-                                <Setter Property="ShowIcon" Value="True"/>
-                                <Setter Property="StrokeThickness" Value="0"/>
-                                <Setter Property="ImageSize" Value="20"/>
-                                
-                                
-                            </Style>
-                        </ResourceDictionary>
-                    </syncf:SfChipGroup.Resources>
-                    <syncf:SfChipGroup.ChipLayout>
-                        <VerticalStackLayout Spacing="10" 
+                        <syncf:SfChipGroup.Resources>
+                            <ResourceDictionary>
+                                <Style TargetType="syncf:SfChip">
+                                    <Setter Property="ShowIcon" Value="True"/>
+                                    <Setter Property="StrokeThickness" Value="0"/>
+                                    <Setter Property="ImageSize" Value="20"/>
+
+
+                                </Style>
+                            </ResourceDictionary>
+                        </syncf:SfChipGroup.Resources>
+                        <syncf:SfChipGroup.ChipLayout>
+                            <VerticalStackLayout Spacing="10" 
                             HorizontalOptions="Start"/>
-                    </syncf:SfChipGroup.ChipLayout>
-                    <syncf:SfChipGroup.Items>
+                        </syncf:SfChipGroup.ChipLayout>
+                        <syncf:SfChipGroup.Items>
 
 
-                        <syncf:SfChip ImageSource="songc.png" Text="{Binding TemporarilyPickedSong.Title}"
+                            <syncf:SfChip ImageSource="songc.png" Text="{Binding TemporarilyPickedSong.Title}"
                              CommandParameter="0"
-                                      FontAttributes="Bold" FontSize="20"
+                                      FontAttributes="Bold" FontSize="14"
                                       TextColor="White"/>
 
-                        <syncf:SfChip ImageSource="artist.png"  Text="{Binding TemporarilyPickedSong.ArtistName}"
+                            <syncf:SfChip ImageSource="artist.png"  Text="{Binding TemporarilyPickedSong.ArtistName}"
                              CommandParameter="1" TextColor="White"
                                       FontSize="14"
                                       FontAttributes="Italic"/>
 
-                        <syncf:SfChip ImageSource="vinyl.png"                                      
+                            <syncf:SfChip ImageSource="vinyl.png"                                      
                                       FontAttributes="Italic"
-                                      FontSize="11"
+                                      FontSize="14"
                              CommandParameter="2" TextColor="White" Text="{Binding TemporarilyPickedSong.AlbumName}"/>
 
-                        <syncf:SfChip ImageSource="lyrics.png" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}"
+                            <syncf:SfChip ImageSource="lyrics.png" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}"
                              CommandParameter="4" TextColor="White" />
 
-                    </syncf:SfChipGroup.Items>
-                </syncf:SfChipGroup>
+                        </syncf:SfChipGroup.Items>
+                    </syncf:SfChipGroup>
 
 
-            </VerticalStackLayout>
-            <Grid Grid.Column="1" RowDefinitions="*,100">
-                <HorizontalStackLayout 
+                </VerticalStackLayout>
+                <Grid Grid.Column="1" RowDefinitions="*,100">
+                    <HorizontalStackLayout 
                                    Grid.Row="1"
                                    HorizontalOptions="End">
 
-                    <SearchBar Text="{Binding SearchText}" BackgroundColor="Transparent"                           
+                        <SearchBar BackgroundColor="Transparent"                           
                                x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
                                WidthRequest="500" TextChanged="SearchSongSB_TextChanged">
 
-                    </SearchBar>
-                    <Button Text="testbtn" Clicked="Button_Clicked" VerticalOptions="Center"/>
-                    <Button Text="testbtn2" Clicked="Button2_Clicked" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-                <CollectionView Grid.Row="0"
+                        </SearchBar>
+                        <Button Text="testbtn" Clicked="Button_Clicked" VerticalOptions="Center"/>
+                        <Button Text="testbtn2" Clicked="Button2_Clicked" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                    <syncf:SfTabView >
+                        
+                        
+                        <syncf:SfTabItem Header="All Songs">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView Grid.Row="0" 
                 BackgroundColor="Transparent" ItemsSource="{Binding MasterSongs}"
                             VerticalScrollBarVisibility="Default"
                             x:Name="SongsColView" 
                             Margin="5,0">
 
-                    <CollectionView.EmptyView>
-                        <VerticalStackLayout HorizontalOptions="Center">
-                            <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
+                                    <CollectionView.EmptyView>
+                                        <VerticalStackLayout HorizontalOptions="Center">
+                                            <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
                             HorizontalOptions="Center"
-                            FontSize="16"/>
-                        </VerticalStackLayout>
-                    </CollectionView.EmptyView>
+                            FontSize="14"/>
+                                        </VerticalStackLayout>
+                                    </CollectionView.EmptyView>
 
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:SongModelView">
-                            <Border BackgroundColor="Transparent" Padding="2"
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="3"/>
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:SongModelView">
+                                            <Border BackgroundColor="Transparent" Padding="2"
+                                                    HeightRequest="50"
                                         StrokeShape="RoundRectangle 12">
 
-                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"       
+                                                <syncf:SfEffectsView ToolTipProperties.Text="{Binding Title}"       
                                                  BackgroundColor="Transparent"                                     
                                              
                                                 TouchDownEffects="Ripple,Selection" >
-                                    <Grid ColumnDefinitions="300,*,*,*,*,*,*"         BackgroundColor="Transparent"                                     
-                                                  RowDefinitions="90" ColumnSpacing="15">
-                                        <Grid.GestureRecognizers>
-                                            <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
+                                                    <Grid ColumnDefinitions="*,*,*,*,*" BackgroundColor="Transparent"                                     
+                                                  ColumnSpacing="15">
+                                                        <Grid.GestureRecognizers>
+                                                            <TapGestureRecognizer Tapped="PlaySong_Tapped" x:Name="PlaySong" NumberOfTapsRequired="2"/>
 
-                                            <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" 
+                                                            <PointerGestureRecognizer PointerEntered="UserHoverOnSongInColView" 
                                                                 PointerExited="UserHoverOutSongInColView"
                                                                   />
 
-                                        </Grid.GestureRecognizers>
-                                        <HorizontalStackLayout Grid.Column="0" Margin="5,0,0,0" 
+                                                        </Grid.GestureRecognizers>
+                                                        <HorizontalStackLayout Grid.Column="0" Margin="5,0,0,0" 
                                                            HorizontalOptions="Start" 
                                             VerticalOptions="Center">
-                                            <VerticalStackLayout>
+                                                            <VerticalStackLayout>
 
-                                                <Image WidthRequest="30" HeightRequest="30" 
+                                                                <Image WidthRequest="15" HeightRequest="15" 
                                                    HorizontalOptions="Start"  
     IsVisible="{Binding HasLyrics}" Source="lyrics.png" Opacity="1"
            BackgroundColor="Transparent">
 
-                                                </Image>
+                                                                </Image>
 
-                                                <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
+                                                                <Image Source="songc.png" IsVisible="{Binding IsCurrentPlayingHighlight}"
            WidthRequest="25" Opacity="1"
            HorizontalOptions="Start">
 
-                                                </Image>
-                                            </VerticalStackLayout>
-                                            <Label Text="{Binding Title}" Grid.Column="1" 
-                                                FontSize="22" HorizontalOptions="Start"
+                                                                </Image>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding Title}" Grid.Column="1" 
+                                                FontSize="14" HorizontalOptions="Start"
                                                 LineBreakMode="TailTruncation"/>
 
 
-                                        </HorizontalStackLayout>
+                                                        </HorizontalStackLayout>
 
-                                        <Label Grid.Column="1" FontSize="16" HorizontalOptions="Start"
+                                                        <Label Grid.Column="1" FontSize="14" HorizontalOptions="Start"
                                         Text="{Binding ArtistName}" LineBreakMode="TailTruncation"/>
 
-                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" 
-                                                   FontSize="16" />
+                                                        <Label Grid.Column="2" Text="{Binding AlbumName}" LineBreakMode="TailTruncation" 
+                                                   FontSize="14" />
 
-                                        <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
+                                                        <Label Grid.Column="3" HorizontalOptions="Center" LineBreakMode="TailTruncation"
                                     Text="{Binding Genre}" 
-                                                   FontSize="16" />
+                                                   FontSize="14" />
 
-                                        <Label Grid.Column="4" 
-                                HorizontalOptions="Center" FontSize="16"/>
-                                        <Label Grid.Column="5" HorizontalOptions="Center" Text="{Binding FileFormat}" FontSize="16" Opacity="0.8"/>
-                                        <Label Grid.Column="6" HorizontalOptions="Center" Text="{Binding ReleaseYear}" FontSize="16" Opacity="0.8"/>
+                                                        <Label Grid.Column="4" HorizontalOptions="Center" Text="{Binding ReleaseYear}" FontSize="14" Opacity="0.8"/>
 
 
-                                    </Grid>
+                                                    </Grid>
 
-                                </syncf:SfEffectsView>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                                                </syncf:SfEffectsView>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+
+                        <syncf:SfTabItem Header="Lyrics">
+                            <syncf:SfTabItem.Content>
+                                <CollectionView x:Name="LyricsColView" 
+                                        ItemsSource="{Binding SynchronizedLyrics}"                                        
+                                        Loaded="LyricsColView_Loaded" Unloaded="LyricsColView_Unloaded"
+                                        SelectionMode="Single" SelectionChanged="LyricsColView_SelectionChanged"
+                                        SelectedItem="{Binding CurrentLyricPhrase}"
+                                        EmptyView="No Syncronized Lyrics ...">
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:LyricPhraseModelView">
+
+                                            <Border StrokeShape="RoundRectangle 20" HorizontalOptions="Center" VerticalOptions="Center"
+                                          x:Name="LyrBorder" >
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal" >
+                                                            <VisualState.Setters>
+                                                                <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+
+                                                        <VisualState x:Name="PointerOver">
+                                                            <VisualState.Setters>
+                                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+
+                                                <Label Text="{Binding Text}"                                                
+                                               FontSize="{Binding NowPlayingLyricsFontSize}" 
+                                               HorizontalTextAlignment="Center"
+                                               FontAttributes="{Binding LyricsFontAttributes}">
+
+                                                    <Label.GestureRecognizers>
+                                                        <TapGestureRecognizer Tapped="SeekSongPosFromLyric_Tapped"/>
+                                                    </Label.GestureRecognizers>
+
+                                                </Label>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+
+                                </CollectionView>
+
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+                    </syncf:SfTabView>
+                </Grid>
+
+
             </Grid>
-
-
         </Grid>
     </Grid>
 

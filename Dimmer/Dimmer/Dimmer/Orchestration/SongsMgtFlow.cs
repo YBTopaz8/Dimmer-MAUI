@@ -1,8 +1,5 @@
 ﻿using ATL;
 using Dimmer.Data;
-using Dimmer.Interfaces;
-using Dimmer.Utilities;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace Dimmer.Orchestration;
@@ -143,7 +140,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         await AudioService.PlayAsync();
         
         
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);
 
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
         CurrentlyPlayingSong.IsPlaying = true; // Update playing status
@@ -192,18 +189,19 @@ public partial class SongsMgtFlow : BaseAppFlow
             PlayDateAndCompletionStateSongLink linkss = new()
             {
                 DatePlayed = DateTime.Now,
-                PlayType = 4,
+                PlayType= (int)PlayType.Seeked,
                 SongId = CurrentlyPlayingSong.LocalDeviceId,
                 PositionInSeconds = CurrentPositionInSec
             };
             if (CurrentPercentage >= 80)
             {
-                linkss.PlayType = 7;
+                linkss.PlayType= (int)PlayType.SeekRestarted;
             }
 
-            AddPDaCStateLink(linkss);
+            AddPDaCStateLink(linkss, true);
         }
     }
+    
 
 
     Random _random { get; } = new Random();
@@ -220,7 +218,7 @@ public partial class SongsMgtFlow : BaseAppFlow
 
         if (isUserInitiated)
         {
-            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
+            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
         }
 
         switch (CurrentRepeatMode)
@@ -232,7 +230,7 @@ public partial class SongsMgtFlow : BaseAppFlow
                 if (CurrentRepeatCount < repeatCountMax) // still on repeat one for same CurrentlyPlayingSong (later can be same PL/album etc)
                 {
                     CurrentRepeatCount++;
-                    UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.CustomRepeat);
+                    UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.CustomRepeat, true);
                     PlaySong();
                 }
                 return;
@@ -278,12 +276,12 @@ public partial class SongsMgtFlow : BaseAppFlow
 
         if (prevCounter == 1)
         {
-            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Previous);
+            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Previous, true);
 
             prevCounter = 0;
             return;
         }
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Restarted);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Restarted, true);
         
         if (CurrentRepeatMode == RepeatMode.One)
         {
@@ -346,13 +344,11 @@ public partial class SongsMgtFlow : BaseAppFlow
         base.ToggleRepeatMode();        
     }
 
+    double _currentPositionInSec => AudioService.CurrentPosition;
 
     public double CurrentPositionInSec
     {
-        get
-        {
-            return AudioService.CurrentPosition;
-        }
+        get => _currentPositionInSec;
         set;
     }
 

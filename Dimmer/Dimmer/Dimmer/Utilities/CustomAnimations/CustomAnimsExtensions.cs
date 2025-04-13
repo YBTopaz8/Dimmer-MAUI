@@ -546,7 +546,7 @@ public static class CustomAnimsExtensions
     
     
     
-    //<Label x:Name="HiddenContent" Text="Revealed Content!" TextColor="Black" />
+    //<Label x:Name="HiddenContent" Text="Revealed LyricsDownloadContent!" TextColor="Black" />
     
     
     

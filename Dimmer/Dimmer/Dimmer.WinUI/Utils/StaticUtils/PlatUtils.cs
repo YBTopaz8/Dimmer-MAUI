@@ -1,10 +1,5 @@
 ﻿using Dimmer.Utilities;
 using Dimmer.WinUI.ViewModel;
-using Microsoft.UI;
-using Microsoft.UI.Xaml.Media;
-using System.Linq;
-using System.Windows.Forms;
-using Windows.Graphics;
 using WinRT.Interop;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;

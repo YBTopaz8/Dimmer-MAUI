@@ -1,12 +1,6 @@
 ﻿
 
 
-using Dimmer.Orchestration;
-using Dimmer.UIUtils;
-using Dimmer.Utilities.Enums;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views;
 public partial class SingleSongPageViewModel : BaseViewModel
 {
@@ -18,6 +12,8 @@ public partial class SingleSongPageViewModel : BaseViewModel
     [ObservableProperty]
     public partial CollectionView? SongLyricsCV { get; set; }
 
+    [ObservableProperty]
+    public partial ObservableCollection<LyricsDownloadContent>? CurrentListOfDownloadedLyrics { get; internal set; }
     #endregion
     public SingleSongPageViewModel(SongsMgtFlow songsMgt, IMapper mapper, IDimmerAudioService dimmerAudioService) : base(mapper, songsMgt, dimmerAudioService)
     {
@@ -26,7 +22,7 @@ public partial class SingleSongPageViewModel : BaseViewModel
 
     private void LoadPageViewModel()
     {
-        throw new NotImplementedException();
+        
     }
     public void SetCollectionView(CollectionView collectionView)
     {

@@ -1,9 +1,4 @@
-﻿using Dimmer.WinUI.Utils.StaticUtils;
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.InteropServices;
-using Point = System.Drawing.Point;
+﻿using Point = System.Drawing.Point;
 
 namespace Dimmer.WinUI.Utils.Helpers
 {

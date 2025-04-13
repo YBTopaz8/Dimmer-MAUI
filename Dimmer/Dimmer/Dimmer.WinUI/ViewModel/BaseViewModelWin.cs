@@ -1,14 +1,4 @@
-﻿using AutoMapper;
-using Dimmer.Data.ModelView;
-using Dimmer.Orchestration;
-using Dimmer.Utilities;
-using Dimmer.WinUI.Utils.StaticUtils;
-using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 
 namespace Dimmer.WinUI.ViewModel;
 public partial class BaseViewModelWin : BaseViewModel
@@ -17,6 +7,9 @@ public partial class BaseViewModelWin : BaseViewModel
     public partial int CurrentQueue { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
+    [ObservableProperty]
+    public partial CollectionView? SongLyricsCV { get; set; }
+
     [ObservableProperty]
     public partial List<SongModelView>? FilteredSongs { get; set; }
 
@@ -35,7 +28,7 @@ public partial class BaseViewModelWin : BaseViewModel
 
         BaseAppFlow.CurrentSong
             .DistinctUntilChanged()
-            .Subscribe(async song =>
+            .Subscribe(song =>
             {
                 if (song is null)
                     return;

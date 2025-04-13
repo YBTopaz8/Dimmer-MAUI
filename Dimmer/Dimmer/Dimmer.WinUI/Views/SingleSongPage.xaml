@@ -7,7 +7,7 @@
  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
 xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
  xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
- xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+ xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
  x:Name="myPage"
  xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="SingleSongPage">

@@ -24,19 +24,22 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 5,
+            SchemaVersion = 7,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
-                // Migration for schema version 4: set default for SomeProperty.
+                
                 if (oldSchemaVersion < 4)
                 {
-                    //var newAppStates = migration.NewRealm.All<AppStateModel>().ToList();
                     
                 }
-                // Migration for schema version 5: set default for IsFirstTime.
+                
                 if (oldSchemaVersion < 5)
                 {
-                    //var newAppStates = migration.NewRealm.All<AppStateModel>().ToList();
+                   
+                }
+                if (oldSchemaVersion < 6)
+                {
+                    
                    
                 }
             }

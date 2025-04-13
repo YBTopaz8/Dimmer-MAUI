@@ -1,25 +1,18 @@
-﻿
-
-
-using Dimmer.Orchestration;
-using Dimmer.UIUtils;
-using Dimmer.Utilities.Enums;
-using Dimmer.WinUI.ViewModel;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Windows.Media;
+﻿using Dimmer.WinUI.ViewModel;
+using ListView = Microsoft.UI.Xaml.Controls.ListView;
 
 namespace Dimmer.WinUI.Views;
 public partial class HomeViewModel : BaseViewModelWin
 {
 
     #region private fields   
+
     #endregion
 
     #region public properties
     [ObservableProperty]
     public partial CollectionView? SongsCV { get; set; }
-
+    public ListView? SongsListView { get; set; }    
     [ObservableProperty]
     public partial string? SearchText { get; set; }
     #endregion
@@ -41,6 +34,16 @@ public partial class HomeViewModel : BaseViewModelWin
         await PlaySong(song);
     }
     public void SetCollectionView(CollectionView collectionView)
+    {
+        SongsCV = collectionView;
+    }
+    
+    public void SetLyricsView(ListView colView)
+    {
+        SongsListView = colView;
+    }
+    
+    public void ScrollAfterAppearing(CollectionView collectionView)
     {
         SongsCV = collectionView;
     }

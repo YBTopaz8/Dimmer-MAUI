@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using System.Linq;
 
 namespace Dimmer.Utilities;
 public static class AppSettingsService 

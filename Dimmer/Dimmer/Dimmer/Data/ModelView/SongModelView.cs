@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Database.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]

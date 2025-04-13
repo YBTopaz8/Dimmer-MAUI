@@ -7,7 +7,7 @@ public class EmptyStringToMessageConverter : IValueConverter // TODO: RENAME THI
 
         if (targetType == typeof(bool) && (string)parameter == "Sync")
         {
-            ObservableCollection<LyricPhraseModel>? val = value as ObservableCollection<LyricPhraseModel>;
+            ObservableCollection<LyricPhraseModelView>? val = value as ObservableCollection<LyricPhraseModelView>;
             if (val?.Count > 0)
             {
                 return true;

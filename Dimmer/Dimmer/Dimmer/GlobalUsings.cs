@@ -4,7 +4,6 @@ global using System.Diagnostics;
 global using AutoMapper;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.ViewModel;
-global using Dimmer.Database.ModelView;
 
 global using System.Globalization;
 global using CommunityToolkit.Maui.Core.Extensions;

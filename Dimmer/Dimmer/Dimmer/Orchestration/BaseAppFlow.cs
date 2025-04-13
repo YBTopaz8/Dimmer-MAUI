@@ -1,9 +1,5 @@
 ﻿using Dimmer.Data;
-using Dimmer.Interfaces;
-using Dimmer.Utilities;
 using Dimmer.Utilities.Events;
-using Dimmer.Utils;
-using System.Timers;
 using DimmerPlaybackState = Dimmer.Utilities.Enums.DimmerPlaybackState;
 
 namespace Dimmer.Orchestration;
@@ -34,6 +30,7 @@ public class BaseAppFlow : IDisposable
     public static BehaviorSubject<List<GenreModel>> AllGenre { get; } = new([]);
     public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
     public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
+    public static BehaviorSubject<List<PlaylistModel>> AllPlaylists { get; } = new([]);
 
     #endregion
 
@@ -80,7 +77,6 @@ public class BaseAppFlow : IDisposable
         this.AudioService.PositionChanged +=AudioService_PositionChanged;
         this.AudioService.PlayEnded += AudioService_PlayEnded;
         CurrentlyPlayingSong = new();
-
     }
 
     private void AudioService_PositionChanged(object? sender, double e)
@@ -139,19 +135,19 @@ public class BaseAppFlow : IDisposable
         CurrentPosSubj.OnNext(0);
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
         
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play);        
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);        
         IsPlayedCompletely = false;
     }
     public void PauseSong()
     {
         IsPlayedCompletely = false;
 
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Pause);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Pause, true);
     }
     public void ResumeSong()
     {
         IsPlayedCompletely = false;
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Resume);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Resume, true);
         
     }
     public bool IsPlayedCompletely { get; set; }
@@ -167,7 +163,7 @@ public class BaseAppFlow : IDisposable
             IsPlayingSubj.OnNext(false);
             IsPlayedCompletely = true;
 
-            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed);
+            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed, true);
         }
 
         switch (CurrentRepeatMode)
@@ -200,7 +196,7 @@ public class BaseAppFlow : IDisposable
         IsPlayedCompletely = false;
         CurrentPosSubj.OnNext(0);
         CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
     }
 
     private void AudioService_PlayPrevious(object? sender, EventArgs e)
@@ -209,32 +205,47 @@ public class BaseAppFlow : IDisposable
         IsPlayedCompletely = false;
         CurrentPosSubj.OnNext(0);
         CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
     }
-    public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, double? position = null)
+    public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, bool IsAdd, double? position = null)
     {
         currentlyPlayingSong??=CurrentlyPlayingSong;
         var songDb = Mapper.Map<SongModel>(currentlyPlayingSong);
         PlayDateAndCompletionStateSongLink link = new ()
         {
             DatePlayed = DateTime.Now,
-            PlayType = (int)playType,
+            PlayType= (int)playType,
             Song = songDb,
             SongId = songDb.LocalDeviceId,
             PositionInSeconds = position is null ? 0 : (double)position,
             WasPlayCompleted = playType == PlayType.Completed,
 
         };
-        AddPDaCStateLink(link);
+        AddPDaCStateLink(link,IsAdd);
 
     }
-    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model)
+    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model, bool IsAdd)
     {
         try
         {
             Db = RealmFactory.GetRealmInstance();
             model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PDL");
-            DbUtils.AddOrUpdateSingleRealmItem(Db, model, link => link.LocalDeviceId == model.LocalDeviceId);
+            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+
+        }
+
+    }
+    public void UpSertPlaylistData(PlaylistModel model, bool IsAdd)
+    {
+        try
+        {
+            Db = RealmFactory.GetRealmInstance();
+            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PL");
+            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
         }
         catch (Exception ex)
         {

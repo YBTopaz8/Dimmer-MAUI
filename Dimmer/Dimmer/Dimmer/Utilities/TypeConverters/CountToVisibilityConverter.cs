@@ -9,7 +9,7 @@ public class CountToVisibilityConverter : IValueConverter
             return false;
         }
         string param = (string)parameter;
-        Content? val = (Content)value;
+        LyricsDownloadContent? val = (LyricsDownloadContent)value;
 
         if (param == "syncview")
         {

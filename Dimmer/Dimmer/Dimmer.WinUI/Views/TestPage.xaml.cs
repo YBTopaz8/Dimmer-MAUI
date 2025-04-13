@@ -1,7 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Window = Microsoft.UI.Xaml.Window;
 
 // To learn more about WinUI, the WinUI project structure,

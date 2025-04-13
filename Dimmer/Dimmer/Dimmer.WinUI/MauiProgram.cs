@@ -1,13 +1,7 @@
-﻿
-
-using Dimmer.Utilities;
-using Dimmer.WinUI.DimmerAudio;
-using Dimmer.WinUI.Utils.StaticUtils;
+﻿using Dimmer.WinUI.DimmerAudio;
 using Dimmer.WinUI.ViewModel;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI;
-using Microsoft.UI.Windowing;
-using System.Diagnostics;
 using WinRT.Interop;
 
 namespace Dimmer.WinUI;
@@ -61,10 +55,6 @@ public static class MauiProgram
                         PlatUtils.OverLappedPres= winuiAppWindow.Presenter as OverlappedPresenter;
                       
                         
-                        winuiAppWindow.Closing += async (s, e) =>
-                        {
-                            
-                        };
                     }
                     // Check if this is the mini player window by checking its title or other identifying property
                     if (window.Title == "MP")

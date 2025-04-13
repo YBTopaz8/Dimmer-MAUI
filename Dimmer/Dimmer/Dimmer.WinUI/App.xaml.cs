@@ -3,8 +3,6 @@
 
 
 using Dimmer.Utilities;
-using static Dimmer.WinUI.Utils.Helpers.TrayIconHelper;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Dimmer.WinUI;
 

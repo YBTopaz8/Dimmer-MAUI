@@ -1,8 +1,11 @@
-﻿
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
 {
+#if DEBUG
+    public const string CurrentAppVersion = "Dimmer v1.8-debug";
+#elif RELEASE
+    public const string CurrentAppVersion = "Dimmer v1.8-Release";
+#endif
     private readonly IMapper mapper;
     public readonly SongsMgtFlow songsMgtFlow;
 
@@ -21,6 +24,8 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? MasterSongs { get; internal set; }
     [ObservableProperty]
+    public partial ObservableCollection<LyricPhraseModelView>? CurrentSyncLyrics { get; internal set; }
+    [ObservableProperty]
     public partial SongModelView? TemporarilyPickedSong { get; set; }
     [ObservableProperty]
     public partial View? MySelectedSongView { get; set; }
@@ -28,7 +33,9 @@ public partial class BaseViewModel : ObservableObject
     public partial double CurrentPositionInSeconds { get; set; }
     [ObservableProperty]
     public partial double VolumeLevel { get; set; }
-    
+    [ObservableProperty]
+    public partial string AppTitle { get; set; }
+
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage { get; set; }
     
@@ -94,13 +101,6 @@ public partial class BaseViewModel : ObservableObject
         });
     }
     
-#if DEBUG
-    public const string CurrentAppVersion = "Dimmer v1.8-debug";
-#elif RELEASE
-    public const string CurrentAppVersion = "Dimmer v1.8-Release";
-#endif
-    [ObservableProperty]
-public partial string AppTitle { get; set; }
     public void SubscribeToCurrentlyPlayingSong()
     {
         BaseAppFlow.CurrentSong
@@ -264,6 +264,17 @@ public partial string AppTitle { get; set; }
         }
         return false;
     }
+    public async Task SeekSongPosition(LyricPhraseModelView? lryPhrase = null)
+    {
+        if (lryPhrase is not null)
+        {
+
+            CurrentPositionInSeconds =( (lryPhrase.TimeStampMs * 1000) * TemporarilyPickedSong!.DurationInSeconds) / 100;
+            await SeekSongPosition(CurrentPositionInSeconds);
+            return;
+        }
+    }
+
     public async Task SeekSongPosition(double currPosPer = 0)
     {
        await songsMgtFlow.SeekTo(currPosPer);
@@ -297,9 +308,6 @@ public partial string AppTitle { get; set; }
         IsStickToTop = !IsStickToTop;
         BaseAppFlow.ToggleStickToTop(IsStickToTop);
         return IsStickToTop;
-    }
-    partial void OnIsStickToTopChanging(bool oldValue, bool newValue)
-    {
     }
 }
 
