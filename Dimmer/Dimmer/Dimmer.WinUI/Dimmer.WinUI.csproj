@@ -22,6 +22,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Assets\atom.svg" />
+	  <Content Remove="Assets\dimmerIcon.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="DimmerWin.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
@@ -134,7 +139,7 @@
 	  <WebView2EnableCsWinRTProjection>False</WebView2EnableCsWinRTProjection>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <Title>Dimmer</Title>
-	  <PackageIcon>musical_notes.png</PackageIcon>
+	  <PackageIcon>dimmerIcon.png</PackageIcon>
 	</PropertyGroup>
 
 	<!--

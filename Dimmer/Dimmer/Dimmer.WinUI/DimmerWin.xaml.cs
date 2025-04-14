@@ -22,6 +22,7 @@ public partial class DimmerWin : Window
     {
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
+            base.OnDestroying();
             return;
         }
 
@@ -32,9 +33,9 @@ public partial class DimmerWin : Window
             "Cancel");
         if (!result)
         {
-            return;            
+            base.OnDestroying();
+            
         }
-        base.OnDestroying();
     }
     protected override void OnActivated()
     {
@@ -72,7 +73,7 @@ public partial class DimmerWin : Window
     {
 
         IntPtr hwnd = PlatUtils.DimmerHandle;
-        Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
+        Icon appIcon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location)!;
         _trayIconHelper = new TrayIconHelper();
         _trayIconHelper.CreateTrayIcon("Dimmer", appIcon.Handle,
             onLeftClick: () =>

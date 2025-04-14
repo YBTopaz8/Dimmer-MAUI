@@ -183,7 +183,7 @@ public partial class HomePage : ContentPage
                 break;
         }
     }
-    private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
+    private void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
         SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         string? param = ee.CommandParameter.ToString();
@@ -208,15 +208,12 @@ public partial class HomePage : ContentPage
                 
                 break;
             case 4:
-                await MyViewModel.PlayNext();
+                MainTabView.SelectedIndex=1;
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
                 break;
 
-            case 6:
-                MyViewModel.IncredeVolume();
-                break;
 
             default:
                 break;
@@ -378,7 +375,7 @@ public partial class HomePage : ContentPage
 
             if (nativeView is Microsoft.UI.Xaml.Controls.ListView listView)
             {
-
+                
                 listView.SelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None;
 
                 listView.Background = null;
@@ -406,8 +403,10 @@ public partial class HomePage : ContentPage
             }
 
             if (nativeView is Microsoft.UI.Xaml.UIElement uiElement)
+
             {
                 uiElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible; // Make sure it's still visible
+
             }
 
             //MyViewModel.ScrollAfterAppearing();
@@ -473,4 +472,8 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private void SongsUIContextMenu_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

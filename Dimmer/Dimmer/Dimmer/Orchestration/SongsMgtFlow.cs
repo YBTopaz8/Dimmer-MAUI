@@ -34,6 +34,12 @@ public partial class SongsMgtFlow : BaseAppFlow
                     case DimmerPlaybackState.Ended:
                         await PlayNextSong();
                         break;
+                    case DimmerPlaybackState.PlayNext:
+                        await PlayNextSong();
+                        break;
+                    case DimmerPlaybackState.RepeatSame:
+                        await PlaySongInAudioService();
+                        break;
                     default:
                         break;
                 }
@@ -142,7 +148,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);
 
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         CurrentlyPlayingSong.IsPlaying = true; // Update playing status
         
         return true;
@@ -174,8 +180,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
     public async Task SeekTo(double positionInSec)
-    {
-        CurrentPositionInSec = positionInSec;
+    {        
         if (CurrentlyPlayingSong is null)
         {
             return;
@@ -267,7 +272,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     }
 
     int prevCounter;
-    private int repeatCountMax =0;
+    readonly int repeatCountMax =0;
 
     public void PlayPreviousSong(bool isUserInitiated = true)
     {
@@ -349,7 +354,6 @@ public partial class SongsMgtFlow : BaseAppFlow
     public double CurrentPositionInSec
     {
         get => _currentPositionInSec;
-        set;
     }
 
     public int CurrentIndexInMasterList { get; private set; }
@@ -364,49 +368,14 @@ public partial class SongsMgtFlow : BaseAppFlow
         base.PlaySong();
         await PlaySongInAudioService();
 
-        switch (source)
-        {
-            case PlaybackSource.MainQueue:
-                break;
-            case PlaybackSource.AlbumsQueue:
-                break;
-            case PlaybackSource.SearchQueue:
-                break;
-            case PlaybackSource.External:
-                break;
-            case PlaybackSource.PlaylistQueue:
-                break;
-            case PlaybackSource.ArtistQueue:
-                break;
-            default:
-                break;
-        }
+        
 
         
     }
 
-
- 
-    public void ClearQueue()
-    {
-        
-    }
-    
 
     #region Helpers
     
-
-    private void OnPositionTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        if (AudioService.IsPlaying)
-        {
-            double totalDurationInSeconds = CurrentlyPlayingSong.DurationInSeconds;
-            double percentagePlayed = CurrentPositionInSec / totalDurationInSeconds;
-            CurrentPositionInSec = AudioService.CurrentPosition;
-            
-
-        }
-    }
 
     #endregion
 }

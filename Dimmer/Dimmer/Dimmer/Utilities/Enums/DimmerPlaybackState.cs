@@ -23,4 +23,7 @@ public enum DimmerPlaybackState
     PlayCompleted,
     PlayPrevious,
     PlayNext,
+    RepeatSame,
+    RepeatAll,
+    RepeatPlaylist
 }

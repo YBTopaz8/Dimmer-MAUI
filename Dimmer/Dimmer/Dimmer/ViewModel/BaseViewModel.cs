@@ -2,9 +2,9 @@
 public partial class BaseViewModel : ObservableObject
 {
 #if DEBUG
-    public const string CurrentAppVersion = "Dimmer v1.8-debug";
+    public const string CurrentAppVersion = "Dimmer v1.8a-debug";
 #elif RELEASE
-    public const string CurrentAppVersion = "Dimmer v1.8-Release";
+    public const string CurrentAppVersion = "Dimmer v1.8a-Release";
 #endif
     private readonly IMapper mapper;
     public readonly SongsMgtFlow songsMgtFlow;
@@ -24,7 +24,9 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? MasterSongs { get; internal set; }
     [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModelView>? CurrentSyncLyrics { get; internal set; }
+    public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics { get; internal set; }
+    [ObservableProperty]
+    public partial LyricPhraseModelView? CurrentLyricPhrase { get; set; }
     [ObservableProperty]
     public partial SongModelView? TemporarilyPickedSong { get; set; }
     [ObservableProperty]
@@ -34,7 +36,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial double VolumeLevel { get; set; }
     [ObservableProperty]
-    public partial string AppTitle { get; set; }
+    public partial string? AppTitle { get; set; }
 
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage { get; set; }
@@ -48,6 +50,7 @@ public partial class BaseViewModel : ObservableObject
         this.mapper=mapper;
         this.songsMgtFlow=songsMgtFlow;
         LoadPageViewModel();
+        AppTitle = CurrentAppVersion;
     }
 
     private void LoadPageViewModel()
@@ -107,7 +110,14 @@ public partial class BaseViewModel : ObservableObject
             .DistinctUntilChanged()
             .Subscribe(song =>
             {
+                if (TemporarilyPickedSong is not null)
+                {
+                    TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+                }
+
                 TemporarilyPickedSong = mapper.Map<SongModelView>(song);
+                
+                TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                 if (TemporarilyPickedSong != null)
                 {
                     AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";
@@ -137,8 +147,11 @@ public partial class BaseViewModel : ObservableObject
     #region playback controls 
     public async Task PlayPrevious()
     {
-        if (IsShuffle)
+        if (MasterSongs is not null)
         {
+            if (IsShuffle)
+        {
+
            bool isInCol =  IsFoundInCollection(TemporarilyPickedSong!, MasterSongs);
             if (isInCol)
             {
@@ -154,7 +167,7 @@ public partial class BaseViewModel : ObservableObject
             else
             {
                await PlaySong(TemporarilyPickedSong!);
-            }
+                }
         }
         else
         {
@@ -174,37 +187,42 @@ public partial class BaseViewModel : ObservableObject
             {
                 await PlaySong(song);
             }
+            }
         }
     }
      public async Task PlayNext()
-    {
-        if (IsShuffle)
+     {
+        if (MasterSongs is not null)
         {
-           bool isInCol =  IsFoundInCollection(TemporarilyPickedSong!, MasterSongs);
-            if (isInCol)
+
+            if (IsShuffle)
             {
-                int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-                int newIndex = random.Next(0, MasterSongs.Count);
-                while (newIndex == index)
+               bool isInCol =  IsFoundInCollection(TemporarilyPickedSong!, MasterSongs);
+                if (isInCol)
                 {
-                    newIndex = random.Next(0, MasterSongs.Count);
+                    int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
+                    int newIndex = random.Next(0, MasterSongs.Count);
+                    while (newIndex == index)
+                    {
+                        newIndex = random.Next(0, MasterSongs.Count);
+                    }
+                    var song = MasterSongs[newIndex];
+                    await PlaySong(song);
                 }
-                var song = MasterSongs[newIndex];
-                await PlaySong(song);
+                else
+                {
+                    await PlaySong(TemporarilyPickedSong!);
+                }
             }
             else
             {
-                await PlaySong(TemporarilyPickedSong!);
-            }
-        }
-        else
-        {
-            int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-            index++;
-            var song = MasterSongs[index];
-            if (song != null)
-            {
-              await PlaySong(song);
+                int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
+                index++;
+                var song = MasterSongs[index];
+                if (song != null)
+                {
+                  await PlaySong(song);
+                }
             }
         }
     }
@@ -224,12 +242,14 @@ public partial class BaseViewModel : ObservableObject
 
     public async Task PlayPauseSong()
     {
+        if (TemporarilyPickedSong is not null)
+        {
+
         if ( IsPlaying)
         {
 
            await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, true);
            
-            
         }
         else
         {
@@ -239,6 +259,7 @@ public partial class BaseViewModel : ObservableObject
                 return;
             }
             await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, false);
+            }
         }
     }
 

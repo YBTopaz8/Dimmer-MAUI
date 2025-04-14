@@ -58,7 +58,7 @@ public class BaseAppFlow : IDisposable
     public bool IsShuffleOn { get; set; }
     
 
-    public RepeatMode CurrentRepeatMode { get; set; }
+    public RepeatMode CurrentRepeatMode { get; set; } = RepeatMode.All;
     public int CurrentRepeatCount { get; set; }
     #endregion
 
@@ -86,7 +86,11 @@ public class BaseAppFlow : IDisposable
 
     private void LoadAppData()
     {
-        var dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+        List<SongModel>? dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
+        if (dbb == null)
+        {
+            dbb = new List<SongModel>();
+        }
         AllSongs.OnNext(dbb);
     }
 
@@ -133,7 +137,7 @@ public class BaseAppFlow : IDisposable
     public void PlaySong()
     {
         CurrentPosSubj.OnNext(0);
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = true;
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);        
         IsPlayedCompletely = false;
@@ -175,8 +179,8 @@ public class BaseAppFlow : IDisposable
 
                 break;
             case RepeatMode.One:
-                CurrentlyPlayingSong=null;
-                
+
+                CurrentStateSubj.OnNext(DimmerPlaybackState.RepeatSame);
                 break;
             case RepeatMode.Custom:
                 break;

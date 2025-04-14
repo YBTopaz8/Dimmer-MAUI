@@ -174,7 +174,8 @@ public static class PlatUtils
 
         public static void LaunchSecondWindow()
         {
-            var vm = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+            HomeViewModel? vm = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+
             var window = new TestPage(vm);
             window.Activate();
         }
@@ -189,30 +190,7 @@ public static class PlatUtils
 
             Microsoft.Maui.Controls.Application.Current?.OpenWindow(newNotif);
 
-            //var nativeWindow = newNotif.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
-
-
-
-            //var windowHandle = GetAnyWindowHandle(newNotif);
-            //WindowId win32WindowsId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            //var appWindow = AppWindow.GetFromWindowId(win32WindowsId);
-            //appWindow.SetPresenter(AppWindowPresenterKind.Overlapped);
-            //appWindow.Resize(new SizeInt32(AppUtils.UserScreenWidth, 300));
-            //appWindow.Move(new PointInt32(0, 0)); // Position at extreme top
-
-
-            //var ovPres = appWindow.Presenter as OverlappedPresenter;
-            //if (ovPres != null)
-            //{
-            //    ovPres.IsResizable = false;
-            //    ovPres.IsMaximizable = false;
-            //    ovPres.IsMinimizable = false;
-            //    ovPres.IsAlwaysOnTop = true;
-            //    ovPres.SetBorderAndTitleBar(false, false);
-            //}
-
-            //nativeWindow.SystemBackdrop = new MicaBackdrop();
-            // Wait 6 seconds while the window remains visible.
+            
             await Task.Delay(6000);
 
 

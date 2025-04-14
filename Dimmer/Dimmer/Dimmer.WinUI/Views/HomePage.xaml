@@ -120,7 +120,7 @@
                 </syncf:SfChipGroup>
 
 
-                <syncf:SfEffectsView  BackgroundColor="Transparent" 
+                <syncf:SfEffectsView  BackgroundColor="Transparent" ToolTipProperties.Text="{Binding VolumeLevel, StringFormat='Volume {0}'}"
                                      Loaded="SfEffectsView_Loaded" Grid.Column="2"
                                      Unloaded="SfEffectsView_Unloaded">
                     <VerticalStackLayout VerticalOptions="Start" >
@@ -161,8 +161,7 @@
                 <VerticalStackLayout Grid.Column="0">
                     <Border StrokeShape="RoundRectangle 20" BackgroundColor="Transparent">
                         <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
-                       Aspect="AspectFit" WidthRequest="200"
-                       HeightRequest="200">
+                       Aspect="AspectFit" >
 
                         </Image>
                     </Border>
@@ -177,8 +176,6 @@
                                     <Setter Property="ShowIcon" Value="True"/>
                                     <Setter Property="StrokeThickness" Value="0"/>
                                     <Setter Property="ImageSize" Value="20"/>
-
-
                                 </Style>
                             </ResourceDictionary>
                         </syncf:SfChipGroup.Resources>
@@ -219,23 +216,43 @@
 
                         <SearchBar BackgroundColor="Transparent"                           
                                x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
-                               WidthRequest="500" TextChanged="SearchSongSB_TextChanged">
+                               WidthRequest="300" TextChanged="SearchSongSB_TextChanged">
 
                         </SearchBar>
-                        <Button Text="testbtn" Clicked="Button_Clicked" VerticalOptions="Center"/>
-                        <Button Text="testbtn2" Clicked="Button2_Clicked" VerticalOptions="Center"/>
                     </HorizontalStackLayout>
-                    <syncf:SfTabView >
-                        
-                        
-                        <syncf:SfTabItem Header="All Songs">
+                    <syncf:SfTabView TabBarHeight="0"
+                                     x:Name="MainTabView"
+                                     EnableSwiping="True">
+                        <syncf:SfTabItem >
                             <syncf:SfTabItem.Content>
                                 <CollectionView Grid.Row="0" 
                 BackgroundColor="Transparent" ItemsSource="{Binding MasterSongs}"
                             VerticalScrollBarVisibility="Default"
                             x:Name="SongsColView" 
                             Margin="5,0">
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="View Artist" IconImageSource="user.png"
+                                                            x:Name="SongsUIContextMenu" Clicked="SongsUIContextMenu_Clicked" CommandParameter="0"/>
+                                            
+                                            <MenuFlyoutItem Text="View Album" IconImageSource="albumm.png"
+                                                             Clicked="SongsUIContextMenu_Clicked" CommandParameter="1"/>
+                                            <MenuFlyoutItem Text="Edit Song" IconImageSource="clapperboardedit.png"
+                                                             Clicked="SongsUIContextMenu_Clicked" CommandParameter="2"/>
 
+                                            <MenuFlyoutItem Text="Open Folder" IconImageSource="albumm.png"
+                                                            
+                                                             Clicked="SongsUIContextMenu_Clicked" CommandParameter="1">
+                                                
+                                            </MenuFlyoutItem>
+
+                                            <MenuFlyoutItem Text="Copy all song details to Clipbloard" IconImageSource="copy.png"
+                                                             Clicked="SongsUIContextMenu_Clicked" CommandParameter="1"/>
+                                            <MenuFlyoutItem Text="Delete Song" IconImageSource="albumm.png"
+                                                            IsDestructive="True"
+                 Clicked="SongsUIContextMenu_Clicked" CommandParameter="1"/>
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
                                     <CollectionView.EmptyView>
                                         <VerticalStackLayout HorizontalOptions="Center">
                                             <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
@@ -316,7 +333,7 @@
                             </syncf:SfTabItem.Content>
                         </syncf:SfTabItem>
 
-                        <syncf:SfTabItem Header="Lyrics">
+                        <syncf:SfTabItem>
                             <syncf:SfTabItem.Content>
                                 <CollectionView x:Name="LyricsColView" 
                                         ItemsSource="{Binding SynchronizedLyrics}"                                        

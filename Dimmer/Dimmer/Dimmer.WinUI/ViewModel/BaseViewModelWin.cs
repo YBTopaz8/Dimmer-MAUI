@@ -37,7 +37,6 @@ public partial class BaseViewModelWin : BaseViewModel
                     return;
                 }
                 VolumeLevel = songsMgtFlow.VolumeLevel;
-
             });
     }
     public static void SetTaskbarProgress(double position)
