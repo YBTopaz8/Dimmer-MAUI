@@ -32,7 +32,6 @@
 	  <None Remove="DimmerWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
-	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
 	  <None Remove="Views\SongNotifierWindow.xaml" />
 	  <None Remove="Views\TestPage.xaml" />
@@ -119,7 +118,7 @@
 	  </None>
 	</ItemGroup>
 	<ItemGroup>
-	  <Page Update="Views\SettingsWindow.xaml">
+	  <Page Update="Views\AlbumWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
 	</ItemGroup>

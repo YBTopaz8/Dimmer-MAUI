@@ -1,4 +1,6 @@
-﻿namespace Dimmer.ViewModel;
+﻿using Dimmer.Orchestration;
+
+namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
 {
 #if DEBUG
@@ -7,6 +9,7 @@ public partial class BaseViewModel : ObservableObject
     public const string CurrentAppVersion = "Dimmer v1.8a-Release";
 #endif
     private readonly IMapper mapper;
+    public readonly AlbumsMgtFlow albumsMgtFlow;
     public readonly SongsMgtFlow songsMgtFlow;
 
     #region public properties
@@ -40,13 +43,13 @@ public partial class BaseViewModel : ObservableObject
 
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage { get; set; }
-    
-    
+
+
 
     #endregion
-    public BaseViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow ,IDimmerAudioService dimmerAudioService)
+    public BaseViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
     {
-
+        this.albumsMgtFlow=albumsMgtFlow;
         this.mapper=mapper;
         this.songsMgtFlow=songsMgtFlow;
         LoadPageViewModel();
@@ -330,5 +333,6 @@ public partial class BaseViewModel : ObservableObject
         BaseAppFlow.ToggleStickToTop(IsStickToTop);
         return IsStickToTop;
     }
+
 }
 

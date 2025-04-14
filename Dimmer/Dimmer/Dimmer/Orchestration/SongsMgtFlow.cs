@@ -1,17 +1,33 @@
 ﻿using ATL;
 using Dimmer.Data;
+using Dimmer.Utilities.Events;
 
 namespace Dimmer.Orchestration;
 
 public partial class SongsMgtFlow : BaseAppFlow
 {
     private readonly IRealmFactory _realmFactory;
-    private readonly IMapper Mapper;
-    
+    private readonly IMapper Mapper; 
+    readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
+    readonly BehaviorSubject<double> CurrentPosSubj = new(0);
+    readonly BehaviorSubject<double> CurrentVolSubj = new(0);
+    readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
+
+    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
+    public IObservable<double> CurrentSongPosition => CurrentPosSubj.AsObservable();
+    public IObservable<double> CurrentSongVolume => CurrentVolSubj.AsObservable();
+    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
+    public IDimmerAudioService AudioService { get; }
+
     public SongsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, dimmerAudioService, mapper)
     {
         _realmFactory = realmFactory;
         AudioService=dimmerAudioService;
+        this.AudioService.PlayPrevious += AudioService_PlayPrevious;
+        this.AudioService.PlayNext += AudioService_PlayNext;
+        this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
+        this.AudioService.PositionChanged +=AudioService_PositionChanged;
+        this.AudioService.PlayEnded += AudioService_PlayEnded;
         Mapper=mapper;
         _realmFactory.GetRealmInstance();
         SubscribeToAppCurrentState();
@@ -45,7 +61,6 @@ public partial class SongsMgtFlow : BaseAppFlow
             });
     }
 
-    public IDimmerAudioService AudioService { get; }
     #region Playback Control Region
 
     public async Task<bool> PlaySelectedSongsOutsideApp(List<string> filePaths)
@@ -133,11 +148,73 @@ public partial class SongsMgtFlow : BaseAppFlow
         }
     }
 
+    #region Audio Service Events Region
 
-   
+    private void AudioService_PositionChanged(object? sender, double e)
+    {
+        CurrentPosSubj.OnNext(AudioService.CurrentPosition);
+    }
+    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
+    {
+        IsPlayingSubj.OnNext(e.IsPlaying);
+
+    }
+    private void AudioService_PlayNext(object? sender, EventArgs e)
+    {
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        IsPlayedCompletely = false;
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
+    }
+
+    private void AudioService_PlayPrevious(object? sender, EventArgs e)
+    {
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+        IsPlayedCompletely = false;
+        CurrentPosSubj.OnNext(0);
+        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
+    }
+
+    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
+    {
+        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+
+        if (e.EventType == DimmerPlaybackState.Ended)
+        {
+            CurrentStateSubj.OnNext(DimmerPlaybackState.Ended);
+            CurrentPosSubj.OnNext(0);
+            IsPlayingSubj.OnNext(false);
+            IsPlayedCompletely = true;
+
+            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed, true);
+        }
+
+        switch (CurrentRepeatMode)
+        {
+            case RepeatMode.Off:
+                break;
+            case RepeatMode.All:
+                CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
+
+                break;
+            case RepeatMode.One:
+
+                CurrentStateSubj.OnNext(DimmerPlaybackState.RepeatSame);
+                break;
+            case RepeatMode.Custom:
+                break;
+            default:
+                break;
+        }
+    }
+    #endregion
+
 
     public async Task<bool> PlaySongInAudioService()
     {
+        CurrentPosSubj.OnNext(0);
         base.PlaySong();
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         CurrentlyPlayingSong.ImageBytes = coverImage;
@@ -202,7 +279,7 @@ public partial class SongsMgtFlow : BaseAppFlow
                 linkss.PlayType= (int)PlayType.SeekRestarted;
             }
 
-            AddPDaCStateLink(linkss, true);
+            UpSertPDaCStateLink(linkss, true);
         }
     }
     

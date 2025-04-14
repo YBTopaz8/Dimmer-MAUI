@@ -15,7 +15,8 @@ public partial class SingleSongPageViewModel : BaseViewModel
     [ObservableProperty]
     public partial ObservableCollection<LyricsDownloadContent>? CurrentListOfDownloadedLyrics { get; internal set; }
     #endregion
-    public SingleSongPageViewModel(SongsMgtFlow songsMgt, IMapper mapper, IDimmerAudioService dimmerAudioService) : base(mapper, songsMgt, dimmerAudioService)
+    public SingleSongPageViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
+        : base(mapper, null, songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
     {
         LoadPageViewModel();
     }

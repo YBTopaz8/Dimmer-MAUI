@@ -7,22 +7,6 @@ public class BaseAppFlow : IDisposable
 {
 
 
-    #region FolderWatcher Region
-
-
-
-
-
-
-    #endregion
-
-
-    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
-    public IObservable<double> CurrentSongPosition => CurrentPosSubj.AsObservable();
-    public IObservable<double> CurrentSongVolume => CurrentVolSubj.AsObservable();
-    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
-
-
     #region static behavior subjects 
     public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
     public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
@@ -36,15 +20,10 @@ public class BaseAppFlow : IDisposable
 
     #region private fields
 
-    readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
-    readonly BehaviorSubject<double> CurrentPosSubj = new(0);
-    readonly BehaviorSubject<double> CurrentVolSubj = new(0);
-    readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
-    
+
 
     private Realm? Db;
     
-    private readonly IDimmerAudioService AudioService;
     private readonly IRealmFactory RealmFactory;
     private readonly IMapper Mapper;
 
@@ -69,20 +48,10 @@ public class BaseAppFlow : IDisposable
         LoadRealm();
         Initialize();
         LoadAppData();        
-        this.AudioService = dimmerAudioService;
         
-        this.AudioService.PlayPrevious += AudioService_PlayPrevious;
-        this.AudioService.PlayNext += AudioService_PlayNext;
-        this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
-        this.AudioService.PositionChanged +=AudioService_PositionChanged;
-        this.AudioService.PlayEnded += AudioService_PlayEnded;
         CurrentlyPlayingSong = new();
     }
 
-    private void AudioService_PositionChanged(object? sender, double e)
-    {
-        CurrentPosSubj.OnNext(AudioService.CurrentPosition);
-    }
 
     private void LoadAppData()
     {
@@ -128,7 +97,7 @@ public class BaseAppFlow : IDisposable
             newSingleFolderMonitor.StartMonitoring();            
         }
     }
-    #region Audio Service Event Handlers
+    
    public void SetCurrentSong(SongModelView song)
    {
         SongModel songs = Mapper.Map<SongModel>(song);
@@ -136,7 +105,6 @@ public class BaseAppFlow : IDisposable
    }
     public void PlaySong()
     {
-        CurrentPosSubj.OnNext(0);
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);        
@@ -156,61 +124,7 @@ public class BaseAppFlow : IDisposable
     }
     public bool IsPlayedCompletely { get; set; }
 
-    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
 
-        if (e.EventType == DimmerPlaybackState.Ended)
-        {
-            CurrentStateSubj.OnNext(DimmerPlaybackState.Ended);
-            CurrentPosSubj.OnNext(0);
-            IsPlayingSubj.OnNext(false);
-            IsPlayedCompletely = true;
-
-            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed, true);
-        }
-
-        switch (CurrentRepeatMode)
-        {
-            case RepeatMode.Off:
-                break;
-            case RepeatMode.All:
-                CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
-
-                break;
-            case RepeatMode.One:
-
-                CurrentStateSubj.OnNext(DimmerPlaybackState.RepeatSame);
-                break;
-            case RepeatMode.Custom:
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
-    {
-        IsPlayingSubj.OnNext(e.IsPlaying);
-
-    }
-    private void AudioService_PlayNext(object? sender, EventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        IsPlayedCompletely = false;
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
-    }
-
-    private void AudioService_PlayPrevious(object? sender, EventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        IsPlayedCompletely = false;
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
-    }
     public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, bool IsAdd, double? position = null)
     {
         currentlyPlayingSong??=CurrentlyPlayingSong;
@@ -225,10 +139,10 @@ public class BaseAppFlow : IDisposable
             WasPlayCompleted = playType == PlayType.Completed,
 
         };
-        AddPDaCStateLink(link,IsAdd);
+        UpSertPDaCStateLink(link,IsAdd);
 
     }
-    public void AddPDaCStateLink(PlayDateAndCompletionStateSongLink model, bool IsAdd)
+    public void UpSertPDaCStateLink(PlayDateAndCompletionStateSongLink model, bool IsAdd)
     {
         try
         {
@@ -259,10 +173,36 @@ public class BaseAppFlow : IDisposable
 
     }
     
-    #endregion
+    public void UpSertArtist(ArtistModel model, bool IsAdd)
+    {
+        try
+        {
+            Db = RealmFactory.GetRealmInstance();
+            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PL");
+            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
 
+        }
 
-  
+    }
+
+    public void UpSertAlbumData(AlbumModel albumModel, bool IsAdd)
+    {
+        try
+        {
+            Db = RealmFactory.GetRealmInstance();
+            albumModel.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("AL");
+            DbUtils.AddOrUpdateSingleRealmItem(Db, albumModel, IsAdd);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
 
     /// <summary>
     /// Toggles repeat mode between 0, 1, and 2
@@ -300,7 +240,7 @@ public class BaseAppFlow : IDisposable
             {
                 // Dispose managed resources.
                 
-                IsPlayingSubj?.Dispose();
+               
             }
 
             // Dispose unmanaged resources.

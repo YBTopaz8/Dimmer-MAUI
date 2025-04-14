@@ -13,6 +13,8 @@ public static class AutoMapperConf
             cfg.CreateMap<ArtistModelView, ArtistModel>();
             cfg.CreateMap<GenreModel, GenreModelView>();
             cfg.CreateMap<GenreModelView, GenreModel>();
+            cfg.CreateMap<PlaylistModel, PlaylistModelView>();
+            cfg.CreateMap<PlaylistModelView, PlaylistModel>();
         });
 
         return config.CreateMapper();

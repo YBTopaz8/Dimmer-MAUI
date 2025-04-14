@@ -14,7 +14,7 @@ public partial class BaseViewModelWin : BaseViewModel
     public partial List<SongModelView>? FilteredSongs { get; set; }
 
     public BaseViewModelWin(IMapper mapper, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
-        : base(mapper, songsMgtFlow, dimmerAudioService)
+        : base(mapper, null, songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
     {
         LoadViewModel();
     }

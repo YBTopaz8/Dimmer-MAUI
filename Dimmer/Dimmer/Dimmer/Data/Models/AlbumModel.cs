@@ -104,6 +104,8 @@ public partial class AlbumModel : RealmObject
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.
     /// </summary>
+    
+    
     public AlbumModel()
     {
     }

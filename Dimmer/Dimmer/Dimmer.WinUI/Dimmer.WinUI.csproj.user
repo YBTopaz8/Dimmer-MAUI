@@ -19,7 +19,7 @@
     <MauiXaml Update="Views\SongNotifierWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <Page Update="Views\SettingsWindow.xaml">
+    <Page Update="Views\AlbumWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <MauiXaml Update="Views\SingleSongPage.xaml">

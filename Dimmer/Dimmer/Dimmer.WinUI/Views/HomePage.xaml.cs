@@ -199,9 +199,15 @@ public partial class HomePage : ContentPage
                 break;
             case 1:
                 //show the artists songs
+                
                 break;
             case 2:
                 //show the albums songs
+                MyViewModel.albumsMgtFlow.GetAlbumsBySongModel(MyViewModel.TemporarilyPickedSong!);
+                var vm = IPlatformApplication.Current!.Services.GetService<BaseAlbumViewModel>()!;
+                AlbumWindow newWindow = new AlbumWindow(vm);
+                
+                newWindow.Activate();
                 break;
             case 3:
 

@@ -18,15 +18,16 @@ public static class DbUtils
     /// <param name="item"></param>
     /// <param name="IsAdd"></param>
     /// <param name="updateAction"></param>
-    public static void AddOrUpdateSingleRealmItem<T>(Realm db, T item,bool IsAdd) where T : RealmObject
+    public static void AddOrUpdateSingleRealmItem<T>(Realm db, T item, bool IsAdd) where T : RealmObject
     {
         try
         {
 
             db.Write(() =>
             {
-                var s = db.All<T>().ToList();
-                if(s is null || s.Count < 1)
+
+                
+                if(IsAdd)
                 { 
                     db.Add(item);
                     Debug.WriteLine("added");                    
