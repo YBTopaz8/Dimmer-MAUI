@@ -1,6 +1,5 @@
 ﻿using ATL;
 using Dimmer.Data;
-using System.Timers;
 
 namespace Dimmer.Orchestration;
 
