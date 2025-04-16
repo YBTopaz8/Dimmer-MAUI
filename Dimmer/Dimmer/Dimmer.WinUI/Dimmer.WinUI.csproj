@@ -63,6 +63,7 @@
 		<PackageReference Include="Vanara.PInvoke.UIAnimation" Version="4.1.1" />
 		<PackageReference Include="Vanara.PInvoke.User32" Version="4.1.1" />
 		<PackageReference Include="Vanara.Windows.Shell" Version="4.1.1" />
+		<PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
 		<PackageReference Include="WinUI.TableView" Version="1.2.2" />
 		
 	</ItemGroup>

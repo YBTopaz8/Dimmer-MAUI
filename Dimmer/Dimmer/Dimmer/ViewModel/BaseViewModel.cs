@@ -1,4 +1,5 @@
-﻿using Dimmer.Orchestration;
+﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.Orchestration;
 
 namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject
@@ -32,8 +33,7 @@ public partial class BaseViewModel : ObservableObject
     public partial LyricPhraseModelView? CurrentLyricPhrase { get; set; }
     [ObservableProperty]
     public partial SongModelView? TemporarilyPickedSong { get; set; }
-    [ObservableProperty]
-    public partial View? MySelectedSongView { get; set; }
+    
     [ObservableProperty]
     public partial double CurrentPositionInSeconds { get; set; }
     [ObservableProperty]
@@ -117,7 +117,7 @@ public partial class BaseViewModel : ObservableObject
                 {
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
                 }
-
+                
                 TemporarilyPickedSong = mapper.Map<SongModelView>(song);
                 
                 TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
@@ -141,6 +141,8 @@ public partial class BaseViewModel : ObservableObject
     Random random = new Random();
 
     public SongModelView MySelectedSong { get; set; } = new SongModelView();
+
+
     public void SetSelectedSong(SongModelView song)
     {
         song.IsCurrentPlayingHighlight = false;
@@ -236,8 +238,9 @@ public partial class BaseViewModel : ObservableObject
         {
             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
         }
-        songsMgtFlow.SetCurrentSong(song);
+        //songsMgtFlow.SetCurrentSong(song);
         songsMgtFlow.CurrentlyPlayingSong=song;
+        songsMgtFlow.CurrentlyPlayingSongDB = mapper.Map<SongModel>(song);
         TemporarilyPickedSong = song;     
         
        await songsMgtFlow.PlaySongInAudioService();
@@ -278,6 +281,8 @@ public partial class BaseViewModel : ObservableObject
 
 
     #endregion
+
+
 
     static bool IsFoundInCollection(SongModelView song, IEnumerable<SongModelView> songs)
     {

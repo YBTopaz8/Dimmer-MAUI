@@ -1,4 +1,5 @@
-﻿using Dimmer.WinUI.ViewModel;
+﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.WinUI.ViewModel;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 
 namespace Dimmer.WinUI.Views;
@@ -28,6 +29,11 @@ public partial class HomeViewModel : BaseViewModelWin
     {
     }
 
+    [RelayCommand]
+    void ScrollToCurrentlyPlayingSong()
+    {
+        SongsCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center,true);
+    }
 
     public async Task PlaySongOnDoubleTap(SongModelView song)
     {

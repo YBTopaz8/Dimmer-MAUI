@@ -7,7 +7,7 @@ namespace Dimmer.Orchestration;
 public partial class SongsMgtFlow : BaseAppFlow
 {
     private readonly IRealmFactory _realmFactory;
-    private readonly IMapper Mapper; 
+    private readonly IMapper mapper; 
     readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
     readonly BehaviorSubject<double> CurrentPosSubj = new(0);
     readonly BehaviorSubject<double> CurrentVolSubj = new(0);
@@ -28,7 +28,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
         this.AudioService.PositionChanged +=AudioService_PositionChanged;
         this.AudioService.PlayEnded += AudioService_PlayEnded;
-        Mapper=mapper;
+        this.mapper=mapper;
         _realmFactory.GetRealmInstance();
         SubscribeToAppCurrentState();
     }
@@ -47,7 +47,10 @@ public partial class SongsMgtFlow : BaseAppFlow
 
                         break;
                     case DimmerPlaybackState.Ended:
-                        await PlayNextSong();
+                        PlayEnded();
+                        break;
+                    case DimmerPlaybackState.Skipped:
+                        await PlayNextSong(true);
                         break;
                     case DimmerPlaybackState.PlayNext:
                         await PlayNextSong();
@@ -59,6 +62,12 @@ public partial class SongsMgtFlow : BaseAppFlow
                         break;
                 }
             });
+    }
+
+    private void PlayEnded()
+    {
+
+        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Completed, true);
     }
 
     #region Playback Control Region
@@ -214,18 +223,19 @@ public partial class SongsMgtFlow : BaseAppFlow
     public async Task<bool> PlaySongInAudioService()
     {
         CurrentPosSubj.OnNext(0);
-        base.PlaySong();
+        PlaySong();
         byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         CurrentlyPlayingSong.ImageBytes = coverImage;
-        await AudioService.InitializeAsync(CurrentlyPlayingSong);
+        await AudioService.InitializeAsync(CurrentlyPlayingSongDB, coverImage);
         await AudioService.PlayAsync();
-        
-        
+        CurrentSong.OnNext(CurrentlyPlayingSongDB);
+
         UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);
 
         CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
         CurrentlyPlayingSong.IsPlaying = true; // Update playing status
-        
+        //CurrentlyPlayingSong mapper.Map<SongModelView>(CurrentlyPlayingSongDB);
+
         return true;
     }
 
@@ -236,21 +246,21 @@ public partial class SongsMgtFlow : BaseAppFlow
         if (isPause)
         {
             await AudioService.PauseAsync();
-            base.PauseSong();
+            PauseSong();
         }
         else
         {
             
             await AudioService.SeekAsync(currentPosition);
             await AudioService.PlayAsync();
-            base.ResumeSong();
+            ResumeSong();
         }
         return true;
     }
     public async Task<bool> StopSong()
     {
         await AudioService.PauseAsync();
-        base. CurrentlyPlayingSong.IsPlaying = false;
+         CurrentlyPlayingSong.IsPlaying = false;
         return true;
     }
 
@@ -294,10 +304,10 @@ public partial class SongsMgtFlow : BaseAppFlow
     
     public async Task PlayNextSong(bool isUserInitiated = false)
     {
-        
 
         if (isUserInitiated)
         {
+            
             UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
         }
 
@@ -306,13 +316,12 @@ public partial class SongsMgtFlow : BaseAppFlow
             case RepeatMode.One: // Repeat One
                 await PlaySongInAudioService();
                 return;
-                break;
             default:
                 break;
             
         }
 
-        var currentindex = AllSongs.Value.IndexOf(CurrentlyPlayingSongDB);
+        var currentindex = AllSongs.Value.FindIndex(x=>x.LocalDeviceId ==CurrentlyPlayingSongDB.LocalDeviceId);
         if (currentindex == -1)
         {
             return; // Song not found in the list
@@ -320,7 +329,7 @@ public partial class SongsMgtFlow : BaseAppFlow
         if (currentindex + 1 < AllSongs.Value.Count)
         {
             CurrentlyPlayingSongDB = AllSongs.Value[currentindex + 1];
-            CurrentlyPlayingSong = Mapper.Map<SongModelView>(CurrentlyPlayingSongDB);
+            
             CurrentIndexInMasterList = currentindex + 1;
             await PlaySongInAudioService();
 
@@ -330,6 +339,7 @@ public partial class SongsMgtFlow : BaseAppFlow
             if (CurrentRepeatMode == RepeatMode.All)
             {
                 CurrentlyPlayingSongDB = AllSongs.Value[0];
+                
                 CurrentIndexInMasterList = 0;
                 await PlaySongInAudioService();
             }
@@ -412,7 +422,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     /// </summary>
     public void SetToggleRepeatMode()
     {
-        base.ToggleRepeatMode();        
+        ToggleRepeatMode();        
     }
 
     double _currentPositionInSec => AudioService.CurrentPosition;
@@ -431,12 +441,8 @@ public partial class SongsMgtFlow : BaseAppFlow
     public async Task ReplaceAndPlayQueue(SongModelView currentlyPlayingSong, List<SongModelView> songs, PlaybackSource source)
     {
         CurrentlyPlayingSong = currentlyPlayingSong;
-        base.PlaySong();
+        PlaySong();
         await PlaySongInAudioService();
-
-        
-
-        
     }
 
 

@@ -31,35 +31,37 @@ public class BaseAppFlow : IDisposable
 
     #region public properties
     public SongModelView CurrentlyPlayingSong { get; set; } 
-    public SongModel CurrentlyPlayingSongDB { get; set; } = new();
+    public SongModel CurrentlyPlayingSongDB { get; set; } =  new();
     public SongModelView? PreviouslyPlayingSong { get; }
     public SongModelView? NextPlayingSong { get; }
     public bool IsShuffleOn { get; set; }
-    
-
     public RepeatMode CurrentRepeatMode { get; set; } = RepeatMode.All;
     public int CurrentRepeatCount { get; set; }
     #endregion
 
+    public static AppStateModel AppSettings{ get; set; } = new ();
     public BaseAppFlow(IRealmFactory _realmFactory, IMapper mapper)
     {
         RealmFactory = _realmFactory;
         Mapper= mapper;
         LoadRealm();
         Initialize();
-        LoadAppData();        
-        
+        LoadAppData();
         CurrentlyPlayingSong = new();
     }
 
+    public void LoadApplicationSettings()
+    {
+        var e= Db?.All<AppStateModel>().ToList();
+        AppSettings = e?[0] ?? new AppStateModel();
+    }
 
     private void LoadAppData()
     {
-        List<SongModel>? dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).ToList();
-        if (dbb == null)
-        {
-            dbb = new List<SongModel>();
-        }
+        List<SongModel>? dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).AsEnumerable()
+            .Select(x=>x.Freeze())
+            .ToList();
+        dbb ??= new List<SongModel>();
         AllSongs.OnNext(dbb);
     }
 
@@ -100,8 +102,9 @@ public class BaseAppFlow : IDisposable
     
    public void SetCurrentSong(SongModelView song)
    {
-        SongModel songs = Mapper.Map<SongModel>(song);
-        CurrentSong.OnNext(songs);
+        SongModel songDb = Mapper.Map<SongModel>(song);
+        CurrentlyPlayingSongDB = songDb;
+        CurrentSong.OnNext(songDb);
    }
     public void PlaySong()
     {

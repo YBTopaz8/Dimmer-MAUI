@@ -1,4 +1,6 @@
 ﻿
+using Dimmer.Data.Models;
+
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -18,7 +20,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private readonly MediaPlayer _mediaPlayer;
     private readonly DispatcherQueue _dispatcherQueue; // For UI thread safety if needed
     private CancellationTokenSource? _initializationCts;
-    private SongModelView? _currentTrackMetadata;
+    private SongModel? _currentTrackMetadata;
     private bool _isDisposed;
     private string? _currentAudioDeviceId; // Store the ID of the explicitly selected output device
 
@@ -228,7 +230,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet        
     }
 
-    public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
+    public SongModel? CurrentTrackMetadata => _currentTrackMetadata;
 
     #endregion
 
@@ -239,10 +241,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// </summary>
     /// <param name="metadata">The metadata of the track to load.</param>
     /// <returns>Task indicating completion.</returns>
-    public async Task InitializeAsync(SongModelView metadata)
+    public async Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage)
     {
         ThrowIfDisposed();
-        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(songModel);
 
         // Cancel previous initialization if any
         if (_initializationCts is not null)
@@ -252,9 +254,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _initializationCts = new CancellationTokenSource();
         var token = _initializationCts.Token;
 
-        Debug.WriteLine($"[AudioService] Initializing track: {metadata.Title ?? "Unknown"}");
+        Debug.WriteLine($"[AudioService] Initializing track: {songModel.Title ?? "Unknown"}");
         UpdatePlaybackState(DimmerPlaybackState.Opening);
-        _currentTrackMetadata = metadata;
+        _currentTrackMetadata = songModel;
         OnPropertyChanged(nameof(CurrentTrackMetadata));
 
         // Ensure player is stopped before changing source
@@ -267,14 +269,14 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         try
         {
-            var mediaPlaybackItem = await CreateMediaPlaybackItemAsync(metadata, token);
+            var mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, SongCoverImage, token);
             token.ThrowIfCancellationRequested();
 
             if (mediaPlaybackItem != null)
             {
                 _mediaPlayer.Source = mediaPlaybackItem;
                 // State will transition via MediaOpened or MediaFailed events
-                Debug.WriteLine($"[AudioService] Source set for: {metadata.Title ?? "Unknown"}");
+                Debug.WriteLine($"[AudioService] Source set for: {songModel.Title ?? "Unknown"}");
             }
             else
             {
@@ -295,8 +297,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[AudioService] Error initializing track '{metadata?.Title}': {ex}");
-            OnErrorOccurred($"Failed to load track: {metadata?.Title}", ex);
+            Debug.WriteLine($"[AudioService] Error initializing track '{songModel?.Title}': {ex}");
+            OnErrorOccurred($"Failed to load track: {songModel?.Title}", ex);
             UpdatePlaybackState(DimmerPlaybackState.Error);
             _currentTrackMetadata = null;
             OnPropertyChanged(nameof(CurrentTrackMetadata));
@@ -424,7 +426,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Media Item Creation
 
-    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, CancellationToken token=default)
+    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModel media, byte[]? ImageBytes = null, CancellationToken token=default)
     {
         MediaSource? mediaSource = null;
         string? mimeType = null;
@@ -486,13 +488,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         props.Type = MediaPlaybackType.Music; // Tell the system it's music
 
-        // Set Music Specific Properties from your SongModelView
+        // Set Music Specific Properties from your SongModel
         props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title"; // Use Title, fallback to FileName, then default
         props.MusicProperties.Artist = media.ArtistName ?? "Unknown Artist";
         props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
         
         // Handle Thumbnail (if image bytes are available in your model)
-        if (media.ImageBytes != null && media.ImageBytes.Length > 0)
+        if (ImageBytes != null && ImageBytes.Length > 0)
         {
             try
             {
@@ -500,7 +502,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 using var imageStream = new InMemoryRandomAccessStream();
                 using (var writer = new DataWriter(imageStream.GetOutputStreamAt(0)))
                 {
-                    writer.WriteBytes(media.ImageBytes);
+                    writer.WriteBytes(ImageBytes);
                     await writer.StoreAsync().AsTask(token); // Use await and token
                     await writer.FlushAsync().AsTask(token); // Ensure data is written
                 }
