@@ -5,16 +5,13 @@ public static class AutoMapperConf
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<SongModel, SongModelView>();
-            cfg.CreateMap<SongModelView, SongModel>();
-            cfg.CreateMap<AlbumModel, AlbumModelView>();
-            cfg.CreateMap<AlbumModelView, AlbumModel>();
-            cfg.CreateMap<ArtistModel, ArtistModelView>();
-            cfg.CreateMap<ArtistModelView, ArtistModel>();
-            cfg.CreateMap<GenreModel, GenreModelView>();
-            cfg.CreateMap<GenreModelView, GenreModel>();
-            cfg.CreateMap<PlaylistModel, PlaylistModelView>();
-            cfg.CreateMap<PlaylistModelView, PlaylistModel>();
+            cfg.CreateMap<SongModel, SongModelView>().ReverseMap();            
+            cfg.CreateMap<AlbumModel, AlbumModelView>().ReverseMap()
+            .ForMember(dest => dest.Name, opt => opt.Ignore())
+            .ReverseMap();
+            cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap();            
+            cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
+            cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
         });
 
         return config.CreateMapper();

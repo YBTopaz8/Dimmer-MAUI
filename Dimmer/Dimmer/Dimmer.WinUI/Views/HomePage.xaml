@@ -31,8 +31,7 @@
         <Grid ColumnDefinitions="650,*" Grid.Row="0" 
                       Margin="15,0" x:Name="BmtBarView">
             <Grid.GestureRecognizers>
-                <PointerGestureRecognizer x:Name="BtmBarPointerGest" PointerEntered="BtmBarPointerGest_PointerEntered"
-                                              PointerExited="BtmBarPointerGest_PointerExited" />
+                <PointerGestureRecognizer x:Name="BtmBarPointerGest"  />
 
             </Grid.GestureRecognizers>
 
@@ -213,7 +212,9 @@
                     <HorizontalStackLayout 
                                    Grid.Row="1"
                                    HorizontalOptions="End">
-
+                        <syncf:SfChip x:Name="ScrollToSongIcon"
+              Clicked="ScrollToSongIcon_Clicked"
+              ImageSource="eye.png"/>
                         <SearchBar BackgroundColor="Transparent"                           
                                x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
                                WidthRequest="300" TextChanged="SearchSongSB_TextChanged">

@@ -13,7 +13,7 @@ public partial class AlbumModel : RealmObject
     /// <value>
     /// The name.
     /// </value>
-    public string? Name { get; set; } = "Unknown Album";
+    public string? Name { get; set; }
     /// <summary>
     /// Gets or sets the release year.
     /// </summary>

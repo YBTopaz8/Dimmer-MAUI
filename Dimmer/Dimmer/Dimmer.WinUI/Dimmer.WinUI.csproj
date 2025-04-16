@@ -30,6 +30,7 @@
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="DimmerWin.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
+	  <None Remove="Views\AlbumsWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
@@ -41,6 +42,7 @@
 	  <Page Remove="AppShell.xaml" />
 	  <Page Remove="DimmerWin.xaml" />
 	  <Page Remove="DimmerWindow.xaml" />
+	  <Page Remove="Views\AlbumsWindow.xaml" />
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
@@ -93,6 +95,9 @@
 	  <MauiXaml Include="DimmerWin.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Include="Views\AlbumsWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\CustomViews\MediaControlBtmBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -116,11 +121,6 @@
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	  </None>
-	</ItemGroup>
-	<ItemGroup>
-	  <Page Update="Views\AlbumWindow.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\TestPage.xaml">

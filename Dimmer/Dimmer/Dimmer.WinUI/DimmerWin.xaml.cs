@@ -31,11 +31,11 @@ public partial class DimmerWin : Window
             "You sure want to close app?",
             "Yes",
             "Cancel");
-        if (!result)
+        if (result)
         {
-            base.OnDestroying();
-            
+            return;
         }
+        Environment.Exit(0);
     }
     protected override void OnActivated()
     {

@@ -41,7 +41,7 @@ public class BaseAppFlow : IDisposable
     public int CurrentRepeatCount { get; set; }
     #endregion
 
-    public BaseAppFlow(IRealmFactory _realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper)
+    public BaseAppFlow(IRealmFactory _realmFactory, IMapper mapper)
     {
         RealmFactory = _realmFactory;
         Mapper= mapper;
@@ -133,7 +133,6 @@ public class BaseAppFlow : IDisposable
         {
             DatePlayed = DateTime.Now,
             PlayType= (int)playType,
-            Song = songDb,
             SongId = songDb.LocalDeviceId,
             PositionInSeconds = position is null ? 0 : (double)position,
             WasPlayCompleted = playType == PlayType.Completed,

@@ -19,7 +19,7 @@ public partial class SongsMgtFlow : BaseAppFlow
     public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
     public IDimmerAudioService AudioService { get; }
 
-    public SongsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, dimmerAudioService, mapper)
+    public SongsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, mapper)
     {
         _realmFactory = realmFactory;
         AudioService=dimmerAudioService;
@@ -194,7 +194,6 @@ public partial class SongsMgtFlow : BaseAppFlow
         switch (CurrentRepeatMode)
         {
             case RepeatMode.Off:
-                break;
             case RepeatMode.All:
                 CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
 
@@ -307,19 +306,10 @@ public partial class SongsMgtFlow : BaseAppFlow
             case RepeatMode.One: // Repeat One
                 await PlaySongInAudioService();
                 return;
-            case RepeatMode.Custom: // Custom Repeat
-                if (CurrentRepeatCount < repeatCountMax) // still on repeat one for same CurrentlyPlayingSong (later can be same PL/album etc)
-                {
-                    CurrentRepeatCount++;
-                    UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.CustomRepeat, true);
-                    PlaySong();
-                }
-                return;
-            default:
-                
-
                 break;
-
+            default:
+                break;
+            
         }
 
         var currentindex = AllSongs.Value.IndexOf(CurrentlyPlayingSongDB);

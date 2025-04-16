@@ -10,7 +10,7 @@ public partial class BaseAlbumViewModel : BaseViewModel
 {
     private readonly IMapper mapper;
     [ObservableProperty]
-    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
+    public partial List<AlbumModel>? SelectedAlbumsCol { get; internal set; }
     [ObservableProperty]
     public partial AlbumModelView? SelectedAlbum { get; internal set; }
 
@@ -27,8 +27,8 @@ public partial class BaseAlbumViewModel : BaseViewModel
         {
             if (albums != null && albums.Count > 0)
             {
-                SelectedAlbumsCol = mapper.Map<List<AlbumModelView>>(albums).ToObservableCollection();
-                SelectedAlbum = SelectedAlbumsCol[0];
+                var we= mapper.Map<List<AlbumModelView>>(albums);
+                
             }
         }); 
     }

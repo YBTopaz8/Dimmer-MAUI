@@ -10,20 +10,41 @@ public partial class AlbumsMgtFlow : BaseAppFlow
 {
     private readonly IRealmFactory _realmFactory;
     private readonly IMapper Mapper;
-    public IDimmerAudioService AudioService { get; }
     public static BehaviorSubject<List<AlbumModel>> SpecificAlbums { get; } = new([]);
-    public AlbumsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, dimmerAudioService, mapper)
+    public AlbumsMgtFlow(IRealmFactory realmFactory, IMapper mapper) : base(realmFactory, mapper)
     {
         _realmFactory = realmFactory;
-        AudioService=dimmerAudioService;
         Mapper=mapper;
         _realmFactory.GetRealmInstance();
-        SubscribeToSpecificAlbumsChange();
     }
-
-    private void SubscribeToSpecificAlbumsChange()
+    public void GetAlbumsBySongModel(SongModelView songModelView)
     {
-        
+        SongModel song = Mapper.Map<SongModel>(songModelView);
+        using var realm = _realmFactory.GetRealmInstance();
+
+        // Step 1: Get all AlbumIds from links for the given SongId
+        var albumIds = realm.All<AlbumArtistGenreSongLink>()
+                            .Where(a => a.SongId == song.LocalDeviceId)
+                            .AsEnumerable() // materialize first
+                            .Select(a => a.AlbumId)
+                            .Distinct() // now allowed in LINQ-to-objects
+                            .ToList();
+
+        // Step 2: Fetch matching albums using manual filtering
+        var allAlbums = realm.All<AlbumModel>().ToList(); // force materialize
+        var matchedAlbums = allAlbums
+            .Where(album => albumIds.Contains(album.LocalDeviceId))
+            .ToList();
+        // Detach Realm objects into plain POCO objects
+    var detachedAlbums = matchedAlbums.Select(album => new AlbumModel
+    {
+        LocalDeviceId = album.LocalDeviceId,
+        Name = album.Name,
+        // Add other properties here explicitly as needed
+    }).ToList();
+
+        // Step 3: Emit result
+        SpecificAlbums.OnNext(detachedAlbums);
     }
     public void AddAlbum(AlbumModel album)
     {
@@ -94,27 +115,6 @@ public partial class AlbumsMgtFlow : BaseAppFlow
         var albums = realm.All<AlbumModel>().Where(a => a.TotalDuration == duration).ToList();
         SpecificAlbums.OnNext(albums);
     }
-    public void GetAlbumsBySongModel(SongModelView songModelView)
-    {
-        SongModel song = Mapper.Map<SongModel>(songModelView);
-        using var realm = _realmFactory.GetRealmInstance();
-
-        // Step 1: Get all AlbumIds from links for the given SongId
-        var albumIds = realm.All<AlbumArtistGenreSongLink>()
-                            .Where(a => a.SongId == song.LocalDeviceId)
-                            .AsEnumerable() // materialize first
-                            .Select(a => a.AlbumId)
-                            .Distinct() // now allowed in LINQ-to-objects
-                            .ToList();
-
-        // Step 2: Fetch matching albums using manual filtering
-        var allAlbums = realm.All<AlbumModel>().ToList(); // force materialize
-        var matchedAlbums = allAlbums
-            .Where(album => albumIds.Contains(album.LocalDeviceId))
-            .ToList();
-
-        // Step 3: Emit result
-        SpecificAlbums.OnNext(matchedAlbums);
-    }
+   
 
 }

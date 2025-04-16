@@ -1,5 +1,4 @@
 
-
 using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
@@ -12,7 +11,7 @@ public partial class HomePage : ContentPage
 		InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
-
+        
     }
 
     protected override void OnAppearing()
@@ -26,6 +25,7 @@ public partial class HomePage : ContentPage
     {
 
         View send = (View)sender;
+        
         SongModelView? song = (SongModelView)send.BindingContext;
         if (song is not null)
         {
@@ -205,9 +205,10 @@ public partial class HomePage : ContentPage
                 //show the albums songs
                 MyViewModel.albumsMgtFlow.GetAlbumsBySongModel(MyViewModel.TemporarilyPickedSong!);
                 var vm = IPlatformApplication.Current!.Services.GetService<BaseAlbumViewModel>()!;
-                AlbumWindow newWindow = new AlbumWindow(vm);
+                AlbumsWindow newWindow = new AlbumsWindow(vm);
                 
-                newWindow.Activate();
+                Application.Current!.OpenWindow(newWindow);
+                
                 break;
             case 3:
 
@@ -352,7 +353,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void BtmBarPointerGest_PointerExited(object sender, PointerEventArgs e)
+    private async void BtmBarPointerGest_PointerExited(object sender, Syncfusion.Maui.Toolkit.Internals.PointerEventArgs e)
     {
         await BmtBarView.AnimateFocusModePointerExited(endOpacity: 0.4, endScale: 1);
 
@@ -479,6 +480,11 @@ public partial class HomePage : ContentPage
     }
 
     private void SongsUIContextMenu_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ScrollToSongIcon_Clicked(object sender, EventArgs e)
     {
 
     }

@@ -18,7 +18,7 @@ public partial class HomeViewModel : BaseViewModelWin
     #endregion
 
 
-    public HomeViewModel(SongsMgtFlow songsMgt, IMapper mapper, IDimmerAudioService dimmerAudioService) : base(mapper, songsMgt, dimmerAudioService)
+    public HomeViewModel(SongsMgtFlow songsMgt, IMapper mapper, AlbumsMgtFlow albumsMgtFlow, IDimmerAudioService dimmerAudioService) : base(mapper, songsMgt, albumsMgtFlow  ,dimmerAudioService)
     {
 
         LoadPageViewModel();

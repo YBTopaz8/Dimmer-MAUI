@@ -13,8 +13,8 @@ public partial class BaseViewModelWin : BaseViewModel
     [ObservableProperty]
     public partial List<SongModelView>? FilteredSongs { get; set; }
 
-    public BaseViewModelWin(IMapper mapper, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
-        : base(mapper, null, songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
+    public BaseViewModelWin(IMapper mapper, SongsMgtFlow songsMgtFlow, AlbumsMgtFlow albumsMgtFlow,  IDimmerAudioService dimmerAudioService)
+        : base(mapper, albumsMgtFlow,  songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
     {
         LoadViewModel();
     }

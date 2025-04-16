@@ -14,7 +14,7 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     public partial string? Description { get; set; }
     [ObservableProperty]
-    public partial string? AlbumImagePath { get; set; }
+    public partial string? ImagePath { get; set; } = "musicalbum.png";
 
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;

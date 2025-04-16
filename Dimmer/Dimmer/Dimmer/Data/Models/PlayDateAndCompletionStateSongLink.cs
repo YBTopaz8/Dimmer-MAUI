@@ -108,10 +108,5 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// Initializes a new instance of the <see cref="PlayDateAndCompletionStateSongLink"/> class.
     /// </summary>
     
-    public SongModel? Song { get; set; }
-    public ArtistModel? Artist{ get; set; }
-    public AlbumModel? Album { get; set; }
-    public GenreModel? Genre { get; set; }
-
 
 }
