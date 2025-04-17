@@ -59,7 +59,7 @@ public partial class HomePage : ContentPage
         _isThrottling = true;
         Slider send = (Slider)sender;
         var s = send;
-        await MyViewModel.SeekSongPosition(currPosPer: s.Value);
+        MyViewModel.SeekTo( s.Value);
 
 
         await Task.Delay(throttleDelay);
@@ -73,10 +73,7 @@ public partial class HomePage : ContentPage
     {
         MyViewModel.ToggleRepeatMode();
     }
-    private async void ShowCntxtMenuBtn_Clicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(SingleSongPage));
-    }
+  
 
     private void SfEffectsView_Loaded(object sender, EventArgs e)
     {
@@ -101,12 +98,12 @@ public partial class HomePage : ContentPage
                 {
                     return;
                 }
-                MyViewModel.IncredeVolume();
+                MyViewModel.IncreaseVolume();
                 
             }
             else
             {
-                MyViewModel.DecredeVolume();
+                MyViewModel.DecreaseVolume();
                 
             }
         }
@@ -128,17 +125,17 @@ public partial class HomePage : ContentPage
 
     private async void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayPrevious();
+        await MyViewModel.PlayPreviousAsync();
     }
 
     private async void PlayNext_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayNext();
+        await MyViewModel.PlayNextAsync();
     }
 
     private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
-        await MyViewModel.PlayPauseSong();
+        await MyViewModel.PlayPauseAsync();
     }
 
     private void ShuffleBtn_Clicked(object sender, EventArgs e)
@@ -161,22 +158,22 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                await MyViewModel.PlayPrevious();
+                await MyViewModel.PlayPreviousAsync();
                 break;
             case 2:
             case 3:
-                await MyViewModel.PlayPauseSong();
+                await MyViewModel.PlayPauseAsync();
                 
                 break;
             case 4:
-                await MyViewModel.PlayNext();
+                await MyViewModel.PlayNextAsync();
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
                 break;
 
             case 6:
-                MyViewModel.IncredeVolume();
+                MyViewModel.IncreaseVolume();
                 break;
 
             default:
@@ -195,6 +192,7 @@ public partial class HomePage : ContentPage
         switch (CurrentIndex)
         {
             case 0:
+                
                 //show the now playing Queue
                 break;
             case 1:
@@ -203,9 +201,9 @@ public partial class HomePage : ContentPage
                 break;
             case 2:
                 //show the albums songs
-                MyViewModel.albumsMgtFlow.GetAlbumsBySongModel(MyViewModel.TemporarilyPickedSong!);
+                MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(MyViewModel.TemporarilyPickedSong.LocalDeviceId!);
                 var vm = IPlatformApplication.Current!.Services.GetService<BaseAlbumViewModel>()!;
-                AlbumsWindow newWindow = new AlbumsWindow(vm);
+                AlbumWindow newWindow = new AlbumWindow(vm);
                 
                 Application.Current!.OpenWindow(newWindow);
                 
@@ -310,10 +308,7 @@ public partial class HomePage : ContentPage
 
             MyViewModel.DisplayedSongs?.Clear();
             MyViewModel.SongsCV!.ItemsSource = songsToDisplay.ToObservableCollection();
-            //foreach (SongModelView song in songsToDisplay)
-            //{
-            //    MyViewModel.DisplayedSongs.Add(song);
-            //}
+           
             
             
             if (wasSearch)
@@ -338,7 +333,7 @@ public partial class HomePage : ContentPage
 
     private async void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {
-       await MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
+       MyViewModel.SeekTo(CurrentPositionSlider.Value);
     }
 
 
@@ -363,13 +358,13 @@ public partial class HomePage : ContentPage
     {
        await Shell.Current.GoToAsync(nameof(SingleSongPage));
     }
-    private async void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
+    private void SeekSongPosFromLyric_Tapped(object sender, TappedEventArgs e)
     {
         if (MyViewModel.IsPlaying)
         {
             View bor = (View)sender;
             LyricPhraseModelView lyr = (LyricPhraseModelView)bor.BindingContext;
-            await MyViewModel.SeekSongPosition(lyr);
+            MyViewModel.SeekSongPosition(lyr);
         }
     }
 
@@ -416,7 +411,6 @@ public partial class HomePage : ContentPage
 
             }
 
-            //MyViewModel.ScrollAfterAppearing();
             Debug.WriteLine($"PlatformView Type: {nativeView?.GetType()}");
         }
         catch (Exception ex)
@@ -486,6 +480,6 @@ public partial class HomePage : ContentPage
 
     private void ScrollToSongIcon_Clicked(object sender, EventArgs e)
     {
-
+        MyViewModel.ScrollToCurrentlyPlayingSong();
     }
 }

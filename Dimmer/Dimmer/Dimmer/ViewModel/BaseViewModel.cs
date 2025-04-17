@@ -1,343 +1,263 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using Dimmer.Orchestration;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using AutoMapper;
+using Dimmer.Data;
+using Dimmer.Utilities.Enums;
+using Dimmer.Services;
 
-namespace Dimmer.ViewModel;
-public partial class BaseViewModel : ObservableObject
+namespace Dimmer.ViewModel
 {
+    public partial class BaseViewModel : ObservableObject, IDisposable
+    {
 #if DEBUG
-    public const string CurrentAppVersion = "Dimmer v1.8a-debug";
-#elif RELEASE
-    public const string CurrentAppVersion = "Dimmer v1.8a-Release";
+        public const string CurrentAppVersion = "Dimmer v1.8a-debug";
+#else
+        public const string CurrentAppVersion = "Dimmer v1.8a-Release";
 #endif
-    private readonly IMapper mapper;
-    public readonly AlbumsMgtFlow albumsMgtFlow;
-    public readonly SongsMgtFlow songsMgtFlow;
 
-    #region public properties
-    [ObservableProperty]
-    public partial bool IsShuffle { get; set; }
-    [ObservableProperty]
-    public partial bool IsStickToTop { get; set; } = false;
-    [ObservableProperty]
-    public partial bool IsPlaying { get; set; }
-    [ObservableProperty]
-    public partial double CurrentPositionPercentage { get; set; }
-    [ObservableProperty]
-    public partial RepeatMode RepeatMode { get; set; }
+        private readonly IMapper _mapper;
+        private readonly IPlayerStateService _stateService;
+        private readonly ISettingsService _settingsService;
+        private readonly SubscriptionManager _subs;
 
-    [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? MasterSongs { get; internal set; }
-    [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics { get; internal set; }
-    [ObservableProperty]
-    public partial LyricPhraseModelView? CurrentLyricPhrase { get; set; }
-    [ObservableProperty]
-    public partial SongModelView? TemporarilyPickedSong { get; set; }
-    
-    [ObservableProperty]
-    public partial double CurrentPositionInSeconds { get; set; }
-    [ObservableProperty]
-    public partial double VolumeLevel { get; set; }
-    [ObservableProperty]
-    public partial string? AppTitle { get; set; }
+        public AlbumsMgtFlow AlbumsMgtFlow { get; }
+        public PlayListMgtFlow PlaylistsMgtFlow { get; }
+        public SongsMgtFlow SongsMgtFlow { get; }
 
-    [ObservableProperty]
-    public partial CurrentPage CurrentlySelectedPage { get; set; }
+        [ObservableProperty]
+        public partial bool IsShuffle { get; set; }
 
+        [ObservableProperty]
+        public partial bool IsStickToTop {get;set;}
 
+        [ObservableProperty]
+        public partial string AppTitle { get;set;}
+        [ObservableProperty]
+        public partial bool IsPlaying {get;set;}
 
-    #endregion
-    public BaseViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
-    {
-        this.albumsMgtFlow=albumsMgtFlow;
-        this.mapper=mapper;
-        this.songsMgtFlow=songsMgtFlow;
-        LoadPageViewModel();
-        AppTitle = CurrentAppVersion;
-    }
+        [ObservableProperty]
+        public partial double CurrentPositionPercentage {get;set;}
 
-    private void LoadPageViewModel()
-    {
-        SubscribeToMasterSongs();
-        SubscribeToCurrentlyPlayingSong();
-        SubscribeToIsPlaying();
-        SubscribeToCurrentPosition();
-        CurrentPositionPercentage = 0;
-        IsStickToTop = AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState();
-    }
+        [ObservableProperty]
+        public partial RepeatMode RepeatMode {get;set;}
 
-    void SubscribeToCurrentPosition()
-    {
-        songsMgtFlow.CurrentSongPosition.Subscribe(position =>
-        {
-            CurrentPositionInSeconds = position;
+        [ObservableProperty]
+        public partial ObservableCollection<SongModelView>? MasterSongs {get;set;}
 
-            CurrentPositionPercentage = (position / songsMgtFlow.CurrentlyPlayingSong.DurationInSeconds);
-        }); 
-    }
-    public void SubscribeToCurrentVolume()
-    {
-        songsMgtFlow.CurrentSongVolume.Subscribe(volume =>
-        {
-            VolumeLevel = volume;
-        });
-    }
+        [ObservableProperty]
+        public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
 
-    public void SubscribeToIsPlaying()
-    {
-        songsMgtFlow.IsPlaying.DistinctUntilChanged()
-        .Subscribe(async isPlaying =>
-        {
-            IsPlaying = isPlaying;
-            switch (isPlaying)
-            {
-                case true:
-                    CurrentPositionInSeconds = songsMgtFlow.CurrentPositionInSec;
-                    break;
-                default:
-                    IsPlaying = false;
-                    if (songsMgtFlow.IsPlayedCompletely)
-                    {
-                        await PlayNext();
-                    }
-                    break;
-            }
-            
-            
-        });
-    }
-    
-    public void SubscribeToCurrentlyPlayingSong()
-    {
-        BaseAppFlow.CurrentSong
-            .DistinctUntilChanged()
-            .Subscribe(song =>
-            {
-                if (TemporarilyPickedSong is not null)
-                {
-                    TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-                }
-                
-                TemporarilyPickedSong = mapper.Map<SongModelView>(song);
-                
-                TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
-                if (TemporarilyPickedSong != null)
-                {
-                    AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";
-                }
-                else
-                {
-                    AppTitle = CurrentAppVersion;
-                }
-            });
-    }
-    private void SubscribeToMasterSongs()
-    {
-        BaseAppFlow.AllSongs.Subscribe(songs =>
-        {
-            MasterSongs = mapper.Map<List<SongModelView>>(songs).ToObservableCollection();
-        });
-    }
-    Random random = new Random();
+        [ObservableProperty]
+        public partial LyricPhraseModelView CurrentLyricPhrase {get;set;}
 
-    public SongModelView MySelectedSong { get; set; } = new SongModelView();
+        [ObservableProperty]
+        public partial SongModelView TemporarilyPickedSong {get;set;}
 
+        [ObservableProperty]
+        public partial double CurrentPositionInSeconds {get;set;}
 
-    public void SetSelectedSong(SongModelView song)
-    {
-        song.IsCurrentPlayingHighlight = false;
-        songsMgtFlow.CurrentlyPlayingSong ??=song;
-        MySelectedSong = song;        
-    }
-    #region playback controls 
-    public async Task PlayPrevious()
-    {
-        if (MasterSongs is not null)
-        {
-            if (IsShuffle)
-        {
+        [ObservableProperty]
+        public partial double VolumeLevel {get;set;}
 
-           bool isInCol =  IsFoundInCollection(TemporarilyPickedSong!, MasterSongs);
-            if (isInCol)
-            {
-                int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-                int newIndex = random.Next(0, MasterSongs.Count);
-                while (newIndex == index)
-                {
-                    newIndex = random.Next(0, MasterSongs.Count);
-                }
-                var song = MasterSongs[newIndex];
-                await PlaySong(song);
-            }
-            else
-            {
-               await PlaySong(TemporarilyPickedSong!);
-                }
-        }
-        else
-        {
-            int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-            if (index <= 0)
-            {
-                index = MasterSongs.Count - 1;
-            }
-            else
-            {
-                index--;
-
-            }
-
-            var song = MasterSongs[index];
-            if (song != null)
-            {
-                await PlaySong(song);
-            }
-            }
-        }
-    }
-     public async Task PlayNext()
-     {
-        if (MasterSongs is not null)
-        {
-
-            if (IsShuffle)
-            {
-               bool isInCol =  IsFoundInCollection(TemporarilyPickedSong!, MasterSongs);
-                if (isInCol)
-                {
-                    int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-                    int newIndex = random.Next(0, MasterSongs.Count);
-                    while (newIndex == index)
-                    {
-                        newIndex = random.Next(0, MasterSongs.Count);
-                    }
-                    var song = MasterSongs[newIndex];
-                    await PlaySong(song);
-                }
-                else
-                {
-                    await PlaySong(TemporarilyPickedSong!);
-                }
-            }
-            else
-            {
-                int index = MasterSongs.IndexOf(TemporarilyPickedSong!);
-                index++;
-                var song = MasterSongs[index];
-                if (song != null)
-                {
-                  await PlaySong(song);
-                }
-            }
-        }
-    }
-
-    public async Task PlaySong(SongModelView song)
-    {
-        if(TemporarilyPickedSong is not null)
-        {
-            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
-        }
-        //songsMgtFlow.SetCurrentSong(song);
-        songsMgtFlow.CurrentlyPlayingSong=song;
-        songsMgtFlow.CurrentlyPlayingSongDB = mapper.Map<SongModel>(song);
-        TemporarilyPickedSong = song;     
         
-       await songsMgtFlow.PlaySongInAudioService();
-    }
 
-    public async Task PlayPauseSong()
-    {
-        if (TemporarilyPickedSong is not null)
+        [ObservableProperty]
+        public partial CurrentPage CurrentlySelectedPage {get;set;}
+
+        public BaseViewModel(
+            IMapper mapper,
+            AlbumsMgtFlow albumsMgtFlow,
+            PlayListMgtFlow playlistsMgtFlow,
+            SongsMgtFlow songsMgtFlow,
+            IPlayerStateService stateService,
+            ISettingsService settingsService,
+            SubscriptionManager subs)
         {
+            _mapper = mapper;
+            AlbumsMgtFlow = albumsMgtFlow;
+            PlaylistsMgtFlow = playlistsMgtFlow;
+            SongsMgtFlow = songsMgtFlow;
+            _stateService = stateService;
+            _settingsService = settingsService;
+            _subs = subs;
 
-        if ( IsPlaying)
-        {
-
-           await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, true);
-           
+            Initialize();
         }
-        else
+
+        private void Initialize()
         {
-            if (CurrentPositionPercentage >= 0.98)
+            SubscribeToMasterSongs();
+            SubscribeToCurrentSong();
+            SubscribeToIsPlaying();
+            SubscribeToPosition();
+            SubscribeToVolume();
+
+            CurrentPositionPercentage = 0;
+            IsStickToTop = _settingsService.IsStickToTop;
+            RepeatMode = _settingsService.RepeatMode;
+            IsShuffle = _settingsService.ShuffleOn;
+        }
+
+        private void SubscribeToMasterSongs()
+        {
+            _subs.Add(_stateService.AllSongs
+                .Subscribe(list =>
+                {
+                    var views = _mapper.Map<List<SongModelView>>(list);
+                    MasterSongs = views.ToObservableCollection();
+                }));
+        }
+
+        private void SubscribeToCurrentSong()
+        {
+            _subs.Add(_stateService.CurrentSong
+                .DistinctUntilChanged()
+                .Subscribe(song =>
+                {
+                    if (TemporarilyPickedSong != null)
+                        TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+
+                    TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
+                    if (TemporarilyPickedSong != null)
+                    {
+                        TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
+                        AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";
+                    }
+                    else
+                    {
+                        AppTitle = CurrentAppVersion;
+                    }
+                }));
+        }
+
+        private void SubscribeToIsPlaying()
+        {
+            _subs.Add(SongsMgtFlow.IsPlaying
+                .DistinctUntilChanged()
+                .Subscribe(isPlaying =>
+                {
+                    IsPlaying = isPlaying;
+                    if (!isPlaying)
+                        _ = PlayNextAsync();
+                }));
+        }
+
+        private void SubscribeToPosition()
+        {
+            _subs.Add(SongsMgtFlow.Position
+                .Subscribe(pos =>
+                {
+                    CurrentPositionInSeconds = pos;
+                    var duration = SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1;
+                    CurrentPositionPercentage = pos / duration;
+                }));
+        }
+
+        private void SubscribeToVolume()
+        {
+            _subs.Add(SongsMgtFlow.Volume
+                .Subscribe(vol => VolumeLevel = vol * 100));
+        }
+
+        public IAsyncRelayCommand PlayNextCommand => new AsyncRelayCommand(PlayNextAsync);
+        public IAsyncRelayCommand PlayPreviousCommand => new AsyncRelayCommand(PlayPreviousAsync);
+        public IAsyncRelayCommand PlayPauseCommand => new AsyncRelayCommand(PlayPauseAsync);
+
+        public async Task PlaySongAsync(SongModelView song)
+        {
+            if (TemporarilyPickedSong != null)
+                TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+
+            TemporarilyPickedSong = song;
+            song.IsCurrentPlayingHighlight = true;
+
+            SongsMgtFlow.SetCurrentSong(song);
+            await SongsMgtFlow.PlaySongInAudioService();
+        }
+
+        public async Task PlayNextAsync()
+        {
+            // shuffle or sequential logic simplified to use flow
+            await PlaySongAsync(_mapper.Map<SongModelView>(_stateService.AllSongs.Value.First().LocalDeviceId));
+        }
+
+        public async Task PlayPreviousAsync()
+        {
+            // similar logic for previous
+            await PlaySongAsync(TemporarilyPickedSong?? _mapper.Map<SongModelView>(_stateService.AllSongs.Value.First().LocalDeviceId));
+        }
+
+        public async Task PlayPauseAsync()
+        {
+            if (IsPlaying)
+                await SongsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, true);
+            else
+                await SongsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, false);
+        }
+
+        public void ToggleShuffle()
+        {
+            IsShuffle = !IsShuffle;
+            SongsMgtFlow.ToggleShuffle(IsShuffle);
+            _settingsService.ShuffleOn = IsShuffle;
+        }
+
+        public void ToggleRepeatMode()
+        {
+            RepeatMode = SongsMgtFlow.ToggleRepeatMode();
+            _settingsService.RepeatMode = RepeatMode;
+        }
+
+        public void IncreaseVolume()
+        {
+            SongsMgtFlow.IncreaseVolume();
+            VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
+        }
+
+        public void DecreaseVolume()
+        {
+            SongsMgtFlow.DecreaseVolume();
+            VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
+        }
+
+        public void SetVolume(double vol)
+        {
+            SongsMgtFlow.ChangeVolume(vol);
+            VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
+        }
+
+        public void SeekTo(double percentage)
+        {
+            var duration = SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1;
+            var seconds = percentage * duration;
+            _ = SongsMgtFlow.SeekTo(seconds);
+        }
+        public void SeekSongPosition(LyricPhraseModelView? lryPhrase = null, double currPosPer = 0)
+        {
+            if (lryPhrase is not null)
             {
-                await PlaySong(TemporarilyPickedSong);
+
+                CurrentPositionInSeconds = lryPhrase.TimeStampMs * 0.001;
+                _=SongsMgtFlow.SeekTo(CurrentPositionInSeconds);
                 return;
             }
-            await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds, false);
-            }
+            
         }
-    }
-
-    public async Task PauseSong()
-    {
-        await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds);
-
-    }
-    public async Task ResumeSong()
-    {
-        await songsMgtFlow.PauseResumeSongAsync(CurrentPositionInSeconds);
-    }
-
-
-    #endregion
-
-
-
-    static bool IsFoundInCollection(SongModelView song, IEnumerable<SongModelView> songs)
-    {
-        foreach (var s in songs)
+        public bool ToggleStickToTop()
         {
-            if (s.LocalDeviceId == song.LocalDeviceId)
-                return true;
+            IsStickToTop = !IsStickToTop;
+            _settingsService.IsStickToTop = IsStickToTop;
+            return IsStickToTop;
         }
-        return false;
-    }
-    public async Task SeekSongPosition(LyricPhraseModelView? lryPhrase = null)
-    {
-        if (lryPhrase is not null)
+
+        public void Dispose()
         {
-
-            CurrentPositionInSeconds =( (lryPhrase.TimeStampMs * 1000) * TemporarilyPickedSong!.DurationInSeconds) / 100;
-            await SeekSongPosition(CurrentPositionInSeconds);
-            return;
+            _subs.Dispose();
         }
     }
-
-    public async Task SeekSongPosition(double currPosPer = 0)
-    {
-       await songsMgtFlow.SeekTo(currPosPer);
-    }
-
-    public void ToggleRepeatMode()
-    {
-       RepeatMode = songsMgtFlow.ToggleRepeatMode();
-
-    }
-
-    public void IncredeVolume()
-    {
-        songsMgtFlow.IncreaseVolume();
-        VolumeLevel = songsMgtFlow.VolumeLevel * 100;
-    }
-    public void DecredeVolume()
-    {
-        songsMgtFlow.DecreaseVolume();
-        VolumeLevel = songsMgtFlow.VolumeLevel * 100;
-    }
-
-    public void SetVolume(double vol)
-    {
-        songsMgtFlow.ChangeVolume(vol);
-        VolumeLevel = songsMgtFlow.VolumeLevel;
-    }
-
-    public bool ToggleStickToTop()
-    {
-        IsStickToTop = !IsStickToTop;
-        BaseAppFlow.ToggleStickToTop(IsStickToTop);
-        return IsStickToTop;
-    }
-
 }
-

@@ -1,9 +1,16 @@
 ﻿
 
 
+using Dimmer.Services;
+
 namespace Dimmer.WinUI.Views;
 public partial class SingleSongPageViewModel : BaseViewModel
 {
+    public SingleSongPageViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
+    {
+
+        LoadPageViewModel();
+    }
     #region private fields   
     #endregion
 
@@ -15,11 +22,7 @@ public partial class SingleSongPageViewModel : BaseViewModel
     [ObservableProperty]
     public partial ObservableCollection<LyricsDownloadContent>? CurrentListOfDownloadedLyrics { get; internal set; }
     #endregion
-    public SingleSongPageViewModel(IMapper mapper, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
-        : base(mapper, null, songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
-    {
-        LoadPageViewModel();
-    }
+   
 
     private void LoadPageViewModel()
     {

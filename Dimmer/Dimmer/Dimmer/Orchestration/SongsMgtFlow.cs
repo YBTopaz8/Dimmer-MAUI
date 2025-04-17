@@ -1,464 +1,174 @@
-﻿using ATL;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
 using Dimmer.Data;
 using Dimmer.Utilities.Events;
+using Dimmer.Utilities.Enums;
+using Dimmer.Services;
 
 namespace Dimmer.Orchestration;
 
-public partial class SongsMgtFlow : BaseAppFlow
+public class SongsMgtFlow : BaseAppFlow, IDisposable
 {
-    private readonly IRealmFactory _realmFactory;
-    private readonly IMapper mapper; 
-    readonly BehaviorSubject<bool> IsPlayingSubj = new(false);
-    readonly BehaviorSubject<double> CurrentPosSubj = new(0);
-    readonly BehaviorSubject<double> CurrentVolSubj = new(0);
-    readonly BehaviorSubject<DimmerPlaybackState> CurrentStateSubj = new(DimmerPlaybackState.Stopped);
 
-    public IObservable<bool> IsPlaying => IsPlayingSubj.AsObservable();
-    public IObservable<double> CurrentSongPosition => CurrentPosSubj.AsObservable();
-    public IObservable<double> CurrentSongVolume => CurrentVolSubj.AsObservable();
-    public IObservable<DimmerPlaybackState> CurrentAppState => CurrentStateSubj.AsObservable();
-    public IDimmerAudioService AudioService { get; }
 
-    public SongsMgtFlow(IRealmFactory realmFactory, IDimmerAudioService dimmerAudioService, IMapper mapper) : base(realmFactory, mapper)
+    private readonly IDimmerAudioService _audio;
+    private readonly IQueueManager<SongModelView> _queue;
+    private readonly SubscriptionManager _subs;
+
+    // Exposed streams
+    public IObservable<bool> IsPlaying { get; }
+    public IObservable<double> Position { get; }
+    public IObservable<double> Volume { get; }
+
+    public SongsMgtFlow(
+        IPlayerStateService state,
+        IRepository<SongModel> songRepo,
+        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<PlaylistModel> playlistRepo,
+        IRepository<ArtistModel> artistRepo,
+        IRepository<AlbumModel> albumRepo,
+        ISettingsService settings,
+        IFolderMonitorService folderMonitor,
+        IDimmerAudioService audioService,
+        IQueueManager<SongModelView> playQueue,
+        SubscriptionManager subs,
+        IMapper mapper
+    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
-        _realmFactory = realmFactory;
-        AudioService=dimmerAudioService;
-        this.AudioService.PlayPrevious += AudioService_PlayPrevious;
-        this.AudioService.PlayNext += AudioService_PlayNext;
-        this.AudioService.IsPlayingChanged += AudioService_PlayingChanged;
-        this.AudioService.PositionChanged +=AudioService_PositionChanged;
-        this.AudioService.PlayEnded += AudioService_PlayEnded;
-        this.mapper=mapper;
-        _realmFactory.GetRealmInstance();
-        SubscribeToAppCurrentState();
+        _audio  = audioService;
+        _queue  = playQueue;
+        _subs   = subs;
+
+        // Map audio‑service events into observables
+        var playingChanged = Observable
+            .FromEventPattern<PlaybackEventArgs>(
+                h => _audio.IsPlayingChanged += h,
+                h => _audio.IsPlayingChanged -= h)
+            .Select(evt => evt.EventArgs.IsPlaying);
+
+        var positionChanged = Observable
+            .FromEventPattern<double>(
+                h => _audio.PositionChanged += h,
+                h => _audio.PositionChanged -= h)
+            .Select(_ => _audio.CurrentPosition);
+
+        IsPlaying = playingChanged.StartWith(_audio.IsPlaying);
+        Position  = positionChanged.StartWith(_audio.CurrentPosition);
+        Volume    = Observable.Return(_audio.Volume);
+
+        // Wire up play‑end/next/previous
+        _audio.PlayEnded    += OnPlayEnded;
+        _audio.PlayNext     += (_, _) => NextInQueue();
+        _audio.PlayPrevious += (_, _) => PrevInQueue();
+
+        // Auto‑play whenever CurrentSong changes
+        _subs.Add(_state.CurrentSong
+            .DistinctUntilChanged()
+            .Subscribe(async _ => await PlaySongInAudioService()));
+
+      
+
     }
 
-    private void SubscribeToAppCurrentState()
+    public async Task PlaySongInAudioService()
     {
-        CurrentAppState.DistinctUntilChanged()
-            .Subscribe(async state =>
-            {
-                switch (state)
-                {
-                    case DimmerPlaybackState.Playing:
-
-                        break;
-                    case DimmerPlaybackState.Paused:
-
-                        break;
-                    case DimmerPlaybackState.Ended:
-                        PlayEnded();
-                        break;
-                    case DimmerPlaybackState.Skipped:
-                        await PlayNextSong(true);
-                        break;
-                    case DimmerPlaybackState.PlayNext:
-                        await PlayNextSong();
-                        break;
-                    case DimmerPlaybackState.RepeatSame:
-                        await PlaySongInAudioService();
-                        break;
-                    default:
-                        break;
-                }
-            });
+        PlaySong();  // BaseAppFlow: records link
+        var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
+        CurrentlyPlayingSong.ImageBytes = cover;
+        await _audio.InitializeAsync(CurrentlyPlayingSongDB, cover);
+        await _audio.PlayAsync();
     }
 
-    private void PlayEnded()
+    private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
-
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Completed, true);
+        PlayEnded();   // BaseAppFlow: records Completed link
+        NextInQueue();
     }
 
-    #region Playback Control Region
-
-    public async Task<bool> PlaySelectedSongsOutsideApp(List<string> filePaths)
+    public void NextInQueue()
     {
-        
-        if (filePaths == null || filePaths.Count < 1)
-            return false;
+        if (!_queue.HasNext)
+        {
+            // refill queue from master list
+            var allViews = _state.AllSongs.Value
+                .Select(m => _mapper.Map<SongModelView>(m))
+                .ToList();
+            var idx = allViews.FindIndex(s => s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
+            _queue.Initialize(allViews, idx + 1);
+        }
 
-        // Filter the files upfront by extension and size
-        List<string> filteredFiles = filePaths
-            .Where(path => new[] { ".mp3", ".flac", ".wav", ".m4a" }.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
-            .Where(path => new FileInfo(path).Length >= 1000) // Exclude small files (< 1KB)
+        var next = _queue.Next();
+        if (next != null)
+            SetCurrentSong(next);  // BaseAppFlow: pushes into state & triggers play
+    }
+
+    public void PrevInQueue()
+    {
+        // Build the full list of views
+        var allViews = _state.AllSongs.Value
+            .Select(m => _mapper.Map<SongModelView>(m))
             .ToList();
 
-        if (filteredFiles.Count == 0)
-            return false;
+        // Find the index of the current song
+        var idx = allViews.FindIndex(s => s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
+        if (idx == -1)
+            return;
 
-        // Use a HashSet for fast lookup to avoid duplicates
-        HashSet<string> processedFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<string, SongModelView> existingSongDictionary = new();
-        List<SongModelView> allSongs = new List<SongModelView>();
+        // Step backward, wrapping to the end if we were at zero
+        idx = idx <= 0
+            ? allViews.Count - 1
+            : idx - 1;
 
-
-        foreach (string? file in filteredFiles)
-        {
-            if (!processedFilePaths.Add(file))
-                continue; // Skip duplicate file paths
-
-            if (existingSongDictionary.TryGetValue(file, out SongModelView? existingSong))
-            {
-                // Use the existing song
-                allSongs.Add(existingSong);
-            }
-            else
-            {
-                // Create a new SongModelView
-                Track track = new Track(file);
-                FileInfo fileInfo = new FileInfo(file);
-
-                SongModelView newSong = new SongModelView
-                {
-
-                    Title = track.Title,
-                    Genre = string.IsNullOrEmpty(track.Genre) ? "Unknown Genre" : track.Genre,
-                    ArtistName = string.IsNullOrEmpty(track.Artist) ? "Unknown Artist" : track.Artist,
-                    AlbumName = string.IsNullOrEmpty(track.Album) ? "Unknown Album" : track.Album,
-
-                    FilePath = track.Path,
-                    DurationInSeconds = track.Duration,
-                    BitRate = track.Bitrate,
-                    FileSize = fileInfo.Length,
-                    FileFormat = Path.GetExtension(file).TrimStart('.'),
-                    HasLyrics = track.Lyrics.SynchronizedLyrics?.Count > 0 || File.Exists(file.Replace(Path.GetExtension(file), ".lrc")),
-                    
-                };
-                if (track.Year is not null)
-                {
-                    newSong.ReleaseYear = (int)track.Year;
-                }
-                if (track.TrackNumber is not null)
-                {
-                    newSong.ReleaseYear = (int)track.TrackNumber;
-                }
-                
-                allSongs.Add(newSong);
-            }
-        }
-
-        await ReplaceAndPlayQueue(allSongs[0], allSongs, PlaybackSource.External);
-        
-        return true;
+        // Trigger playback of that song
+        var prev = allViews[idx];
+        SetCurrentSong(prev);
     }
 
-
-    public async Task<bool> PlaySelectedSongsOutsideAppDebounced(List<string> filePaths)
+    public async Task PauseResumeSongAsync(double position, bool isPause = false)
     {
-       
-        try
-        {
-            return await PlaySelectedSongsOutsideApp(filePaths);
-        }
-        catch (TaskCanceledException)
-        {
-            return false;
-        }
-    }
-
-    #region Audio Service Events Region
-
-    private void AudioService_PositionChanged(object? sender, double e)
-    {
-        CurrentPosSubj.OnNext(AudioService.CurrentPosition);
-    }
-    private void AudioService_PlayingChanged(object? sender, PlaybackEventArgs e)
-    {
-        IsPlayingSubj.OnNext(e.IsPlaying);
-
-    }
-    private void AudioService_PlayNext(object? sender, EventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        IsPlayedCompletely = false;
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
-    }
-
-    private void AudioService_PlayPrevious(object? sender, EventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        IsPlayedCompletely = false;
-        CurrentPosSubj.OnNext(0);
-        CurrentStateSubj.OnNext(DimmerPlaybackState.PlayPrevious);
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
-    }
-
-    private void AudioService_PlayEnded(object? sender, PlaybackEventArgs e)
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-
-        if (e.EventType == DimmerPlaybackState.Ended)
-        {
-            CurrentStateSubj.OnNext(DimmerPlaybackState.Ended);
-            CurrentPosSubj.OnNext(0);
-            IsPlayingSubj.OnNext(false);
-            IsPlayedCompletely = true;
-
-            UpdateSongPlaybackState(e.MediaSong, PlayType.Completed, true);
-        }
-
-        switch (CurrentRepeatMode)
-        {
-            case RepeatMode.Off:
-            case RepeatMode.All:
-                CurrentStateSubj.OnNext(DimmerPlaybackState.PlayNext);
-
-                break;
-            case RepeatMode.One:
-
-                CurrentStateSubj.OnNext(DimmerPlaybackState.RepeatSame);
-                break;
-            case RepeatMode.Custom:
-                break;
-            default:
-                break;
-        }
-    }
-    #endregion
-
-
-    public async Task<bool> PlaySongInAudioService()
-    {
-        CurrentPosSubj.OnNext(0);
-        PlaySong();
-        byte[]? coverImage = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
-        CurrentlyPlayingSong.ImageBytes = coverImage;
-        await AudioService.InitializeAsync(CurrentlyPlayingSongDB, coverImage);
-        await AudioService.PlayAsync();
-        CurrentSong.OnNext(CurrentlyPlayingSongDB);
-
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);
-
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
-        CurrentlyPlayingSong.IsPlaying = true; // Update playing status
-        //CurrentlyPlayingSong mapper.Map<SongModelView>(CurrentlyPlayingSongDB);
-
-        return true;
-    }
-
-
-    public async Task<bool> PauseResumeSongAsync(double currentPosition, bool isPause = false)
-    {
-
         if (isPause)
         {
-            await AudioService.PauseAsync();
-            PauseSong();
+            await _audio.PauseAsync();
+            PauseSong();    // records pause via BaseAppFlow
         }
         else
         {
-            
-            await AudioService.SeekAsync(currentPosition);
-            await AudioService.PlayAsync();
-            ResumeSong();
+            await _audio.SeekAsync(position);
+            await _audio.PlayAsync();
+            ResumeSong();   // records resume via BaseAppFlow
         }
-        return true;
     }
-    public async Task<bool> StopSong()
+    public async Task StopSongAsync()
     {
-        await AudioService.PauseAsync();
-         CurrentlyPlayingSong.IsPlaying = false;
-        return true;
+        await _audio.PauseAsync();
+        CurrentlyPlayingSong.IsPlaying = false;
     }
 
-    public async Task SeekTo(double positionInSec)
-    {        
-        if (CurrentlyPlayingSong is null)
-        {
+    public async Task SeekTo(double position)
+    {
+        if (!_audio.IsPlaying)
             return;
-        }
-        double CurrentPercentage = CurrentPositionInSec / CurrentlyPlayingSong.DurationInSeconds * 100;
-
-        if (AudioService.IsPlaying)
-        {
-            await AudioService.SeekAsync(positionInSec);
-
-            PlayDateAndCompletionStateSongLink linkss = new()
-            {
-                DatePlayed = DateTime.Now,
-                PlayType= (int)PlayType.Seeked,
-                SongId = CurrentlyPlayingSong.LocalDeviceId,
-                PositionInSeconds = CurrentPositionInSec
-            };
-            if (CurrentPercentage >= 80)
-            {
-                linkss.PlayType= (int)PlayType.SeekRestarted;
-            }
-
-            UpSertPDaCStateLink(linkss, true);
-        }
+        await _audio.SeekAsync(position);
+        base.UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Seeked, position);
     }
-    
 
-
-    Random _random { get; } = new Random();
-
-    #region Audio Service Events Region
-
-   
-
-    #endregion
-    
-    public async Task PlayNextSong(bool isUserInitiated = false)
+    public void ChangeVolume(double newVolume)
     {
-
-        if (isUserInitiated)
-        {
-            
-            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Skipped, true);
-        }
-
-        switch (CurrentRepeatMode)
-        {
-            case RepeatMode.One: // Repeat One
-                await PlaySongInAudioService();
-                return;
-            default:
-                break;
-            
-        }
-
-        var currentindex = AllSongs.Value.FindIndex(x=>x.LocalDeviceId ==CurrentlyPlayingSongDB.LocalDeviceId);
-        if (currentindex == -1)
-        {
-            return; // Song not found in the list
-        }
-        if (currentindex + 1 < AllSongs.Value.Count)
-        {
-            CurrentlyPlayingSongDB = AllSongs.Value[currentindex + 1];
-            
-            CurrentIndexInMasterList = currentindex + 1;
-            await PlaySongInAudioService();
-
-        }
-        else
-        {
-            if (CurrentRepeatMode == RepeatMode.All)
-            {
-                CurrentlyPlayingSongDB = AllSongs.Value[0];
-                
-                CurrentIndexInMasterList = 0;
-                await PlaySongInAudioService();
-            }
-        }
-        // If not repeat all and at the end, do nothing or stop playback
+        _audio.Volume = Math.Clamp(newVolume, 0, 1);
     }
 
-    int prevCounter;
-    readonly int repeatCountMax =0;
+    public void IncreaseVolume() => ChangeVolume(_audio.Volume + 0.01);
+    public void DecreaseVolume() => ChangeVolume(_audio.Volume - 0.01);
 
-    public void PlayPreviousSong(bool isUserInitiated = true)
+    public double VolumeLevel => _audio.Volume;
+
+    public void Dispose()
     {
-        if (CurrentlyPlayingSong == null)
-            return;
-
-        if (prevCounter == 1)
-        {
-            UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Previous, true);
-
-            prevCounter = 0;
-            return;
-        }
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Restarted, true);
-        
-        if (CurrentRepeatMode == RepeatMode.One)
-        {
-            return;
-        }
-        prevCounter++;
+        _subs.Dispose();
+        base.Dispose();
     }
-
-    public void ChangeVolume(double newVolumeOver1)
-    {
-        try
-        {
-            if (CurrentlyPlayingSong is null)
-            {
-                return;
-            }
-            AudioService.Volume = Math.Clamp(newVolumeOver1, 0, 1);
-
-            AppSettingsService.VolumeSettingsPreference.SetVolumeLevel(newVolumeOver1);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("No Volume modified. Possible null exception ", ex.Message);
-        }
-    }
-
-    public void DecreaseVolume()
-    {
-        AudioService.Volume -= 0.01;
-
-        
-    }
-    public double VolumeLevel => AudioService.Volume;
-    public void IncreaseVolume()
-    {
-        AudioService.Volume += 0.01;
-    }
-
-    /// <summary>
-    /// Toggles shuffle mode on or off
-    /// </summary>
-    /// <param name="isShuffleOn"></param>
-    public void ToggleShuffle(bool isShuffleOn)
-    {
-        IsShuffleOn = isShuffleOn;
-        AppSettingsService.ShuffleStatePreference.ToggleShuffleState(isShuffleOn);
-        
-    }
-
-
-
-    /// <summary>
-    /// Toggles repeat mode between 0, 1, and 2
-    ///  0 for repeat OFF
-    ///  1 for repeat ALL
-    ///  2 for repeat ONE
-    /// </summary>
-    public void SetToggleRepeatMode()
-    {
-        ToggleRepeatMode();        
-    }
-
-    double _currentPositionInSec => AudioService.CurrentPosition;
-
-    public double CurrentPositionInSec
-    {
-        get => _currentPositionInSec;
-    }
-
-    public int CurrentIndexInMasterList { get; private set; }
-    #endregion
-
-
-
-
-    public async Task ReplaceAndPlayQueue(SongModelView currentlyPlayingSong, List<SongModelView> songs, PlaybackSource source)
-    {
-        CurrentlyPlayingSong = currentlyPlayingSong;
-        PlaySong();
-        await PlaySongInAudioService();
-    }
-
-
-    #region Helpers
-    
-
-    #endregion
-}
-
-public enum PlaybackSource
-{
-    MainQueue,
-    AlbumsQueue,
-    SearchQueue,
-    External,
-    PlaylistQueue,
-    ArtistQueue,
-
 }

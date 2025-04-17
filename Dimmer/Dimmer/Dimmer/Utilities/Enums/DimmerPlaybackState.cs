@@ -26,5 +26,6 @@ public enum DimmerPlaybackState
     Skipped,
     RepeatSame,
     RepeatAll,
-    RepeatPlaylist
+    RepeatPlaylist,
+    MoveToNextSongInQueue,
 }

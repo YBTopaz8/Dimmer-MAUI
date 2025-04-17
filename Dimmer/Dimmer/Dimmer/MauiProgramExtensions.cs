@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using Dimmer.Data;
+using Dimmer.Services;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
 
@@ -32,8 +33,17 @@ public static class MauiProgramExtensions
 
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
      
+        builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
+        builder.Services.AddSingleton<IPlayerStateService, PlayerStateService>();
 
-        
+        builder.Services.AddSingleton<SubscriptionManager>();
+
+        builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
+
+        builder.Services.AddTransient(typeof(IRepository<>), typeof(RealmCoreRepo<>));
+        builder.Services.AddTransient(typeof(IQueueManager<>), typeof(QueueManager<>));
+
+
         var mapper = AutoMapperConf.ConfigureAutoMapper();
         builder.Services.AddSingleton(mapper);
 

@@ -16,7 +16,13 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
-    <MauiXaml Update="Views\AlbumsWindow.xaml">
+    <MauiXaml Update="Views\PlaylistWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\ArtistWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\AlbumWindow.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Views\SongNotifierWindow.xaml">

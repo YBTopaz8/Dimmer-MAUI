@@ -147,7 +147,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         private set => SetProperty(ref _playbackState, value);
     }
 
-    public bool IsPlaying => CurrentPlaybackState == DimmerPlaybackState.Playing || CurrentPlaybackState == DimmerPlaybackState.Buffering;
+    public bool IsPlaying => CurrentPlaybackState == DimmerPlaybackState.Playing;
 
     private double _duration;
     public double Duration

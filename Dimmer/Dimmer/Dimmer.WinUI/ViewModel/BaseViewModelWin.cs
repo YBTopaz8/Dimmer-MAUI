@@ -1,46 +1,75 @@
-﻿using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Dimmer.Data;
+using Dimmer.Orchestration;
+using Dimmer.Services;
+using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
+using Microsoft.UI.Xaml.Controls;
 
-namespace Dimmer.WinUI.ViewModel;
-public partial class BaseViewModelWin : BaseViewModel
+namespace Dimmer.WinUI.ViewModel
 {
-    [ObservableProperty]
-    public partial int CurrentQueue { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
-    [ObservableProperty]
-    public partial CollectionView? SongLyricsCV { get; set; }
-
-    [ObservableProperty]
-    public partial List<SongModelView>? FilteredSongs { get; set; }
-
-    public BaseViewModelWin(IMapper mapper, SongsMgtFlow songsMgtFlow, AlbumsMgtFlow albumsMgtFlow,  IDimmerAudioService dimmerAudioService)
-        : base(mapper, albumsMgtFlow,  songsMgtFlow, dimmerAudioService) // Passing 'null' for the missing 'AlbumsMgtFlow' parameter
+    public partial class BaseViewModelWin : BaseViewModel, IDisposable
     {
-        LoadViewModel();
-    }
+        [ObservableProperty]
+        private int _currentQueue;
 
-    public void LoadViewModel()
-    {
-        if (base.MasterSongs is not null)
+        [ObservableProperty]
+        private ObservableCollection<SongModelView>? _displayedSongs;
+
+        [ObservableProperty]
+        private CollectionView? _songLyricsCV;
+
+        [ObservableProperty]
+        private List<SongModelView>? _filteredSongs;
+
+        public BaseViewModelWin(
+            IMapper mapper,
+            AlbumsMgtFlow albumsMgtFlow,
+            PlayListMgtFlow playlistsMgtFlow,
+            SongsMgtFlow songsMgtFlow,
+            IPlayerStateService stateService,
+            ISettingsService settingsService,
+            SubscriptionManager subs
+        ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
         {
-            DisplayedSongs = [.. MasterSongs];
+            LoadViewModel();
         }
 
-        BaseAppFlow.CurrentSong
-            .DistinctUntilChanged()
-            .Subscribe(song =>
-            {
-                if (song is null)
-                    return;
-                if (string.IsNullOrWhiteSpace(song.Title) || song.Title == "Unknown Title")
+        private void LoadViewModel()
+        {
+            // Initialize displayed songs to the full master list
+            if (MasterSongs != null)
+                DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
+
+            // You no longer need to subscribe manually to CurrentSong or Volume here—
+            // BaseViewModel already does that. If you want Taskbar updates, hook into Position:
+            _ = SongsMgtFlow.Position
+                .Subscribe(pos =>
                 {
-                    return;
-                }
-                VolumeLevel = songsMgtFlow.VolumeLevel;
-            });
-    }
-    public static void SetTaskbarProgress(double position)
-    {
-        WindowsIntegration.SetTaskbarProgress(PlatUtils.GetWindowHandle(), completed: 50, total: 100);
+                    // update a Taskbar progress ring at 0–100%
+                    var perc = (int)(100 * pos / (SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1));
+                    WindowsIntegration.SetTaskbarProgress(
+                        PlatUtils.GetWindowHandle(),
+                        completed: (ulong)perc,
+                        total: 100);
+                });
+        }
+
+        public static void SetTaskbarProgress(double position)
+        {
+            WindowsIntegration.SetTaskbarProgress(
+                PlatUtils.GetWindowHandle(),
+                completed: (ulong)position,
+                total: 100);
+        }
+
+        public void Dispose()
+        {
+            // if you registered any additional subscriptions here, dispose them
+        }
     }
 }

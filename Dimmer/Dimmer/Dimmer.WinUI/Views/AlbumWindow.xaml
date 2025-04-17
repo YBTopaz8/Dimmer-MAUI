@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.AlbumWindow"
+            xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
+             xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"         
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"      
+             x:Name="myPage" 
+             Title="AlbumWindow">
+    <ContentPage>
+        <ContentPage.Resources>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+            <converters:VolumeConverter x:Key="VolConverter" />
+
+
+        </ContentPage.Resources>
+
+        <Grid 
+                BackgroundColor="Transparent"
+                RowDefinitions="Auto,*">
+            <HorizontalStackLayout HorizontalOptions="End">
+                <ImageButton Source="restartcircle.png"
+                      x:Name="ResetAlbumSongsList"/>
+                <SearchBar Grid.Row="0"
+  HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
+     Placeholder="Search Song..."/>
+
+            </HorizontalStackLayout>
+      
+        </Grid>
+    </ContentPage>
+</Window>

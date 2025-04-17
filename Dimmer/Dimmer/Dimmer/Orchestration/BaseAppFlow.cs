@@ -1,266 +1,163 @@
-﻿using Dimmer.Data;
+﻿using System;
+using System.Linq;
+using Dimmer.Data;
 using Dimmer.Utilities.Events;
-using DimmerPlaybackState = Dimmer.Utilities.Enums.DimmerPlaybackState;
+using Dimmer.Utilities.Enums;
+using AutoMapper;
 
-namespace Dimmer.Orchestration;
-public class BaseAppFlow : IDisposable
+namespace Dimmer.Orchestration
 {
-
-
-    #region static behavior subjects 
-    public static BehaviorSubject<SongModel> CurrentSong { get; } = new(new SongModel());
-    public static BehaviorSubject<List<SongModel>> AllSongs { get; } = new([]);
-    public static BehaviorSubject<List<AlbumArtistGenreSongLink>> AllLinks { get; } = new([]);
-    public static BehaviorSubject<List<GenreModel>> AllGenre { get; } = new([]);
-    public static BehaviorSubject<List<ArtistModel>> AllArtists { get; } = new([]);
-    public static BehaviorSubject<List<AlbumModel>> AllAlbums { get; } = new([]);
-    public static BehaviorSubject<List<PlaylistModel>> AllPlaylists { get; } = new([]);
-
-    #endregion
-
-    #region private fields
-
-
-
-    private Realm? Db;
-    
-    private readonly IRealmFactory RealmFactory;
-    private readonly IMapper Mapper;
-
-    #endregion
-
-    #region public properties
-    public SongModelView CurrentlyPlayingSong { get; set; } 
-    public SongModel CurrentlyPlayingSongDB { get; set; } =  new();
-    public SongModelView? PreviouslyPlayingSong { get; }
-    public SongModelView? NextPlayingSong { get; }
-    public bool IsShuffleOn { get; set; }
-    public RepeatMode CurrentRepeatMode { get; set; } = RepeatMode.All;
-    public int CurrentRepeatCount { get; set; }
-    #endregion
-
-    public static AppStateModel AppSettings{ get; set; } = new ();
-    public BaseAppFlow(IRealmFactory _realmFactory, IMapper mapper)
+    public class BaseAppFlow : IDisposable
     {
-        RealmFactory = _realmFactory;
-        Mapper= mapper;
-        LoadRealm();
-        Initialize();
-        LoadAppData();
-        CurrentlyPlayingSong = new();
-    }
 
-    public void LoadApplicationSettings()
-    {
-        var e= Db?.All<AppStateModel>().ToList();
-        AppSettings = e?[0] ?? new AppStateModel();
-    }
+        private IDisposable _songsToken;
 
-    private void LoadAppData()
-    {
-        List<SongModel>? dbb = Db?.All<SongModel>().OrderBy(x => x.DateCreated).AsEnumerable()
-            .Select(x=>x.Freeze())
-            .ToList();
-        dbb ??= new List<SongModel>();
-        AllSongs.OnNext(dbb);
-    }
+        public readonly IPlayerStateService _state;
+        private readonly IRepository<SongModel> _songRepo;
+        private readonly IRepository<PlayDateAndCompletionStateSongLink> _pdlRepo;
+        private readonly IRepository<PlaylistModel> _playlistRepo;
+        private readonly IRepository<ArtistModel> _artistRepo;
+        private readonly IRepository<AlbumModel> _albumRepo;
+        private readonly ISettingsService _settings;
+        private readonly IFolderMonitorService _folderMonitor;
+        public readonly IMapper _mapper;
+        private bool _disposed;
 
-    private void LoadRealm()
-    {
-        Db = RealmFactory.GetRealmInstance();
-        var AppSettingss = Db.All<AppStateModel>().ToList();
-        if (AppSettingss.Count == 0)
+        public SongModelView CurrentlyPlayingSong { get; set; } = new();
+        public SongModel CurrentlyPlayingSongDB { get; set; } = new();
+
+        public bool IsShuffleOn
+            => _settings.ShuffleOn;
+
+        public RepeatMode CurrentRepeatMode
+            => _settings.RepeatMode;
+
+        public BaseAppFlow(
+            IPlayerStateService state,
+            IRepository<SongModel> songRepo,
+            IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+            IRepository<PlaylistModel> playlistRepo,
+            IRepository<ArtistModel> artistRepo,
+            IRepository<AlbumModel> albumRepo,
+            ISettingsService settings,
+            IFolderMonitorService folderMonitor,
+            IMapper mapper)
         {
-            AppStateModel appStateModel = new ();
-            Db.Write(() =>
+            _state = state;
+            _songRepo = songRepo;
+            _pdlRepo = pdlRepo;
+            _playlistRepo = playlistRepo;
+            _artistRepo = artistRepo;
+            _albumRepo = albumRepo;
+            _settings = settings;
+            _folderMonitor = folderMonitor;
+            _mapper = mapper;
+
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            // 1. Load master song list
+            var allSongs = _songRepo
+                .GetAll()
+                .OrderBy(x => x.DateCreated);
+            _state.LoadAllSongs(allSongs);
+
+            // 2. Start folder‑watching from user prefs
+            _folderMonitor.Start(_settings.UserMusicFoldersPreference);
+
+            // Subscribe to live updates
+            _songsToken = _songRepo.GetAll().SubscribeForNotifications((col, changes) =>
             {
-                Db.Add(appStateModel);
+                _state.LoadAllSongs(col.ToList());
             });
-        }
-        else
-        {
-            AppStateModel appStateModel = AppSettingss[0];
 
-            List<string>? ListOfFolders = [.. appStateModel.UserMusicFoldersPreference];
-            
-            SetupFolderMonitoring(ListOfFolders);
         }
-    }
 
-    static void SetupFolderMonitoring(List<string>? ListOfFolders)
-    {
-        if (ListOfFolders == null || ListOfFolders.Count == 0)
+        public void SetCurrentSong(SongModelView song)
         {
-            return;
+            // update local view + replay into your global stream
+            var songDb = _mapper.Map<SongModel>(song);
+            CurrentlyPlayingSongDB = songDb;
+            _state.CurrentSong.OnNext(songDb);
         }
-        foreach (var path in ListOfFolders)
-        {
-            SingleFolderMonitor? newSingleFolderMonitor = new SingleFolderMonitor(path);
-            newSingleFolderMonitor.StartMonitoring();            
-        }
-    }
-    
-   public void SetCurrentSong(SongModelView song)
-   {
-        SongModel songDb = Mapper.Map<SongModel>(song);
-        CurrentlyPlayingSongDB = songDb;
-        CurrentSong.OnNext(songDb);
-   }
-    public void PlaySong()
-    {
-        CurrentlyPlayingSong.IsCurrentPlayingHighlight = false;
+
+        public void PlaySong()
+            => UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Play);
+
+        public void PauseSong()
+            => UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Pause);
+
+        public void ResumeSong()
+            => UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Resume);
         
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Play, true);        
-        IsPlayedCompletely = false;
-    }
-    public void PauseSong()
-    {
-        IsPlayedCompletely = false;
+        public void PlayEnded()
+            => UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Resume);
 
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Pause, true);
-    }
-    public void ResumeSong()
-    {
-        IsPlayedCompletely = false;
-        UpdateSongPlaybackState(CurrentlyPlayingSong, PlayType.Resume, true);
-        
-    }
-    public bool IsPlayedCompletely { get; set; }
-
-
-    public void UpdateSongPlaybackState(SongModelView? currentlyPlayingSong, PlayType playType, bool IsAdd, double? position = null)
-    {
-        currentlyPlayingSong??=CurrentlyPlayingSong;
-        var songDb = Mapper.Map<SongModel>(currentlyPlayingSong);
-        PlayDateAndCompletionStateSongLink link = new ()
+        public void UpdatePlaybackState(
+            SongModelView? view,
+            PlayType type,
+            double? position = null)
         {
-            DatePlayed = DateTime.Now,
-            PlayType= (int)playType,
-            SongId = songDb.LocalDeviceId,
-            PositionInSeconds = position is null ? 0 : (double)position,
-            WasPlayCompleted = playType == PlayType.Completed,
+            var songView = view ?? CurrentlyPlayingSong;
+            var songDb = _mapper.Map<SongModel>(songView);
+            CurrentlyPlayingSongDB = songDb;
 
-        };
-        UpSertPDaCStateLink(link,IsAdd);
-
-    }
-    public void UpSertPDaCStateLink(PlayDateAndCompletionStateSongLink model, bool IsAdd)
-    {
-        try
-        {
-            Db = RealmFactory.GetRealmInstance();
-            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PDL");
-            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-
-        }
-
-    }
-    public void UpSertPlaylistData(PlaylistModel model, bool IsAdd)
-    {
-        try
-        {
-            Db = RealmFactory.GetRealmInstance();
-            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PL");
-            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-
-        }
-
-    }
-    
-    public void UpSertArtist(ArtistModel model, bool IsAdd)
-    {
-        try
-        {
-            Db = RealmFactory.GetRealmInstance();
-            model.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("PL");
-            DbUtils.AddOrUpdateSingleRealmItem(Db, model, IsAdd);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-
-        }
-
-    }
-
-    public void UpSertAlbumData(AlbumModel albumModel, bool IsAdd)
-    {
-        try
-        {
-            Db = RealmFactory.GetRealmInstance();
-            albumModel.LocalDeviceId ??= DbUtils.GenerateLocalDeviceID("AL");
-            DbUtils.AddOrUpdateSingleRealmItem(Db, albumModel, IsAdd);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-
-    /// <summary>
-    /// Toggles repeat mode between 0, 1, and 2
-    ///  0 for repeat OFF
-    ///  1 for repeat ALL
-    ///  2 for repeat ONE
-    /// </summary>
-    public RepeatMode ToggleRepeatMode()
-    {
-        CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % 3); // Cycle through enum values 0, 1, 2
-        
-        AppSettingsService.RepeatModePreference.ToggleRepeatState((int)CurrentRepeatMode); // Store as int
-        return CurrentRepeatMode;
-    }
-    
-    public static void ToggleStickToTop(bool isSticktoTop)
-    {
-        AppSettingsService.IsSticktoTopPreference.ToggleIsSticktoTopState(isSticktoTop);        
-    }
-
-
-    public static void Initialize()
-    {
-        Debug.WriteLine("Db.GetType()");
-    }
-    private bool _disposed;
-
-    // Other members...
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
+            var link = new PlayDateAndCompletionStateSongLink
             {
-                // Dispose managed resources.
-                
-               
-            }
+                LocalDeviceId =
+                    string.IsNullOrEmpty(songDb.LocalDeviceId)
+                        ? Guid.NewGuid().ToString()
+                        : songDb.LocalDeviceId,
+                SongId = songDb.LocalDeviceId,
+                PlayType = (int)type,
+                DatePlayed = DateTime.Now,
+                PositionInSeconds = position ?? 0,
+                WasPlayCompleted = type == PlayType.Completed
+            };
 
-            // Dispose unmanaged resources.
-            // Set large fields to null.
+            _pdlRepo.AddOrUpdate(link);
+        }
 
+        public void UpsertPlaylist(PlaylistModel model)
+        {
+            if (string.IsNullOrEmpty(model.LocalDeviceId))
+                model.LocalDeviceId = Guid.NewGuid().ToString();
+            _playlistRepo.AddOrUpdate(model);
+        }
+
+        public void UpsertArtist(ArtistModel model)
+        {
+            if (string.IsNullOrEmpty(model.LocalDeviceId))
+                model.LocalDeviceId = Guid.NewGuid().ToString();
+            _artistRepo.AddOrUpdate(model);
+        }
+
+        public void UpsertAlbum(AlbumModel model)
+        {
+            if (string.IsNullOrEmpty(model.LocalDeviceId))
+                model.LocalDeviceId = Guid.NewGuid().ToString();
+            _albumRepo.AddOrUpdate(model);
+        }
+
+        public void ToggleShuffle(bool isOn)
+            => _settings.ShuffleOn = isOn;
+
+        public RepeatMode ToggleRepeatMode()
+        {
+            var next = (RepeatMode)(((int)_settings.RepeatMode + 1) % 3);
+            _settings.RepeatMode = next;
+            return next;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+            _state.Dispose();
+            _folderMonitor.Dispose();
             _disposed = true;
         }
     }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    ~BaseAppFlow()
-    {
-        Dispose(false);
-    }
 }
-

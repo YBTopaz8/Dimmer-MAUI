@@ -32,7 +32,7 @@ public partial class MediaControlBtmBar : ContentView
         _isThrottling = true;
         Slider send = (Slider)sender;
         double s = send.Value;
-        await MyViewModel.SeekSongPosition(currPosPer: s);
+        MyViewModel.SeekTo( s);
 
 
         await Task.Delay(throttleDelay);
@@ -88,12 +88,12 @@ public partial class MediaControlBtmBar : ContentView
                 {
                     return;
                 }
-                MyViewModel.IncredeVolume();
+                MyViewModel.IncreaseVolume();
                 // Handle scroll up
             }
             else
             {
-                MyViewModel.DecredeVolume();
+                MyViewModel.DecreaseVolume();
                 // Handle scroll down
             }
         }
@@ -115,17 +115,17 @@ public partial class MediaControlBtmBar : ContentView
 
     private async void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayPrevious();
+        await MyViewModel.PlayPreviousAsync();
     }
 
     private async void PlayNext_Clicked(object sender, EventArgs e)
     {
-       await MyViewModel.PlayNext();
+       await MyViewModel.PlayNextAsync();
     }
 
     private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
     {
-        await MyViewModel.PlayPauseSong();
+        await MyViewModel.PlayPauseAsync();
     }
 
     private void ShuffleBtn_Clicked(object sender, EventArgs e)

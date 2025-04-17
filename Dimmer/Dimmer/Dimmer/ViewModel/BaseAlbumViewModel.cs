@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Dimmer.Interfaces;
+using Dimmer.Orchestration;
+using Dimmer.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,18 +9,37 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.ViewModel;
-public partial class BaseAlbumViewModel : BaseViewModel
+public partial class BaseAlbumViewModel : ObservableObject
 {
-    private readonly IMapper mapper;
+    private readonly IMapper _mapper;
+    private readonly IPlayerStateService _stateService;
+    private readonly ISettingsService _settingsService;
+    private readonly SubscriptionManager _subs;
     [ObservableProperty]
-    public partial List<AlbumModel>? SelectedAlbumsCol { get; internal set; }
+    public partial List<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
     [ObservableProperty]
     public partial AlbumModelView? SelectedAlbum { get; internal set; }
 
-    public BaseAlbumViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerAudioService dimmerAudioService)
-        : base(mapper, albumsMgtFlow, songsMgtFlow, dimmerAudioService)
+    public AlbumsMgtFlow AlbumsMgtFlow { get; }
+    public PlayListMgtFlow PlaylistsMgtFlow { get; }
+    public SongsMgtFlow SongsMgtFlow { get; }
+    public BaseAlbumViewModel(
+            IMapper mapper,
+            AlbumsMgtFlow albumsMgtFlow,
+            PlayListMgtFlow playlistsMgtFlow,
+            SongsMgtFlow songsMgtFlow,
+            IPlayerStateService stateService,
+            ISettingsService settingsService,
+            SubscriptionManager subs)
     {
-        this.mapper=mapper;
+        
+            _mapper = mapper;
+            AlbumsMgtFlow = albumsMgtFlow;
+            PlaylistsMgtFlow = playlistsMgtFlow;
+            SongsMgtFlow = songsMgtFlow;
+            _stateService = stateService;
+            _settingsService = settingsService;
+            _subs = subs;
         SubscribeToAlbumListChanges();
     }
 
@@ -27,15 +49,13 @@ public partial class BaseAlbumViewModel : BaseViewModel
         {
             if (albums != null && albums.Count > 0)
             {
-                var we= mapper.Map<List<AlbumModelView>>(albums);
-                
+                SelectedAlbumsCol = _mapper.Map<List<AlbumModelView>>(albums);
             }
-        }); 
+        });
     }
 
-    public void GetAlbumsForSpecificSong(SongModelView song)
+    public void GetAlbumForSpecificSong(SongModelView song)
     {
-        albumsMgtFlow.GetAlbumsBySongModel(song);
-        
+        //albumsMgtFlow.GetAlbumsBySongModel(song);
     }
 }

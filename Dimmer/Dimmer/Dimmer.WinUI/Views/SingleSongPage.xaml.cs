@@ -51,31 +51,31 @@ public partial class SingleSongPage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                await MyViewModel.PlayPrevious();
+                await MyViewModel.PlayPreviousAsync();
                 break;
             case 2:
             case 3:
-                await MyViewModel.PlayPauseSong();
+                await MyViewModel.PlayPauseAsync();
 
                 break;
             case 4:
-                await MyViewModel.PlayNext();
+                await MyViewModel.PlayNextAsync();
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
                 break;
 
             case 6:
-                MyViewModel.IncredeVolume();
+                MyViewModel.IncreaseVolume();
                 break;
 
             default:
                 break;
         }
     }
-    private async void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
+    private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {
-        await MyViewModel.SeekSongPosition(currPosPer: CurrentPositionSlider.Value);
+        MyViewModel.SeekTo(CurrentPositionSlider.Value);
     }
 
 }

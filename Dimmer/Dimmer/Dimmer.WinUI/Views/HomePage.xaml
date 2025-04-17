@@ -2,9 +2,8 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.HomePage"
-             xmlns:vmm="clr-namespace:Dimmer.WinUI.ViewModel"
-             
-             x:DataType="vmm:BaseViewModelWin"
+             xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             x:DataType="vm:BaseViewModelWin"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
              xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
@@ -209,7 +208,7 @@
 
                 </VerticalStackLayout>
                 <Grid Grid.Column="1" RowDefinitions="*,100">
-                    <HorizontalStackLayout 
+                    <Grid ColumnDefinitions="*,*" 
                                    Grid.Row="1"
                                    HorizontalOptions="End">
                         <syncf:SfChip x:Name="ScrollToSongIcon"
@@ -220,7 +219,7 @@
                                WidthRequest="300" TextChanged="SearchSongSB_TextChanged">
 
                         </SearchBar>
-                    </HorizontalStackLayout>
+                    </Grid>
                     <syncf:SfTabView TabBarHeight="0"
                                      x:Name="MainTabView"
                                      EnableSwiping="True">
