@@ -18,7 +18,7 @@ public sealed partial class TestPage : Window
 
     public HomeViewModel MyViewModel { get; }
     
-    private async void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    private void MyTableView_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
         FrameworkElement view = (FrameworkElement)e.OriginalSource;       
 
@@ -28,7 +28,7 @@ public sealed partial class TestPage : Window
         {
             song.IsCurrentPlayingHighlight = false;
         }
-        await MyViewModel.PlaySongOnDoubleTap(song!);
+        MyViewModel.PlaySongOnDoubleTap(song!);
     }
 
     private void Slider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)

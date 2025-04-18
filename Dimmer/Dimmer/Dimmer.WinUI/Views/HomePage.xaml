@@ -27,7 +27,7 @@
     </ContentPage.Resources>
     <Grid RowDefinitions="Auto,*">
 
-        <Grid ColumnDefinitions="650,*" Grid.Row="0" 
+        <Grid ColumnDefinitions="auto,*" Grid.Row="0" 
                       Margin="15,0" x:Name="BmtBarView">
             <Grid.GestureRecognizers>
                 <PointerGestureRecognizer x:Name="BtmBarPointerGest"  />
@@ -121,12 +121,12 @@
                 <syncf:SfEffectsView  BackgroundColor="Transparent" ToolTipProperties.Text="{Binding VolumeLevel, StringFormat='Volume {0}'}"
                                      Loaded="SfEffectsView_Loaded" Grid.Column="2"
                                      Unloaded="SfEffectsView_Unloaded">
-                    <VerticalStackLayout VerticalOptions="Start" >
+                    <VerticalStackLayout >
                         <Label  HorizontalOptions="Center"/>
 
-                        <Slider  Value="{Binding VolumeLevel}"
-                                Maximum="1" Minimum="0" x:Name="VolumeSlider" WidthRequest="200"
-                                 ValueChanged="VolumeSlider_ValueChanged" VerticalOptions="Start"
+                        <Slider  Value="{Binding VolumeLevel}" WidthRequest="200" VerticalOptions="Start" 
+                                Maximum="1" Minimum="0" x:Name="VolumeSlider" 
+                                 ValueChanged="VolumeSlider_ValueChanged" 
                                 MinimumTrackColor="DarkSlateBlue" />
                     </VerticalStackLayout>
                 </syncf:SfEffectsView>
@@ -211,15 +211,19 @@
                     <Grid ColumnDefinitions="*,*" 
                                    Grid.Row="1"
                                    HorizontalOptions="End">
-                        <syncf:SfChip x:Name="ScrollToSongIcon"
-              Clicked="ScrollToSongIcon_Clicked"
+                        <syncf:SfChip x:Name="ScrollToSongIcon" Grid.Column="0" WidthRequest="80" StrokeThickness="0"
+              Clicked="ScrollToSongIcon_Clicked" ShowIcon="True" ImageSize="60"
               ImageSource="eye.png"/>
-                        <SearchBar BackgroundColor="Transparent"                           
+
+
+                        <SearchBar BackgroundColor="Transparent" Grid.Column="1"
                                x:Name="SearchSongSB" HeightRequest="30" Placeholder="Search Title, Artist, Album..."
                                WidthRequest="300" TextChanged="SearchSongSB_TextChanged">
 
                         </SearchBar>
                     </Grid>
+                    
+                    
                     <syncf:SfTabView TabBarHeight="0"
                                      x:Name="MainTabView"
                                      EnableSwiping="True">

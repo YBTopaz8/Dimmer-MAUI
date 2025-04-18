@@ -243,6 +243,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// <returns>Task indicating completion.</returns>
     public async Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage)
     {
+        // 1) guard empty or null paths
+       
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(songModel);
 
@@ -428,11 +430,27 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModel media, byte[]? ImageBytes = null, CancellationToken token=default)
     {
+
+        // 1) guard empty or null paths
+        if (string.IsNullOrWhiteSpace(media.FilePath))
+        {
+            Debug.WriteLine($"[AudioService] No FilePath for '{media.Title}', skipping MediaSource.");
+            return null;
+        }
+        // 2) try parse into a URI
+        if (!Uri.TryCreate(media.FilePath, UriKind.Absolute, out var uri))
+        {
+            // maybe it’s a local Windows path, so force file Uri
+            var full = Path.GetFullPath(media.FilePath);
+            uri = new Uri(full.StartsWith("\\\\")
+                ? $"file:///{full}"      // UNC
+                : new UriBuilder { Scheme = "file", Path = full }.Uri.ToString());
+            Debug.WriteLine($"[AudioService] Forced file‐URI: {uri}");
+        }
+
         MediaSource? mediaSource = null;
         string? mimeType = null;
-
-        
-            var uri = new Uri(media.FilePath);
+       
             Debug.WriteLine($"[AudioService] Attempting to create MediaSource from URI: {uri}");
             try
             {
@@ -530,13 +548,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Player Event Handlers
 
-    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
-    {
-        MediaPlaybackState winuiState = sender.PlaybackState;
-        var newState = ConvertPlaybackState(winuiState);
-        Debug.WriteLine($"[AudioService] PlaybackStateChanged: {winuiState} -> {newState}");
-        UpdatePlaybackState(newState);
-    }
+            private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
+            {
+                MediaPlaybackState winuiState = sender.PlaybackState;
+                var newState = ConvertPlaybackState(winuiState);
+                Debug.WriteLine($"[AudioService] PlaybackStateChanged: {winuiState} -> {newState}");
+                UpdatePlaybackState(newState);
+            }
 
     private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args)
     {

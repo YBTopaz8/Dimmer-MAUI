@@ -24,7 +24,7 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 8,
+            SchemaVersion = 9,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
                 
@@ -43,6 +43,11 @@ public class RealmFactory : IRealmFactory
                    
                 }
                 if (oldSchemaVersion < 7)
+                {
+                    
+                   
+                }
+                if (oldSchemaVersion < 8)
                 {
                     
                    

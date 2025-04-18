@@ -47,14 +47,6 @@ public partial class App : MauiWinUIApplication
         // Log to file
         LogException(e.Exception);
 
-        // Print to Shell.Current
-        if (Shell.Current != null)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                Debug.WriteLine($"Unhandled Exception HERE, {errorDetails}");
-            });
-        }
     }
     private static readonly object _logLock = new();
 

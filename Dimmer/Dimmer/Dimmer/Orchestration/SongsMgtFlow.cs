@@ -1,23 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Dimmer.Data;
+﻿using Dimmer.Services;
 using Dimmer.Utilities.Events;
-using Dimmer.Utilities.Enums;
-using Dimmer.Services;
 
 namespace Dimmer.Orchestration;
 
 public class SongsMgtFlow : BaseAppFlow, IDisposable
 {
-
-
+    private readonly IPlayerStateService state;
+    private readonly IRepository<SongModel> songRepo;
+    private readonly IRepository<PlayDateAndCompletionStateSongLink> pdlRepo;
+    private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly IRepository<ArtistModel> artistRepo;
+    private readonly IRepository<AlbumModel> albumRepo;
+    private readonly IRepository<AlbumArtistGenreSongLink> linkRepo;
+    private readonly ISettingsService settings;
+    private readonly IFolderMonitorService folderMonitor;
     private readonly IDimmerAudioService _audio;
     private readonly IQueueManager<SongModelView> _queue;
     private readonly SubscriptionManager _subs;
+    private readonly IMapper mapper;
+
+    // cache of the master list
+    private List<SongModel> _masterSongs = new();
 
     // Exposed streams
     public IObservable<bool> IsPlaying { get; }
@@ -31,6 +34,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
+        IRepository<AlbumArtistGenreSongLink> linkRepo,
         ISettingsService settings,
         IFolderMonitorService folderMonitor,
         IDimmerAudioService audioService,
@@ -39,9 +43,29 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IMapper mapper
     ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
+        this.state=state;
+        this.songRepo=songRepo;
+        this.pdlRepo=pdlRepo;
+        this.playlistRepo=playlistRepo;
+        this.artistRepo=artistRepo;
+        this.albumRepo=albumRepo;
+        this.linkRepo=linkRepo;
+        this.settings=settings;
+        this.folderMonitor=folderMonitor;
         _audio  = audioService;
         _queue  = playQueue;
         _subs   = subs;
+        this.mapper=mapper;
+
+        // keep _masterSongs in sync with the global AllSongs stream
+        _subs.Add(
+            _state.AllSongs
+                  .Subscribe(list =>
+                  {
+                      // list is IReadOnlyList<SongModel>
+                      _masterSongs = list.ToList();
+                  })
+        );
 
         // Map audio‑service events into observables
         var playingChanged = Observable
@@ -66,21 +90,32 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         _audio.PlayPrevious += (_, _) => PrevInQueue();
 
         // Auto‑play whenever CurrentSong changes
-        _subs.Add(_state.CurrentSong
-            .DistinctUntilChanged()
-            .Subscribe(async _ => await PlaySongInAudioService()));
-
-      
-
+        //_subs.Add(
+        //    _state.CurrentSong
+        //          .DistinctUntilChanged()
+        //          .Subscribe(async s =>
+        //          {
+        //              CurrentlyPlayingSongDB =s;
+        //            await PlaySongInAudioService();
+        //          })
+        //);
     }
 
     public async Task PlaySongInAudioService()
     {
-        PlaySong();  // BaseAppFlow: records link
-        var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
+        if (string.IsNullOrWhiteSpace(CurrentlyPlayingSongDB.FilePath))
+            return;
+
+        var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSongDB.FilePath, true);
         CurrentlyPlayingSong.ImageBytes = cover;
-        await _audio.InitializeAsync(CurrentlyPlayingSongDB, cover);
-        await _audio.PlayAsync();
+
+        await _audio
+            .InitializeAsync(CurrentlyPlayingSongDB, cover)
+            .ConfigureAwait(false);
+
+        await _audio.PlayAsync().ConfigureAwait(false);
+
+        PlaySong();  // BaseAppFlow: records Play link
     }
 
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
@@ -93,39 +128,43 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         if (!_queue.HasNext)
         {
-            // refill queue from master list
-            var allViews = _state.AllSongs.Value
+            var allViews = _masterSongs
                 .Select(m => _mapper.Map<SongModelView>(m))
                 .ToList();
-            var idx = allViews.FindIndex(s => s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
+
+            var idx = allViews.FindIndex(s =>
+                s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
+
             _queue.Initialize(allViews, idx + 1);
         }
 
-        var next = _queue.Next();
+        var next = _mapper.Map<SongModel>(_queue.Next());
+
         if (next != null)
-            SetCurrentSong(next);  // BaseAppFlow: pushes into state & triggers play
+            _state.SetCurrentSong(next);
     }
 
     public void PrevInQueue()
     {
-        // Build the full list of views
-        var allViews = _state.AllSongs.Value
+        var allViews = _masterSongs
             .Select(m => _mapper.Map<SongModelView>(m))
             .ToList();
 
-        // Find the index of the current song
-        var idx = allViews.FindIndex(s => s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
-        if (idx == -1)
+        var idx = allViews.FindIndex(s =>
+            s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
+        if (idx < 0)
             return;
 
-        // Step backward, wrapping to the end if we were at zero
         idx = idx <= 0
             ? allViews.Count - 1
             : idx - 1;
 
-        // Trigger playback of that song
-        var prev = allViews[idx];
-        SetCurrentSong(prev);
+        var next = _mapper.Map<SongModel>(allViews[idx]);
+        
+
+        if (next != null)
+            _state.SetCurrentSong(next);
+        
     }
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
@@ -133,15 +172,16 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         if (isPause)
         {
             await _audio.PauseAsync();
-            PauseSong();    // records pause via BaseAppFlow
+            PauseSong();    // records Pause link
         }
         else
         {
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            ResumeSong();   // records resume via BaseAppFlow
+            ResumeSong();   // records Resume link
         }
     }
+
     public async Task StopSongAsync()
     {
         await _audio.PauseAsync();
@@ -152,19 +192,44 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         if (!_audio.IsPlaying)
             return;
+
         await _audio.SeekAsync(position);
-        base.UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Seeked, position);
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
     }
 
     public void ChangeVolume(double newVolume)
-    {
-        _audio.Volume = Math.Clamp(newVolume, 0, 1);
-    }
+        => _audio.Volume = Math.Clamp(newVolume, 0, 1);
 
-    public void IncreaseVolume() => ChangeVolume(_audio.Volume + 0.01);
-    public void DecreaseVolume() => ChangeVolume(_audio.Volume - 0.01);
+    public void IncreaseVolume()
+        => ChangeVolume(_audio.Volume + 0.01);
+
+    public void DecreaseVolume()
+        => ChangeVolume(_audio.Volume - 0.01);
 
     public double VolumeLevel => _audio.Volume;
+
+    public List<SongModel> GetSongsByAlbumId(string albumId)
+    {
+        // 1. Find all Song IDs linked to the given Album ID
+        var songIdsInAlbum = linkRepo.GetAll().AsEnumerable()
+            .Where(l => l.AlbumId == albumId)
+            .Select(l => l.SongId)
+            .Distinct()
+            .ToList(); // Materialize the list of IDs
+
+        // 2. Retrieve the actual SongModel objects for those IDs
+        // Check if _songRepo is directly accessible or needs casting/retrieval from base
+        var songs = songRepo.GetAll().AsEnumerable() // Use the inherited song repository
+                     .Where(s => songIdsInAlbum.Contains(s.LocalDeviceId))
+                     .ToList();
+
+        // 3. Optional: Sort songs by track number if available
+        //    This often requires track number info on SongModel or the Link table
+        //    Assuming SongModel has a TrackNumber property (might be string or int)
+        songs = songs.OrderBy(s => s.TrackNumber).ToList(); // Example sorting
+
+        return songs;
+    }
 
     public void Dispose()
     {

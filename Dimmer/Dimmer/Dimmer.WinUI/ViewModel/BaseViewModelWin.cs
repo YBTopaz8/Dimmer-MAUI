@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Dimmer.Data;
-using Dimmer.Orchestration;
-using Dimmer.Services;
+﻿using Dimmer.Services;
 using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
-using Microsoft.UI.Xaml.Controls;
 
 namespace Dimmer.WinUI.ViewModel
 {
@@ -45,18 +36,6 @@ namespace Dimmer.WinUI.ViewModel
             if (MasterSongs != null)
                 DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
 
-            // You no longer need to subscribe manually to CurrentSong or Volume here—
-            // BaseViewModel already does that. If you want Taskbar updates, hook into Position:
-            _ = SongsMgtFlow.Position
-                .Subscribe(pos =>
-                {
-                    // update a Taskbar progress ring at 0–100%
-                    var perc = (int)(100 * pos / (SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1));
-                    WindowsIntegration.SetTaskbarProgress(
-                        PlatUtils.GetWindowHandle(),
-                        completed: (ulong)perc,
-                        total: 100);
-                });
         }
 
         public static void SetTaskbarProgress(double position)

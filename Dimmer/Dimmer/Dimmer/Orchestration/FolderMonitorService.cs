@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Orchestration;
+﻿namespace Dimmer.Orchestration;
 public class FolderMonitorService : IFolderMonitorService
 {
     private readonly List<FileSystemWatcher> _watchers = new();

@@ -2,15 +2,15 @@
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public partial string? LocalDeviceId { get; set; }
     [ObservableProperty]
-    public partial string Title { get; set; } = "Unknown Title";
+    public partial string? Title { get; set; }
     [ObservableProperty]
-    public partial string ArtistName { get; set; } = "Unknown Artist Name";
+    public partial string? ArtistName { get; set; }
     [ObservableProperty]
-    public partial string AlbumName { get; set; } = "Unknown Album Name";
+    public partial string? AlbumName { get; set; }
     [ObservableProperty]
-    public partial string Genre { get; set; } = "Unknown Genre";
+    public partial string? Genre { get; set; }
     [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]

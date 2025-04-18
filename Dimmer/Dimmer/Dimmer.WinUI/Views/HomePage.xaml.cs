@@ -1,6 +1,3 @@
-
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.Views;
 
 public partial class HomePage : ContentPage
@@ -21,7 +18,7 @@ public partial class HomePage : ContentPage
         
         MyViewModel.SetCollectionView(SongsColView);
     }
-    private async void PlaySong_Tapped(object sender, TappedEventArgs e)
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
 
         View send = (View)sender;
@@ -32,7 +29,7 @@ public partial class HomePage : ContentPage
             song.IsCurrentPlayingHighlight = false;
         }
 
-       await MyViewModel.PlaySongOnDoubleTap(song!);
+       MyViewModel.PlaySongOnDoubleTap(song!);
     }
     private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
@@ -123,14 +120,14 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void PlayPrevious_Clicked(object sender, EventArgs e)
+    private void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayPreviousAsync();
+        MyViewModel.PlayPrevious();
     }
 
-    private async void PlayNext_Clicked(object sender, EventArgs e)
+    private void PlayNext_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayNextAsync();
+        MyViewModel.PlayNext(true);
     }
 
     private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
@@ -158,7 +155,7 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                await MyViewModel.PlayPreviousAsync();
+                MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
@@ -166,7 +163,7 @@ public partial class HomePage : ContentPage
                 
                 break;
             case 4:
-                await MyViewModel.PlayNextAsync();
+                MyViewModel.PlayNext(true);
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
@@ -331,7 +328,7 @@ public partial class HomePage : ContentPage
         PlatUtils.ApplicationProps.LaunchSecondWindow();  
     }
 
-    private async void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
+    private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {
        MyViewModel.SeekTo(CurrentPositionSlider.Value);
     }
@@ -339,6 +336,12 @@ public partial class HomePage : ContentPage
 
     private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
+        if (MyViewModel is null)
+        {
+            MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+            MyViewModel.SetVolume(VolumeSlider.Value);
+            return;
+        }
         MyViewModel.SetVolume(VolumeSlider.Value);
     }
 

@@ -51,7 +51,7 @@ public partial class SingleSongPage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                await MyViewModel.PlayPreviousAsync();
+                MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
@@ -59,7 +59,7 @@ public partial class SingleSongPage : ContentPage
 
                 break;
             case 4:
-                await MyViewModel.PlayNextAsync();
+                MyViewModel.PlayNext(true);
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;

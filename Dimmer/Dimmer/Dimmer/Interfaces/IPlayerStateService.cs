@@ -1,16 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Dimmer.Interfaces;
-public interface IPlayerStateService
+public interface IPlayerStateService : IDisposable
 {
-    public BehaviorSubject<SongModel> CurrentSong { get; }
-    public BehaviorSubject<List<SongModel>> AllSongs { get; }
-    public void LoadAllSongs(IEnumerable<SongModel> songs);
-    public void Dispose();
+    /// <summary>
+    /// Fires immediately with the last value on subscription.
+    /// </summary>
+    IObservable<SongModel> CurrentSong { get; }
+
+    /// <summary>
+    /// Fires immediately with the last snapshot on subscription.
+    /// </summary>
+    IObservable<IReadOnlyList<SongModel>> AllSongs { get; }
+    IObservable<DimmerPlaybackState> CurrentPlayBackState { get; }
+
+    /// <summary>
+    /// Replace the master list of songs.
+    /// </summary>
+    void LoadAllSongs(IEnumerable<SongModel> songs);
+
+    /// <summary>
+    /// Change the “now playing” track.
+    /// </summary>
+    void SetCurrentSong(SongModel song);
 }
 public interface IQueueManager<T>
 {

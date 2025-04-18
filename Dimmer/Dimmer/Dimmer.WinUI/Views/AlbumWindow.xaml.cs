@@ -25,4 +25,23 @@ public partial class AlbumWindow : Window
         send.BackgroundColor = Colors.DarkSlateBlue;
 
     }
+
+    private void AlbumSongsColView_Loaded(object sender, EventArgs e)
+    {
+        AlbumSongsColView.ItemsSource = MyViewModel.SelectedAlbumsSongs;
+    }
+    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    {
+        View send = (View)sender;
+        SongModelView? song = (SongModelView)send.BindingContext;
+
+        if (song is not null)
+        {
+            song.IsCurrentPlayingHighlight = false;
+        }
+
+        MyViewModel.PlaySong(song);
+    }
+
+
 }

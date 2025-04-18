@@ -1,30 +1,29 @@
-﻿using AutoMapper;
-using Dimmer.Interfaces;
-using Dimmer.Orchestration;
-using Dimmer.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dimmer.Services;
 
 namespace Dimmer.ViewModel;
 public partial class BaseAlbumViewModel : ObservableObject
 {
     private readonly IMapper _mapper;
+    private readonly BaseViewModel baseViewModel;
+
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
     [ObservableProperty]
-    public partial List<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
+    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; internal set; }
     [ObservableProperty]
     public partial AlbumModelView? SelectedAlbum { get; internal set; }
+    [ObservableProperty]
+    public partial SongModelView SelectedSelectedSong { get; set; }
 
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
     public BaseAlbumViewModel(
             IMapper mapper,
+        BaseViewModel baseViewModel,
             AlbumsMgtFlow albumsMgtFlow,
             PlayListMgtFlow playlistsMgtFlow,
             SongsMgtFlow songsMgtFlow,
@@ -32,8 +31,9 @@ public partial class BaseAlbumViewModel : ObservableObject
             ISettingsService settingsService,
             SubscriptionManager subs)
     {
-        
-            _mapper = mapper;
+
+        this.baseViewModel=baseViewModel;
+        _mapper = mapper;
             AlbumsMgtFlow = albumsMgtFlow;
             PlaylistsMgtFlow = playlistsMgtFlow;
             SongsMgtFlow = songsMgtFlow;
@@ -41,21 +41,41 @@ public partial class BaseAlbumViewModel : ObservableObject
             _settingsService = settingsService;
             _subs = subs;
         SubscribeToAlbumListChanges();
+        SelectedSelectedSong=new();
     }
 
     private void SubscribeToAlbumListChanges()
     {
-        AlbumsMgtFlow.SpecificAlbums.Subscribe(albums =>
-        {
-            if (albums != null && albums.Count > 0)
-            {
-                SelectedAlbumsCol = _mapper.Map<List<AlbumModelView>>(albums);
-            }
-        });
+        _subs.Add(
+            AlbumsMgtFlow.SpecificAlbums
+                .Subscribe(albums =>
+                {
+                    if (albums == null)
+                        return;
+                    if (albums.Count > 0)
+                    {
+                        SelectedAlbumsCol = _mapper.Map<ObservableCollection<AlbumModelView>>(albums);
+                    
+                        SelectedAlbum = SelectedAlbumsCol[0];
+
+                        SelectedAlbumsSongs = SongsMgtFlow.GetSongsByAlbumId(SelectedAlbum.LocalDeviceId!)
+                            .Select(s => _mapper.Map<SongModelView>(s))
+                            .ToObservableCollection();
+                    }
+                })
+        );
     }
 
     public void GetAlbumForSpecificSong(SongModelView song)
     {
-        //albumsMgtFlow.GetAlbumsBySongModel(song);
+        AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+    }
+
+    public void PlaySong(SongModelView song)
+    {
+        SelectedSelectedSong.IsCurrentPlayingHighlight = false;
+        SelectedSelectedSong = song;
+        baseViewModel.PlaySong(song);
+        SelectedSelectedSong.IsCurrentPlayingHighlight =true;
     }
 }

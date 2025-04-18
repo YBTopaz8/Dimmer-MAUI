@@ -39,14 +39,7 @@ public partial class App : Application
         // Log to file
             LogException(e.Exception);
 
-        // Print to Shell.Current
-        if (Shell.Current != null)
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                Debug.WriteLine($"Unhandled Exception HERE, {errorDetails}");
-            });
-        }
+     
     }
 
     public static void LogException(Exception ex)

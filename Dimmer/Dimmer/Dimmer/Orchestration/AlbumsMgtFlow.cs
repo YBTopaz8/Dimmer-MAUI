@@ -1,11 +1,6 @@
-﻿using Dimmer.Data;
-using Dimmer.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Dimmer.Services;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Dimmer.Orchestration;
 public class AlbumsMgtFlow : BaseAppFlow, IDisposable
@@ -63,8 +58,13 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             .ToList();
         _specificAlbums.OnNext(list);
     }
+    private string? currentLocalSongId;
     public void GetAlbumsBySongId(string songId)
     {
+        if(currentLocalSongId is not null && currentLocalSongId ==songId)
+        {
+            return;
+        }
         var albumIds = _linkRepo.GetAll().AsEnumerable()
             .Where(l => l.SongId == songId)
             .Select(l => l.AlbumId)
@@ -72,6 +72,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         var list = _albumRepo.GetAll().AsEnumerable()
             .Where(a => albumIds.Contains(a.LocalDeviceId))
             .ToList();
+        currentLocalSongId = songId;
         _specificAlbums.OnNext(list);
     }
 
@@ -338,7 +339,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     //    _specificAlbums.OnNext(list);
     //}
 
-    public async Task<bool> ValidateAlbumMetadataAsync(string albumId)
+    public bool ValidateAlbumMetadata(string albumId)
     {
         var album = _albumRepo.GetById(albumId);
         return album != null

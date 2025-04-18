@@ -25,7 +25,10 @@ public partial class DimmerWin : Window
             base.OnDestroying();
             return;
         }
-
+        Application.Current!.Windows.ToList<Window>().ForEach(win =>
+        {
+            Application.Current.CloseWindow(win);   
+        });
         bool result = await Microsoft.Maui.Controls.Shell.Current.DisplayAlert(
             "Confirm Action",
             "You sure want to close app?",
@@ -35,6 +38,8 @@ public partial class DimmerWin : Window
         {
             return;
         }
+
+        
         Environment.Exit(0);
     }
     protected override void OnActivated()

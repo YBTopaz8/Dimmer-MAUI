@@ -36,7 +36,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IPlayerStateService, PlayerStateService>();
 
-        builder.Services.AddSingleton<SubscriptionManager>();
+        builder.Services.AddTransient<SubscriptionManager>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
 
@@ -50,6 +50,10 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<BaseAppFlow>();
         builder.Services.AddSingleton<SongsMgtFlow>();
         builder.Services.AddSingleton<AlbumsMgtFlow>();
+        builder.Services.AddSingleton<PlayListMgtFlow>();
+
+
+
         builder.Services.AddSingleton<BaseViewModel>();
         builder.Services.AddSingleton<BaseAlbumViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);

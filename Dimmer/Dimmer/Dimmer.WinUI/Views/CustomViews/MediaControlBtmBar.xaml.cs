@@ -113,14 +113,14 @@ public partial class MediaControlBtmBar : ContentView
 
     }
 
-    private async void PlayPrevious_Clicked(object sender, EventArgs e)
+    private void PlayPrevious_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.PlayPreviousAsync();
+        MyViewModel.PlayPrevious();
     }
 
-    private async void PlayNext_Clicked(object sender, EventArgs e)
+    private void PlayNext_Clicked(object sender, EventArgs e)
     {
-       await MyViewModel.PlayNextAsync();
+        MyViewModel.PlayNext(true);
     }
 
     private async void PlayPauseSong_Tapped(object sender, TappedEventArgs e)
