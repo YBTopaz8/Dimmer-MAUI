@@ -45,6 +45,7 @@ public class DimmerSettingsService : ISettingsService
         get => _model.VolumeLevelPreference;
         set => _realm.Write(() => _model.VolumeLevelPreference = value);
     }
+    
     public string LastPlayedSong 
     {
         get => _model.CurrentSongId;

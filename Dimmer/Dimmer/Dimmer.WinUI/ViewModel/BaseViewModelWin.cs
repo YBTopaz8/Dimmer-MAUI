@@ -1,54 +1,54 @@
 ﻿using Dimmer.Services;
 using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
 
-namespace Dimmer.WinUI.ViewModel
+namespace Dimmer.WinUI.ViewModel;
+
+public partial class BaseViewModelWin : BaseViewModel, IDisposable
 {
-    public partial class BaseViewModelWin : BaseViewModel, IDisposable
+    [ObservableProperty]
+    public partial int CurrentQueue { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
+
+    [ObservableProperty]
+    public partial CollectionView? SongLyricsCV { get; set; }
+
+    [ObservableProperty]
+    public partial List<SongModelView>? FilteredSongs { get; set; }
+
+    public BaseViewModelWin(
+        IMapper mapper,
+        AlbumsMgtFlow albumsMgtFlow,
+        PlayListMgtFlow playlistsMgtFlow,
+        SongsMgtFlow songsMgtFlow,
+        IPlayerStateService stateService,
+        ISettingsService settingsService,
+        SubscriptionManager subs
+    ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
     {
-        [ObservableProperty]
-        private int _currentQueue;
+        LoadViewModel();
 
-        [ObservableProperty]
-        private ObservableCollection<SongModelView>? _displayedSongs;
+    }
 
-        [ObservableProperty]
-        private CollectionView? _songLyricsCV;
+    private void LoadViewModel()
+    {
+        // Initialize displayed songs to the full master list
+        if (MasterSongs != null)
+            DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
 
-        [ObservableProperty]
-        private List<SongModelView>? _filteredSongs;
+    }
 
-        public BaseViewModelWin(
-            IMapper mapper,
-            AlbumsMgtFlow albumsMgtFlow,
-            PlayListMgtFlow playlistsMgtFlow,
-            SongsMgtFlow songsMgtFlow,
-            IPlayerStateService stateService,
-            ISettingsService settingsService,
-            SubscriptionManager subs
-        ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
-        {
-            LoadViewModel();
-        }
+    public static void SetTaskbarProgress(double position)
+    {
+        WindowsIntegration.SetTaskbarProgress(
+            PlatUtils.GetWindowHandle(),
+            completed: (ulong)position,
+            total: 100);
+    }
 
-        private void LoadViewModel()
-        {
-            // Initialize displayed songs to the full master list
-            if (MasterSongs != null)
-                DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
-
-        }
-
-        public static void SetTaskbarProgress(double position)
-        {
-            WindowsIntegration.SetTaskbarProgress(
-                PlatUtils.GetWindowHandle(),
-                completed: (ulong)position,
-                total: 100);
-        }
-
-        public void Dispose()
-        {
-            // if you registered any additional subscriptions here, dispose them
-        }
+    public void Dispose()
+    {
+        // if you registered any additional subscriptions here, dispose them
     }
 }

@@ -57,5 +57,6 @@ public enum PlayType
     ChatUnmuted = 35,
     ChatPinnedMessage = 36,
     AddToPlaylist = 37,
+    RemoveFromPlaylist = 37,
 
 }

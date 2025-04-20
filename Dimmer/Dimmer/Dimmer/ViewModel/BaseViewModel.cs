@@ -170,9 +170,12 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
         TemporarilyPickedSong = song;
         song.IsCurrentPlayingHighlight = true;
-
-        _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
         
+        _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
+
+        _stateService.SetCurrentState(DimmerPlaybackState.Loading);
+        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+
     }
 
     public void PlayNext(bool IsByUser)

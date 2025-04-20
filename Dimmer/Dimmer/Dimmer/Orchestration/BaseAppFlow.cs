@@ -5,7 +5,6 @@ namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
 {
 
-    private IDisposable _songsToken;
 
     public readonly IPlayerStateService _state;
     private readonly IRepository<SongModel> _songRepo;
@@ -49,6 +48,7 @@ public class BaseAppFlow : IDisposable
         _mapper = mapper;
 
         Initialize();
+
     }
 
     private IDisposable Initialize()
@@ -75,6 +75,7 @@ public class BaseAppFlow : IDisposable
             {
                 _state.LoadAllSongs(list);
             });
+
     }
 
 
@@ -150,7 +151,6 @@ public class BaseAppFlow : IDisposable
     {
         if (_disposed)
             return;
-        _songsToken?.Dispose();
         _state.Dispose();
         _folderMonitor.Dispose();
         _disposed = true;

@@ -19,9 +19,6 @@ public partial class AlbumWindow : Window
     {
         View send = (View)sender;
 
-        SongModelView? song = send.BindingContext! as SongModelView;
-        //MyViewModel.SetContextMenuSong(song!);
-
         send.BackgroundColor = Colors.DarkSlateBlue;
 
     }
@@ -38,9 +35,9 @@ public partial class AlbumWindow : Window
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
+            MyViewModel.PlaySong(song);
         }
 
-        MyViewModel.PlaySong(song);
     }
 
 

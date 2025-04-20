@@ -24,8 +24,8 @@ public partial class PlaylistModel : RealmObject
     /// </value>
     public string DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
 
-    public IList<SongModel>? SongInPlaylist { get; }
-    public SongModel? CurrentSong { get; set; }
+    public IList<string>? SongInPlaylist { get; }
+    public string? CurrentSongId { get; set; }
     public string? Description { get; set; }
     public string? CoverImagePath { get; set; }
     public string? Color { get; set; }
@@ -46,14 +46,14 @@ public partial class PlaylistEvent : EmbeddedObject
     public int PlayTypeValue { get; set; }
 
     // This property is for your code; Realm will ignore it.
-    [Ignored]
+    
     public PlayType PlayType
     {
         get => (PlayType)PlayTypeValue;
         set => PlayTypeValue = (int)value;
     }
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
-    public SongModel? EventSong { get; set; }
+    public string? EventSongId { get; set; }
 
 
 }

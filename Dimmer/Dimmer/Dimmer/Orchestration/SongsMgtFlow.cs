@@ -90,15 +90,24 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         _audio.PlayPrevious += (_, _) => PrevInQueue();
 
         // Auto‑play whenever CurrentSong changes
-        //_subs.Add(
-        //    _state.CurrentSong
-        //          .DistinctUntilChanged()
-        //          .Subscribe(async s =>
-        //          {
-        //              CurrentlyPlayingSongDB =s;
-        //            await PlaySongInAudioService();
-        //          })
-        //);
+        _subs.Add(
+            _state.CurrentPlayBackState
+                  .Subscribe(async s =>
+                  {
+                      if (s == DimmerPlaybackState.Playing)
+                      {
+                          await PlaySongInAudioService();
+                      }
+                  })
+        );
+        _subs.Add(
+            _state.CurrentSong
+            .DistinctUntilChanged()
+                  .Subscribe( s =>
+                  {
+                      CurrentlyPlayingSongDB= s;
+                  })
+        );
     }
 
     public async Task PlaySongInAudioService()
@@ -121,51 +130,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
         PlayEnded();   // BaseAppFlow: records Completed link
-        NextInQueue();
-    }
-
-    public void NextInQueue()
-    {
-        if (!_queue.HasNext)
-        {
-            var allViews = _masterSongs
-                .Select(m => _mapper.Map<SongModelView>(m))
-                .ToList();
-
-            var idx = allViews.FindIndex(s =>
-                s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
-
-            _queue.Initialize(allViews, idx + 1);
-        }
-
-        var next = _mapper.Map<SongModel>(_queue.Next());
-
-        if (next != null)
-            _state.SetCurrentSong(next);
-    }
-
-    public void PrevInQueue()
-    {
-        var allViews = _masterSongs
-            .Select(m => _mapper.Map<SongModelView>(m))
-            .ToList();
-
-        var idx = allViews.FindIndex(s =>
-            s.LocalDeviceId == CurrentlyPlayingSong.LocalDeviceId);
-        if (idx < 0)
-            return;
-
-        idx = idx <= 0
-            ? allViews.Count - 1
-            : idx - 1;
-
-        var next = _mapper.Map<SongModel>(allViews[idx]);
-        
-
-        if (next != null)
-            _state.SetCurrentSong(next);
         
     }
+
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
     {

@@ -5,13 +5,14 @@ namespace Dimmer.Orchestration;
 public class PlayListMgtFlow : BaseAppFlow, IDisposable
 {
     private readonly IRepository<PlaylistModel> _playlistRepo;
-    private readonly IQueueManager<SongModelView> _queue;
+    private readonly IQueueManager<SongModel> _queue;
     private readonly SubscriptionManager _subs;
 
     // cache the master song list too, if you ever need to build song‑based playlists
-    private List<SongModel> _masterSongs = new();
+    private IEnumerable<SongModel>? _masterSongs;
 
     // playlist collection for UI
+    public PlaylistModel CurrentPlaylist { get; }
     public ObservableCollection<PlaylistModel> CurrentSetOfPlaylists { get; }
         = new();
 
@@ -24,7 +25,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
         IFolderMonitorService folderMonitor,
-        IQueueManager<SongModelView> queueManager,
+        IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
     ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
@@ -45,12 +46,19 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                       _masterSongs = list.ToList();
                   })
         );
+        _subs.Add(_state.CurrentPlaylist.Subscribe(_state
+            =>
+        {
 
+        }));
         // 3) react to playback events
         _subs.Add(
             _state.CurrentSong
                   .DistinctUntilChanged()
-                  .Subscribe(_ => { OnPlaybackStateChanged(DimmerPlaybackState.Playing); })
+                  .Subscribe(song=> {
+                      
+                      CurrentlyPlayingSongDB = song;
+                  })
         );
         _subs.Add(
             _state.CurrentPlayBackState
@@ -67,6 +75,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.Paused:
                               break;
                           case DimmerPlaybackState.Loading:
+                              OnPlaybackStateChanged(DimmerPlaybackState.Playing);
                               break;
                           case DimmerPlaybackState.Error:
                               break;
@@ -85,6 +94,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.Initialized:
                               break;
                           case DimmerPlaybackState.Ended:
+                              OnPlaybackStateChanged(DimmerPlaybackState.Ended);
                               break;
                           case DimmerPlaybackState.CoverImageDownload:
                               break;
@@ -99,8 +109,11 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.PlayCompleted:
                               break;
                           case DimmerPlaybackState.PlayPrevious:
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPrevious);
+
                               break;
                           case DimmerPlaybackState.PlayNext:
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNext);
                               break;
                           case DimmerPlaybackState.Skipped:
                               break;
@@ -130,27 +143,34 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     {
         switch (st)
         {
+            case DimmerPlaybackState.PlayPrevious:
+                throw new NotImplementedException();
+            case DimmerPlaybackState.PlayNext:
+                AdvanceQueue();
+                break;
             case DimmerPlaybackState.Ended:
                 AdvanceQueue();
                 break;
-            case DimmerPlaybackState.Skipped:
-                InitializeQueue(CurrentlyPlayingSong);
+            case DimmerPlaybackState.Playing:
+                InitializeQueue(CurrentlyPlayingSongDB);
                 break;
         }
     }
 
-    private void InitializeQueue(SongModelView start)
+    private void InitializeQueue(SongModel start)
     {
-        _queue.Initialize(
-            items: _masterSongs
-                    .Select(m => _mapper.Map<SongModelView>(m)),
-            startIndex: _masterSongs
-                    .FindIndex(m => m.LocalDeviceId == start.LocalDeviceId) + 1
-        );
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Skipped);
+        _queue.Initialize(items: _masterSongs);
+        UpdatePlaybackState(CurrentlyPlayingSongDB.LocalDeviceId, PlayType.Skipped);
     }
 
     private void AdvanceQueue()
+    {
+        var next = _mapper.Map<SongModel>(_queue.Next());
+
+        if (next != null)
+            _state.SetCurrentSong(next);
+    }
+    private void PlayPreviousInQueue()
     {
         var next = _mapper.Map<SongModel>(_queue.Next());
 

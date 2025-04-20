@@ -12,6 +12,10 @@ public interface IPlayerStateService : IDisposable
     /// </summary>
     IObservable<IReadOnlyList<SongModel>> AllSongs { get; }
     IObservable<DimmerPlaybackState> CurrentPlayBackState { get; }
+    IObservable<PlaylistModel> CurrentPlaylist { get; }
+    IObservable<IReadOnlyList<SongModel>> CurrentPlaylistSongs { get; }
+    IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows { get; }
+    IObservable<CurrentPage>? CurrentPage{ get; }
 
     /// <summary>
     /// Replace the master list of songs.
@@ -22,6 +26,13 @@ public interface IPlayerStateService : IDisposable
     /// Change the “now playing” track.
     /// </summary>
     void SetCurrentSong(SongModel song);
+    void SetCurrentState(DimmerPlaybackState state);
+    void AddWindow(Window window);
+    void RemoveWindow(Window window);
+    void SetCurrentPlaylist(PlaylistModel Playlist, IEnumerable<SongModel> songs);
+    void AddSongToCurrentPlaylist(IEnumerable<PlaylistModel> songs);
+    void RemoveSongFromCurrentPlaylist(IEnumerable<PlaylistModel> songs);
+    void SetCurrentPage(CurrentPage page);
 }
 public interface IQueueManager<T>
 {

@@ -99,7 +99,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     public void SearchAlbumsByKeyword(string keyword)
     {
         var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+            .Where(a => a.Name!.Contains(keyword, StringComparison.OrdinalIgnoreCase)
                      || (a.Description?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false))
             .ToList();
         _specificAlbums.OnNext(list);
