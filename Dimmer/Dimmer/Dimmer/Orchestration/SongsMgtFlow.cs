@@ -57,9 +57,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         _subs   = subs;
         this.mapper=mapper;
 
-        // keep _masterSongs in sync with the global AllSongs stream
+        // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
         _subs.Add(
-            _state.AllSongs
+            _state.AllCurrentSongs
                   .Subscribe(list =>
                   {
                       // list is IReadOnlyList<SongModel>
@@ -94,9 +94,11 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
             _state.CurrentPlayBackState
                   .Subscribe(async s =>
                   {
-                      if (s == DimmerPlaybackState.Playing)
+                      switch (s)
                       {
-                          await PlaySongInAudioService();
+                          case DimmerPlaybackState.Playing:
+                              await PlaySongInAudioService();
+                          break;
                       }
                   })
         );
@@ -105,7 +107,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
             .DistinctUntilChanged()
                   .Subscribe( s =>
                   {
-                      CurrentlyPlayingSongDB= s;
+                      CurrentlyPlayingSongDB=s;
                   })
         );
     }
@@ -119,10 +121,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         CurrentlyPlayingSong.ImageBytes = cover;
 
         await _audio
-            .InitializeAsync(CurrentlyPlayingSongDB, cover)
-            .ConfigureAwait(false);
+            .InitializeAsync(CurrentlyPlayingSongDB, cover);
 
-        await _audio.PlayAsync().ConfigureAwait(false);
+        await _audio.PlayAsync();
 
         PlaySong();  // BaseAppFlow: records Play link
     }
@@ -130,9 +131,22 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
         PlayEnded();   // BaseAppFlow: records Completed link
+        _state.SetCurrentState(DimmerPlaybackState.Ended);
+        _state.SetCurrentState(DimmerPlaybackState.Playing);
         
     }
 
+    public void NextInQueue()
+    {
+        _state.SetCurrentState(DimmerPlaybackState.PlayNext);
+        _state.SetCurrentState(DimmerPlaybackState.Playing);
+    }
+
+    public void PrevInQueue()
+    {
+        _state.SetCurrentState(DimmerPlaybackState.PlayPrevious);
+        _state.SetCurrentState(DimmerPlaybackState.Playing);
+    }
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
     {

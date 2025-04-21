@@ -116,7 +116,11 @@ public static class AppSettingsService
         public const bool isShuffleOn = false;
         public static bool IsShuffleOn
         {
-            get => Preferences.Default.Get(nameof(IsShuffleOn), isShuffleOn);
+            get
+            {
+                return Preferences.Default.Get(nameof(IsShuffleOn), isShuffleOn);
+            }
+
             set => Preferences.Default.Set(nameof(IsShuffleOn), value);
         }
 

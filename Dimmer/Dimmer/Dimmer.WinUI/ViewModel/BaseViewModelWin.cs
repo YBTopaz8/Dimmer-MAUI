@@ -27,16 +27,16 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         SubscriptionManager subs
     ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
     {
-        LoadViewModel();
+        ResetDisplayedMasterList();
 
     }
 
-    private void LoadViewModel()
+    private void ResetDisplayedMasterList()
     {
         // Initialize displayed songs to the full master list
-        if (MasterSongs != null)
-            DisplayedSongs = new ObservableCollection<SongModelView>(MasterSongs);
-
+        if (MasterListOfSongs != null)
+            DisplayedSongs = MasterListOfSongs.ToObservableCollection();
+        
     }
 
     public static void SetTaskbarProgress(double position)

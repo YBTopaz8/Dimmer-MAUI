@@ -20,7 +20,7 @@ public class BaseAppFlow : IDisposable
     public SongModelView CurrentlyPlayingSong { get; set; } = new();
     public SongModel CurrentlyPlayingSongDB { get; set; } = new();
 
-    public bool IsShuffleOn
+    public bool  IsShuffleOn
         => _settings.ShuffleOn;
 
     public RepeatMode CurrentRepeatMode
@@ -50,14 +50,15 @@ public class BaseAppFlow : IDisposable
         Initialize();
 
     }
-
+    public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
+    
     private IDisposable Initialize()
     {
         // 1) load once
-        var snapshot = _songRepo
-            .GetAll()
-            .OrderBy(x => x.DateCreated);
-        _state.LoadAllSongs(snapshot);
+        MasterList = [.. _songRepo
+            .GetAll()            
+            .OrderBy(x => x.DateCreated)];
+        //_state.LoadAllSongs(MasterList);
 
         // 2) folder‑watch
         _folderMonitor.Start(_settings.UserMusicFoldersPreference);
@@ -71,11 +72,16 @@ public class BaseAppFlow : IDisposable
         return _songRepo
             .WatchAll()
             .ObserveOn(scheduler)
+            .DistinctUntilChanged()
             .Subscribe(list =>
             {
-                _state.LoadAllSongs(list);
+                if (list.Count == MasterList.Count)
+                {
+                    return;
+                }
+                MasterList = [.. list];
             });
-
+        
     }
 
 
@@ -89,7 +95,7 @@ public class BaseAppFlow : IDisposable
         => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
     
     public void PlayEnded()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
+        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
 
     public void UpdatePlaybackState(
         string? songId,

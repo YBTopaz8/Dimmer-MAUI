@@ -12,6 +12,7 @@ public class DimmerSettingsService : ISettingsService
         var list = _realm.All<AppStateModel>().ToList();
         if (list.Count == 0)
         {
+
             _realm.Write(() =>
             {
                 _model = new AppStateModel();
@@ -24,32 +25,73 @@ public class DimmerSettingsService : ISettingsService
 
     public RepeatMode RepeatMode
     {
-        get => (RepeatMode)_model.RepeatModePreference;
-        set => _realm.Write(() => _model.RepeatModePreference = (int)value);
+        get
+        {
+            return (RepeatMode)_model.RepeatModePreference;
+        }
+
+        set
+        {
+
+            _realm.Write(() => _model.RepeatModePreference = (int)value);
+        }
     }
 
     public bool ShuffleOn
     {
-        get => _model.ShuffleStatePreference;
-        set => _realm.Write(() => _model.ShuffleStatePreference = value);
+        get
+        {
+            return _model.ShuffleStatePreference;
+        }
+
+        set
+        {
+
+            _realm.Write(() => _model.ShuffleStatePreference = value);
+        }
     }
-    
+
     public bool IsStickToTop
     {
-        get => _model.IsStickToTop;
-        set => _realm.Write(() => _model.IsStickToTop = value);
+        get
+        {
+            return _model.IsStickToTop;
+        }
+
+        set
+        {
+
+
+            _realm.Write(() => _model.IsStickToTop = value);
+        }
     }
 
     public double VolumeLevel
     {
-        get => _model.VolumeLevelPreference;
-        set => _realm.Write(() => _model.VolumeLevelPreference = value);
+        get
+        {
+            return _model.VolumeLevelPreference;
+        }
+
+        set
+        {
+
+            _realm.Write(() => _model.VolumeLevelPreference = value);
+        }
     }
-    
-    public string LastPlayedSong 
+
+    public string LastPlayedSong
     {
-        get => _model.CurrentSongId;
-        set => _realm.Write(() => _model.CurrentSongId = value);
+        get
+        {
+            return _model.CurrentSongId;
+        }
+
+        set
+        {
+
+            _realm.Write(() => _model.CurrentSongId = value);
+        }
     }// Expose the live list
     public IList<string> UserMusicFoldersPreference
         => _model.UserMusicFoldersPreference;
@@ -57,6 +99,7 @@ public class DimmerSettingsService : ISettingsService
     // Add a folder
     public void AddMusicFolder(string path)
     {
+
         _realm.Write(() => _model.UserMusicFoldersPreference.Add(path));
     }
 
@@ -64,6 +107,7 @@ public class DimmerSettingsService : ISettingsService
     public bool RemoveMusicFolder(string path)
     {
         if (!_model.UserMusicFoldersPreference.Contains(path))
+        
             return false;
         _realm.Write(() => _model.UserMusicFoldersPreference.Remove(path));
         return true;
@@ -72,6 +116,7 @@ public class DimmerSettingsService : ISettingsService
     // Replace entire list
     public void SetMusicFolders(IEnumerable<string> paths)
     {
+
         _realm.Write(() =>
         {
             _model.UserMusicFoldersPreference.Clear();

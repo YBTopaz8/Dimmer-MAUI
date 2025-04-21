@@ -57,13 +57,12 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
         using var realm = OpenRealm();
         realm.Write(() => updates(realm));
     }
-    public List<T> GetAll()
+    public IReadOnlyCollection<T> GetAll()
     {
         using var realm = OpenRealm();
-        return realm.All<T>()
+        return [.. realm.All<T>()
             .AsEnumerable()
-                   .Select(o => o.Freeze())
-                   .ToList();
+                   .Select(o => o.Freeze())];
     }
 
     /// <summary>
@@ -82,7 +81,7 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
     public List<T> Query(Expression<Func<T, bool>> predicate)
     {
         using var realm = OpenRealm();
-        return realm.All<T>().Where(predicate).ToList();
+        return [.. realm.All<T>().Where(predicate)];
     }
 
     /// <summary>
@@ -97,12 +96,12 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
             var results = realm.All<T>();
 
             // initial snapshot
-            observer.OnNext(results.ToList());
+            observer.OnNext([.. results]);
 
             // live notifications
             var token = results.SubscribeForNotifications((col, changes) =>
             {
-                observer.OnNext(col.Select(o => o.Freeze()).ToList());
+                observer.OnNext([.. col.Select(o => o.Freeze())]);
             });
 
             // cleanup both token + realm on unsubscribe
@@ -117,7 +116,7 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
     public List<T> GetPage(int skip, int take)
     {
         using var realm = OpenRealm();
-        return realm.All<T>().Skip(skip).Take(take).ToList();
+        return [.. realm.All<T>().Skip(skip).Take(take)];
     }
 
 }

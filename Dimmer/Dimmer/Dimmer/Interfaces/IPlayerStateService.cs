@@ -10,12 +10,11 @@ public interface IPlayerStateService : IDisposable
     /// <summary>
     /// Fires immediately with the last snapshot on subscription.
     /// </summary>
-    IObservable<IReadOnlyList<SongModel>> AllSongs { get; }
+    IObservable<IReadOnlyList<SongModel>> AllCurrentSongs { get; }
     IObservable<DimmerPlaybackState> CurrentPlayBackState { get; }
     IObservable<PlaylistModel> CurrentPlaylist { get; }
-    IObservable<IReadOnlyList<SongModel>> CurrentPlaylistSongs { get; }
     IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows { get; }
-    IObservable<CurrentPage>? CurrentPage{ get; }
+    IObservable<CurrentPage> CurrentPage{ get; }
 
     /// <summary>
     /// Replace the master list of songs.
@@ -29,10 +28,12 @@ public interface IPlayerStateService : IDisposable
     void SetCurrentState(DimmerPlaybackState state);
     void AddWindow(Window window);
     void RemoveWindow(Window window);
-    void SetCurrentPlaylist(PlaylistModel Playlist, IEnumerable<SongModel> songs);
-    void AddSongToCurrentPlaylist(IEnumerable<PlaylistModel> songs);
-    void RemoveSongFromCurrentPlaylist(IEnumerable<PlaylistModel> songs);
+    void SetCurrentPlaylist(IEnumerable<SongModel> songs, PlaylistModel? Playlist = null);
     void SetCurrentPage(CurrentPage page);
+    void AddSongsToCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs);
+    void AddSingleSongToCurrentPlaylist(PlaylistModel p, SongModel song);
+    void RemoveSongFromCurrentPlaylist(PlaylistModel p, SongModel song);
+    void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs);
 }
 public interface IQueueManager<T>
 {
@@ -41,5 +42,12 @@ public interface IQueueManager<T>
 
     void Initialize(IEnumerable<T> items, int startIndex = 0);
     T? Next();
+    T? Previous();
+    void Clear();
+    T? PeekPrevious();
+    T? PeekNext();
+
     bool HasNext { get; }
+    int Count { get; }
+    T? Current { get; }
 }

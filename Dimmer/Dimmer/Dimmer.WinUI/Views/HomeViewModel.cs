@@ -48,7 +48,7 @@ public partial class HomeViewModel : BaseViewModelWin
 
     public void PlaySongOnDoubleTap(SongModelView song)
     {
-        PlaySong(song);
+        PlaySong(song, CurrentPage.HomePage);
     }
     public void SetCollectionView(CollectionView collectionView)
     {

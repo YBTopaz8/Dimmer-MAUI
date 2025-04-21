@@ -22,25 +22,38 @@ public partial class DimmerWin : Window
     {
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
+            CloseAllWindows();
+            var dimmerAudio = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>();
+            if (dimmerAudio is not null)
+            {
+                await dimmerAudio.StopAsync();
+                await dimmerAudio.DisposeAsync();
+            }
             base.OnDestroying();
+            
             return;
         }
-        Application.Current!.Windows.ToList<Window>().ForEach(win =>
-        {
-            Application.Current.CloseWindow(win);   
-        });
         bool result = await Microsoft.Maui.Controls.Shell.Current.DisplayAlert(
             "Confirm Action",
             "You sure want to close app?",
             "Yes",
             "Cancel");
-        if (result)
+        if (!result)
         {
             return;
         }
 
-        
-        Environment.Exit(0);
+        CloseAllWindows();
+
+    }
+    private void CloseAllWindows()
+    {
+        // make a copy since closing mutates the collection
+        foreach (var window in Application.Current!.Windows.ToList())
+        {
+            // this will completely close the window
+            Application.Current.CloseWindow(window);
+        }
     }
     protected override void OnActivated()
     {
@@ -64,13 +77,16 @@ public partial class DimmerWin : Window
     private void StickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
+        StickTopImgBtn.IsVisible = false;
+        UnStickTopImgBtn.IsVisible = true;
 
     }
 
     private void UnStickTopImgBtn_Clicked(object sender, EventArgs e)
     {
         PlatUtils.ToggleWindowAlwaysOnTop(MyViewModel.ToggleStickToTop(), PlatUtils.AppWinPresenter);
-
+        StickTopImgBtn.IsVisible = true;
+        UnStickTopImgBtn.IsVisible = false;
     }
 
     private TrayIconHelper? _trayIconHelper;

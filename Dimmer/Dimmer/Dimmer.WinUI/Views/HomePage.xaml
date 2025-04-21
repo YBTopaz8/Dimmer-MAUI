@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.HomePage"
              xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+             xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
              x:DataType="vm:BaseViewModelWin"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
@@ -106,7 +107,7 @@
                                     <Setter Property="BackgroundColor" Value="#B197FC"/>
                                 </DataTrigger>
 
-                                <DataTrigger TargetType="syncf:SfChip" Value="False" Binding="{Binding IsPlaying}">
+                                <DataTrigger TargetType="syncf:SfChip" Value="False" Binding="{Binding IsShuffle}">
 
                                     <Setter Property="BackgroundColor" Value="Transparent"/>
                                 </DataTrigger>
@@ -126,7 +127,7 @@
 
                         <Slider  Value="{Binding VolumeLevel}" WidthRequest="200" VerticalOptions="Start" 
                                 Maximum="1" Minimum="0" x:Name="VolumeSlider" 
-                                 ValueChanged="VolumeSlider_ValueChanged" 
+                                 DragCompleted="VolumeSlider_DragCompleted"
                                 MinimumTrackColor="DarkSlateBlue" />
                     </VerticalStackLayout>
                 </syncf:SfEffectsView>
@@ -139,10 +140,10 @@
                         Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
                            HorizontalOptions="Center" FontSize="14" 
                            Margin="0,5,0,0"/>
-                <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted"
+                <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted" 
+                        Value="{Binding CurrentPositionInSeconds}"
                             x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
-                            VerticalOptions="Center" ThumbColor="AliceBlue"
-                            Value="{Binding CurrentPositionInSeconds}"
+                            VerticalOptions="Center" ThumbColor="AliceBlue"  
             Minimum="0" Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"/>
 
                 <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
@@ -201,6 +202,8 @@
 
                             <syncf:SfChip ImageSource="lyrics.png" IsVisible="{Binding TemporarilyPickedSong.HasLyrics}"
                              CommandParameter="4" TextColor="White" />
+                            <syncf:SfChip ImageSource="threesquares.png" 
+                             CommandParameter="5" TextColor="White" />
 
                         </syncf:SfChipGroup.Items>
                     </syncf:SfChipGroup>
@@ -230,7 +233,7 @@
                         <syncf:SfTabItem >
                             <syncf:SfTabItem.Content>
                                 <CollectionView Grid.Row="0" 
-                BackgroundColor="Transparent" ItemsSource="{Binding MasterSongs}"
+                BackgroundColor="Transparent" ItemsSource="{Binding MasterListOfSongs}"
                             VerticalScrollBarVisibility="Default"
                             x:Name="SongsColView" 
                             Margin="5,0">
@@ -385,6 +388,44 @@
 
                                 </CollectionView>
 
+                            </syncf:SfTabItem.Content>
+                        </syncf:SfTabItem>
+
+                        <syncf:SfTabItem>
+                            <syncf:SfTabItem.Content>
+                                <Grid RowDefinitions="auto,*">
+                                    <Grid Grid.Row="0">
+                                        
+                                        
+                                    </Grid>
+
+                                    <CollectionView Grid.Row="1" x:Name="ControlPanelColView">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="modeltwo:WindowInfo">
+                                                <VerticalStackLayout>
+                                                    <HorizontalStackLayout>
+                                                        <syncf:SfChip Text="Close"/>
+                                                    </HorizontalStackLayout>
+
+                                                    <VerticalStackLayout>                                                        
+                                                        <syncf:SfEffectsView>
+                                                            <syncf:SfEffectsView.Content>
+                                                                <Image Source="{Binding Thumbnail}" 
+                                                                       HeightRequest="90"
+                                                                       WidthRequest="90"/>
+                                                            </syncf:SfEffectsView.Content>
+                                                            
+                                                        </syncf:SfEffectsView>
+
+                                                        <Label Text="" FontSize="14" HorizontalOptions="Start"
+                                                               LineBreakMode="TailTruncation"/>
+
+                                                    </VerticalStackLayout>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
                             </syncf:SfTabItem.Content>
                         </syncf:SfTabItem>
                     </syncf:SfTabView>

@@ -1,11 +1,9 @@
 ﻿namespace Dimmer.Services;
-
 public class QueueManager<T> : IQueueManager<T>
 {
-    private readonly Queue<T> _queue = new();
-    private List<T> _source = new();
+    private readonly List<T> _source = new();
     private readonly int _batchSize;
-    private int _nextBatchStart;
+    private int _position;
     private int _currentBatchId;
 
     public event Action<int, IReadOnlyList<T>>? BatchEnqueued;
@@ -14,52 +12,86 @@ public class QueueManager<T> : IQueueManager<T>
     public QueueManager(int batchSize = 25)
     {
         if (batchSize <= 0)
-            throw new ArgumentException(nameof(batchSize));
+            throw new ArgumentException("Queue Manager threw an Arg Exception", nameof(batchSize));
         _batchSize = batchSize;
     }
 
     public void Initialize(IEnumerable<T> items, int startIndex = 0)
     {
-        _source = items.ToList();
-        _queue.Clear();
-        _nextBatchStart = Math.Clamp(startIndex, 0, _source.Count);
-        EnqueueNextBatch();
+        _source.Clear();
+        _source.AddRange(items);
+        if (_source.Count > 0)
+            _position = Math.Clamp(startIndex, 0, _source.Count - 1);
+        else
+            _position = 0;
+        _currentBatchId = 0;
+        EnqueueBatchIfNeeded(_position);
     }
 
-    private void EnqueueNextBatch()
+    private void EnqueueBatchIfNeeded(int position)
     {
-        if (_nextBatchStart >= _source.Count)
+        if (_source.Count == 0)
             return;
-
-        var batchItems = _source
-            .Skip(_nextBatchStart)
-            .Take(_batchSize)
-            .ToList();
-
-        foreach (var item in batchItems)
-            _queue.Enqueue(item);
-
-        _currentBatchId++;
-        _nextBatchStart += batchItems.Count;
-
-        // notify that a new batch arrived
-        BatchEnqueued?.Invoke(_currentBatchId, batchItems);
+        if (position % _batchSize == 0)
+        {
+            var batch = _source.Skip(position).Take(_batchSize).ToList();
+            if (batch.Count > 0)
+            {
+                _currentBatchId++;
+                BatchEnqueued?.Invoke(_currentBatchId, batch);
+            }
+        }
     }
 
+    // move forward, wrap to 0, then fire events
     public T? Next()
     {
-        if (_queue.Count == 0 && _nextBatchStart < _source.Count)
-            EnqueueNextBatch();
-
-        if (_queue.Count == 0)
+        if (_source.Count == 0)
             return default;
-
-        var item = _queue.Dequeue();
-        // notify that an item was dequeued (i.e. “now playing”)
+        _position = (_position + 1) % _source.Count;
+        EnqueueBatchIfNeeded(_position);
+        var item = _source[_position];
         ItemDequeued?.Invoke(_currentBatchId, item);
         return item;
     }
 
-    public bool HasNext =>
-        _queue.Count > 0 || _nextBatchStart < _source.Count;
+    // move backward, wrap to last, then fire events
+    public T? Previous()
+    {
+        if (_source.Count == 0)
+            return default;
+        _position = (_position - 1 + _source.Count) % _source.Count;
+        EnqueueBatchIfNeeded(_position);
+        var item = _source[_position];
+        ItemDequeued?.Invoke(_currentBatchId, item);
+        return item;
+    }
+
+    // the currently “pointed‐at” item
+    public T? Current =>
+        (_source.Count > 0 && _position < _source.Count)
+        ? _source[_position]
+        : default;
+
+    // look ahead/behind without changing state
+    public T? PeekNext() =>
+        _source.Count == 0
+        ? default
+        : _source[(_position + 1) % _source.Count];
+
+    public T? PeekPrevious() =>
+        _source.Count == 0
+        ? default
+        : _source[(_position - 1 + _source.Count) % _source.Count];
+
+    public bool HasNext => _source.Count > 0;
+    public int Count => _source.Count;
+
+    // reset completely
+    public void Clear()
+    {
+        _source.Clear();
+        _position = 0;
+        _currentBatchId = 0;
+    }
 }

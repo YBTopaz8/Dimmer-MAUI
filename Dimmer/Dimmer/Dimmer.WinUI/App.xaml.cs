@@ -20,13 +20,13 @@ public partial class App : MauiWinUIApplication
         Debug.WriteLine("Dimmer WinUI :D");
         this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
-        AppDomain.CurrentDomain.FirstChanceException +=CurrentDomain_FirstChanceException;
+        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
         
         
     }
 
 
-    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                                  $"Exception Type: {e.Exception.GetType()}\n" +

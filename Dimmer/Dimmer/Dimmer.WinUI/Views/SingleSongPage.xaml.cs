@@ -75,7 +75,6 @@ public partial class SingleSongPage : ContentPage
     }
     private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
     {
-        MyViewModel.SeekTo(CurrentPositionSlider.Value);
     }
 
 }

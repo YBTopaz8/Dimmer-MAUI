@@ -7,6 +7,8 @@ public class FolderMonitorService : IFolderMonitorService
     public void Start(IEnumerable<string> paths)
     {
         Stop();
+        if (paths == null || paths.Count() < 1)
+            return;
         foreach (var p in paths)
         {
             if (!Directory.Exists(p))

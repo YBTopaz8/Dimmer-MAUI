@@ -1,4 +1,5 @@
 ﻿using Dimmer.Services;
+using System.Linq;
 
 namespace Dimmer.Orchestration;
 
@@ -7,11 +8,11 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IQueueManager<SongModel> _queue;
     private readonly SubscriptionManager _subs;
-
+    PlaylistModel defaultPlaylist;
     // cache the master song list too, if you ever need to build song‑based playlists
-    private IEnumerable<SongModel>? _masterSongs;
+    private IEnumerable<SongModel>? AllCurrentSongsList;
 
-    // playlist collection for UI
+    // playlistSongs collection for UI
     public PlaylistModel CurrentPlaylist { get; }
     public ObservableCollection<PlaylistModel> CurrentSetOfPlaylists { get; }
         = new();
@@ -34,17 +35,17 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _queue        = queueManager;
         _subs         = subs;
 
-        // 1) prime the playlist list
+        // 1) prime the playlistSongs list
         foreach (var pl in _playlistRepo.GetAll())
             CurrentSetOfPlaylists.Add(pl);
 
         // 2) keep your song cache up to date in case you want to queue from this flow too
         _subs.Add(
-            _state.AllSongs
-                  .Subscribe(list =>
+            _state.AllCurrentSongs
+                  .Subscribe((Action<IReadOnlyList<SongModel>>)(list =>
                   {
-                      _masterSongs = list.ToList();
-                  })
+                      this.AllCurrentSongsList = list.ToList();
+                  }))
         );
         _subs.Add(_state.CurrentPlaylist.Subscribe(_state
             =>
@@ -55,9 +56,10 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _subs.Add(
             _state.CurrentSong
                   .DistinctUntilChanged()
-                  .Subscribe(song=> {
-                      
+                  .Subscribe(song=> 
+                  {                      
                       CurrentlyPlayingSongDB = song;
+                      
                   })
         );
         _subs.Add(
@@ -130,13 +132,60 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                       }
                   })
         );
+
+        defaultPlaylist = new PlaylistModel
+        {
+            PlaylistName = "Default Playlist",
+            Description = "Default Playlist by Dimmer",
+        };
+
+        _subs.Add(
+            _state.CurrentPage.DistinctUntilChanged()
+            .Subscribe(page =>
+            {
+                switch (page)
+                {
+                    case CurrentPage.HomePage:
+                        break;
+                    case CurrentPage.PlaylistsPage:
+                        break;
+                    case CurrentPage.SpecificAlbumPage:
+                        break;
+                    case CurrentPage.AllArtistsPage:
+                        break;
+                    case CurrentPage.AllAlbumsPage:
+                        break;
+                    default:
+                        break;
+                }
+            }));
+
+        
+        _subs.Add(
+            _state.AllCurrentSongs
+                .DistinctUntilChanged()
+                .Subscribe(playlistSongs =>
+                {
+                    if (playlistSongs == null || playlistSongs.Count<1)
+                        return;
+                    var source = playlistSongs.ToList();
+
+                    var songIndex = source.FindIndex(s =>
+             s.LocalDeviceId == CurrentlyPlayingSongDB!.LocalDeviceId);
+                    if (songIndex < 0)
+                        songIndex = 0; // fallback to start
+
+                    // 3) initialize the queue at that position
+                    _queue.Initialize(source, startIndex: songIndex);
+                })
+        );
     }
 
     public void CreatePlaylistOfFiftySongs()
     {
-        // example: build from cached _masterSongs
-        var fifty = _masterSongs.Take(50).ToList();
-        // ... your logic to save that as a PlaylistModel
+        
+        var fifty = AllCurrentSongsList.Take(50).ToList();
+        
     }
 
     private void OnPlaybackStateChanged(DimmerPlaybackState st)
@@ -144,7 +193,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         switch (st)
         {
             case DimmerPlaybackState.PlayPrevious:
-                throw new NotImplementedException();
+                PlayPreviousInQueue(); break;
             case DimmerPlaybackState.PlayNext:
                 AdvanceQueue();
                 break;
@@ -152,15 +201,17 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                 AdvanceQueue();
                 break;
             case DimmerPlaybackState.Playing:
-                InitializeQueue(CurrentlyPlayingSongDB);
+                
                 break;
         }
     }
 
-    private void InitializeQueue(SongModel start)
+    private void InitializeQueueWithMastList()
     {
-        _queue.Initialize(items: _masterSongs);
-        UpdatePlaybackState(CurrentlyPlayingSongDB.LocalDeviceId, PlayType.Skipped);
+        if (AllCurrentSongsList == null)
+            return;
+        _queue.Initialize(items: AllCurrentSongsList);
+        
     }
 
     private void AdvanceQueue()
@@ -172,7 +223,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     }
     private void PlayPreviousInQueue()
     {
-        var next = _mapper.Map<SongModel>(_queue.Next());
+        var next = _mapper.Map<SongModel>(_queue.Previous());
 
         if (next != null)
             _state.SetCurrentSong(next);

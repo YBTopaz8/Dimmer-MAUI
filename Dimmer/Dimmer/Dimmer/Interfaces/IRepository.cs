@@ -8,7 +8,7 @@ public interface IRepository<T>
     void BatchUpdate(Action<Realm> updates);
     void Delete(T entity);
     void Delete(IEnumerable<T> entities);
-    List<T> GetAll();
+    IReadOnlyCollection<T> GetAll();
     IRealmCollection<T> GetAllLive();
     T? GetById(string primaryKey);
     List<T> GetPage(int skip, int take);

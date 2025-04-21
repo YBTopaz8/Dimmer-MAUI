@@ -1,3 +1,8 @@
+﻿using Dimmer.WinUI.Utils.Models;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using static Vanara.PInvoke.User32;
+
 namespace Dimmer.WinUI.Views;
 
 public partial class HomePage : ContentPage
@@ -17,6 +22,8 @@ public partial class HomePage : ContentPage
         MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
         
         MyViewModel.SetCollectionView(SongsColView);
+
+        
     }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
@@ -56,7 +63,8 @@ public partial class HomePage : ContentPage
         _isThrottling = true;
         Slider send = (Slider)sender;
         var s = send;
-        MyViewModel.SeekTo( s.Value);
+        MyViewModel.SeekTo( s.Value, true);
+        MyViewModel.SeekTo( s.Value, true);
 
 
         await Task.Delay(throttleDelay);
@@ -177,7 +185,8 @@ public partial class HomePage : ContentPage
                 break;
         }
     }
-    private void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
+    ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
+    private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
         SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
         string? param = ee.CommandParameter.ToString();
@@ -213,9 +222,23 @@ public partial class HomePage : ContentPage
                 MainTabView.SelectedIndex=1;
                 break;
             case 5:
-                MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
-                break;
+                WindowsOpened?.Clear();
 
+                foreach (var win in Application.Current!.Windows)
+                {
+                    // 1) get a pure Win32 snapshot
+                    var thumbnail = win.CaptureWindow();
+
+                    // 2) build your info object
+                    var info = new WindowInfo(win, thumbnail);
+                    WindowsOpened!.Add(info);
+
+                    Debug.WriteLine($"Captured: {info.Title} ({info.TypeName}) " +
+                                    $"at [{info.X},{info.Y}] {info.Width}×{info.Height}");
+                }
+
+                ControlPanelColView.ItemsSource = WindowsOpened;
+                break;
 
             default:
                 break;
@@ -260,7 +283,7 @@ public partial class HomePage : ContentPage
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
         
-        if (MyViewModel.MasterSongs is null || MyViewModel.MasterSongs.Count<1)
+        if (MyViewModel.MasterListOfSongs is null || MyViewModel.MasterListOfSongs.Count<1)
         {
             return; 
         }
@@ -271,7 +294,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = MyViewModel.MasterSongs.ToList(); 
+            songsToDisplay = MyViewModel.MasterListOfSongs.ToList(); 
             wasSearch = false;
         }
         else
@@ -283,7 +306,7 @@ public partial class HomePage : ContentPage
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= MyViewModel.MasterSongs.
+                var e= MyViewModel.MasterListOfSongs    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
@@ -329,21 +352,23 @@ public partial class HomePage : ContentPage
     }
 
     private void CurrentPositionSlider_DragCompleted(object sender, EventArgs e)
-    {
-       MyViewModel.SeekTo(CurrentPositionSlider.Value);
+    {  
+        var send = (Slider)sender;
+        if (MyViewModel.IsPlaying)
+        {
+            MyViewModel.SeekTo(send.Value,true);
+        }
+
     }
 
+    private CancellationTokenSource? _debounceCts;
 
+    double lastSeek = 0;
+    double lastVolume = 0;
     private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
-        if (MyViewModel is null)
-        {
-            MyViewModel = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
-            MyViewModel.SetVolume(VolumeSlider.Value);
-            return;
-        }
-        MyViewModel.SetVolume(VolumeSlider.Value);
     }
+
 
     private async void BtmBarPointerGest_PointerEntered(object sender, PointerEventArgs e)
     {
@@ -484,5 +509,11 @@ public partial class HomePage : ContentPage
     private void ScrollToSongIcon_Clicked(object sender, EventArgs e)
     {
         MyViewModel.ScrollToCurrentlyPlayingSong();
+    }
+
+    private void VolumeSlider_DragCompleted(object sender, EventArgs e)
+    {
+        var send = (Slider)sender;
+        MyViewModel.SetVolume(send.Value);
     }
 }

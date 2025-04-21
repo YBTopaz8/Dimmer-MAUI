@@ -32,7 +32,7 @@ public partial class MediaControlBtmBar : ContentView
         _isThrottling = true;
         Slider send = (Slider)sender;
         double s = send.Value;
-        MyViewModel.SeekTo( s);
+        MyViewModel.SeekTo( s, true);
 
 
         await Task.Delay(throttleDelay);

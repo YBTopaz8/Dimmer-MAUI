@@ -75,7 +75,7 @@ public partial class BaseAlbumViewModel : ObservableObject
     {
         SelectedSelectedSong.IsCurrentPlayingHighlight = false;
         SelectedSelectedSong = song;
-        baseViewModel.PlaySong(song);
-        SelectedSelectedSong.IsCurrentPlayingHighlight =true;
+        baseViewModel.PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
+        
     }
 }

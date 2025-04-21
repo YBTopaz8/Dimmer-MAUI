@@ -1,4 +1,5 @@
 ﻿using Dimmer.Services;
+using System;
 
 namespace Dimmer.ViewModel;
 
@@ -37,7 +38,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public partial RepeatMode RepeatMode {get;set;}
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? MasterSongs {get;set;}
+    public partial ObservableCollection<SongModelView>? MasterListOfSongs {get;set;}
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
@@ -81,28 +82,29 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     private void Initialize()
     {
-        SubscribeToMasterSongs();
+        ResetMasterListOfSongs();
         SubscribeToCurrentSong();
         SubscribeToIsPlaying();
         SubscribeToPosition();
-        SubscribeToVolume();
 
         CurrentPositionPercentage = 0;
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
-        IsShuffle = _settingsService.ShuffleOn;
+        //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
     }
 
-    private void SubscribeToMasterSongs()
+    private void ResetMasterListOfSongs()
     {
-        _subs.Add(_stateService.AllSongs.DistinctUntilChanged().Take(1)
-    .Subscribe(songs =>
-    {
-        MasterSongs ??= new ObservableCollection<SongModelView>();
-        MasterSongs.Clear();
-        foreach (var m in songs)
-            MasterSongs.Add(_mapper.Map<SongModelView>(m));
-    }));
+     
+        MasterListOfSongs ??= new ObservableCollection<SongModelView>();
+        MasterListOfSongs.Clear();
+        if(BaseAppFlow.MasterList is not null)
+        {
+            if(BaseAppFlow.MasterList.Count == MasterListOfSongs.Count)
+                return;
+            MasterListOfSongs = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
+        }
+    
     }
 
     private void SubscribeToCurrentSong()
@@ -156,24 +158,44 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             }));
     }
 
-    private void SubscribeToVolume()
-    {
-        _subs.Add(SongsMgtFlow.Volume
-            .Subscribe(vol => VolumeLevel = vol * 100));
-    }
 
 
-    public void PlaySong(SongModelView song)
+    public void PlaySong(
+     SongModelView song,
+     CurrentPage source,
+     IEnumerable<SongModelView>? listOfSongs = null)
     {
+        // 1) Un‑highlight the old song
         if (TemporarilyPickedSong != null)
             TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
 
+        // 2) Highlight and pick the new song
         TemporarilyPickedSong = song;
         song.IsCurrentPlayingHighlight = true;
-        
-        _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
 
-        _stateService.SetCurrentState(DimmerPlaybackState.Loading);
+        PlayerStateService.IsShuffleOn = IsShuffle;
+
+        _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
+        if (source == CurrentPage.HomePage)
+        {
+            _stateService.SetCurrentPlaylist([]);
+        }
+        else
+        {
+
+            PlaylistModel CustomPlaylist = new()
+            {
+                PlaylistName = "Custom Playlist",
+                Description = "Custom Playlist by Dimmer",
+            };
+            var domainList = listOfSongs
+           .Select(vm => _mapper.Map<SongModel>(vm))
+           .ToList()
+           .AsReadOnly();
+
+            _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
+        }
+        
         _stateService.SetCurrentState(DimmerPlaybackState.Playing);
 
     }
@@ -182,13 +204,15 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         if (IsByUser)
         {
-            SongsMgtFlow.NextInQueue();
+            _stateService.SetCurrentState(DimmerPlaybackState.PlayNext);
+            _stateService.SetCurrentState(DimmerPlaybackState.Playing);
         }
     }
 
     public void PlayPrevious()
     {
-        SongsMgtFlow.PrevInQueue();
+        _stateService.SetCurrentState(DimmerPlaybackState.PlayPrevious);
+        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
     }
 
     public async Task PlayPauseAsync()
@@ -215,25 +239,25 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     public void IncreaseVolume()
     {
         SongsMgtFlow.IncreaseVolume();
-        VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
     }
 
     public void DecreaseVolume()
     {
         SongsMgtFlow.DecreaseVolume();
-        VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
     }
 
     public void SetVolume(double vol)
     {
         SongsMgtFlow.ChangeVolume(vol);
-        VolumeLevel = SongsMgtFlow.VolumeLevel * 100;
     }
 
-    public void SeekTo(double percentage)
+    public void SeekTo(double position, bool isByUser)
     {
-        var seconds = percentage * TemporarilyPickedSong.DurationInSeconds;
-        _ = SongsMgtFlow.SeekTo(seconds);
+        if (!isByUser)
+        {
+            return;
+        }
+        _ = SongsMgtFlow.SeekTo(position);
     }
     public void SeekSongPosition(LyricPhraseModelView? lryPhrase = null, double currPosPer = 0)
     {
@@ -244,6 +268,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _=SongsMgtFlow.SeekTo(CurrentPositionInSeconds);
             return;
         }
+        
+    }
+
+    partial void OnCurrentPositionInSecondsChanging(double oldValue, double newValue)
+    {
+        if (newValue != oldValue)
+        {
+            SeekTo(newValue, false);
+        }
+    }
+    partial void OnVolumeLevelChanging(double oldValue, double newValue)
+    {
         
     }
     public bool ToggleStickToTop()
