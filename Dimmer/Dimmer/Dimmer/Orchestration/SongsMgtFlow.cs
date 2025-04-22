@@ -98,18 +98,23 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                       {
                           case DimmerPlaybackState.Playing:
                               await PlaySongInAudioService();
-                          break;
+                              break;
                       }
                   })
         );
+        SubscribeToCurrentSongChanges();
+    }
+
+    private void SubscribeToCurrentSongChanges()
+    {
         _subs.Add(
-            _state.CurrentSong
-            .DistinctUntilChanged()
-                  .Subscribe( s =>
-                  {
-                      CurrentlyPlayingSongDB=s;
-                  })
-        );
+                    _state.CurrentSong
+                    .DistinctUntilChanged()
+                          .Subscribe(s =>
+                          {
+                              CurrentlyPlayingSongDB=s;
+                          })
+                );
     }
 
     public async Task PlaySongInAudioService()

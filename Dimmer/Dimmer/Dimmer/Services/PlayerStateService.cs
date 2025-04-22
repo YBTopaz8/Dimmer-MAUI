@@ -13,6 +13,8 @@ namespace Dimmer.Services
     public class PlayerStateService : IPlayerStateService, IDisposable
     {
         readonly BehaviorSubject<SongModel> _currentSong = new(new SongModel());
+        readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
+        readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
         readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
         readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
         readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
@@ -34,6 +36,8 @@ namespace Dimmer.Services
 
         // Observables
         public IObservable<SongModel> CurrentSong => _currentSong.AsObservable();
+        public IObservable<LyricPhraseModel> CurrentLyric => _currentLyric.AsObservable();
+        public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
         public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
         public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongs.AsObservable();
         public IObservable<DimmerPlaybackState> CurrentPlayBackState => _playbackState.AsObservable();
@@ -62,6 +66,12 @@ namespace Dimmer.Services
         {
             ArgumentNullException.ThrowIfNull(song);
             _secondSelectedSong.OnNext(song);
+        }
+        
+        public void SetSyncLyrics(IEnumerable<LyricPhraseModel> lyric)
+        {
+            ArgumentNullException.ThrowIfNull(lyric);
+            _syncLyrics.OnNext(lyric.ToList().AsReadOnly());
         }
 
         public void SetCurrentState(DimmerPlaybackState state)
@@ -135,6 +145,14 @@ namespace Dimmer.Services
             SetCurrentPlaylist(filtered,p  );
         }
 
+        public void SetCurrentLyric(LyricPhraseModel lyric)
+        {
+            if (lyric == _currentLyric.Value)
+                return; // no change
+
+            _currentLyric.OnNext(lyric);
+        }
+        
         public void SetCurrentPage(CurrentPage page)
         {
             if (page == _page.Value)

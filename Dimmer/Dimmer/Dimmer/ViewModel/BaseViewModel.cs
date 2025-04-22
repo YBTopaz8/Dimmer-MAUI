@@ -15,6 +15,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
+    private readonly LyricsMgtFlow lyricsMgtFlow;
 
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
@@ -64,12 +65,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public BaseViewModel(
         IMapper mapper,
+       
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
         IPlayerStateService stateService,
         ISettingsService settingsService,
-        SubscriptionManager subs)
+        SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow)
     {
         _mapper = mapper;
         AlbumsMgtFlow = albumsMgtFlow;
@@ -78,8 +81,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
-
+        this.lyricsMgtFlow=lyricsMgtFlow;
         Initialize();
+        //SubscribeToLyricIndexChanges();
+        //SubscribeToSyncLyricsChanges();
     }
 
     private void Initialize()
@@ -89,11 +94,35 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SubscribeToSecondSelectdSong();
         SubscribeToIsPlaying();
         SubscribeToPosition();
-
+        
         CurrentPositionPercentage = 0;
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+    }
+
+    private void SubscribeToLyricIndexChanges()
+    {
+        _subs.Add(_stateService.CurrentLyric
+            .DistinctUntilChanged()
+            .Subscribe(l =>
+            {
+                if (l == null)
+                    return;
+                CurrentLyricPhrase = _mapper.Map<LyricPhraseModelView>(l);
+            }));
+    }
+    
+    private void SubscribeToSyncLyricsChanges()
+    {
+        _subs.Add(_stateService.SyncLyrics
+            .DistinctUntilChanged()
+            .Subscribe(l =>
+            {
+                if (l == null || l.Count<1)
+                    return;
+                SynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l);
+            }));
     }
 
     private void ResetMasterListOfSongs()
@@ -174,6 +203,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
 
                 TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
+                SecondSelectedSong = TemporarilyPickedSong;
                 if (TemporarilyPickedSong != null)
                 {
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = true;

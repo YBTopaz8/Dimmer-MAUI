@@ -13,6 +13,7 @@ public static class AutoMapperConf
             cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap();            
             cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
             cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
+            cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });
 
         return config.CreateMapper();

@@ -51,6 +51,7 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<SongsMgtFlow>();
         builder.Services.AddSingleton<AlbumsMgtFlow>();
         builder.Services.AddSingleton<PlayListMgtFlow>();
+        builder.Services.AddSingleton<LyricsMgtFlow>();
 
 
 

@@ -16,6 +16,8 @@ public interface IPlayerStateService : IDisposable
     IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows { get; }
     IObservable<CurrentPage> CurrentPage{ get; }
     IObservable<SongModel> SecondSelectedSong { get; }
+    IObservable<LyricPhraseModel> CurrentLyric { get; }
+    IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
 
     /// <summary>
     /// Replace the master list of songs.
@@ -36,6 +38,8 @@ public interface IPlayerStateService : IDisposable
     void RemoveSongFromCurrentPlaylist(PlaylistModel p, SongModel song);
     void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs);
     void SetSecondSelectdSong(SongModel song);
+    void SetSyncLyrics(IEnumerable<LyricPhraseModel> lyric);
+    void SetCurrentLyric(LyricPhraseModel lyric);
 }
 public interface IQueueManager<T>
 {

@@ -6,7 +6,8 @@ using Dimmer.Services;
 namespace Dimmer.WinUI.Views;
 public partial class SingleSongPageViewModel : BaseViewModel
 {
-    public SingleSongPageViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
+    public SingleSongPageViewModel(IMapper mapper, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
     {
 
         LoadPageViewModel();
