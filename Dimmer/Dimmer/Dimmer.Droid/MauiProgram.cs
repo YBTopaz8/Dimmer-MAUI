@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Droid;
+﻿using Dimmer.Views;
+
+namespace Dimmer.Droid;
 
 public static class MauiProgram
 {
@@ -9,6 +11,7 @@ public static class MauiProgram
         builder
             .UseSharedMauiApp();
 
+        builder.Services.AddSingleton<HomePage>();
         return builder.Build();
     }
 }

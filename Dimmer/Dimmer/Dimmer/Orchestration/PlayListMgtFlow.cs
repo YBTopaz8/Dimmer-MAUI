@@ -195,9 +195,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             case DimmerPlaybackState.PlayPrevious:
                 PlayPreviousInQueue(); break;
             case DimmerPlaybackState.PlayNext:
-                AdvanceQueue();
-                break;
             case DimmerPlaybackState.Ended:
+                
+                
                 AdvanceQueue();
                 break;
             case DimmerPlaybackState.Playing:
@@ -219,14 +219,21 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         var next = _mapper.Map<SongModel>(_queue.Next());
 
         if (next != null)
+        {
             _state.SetCurrentSong(next);
+            _state.SetSecondSelectdSong(next);
+        }
+            
     }
     private void PlayPreviousInQueue()
     {
-        var next = _mapper.Map<SongModel>(_queue.Previous());
+        var prev = _mapper.Map<SongModel>(_queue.Previous());
 
-        if (next != null)
-            _state.SetCurrentSong(next);
+        if (prev != null)
+        {
+            _state.SetCurrentSong(prev);
+            _state.SetSecondSelectdSong(prev);
+        }
     }
 
     public void Dispose()
