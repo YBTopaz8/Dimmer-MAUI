@@ -15,7 +15,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
-    private readonly LyricsMgtFlow lyricsMgtFlow;
+    
 
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
@@ -81,7 +81,6 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
-        this.lyricsMgtFlow=lyricsMgtFlow;
         Initialize();
         //SubscribeToLyricIndexChanges();
         //SubscribeToSyncLyricsChanges();

@@ -377,10 +377,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private CancellationTokenSource? _debounceCts;
-
-    double lastSeek = 0;
-    double lastVolume = 0;
     private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
     }

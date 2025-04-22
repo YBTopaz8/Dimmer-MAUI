@@ -5,22 +5,13 @@ namespace Dimmer.Orchestration;
 
 public class SongsMgtFlow : BaseAppFlow, IDisposable
 {
-    private readonly IPlayerStateService state;
     private readonly IRepository<SongModel> songRepo;
-    private readonly IRepository<PlayDateAndCompletionStateSongLink> pdlRepo;
-    private readonly IRepository<PlaylistModel> playlistRepo;
-    private readonly IRepository<ArtistModel> artistRepo;
-    private readonly IRepository<AlbumModel> albumRepo;
     private readonly IRepository<AlbumArtistGenreSongLink> linkRepo;
-    private readonly ISettingsService settings;
-    private readonly IFolderMonitorService folderMonitor;
     private readonly IDimmerAudioService _audio;
-    private readonly IQueueManager<SongModelView> _queue;
     private readonly SubscriptionManager _subs;
-    private readonly IMapper mapper;
 
     // cache of the master list
-    private List<SongModel> _masterSongs = new();
+    private List<SongModel> _masterSongs ;
 
     // Exposed streams
     public IObservable<bool> IsPlaying { get; }
@@ -43,20 +34,10 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IMapper mapper
     ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
-        this.state=state;
         this.songRepo=songRepo;
-        this.pdlRepo=pdlRepo;
-        this.playlistRepo=playlistRepo;
-        this.artistRepo=artistRepo;
-        this.albumRepo=albumRepo;
-        this.linkRepo=linkRepo;
-        this.settings=settings;
-        this.folderMonitor=folderMonitor;
         _audio  = audioService;
-        _queue  = playQueue;
         _subs   = subs;
-        this.mapper=mapper;
-
+        _masterSongs= new List<SongModel>();
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
         _subs.Add(
             _state.AllCurrentSongs

@@ -48,6 +48,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         ResetDisplayedMasterList();
         SubscribeToLyricIndexChanges();
+        SongLyricsCV = new DXCollectionView();
     }
 
     private void SubscribeToLyricIndexChanges()

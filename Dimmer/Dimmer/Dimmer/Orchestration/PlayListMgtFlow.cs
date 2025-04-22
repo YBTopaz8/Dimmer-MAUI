@@ -8,7 +8,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IQueueManager<SongModel> _queue;
     private readonly SubscriptionManager _subs;
-    PlaylistModel defaultPlaylist;
+    
     // cache the master song list too, if you ever need to build song‑based playlists
     private IEnumerable<SongModel>? AllCurrentSongsList;
 
@@ -133,11 +133,6 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                   })
         );
 
-        defaultPlaylist = new PlaylistModel
-        {
-            PlaylistName = "Default Playlist",
-            Description = "Default Playlist by Dimmer",
-        };
 
         _subs.Add(
             _state.CurrentPage.DistinctUntilChanged()
@@ -182,10 +177,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     }
 
     public void CreatePlaylistOfFiftySongs()
-    {
-        
-        var fifty = AllCurrentSongsList.Take(50).ToList();
-        
+    {        
+        var fifty = AllCurrentSongsList.Take(50).ToList();        
     }
 
     private void OnPlaybackStateChanged(DimmerPlaybackState st)

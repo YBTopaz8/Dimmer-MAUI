@@ -53,6 +53,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Content Include="Childish-Music_24985.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
@@ -133,6 +137,19 @@
 	  </None>
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Update="Properties\Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Update="Properties\Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+	<ItemGroup>
 	  <Page Update="Views\TestPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
@@ -149,6 +166,7 @@
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <Title>Dimmer</Title>
 	  <PackageIcon>dimmerIcon.png</PackageIcon>
+	  <ApplicationIcon>Childish-Music_24985.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<!--
