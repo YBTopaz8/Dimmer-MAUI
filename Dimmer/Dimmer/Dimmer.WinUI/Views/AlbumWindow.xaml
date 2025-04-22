@@ -9,8 +9,8 @@
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
              xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"         
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"      
-             x:Name="myPage"  
-             Title="AlbumWindow">
+             x:Name="myPage"
+        >
     <Window.Page>
         <ContentPage>
 
@@ -28,16 +28,16 @@
 
         </ContentPage.Resources>
 
-            <Grid >
-                <Image Source="{Binding SongsMgtFlow.CurrentlyPlayingSongDB.CoverImagePath}"
-                       Opacity="0.1"/>
-            
-         <Grid   BackgroundColor="Transparent"
+            <Grid BackgroundColor="Transparent" >
+                <Image Source="{Binding SelectedAlbumsSongs[0].CoverImagePath}" Opacity="0.1"
+                       x:Name="AlbumImg"/>
+
+                <Grid   BackgroundColor="Transparent" IsVisible="True"
                 RowDefinitions="Auto,*">
-            <HorizontalStackLayout HorizontalOptions="End" Grid.Row="0">
-                <ImageButton Source="restartcircle.png"
+                    <ImageButton Source="restartcircle.png" HeightRequest="40"
                       x:Name="ResetAlbumSongsList"/>
-                <SearchBar Grid.Row="0"
+                    <HorizontalStackLayout HorizontalOptions="End" Grid.Row="0">
+                        <SearchBar Grid.Row="0" 
   HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
      Placeholder="Search Song..."/>
 
@@ -45,11 +45,12 @@
 
 
                     <CollectionView x:Name="AlbumSongsColView" ItemsSource="{Binding SelectedAlbumsSongs}" BackgroundColor="Transparent"
-                            Grid.Row="1" Loaded="AlbumSongsColView_Loaded"
-                            Margin="5,0" >
+                            Grid.Row="1" Loaded="AlbumSongsColView_Loaded" IsVisible="True"
+                            Margin="5,0" > 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
-                            <Border Stroke="Transparent" HorizontalOptions="Center">
+                            <Border Stroke="Red" HorizontalOptions="Center"
+                                    >
 
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroup x:Name="CommonStates">
@@ -87,7 +88,7 @@
 
 
                                 <syncf:SfEffectsView TouchDownEffects="Ripple" BackgroundColor="Transparent">
-                                    <FlexLayout JustifyContent="SpaceBetween" Margin="10,0">
+                                    <FlexLayout JustifyContent="SpaceBetween" Margin="10,0" BackgroundColor="Transparent">
                                         <VerticalStackLayout BackgroundColor="Transparent">
                                             <Label Text="{Binding Title}" FontSize="16"/>
                                             <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>

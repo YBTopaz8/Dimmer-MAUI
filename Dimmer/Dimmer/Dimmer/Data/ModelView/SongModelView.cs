@@ -63,7 +63,20 @@ public partial class SongModelView : ObservableObject
     public partial string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     [ObservableProperty]
     public partial string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
-    
 
 
+    // Override Equals to compare based on string
+    public override bool Equals(object? obj)
+    {
+        if (obj is SongModelView other)
+        {
+            return this.LocalDeviceId == other.LocalDeviceId;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(LocalDeviceId);
+    }
 }

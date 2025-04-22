@@ -48,6 +48,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial SongModelView TemporarilyPickedSong {get;set;}
+    [ObservableProperty]
+    public partial SongModelView SecondSelectedSong {get;set;}
 
     [ObservableProperty]
     public partial double CurrentPositionInSeconds {get;set;}
@@ -84,6 +86,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
+        SubscribeToSecondSelectdSong();
         SubscribeToIsPlaying();
         SubscribeToPosition();
 
@@ -107,6 +110,54 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     
     }
 
+    public void SetCurrentlyPickedSong(SongModelView song)
+    {
+        if (song == null)
+            return;
+        if (SecondSelectedSong != null && TemporarilyPickedSong is not null)
+        {
+            if(SecondSelectedSong == song)
+            {
+                SecondSelectedSong  = TemporarilyPickedSong;
+            }
+        }
+        else if(SecondSelectedSong == TemporarilyPickedSong)
+        {
+
+            SecondSelectedSong = song;
+        }
+
+        _stateService.SetSecondSelectdSong(_mapper.Map<SongModel>(song));
+
+    }
+
+    private void SubscribeToSecondSelectdSong()
+    {
+        _subs.Add(_stateService.SecondSelectedSong
+            .DistinctUntilChanged()
+            .Subscribe(song =>
+            {
+                if(string.IsNullOrEmpty(song.FilePath))
+                {
+                    SecondSelectedSong=new();
+                    return;
+                }
+
+                if (SecondSelectedSong != null)
+                    SecondSelectedSong.IsCurrentPlayingHighlight = false;
+
+                SecondSelectedSong = _mapper.Map<SongModelView>(song);
+                if (SecondSelectedSong != null)
+                {
+                    SecondSelectedSong.IsCurrentPlayingHighlight = true;
+                    AppTitle = $"{SecondSelectedSong.Title} - {SecondSelectedSong.ArtistName} [{SecondSelectedSong.AlbumName}] | {CurrentAppVersion}";
+                }
+                else
+                {
+                    AppTitle = CurrentAppVersion;
+                }
+            }));
+    }
     private void SubscribeToCurrentSong()
     {
         _subs.Add(_stateService.CurrentSong

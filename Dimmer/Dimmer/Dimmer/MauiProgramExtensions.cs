@@ -55,7 +55,7 @@ public static class MauiProgramExtensions
 
 
         builder.Services.AddSingleton<BaseViewModel>();
-        builder.Services.AddSingleton<BaseAlbumViewModel>();
+        builder.Services.AddTransient<BaseAlbumViewModel>();
         builder.Services.AddSingleton(FolderPicker.Default);
         builder.Services.AddSingleton(FileSaver.Default);
         return builder;

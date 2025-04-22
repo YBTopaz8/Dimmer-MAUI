@@ -43,12 +43,25 @@ public partial class HomeViewModel : BaseViewModelWin
     [RelayCommand]
     public void ScrollToCurrentlyPlayingSong()
     {
-        SongsCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center,true);
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            SongsCV?.ScrollTo(TemporarilyPickedSong, null, ScrollToPosition.Center, true);
+        });
+    }
+
+    public void SetCurrentSong(SongModelView song)
+    {
+        if (song == null)
+            return;
+        TemporarilyPickedSong = song;
+        //ScrollToCurrentlyPlayingSong();
     }
 
     public void PlaySongOnDoubleTap(SongModelView song)
     {
         PlaySong(song, CurrentPage.HomePage);
+        var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
+        win.SetTitle(song);
     }
     public void SetCollectionView(CollectionView collectionView)
     {

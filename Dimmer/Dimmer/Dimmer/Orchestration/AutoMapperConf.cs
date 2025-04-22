@@ -6,6 +6,7 @@ public static class AutoMapperConf
         var config = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<SongModel, SongModelView>().ReverseMap();            
+            cfg.CreateMap<SongModelView, SongModelView>();            
             cfg.CreateMap<AlbumModel, AlbumModelView>().ReverseMap()
             .ForMember(dest => dest.Name, opt => opt.Ignore())
             .ReverseMap();

@@ -13,6 +13,7 @@ namespace Dimmer.Services
     public class PlayerStateService : IPlayerStateService, IDisposable
     {
         readonly BehaviorSubject<SongModel> _currentSong = new(new SongModel());
+        readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
         readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
         readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
         readonly BehaviorSubject<PlaylistModel> _currentPlaylist = new(default!);
@@ -33,6 +34,7 @@ namespace Dimmer.Services
 
         // Observables
         public IObservable<SongModel> CurrentSong => _currentSong.AsObservable();
+        public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
         public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongs.AsObservable();
         public IObservable<DimmerPlaybackState> CurrentPlayBackState => _playbackState.AsObservable();
         public IObservable<PlaylistModel> CurrentPlaylist => _currentPlaylist.AsObservable();
@@ -54,6 +56,12 @@ namespace Dimmer.Services
         {
             ArgumentNullException.ThrowIfNull(song);
             _currentSong.OnNext(song);
+        }
+        
+        public void SetSecondSelectdSong(SongModel song)
+        {
+            ArgumentNullException.ThrowIfNull(song);
+            _secondSelectedSong.OnNext(song);
         }
 
         public void SetCurrentState(DimmerPlaybackState state)

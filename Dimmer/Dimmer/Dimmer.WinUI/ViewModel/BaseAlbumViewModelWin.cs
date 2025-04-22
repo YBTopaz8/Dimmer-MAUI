@@ -14,6 +14,16 @@ public class BaseAlbumViewModelWin : BaseAlbumViewModel, IDisposable
     {
     }
 
+    public BaseAlbumViewModelWin() : this(
+            IPlatformApplication.Current.Services.GetRequiredService<IMapper>(),
+            IPlatformApplication.Current.Services.GetRequiredService<AlbumsMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<BaseViewModel>(),
+            IPlatformApplication.Current.Services.GetRequiredService<PlayListMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<SongsMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<IPlayerStateService>(),
+            IPlatformApplication.Current.Services.GetRequiredService<ISettingsService>(),
+            IPlatformApplication.Current.Services.GetRequiredService<SubscriptionManager>())
+    { }
     public void Dispose()
     {
         

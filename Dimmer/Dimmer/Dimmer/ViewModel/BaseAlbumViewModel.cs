@@ -16,20 +16,15 @@ public partial class BaseAlbumViewModel : ObservableObject
     [ObservableProperty]
     public partial AlbumModelView? SelectedAlbum { get; internal set; }
     [ObservableProperty]
-    public partial SongModelView SelectedSelectedSong { get; set; }
+    public partial SongModelView SelectedSong { get; set; }
 
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
     public BaseAlbumViewModel(
-            IMapper mapper,
-        BaseViewModel baseViewModel,
-            AlbumsMgtFlow albumsMgtFlow,
-            PlayListMgtFlow playlistsMgtFlow,
-            SongsMgtFlow songsMgtFlow,
-            IPlayerStateService stateService,
-            ISettingsService settingsService,
-            SubscriptionManager subs)
+            IMapper mapper, BaseViewModel baseViewModel,AlbumsMgtFlow albumsMgtFlow,PlayListMgtFlow playlistsMgtFlow,
+            SongsMgtFlow songsMgtFlow,IPlayerStateService stateService, ISettingsService settingsService,
+            SubscriptionManager subs) 
     {
 
         this.baseViewModel=baseViewModel;
@@ -41,9 +36,28 @@ public partial class BaseAlbumViewModel : ObservableObject
             _settingsService = settingsService;
             _subs = subs;
         SubscribeToAlbumListChanges();
-        SelectedSelectedSong=new();
+        SelectedSong=new();
     }
+    public BaseAlbumViewModel() :this(
+            IPlatformApplication.Current!.Services.GetRequiredService<IMapper>(),
+            IPlatformApplication.Current.Services.GetRequiredService<BaseViewModel>(),
+            IPlatformApplication.Current.Services.GetRequiredService<AlbumsMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<PlayListMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<SongsMgtFlow>(),
+            IPlatformApplication.Current.Services.GetRequiredService<IPlayerStateService>(),
+            IPlatformApplication.Current.Services.GetRequiredService<ISettingsService>(),
+            IPlatformApplication.Current.Services.GetRequiredService<SubscriptionManager>())    
+    {
 
+        SelectedSong=new();
+    }
+    public void SetSelectedSong(SongModelView song)
+    {
+        if (song == null)
+            return;
+        SelectedSong = _mapper.Map<SongModelView>(song);
+        //ScrollToCurrentlyPlayingSong();
+    }
     private void SubscribeToAlbumListChanges()
     {
         _subs.Add(
@@ -73,8 +87,8 @@ public partial class BaseAlbumViewModel : ObservableObject
 
     public void PlaySong(SongModelView song)
     {
-        SelectedSelectedSong.IsCurrentPlayingHighlight = false;
-        SelectedSelectedSong = song;
+        SelectedSong.IsCurrentPlayingHighlight = false;
+        SelectedSong = song;
         baseViewModel.PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
         
     }

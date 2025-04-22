@@ -117,5 +117,9 @@ public partial class DimmerWin : Window
         this.OnDeactivated();
 
     }
+    public void SetTitle(SongModelView song)
+    {
+        this.Title = $"{song.AlbumName} by {song.ArtistName}";
+    }
 
 }

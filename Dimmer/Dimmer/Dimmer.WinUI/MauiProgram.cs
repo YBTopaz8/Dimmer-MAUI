@@ -16,7 +16,7 @@ public static class MauiProgram
             .UseSharedMauiApp();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddSingleton<BaseViewModelWin>();
+        builder.Services.AddTransient<BaseViewModelWin>();
 
         builder.Services.AddSingleton<DimmerWin>();
         

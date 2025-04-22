@@ -150,7 +150,7 @@ public partial class HomePage : ContentPage
 
     private async void MediaChipBtn_ChipClicked(object sender, EventArgs e)
     {
-        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        SfChip ee = (SfChip)sender;
         string? param = ee.CommandParameter.ToString();
         if (param is null)
         {
@@ -188,7 +188,11 @@ public partial class HomePage : ContentPage
     ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
     private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        SfChip ee = (Syncfusion.Maui.Toolkit.Chips.SfChip)sender;
+        if (MyViewModel.SecondSelectedSong is null)
+        {
+            return;
+        }
+        SfChip ee = (SfChip)sender;
         string? param = ee.CommandParameter.ToString();
         if (param is null)
         {
@@ -207,12 +211,8 @@ public partial class HomePage : ContentPage
                 break;
             case 2:
                 //show the albums songs
-                MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(MyViewModel.TemporarilyPickedSong.LocalDeviceId!);
-                var vm = IPlatformApplication.Current!.Services.GetService<BaseAlbumViewModel>()!;
-                AlbumWindow newWindow = new AlbumWindow(vm);
-                
-                Application.Current!.OpenWindow(newWindow);
-                
+                OpenAlbumWindow(MyViewModel.SecondSelectedSong);
+
                 break;
             case 3:
 
@@ -226,6 +226,10 @@ public partial class HomePage : ContentPage
 
                 foreach (var win in Application.Current!.Windows)
                 {
+                    if (win == Application.Current!.Windows[0])
+                    {
+                        continue;
+                    }
                     // 1) get a pure Win32 snapshot
                     var thumbnail = win.CaptureWindow();
 
@@ -238,6 +242,7 @@ public partial class HomePage : ContentPage
                 }
 
                 ControlPanelColView.ItemsSource = WindowsOpened;
+                MainTabView.SelectedIndex = 2 ;
                 break;
 
             default:
@@ -245,6 +250,16 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private void OpenAlbumWindow(SongModelView song)
+    {
+        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        var vm = new BaseAlbumViewModel();
+        vm.SetSelectedSong(song);
+        
+        AlbumWindow newWindow = new(vm);
+        newWindow.SetTitle(song);
+        Application.Current!.OpenWindow(newWindow);
+    }
 
     private CancellationTokenSource? _debounceTimer;
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
@@ -480,9 +495,10 @@ public partial class HomePage : ContentPage
     }
     private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        LyricPhraseModelView? CurrLyric = LyricsColView.SelectedItem as LyricPhraseModelView;
-        if (CurrLyric is null)
+        if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric)
             return;
+
+
         if (MyViewModel.IsPlaying)
         {
             if (string.IsNullOrEmpty(CurrLyric.Text))
@@ -515,5 +531,73 @@ public partial class HomePage : ContentPage
     {
         var send = (Slider)sender;
         MyViewModel.SetVolume(send.Value);
+    }
+
+    private void SongRow_TouchDown(object sender, EventArgs e)
+    {
+        var view = (SfEffectsView)sender;
+        var song = (SongModelView)view.BindingContext;
+        if (song is not null)
+        {
+            MyViewModel.SetCurrentlyPickedSong(song);
+        }
+    }
+
+    private void ActualSongView_ChipClicked(object sender, EventArgs e)
+    {
+
+        SfChip ee = (SfChip)sender;
+        string? param = ee.CommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
+        var CurrentIndex = int.Parse(param);
+        switch (CurrentIndex)
+        {
+            case 0:
+
+                break;
+            case 1:
+
+                break;
+            case 2:
+                OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
+                
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void SongImage_Clicked(object sender, EventArgs e)
+    {
+        MainTabView.SelectedIndex=0;
+    }
+
+    private void CloseSubWindowChip_Clicked(object sender, EventArgs e)
+    {
+        var send = (SfChip)sender;
+        var item = (WindowInfo)send.BindingContext;
+        Application.Current!.CloseWindow(item.WindowInstance);
+        WindowsOpened.Remove(item);
+    }
+
+    private void FocusChip_Clicked(object sender, EventArgs e)
+    {
+
+        var send = (SfChip)sender;
+        var item = (WindowInfo)send.BindingContext;
+        Application.Current!.ActivateWindow(item.WindowInstance);
+    }
+
+    private void CloseAllWin_Clicked(object sender, EventArgs e)
+    {
+        foreach (var win in WindowsOpened)
+        {
+            Application.Current!.CloseWindow(win.WindowInstance);
+        }
+        WindowsOpened.Clear();
     }
 }

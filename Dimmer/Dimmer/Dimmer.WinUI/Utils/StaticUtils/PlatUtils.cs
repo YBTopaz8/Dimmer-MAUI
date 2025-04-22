@@ -24,9 +24,8 @@ public static class PlatUtils
     {
         if (mauiWindow == null)
             throw new ArgumentNullException(nameof(mauiWindow));
-
         // 1) get native handle
-        var native = mauiWindow.Handler.PlatformView as Window
+        var native = mauiWindow.Handler.PlatformView as Microsoft.Maui.MauiWinUIWindow
                      ?? throw new InvalidOperationException("Not running on WinUI");
         IntPtr hwnd = WindowNative.GetWindowHandle(native);
 
