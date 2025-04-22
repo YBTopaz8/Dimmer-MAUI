@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="App.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <MauiXaml Update="AppShell.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="DimmerWin.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <None Update="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </None>
+    <MauiXaml Update="Views\PlaylistWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\ArtistWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\AlbumWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\SongNotifierWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\SingleSongPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <Page Update="Views\TestPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <MauiXaml Update="Views\CustomViews\MediaControlBtmBar.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="Views\HomePage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+  </ItemGroup>
+</Project>

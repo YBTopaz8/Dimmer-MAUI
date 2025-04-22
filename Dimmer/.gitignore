@@ -9,3 +9,9 @@
 /bin
 /Properties/PublishProfiles/MSIX-win10-x641.pubxml
 /Utilities/OtherUtils/APIKeys.cs
+/Dimmer/Dimmer/obj/
+/Dimmer/Dimmer/bin/
+/Dimmer/Dimmer.Droid/bin/
+/Dimmer/Dimmer.Droid/obj/
+/Dimmer/Dimmer.WinUI/bin/
+/Dimmer/Dimmer.WinUI/obj/

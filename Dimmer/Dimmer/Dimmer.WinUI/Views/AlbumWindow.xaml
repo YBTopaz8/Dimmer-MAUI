@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.AlbumWindow"
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+        x:DataType="vm:BaseAlbumViewModelWin"
+            xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+            xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
+             xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"         
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"      
+             x:Name="myPage"
+        >
+    <Window.Page>
+        <ContentPage>
+
+            <ContentPage.Resources>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+            <converters:VolumeConverter x:Key="VolConverter" />
+
+
+        </ContentPage.Resources>
+
+            <Grid BackgroundColor="Transparent" >
+                <Image Source="{Binding SelectedAlbumsSongs[0].CoverImagePath}" Opacity="0.1"
+                       x:Name="AlbumImg"/>
+
+                <Grid   BackgroundColor="Transparent" IsVisible="True"
+                RowDefinitions="Auto,*">
+                    <ImageButton Source="restartcircle.png" HeightRequest="40"
+                      x:Name="ResetAlbumSongsList"/>
+                    <HorizontalStackLayout HorizontalOptions="End" Grid.Row="0">
+                        <SearchBar Grid.Row="0" 
+  HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
+     Placeholder="Search Song..."/>
+
+            </HorizontalStackLayout>
+
+
+                    <CollectionView x:Name="AlbumSongsColView" ItemsSource="{Binding SelectedAlbumsSongs}" BackgroundColor="Transparent"
+                            Grid.Row="1" Loaded="AlbumSongsColView_Loaded" IsVisible="True"
+                            Margin="5,0" > 
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SongModelView">
+                            <Border Stroke="Red" HorizontalOptions="Center"
+                                    >
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="DarkSlateBlue"/>
+                                                <Setter Property="Stroke" Value="DarkSlateBlue"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+
+
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border"
+                                  Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                        <Setter Property="Stroke" Value="DarkSlateBlue" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border"
+                                  Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                        <Setter Property="Stroke" Value="Transparent" />
+                                        <Setter Property="StrokeThickness" Value="1"/>
+
+                                    </DataTrigger>
+                                </Border.Triggers>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="PlaySong_Tapped" NumberOfTapsRequired="2"/>
+                                    <PointerGestureRecognizer PointerEntered="PointerGestureRecognizer_PointerEntered"/>
+                                </Border.GestureRecognizers>
+
+
+                                <syncf:SfEffectsView TouchDownEffects="Ripple" BackgroundColor="Transparent">
+                                    <FlexLayout JustifyContent="SpaceBetween" Margin="10,0" BackgroundColor="Transparent">
+                                        <VerticalStackLayout BackgroundColor="Transparent">
+                                            <Label Text="{Binding Title}" FontSize="16"/>
+                                            <Label Text="{Binding ArtistName}" FontSize="13" TextColor="Gray"/>
+
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout BackgroundColor="Transparent">
+                                            <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                            <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
+                                Source="lyrics.png">
+
+                                            </Image>
+                                        </VerticalStackLayout>
+                                    </FlexLayout>
+                                </syncf:SfEffectsView>
+                            </Border>
+                        </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            </Grid>
+
+            </Grid>
+        </ContentPage>
+    </Window.Page>
+</Window>

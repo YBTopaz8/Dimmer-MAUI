@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.SongNotifierWindow"
+             xmlns:vm ="clr-namespace:Dimmer.WinUI.Views"
+             x:DataType="vm:HomeViewModel"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+            xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+             xmlns:models ="clr-namespace:Dimmer.Database.ModelView;assembly=Dimmer"
+             x:Name="myPage" 
+             xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+             Title="SongNotifierWindow">
+    <Window.Page>
+        <ContentPage BackgroundColor="Transparent">
+            <ContentPage.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+                <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+                <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+                <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+                <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+                <converters:VolumeConverter x:Key="VolConverter" />
+
+            </ContentPage.Resources>
+            <Grid ColumnDefinitions="200,*,60" HeightRequest="250">
+                <Image Source="{Binding TemporarilyPickedSong.CoverImagePath}"
+                       Grid.Column="0"/>
+                <VerticalStackLayout Grid.Column="1">
+                    <HorizontalStackLayout HorizontalOptions="Center">
+                        <Label Text="{Binding TemporarilyPickedSong.Title}" FontSize="25"/>
+                        <Label Text="{Binding TemporarilyPickedSong.ArtistName}" FontSize="19"/>
+                        <Label Text="{Binding TemporarilyPickedSong.AlbumName}"/>
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout HorizontalOptions="Center"
+                                           >
+                        <Label Grid.Column="0"
+            Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
+               HorizontalOptions="Center" FontSize="18" 
+               Margin="0,5,0,0"/>
+                        <Label Text="::"/>
+                        <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+               HorizontalOptions="Center" FontSize="18" Grid.Column="2"
+               Margin="0,5,0,0"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
+        </ContentPage>
+    </Window.Page>
+</Window>
