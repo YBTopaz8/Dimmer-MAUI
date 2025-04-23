@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 
 namespace Dimmer.Interfaces;
-public interface IRepository<T>
+public interface IRepository<T> where T : new()
 {
     void AddOrUpdate(T entity);
     void AddOrUpdate(IEnumerable<T> entities);
