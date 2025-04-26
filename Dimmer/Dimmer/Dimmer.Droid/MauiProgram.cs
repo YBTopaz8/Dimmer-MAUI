@@ -1,4 +1,5 @@
-﻿using Dimmer.Interfaces;
+﻿using Dimmer.DimmerAudio;
+using Dimmer.Interfaces;
 using Dimmer.Utils;
 using Dimmer.Views;
 
@@ -12,7 +13,7 @@ public static class MauiProgram
 
         builder
             .UseSharedMauiApp();
-
+        builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddSingleton<HomePage>();
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

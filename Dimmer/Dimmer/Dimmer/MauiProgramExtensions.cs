@@ -31,6 +31,11 @@ public static class MauiProgramExtensions
         builder.Logging.AddDebug();
 #endif
 
+
+        builder.Services.AddSingleton(FolderPicker.Default);
+        builder.Services.AddSingleton(FilePicker.Default);
+        builder.Services.AddSingleton(FileSaver.Default);
+
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
      
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();

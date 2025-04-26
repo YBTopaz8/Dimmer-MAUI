@@ -1,6 +1,7 @@
 ﻿using Dimmer.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ public class AppUtil : IAppUtil
 
     public Window LoadWindow()
     {
-        return new Window();
+        Window window = new Window();
+        window.Page = GetShell();
+        return window;
     }
 }

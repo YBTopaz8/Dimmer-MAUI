@@ -24,17 +24,17 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
         if (key == null || key.Action != KeyEventActions.Down)
             return;
 
-        string? action = key.KeyCode switch
-        {
-            Keycode.MediaPlayPause => ExoPlayerService.ActionPlay,
-            Keycode.MediaPlay => ExoPlayerService.ActionPlay,
-            Keycode.MediaPause => ExoPlayerService.ActionPause,
-            Keycode.MediaNext => ExoPlayerService.ActionNext,
-            Keycode.MediaPrevious => ExoPlayerService.ActionPrevious,
-            _ => null
-        };
+        //string? action = key.KeyCode switch
+        //{
+        //    Keycode.MediaPlayPause => ExoPlayerService.ActionPlay,
+        //    Keycode.MediaPlay => ExoPlayerService.ActionPlay,
+        //    Keycode.MediaPause => ExoPlayerService.ActionPause,
+        //    Keycode.MediaNext => ExoPlayerService.ActionNext,
+        //    Keycode.MediaPrevious => ExoPlayerService.ActionPrevious,
+        //    _ => null
+        //};
 
-        if (action != null)
-            context.StartService(new Intent(context, typeof(ExoPlayerService)).SetAction(action));
+        //if (action != null)
+        //    context.StartService(new Intent(context, typeof(ExoPlayerService)).SetAction(action));
     }
 }

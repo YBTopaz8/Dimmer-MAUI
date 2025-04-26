@@ -15,6 +15,9 @@ public class MainApplication : MauiApplication
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
     }
 
+
+
+
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +

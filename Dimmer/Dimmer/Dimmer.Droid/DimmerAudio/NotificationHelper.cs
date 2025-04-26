@@ -1,77 +1,98 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
-using AndroidX.Core.App;
-using AndroidX.Media3.ExoPlayer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AndroidX.Media3.Common;
+using AndroidX.Media3.Session;
+using AndroidX.Media3.UI;
+using Android.Util;
+using Android.Graphics;
+using Dimmer.Droid;
 
 namespace Dimmer.DimmerAudio;
+
 public static class NotificationHelper
 {
-    public const string ChannelId = "dimmer_media";
+    public const string ChannelId = "dimmer_media_playback_channel";
+    public const int NotificationId = 1001;
+
     public static void CreateChannel(Context ctx)
     {
         if (Build.VERSION.SdkInt < BuildVersionCodes.O)
             return;
+
         var chan = new NotificationChannel(
-            ChannelId, "Dimmer player", NotificationImportance.Low)
-        { Description = "Media playback" };
+            ChannelId,
+            ctx.GetString(Resource.String.playback_channel_name),
+            NotificationImportance.Low
+        )
+        { Description = ctx.GetString(Resource.String.playback_channel_desc) };
         chan.SetSound(null, null);
-        var mgr = (NotificationManager)ctx.GetSystemService(Context.NotificationService);
-        mgr.CreateNotificationChannel(chan);
+        chan.EnableLights(false);
+        chan.EnableVibration(false);
+        ((NotificationManager)ctx.GetSystemService(Context.NotificationService))!
+            .CreateNotificationChannel(chan);
+
+        Log.Debug("NotifHelper", "Channel created");
     }
 
-    public static Notification BuildNotification(
-        Context ctx,
-        Android.Support.V4.Media.Session.MediaSessionCompat.Token token,
-        SimpleExoPlayer player)
+    public static PlayerNotificationManager BuildManager(
+        MediaSessionService service,
+        MediaSession session)
     {
-        var metadata = player.CurrentMediaItem?.GetMediaMetadata();
-        var builder = new NotificationCompat.Builder(ctx, ChannelId)
-            .SetStyle(new NotificationCompat.MediaStyle()
-                .SetMediaSession(token)
-                .SetShowActionsInCompactView(0, 1, 2))
-            .SetSmallIcon(Resource.Drawable.ic_media_play)
-            .SetContentTitle(metadata?.Title.ToString())
-            .SetContentText(metadata?.Artist.ToString())
-            .SetOngoing(player.PlayWhenReady);
+        CreateChannel(service);
 
-        // Play/Pause
-        var playPauseAction = new NotificationCompat.Action(
-            player.PlayWhenReady ? Resource.Drawable.ic_pause : Resource.Drawable.ic_play,
-            player.PlayWhenReady ? "Pause" : "Play",
-            PendingIntent.GetService(
-                ctx, 1,
-                new Intent(ctx, typeof(ExoPlayerService)).SetAction(
-                    player.PlayWhenReady
-                      ? ExoPlayerService.ActionPause
-                      : ExoPlayerService.ActionPlay),
-                PendingIntentFlags.UpdateCurrent|PendingIntentFlags.Immutable)
-        );
-        builder.AddAction(
-            new NotificationCompat.Action(
-                Resource.Drawable.ic_skip_previous, "Prev",
-                PendingIntent.GetService(
-                    ctx, 2,
-                    new Intent(ctx, typeof(ExoPlayerService))
-                      .SetAction(ExoPlayerService.ActionPrevious),
-                    PendingIntentFlags.UpdateCurrent|PendingIntentFlags.Immutable))
-        );
-        builder.AddAction(playPauseAction);
-        builder.AddAction(
-            new NotificationCompat.Action(
-                Resource.Drawable.ic_skip_next, "Next",
-                PendingIntent.GetService(
-                    ctx, 3,
-                    new Intent(ctx, typeof(ExoPlayerService))
-                      .SetAction(ExoPlayerService.ActionNext),
-                    PendingIntentFlags.UpdateCurrent|PendingIntentFlags.Immutable))
+        // PendingIntent to open your MainActivity
+        var pi = PendingIntent.GetActivity(
+            service, 0,
+            new Intent(service, typeof(MainActivity))
+              .SetAction(Intent.ActionMain)
+              .AddCategory(Intent.CategoryLauncher),
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
         );
 
-        return builder.Build();
+        // Adapter for title/text/artwork
+        var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
+
+        // Build & keep in a field
+        var mgr = new PlayerNotificationManager.Builder(
+                service, NotificationId, ChannelId
+            )
+            .SetMediaDescriptionAdapter(descrAdapter)!
+            .SetNotificationListener(new NotificationListener(service))!
+            .SetSmallIconResourceId(Resource.Drawable.exo_icon_circular_play)!            
+           
+            .Build();
+
+        // Link session so transport-buttons work
+        mgr.SetMediaSessionToken(session.SessionCompatToken);
+
+        // Don’t call SetPlayer here — wait until after Prepare()
+        // Return for caller to hang onto
+        Log.Debug("NotifHelper", "Manager built");
+        return mgr;
     }
+
+    class NotificationListener : Java.Lang.Object, PlayerNotificationManager.INotificationListener
+    {
+        readonly MediaSessionService _svc;
+        public NotificationListener(MediaSessionService svc) => _svc = svc;
+
+        public void OnNotificationPosted(int notificationId, Notification? notification, bool ongoing)
+        {
+            if (ongoing)
+                _svc.StartForeground(notificationId, notification);
+            else
+                _svc.StopForeground(false);
+            Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
+        }
+
+        public void OnNotificationCancelled(int id, bool dismissedByUser)
+        {
+            _svc.StopForeground(true);
+            Log.Debug("NotifHelper", $"Cancelled id={id} userDismissed={dismissedByUser}");
+        }
+    }
+
+    // You can keep the DefaultMediaDescriptionAdapter from Media3.UI,
+    // or use the one shipped with the library.
 }
