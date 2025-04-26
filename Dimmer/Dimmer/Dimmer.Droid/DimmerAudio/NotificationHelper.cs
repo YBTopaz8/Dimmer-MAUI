@@ -33,6 +33,7 @@ public static class NotificationHelper
             .CreateNotificationChannel(chan);
 
         Log.Debug("NotifHelper", "Channel created");
+        Console.WriteLine("NotifHelper", "Channel created");
     }
 
     public static PlayerNotificationManager BuildManager(
@@ -62,9 +63,11 @@ public static class NotificationHelper
             .SetSmallIconResourceId(Resource.Drawable.exo_icon_circular_play)!            
            
             .Build();
+        mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
+        mgr.SetMediaSessionToken(session.PlatformToken);
 
         // Link session so transport-buttons work
-        mgr.SetMediaSessionToken(session.SessionCompatToken);
+        //mgr.SetMediaSessionToken(session.SessionCompatToken);
 
         // Don’t call SetPlayer here — wait until after Prepare()
         // Return for caller to hang onto

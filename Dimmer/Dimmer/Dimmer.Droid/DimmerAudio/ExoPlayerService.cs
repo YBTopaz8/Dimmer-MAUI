@@ -47,6 +47,9 @@ using MediaMetadata = AndroidX.Media3.Common.MediaMetadata;
 using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
 using Rating = AndroidX.Media3.Common.Rating;
 using AndroidX.Media3.ExoPlayer.Source.Ads;
+using static Android.Provider.CalendarContract;
+using Android.Util;
+using Java.Util.Concurrent;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -55,7 +58,7 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
          Enabled = true, Exported = true,
          ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
 
-//[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionSetRating })]
+[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionSetRating })]
 public class ExoPlayerService : MediaSessionService
 {
 
@@ -177,10 +180,12 @@ public class ExoPlayerService : MediaSessionService
     {
         Console.WriteLine("RaiseSeekCompleted");
         SeekCompleted?.Invoke(this, EventArgs.Empty);
+    
     }
 
-
-    public override void OnCreate()
+    public MediaController mediaController;
+    
+    public async override void OnCreate()
     {
         base.OnCreate();
         Console.WriteLine("[ExoPlayerService] OnCreate");
@@ -190,20 +195,54 @@ public class ExoPlayerService : MediaSessionService
                 .SetAudioAttributes(AudioAttributes.Default, true) // handleAudioFocus=true
                 .SetHandleAudioBecomingNoisy(true)
                 .SetWakeMode(C.WakeModeNetwork)
+                
                 .Build();
-
+            
             player.AddListener(new PlayerEventListener(this));
 
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
+
+            Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
+            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
+            var comss = new List<SessionCommand>
+                {
+    new SessionCommand(CommandPreparePlay, Bundle.Empty),
+    new SessionCommand(CommandSetFavorite, Bundle.Empty)
+                };
+
+
+            var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
+            var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
+            var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
+            List<SessionCommand> mediaButtonCommands = new List<SessionCommand>();
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPlay, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPause, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionTogglePlayback, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPrevious, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSeekTo, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSetRating, Bundle.Empty));
+            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty));
+
+
+
+
             mediaSession = new MediaSession.Builder(this, player)
-                .SetSessionActivity(GetMainActivityPendingIntent())
+                .SetSessionActivity(pendingIntent)
                 .SetCallback(sessionCallback)
+                //.SetPeriodicPositionUpdateEnabled(true) as global::AndroidX.Media3.Session.MediaSession.Builder;
+            //var medSess2 = medSess
+                //.SetShowPlayButtonIfPlaybackIsSuppressed(true)
                 .SetId("Dimmer_MediaSession_Main") // Choose a unique ID
+                //.SetMediaButtonPreferences(mediaButtonCommands) as global::AndroidX.Media3.Session.MediaSession.Builder;
+
+                ////.SetCommandButtonsForMediaItems(comss)
+                //medSess2
                 .Build();
+            //mediaSession = medSess2.Build();
+
             _binder = new ExoPlayerServiceBinder(this);
-
-
 
             // 2) NotificationManager
             NotificationHelper.CreateChannel(this);
@@ -222,6 +261,11 @@ public class ExoPlayerService : MediaSessionService
             _positionHandler.Post(_positionRunnable);
 
             Console.WriteLine("[ExoPlayerService] Initialization successful.");
+            var controllerFuture = new MediaController.Builder(this, mediaSession.Token!).BuildAsync();
+            
+            var controllerObject = await controllerFuture.GetAsync();
+            mediaController = (MediaController)controllerObject;
+
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
         catch (System.Exception ex) { HandleInitError("SYSTEM INITIALIZATION", ex); StopSelf(); }
@@ -243,7 +287,7 @@ public class ExoPlayerService : MediaSessionService
             return;
 
         string action = intent.Action;
-
+        
         switch (intent.Action)
         {
             case ActionPlay:
@@ -279,30 +323,6 @@ public class ExoPlayerService : MediaSessionService
         => _binder;
 
 
-    void InitNotificationManager()
-    {
-        // 1) PendingIntent to reopen your UI
-        var sessionIntent = PendingIntent.GetActivity(
-            this,
-            0,
-            new Intent(this, typeof(MainActivity)),
-            PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent
-        );
-
-        // 2) Description adapter (uses your MediaSession metadata)
-        var descrAdapter = new DefaultMediaDescriptionAdapter(sessionIntent);
-
-        // 3) Build & keep it in a field so it's not GC'd
-        _notifMgr = new PlayerNotificationManager.Builder(this, NOTIF_ID, CHANNEL_ID)!
-            .SetMediaDescriptionAdapter(descrAdapter)!
-            .SetNotificationListener(new NotifListener(this))!
-            .SetChannelNameResourceId(Resource.String.exo_controls_play_description)!
-            .SetSmallIconResourceId(Resource.Drawable.exo_icon_play)!
-            .Build();
-
-        // 4) Link it to the ExoPlayer
-        _notifMgr.SetPlayer(player);
-    }
 
     // … rest of your service (StartForeground, OnStartCommand, cleanup, etc.) …
 
@@ -348,10 +368,12 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         }
         return mediaSession;
     }
-    #region Custom EventArgs (Helper Classes) - ADD THIS REGION
     public class PlaybackStateEventArgs : EventArgs { public int PlaybackState { get; } public PlaybackStateEventArgs(int state) { PlaybackState = state; } }
     public class PlaybackExceptionEventArgs : EventArgs { public PlaybackException Error { get; } public PlaybackExceptionEventArgs(PlaybackException error) { Error = error; } }
-    #endregion
+    
+
+
+
     public override void OnDestroy()
     {
         Console.WriteLine("[ExoPlayerService] OnDestroy");
@@ -374,7 +396,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
     }
 
     // --- Public Accessors ---
-    public IPlayer? GetPlayerInstance() => player;
+    public IExoPlayer? GetPlayerInstance() => player;
     public MediaSession? GetMediaSessionInstance() => mediaSession;
 
     // --- Private Helpers ---
@@ -532,7 +554,10 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
 
             Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={startPosition}");
             player.SetMediaItem(currentMediaItem, startPosition); // Set item and start position
+            player.AddMediaItem(currentMediaItem); 
+            //player.SetMediaItems(new[] { currentMediaItem,currentMediaItem }); // Set item and start position
             player.Prepare();
+            
             player.Play(); // Start playback immediately
             
             Console.WriteLine("[ExoPlayerService] Player Prepare() and Play() called.");
@@ -610,8 +635,9 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             // We might need to re-prepare if SetMediaItem clears the prepared state
             // player.Prepare(); // Check if needed after setMediaItem
             player.PlayWhenReady = playWhenReady; // Restore PlayWhenReady state
-
+            
             // Option 3: Update MediaSession? metadata directly (affects controllers, maybe not player)
+            
             mediaSession.Player = player; // Ensure session is aware of the player
             //mediaSession?.SetCustomLayout
             //mediaSession?.SetSessionActivity
@@ -620,7 +646,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             //mediaSession?.SetAvailableCommands
 
             Console.WriteLine($"[ExoPlayerService] SetFavorite update processed for item {currentMediaItem.MediaId}.");
-
+            
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("SetFavorite Update", jex); }
         catch (System.Exception ex) { HandleInitError("SetFavorite Update", ex); }
@@ -641,6 +667,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         // ← NEW: called when seek() actually finishes
         public void OnSeekProcessed()
         {
+            
             Console.WriteLine("[PlayerEventListener] Seek completed");
         }
         // ← NEW: required for abstract onPlayerStateChanged(boolean,int)
@@ -661,8 +688,14 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         }
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
+            Console.WriteLine($"[PlayerEventListener] OnPositionDiscontinuity:");
+            Console.WriteLine($"  Reason: {reason}"); // Check this against Player.DISCONTINUITY_REASON_ constants
+            Console.WriteLine($"  Old Position: {oldPosition.PositionMs}ms (Window: {oldPosition.WindowIndex})");
+            Console.WriteLine($"  New Position: {newPosition.PositionMs}ms (Window: {newPosition.WindowIndex})");
 
-
+            Log.WriteLine(LogPriority.Info, "MyAppSeekDebug", $"*** OnPositionDiscontinuity Entered! Reason={reason} ***");
+            Log.Debug("PlayerEventListener", $"OnPositionDiscontinuity Detail: Reason={reason}, From={oldPosition?.PositionMs ?? -1}, To={newPosition?.PositionMs ?? -1}");
+            
         }
         public void OnPlaybackStateChanged(int playbackState)
         {
@@ -755,15 +788,33 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         // --- Other IPlayer.Listener Methods (Implement if needed, stubs are often sufficient) ---
         public void OnAudioAttributesChanged(AudioAttributes? p0) { /* Log if needed */ }
         public void OnAudioSessionIdChanged(int p0) { /* Log if needed */ }
-        public void OnAvailableCommandsChanged(PlayerCommands? p0) 
+        public void OnAvailableCommandsChanged(PlayerCommands? availableCommands)
         {
-            
-            Console.WriteLine($"[PlayerEventListener] AvailableCommandsChanged"); 
+          
         }
         public void OnCues(CueGroup? p0) { /* Handle subtitles/cues */ }
         public void OnDeviceInfoChanged(DeviceInfo? p0) { /* Log if needed */ }
         public void OnDeviceVolumeChanged(int p0, bool p1) { /* Log if needed */ }
-        public void OnEvents(IPlayer? player, PlayerEvents? events) { /* Generic event hook, log specific events */ }
+        public void OnEvents(IPlayer? player, PlayerEvents? events) 
+        {
+
+            if (events == null || player == null)
+                return;
+            // Example checks (Constants are in IPlayer):
+            var siz = events.Size();
+            Console.WriteLine(events.Size());
+
+            for (int i = 0; i < siz; i++)
+            {
+                var eventType = events.Get(i);
+                Console.WriteLine($"Event {i}: {eventType}");
+                
+            }
+            // Example inspection:
+
+            // ... other checks
+
+        }
         public void OnIsLoadingChanged(bool isLoading) { Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}"); }
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
         // public void OnMetadata(MediaMetadata? p0) {} // Superseded by OnMediaMetadataChanged? Check docs.
@@ -780,7 +831,11 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
         public void OnTimelineChanged(Timeline? p0, int reason) 
         {
-        
+            Console.WriteLine(p0.IsEmpty);
+            Console.WriteLine(p0.WindowCount);
+            Console.WriteLine(p0.PeriodCount);
+            
+            
             Console.WriteLine($"[PlayerEventListener] TimelineChanged: Reason={reason}");
             CheckDurationUpdate(); // ADDED
         }
@@ -795,12 +850,14 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
     // --- Media Session Callback (Handles Controller Commands) ---
     sealed class MediaPlaybackSessionCallback : Object, MediaSession.ICallback
     {
+        readonly IExoPlayer player;
         private readonly ExoPlayerService service;
         private const string CallbackDebugTag = "MediaSessionCallback"; // For CallbackToFutureAdapter
 
         public MediaPlaybackSessionCallback(ExoPlayerService service)
         {
             this.service = service;
+            player = service.GetPlayerInstance();
         }
 
         const string TAG = "MediaSessionCallback";
@@ -811,18 +868,23 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         {
             Console.WriteLine($"[{TAG}] OnConnect from {controller.PackageName}");
 
-            var sessionCommandsBuilder = new SessionCommands.Builder()!
-        .Add(SessionCommand.CommandCodeSessionSetRating)!
-        .Add(new SessionCommand(CommandPreparePlay, Bundle.Empty))!
-        .Add(new SessionCommand(CommandSetFavorite, Bundle.Empty));
-            var availableSessionCommands = sessionCommandsBuilder.Build();
-
+            //var customList = new List<SessionCommand> {
+            var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
+            var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
+            var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
+            //new SessionCommand(ExoPlayerService.CommandSetFavorite, Bundle.Empty)
+            //};
+            var sessionCommands = new SessionCommands.Builder()
+                   .Add(SessionCommand.CommandCodeSessionSetRating)
+                   .Add(e)  
+                   .Add(w)  
+                   .Add(ww)  
+                  .Build();
             var playerCommands = new PlayerCommands.Builder()
-                .AddAllCommands()!
-                .Build();
-
-            Console.WriteLine($"[{TAG}] Accepting {controller.PackageName}");
-            return MediaSession.ConnectionResult.Accept(availableSessionCommands, playerCommands)!;
+              .AddAllCommands()
+              .Build();
+            Console.WriteLine();
+            return MediaSession.ConnectionResult.Accept(sessionCommands, playerCommands)!;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
@@ -885,14 +947,80 @@ Bundle? args)
             );
         }
 
+        public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
+        {
+
+            if (intent == null || intent.Action == null)
+                return false;
+
+            Console.WriteLine($"[SessionCallback] OnMediaButtonEvent: Received intent {intent.Action}");
+
+            return true;
+        }
         // Decide whether to allow a specific PLAYER command requested by a controller
         public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controllerInfo, int playerCommand)
         {
             // Default: Allow any player command that was declared available in OnConnect.
             // You could add logic here to disallow specific commands based on state or controller.
             // Example: if (playerCommand == PlayerCommands.CommandSeekTo && !isSeekAllowed) return SessionResult.ResultErrorNotSupported;
-            Console.WriteLine($"[SessionCallback] OnPlayerCommandRequest: Command={playerCommand} from {controllerInfo.PackageName}. Allowing.");
-            return playerCommand;
+            Console.WriteLine($"[SessionCallback] OnPlayerCommandRequest: Command={playerCommand} from. Allowing.");
+
+
+            var ply = session.Player;
+           
+            //return playerCommand;
+            return SessionResult.ResultSuccess; 
+        }
+        public void OnPlayerInteractionFinished(MediaSession? session, MediaSession.ControllerInfo? controller, PlayerCommands? commands)
+        {
+            Console.WriteLine($"[SessionCallback] OnPlayerInteractionFinished: Controller={controller.PackageName} Commands={commands?.Size() ?? 0}");
+
+
+            if (commands == null || commands.Size() == 0)
+            {
+                Console.WriteLine("[SessionCallback] No specific commands reported (system change?)");
+                return;
+            }
+
+            for (int i = 0; i < commands.Size(); i++)
+            {
+                int command = commands.Get(i);
+
+                switch (command)
+                {
+                    case 0:
+                        Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
+                        break;
+                        
+                    case 1:
+                        Console.WriteLine("[SessionCallback] User pressed PLAY/PAUSE button.");
+                        break;
+
+                    case 5:
+                        Console.WriteLine("[SessionCallback] User seeked to a position. "+session.Player.CurrentPosition);
+                        break;
+
+                    //case 7:
+                    //    Console.WriteLine("[SessionCallback] User pressed SEEK BACK button.");
+                    //    break;
+
+                    //case 9:
+                    //    Console.WriteLine("[SessionCallback] User pressed SEEK FORWARD button.");
+                    //    break;
+
+                    case 9:
+                        Console.WriteLine("[SessionCallback] User pressed NEXT button.");
+                        break;
+
+                    case 7:
+                        Console.WriteLine("[SessionCallback] User pressed PREVIOUS button.");
+                        break;
+
+                    default:
+                        Console.WriteLine($"[SessionCallback] Unknown command: {command}");
+                        break;
+                }
+            }
         }
 
 
@@ -900,37 +1028,73 @@ Bundle? args)
 
         public IListenableFuture OnPlay(MediaSession? session, MediaSession.ControllerInfo? controller)
 => CallbackToFutureAdapter.GetFuture(
-     new Resolver(c => {
+     new Resolver(c =>
+     {
          service.player?.Play();
          c.Set(SessionResult.ResultSuccess);
      }, $"{CallbackDebugTag}-OnPlay"));
 
         public IListenableFuture OnPause(MediaSession? session, MediaSession.ControllerInfo? controller)
             => CallbackToFutureAdapter.GetFuture(
-                 new Resolver(c => {
+                 new Resolver(c =>
+                 {
                      service.player?.Pause();
                      c.Set(SessionResult.ResultSuccess);
                  }, $"{CallbackDebugTag}-OnPause"));
 
         public IListenableFuture OnStop(MediaSession? session, MediaSession.ControllerInfo? controller)
             => CallbackToFutureAdapter.GetFuture(
-                 new Resolver(c => {
+                 new Resolver(c =>
+                 {
                      service.player?.Stop();
                      c.Set(SessionResult.ResultSuccess);
                  }, $"{CallbackDebugTag}-OnStop"));
 
-        public IListenableFuture OnSeekTo(MediaSession? session, MediaSession.ControllerInfo? controller, long posMs)
-            => CallbackToFutureAdapter.GetFuture(
-                 new Resolver(c => {
-                     service.player?.SeekTo(posMs);
-                     c.Set(SessionResult.ResultSuccess);
-                 }, $"{CallbackDebugTag}-OnSeekTo"));
-        public IListenableFuture OnSetRating(
-MediaSession? session,
-MediaSession.ControllerInfo? controller,
-Rating rating)
+        // ADD THIS METHOD BACK (or uncomment it if you removed it)
+        public
+             IListenableFuture OnSeekTo(MediaSession session, MediaSession.ControllerInfo controller, long positionMs)
+        {
+
+            
+            Log.Info("MediaSessionCallback", $"*** OnSeekTo OVERRIDE called! Target Position: {positionMs}ms from Controller: {controller?.PackageName ?? "Unknown"} ***");
+
+            // *** MUST WRAP THE LAMBDA IN 'new Resolver(...)' ***
+            return CallbackToFutureAdapter.GetFuture(
+                new Resolver( // <-- Create instance of Resolver
+                    completer => // <-- Lambda is argument to Resolver constructor
+                    {
+                        try
+                        {
+                                Log.Debug("MediaSessionCallback", $"OnSeekTo Override: Executing player.SeekTo({positionMs})");
+                                service.player.SeekTo(positionMs);
+                                completer.Set(SessionResult.ResultSuccess); // Use constants for clarity
+                         
+                            
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Log.Error("MediaSessionCallback", $"Error in OnSeekTo override callback: {ex}");
+                            //completer.SetException(ex); // Report exception via completer
+                            service?.HandleInitError("Callback OnSeekTo Override", ex);
+                        }
+                    },
+                    "OnSeekToCompleter" // <-- Debug tag for the future
+                ) // <-- End of new Resolver(...)
+            ); // <-- End of GetFuture(...)
+        }
+
+
+        //public IListenableFuture OnSeekTo(MediaSession? session, MediaSession.ControllerInfo? controller, long posMs)
+        //    => CallbackToFutureAdapter.GetFuture(
+        //         new Resolver(c =>
+        //         {
+        //             service.player?.SeekTo(posMs);
+        //             c.Set(SessionResult.ResultSuccess);
+        //         }, $"{CallbackDebugTag}-OnSeekTo"));
+        public IListenableFuture OnSetRating(MediaSession? session, MediaSession.ControllerInfo? controller, Rating rating)
 => CallbackToFutureAdapter.GetFuture(
-    new Resolver(c => {
+    new Resolver(c =>
+    {
         try
         {
             Java.Lang.Object result = SessionResult.ResultSuccess;
@@ -942,7 +1106,7 @@ Rating rating)
             //}
             //else
             //{
-                result = new SessionResult(SessionResult.ResultErrorNotSupported);
+            result = new SessionResult(SessionResult.ResultErrorNotSupported);
             //}
             c.Set(result);
         }
@@ -953,12 +1117,10 @@ Rating rating)
         }
     }, $"{CallbackDebugTag}-OnSetRating")
 );
-
-        public IListenableFuture OnSkipToNext(
-            MediaSession? session,
-            MediaSession.ControllerInfo? controller)
+        public IListenableFuture OnSkipToNext(MediaSession? session, MediaSession.ControllerInfo? controller)
             => CallbackToFutureAdapter.GetFuture(
-                new Resolver(c => {
+                new Resolver(c =>
+                {
                     try
                     {
                         if (service.player?.IsCommandAvailable(8) == true)
@@ -973,11 +1135,10 @@ Rating rating)
                 }, $"{CallbackDebugTag}-OnSkipToNext")
             );
 
-        public IListenableFuture OnSkipToPrevious(
-            MediaSession? session,
-            MediaSession.ControllerInfo? controller)
+        public IListenableFuture OnSkipToPrevious(MediaSession? session, MediaSession.ControllerInfo? controller)
             => CallbackToFutureAdapter.GetFuture(
-                new Resolver(c => {
+                new Resolver(c =>
+                {
                     try
                     {
                         long pos = service.player?.CurrentPosition ?? 0;
@@ -1003,20 +1164,20 @@ Rating rating)
                 }, $"{CallbackDebugTag}-OnSkipToPrevious")
             );
 
-        // TODO: Implement other standard callbacks if needed, e.g.:
-        // OnSetRepeatMode, OnSetShuffleModeEnabled, OnSetPlaybackSpeed, etc.
-        // Use the CallbackToFutureAdapter pattern for each. Example:
-        /*
-        public IListenableFuture OnSetRepeatMode(MediaSession? session, MediaSession.ControllerInfo? controller, int repeatMode)
-        {
-            Console.WriteLine($"[SessionCallback] OnSetRepeatMode: {repeatMode}");
-            return CallbackToFutureAdapter.GetFuture(completer => {
-                try { service.player?.SetRepeatMode(repeatMode); completer.Set(SessionResult.ResultSuccess); }
-                catch (System.Exception ex) { completer.SetException(ex); service.HandleInitError("OnSetRepeatMode", ex); }
-                return $"{CallbackDebugTag}-OnSetRepeatMode";
-            });
-        }
-        */
+        //        // TODO: Implement other standard callbacks if needed, e.g.:
+        //        // OnSetRepeatMode, OnSetShuffleModeEnabled, OnSetPlaybackSpeed, etc.
+        //        // Use the CallbackToFutureAdapter pattern for each. Example:
+        //        /*
+        //        public IListenableFuture OnSetRepeatMode(MediaSession? session, MediaSession.ControllerInfo? controller, int repeatMode)
+        //        {
+        //            Console.WriteLine($"[SessionCallback] OnSetRepeatMode: {repeatMode}");
+        //            return CallbackToFutureAdapter.GetFuture(completer => {
+        //                try { service.player?.SetRepeatMode(repeatMode); completer.Set(SessionResult.ResultSuccess); }
+        //                catch (System.Exception ex) { completer.SetException(ex); service.HandleInitError("OnSetRepeatMode", ex); }
+        //                return $"{CallbackDebugTag}-OnSetRepeatMode";
+        //            });
+        //        }
+        //        */
 
     } // End MediaPlaybackSessionCallback
 

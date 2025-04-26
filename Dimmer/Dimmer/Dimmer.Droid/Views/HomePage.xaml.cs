@@ -35,6 +35,9 @@ public partial class HomePage : ContentPage
             var img= PlayBackStaticUtils.GetCoverImage(song.FilePath, true);
             await dimmeraudio.InitializeAsync(song, img);
             await dimmeraudio.PlayAsync();
+
+            await Task.Delay(4000);
+            await dimmeraudio.SeekAsync(79);
         }
     }
 }
