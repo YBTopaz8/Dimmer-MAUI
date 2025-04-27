@@ -9,9 +9,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="dimmicoo.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Dimmer Dependencies -->

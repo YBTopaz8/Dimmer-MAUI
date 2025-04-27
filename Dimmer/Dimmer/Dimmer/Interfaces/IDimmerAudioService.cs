@@ -19,8 +19,8 @@ public interface IDimmerAudioService
     /// Set AND PLAY the current playback position (in seconds).
     ///</Summary>    
     Task SeekAsync(double positionSeconds);
-    Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage);
-
+    Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage=null);
+    void InitializePlaylist(IEnumerable<SongModel> songModels);
     Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync();
 
     ///<Summary>

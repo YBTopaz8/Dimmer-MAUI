@@ -966,5 +966,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             token.ThrowIfCancellationRequested(); // Check cancellation after copy.
         }
     }
+
+    public void InitializePlaylist(IEnumerable<SongModel> songModels)
+    {
+        throw new NotImplementedException();
+    }
+
 }
 

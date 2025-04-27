@@ -93,9 +93,17 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // --- Methods mapping to Service Commands/Player Actions ---
 
+    public void InitializePlaylist(IEnumerable<SongModel> songModel)
+    {
+
+    }
     public Task InitializeAsync(SongModel songModel, byte[]? songCoverImage)
     {
         _currentSongModel = songModel;
+
+        Service?.Prepare(_currentSongModel.FilePath,
+            _currentSongModel.Title, _currentSongModel.ArtistName, _currentSongModel.AlbumName);
+
         // The actual preparation and playback is triggered by sending a command
         // to the ExoPlayerService, usually from the UI layer after connecting.
         // This method might just store context.
@@ -106,9 +114,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task PlayAsync()
     {
-            Service?.PrepareAndPlayAsync(_currentSongModel.FilePath,
-                _currentSongModel.Title,_currentSongModel.ArtistName, _currentSongModel.AlbumName);
-
             //Player?.Play();
             Console.WriteLine("[AudioService] Play command sent.");
         

@@ -23,7 +23,7 @@ using Java.Lang;
 using Object = Java.Lang.Object;
 
 // AndroidX Concurrent Futures - For CallbackToFutureAdapter
-using AndroidX.Concurrent.Futures; // <<-- USE THIS
+using AndroidX.Concurrent.Futures; // <<-- 
 using Google.Common.Util.Concurrent; // <<-- PROVIDES IListenableFuture INTERFACE needed by CallbackToFutureAdapter
 
 // System & IO
@@ -58,29 +58,9 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
          Enabled = true, Exported = true,
          ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
 
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious, ActionSeekTo, ActionSetRating })]
+
 public class ExoPlayerService : MediaSessionService
 {
-
-
-    public const string ActionPlay = "com.xamarin.action.PLAY";
-    public const string ActionPause = "com.xamarin.action.PAUSE";
-    public const string ActionStop = "com.xamarin.action.STOP";
-    public const string ActionTogglePlayback = "com.xamarin.action.TOGGLEPLAYBACK";
-    public const string ActionNext = "com.xamarin.action.NEXT";
-    public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
-    public const string ActionSeekTo = "com.xamarin.action.ActionSeekTo";
-    public const string ActionSetRating = "com.xamarin.ActionSetRating";
-
-    // --- NuGet Check Reminder ---
-    // Required:
-    // - Xamarin.AndroidX.Media3.Common
-    // - Xamarin.AndroidX.Media3.ExoPlayer
-    // - Xamarin.AndroidX.Media3.Session
-    // - Xamarin.AndroidX.Concurrent.Futures
-    // - Xamarin.Google.Guava.ListenableFuture (or full Guava, needed for IListenableFuture interface itself)
-    // --- End NuGet Check Reminder ---
-
     // --- Components ---
     private MediaSession? mediaSession;
     private IExoPlayer? player;
@@ -212,18 +192,18 @@ public class ExoPlayerService : MediaSessionService
                 };
 
 
-            var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
-            var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
-            var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
-            List<SessionCommand> mediaButtonCommands = new List<SessionCommand>();
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPlay, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPause, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionTogglePlayback, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPrevious, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSeekTo, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSetRating, Bundle.Empty));
-            mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty));
+            //var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
+            //var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
+            //var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
+            //List<SessionCommand> mediaButtonCommands = new List<SessionCommand>();
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPlay, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPause, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionTogglePlayback, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPrevious, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSeekTo, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSetRating, Bundle.Empty));
+            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty));
 
 
 
@@ -272,51 +252,12 @@ public class ExoPlayerService : MediaSessionService
     }
 
 
-
-
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        HandleIntent(intent);
+        //HandleIntent(intent);
         base.OnStartCommand(intent, flags, startId);
         return StartCommandResult.Sticky;
     }
-
-    private void HandleIntent(Intent intent)
-    {
-        if (intent == null || intent.Action == null)
-            return;
-
-        string action = intent.Action;
-        
-        switch (intent.Action)
-        {
-            case ActionPlay:
-                Play();
-                Console.WriteLine("Step 3 Play from Intent");
-                break;
-            case ActionPause:
-                Pause();
-                break;
-            case ActionPrevious:
-                //SkipToPrevious();
-                break;
-            case ActionNext:
-                //SkipToNext();
-                Console.WriteLine("Step 4 Skip To Next From Intent");
-                break;
-            case ActionSeekTo:
-                //SeekTo(Position);
-                break;
-            case ActionSetRating:
-                //SetRating(IsFavorite);
-                break;
-            default:
-                break;
-        }
-
-    }
-
-
 
 
     public override IBinder OnBind(Intent? intent)
@@ -459,7 +400,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
     /// <param name="album">Album name (for metadata).</param>
     /// <param name="imagePath">Optional local path to artwork.</param>
     /// <param name="startPositionMs">Where to start in milliseconds.</param>
-    public Task PrepareAndPlayAsync(
+    public Task Prepare(
         string url,
         string title,
         string artist,
@@ -467,49 +408,14 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         string? imagePath = null,
         long startPositionMs = 0)
     {
-        // Build the extras bundle expected by your ExoPlayerService.HandlePreparePlay
-        var extras = new Bundle();
-        extras.PutString(ExoPlayerService.KeyMediaPlayDataUrl, url);
-        extras.PutString(ExoPlayerService.KeyMediaPlayDataTitle, title);
-        extras.PutString(ExoPlayerService.KeyMediaPlayDataArtist, artist);
-        extras.PutString(ExoPlayerService.KeyMediaPlayDataAlbum, album);
-        if (!string.IsNullOrEmpty(imagePath))
-            extras.PutString(ExoPlayerService.KeyMediaPlayDataImagePath, imagePath);
-        extras.PutLong(ExoPlayerService.KeyMediaPlayDataPosition, startPositionMs);
-        // (duration and favorite flags omitted here but you can add them similarly)
 
-        // Directly invoke the service’s prepare-play handler
-        HandlePreparePlay(extras);
-
-        return Task.CompletedTask;
-    }
-
-
-    // --- Internal Command Handlers (Called by Session Callback) ---
-    internal void HandlePreparePlay(Bundle extras)
-    {
-        if (player == null)
-        { Console.WriteLine("[ExoPlayerService] HandlePreparePlay failed: Player is null."); return; }
-
-        string? url = extras.GetString(KeyMediaPlayDataUrl);
-        if (string.IsNullOrEmpty(url))
-        { Console.WriteLine("[ExoPlayerService] HandlePreparePlay failed: URL missing."); return; }
-
-        string title = extras.GetString(KeyMediaPlayDataTitle, "Unknown Title");
-        string artist = extras.GetString(KeyMediaPlayDataArtist, "Unknown Artist");
-        string album = extras.GetString(KeyMediaPlayDataAlbum, "Unknown Album");
-        string? imagePath = extras.GetString(KeyMediaPlayDataImagePath);
-        long startPosition = extras.GetLong(KeyMediaPlayDataPosition, 0); // Use GetLong for position
-        long duration = extras.GetLong(KeyMediaPlayDataDuration, C.TimeUnset);
-        bool isFavorite = extras.GetBoolean(KeyMediaPlayDataIsFavorite, false);
-        currentFavoriteStatus = isFavorite; // Update internal state
-
-        Console.WriteLine($"[ExoPlayerService] Handling PREPARE_PLAY: Title='{title}', StartPos={startPosition}ms, Favorite={isFavorite}");
 
         var metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)!
             .SetArtist(artist)!
             .SetAlbumTitle(album)!
+            .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
+            .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
             .SetIsPlayable(Java.Lang.Boolean.True); // Use Java Boolean wrapper
 
@@ -534,122 +440,29 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             Console.WriteLine($"[ExoPlayerService] Warning: Artwork file not found: {imagePath}");
         }
 
-
-        // Add duration to extras bundle if available (Media3 might pick it up)
-        //Bundle mdExtras = new Bundle();
-        //if (duration != C.TimeUnset)
-        //{
-        //    mdExtras.PutLong(MetadataKeyDurationString, duration); // Use standard key
-        //}
-        //metadataBuilder.SetExtras(mdExtras);
-
-
         try
         {
             currentMediaItem = new MediaItem.Builder()!
                .SetMediaId(url)! // Use URL as Media ID for simplicity
                .SetUri(Uri.Parse(url))!
-               .SetMediaMetadata(metadataBuilder.Build())!
+               .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
 
-            Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={startPosition}");
-            player.SetMediaItem(currentMediaItem, startPosition); // Set item and start position
+            Console.WriteLine($"[ExoPlayerService] Setting MediaItem: ID={currentMediaItem.MediaId}, Pos={0}");
+            player.SetMediaItem(currentMediaItem, 0); // Set item and start position
             player.AddMediaItem(currentMediaItem); 
             //player.SetMediaItems(new[] { currentMediaItem,currentMediaItem }); // Set item and start position
             player.Prepare();
             
-            player.Play(); // Start playback immediately
+            //player.Play(); // Start playback immediately
             
-            Console.WriteLine("[ExoPlayerService] Player Prepare() and Play() called.");
+            Console.WriteLine("[ExoPlayerService] Player Prepare() called.");
+            
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
         catch (System.Exception ex) { HandleInitError("PreparePlay SetMediaItem/Prepare", ex); }
-    }
 
-    internal void HandleSetFavorite(Bundle extras)
-    {
-        if (player == null)
-        { Console.WriteLine("[ExoPlayerService] HandleSetFavorite failed: Player is null."); return; }
-        if (currentMediaItem == null)
-        { Console.WriteLine("[ExoPlayerService] HandleSetFavorite failed: currentMediaItem is null."); return; }
-
-        bool isFavorite = extras.GetBoolean(KeyMediaPlayDataIsFavorite, false);
-
-        // Avoid unnecessary updates if status hasn't changed
-        if (currentFavoriteStatus == isFavorite)
-        {
-            Console.WriteLine($"[ExoPlayerService] HandleSetFavorite: Status already {isFavorite}, skipping update.");
-            return;
-        }
-
-        currentFavoriteStatus = isFavorite; // Update internal state FIRST
-        Console.WriteLine($"[ExoPlayerService] Handling SET_FAVORITE: IsFavorite={isFavorite}");
-
-        // Get existing metadata, prioritize player's current metadata
-        MediaMetadata? currentMetadata = player.MediaMetadata;
-        if (currentMetadata == null && currentMediaItem.MediaMetadata != null)
-        {
-            currentMetadata = currentMediaItem.MediaMetadata;
-            Console.WriteLine("[ExoPlayerService] HandleSetFavorite: Using metadata from initial MediaItem.");
-        }
-        else if (currentMetadata == null)
-        {
-            Console.WriteLine("[ExoPlayerService] HandleSetFavorite failed: Cannot find current metadata to update.");
-            return;
-        }
-
-
-        try
-        {
-            // Create a builder based on the current metadata
-            var newMetadataBuilder = currentMetadata.BuildUpon()!;
-
-            // Update the user rating
-            //newMetadataBuilder.SetUserRating(new HeartRating(isFavorite)); // Ensure HeartRating exists
-            //var updatedMetadata = newMetadataBuilder.Build();
-
-            // Create a new MediaItem with the updated metadata
-            //var newItemBuilder = currentMediaItem.BuildUpon()!.SetMediaMetadata(updatedMetadata)!;
-            //var updatedMediaItem = newItemBuilder.Build();
-
-            //// Store the updated item
-            //currentMediaItem = updatedMediaItem;
-
-            // Update the player's current item *without* resetting position or state
-            // Note: This might be tricky. Depending on the player state and exact behavior desired,
-            // you might need to just update the session's metadata if the player doesn't reflect
-            // MediaItem metadata changes smoothly mid-playback without a setMediaItem call.
-            // Let's try updating the player's metadata directly first if possible.
-
-            // Check if player allows direct metadata update (might not be public API)
-            // If not, we might need to call setMediaItem again, preserving position.
-
-            // Option 1: Try just updating the player's mediaMetadata property if it takes effect (less disruptive)
-            // player.MediaMetadata = updatedMetadata; // This property is likely read-only
-
-            // Option 2: Replace the item, preserving position (might cause slight interruption)
-            long currentPosition = player.CurrentPosition;
-            bool playWhenReady = player.PlayWhenReady;
-            Console.WriteLine($"[ExoPlayerService] HandleSetFavorite: Replacing media item to update metadata at pos {currentPosition}");
-            player.SetMediaItem(currentMediaItem, currentPosition);
-            // We might need to re-prepare if SetMediaItem clears the prepared state
-            // player.Prepare(); // Check if needed after setMediaItem
-            player.PlayWhenReady = playWhenReady; // Restore PlayWhenReady state
-            
-            // Option 3: Update MediaSession? metadata directly (affects controllers, maybe not player)
-            
-            mediaSession.Player = player; // Ensure session is aware of the player
-            //mediaSession?.SetCustomLayout
-            //mediaSession?.SetSessionActivity
-            //mediaSession?.SetSessionExtras
-            //mediaSession?.SetMediaButtonPreferences
-            //mediaSession?.SetAvailableCommands
-
-            Console.WriteLine($"[ExoPlayerService] SetFavorite update processed for item {currentMediaItem.MediaId}.");
-            
-        }
-        catch (Java.Lang.Throwable jex) { HandleInitError("SetFavorite Update", jex); }
-        catch (System.Exception ex) { HandleInitError("SetFavorite Update", ex); }
+        return Task.CompletedTask;
     }
 
 
@@ -869,16 +682,10 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             Console.WriteLine($"[{TAG}] OnConnect from {controller.PackageName}");
 
             //var customList = new List<SessionCommand> {
-            var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
-            var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
-            var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
             //new SessionCommand(ExoPlayerService.CommandSetFavorite, Bundle.Empty)
             //};
             var sessionCommands = new SessionCommands.Builder()
-                   .Add(SessionCommand.CommandCodeSessionSetRating)
-                   .Add(e)  
-                   .Add(w)  
-                   .Add(ww)  
+                   .Add(SessionCommand.CommandCodeSessionSetRating)  
                   .Build();
             var playerCommands = new PlayerCommands.Builder()
               .AddAllCommands()
@@ -903,50 +710,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         // --- Command Handling ---
 
         // Handle CUSTOM commands sent via controller.sendCustomCommand(...)
-        public IListenableFuture OnCustomCommand(
-MediaSession? session,
-MediaSession.ControllerInfo? controller,
-SessionCommand? customCommand,
-Bundle? args)
-        {
-            string action = customCommand.CustomAction ?? "unknown";
-            Console.WriteLine($"[SessionCallback] OnCustomCommand: Action='{action}' from {controller.PackageName}");
-
-            return CallbackToFutureAdapter.GetFuture(
-                new Resolver(completer =>
-                {
-                    Java.Lang.Object result = SessionResult.ResultSuccess;
-                    try
-                    {
-                        switch (action)
-                        {
-                            case CommandPreparePlay:
-                                service.HandlePreparePlay(args);
-                                break;
-
-                            case CommandSetFavorite:
-                                service.HandleSetFavorite(args);
-                                break;
-
-                            default:
-                                Console.WriteLine($"[SessionCallback] Unsupported custom command: {action}");
-                                result = new SessionResult(SessionResult.ResultErrorNotSupported);
-                                break;
-                        }
-                        completer.Set(result);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[SessionCallback] Error in OnCustomCommand '{action}': {ex}");
-                        service.HandleInitError($"CustomCommand {action}", ex);
-                        completer.SetException(ex);
-                    }
-                },
-                // debug tag just for tracing
-                $"{CallbackDebugTag}-OnCustomCommand-{action}")
-            );
-        }
-
+      
         public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
@@ -1024,160 +788,7 @@ Bundle? args)
         }
 
 
-        // --- Standard Command Implementations (using CallbackToFutureAdapter) ---
-
-        public IListenableFuture OnPlay(MediaSession? session, MediaSession.ControllerInfo? controller)
-=> CallbackToFutureAdapter.GetFuture(
-     new Resolver(c =>
-     {
-         service.player?.Play();
-         c.Set(SessionResult.ResultSuccess);
-     }, $"{CallbackDebugTag}-OnPlay"));
-
-        public IListenableFuture OnPause(MediaSession? session, MediaSession.ControllerInfo? controller)
-            => CallbackToFutureAdapter.GetFuture(
-                 new Resolver(c =>
-                 {
-                     service.player?.Pause();
-                     c.Set(SessionResult.ResultSuccess);
-                 }, $"{CallbackDebugTag}-OnPause"));
-
-        public IListenableFuture OnStop(MediaSession? session, MediaSession.ControllerInfo? controller)
-            => CallbackToFutureAdapter.GetFuture(
-                 new Resolver(c =>
-                 {
-                     service.player?.Stop();
-                     c.Set(SessionResult.ResultSuccess);
-                 }, $"{CallbackDebugTag}-OnStop"));
-
-        // ADD THIS METHOD BACK (or uncomment it if you removed it)
-        public
-             IListenableFuture OnSeekTo(MediaSession session, MediaSession.ControllerInfo controller, long positionMs)
-        {
-
-            
-            Log.Info("MediaSessionCallback", $"*** OnSeekTo OVERRIDE called! Target Position: {positionMs}ms from Controller: {controller?.PackageName ?? "Unknown"} ***");
-
-            // *** MUST WRAP THE LAMBDA IN 'new Resolver(...)' ***
-            return CallbackToFutureAdapter.GetFuture(
-                new Resolver( // <-- Create instance of Resolver
-                    completer => // <-- Lambda is argument to Resolver constructor
-                    {
-                        try
-                        {
-                                Log.Debug("MediaSessionCallback", $"OnSeekTo Override: Executing player.SeekTo({positionMs})");
-                                service.player.SeekTo(positionMs);
-                                completer.Set(SessionResult.ResultSuccess); // Use constants for clarity
-                         
-                            
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Log.Error("MediaSessionCallback", $"Error in OnSeekTo override callback: {ex}");
-                            //completer.SetException(ex); // Report exception via completer
-                            service?.HandleInitError("Callback OnSeekTo Override", ex);
-                        }
-                    },
-                    "OnSeekToCompleter" // <-- Debug tag for the future
-                ) // <-- End of new Resolver(...)
-            ); // <-- End of GetFuture(...)
-        }
-
-
-        //public IListenableFuture OnSeekTo(MediaSession? session, MediaSession.ControllerInfo? controller, long posMs)
-        //    => CallbackToFutureAdapter.GetFuture(
-        //         new Resolver(c =>
-        //         {
-        //             service.player?.SeekTo(posMs);
-        //             c.Set(SessionResult.ResultSuccess);
-        //         }, $"{CallbackDebugTag}-OnSeekTo"));
-        public IListenableFuture OnSetRating(MediaSession? session, MediaSession.ControllerInfo? controller, Rating rating)
-=> CallbackToFutureAdapter.GetFuture(
-    new Resolver(c =>
-    {
-        try
-        {
-            Java.Lang.Object result = SessionResult.ResultSuccess;
-            //if (rating is HeartRating hr)
-            //{
-            //    var args = new Bundle();
-            //    args.PutBoolean(KeyMediaPlayDataIsFavorite, hr.IsHeart);
-            //    service.HandleSetFavorite(args);
-            //}
-            //else
-            //{
-            result = new SessionResult(SessionResult.ResultErrorNotSupported);
-            //}
-            c.Set(result);
-        }
-        catch (Exception ex)
-        {
-            c.SetException(ex);
-            service.HandleInitError("OnSetRating", ex);
-        }
-    }, $"{CallbackDebugTag}-OnSetRating")
-);
-        public IListenableFuture OnSkipToNext(MediaSession? session, MediaSession.ControllerInfo? controller)
-            => CallbackToFutureAdapter.GetFuture(
-                new Resolver(c =>
-                {
-                    try
-                    {
-                        if (service.player?.IsCommandAvailable(8) == true)
-                            service.player.SeekToNextMediaItem();
-                        c.Set(SessionResult.ResultSuccess);
-                    }
-                    catch (Exception ex)
-                    {
-                        c.SetException(ex);
-                        service.HandleInitError("OnSkipToNext", ex);
-                    }
-                }, $"{CallbackDebugTag}-OnSkipToNext")
-            );
-
-        public IListenableFuture OnSkipToPrevious(MediaSession? session, MediaSession.ControllerInfo? controller)
-            => CallbackToFutureAdapter.GetFuture(
-                new Resolver(c =>
-                {
-                    try
-                    {
-                        long pos = service.player?.CurrentPosition ?? 0;
-                        long threshold = service.player?.SeekBackIncrement ?? 3000;
-                        if (service.player?.IsCommandAvailable(6) == true
-                            && pos <= threshold)
-                        {
-                            service.player.SeekToPreviousMediaItem();
-                        }
-                        else if (service.player?.IsCommandAvailable(6) == true)
-                        {
-                            service.player.SeekTo(0);
-                        }
-                        if (service.player?.PlayWhenReady ?? false)
-                            service.player.Play();
-                        c.Set(SessionResult.ResultSuccess);
-                    }
-                    catch (Exception ex)
-                    {
-                        c.SetException(ex);
-                        service.HandleInitError("OnSkipToPrevious", ex);
-                    }
-                }, $"{CallbackDebugTag}-OnSkipToPrevious")
-            );
-
-        //        // TODO: Implement other standard callbacks if needed, e.g.:
-        //        // OnSetRepeatMode, OnSetShuffleModeEnabled, OnSetPlaybackSpeed, etc.
-        //        // Use the CallbackToFutureAdapter pattern for each. Example:
-        //        /*
-        //        public IListenableFuture OnSetRepeatMode(MediaSession? session, MediaSession.ControllerInfo? controller, int repeatMode)
-        //        {
-        //            Console.WriteLine($"[SessionCallback] OnSetRepeatMode: {repeatMode}");
-        //            return CallbackToFutureAdapter.GetFuture(completer => {
-        //                try { service.player?.SetRepeatMode(repeatMode); completer.Set(SessionResult.ResultSuccess); }
-        //                catch (System.Exception ex) { completer.SetException(ex); service.HandleInitError("OnSetRepeatMode", ex); }
-        //                return $"{CallbackDebugTag}-OnSetRepeatMode";
-        //            });
-        //        }
-        //        */
+       
 
     } // End MediaPlaybackSessionCallback
 
@@ -1212,5 +823,3 @@ public class ExoPlayerServiceBinder : Binder
         Service = service;
     }
 }
-
-// End namespace

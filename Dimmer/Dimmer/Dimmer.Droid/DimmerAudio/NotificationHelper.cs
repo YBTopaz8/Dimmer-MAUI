@@ -13,7 +13,7 @@ namespace Dimmer.DimmerAudio;
 public static class NotificationHelper
 {
     public const string ChannelId = "dimmer_media_playback_channel";
-    public const int NotificationId = 1001;
+    public const int NotificationId = 010899;
 
     public static void CreateChannel(Context ctx)
     {
@@ -25,7 +25,10 @@ public static class NotificationHelper
             ctx.GetString(Resource.String.playback_channel_name),
             NotificationImportance.Low
         )
-        { Description = ctx.GetString(Resource.String.playback_channel_desc) };
+        { 
+            
+            Description = ctx.GetString(Resource.String.playback_channel_desc) 
+        };
         chan.SetSound(null, null);
         chan.EnableLights(false);
         chan.EnableVibration(false);
