@@ -4,11 +4,16 @@
              x:Class="Dimmer.AppShell"
        Title="Dimmer"
       xmlns:views="clr-namespace:Dimmer.Views"
-       >
+       FlyoutBehavior="Flyout">
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate views:HomePage}"
         Route="MainPage" >
+    </ShellContent>
+    <ShellContent
+        Title="Settings"
+        ContentTemplate="{DataTemplate views:SettingsPage}"
+        Route="SettingsPage" >
 
     </ShellContent>
 

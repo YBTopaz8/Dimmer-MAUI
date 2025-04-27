@@ -1,48 +1,65 @@
-using Dimmer.Data.Models;
+using DevExpress.Maui.Core;
+using DevExpress.Maui.Editors;
 using Dimmer.Data.ModelView;
-using Dimmer.Interfaces;
-using Dimmer.Utilities;
-using System.Threading.Tasks;
 
 namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage
 {
-    private readonly IDimmerAudioService dimmeraudio;
-    private readonly IFilePicker filePicker;
 
-    public HomePage(IDimmerAudioService dimmeraudio, IFilePicker filePicker)
+    public HomePageViewModel MyViewModel { get; internal set; }
+    public HomePage(HomePageViewModel vm)
 	{
 		InitializeComponent();
-        this.dimmeraudio=dimmeraudio;
-        this.filePicker=filePicker;
+        MyViewModel=vm;
+
+        MyViewModel!.LoadPageViewModel();
+        BindingContext = vm;
     }
 
-    private async void Button_Clicked(object sender, EventArgs e)
+    protected override void OnAppearing()
     {
-        var res = await filePicker.PickAsync();
+        base.OnAppearing();
+        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
 
-        if (res != null)
-        {
-            SongModel song = new SongModel()
-            {
-                Title = res.FileName,
-                FilePath = res.FullPath,
-                
-                IsPlaying = false,
-                
-            };
-            var img= PlayBackStaticUtils.GetCoverImage(song.FilePath, true);
-            await dimmeraudio.InitializeAsync(song, img);
-            positionn.Minimum=0;    
-            dimmeraudio.PositionChanged += (s, e) =>
-            {
-                Console.WriteLine($"Position: {e}");
-                positionn.Value = e;
-            };
-            positionn.Maximum = dimmeraudio.Duration;
-            await dimmeraudio.PlayAsync();
+        MyViewModel.SetCollectionView(SongsColView);
+        //MyViewModel.SetSongLyricsView(LyricsColView);
 
-        }
+
+    }
+
+    private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
+    {
+        MyViewModel.SeekSongPosition(currPosPer: ProgressSlider.Value);
+    }
+
+    private static void CurrentlyPlayingSection_ChipLongPress(object sender, System.ComponentModel.HandledEventArgs e)
+    {
+        Debug.WriteLine(sender.GetType());
+        var send = (Chip)sender;
+        var song = send.LongPressCommandParameter;
+        Debug.WriteLine(song);
+        Debug.WriteLine(song.GetType());
+
+    }
+
+
+    private void SongsColView_Scrolled(object sender, DevExpress.Maui.CollectionView.DXCollectionViewScrolledEventArgs e)
+    {
+        int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+        bool isFullyVisible = e.FirstVisibleItemHandle <= itemHandle && itemHandle <= e.LastVisibleItemHandle;
+
+    }
+    private void ShowMoreBtn_Clicked(object sender, EventArgs e)
+    {
+        View s = (View)sender;
+        SongModelView song = (SongModelView)s.BindingContext;
+        MyViewModel.SetCurrentlyPickedSong(song);
+        //SongsMenuPopup.Show();
+    }
+    private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        MyViewModel.PlaySong(e.Item as SongModelView,Utilities.Enums.CurrentPage.HomePage);
+
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Dimmer.Services;
-using System.Linq;
 
 namespace Dimmer.Orchestration;
 
@@ -20,6 +19,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     public PlayListMgtFlow(
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<GenreModel> genreRepo,
+        IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -29,7 +30,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;

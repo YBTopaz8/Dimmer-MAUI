@@ -1,10 +1,24 @@
-﻿using Dimmer.Services;
-using System;
+﻿using CommunityToolkit.Maui.Storage;
+using CommunityToolkit.Mvvm.Input;
+using Dimmer.Services;
 
 namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject, IDisposable
 {
+
+    #region Settings Section
+    
+
+    [ObservableProperty]
+    public partial bool IsLoadingSongs { get; set; }
+    [ObservableProperty]
+    public partial int SettingsPageIndex { get; set; } = 0;
+    [ObservableProperty]
+    public partial ObservableCollection<string> FolderPaths { get; set; } = new();
+
+
+    #endregion
 #if DEBUG
     public const string CurrentAppVersion = "Dimmer v1.8a-debug";
 #else
@@ -15,12 +29,13 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
-    
+
+    public BaseAppFlow BaseAppFlow { get; }
 
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
-
+    public LyricsMgtFlow LyricsMgtFlow { get; }
     [ObservableProperty]
     public partial bool IsShuffle { get; set; }
 
@@ -65,7 +80,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
 
     public BaseViewModel(
         IMapper mapper,
-       
+       BaseAppFlow baseAppFlow,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -75,12 +90,14 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         LyricsMgtFlow lyricsMgtFlow)
     {
         _mapper = mapper;
+        BaseAppFlow=baseAppFlow;
         AlbumsMgtFlow = albumsMgtFlow;
         PlaylistsMgtFlow = playlistsMgtFlow;
         SongsMgtFlow = songsMgtFlow;
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
+        LyricsMgtFlow=lyricsMgtFlow;
         Initialize();
         //SubscribeToLyricIndexChanges();
         //SubscribeToSyncLyricsChanges();
@@ -362,6 +379,73 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         
     }
+
+    #region Settings Methods
+
+    List<string> FullFolderPaths = [];
+    [RelayCommand]
+    public async Task SelectSongFromFolder()
+    {
+
+        CancellationTokenSource cts = new();
+        CancellationToken token = cts.Token;
+
+        FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
+
+        if (res.Folder is null)
+        {
+            return;
+        }
+        string? folder = res.Folder?.Path;
+        if (string.IsNullOrEmpty(folder))
+        {
+            return;
+        }
+
+        FolderPaths.Add(folder);
+
+        FullFolderPaths.Add(folder);
+
+        AppSettingsService.MusicFoldersPreference.AddMusicFolder(FullFolderPaths);
+        
+    }
+
+
+    [RelayCommand]
+    public async Task LoadSongsFromFolders()
+    {
+        try
+        {
+            DeviceDisplay.Current.KeepScreenOn = true;
+            IsLoadingSongs = true;
+            if (FolderPaths is null || FolderPaths.Count < 0)
+            {
+                await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
+                IsLoadingSongs = false;
+                return;
+            }
+            
+            var loadSongsResult = await Task.Run(()=> BaseAppFlow.LoadSongs([.. FolderPaths]));
+            if (loadSongsResult is not null)
+            {   
+                Debug.WriteLine("Songs Loaded Successfully");
+            }
+            else
+            {
+                Debug.WriteLine("No Songs Found");
+            }
+            IsLoadingSongs = false;
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert("Error During Scanning", ex.Message, "Ok");
+        }
+        finally
+        {
+            DeviceDisplay.Current.KeepScreenOn = false;
+        }
+    }
+
     public bool ToggleStickToTop()
     {
         IsStickToTop = !IsStickToTop;
@@ -369,6 +453,8 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         return IsStickToTop;
     }
 
+
+    #endregion
     public void Dispose()
     {
         _subs.Dispose();

@@ -6,6 +6,8 @@ public interface IPlayerStateService : IDisposable
     /// Fires immediately with the last value on subscription.
     /// </summary>
     IObservable<SongModel> CurrentSong { get; }
+    IObservable<string> LatestDeviceLog { get; }
+    IObservable<IList<string>> DailyLatestDeviceLogs { get; }
 
     /// <summary>
     /// Fires immediately with the last snapshot on subscription.
@@ -18,6 +20,13 @@ public interface IPlayerStateService : IDisposable
     IObservable<SongModel> SecondSelectedSong { get; }
     IObservable<LyricPhraseModel> CurrentLyric { get; }
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
+
+    #region Settings Methods
+
+    void SetCurrentLogMsg(string logMessage);
+
+    #endregion
+
 
     /// <summary>
     /// Replace the master list of songs.

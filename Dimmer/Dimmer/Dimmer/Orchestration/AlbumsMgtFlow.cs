@@ -20,6 +20,8 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     public AlbumsMgtFlow(
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<GenreModel> genreRepo,
+        IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -29,7 +31,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         IFolderMonitorService folderMonitor,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
         _albumRepo     = albumRepo;
         _linkRepo      = linkRepo;
@@ -139,13 +141,13 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     // 2. Sorting & Grouping
     public List<AlbumModel> SortAlbumsByName(bool ascending = true)
         => ascending
-            ? _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.Name).ToList()
-            : _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.Name).ToList();
+            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.Name)]
+            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.Name)];
 
     public List<AlbumModel> SortAlbumsByDateAdded(bool ascending = false)
         => ascending
-            ? _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.DateCreated).ToList()
-            : _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.DateCreated).ToList();
+            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.DateCreated)]
+            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.DateCreated)];
 
     public Dictionary<string, List<AlbumModel>> GroupAlbumsByArtist()
         => _linkRepo.GetAll().AsEnumerable()
@@ -169,13 +171,13 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 
     public List<AlbumModel> GetAlbumsOrderedByTrackCount(bool ascending = false)
         => ascending
-            ? _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.NumberOfTracks).ToList()
-            : _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.NumberOfTracks).ToList();
+            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.NumberOfTracks)]
+            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.NumberOfTracks)];
 
     public List<AlbumModel> GetAlbumsOrderedByTotalDuration(bool ascending = false)
         => ascending
-            ? _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration).ToList()
-            : _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration).ToList();
+            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration)]
+            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration)];
 
     // 3. Statistics & Insights
     public int GetTotalAlbumCount()
@@ -232,13 +234,12 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             .ToDictionary(g => g.Key!, g => g.Max(p => p.DatePlayed));
 
     public List<string> GetMostSkewedAlbums(int topN)
-        => GetAlbumSkipCounts()
+        => [.. GetAlbumSkipCounts()
             .OrderByDescending(kv =>
                 (double)kv.Value /
                 (GetAlbumPlayCounts().GetValueOrDefault(kv.Key, 1)))
             .Take(topN)
-            .Select(kv => kv.Key)
-            .ToList();
+            .Select(kv => kv.Key)];
 
     // 4. Recommendations & Smart Picks
     public List<AlbumModel> RecommendSimilarAlbums(string albumId, int count = 5)
@@ -252,7 +253,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             .Select(l => l.ArtistId)
             .Distinct();
 
-        return _albumRepo.GetAll().AsEnumerable()
+        return [.. _albumRepo.GetAll().AsEnumerable()
             .Where(a => a.LocalDeviceId != albumId)
             .Select(a => new
             {
@@ -265,8 +266,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             .Where(x => x.Score > 0)
             .OrderByDescending(x => x.Score)
             .Take(count)
-            .Select(x => x.Album)
-            .ToList();
+            .Select(x => x.Album)];
     }
 
     public List<AlbumModel> GetRecentlyPlayedAlbums(int count)

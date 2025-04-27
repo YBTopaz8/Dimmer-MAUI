@@ -3,33 +3,23 @@
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Graphics;
 using Android.OS;
-using Android.Runtime;
 using AndroidX.Media3.UI;
 using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
-using AndroidX.Core.App;
-using AndroidX.Core.Content;
 
-// Media3 Core Components - !! ENSURE NUGETS ARE CORRECT !!
-using AndroidX.Media3.Common; // Provides IPlayer, MediaItem, MediaMetadata, Rating, etc.
-using AndroidX.Media3.ExoPlayer; // Provides IExoPlayer, ExoPlayer
-using AndroidX.Media3.Session; // Provides MediaSessionService, MediaSession, SessionCommand, SessionResult, etc.
+using AndroidX.Media3.Common; 
+using AndroidX.Media3.ExoPlayer; 
+using AndroidX.Media3.Session; 
 
 // Java Interop
 using Java.Lang;
 using Object = Java.Lang.Object;
 
 // AndroidX Concurrent Futures - For CallbackToFutureAdapter
-using AndroidX.Concurrent.Futures; // <<-- 
-using Google.Common.Util.Concurrent; // <<-- PROVIDES IListenableFuture INTERFACE needed by CallbackToFutureAdapter
 
 // System & IO
-using System;
-using System.IO;
-using System.Collections.Generic;
 #endregion
 
 // Your App specific using
@@ -37,19 +27,11 @@ using Dimmer.Droid; // Make sure this namespace is correct for MainActivity and 
 using AndroidX.Media3.Common.Text;
 // using Exception = Java.Lang.Exception; // Can use System.Exception generally
 using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
-using Exception = Java.Lang.Exception;
-using AndroidX.Media3.ExoPlayer.Source.Preload;
-using static Android.Text.Style.TtsSpan;
-using System.Diagnostics;
-using Android.Media;
-using AndroidX.Media3.UI;
 using MediaMetadata = AndroidX.Media3.Common.MediaMetadata;
 using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
-using Rating = AndroidX.Media3.Common.Rating;
-using AndroidX.Media3.ExoPlayer.Source.Ads;
-using static Android.Provider.CalendarContract;
 using Android.Util;
 using Java.Util.Concurrent;
+using Android.Media;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -80,9 +62,7 @@ public class ExoPlayerService : MediaSessionService
     //private const string MetadataKeyDurationString = MetadataCompat.MetadataKeyDuration; // Use constant from support lib if available
 
     // --- Internal State ---
-    private MediaItem? currentMediaItem;
-    private bool currentFavoriteStatus = false;
-    private const int NotificationId = 010899; // Choose a unique ID
+    private MediaItem? currentMediaItem; // Choose a unique ID
 
     // --- Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
@@ -90,19 +70,22 @@ public class ExoPlayerService : MediaSessionService
     public event StatusChangedEventHandler? StatusChanged;
     public event BufferingEventHandler? Buffering;
     public event CoverReloadedEventHandler? CoverReloaded;
-    public event PlayingEventHandler? Playing;
-    public event PlayingChangedEventHandler? PlayingChanged;
-    public event PositionChangedEventHandler? PositionChanged; public event EventHandler<PlaybackExceptionEventArgs>? ErrorOccurred;
-    public event EventHandler<long>? DurationChanged;
-
-    public event EventHandler? SeekCompleted;
-
-    const string CHANNEL_ID = "dimmer_media_playback";
-    const int NOTIF_ID = 1001;
-    PlayerNotificationManager _notifMgr; 
     
-    private Handler _positionHandler;
-    private Runnable _positionRunnable;
+    public event PlayingChangedEventHandler? PlayingChanged;
+    public event PositionChangedEventHandler? PositionChanged;
+    public event SeekCompletedEventHandler? SeekCompleted;
+    public event EventHandler<long>? DurationChanged;
+    //public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes
+    
+
+    
+    
+    PlayerNotificationManager? _notifMgr; 
+    
+    private Handler? _positionHandler;
+    private Runnable? _positionRunnable;
+    private MediaController? mediaController;
+
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
     private void StartPositionUpdates() // Renamed from previous example if different
     {
@@ -122,7 +105,7 @@ public class ExoPlayerService : MediaSessionService
     {
         Console.WriteLine(playbackState);
         StatusChanged?.Invoke(this, new EventArgs());
-        // Manage timer based on state
+        
         
     }
 
@@ -137,12 +120,12 @@ public class ExoPlayerService : MediaSessionService
 
     internal void RaiseIsBufferingChanged(bool isBuffering)
     {
-        //Buffering?.Invoke(this, isBuffering);
+        Buffering?.Invoke(this, EventArgs.Empty);
     }
 
     internal void RaiseDurationChanged(long durationMs)
     {
-        //DurationChanged?.Invoke(this, durationMs);
+        DurationChanged?.Invoke(this, durationMs);
     }
 
     internal void RaiseCoverReloaded()
@@ -152,18 +135,17 @@ public class ExoPlayerService : MediaSessionService
 
     internal void RaiseErrorOccurred(PlaybackException error)
     {
-        //ErrorOccurred?.Invoke(this, new PlaybackExceptionEventArgs(error));
         StopPositionUpdates();
     }
 
-    internal void RaiseSeekCompleted()
+    internal void RaiseSeekCompleted(double newPosition)
     {
+        
         Console.WriteLine("RaiseSeekCompleted");
-        SeekCompleted?.Invoke(this, EventArgs.Empty);
+        SeekCompleted?.Invoke(this, newPosition);
     
     }
 
-    public MediaController mediaController;
     
     public async override void OnCreate()
     {
@@ -172,9 +154,9 @@ public class ExoPlayerService : MediaSessionService
         try
         {
             player = new ExoPlayerBuilder(this)
-                .SetAudioAttributes(AudioAttributes.Default, true) // handleAudioFocus=true
-                .SetHandleAudioBecomingNoisy(true)
-                .SetWakeMode(C.WakeModeNetwork)
+                .SetAudioAttributes(AudioAttributes.Default, true)!
+                .SetHandleAudioBecomingNoisy(true)!
+                .SetWakeMode(C.WakeModeNetwork)!
                 
                 .Build();
             
@@ -185,42 +167,13 @@ public class ExoPlayerService : MediaSessionService
 
             Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
             PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
-            var comss = new List<SessionCommand>
-                {
-    new SessionCommand(CommandPreparePlay, Bundle.Empty),
-    new SessionCommand(CommandSetFavorite, Bundle.Empty)
-                };
+            
 
-
-            //var e = new SessionCommand(ExoPlayerService.CommandPreparePlay, Bundle.Empty);
-            //var w = new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty);
-            //var ww = new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty);
-            //List<SessionCommand> mediaButtonCommands = new List<SessionCommand>();
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPlay, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPause, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionTogglePlayback, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionNext, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionPrevious, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSeekTo, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionSetRating, Bundle.Empty));
-            //mediaButtonCommands.Add(new SessionCommand(ExoPlayerService.ActionStop, Bundle.Empty));
-
-
-
-
-            mediaSession = new MediaSession.Builder(this, player)
-                .SetSessionActivity(pendingIntent)
-                .SetCallback(sessionCallback)
-                //.SetPeriodicPositionUpdateEnabled(true) as global::AndroidX.Media3.Session.MediaSession.Builder;
-            //var medSess2 = medSess
-                //.SetShowPlayButtonIfPlaybackIsSuppressed(true)
-                .SetId("Dimmer_MediaSession_Main") // Choose a unique ID
-                //.SetMediaButtonPreferences(mediaButtonCommands) as global::AndroidX.Media3.Session.MediaSession.Builder;
-
-                ////.SetCommandButtonsForMediaItems(comss)
-                //medSess2
+            mediaSession = new MediaSession.Builder(this, player)!
+                .SetSessionActivity(pendingIntent)!
+                .SetCallback(sessionCallback)!
+                .SetId("Dimmer_MediaSession_Main")!
                 .Build();
-            //mediaSession = medSess2.Build();
 
             _binder = new ExoPlayerServiceBinder(this);
 
@@ -230,7 +183,7 @@ public class ExoPlayerService : MediaSessionService
 
             _notifMgr.SetPlayer(player);    
             // 3) Poll position every second
-            _positionHandler = new Handler(Looper.MainLooper);
+            _positionHandler = new Handler(Looper.MainLooper!);
             _positionRunnable = new Runnable(() =>
             {
                 // fire your PositionChanged event (you already have one in IAudioActivity)
@@ -243,18 +196,17 @@ public class ExoPlayerService : MediaSessionService
             Console.WriteLine("[ExoPlayerService] Initialization successful.");
             var controllerFuture = new MediaController.Builder(this, mediaSession.Token!).BuildAsync();
             
-            var controllerObject = await controllerFuture.GetAsync();
-            mediaController = (MediaController)controllerObject;
+            var controllerObject = await controllerFuture?.GetAsync()!;
+            mediaController = (MediaController)controllerObject!;
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
-        catch (System.Exception ex) { HandleInitError("SYSTEM INITIALIZATION", ex); StopSelf(); }
+        
     }
 
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        //HandleIntent(intent);
         base.OnStartCommand(intent, flags, startId);
         return StartCommandResult.Sticky;
     }
@@ -267,45 +219,16 @@ public class ExoPlayerService : MediaSessionService
 
     // … rest of your service (StartForeground, OnStartCommand, cleanup, etc.) …
 
-class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationListener
-    {
-        readonly MediaSessionService _svc;
-        public NotifListener(MediaSessionService svc) => _svc = svc;
-
-        public void OnNotificationPosted(int notificationId, Notification notification, bool ongoing)
-        {
-            if (ongoing)
-                _svc.StartForeground(notificationId, notification);
-            else
-                _svc.StopForeground(false);
-        }
-
-        public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
-            => _svc.StopForeground(true);
-    }
-
-    public void Play() { 
-        
-        player.Play(); 
-         }
-    public void Pause() { 
-        player.Pause();
-
-        
-    }
-    //public bool IsPlaying => /*…*/
-
-  
-    public override MediaSession? OnGetSession(MediaSession.ControllerInfo? controllerInfo)
+    public override MediaSession? OnGetSession(MediaSession.ControllerInfo? p0)
     {
         // Called by controllers connecting to the session. Return the session instance.
         if (mediaSession == null)
         {
-            LogInitWarning($"OnGetSession from {controllerInfo.PackageName}");
+            LogInitWarning($"OnGetSession from {p0?.PackageName}");
         }
         else
         {
-            Console.WriteLine($"[ExoPlayerService] OnGetSession: Returning session instance to {controllerInfo.PackageName}.");
+            Console.WriteLine($"[ExoPlayerService] OnGetSession: Returning session instance to {p0?.PackageName}.");
         }
         return mediaSession;
     }
@@ -327,13 +250,13 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         base.OnDestroy();
 
         StopPositionUpdates(); // Stop timer
-        _positionHandler = null;
+        
         _positionRunnable?.Dispose(); // Dispose Runnable if needed
-        _positionRunnable = null;
+        
 
         _notifMgr?.SetPlayer(null); // Detach player
-        _notifMgr = null; // Release reference
-     _binder = null; // ADDED: Clear binder
+        _notifMgr?.Dispose();
+     _binder = null; 
     }
 
     // --- Public Accessors ---
@@ -358,25 +281,13 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             flags |= PendingIntentFlags.Immutable;
         }
 
-        return PendingIntent.GetActivity(this, 0, launchIntent, flags);
+        return PendingIntent.GetActivity(this, 0, launchIntent, flags)!;
     }
 
-    private void LogInitWarning(string stage)
+    private static void LogInitWarning(string stage)
     {
         Console.WriteLine($"[ExoPlayerService] Warning: {stage} called but initialization may have failed or is incomplete.");
         Console.WriteLine("---> Check previous logs for errors and verify NuGet packages are correct! <---");
-    }
-    private void HandleInitError(string type, System.Exception ex)
-    {
-        // Log critical errors - consider using a more robust logging framework
-        Console.WriteLine($"[ExoPlayerService] !!! CRITICAL {type} ERROR: {ex.GetType().Name} - {ex.Message} !!!");
-        Console.WriteLine($"[ExoPlayerService] Stack Trace: {ex.StackTrace}");
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"[ExoPlayerService] Inner Exception: {ex.InnerException}");
-        }
-        Console.WriteLine("---> CHECK NuGet Packages: Media3.*, AndroidX.Concurrent.Futures, Guava/ListenableFuture <---");
-        Console.WriteLine("---> Ensure target framework and dependencies are compatible. <---");
     }
     private static void HandleInitError(string type, Java.Lang.Throwable ex)
     {
@@ -408,16 +319,21 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         string? imagePath = null,
         long startPositionMs = 0)
     {
+        if (player is null)
+        {
 
+            throw new ArgumentException("Player not initialized.");
+            
+        }
 
-        var metadataBuilder = new MediaMetadata.Builder()!
+        MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder()!
             .SetTitle(title)!
             .SetArtist(artist)!
             .SetAlbumTitle(album)!
             .SetUserRating(new HeartRating(true))! // Ensure HeartRating class exists
             .SetUserRating(new ThumbRating(true))! // Ensure HeartRating class exists
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
-            .SetIsPlayable(Java.Lang.Boolean.True); // Use Java Boolean wrapper
+            .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         // Set user rating (favorite status)
         //metadataBuilder.SetUserRating(new HeartRating(isFavorite)); // Ensure HeartRating class exists
@@ -460,30 +376,41 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
-        catch (System.Exception ex) { HandleInitError("PreparePlay SetMediaItem/Prepare", ex); }
+        
 
         return Task.CompletedTask;
     }
 
+    public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputs()
+    {
+        // 1) grab the Android AudioManager
+        var audioManager = Platform.AppContext
+            .GetSystemService(Context.AudioService) as AudioManager;
 
+        // 2) query all output devices (API 23+)
+        var devices = audioManager?
+            .GetDevices(GetDevicesTargets.Outputs)
+            ?? Array.Empty<AudioDeviceInfo>();  
+
+        // 3) map to your cross-platform model
+        return devices.Select(d => new AudioOutputDevice
+        {
+            Id   = d.Id.ToString(),
+            Name = d.ProductNameFormatted?.ToString() ?? d.Type.ToString()
+            
+           
+        }).ToList();
+    }
 
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object,  IPlayerListener // Use specific IPlayer.Listener
     {
-        private bool _seekInProgress = false;
-        private long _lastReportedDuration = C.TimeUnset;
+     
         private readonly ExoPlayerService service;
         public PlayerEventListener(ExoPlayerService service) { this.service = service; }
 
-        // --- Key Event Implementations ---    
         
-        // ← NEW: called when seek() actually finishes
-        public void OnSeekProcessed()
-        {
-            
-            Console.WriteLine("[PlayerEventListener] Seek completed");
-        }
-        // ← NEW: required for abstract onPlayerStateChanged(boolean,int)
+        
         [Obsolete("Media3 now prefers OnPlaybackStateChanged(int), but this must still be implemented.")]
 
         public void OnPlayerStateChanged(bool playWhenReady, int playbackState)
@@ -503,8 +430,8 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         {
             Console.WriteLine($"[PlayerEventListener] OnPositionDiscontinuity:");
             Console.WriteLine($"  Reason: {reason}"); // Check this against Player.DISCONTINUITY_REASON_ constants
-            Console.WriteLine($"  Old Position: {oldPosition.PositionMs}ms (Window: {oldPosition.WindowIndex})");
-            Console.WriteLine($"  New Position: {newPosition.PositionMs}ms (Window: {newPosition.WindowIndex})");
+            Console.WriteLine($"  Old Position: {oldPosition?.PositionMs}ms");
+            Console.WriteLine($"  New Position: {newPosition?.PositionMs}ms");
 
             Log.WriteLine(LogPriority.Info, "MyAppSeekDebug", $"*** OnPositionDiscontinuity Entered! Reason={reason} ***");
             Log.Debug("PlayerEventListener", $"OnPositionDiscontinuity Detail: Reason={reason}, From={oldPosition?.PositionMs ?? -1}, To={newPosition?.PositionMs ?? -1}");
@@ -529,13 +456,15 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
 
         public void OnPlayerError(PlaybackException? error) // Use specific PlaybackException
         {
+            if(error is null)
+                return;
             Console.WriteLine($"[PlayerEventListener] PlayerError: Code={error.ErrorCodeName}, Message={error.Message}");
             // Log the full error
-            service.HandleInitError("PLAYER_ERROR", error);
+           
             // Optionally stop the player or service on error
-            service.RaiseErrorOccurred(error); // ADDED
+            service.RaiseErrorOccurred(error); 
             service.player?.Stop();
-            // service.StopSelf(); // Consider if service should stop on error
+            service.StopSelf();
         }
 
         public void OnPlayerErrorChanged(PlaybackException? error) // Nullable error
@@ -544,8 +473,8 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             {
                 Console.WriteLine($"[PlayerEventListener] PlayerErrorChanged: Code={error.ErrorCodeName}, Message={error.Message}");
 
-                service.HandleInitError("PLAYER_ERROR_CHANGED", error);
-                service.RaiseErrorOccurred(error); // ADDED
+                
+                service.RaiseErrorOccurred(error); 
             }
             else
             {
@@ -554,26 +483,9 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         }
 
         public void OnMediaMetadataChanged(MediaMetadata? mediaMetadata)
-        {
-            //Console.WriteLine($"[PlayerEventListener] MediaMetadataChanged: Title='{mediaMetadata?.Title ?? "N/A"}', Favorite={mediaMetadata?.UserRating is HeartRating hr && hr.IsHeart}");
-            if (mediaMetadata?.UserRating is HeartRating hrr)
-            { service.currentFavoriteStatus = hrr.IsHeart; } // Keep if using HeartRating
-            service.RaiseCoverReloaded(); // ADDED
-            CheckDurationUpdate(); // ADDED
-        }
-        private void CheckDurationUpdate()
-        {
-            long currentDuration = service.player?.Duration ?? C.TimeUnset;
-            if (currentDuration > 0 && currentDuration != _lastReportedDuration)
-            {
-                _lastReportedDuration = currentDuration;
-                service.RaiseDurationChanged(currentDuration);
-            }
-            else if (currentDuration <= 0 && _lastReportedDuration != C.TimeUnset)
-            {
-                _lastReportedDuration = C.TimeUnset;
-                service.RaiseDurationChanged(C.TimeUnset);
-            }
+        {   
+            service.RaiseCoverReloaded(); 
+            
         }
         public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
         {
@@ -587,19 +499,11 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
             };
             Console.WriteLine($"[PlayerEventListener] MediaItemTransition: Item='{mediaItem?.MediaId ?? "None"}', Reason={reasonString} ({reason})");
             service.currentMediaItem = mediaItem; // Update the service's current mediaItem reference
-                                             // Reset favorite status based on the new mediaItem's metadata if available
-            //if (mediaItem?.MediaMetadata?.UserRating is HeartRating hr)
-            //{
-            //    service.currentFavoriteStatus = hr.IsHeart;
-            //}
-            //else
-            //{
-            //    service.currentFavoriteStatus = false; // Default if no rating
-            //}
+               
         }
 
         // --- Other IPlayer.Listener Methods (Implement if needed, stubs are often sufficient) ---
-        public void OnAudioAttributesChanged(AudioAttributes? p0) { /* Log if needed */ }
+        public void OnAudioAttributesChanged(AudioAttributes? audioAttributes) { /* Log if needed */ }
         public void OnAudioSessionIdChanged(int p0) { /* Log if needed */ }
         public void OnAvailableCommandsChanged(PlayerCommands? availableCommands)
         {
@@ -607,7 +511,11 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         }
         public void OnCues(CueGroup? p0) { /* Handle subtitles/cues */ }
         public void OnDeviceInfoChanged(DeviceInfo? p0) { /* Log if needed */ }
-        public void OnDeviceVolumeChanged(int p0, bool p1) { /* Log if needed */ }
+        public void OnDeviceVolumeChanged(int volume, bool muted) 
+        {
+            Console.WriteLine($"[PlayerEventListener] DeviceVolumeChanged: Volume={volume}, Muted={muted}");
+            /* Log if needed */
+        }
         public void OnEvents(IPlayer? player, PlayerEvents? events) 
         {
 
@@ -630,9 +538,13 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         }
         public void OnIsLoadingChanged(bool isLoading) { Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}"); }
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
-        // public void OnMetadata(MediaMetadata? p0) {} // Superseded by OnMediaMetadataChanged? Check docs.
+        // public void OnMetadata(MediaMetadata? volume) {} // Superseded by OnMediaMetadataChanged? Check docs.
         public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }
-        public void OnPlaybackParametersChanged(PlaybackParameters? p0) { /* Log if needed */ }
+        public void OnPlaybackParametersChanged(PlaybackParameters? playbackParameters) 
+        {
+            Console.WriteLine($"[PlayerEventListener] PlaybackParametersChanged: {playbackParameters?.Speed}, {playbackParameters?.Pitch}");
+            /* Log if needed */
+        }
         public void OnPlaybackSuppressionReasonChanged(int reason) { Console.WriteLine($"[PlayerEventListener] PlaybackSuppressionReasonChanged: {reason}"); }
         
         public void OnRenderedFirstFrame() { Console.WriteLine($"[PlayerEventListener] RenderedFirstFrame"); }
@@ -642,20 +554,27 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
         public void OnShuffleModeEnabledChanged(bool p0) { /* Log if needed */ }
         public void OnSkipSilenceEnabledChanged(bool p0) { /* Log if needed */ }
         public void OnSurfaceSizeChanged(int p0, int p1) { /* Video related */ }
-        public void OnTimelineChanged(Timeline? p0, int reason) 
+        public void OnTimelineChanged(Timeline? timeline, int reason) 
         {
-            Console.WriteLine(p0.IsEmpty);
-            Console.WriteLine(p0.WindowCount);
-            Console.WriteLine(p0.PeriodCount);
+            Console.WriteLine(timeline.IsEmpty);
+            Console.WriteLine(timeline.WindowCount);
+            Console.WriteLine(timeline.PeriodCount);
             
             
             Console.WriteLine($"[PlayerEventListener] TimelineChanged: Reason={reason}");
-            CheckDurationUpdate(); // ADDED
+            
         }
         public void OnTrackSelectionParametersChanged(TrackSelectionParameters? p0) { /* Log if needed */ }
-        public void OnTracksChanged(Tracks? p0) { /* Log if needed */ }
+        public void OnTracksChanged(Tracks? tracks) 
+        {
+            Console.WriteLine(tracks?.ToString());
+            /* Log if needed */ 
+        }
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
-        public void OnVolumeChanged(float p0) { /* Log if needed */ }
+        public void OnVolumeChanged(float volume) 
+        {
+            Console.WriteLine("New Volume "+volume);
+        }
 
     } // End PlayerEventListener
 
@@ -663,14 +582,11 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
     // --- Media Session Callback (Handles Controller Commands) ---
     sealed class MediaPlaybackSessionCallback : Object, MediaSession.ICallback
     {
-        readonly IExoPlayer player;
-        private readonly ExoPlayerService service;
-        private const string CallbackDebugTag = "MediaSessionCallback"; // For CallbackToFutureAdapter
 
+        readonly ExoPlayerService service;
         public MediaPlaybackSessionCallback(ExoPlayerService service)
         {
             this.service = service;
-            player = service.GetPlayerInstance();
         }
 
         const string TAG = "MediaSessionCallback";
@@ -679,37 +595,33 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
   MediaSession? session,
   MediaSession.ControllerInfo? controller)
         {
-            Console.WriteLine($"[{TAG}] OnConnect from {controller.PackageName}");
+            Console.WriteLine($"[{TAG}] OnConnect from {controller?.PackageName}");
 
-            //var customList = new List<SessionCommand> {
-            //new SessionCommand(ExoPlayerService.CommandSetFavorite, Bundle.Empty)
-            //};
             var sessionCommands = new SessionCommands.Builder()
-                   .Add(SessionCommand.CommandCodeSessionSetRating)  
+                   .Add(SessionCommand.CommandCodeSessionSetRating)!
                   .Build();
             var playerCommands = new PlayerCommands.Builder()
-              .AddAllCommands()
+              .AddAllCommands()!
               .Build();
             Console.WriteLine();
             return MediaSession.ConnectionResult.Accept(sessionCommands, playerCommands)!;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
-            // Called after connection is established. Good place for post-connection logic if needed.
-            Console.WriteLine($"[SessionCallback] OnPostConnect: Controller {controller.PackageName} connected.");
-            // base.OnPostConnect(session, controller); // Call base if overridden
+            
+            Console.WriteLine($"[SessionCallback] OnPostConnect: Controller {controller?.PackageName} connected.");
+            
         }
 
         public void OnDisconnected(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
-            // Called when a controller disconnects.
-            Console.WriteLine($"[SessionCallback] OnDisconnected: Controller {controller.PackageName} disconnected.");
-            // base.OnDisconnected(session, controller); // Call base if overridden
+            
+            Console.WriteLine($"[SessionCallback] OnDisconnected: Controller {controller?.PackageName} disconnected.");
+            
         }
 
         // --- Command Handling ---
 
-        // Handle CUSTOM commands sent via controller.sendCustomCommand(...)
       
         public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
@@ -721,34 +633,27 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
 
             return true;
         }
-        // Decide whether to allow a specific PLAYER command requested by a controller
-        public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controllerInfo, int playerCommand)
+        // Decide whether to allow a specific PLAYER command requested by a controllerInfo
+        public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controller, int playerCommand)
         {
-            // Default: Allow any player command that was declared available in OnConnect.
-            // You could add logic here to disallow specific commands based on state or controller.
-            // Example: if (playerCommand == PlayerCommands.CommandSeekTo && !isSeekAllowed) return SessionResult.ResultErrorNotSupported;
             Console.WriteLine($"[SessionCallback] OnPlayerCommandRequest: Command={playerCommand} from. Allowing.");
 
-
-            var ply = session.Player;
-           
-            //return playerCommand;
             return SessionResult.ResultSuccess; 
         }
-        public void OnPlayerInteractionFinished(MediaSession? session, MediaSession.ControllerInfo? controller, PlayerCommands? commands)
+        public void OnPlayerInteractionFinished(MediaSession? session, MediaSession.ControllerInfo? controllerInfo, PlayerCommands? playerCommands)
         {
-            Console.WriteLine($"[SessionCallback] OnPlayerInteractionFinished: Controller={controller.PackageName} Commands={commands?.Size() ?? 0}");
+            Console.WriteLine($"[SessionCallback] OnPlayerInteractionFinished: Controller={controllerInfo?.PackageName} Commands={playerCommands?.Size() ?? 0}");
 
 
-            if (commands == null || commands.Size() == 0)
+            if (playerCommands == null || playerCommands.Size() == 0)
             {
-                Console.WriteLine("[SessionCallback] No specific commands reported (system change?)");
+                Console.WriteLine("[SessionCallback] No specific playerCommands reported (system change?)");
                 return;
             }
 
-            for (int i = 0; i < commands.Size(); i++)
+            for (int i = 0; i < playerCommands.Size(); i++)
             {
-                int command = commands.Get(i);
+                int command = playerCommands.Get(i);
 
                 switch (command)
                 {
@@ -761,16 +666,10 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
                         break;
 
                     case 5:
-                        Console.WriteLine("[SessionCallback] User seeked to a position. "+session.Player.CurrentPosition);
+                        Console.WriteLine("[SessionCallback] User seeked to a position. "+session?.Player?.CurrentPosition);
+                        service.RaiseSeekCompleted(session?.Player?.CurrentPosition ?? 0);
+                        
                         break;
-
-                    //case 7:
-                    //    Console.WriteLine("[SessionCallback] User pressed SEEK BACK button.");
-                    //    break;
-
-                    //case 9:
-                    //    Console.WriteLine("[SessionCallback] User pressed SEEK FORWARD button.");
-                    //    break;
 
                     case 9:
                         Console.WriteLine("[SessionCallback] User pressed NEXT button.");
@@ -778,6 +677,7 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
 
                     case 7:
                         Console.WriteLine("[SessionCallback] User pressed PREVIOUS button.");
+                        
                         break;
 
                     default:
@@ -790,29 +690,10 @@ class NotifListener : Java.Lang.Object, PlayerNotificationManager.INotificationL
 
        
 
-    } // End MediaPlaybackSessionCallback
+    } 
 
 } // End ExoPlayerService class
 
-sealed class Resolver : Java.Lang.Object, CallbackToFutureAdapter.IResolver
-{
-    readonly Action<CallbackToFutureAdapter.Completer> _action;
-    readonly string _tag;
-
-    public Resolver(Action<CallbackToFutureAdapter.Completer> action, string tag)
-    {
-        _action = action;
-        _tag = tag;
-    }
-
-    public Java.Lang.Object AttachCompleter(CallbackToFutureAdapter.Completer completer)
-    {
-        try
-        { _action(completer); }
-        catch (Exception ex) { completer.SetException(ex); }
-        return _tag;
-    }
-}
 public class ExoPlayerServiceBinder : Binder
 {
     public ExoPlayerService Service { get; }

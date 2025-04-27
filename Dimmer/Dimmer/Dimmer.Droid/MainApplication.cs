@@ -1,6 +1,5 @@
 using Android.App;
 using Android.Runtime;
-using System.Diagnostics;
 
 namespace Dimmer.Droid;
 
@@ -37,7 +36,7 @@ public class MainApplication : MauiApplication
         Debug.WriteLine(errorDetails);
 
         // Log to file
-        LogException(e.Exception);
+       LogException(e.Exception);
 
     }
     private static readonly object _logLock = new();

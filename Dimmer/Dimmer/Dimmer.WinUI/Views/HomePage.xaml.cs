@@ -1,7 +1,4 @@
 ﻿using Dimmer.WinUI.Utils.Models;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using static Vanara.PInvoke.User32;
 
 namespace Dimmer.WinUI.Views;
 
@@ -310,7 +307,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = MyViewModel.MasterListOfSongs.ToList(); 
+            songsToDisplay = [.. MyViewModel.MasterListOfSongs]; 
             wasSearch = false;
         }
         else

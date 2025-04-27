@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerAudio;
+﻿namespace Dimmer.DimmerAudio;
 
 public delegate void StatusChangedEventHandler(object sender, EventArgs e);
 public delegate void BufferingEventHandler(object sender, EventArgs e);
 public delegate void CoverReloadedEventHandler(object sender, EventArgs e);
 public delegate void PlayingEventHandler(object sender, EventArgs e);
 public delegate void PlayingChangedEventHandler(object sender, bool isPlaying);
-public delegate void PositionChangedEventHandler(object sender, long positionMs);
+public delegate void PositionChangedEventHandler(object sender, long position);
+public delegate void SeekCompletedEventHandler(object sender, double position);
 
 /// <summary>
 /// Defines the contract for an Activity or Component that interacts
@@ -29,34 +24,6 @@ public interface IAudioActivity
 	// --- Events that the Activity MUST implement handlers for ---
 	// These events are raised by the Service (via the connection)
 	// and handled by the Activity to update the UI etc.
-
-	/// <summary>
-	/// Fired when the general playback status changes (e.g., Idle, Ended).
-	/// </summary>
-	event StatusChangedEventHandler StatusChanged;
-	/// <summary>
-	/// Fired when the player enters or exits a buffering state.
-	/// </summary>
-	event BufferingEventHandler Buffering;
-	/// <summary>
-	/// Fired when the cover art associated with the current track changes.
-	/// </summary>
-	event CoverReloadedEventHandler CoverReloaded;
-	/// <summary>
-	/// Fired periodically during playback (or state change, confirm usage).
-	/// </summary>
-	event PlayingEventHandler Playing;
-	/// <summary>
-	/// Fired when playback starts or pauses.
-	/// </summary>
-	event PlayingChangedEventHandler PlayingChanged;
-	/// <summary>
-	/// Fired frequently during playback to report the current position.
-	/// </summary>
-	event PositionChangedEventHandler PositionChanged;
-
-	// --- Methods that the Activity MUST implement ---
-	// These are the handler implementations for the events above.
 
 	/// <summary>
 	/// Handles the StatusChanged event from the service.
@@ -84,11 +51,12 @@ public interface IAudioActivity
 	/// <param name="isPlaying">True if playback is active, false otherwise.</param>
 	void OnPlayingChanged(object sender, bool isPlaying);
 
-	/// <summary>
-	/// Handles the PositionChanged event from the service.
-	/// </summary>
-	/// <param name="positionMs">Current playback position in milliseconds.</param>
-	void OnPositionChanged(object sender, long positionMs);
+    /// <summary>
+    /// Handles the PositionChanged event from the service.
+    /// </summary>
+    /// <param name="position">Current playback position in seconds.</param>
+    void OnPositionChanged(object sender, long position);
+	void OnSeekCompleted(object sender, double position);
 }
 
 

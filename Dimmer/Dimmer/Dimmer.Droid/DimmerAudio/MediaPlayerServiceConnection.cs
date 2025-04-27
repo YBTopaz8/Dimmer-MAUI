@@ -1,10 +1,5 @@
 ﻿using Android.Content;
 using Android.OS;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.DimmerAudio;
 public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
@@ -29,7 +24,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             svc.StatusChanged   += _activity.OnStatusChanged;
             svc.Buffering       += _activity.OnBuffering;
             svc.CoverReloaded   += _activity.OnCoverReloaded;
-            svc.Playing         += _activity.OnPlaying;
+            svc.SeekCompleted += _activity.OnSeekCompleted;
             svc.PlayingChanged  += _activity.OnPlayingChanged;
             svc.PositionChanged += _activity.OnPositionChanged;
         }
@@ -44,7 +39,7 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             svc.StatusChanged   -= _activity.OnStatusChanged;
             svc.Buffering       -= _activity.OnBuffering;
             svc.CoverReloaded   -= _activity.OnCoverReloaded;
-            svc.Playing         -= _activity.OnPlaying;
+            svc.SeekCompleted  -= _activity.OnSeekCompleted;
             svc.PlayingChanged  -= _activity.OnPlayingChanged;
             svc.PositionChanged -= _activity.OnPositionChanged;
         }

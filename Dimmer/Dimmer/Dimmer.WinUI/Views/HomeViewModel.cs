@@ -22,7 +22,7 @@ public partial class HomeViewModel : BaseViewModelWin
     public partial string? SearchText { get; set; }
     #endregion
     public HomeViewModel(
-            IMapper mapper,
+            IMapper mapper, BaseAppFlow baseAppFlow,
             AlbumsMgtFlow albumsMgtFlow,
             PlayListMgtFlow playlistsMgtFlow,
             SongsMgtFlow songsMgtFlow,
@@ -30,7 +30,7 @@ public partial class HomeViewModel : BaseViewModelWin
             ISettingsService settingsService,
             SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow
-        ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+        ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
     {
 
         _mapper = mapper;
@@ -110,11 +110,6 @@ public partial class HomeViewModel : BaseViewModelWin
     public void SetSongLyricsView(CollectionView collectionView)
     {
         SongLyricsCV = collectionView;
-    }
-    
-    public void SetLyricsView(ListView colView)
-    {
-        SongsListView = colView;
     }
     
 

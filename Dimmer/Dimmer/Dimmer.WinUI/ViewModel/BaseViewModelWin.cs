@@ -21,7 +21,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     private readonly IMapper _mapper;
     public BaseViewModelWin(
-        IMapper mapper,
+        IMapper mapper, BaseAppFlow baseAppFlow,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -29,7 +29,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         ISettingsService settingsService,
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow
-    ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
     {
         _mapper = mapper;
         _stateService = stateService;

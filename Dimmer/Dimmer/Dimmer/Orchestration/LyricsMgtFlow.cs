@@ -1,11 +1,5 @@
 ﻿using Dimmer.Services;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Dimmer.Orchestration; 
 public class LyricsMgtFlow : BaseAppFlow, IDisposable
@@ -32,6 +26,8 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         SongsMgtFlow songsMgt,
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<GenreModel> genreRepo,
+        IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -40,7 +36,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IFolderMonitorService folderMonitor,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
         this.songsMgt=songsMgt;
         _state = state;
@@ -142,7 +138,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
 
         public LyricSynchronizer(List<LyricPhraseModel> lyrics)
         {
-            _lyrics = lyrics.OrderBy(l => l.TimeStampMs).ToList();
+            _lyrics = [.. lyrics.OrderBy(l => l.TimeStampMs)];
         }
 
         public LyricPhraseModel? GetCurrentLine(TimeSpan position)

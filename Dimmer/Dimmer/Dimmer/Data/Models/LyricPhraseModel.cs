@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ATL.LyricsInfo;
+﻿using static ATL.LyricsInfo;
 
 namespace Dimmer.Data.Models;
 public class Content
@@ -105,7 +100,7 @@ public partial class LyricPhraseModel : ObservableObject
 
         public LyricSynchronizer(IEnumerable<LyricPhraseModel> lines)
         {
-            _lines = lines.OrderBy(l => l.TimeStampMs).ToList();
+            _lines = [.. lines.OrderBy(l => l.TimeStampMs)];
         }
 
         public LyricPhraseModel? GetCurrentLine(TimeSpan pos)

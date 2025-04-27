@@ -1,14 +1,8 @@
-﻿using Android.Media.Session;
-using Android.OS;
-using AndroidX.Media3.Common;
+﻿using AndroidX.Media3.Common;
 using Dimmer.Data.Models; // Assuming this namespace is correct
-using Dimmer.Interfaces; // Assuming this namespace is correct for IDimmerAudioService
 using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Dimmer.DimmerAudio;
 
@@ -47,6 +41,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             }
         }
     }
+
 
     // Cross-platform events
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged; // Maps roughly to StatusChanged/PlayingChanged
@@ -138,21 +133,19 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task SeekAsync(double positionSeconds)
     {
-            long positionMs = (long)(positionSeconds * 1000.0);
-            Player?.SeekTo(positionMs);
-            Console.WriteLine($"[AudioService] Seek command sent to {positionMs}ms.");
-            // Note: Seek completion is often handled via PlaybackStateChanged or PositionDiscontinuity events
-            // Raising SeekCompleted here might be premature. Best to raise it in OnPlaybackStateChanged when Ready after seek.
-      
+        long positionMs = (long)(positionSeconds * 1000.0);
+        Player?.SeekTo(positionMs);
+        Console.WriteLine($"[AudioService] Seek command sent to {positionMs}ms.");        
+        SeekCompleted?.Invoke(this, positionSeconds);
+
         return Task.CompletedTask;
     }
 
     public Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
     {
-        // This is highly platform-specific and not directly available from ExoPlayer core.
-        // Would require using Android AudioManager APIs.
-        Console.WriteLine("[AudioService] GetAvailableAudioOutputsAsync - Not implemented for Android ExoPlayer directly.");
-        return Task.FromResult(new List<AudioOutputDevice>()); // Return empty list
+        
+        return Service?.GetAvailableAudioOutputs()!;
+        
     }
 
     // --- IAudioActivity Implementation (Handles events FROM ExoPlayerService) ---
@@ -160,51 +153,37 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     // Binder property required by IAudioActivity interface
     ExoPlayerServiceBinder? IAudioActivity.Binder { get => _binder; set => SetBinder(value); }
 
-
-    // Events required by IAudioActivity - We raise our own events, so these can be empty delegates,
-    // but they must exist to satisfy the interface implementation when connecting via ServiceConnection.
-    // The ServiceConnection will try to attach to these, even if this class is the one handling the source events.
-    public event StatusChangedEventHandler? StatusChanged { add { } remove { } }
-    public event BufferingEventHandler? Buffering { add { } remove { } }
-    public event CoverReloadedEventHandler? CoverReloaded { add { } remove { } }
-    public event PlayingEventHandler? Playing { add { } remove { } }
-    public event PlayingChangedEventHandler? PlayingChanged { add { } remove { } } // ServiceConnection attaches here
-    event PositionChangedEventHandler? IAudioActivity.PositionChanged { add { } remove { } } // ServiceConnection attaches here
-
-
-    // These On... methods are the handlers called BY the ServiceConnection when the Service raises events.
     public void OnStatusChanged(object sender, EventArgs e)
     {
-        // This requires the ExoPlayerService to pass state information in EventArgs or a custom EventArgs
-        // For now, map basic states based on player properties when this is called.
-        var playerState = Player?.PlaybackState ?? Player.PlaybackState;
+        
+        var playerState = Player?.PlaybackState ?? Player?.PlaybackState;
         var isPlaying = Player?.IsPlaying ?? false;
         Console.WriteLine($"[AudioService] OnStatusChanged received. PlayerState: {playerState}, IsPlaying: {isPlaying}");
 
         
-            // Update properties that might change with state
-            NotifyPropertyChanged(nameof(IsPlaying));
-            NotifyPropertyChanged(nameof(Duration)); // Duration might become available when Ready
+        NotifyPropertyChanged(nameof(IsPlaying));
+        NotifyPropertyChanged(nameof(Duration)); // Duration might become available when Ready
         
         
     }
 
     public void OnBuffering(object sender, EventArgs e) // Assuming EventArgs for now
     {
-        // Or (object sender, bool isBuffering) if service passes data
+        
         Console.WriteLine($"[AudioService] OnBuffering received. Player Buffering: {Player?.IsLoading}");
        
     }
 
+    
     public void OnCoverReloaded(object sender, EventArgs e)
     {
         Console.WriteLine("[AudioService] OnCoverReloaded received.");
-        // TODO: Raise a specific event or update relevant property if UI needs notification
+        
     }
 
     public void OnPlaying(object sender, EventArgs e)
     {
-        // This event might be less useful than OnPlayingChanged or OnPositionChanged
+        
         Console.WriteLine("[AudioService] OnPlaying event received (check if needed).");
     }
 
@@ -212,26 +191,21 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         Console.WriteLine($"[AudioService] OnPlayingChanged received: IsPlaying={isPlaying}");
         NotifyPropertyChanged(nameof(IsPlaying));
-        //IsPlayingChanged?.Invoke(this, new PlaybackEventArgs(isPlaying ? PlaybackState.Playing : PlaybackState.Paused));
-        //PlaybackStateChanged?.Invoke(this, new PlaybackEventArgs(isPlaying ? PlaybackState.Playing : PlaybackState.Paused)); // Also reflect in general state
+        
     }
 
-    public void OnPositionChanged(object sender, long positionMs)
+    public void OnPositionChanged(object sender, long position)
     {
-        // No Console log here - too frequent
-        double positionSeconds = positionMs / 1000.0;
+        double positionSeconds = position / 1000.0;
         NotifyPropertyChanged(nameof(CurrentPosition));
         PositionChanged?.Invoke(this, positionSeconds);
 
-        // Check if duration became available/changed
-        // Note: A dedicated duration change event from the service might be better
-        double newDuration = Player?.Duration > 0 ? (Player.Duration / 1000.0) : 0;
-        // Simple check - needs refinement if duration fluctuates wrongly
-        // if (Math.Abs(newDuration - _lastReportedDuration) > 0.1) {
-        //    _lastReportedDuration = newDuration;
-        //    NotifyPropertyChanged(nameof(Duration));
-        //    DurationChanged?.Invoke(this, newDuration);
-        // }
+    }
+    public void OnSeekCompleted(object sender, double position)
+    {
+        double positionSeconds = position / 1000.0;
+        NotifyPropertyChanged(nameof(CurrentPosition));
+        SeekCompleted?.Invoke(this, positionSeconds);
 
     }
 
@@ -245,11 +219,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged += OnStatusChanged;
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;
-        Service.Playing += OnPlaying;
+        
         Service.PlayingChanged += OnPlayingChanged;
         Service.PositionChanged += OnPositionChanged;
-        // TODO: Subscribe to an error event from the service if defined
-        // Service.ErrorOccurred += OnServiceError;
+        
+        
     }
 
     private void DisconnectEvents()
@@ -260,11 +234,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.StatusChanged -= OnStatusChanged;
         Service.Buffering -= OnBuffering;
         Service.CoverReloaded -= OnCoverReloaded;
-        Service.Playing -= OnPlaying;
+        
         Service.PlayingChanged -= OnPlayingChanged;
         Service.PositionChanged -= OnPositionChanged;
-        // TODO: Unsubscribe from error event
-        // Service.ErrorOccurred -= OnServiceError;
+        
     }
 
     private void NotifyAllPropertiesChanged()
@@ -290,4 +263,5 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // No native resources owned directly by this class, service handles player.
         await Task.CompletedTask; // Return completed task
     }
+
 }

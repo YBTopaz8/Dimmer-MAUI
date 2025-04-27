@@ -21,6 +21,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     public SongsMgtFlow(
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<GenreModel> genreRepo,
+        IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -32,7 +34,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModelView> playQueue,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
         this.songRepo=songRepo;
         _audio  = audioService;
@@ -44,7 +46,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                   .Subscribe(list =>
                   {
                       // list is IReadOnlyList<SongModel>
-                      _masterSongs = list.ToList();
+                      _masterSongs = [.. list];
                   })
         );
 
@@ -66,6 +68,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         Volume    = Observable.Return(_audio.Volume);
 
         // Wire up play‑end/next/previous
+        _audio.SeekCompleted += Audio_SeekCompleted;
         _audio.PlayEnded    += OnPlayEnded;
         _audio.PlayNext     += (_, _) => NextInQueue();
         _audio.PlayPrevious += (_, _) => PrevInQueue();
@@ -84,6 +87,11 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                   })
         );
         SubscribeToCurrentSongChanges();
+    }
+
+    private void Audio_SeekCompleted(object? sender, double e)
+    {
+        SeekedTo(e);
     }
 
     private void SubscribeToCurrentSongChanges()
@@ -161,7 +169,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
             return;
 
         await _audio.SeekAsync(position);
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+        SeekedTo(position);
     }
 
     public void ChangeVolume(double newVolume)
@@ -193,7 +201,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         // 3. Optional: Sort songs by track number if available
         //    This often requires track number info on SongModel or the Link table
         //    Assuming SongModel has a TrackNumber property (might be string or int)
-        songs = songs.OrderBy(s => s.TrackNumber).ToList(); // Example sorting
+        songs = [.. songs.OrderBy(s => s.TrackNumber)]; // Example sorting
 
         return songs;
     }

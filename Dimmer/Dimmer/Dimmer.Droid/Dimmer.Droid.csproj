@@ -61,10 +61,10 @@
     <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.10.1" />
 
     <!-- Collection -->
-    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.4.5.2" />
+    <PackageReference Include="Xamarin.AndroidX.Collection" Version="1.5.0" />
     <!-- <PackageReference Include="Xamarin.AndroidX.Collection.Jvm" Version="1.4.5.2" /> -->
     <!-- Usually transitive -->
-    <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.5.2" />
+    <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0" />
 
     <!-- Concurrent -->
     <PackageReference Include="Xamarin.AndroidX.Concurrent.Futures" Version="1.2.0.5" />
@@ -96,7 +96,7 @@
 
     <!-- Transition -->
     <PackageReference Include="Xamarin.AndroidX.Transition" Version="1.5.1.4" />
-    <PackageReference Include="Xamarin.Google.Guava" Version="33.4.0.1" />
+    <PackageReference Include="Xamarin.Google.Guava" Version="33.4.5" />
 
     <!-- REMOVED OLD SUPPORT LIBRARY -->
     <!-- <PackageReference Include="Xamarin.Android.Support.Media.Compat" Version="28.0.0.3" /> -->
@@ -115,6 +115,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\HomePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

@@ -1,11 +1,9 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
-using AndroidX.Media3.Common;
 using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
 using Android.Util;
-using Android.Graphics;
 using Dimmer.Droid;
 
 namespace Dimmer.DimmerAudio;
@@ -36,7 +34,7 @@ public static class NotificationHelper
             .CreateNotificationChannel(chan);
 
         Log.Debug("NotifHelper", "Channel created");
-        Console.WriteLine("NotifHelper", "Channel created");
+        Console.WriteLine("NotifHelper : Channel created");
     }
 
     public static PlayerNotificationManager BuildManager(
@@ -58,22 +56,17 @@ public static class NotificationHelper
         var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
 
         // Build & keep in a field
-        var mgr = new PlayerNotificationManager.Builder(
+        PlayerNotificationManager mgr = new PlayerNotificationManager.Builder(
                 service, NotificationId, ChannelId
             )
             .SetMediaDescriptionAdapter(descrAdapter)!
             .SetNotificationListener(new NotificationListener(service))!
             .SetSmallIconResourceId(Resource.Drawable.exo_icon_circular_play)!            
            
-            .Build();
+            .Build()!;
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
 
-        // Link session so transport-buttons work
-        //mgr.SetMediaSessionToken(session.SessionCompatToken);
-
-        // Don’t call SetPlayer here — wait until after Prepare()
-        // Return for caller to hang onto
         Log.Debug("NotifHelper", "Manager built");
         return mgr;
     }
@@ -88,14 +81,31 @@ public static class NotificationHelper
             if (ongoing)
                 _svc.StartForeground(notificationId, notification);
             else
-                _svc.StopForeground(false);
-            Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
+            {
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // Android 33
+                {
+                    _svc.StopForeground(StopForegroundFlags.Remove);
+                }
+                else
+                {
+                    _svc.StopForeground(StopForegroundFlags.Detach);
+                }
+
+            }
+                Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
         }
 
-        public void OnNotificationCancelled(int id, bool dismissedByUser)
+        public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
         {
-            _svc.StopForeground(true);
-            Log.Debug("NotifHelper", $"Cancelled id={id} userDismissed={dismissedByUser}");
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // Android 33
+            {
+                _svc.StopForeground(StopForegroundFlags.Remove);
+            }
+            else
+            {
+                _svc.StopForeground(StopForegroundFlags.Detach);
+            }
+            Log.Debug("NotifHelper", $"Cancelled id={notificationId} userDismissed={dismissedByUser}");
         }
     }
 

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using Dimmer.Interfaces;
-using Dimmer.Services;
+﻿using System.Reactive.Disposables;
 using Dimmer.Utilities.Extensions;
 
 namespace Dimmer.Services
@@ -13,6 +6,8 @@ namespace Dimmer.Services
     public class PlayerStateService : IPlayerStateService, IDisposable
     {
         readonly BehaviorSubject<SongModel> _currentSong = new(new SongModel());
+        readonly BehaviorSubject<string> _latestDeviceLog = new(string.Empty);
+        readonly BehaviorSubject<IList<string>> _dailyLatestDeviceLogs = new(Array.Empty<string>());
         readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
         readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
         readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
@@ -35,6 +30,14 @@ namespace Dimmer.Services
         }
 
         // Observables
+        #region Settings Observables
+
+        public IObservable<string> LatestDeviceLog => _latestDeviceLog.AsObservable();
+        public IObservable<IList<string>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
+        #endregion
+
+
+
         public IObservable<SongModel> CurrentSong => _currentSong.AsObservable();
         public IObservable<LyricPhraseModel> CurrentLyric => _currentLyric.AsObservable();
         public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
@@ -54,6 +57,17 @@ namespace Dimmer.Services
                 list.ShuffleInPlace();
 
             _allSongs.OnNext(list.AsReadOnly());
+        }
+        public void SetCurrentLogMsg(string logMessage)
+        {
+            ArgumentNullException.ThrowIfNull(logMessage);
+
+            // push the single value
+            _latestDeviceLog.OnNext(logMessage);
+
+            // clone-and-append
+            var updated = new List<string>(_dailyLatestDeviceLogs.Value) { logMessage };
+            _dailyLatestDeviceLogs.OnNext(updated);
         }
 
         public void SetCurrentSong(SongModel song)
