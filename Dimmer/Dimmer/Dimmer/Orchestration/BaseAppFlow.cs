@@ -92,18 +92,29 @@ public class BaseAppFlow : IDisposable
     }
 
     public void SeekedTo(double? position)
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+    }
+
     public void PlaySong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Play);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Play);
+    }
 
-    public void PauseSong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Pause);
+    public void AddPauseSongEventToDB()
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Pause);
+    }
 
-    public void ResumeSong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
-    
+    public void AddResumeSongToDB()
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
+    }
+
     public void PlayEnded()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
+    }
 
     public void UpdatePlaybackState(
         string? songId,
@@ -159,7 +170,9 @@ public class BaseAppFlow : IDisposable
     }
 
     public void ToggleShuffle(bool isOn)
-        => _settings.ShuffleOn = isOn;
+    {
+        _settings.ShuffleOn = isOn;
+    }
 
     public RepeatMode ToggleRepeatMode()
     {

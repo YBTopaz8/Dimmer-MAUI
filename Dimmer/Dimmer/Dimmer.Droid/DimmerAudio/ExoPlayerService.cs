@@ -215,7 +215,9 @@ public class ExoPlayerService : MediaSessionService
 
 
     public override IBinder OnBind(Intent? intent)
-        => _binder;
+    {
+        return _binder;
+    }
 
 
 
@@ -263,8 +265,15 @@ public class ExoPlayerService : MediaSessionService
     }
 
     // --- Public Accessors ---
-    public IExoPlayer? GetPlayerInstance() => player;
-    public MediaSession? GetMediaSessionInstance() => mediaSession;
+    public IExoPlayer? GetPlayerInstance()
+    {
+        return player;
+    }
+
+    public MediaSession? GetMediaSessionInstance()
+    {
+        return mediaSession;
+    }
 
     // --- Private Helpers ---
     private PendingIntent GetMainActivityPendingIntent()

@@ -140,68 +140,86 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 
     // 2. Sorting & Grouping
     public List<AlbumModel> SortAlbumsByName(bool ascending = true)
-        => ascending
-            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.Name)]
-            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.Name)];
+    {
+        return ascending
+                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.Name)]
+                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.Name)];
+    }
 
     public List<AlbumModel> SortAlbumsByDateAdded(bool ascending = false)
-        => ascending
-            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.DateCreated)]
-            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.DateCreated)];
+    {
+        return ascending
+                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.DateCreated)]
+                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.DateCreated)];
+    }
 
     public Dictionary<string, List<AlbumModel>> GroupAlbumsByArtist()
-        => _linkRepo.GetAll().AsEnumerable()
-            .GroupBy(l => l.ArtistId)
-            .ToDictionary(
-                g => g.Key,
-                g => _albumRepo.GetAll().AsEnumerable()
-                     .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
-                     .ToList()
-            );
+    {
+        return _linkRepo.GetAll().AsEnumerable()
+                .GroupBy(l => l.ArtistId!)
+                .ToDictionary(
+                    g => g.Key,
+                    g => _albumRepo.GetAll().AsEnumerable()
+                         .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
+                         .ToList()
+                );
+    }
 
     public Dictionary<string, List<AlbumModel>> GroupAlbumsByGenre()
-        => _linkRepo.GetAll().AsEnumerable()
-            .GroupBy(l => l.GenreId)
-            .ToDictionary(
-                g => g.Key,
-                g => _albumRepo.GetAll().AsEnumerable()
-                     .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
-                     .ToList()
-            );
+    {
+        return _linkRepo.GetAll().AsEnumerable()
+                .GroupBy(l => l.GenreId!)
+                .ToDictionary(
+                    g => g.Key,
+                    g => _albumRepo.GetAll().AsEnumerable()
+                         .Where(a => g.Select(l => l.AlbumId).Contains(a.LocalDeviceId))
+                         .ToList()
+                );
+    }
 
     public List<AlbumModel> GetAlbumsOrderedByTrackCount(bool ascending = false)
-        => ascending
-            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.NumberOfTracks)]
-            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.NumberOfTracks)];
+    {
+        return ascending
+                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.NumberOfTracks)]
+                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.NumberOfTracks)];
+    }
 
     public List<AlbumModel> GetAlbumsOrderedByTotalDuration(bool ascending = false)
-        => ascending
-            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration)]
-            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration)];
+    {
+        return ascending
+                ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration)]
+                : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration)];
+    }
 
     // 3. Statistics & Insights
     public int GetTotalAlbumCount()
-        => _albumRepo.GetAll().Count;
+    {
+        return _albumRepo.GetAll().Count;
+    }
 
     public Dictionary<string, int> GetAlbumPlayCounts()
-        => _pdlRepo.GetAll().AsEnumerable()
-            .Where(p => p.PlayType == (int)PlayType.Play)
-            .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                .FirstOrDefault(l => l.SongId == p.SongId)
-                ?.AlbumId)
-            .Where(g => g.Key != null)
-            .ToDictionary(g => g.Key!, g => g.Count());
+    {
+        return _pdlRepo.GetAll().AsEnumerable()
+                .Where(p => p.PlayType == (int)PlayType.Play)
+                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
+                    .FirstOrDefault(l => l.SongId == p.SongId)
+                    ?.AlbumId)
+                .Where(g => g.Key != null)
+                .ToDictionary(g => g.Key!, g => g.Count());
+    }
 
     public Dictionary<string, TimeSpan> GetAlbumTotalListenTime()
-        => _pdlRepo.GetAll().AsEnumerable()
-            .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                .FirstOrDefault(l => l.SongId == p.SongId)
-                ?.AlbumId)
-            .Where(g => g.Key != null)
-            .ToDictionary(
-                g => g.Key!,
-                g => TimeSpan.FromSeconds(g.Sum(p => p.PositionInSeconds))
-            );
+    {
+        return _pdlRepo.GetAll().AsEnumerable()
+                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
+                    .FirstOrDefault(l => l.SongId == p.SongId)
+                    ?.AlbumId)
+                .Where(g => g.Key != null)
+                .ToDictionary(
+                    g => g.Key!,
+                    g => TimeSpan.FromSeconds(g.Sum(p => p.PositionInSeconds))
+                );
+    }
 
     public TimeSpan GetTotalLibraryDuration()
     {
@@ -217,29 +235,35 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     }
 
     public Dictionary<string, int> GetAlbumSkipCounts()
-        => _pdlRepo.GetAll().AsEnumerable()
-            .Where(p => p.PlayType == (int)PlayType.Skipped)
-            .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                .FirstOrDefault(l => l.SongId == p.SongId)
-                ?.AlbumId)
-            .Where(g => g.Key != null)
-            .ToDictionary(g => g.Key!, g => g.Count());
+    {
+        return _pdlRepo.GetAll().AsEnumerable()
+                .Where(p => p.PlayType == (int)PlayType.Skipped)
+                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
+                    .FirstOrDefault(l => l.SongId == p.SongId)
+                    ?.AlbumId)
+                .Where(g => g.Key != null)
+                .ToDictionary(g => g.Key!, g => g.Count());
+    }
 
     public Dictionary<string, DateTimeOffset> GetLastPlayedTimestamps()
-        => _pdlRepo.GetAll().AsEnumerable()
-            .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
-                .FirstOrDefault(l => l.SongId == p.SongId)
-                ?.AlbumId)
-            .Where(g => g.Key != null)
-            .ToDictionary(g => g.Key!, g => g.Max(p => p.DatePlayed));
+    {
+        return _pdlRepo.GetAll().AsEnumerable()
+                .GroupBy(p => _linkRepo.GetAll().AsEnumerable()
+                    .FirstOrDefault(l => l.SongId == p.SongId)
+                    ?.AlbumId)
+                .Where(g => g.Key != null)
+                .ToDictionary(g => g.Key!, g => g.Max(p => p.DatePlayed));
+    }
 
     public List<string> GetMostSkewedAlbums(int topN)
-        => [.. GetAlbumSkipCounts()
+    {
+        return [.. GetAlbumSkipCounts()
             .OrderByDescending(kv =>
                 (double)kv.Value /
                 (GetAlbumPlayCounts().GetValueOrDefault(kv.Key, 1)))
             .Take(topN)
             .Select(kv => kv.Key)];
+    }
 
     // 4. Recommendations & Smart Picks
     public List<AlbumModel> RecommendSimilarAlbums(string albumId, int count = 5)
@@ -270,34 +294,42 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     }
 
     public List<AlbumModel> GetRecentlyPlayedAlbums(int count)
-        => GetLastPlayedTimestamps()
-            .OrderByDescending(kv => kv.Value)
-            .Take(count)
-            .Select(kv => _albumRepo.GetById(kv.Key))
-            .Where(a => a != null)
-            .ToList()!;
+    {
+        return GetLastPlayedTimestamps()
+                .OrderByDescending(kv => kv.Value)
+                .Take(count)
+                .Select(kv => _albumRepo.GetById(kv.Key))
+                .Where(a => a != null)
+                .ToList()!;
+    }
 
     public List<AlbumModel> GetAlbumsNotPlayedSince(DateTime cutoff)
-        => GetLastPlayedTimestamps()
-            .Where(kv => kv.Value < cutoff)
-            .Select(kv => _albumRepo.GetById(kv.Key))
-            .Where(a => a != null)
-            .ToList()!;
+    {
+        return GetLastPlayedTimestamps()
+                .Where(kv => kv.Value < cutoff)
+                .Select(kv => _albumRepo.GetById(kv.Key))
+                .Where(a => a != null)
+                .ToList()!;
+    }
 
     public List<AlbumModel> GetTopAlbumsByPlayCount(int count)
-        => GetAlbumPlayCounts()
-            .OrderByDescending(kv => kv.Value)
-            .Take(count)
-            .Select(kv => _albumRepo.GetById(kv.Key))
-            .Where(a => a != null)
-            .ToList()!;
+    {
+        return GetAlbumPlayCounts()
+                .OrderByDescending(kv => kv.Value)
+                .Take(count)
+                .Select(kv => _albumRepo.GetById(kv.Key))
+                .Where(a => a != null)
+                .ToList()!;
+    }
 
     public List<AlbumModel> GetUnderratedAlbums(int minPlays, int maxPlays)
-        => GetAlbumPlayCounts()
-            .Where(kv => kv.Value >= minPlays && kv.Value <= maxPlays)
-            .Select(kv => _albumRepo.GetById(kv.Key))
-            .Where(a => a != null)
-            .ToList()!;
+    {
+        return GetAlbumPlayCounts()
+                .Where(kv => kv.Value >= minPlays && kv.Value <= maxPlays)
+                .Select(kv => _albumRepo.GetById(kv.Key))
+                .Where(a => a != null)
+                .ToList()!;
+    }
 
     //public List<AlbumModel> GetUserFavoriteAlbums()
     //    => GetAlbumAverageListenPercentage()

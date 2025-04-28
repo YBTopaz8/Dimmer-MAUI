@@ -22,6 +22,7 @@ public interface IPlayerStateService : IDisposable
     IObservable<SongModel> SecondSelectedSong { get; }
     IObservable<LyricPhraseModel> CurrentLyric { get; }
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
+    IObservable<bool> IsPlaying { get; }
 
     #region Settings Methods
 

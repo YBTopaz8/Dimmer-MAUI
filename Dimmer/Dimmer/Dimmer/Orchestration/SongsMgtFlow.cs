@@ -39,16 +39,19 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         this.songRepo=songRepo;
         _audio  = audioService;
         _subs   = subs;
-        
+
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
-      
+
 
         // Map audio‑service events into observables
         var playingChanged = Observable
             .FromEventPattern<PlaybackEventArgs>(
                 h => _audio.IsPlayingChanged += h,
                 h => _audio.IsPlayingChanged -= h)
-            .Select(evt => evt.EventArgs.IsPlaying);
+            .Select(evt =>
+            {
+                return evt.EventArgs.IsPlaying;
+            });
 
         var positionChanged = Observable
             .FromEventPattern<double>(
@@ -140,13 +143,15 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         if (isPause)
         {
             await _audio.PauseAsync();
-            PauseSong();    // records Pause link
+            _state.SetCurrentState(DimmerPlaybackState.Paused);
+            AddPauseSongEventToDB();    // records Pause link
         }
         else
         {
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            ResumeSong();   // records Resume link
+            _state.SetCurrentState(DimmerPlaybackState.Playing);
+            AddResumeSongToDB();   // records Resume link
         }
     }
 
@@ -166,13 +171,19 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     }
 
     public void ChangeVolume(double newVolume)
-        => _audio.Volume = Math.Clamp(newVolume, 0, 1);
+    {
+        _audio.Volume = Math.Clamp(newVolume, 0, 1);
+    }
 
     public void IncreaseVolume()
-        => ChangeVolume(_audio.Volume + 0.01);
+    {
+        ChangeVolume(_audio.Volume + 0.01);
+    }
 
     public void DecreaseVolume()
-        => ChangeVolume(_audio.Volume - 0.01);
+    {
+        ChangeVolume(_audio.Volume - 0.01);
+    }
 
     public double VolumeLevel => _audio.Volume;
 

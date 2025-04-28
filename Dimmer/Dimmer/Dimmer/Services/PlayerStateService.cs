@@ -9,6 +9,7 @@ namespace Dimmer.Services;
 public class PlayerStateService : IPlayerStateService, IDisposable
 {
     readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
+    readonly BehaviorSubject<bool> _isPlaying = new(false);
     readonly BehaviorSubject<string> _latestDeviceLog = new(string.Empty);
     readonly BehaviorSubject<IList<string>> _dailyLatestDeviceLogs = new(Array.Empty<string>());
     readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
@@ -45,6 +46,7 @@ public class PlayerStateService : IPlayerStateService, IDisposable
 
 
     public IObservable<SongModelView> CurrentSong => _currentSong.AsObservable();
+    public IObservable<bool> IsPlaying => _isPlaying.AsObservable();
     public IObservable<LyricPhraseModel> CurrentLyric => _currentLyric.AsObservable();
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
     public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
@@ -110,13 +112,22 @@ public class PlayerStateService : IPlayerStateService, IDisposable
     }
 
     public void SetCurrentState(DimmerPlaybackState state)
-        => _playbackState.OnNext(state);
+    {
+        _playbackState.OnNext(state);
+
+        _isPlaying.OnNext(state == DimmerPlaybackState.Playing);
+       
+    }
 
     public void AddWindow(Window window)
-        => _windows.OnNext(_windows.Value.Append(window).ToList().AsReadOnly());
+    {
+        _windows.OnNext(_windows.Value.Append(window).ToList().AsReadOnly());
+    }
 
     public void RemoveWindow(Window window)
-        => _windows.OnNext(_windows.Value.Where(x => x != window).ToList().AsReadOnly());
+    {
+        _windows.OnNext(_windows.Value.Where(x => x != window).ToList().AsReadOnly());
+    }
 
     public void SetCurrentPlaylist(IEnumerable<SongModel> songs,PlaylistModel? Playlist=null)
     {
@@ -164,7 +175,9 @@ public class PlayerStateService : IPlayerStateService, IDisposable
 
     // add/remove single or multiple songs
     public void AddSingleSongToCurrentPlaylist(PlaylistModel p, SongModel song)
-        => AddSongsToCurrentPlaylist(p, new[] { song });
+    {
+        AddSongsToCurrentPlaylist(p, new[] { song });
+    }
 
     public void AddSongsToCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
     {
@@ -175,7 +188,9 @@ public class PlayerStateService : IPlayerStateService, IDisposable
     }
 
     public void RemoveSongFromCurrentPlaylist(PlaylistModel p, SongModel song)
-        => RemoveSongFromCurrentPlaylist(p, new[] { song });
+    {
+        RemoveSongFromCurrentPlaylist(p, new[] { song });
+    }
 
     public void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
     {

@@ -112,11 +112,82 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         SubscribeToSecondSelectdSong();
         SubscribeToIsPlaying();
         SubscribeToPosition();
+        SubscribeToStateChanges();
         
         CurrentPositionPercentage = 0;
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+    }
+
+    private void SubscribeToStateChanges()
+    {
+        _subs.Add(_stateService.CurrentPlayBackState.
+            DistinctUntilChanged()
+            .Subscribe(list =>
+            {
+                IsPlaying = list == DimmerPlaybackState.Playing;
+                switch (list)
+                {
+                    case DimmerPlaybackState.Opening:
+                        break;
+                    case DimmerPlaybackState.Stopped:
+                        break;
+                    case DimmerPlaybackState.Playing:
+                        
+                        break;
+                    case DimmerPlaybackState.Paused:
+                        break;
+                    case DimmerPlaybackState.Loading:
+                        break;
+                    case DimmerPlaybackState.Error:
+                        break;
+                    case DimmerPlaybackState.Failed:
+                        break;
+                    case DimmerPlaybackState.Previewing:
+                        break;
+                    case DimmerPlaybackState.LyricsLoad:
+                        break;
+                    case DimmerPlaybackState.ShowPlayBtn:
+                        break;
+                    case DimmerPlaybackState.ShowPauseBtn:
+                        break;
+                    case DimmerPlaybackState.RefreshStats:
+                        break;
+                    case DimmerPlaybackState.Initialized:
+                        break;
+                    case DimmerPlaybackState.Ended:
+                        break;
+                    case DimmerPlaybackState.CoverImageDownload:
+                        break;
+                    case DimmerPlaybackState.LoadingSongs:
+                        break;
+                    case DimmerPlaybackState.SyncingData:
+                        break;
+                    case DimmerPlaybackState.Buffering:
+                        break;
+                    case DimmerPlaybackState.DoneScanningData:
+                        break;
+                    case DimmerPlaybackState.PlayCompleted:
+                        break;
+                    case DimmerPlaybackState.PlayPrevious:
+                        break;
+                    case DimmerPlaybackState.PlayNext:
+                        break;
+                    case DimmerPlaybackState.Skipped:
+                        break;
+                    case DimmerPlaybackState.RepeatSame:
+                        break;
+                    case DimmerPlaybackState.RepeatAll:
+                        break;
+                    case DimmerPlaybackState.RepeatPlaylist:
+                        break;
+                    case DimmerPlaybackState.MoveToNextSongInQueue:
+                        break;
+                    default:
+                        break;
+                }
+            }));
     }
 
     private void SubscribeToMasterList()

@@ -74,15 +74,19 @@ public class QueueManager<T> : IQueueManager<T>
         : default;
 
     // look ahead/behind without changing state
-    public T? PeekNext() =>
-        _source.Count == 0
+    public T? PeekNext()
+    {
+        return _source.Count == 0
         ? default
         : _source[(_position + 1) % _source.Count];
+    }
 
-    public T? PeekPrevious() =>
-        _source.Count == 0
+    public T? PeekPrevious()
+    {
+        return _source.Count == 0
         ? default
         : _source[(_position - 1 + _source.Count) % _source.Count];
+    }
 
     public bool HasNext => _source.Count > 0;
     public int Count => _source.Count;

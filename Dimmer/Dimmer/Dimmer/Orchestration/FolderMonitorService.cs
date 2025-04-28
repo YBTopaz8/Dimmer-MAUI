@@ -33,5 +33,8 @@ public class FolderMonitorService : IFolderMonitorService
         _watchers.Clear();
     }
 
-    public void Dispose() => Stop();
+    public void Dispose()
+    {
+        Stop();
+    }
 }
