@@ -17,7 +17,9 @@ public class MainApplication : MauiApplication
 
     public static void HandleAppAction(AppAction appAction)
     {
-
+        System.Diagnostics.Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
+                                                                                                // Ensure you dispatch to the main thread for UI work
+        
     }
 
 

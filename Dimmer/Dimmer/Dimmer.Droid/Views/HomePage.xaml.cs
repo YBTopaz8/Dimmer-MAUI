@@ -59,7 +59,48 @@ public partial class HomePage : ContentPage
     }
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        MyViewModel.PlaySong(e.Item as SongModelView,Utilities.Enums.CurrentPage.HomePage);
+        MyViewModel.PlaySong((e.Item as SongModelView)!,Utilities.Enums.CurrentPage.HomePage);
+        var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
+        qs!.UpdateTileVisualState(true, e.Item as SongModelView);
+    }
 
+    private async void MediaChipBtn_Tap(object sender, ChipEventArgs e)
+    {
+
+        ChoiceChipGroup? ee = (ChoiceChipGroup)sender;
+        string? param = e.Chip.TapCommandParameter.ToString();
+        if (param is null)
+        {
+            return;
+        }
+        var CurrentIndex = int.Parse(param);
+        switch (CurrentIndex)
+        {
+            case 0:
+                MyViewModel.ToggleRepeatMode();
+                break;
+            case 1:
+                MyViewModel.PlayPrevious();
+                break;
+            case 2:
+            case 3:
+                await MyViewModel.PlayPauseAsync();
+
+                break;
+            case 4:
+                MyViewModel.PlayNext(true);
+                break;
+            case 5:
+                MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
+                break;
+
+            case 6:
+                MyViewModel.IncreaseVolume();
+                break;
+
+            default:
+                break;
+        }
+    
     }
 }

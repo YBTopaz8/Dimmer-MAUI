@@ -31,7 +31,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<HomePageViewModel>();
 
         builder.Services.AddSingleton<BaseViewModelAnd>();
-
+        builder.Services.AddSingleton<QuickSettingsTileService>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="?android:attr/colorBackground">
+  <!-- Use theme background -->
+
+  <!-- 1. Cover Image -->
+  <ImageView
+      android:id="@+id/bubble_cover_image"
+      android:layout_width="100dp"
+      android:layout_height="100dp"
+      android:layout_gravity="center_horizontal"
+      android:scaleType="centerCrop"
+      android:contentDescription="@string/album_art"
+      tools:srcCompat="@android:drawable/sym_def_app_icon" />
+  <!-- Placeholder image -->
+
+  <!-- 2. Song Title -->
+  <TextView
+      android:id="@+id/bubble_song_title"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:gravity="center_horizontal"
+      android:textAppearance="?android:attr/textAppearanceMedium"
+      android:maxLines="1"
+      android:ellipsize="end"
+      tools:text="Song Title Placeholder" />
+
+  <!-- 3. Song Artist -->
+  <TextView
+      android:id="@+id/bubble_song_artist"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:gravity="center_horizontal"
+      android:textAppearance="?android:attr/textAppearanceSmall"
+       android:maxLines="1"
+      android:ellipsize="end"
+      tools:text="Artist Name" />
+
+  <!-- 4. Song Album -->
+  <TextView
+      android:id="@+id/bubble_song_album"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:gravity="center_horizontal"
+      android:textAppearance="?android:attr/textAppearanceSmall"
+      android:textColor="?android:attr/textColorSecondary"
+       android:maxLines="1"
+      android:ellipsize="end"
+      tools:text="Album Name" />
+
+  <!-- 5. Slider -->
+  <SeekBar
+      android:id="@+id/bubble_seek_bar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:progress="30"
+      android:max="100" />
+  <!-- Placeholder values -->
+
+  <!-- 6. Play Button -->
+  <ImageButton
+      android:id="@+id/bubble_play_pause_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginTop="16dp"
+      android:background="?android:attr/selectableItemBackgroundBorderless"
+      android:contentDescription="@string/play_pause"
+      android:padding="8dp"
+      app:srcCompat="@android:drawable/ic_media_play" />
+  <!-- Placeholder Icon -->
+
+  <!-- Optional: Close Button -->
+  <ImageButton
+     android:id="@+id/bubble_close_button"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginTop="8dp"
+     android:background="?android:attr/selectableItemBackgroundBorderless"
+     android:contentDescription="@string/close"
+     android:padding="4dp"
+     app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+</LinearLayout>

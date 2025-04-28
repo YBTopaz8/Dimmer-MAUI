@@ -28,24 +28,26 @@
 
             <Grid RowDefinitions="Auto,*" >
 
-                <dx:DXButton Grid.Row="0" CornerRadius="20" BackgroundColor="Transparent"
-                             PressedBackgroundColor="DarkSlateBlue"                             >
-                    <dx:DXButton.Content>
-                        <dx:DXStackLayout Orientation="Vertical" >
-                            <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,80"
+                <dx:DXBorder Grid.Row="0" CornerRadius="20" BackgroundColor="Transparent"
+                             
+                             >
+                    <dx:DXBorder.Content>
+                <Grid>
+                    <Image Source="{Binding SecondSelectedSong.CoverImagePath}"
+                          Opacity="0.2" Aspect="AspectFit"/>
+                    <dx:DXStackLayout Orientation="Vertical" >
+                        <Grid ColumnDefinitions="*" RowDefinitions="Auto,Auto"
 >
-                                <dx:DXImage Source="{Binding SecondSelectedSong.CoverImagePath}"
-                                Grid.Column="0" Grid.Row="0"
-                                            />
 
-                                <dx:DXStackLayout Orientation="Vertical" Grid.Column="1"
+                                <dx:DXStackLayout Orientation="Vertical" Grid.Column="1" Grid.Row="0"
                                                   >
-                            <dx:DXStackLayout.Resources>
-                                <Style TargetType="dx:Chip" >
-                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <dx:DXStackLayout.Resources>
+                                        <Style TargetType="dx:Chip" >
+                                            <Setter Property="BorderThickness" Value="0"/>
                                     
-                                </Style>
-                            </dx:DXStackLayout.Resources>
+                                        </Style>
+                                    </dx:DXStackLayout.Resources>
+                                    
                                     <dx:Chip Text="{Binding SecondSelectedSong.Title}"                                              
                                              
                                              LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="0"/>
@@ -56,13 +58,16 @@
                                     <dx:Chip Text="{Binding SecondSelectedSong.FileFormat}" LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="5"/>
                                 </dx:DXStackLayout>
 
-                                <Grid ColumnDefinitions="Auto,*,Auto" Grid.Column="0" Grid.ColumnSpan="2"
+                                <Grid Grid.Column="0" 
+                                      RowDefinitions="*,auto" 
+                                      Grid.ColumnSpan="2"
                               Grid.Row="1"
                                   >
-                                    <dx:DXSlider 
-                                    Grid.Column="0" Opacity="1" VerticalOptions="Center"
+                                    <dx:DXSlider Margin="10,0"
+                                                 Grid.Row="0"
+                                                 Opacity="1" VerticalOptions="Center"
                                     MinValue="0" Orientation="Horizontal"
-                                    x:Name="ProgressSlider"  WidthRequest="350"                                
+                                    x:Name="ProgressSlider"  
            TapReleased="ProgressSlider_TapReleased" ValueStep="1"
            Value="{Binding CurrentPositionInSeconds, Mode=TwoWay}" 
            MaxValue="{Binding SecondSelectedSong.DurationInSeconds}">
@@ -88,7 +93,74 @@ BackgroundColor="#626680">
                                         </dx:DXSlider.ThumbAppearance>
                                     </dx:DXSlider>
 
+                                <dx:ChoiceChipGroup  Grid.Column="1"  Grid.Row="1"
+                                                           HorizontalSpacing="15"
+                                                        HeightRequest="150"
+                                                        ChipBorderThickness="0"
+                                                        ChipIconSize="40,40"
+                                                        ChipIsIconVisible="True"
+                                                        ChipIconColor="#7B68EE"
+                                                        ChipTap="MediaChipBtn_Tap"
+                                                            HorizontalOptions="Center">
+                                   
+                                    <dx:Chip HorizontalOptions="Center" 
+                                             
+                                       x:Name="MediaChipBtn" Icon="repoff.png" 
+                                             TapCommandParameter="0" >
 
+                                        <dx:Chip.Triggers>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="0" Binding="{Binding RepeatMode}">
+
+                                                <Setter Property="Icon" Value="repoff.png" />
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="1" Binding="{Binding RepeatMode}">
+
+                                                <Setter Property="Icon" Value="repeat.png"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="2" Binding="{Binding RepeatMode}">
+
+                                                <Setter Property="Icon" Value="repone.png"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="4" Binding="{Binding RepeatMode}">
+                                                <Setter Property="Icon" Value="repone.png"/>
+                                            </DataTrigger>
+                                        </dx:Chip.Triggers>
+                                    </dx:Chip>
+
+
+                                    <dx:Chip Icon="skipprevious.png" 
+               TapCommandParameter="1" TextColor="White"/>
+                                    <dx:Chip Icon="pause.png" IsVisible="{Binding IsPlaying}"
+               TapCommandParameter="2" TextColor="White"/>
+
+                                    <dx:Chip Icon="playcircle.png" IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
+               TapCommandParameter="3" TextColor="White"/>
+
+                                    <dx:Chip Icon="skipnext.png" 
+               TapCommandParameter="4"  TextColor="White"/>
+                                    <dx:Chip Icon="shuffle.png" 
+               TapCommandParameter="5" TextColor="White">
+
+                                        <dx:Chip.Triggers>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="True" Binding="{Binding IsShuffle}">
+
+                                                <Setter Property="BackgroundColor" Value="#B197FC"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger TargetType="dx:Chip" Value="False" Binding="{Binding IsShuffle}">
+
+                                                <Setter Property="BackgroundColor" Value="Transparent"/>
+                                            </DataTrigger>
+
+                                        </dx:Chip.Triggers>
+                                    </dx:Chip>
+                                
+                            </dx:ChoiceChipGroup>
                                 </Grid>
 
                             </Grid>
@@ -96,9 +168,10 @@ BackgroundColor="#626680">
 
                         </dx:DXStackLayout>
 
-                    </dx:DXButton.Content>
+                </Grid>
+                    </dx:DXBorder.Content>
 
-                </dx:DXButton>
+                </dx:DXBorder>
 
                 <dx:TabView Grid.Row="1" 
                             x:Name="HomeTabView" SwipeEnabled="True"

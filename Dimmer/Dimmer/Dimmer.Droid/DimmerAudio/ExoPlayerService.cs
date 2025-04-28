@@ -32,6 +32,8 @@ using AudioAttributes = AndroidX.Media3.Common.AudioAttributes;
 using Android.Util;
 using Java.Util.Concurrent;
 using Android.Media;
+using Dimmer.Activities;
+using AndroidX.ConstraintLayout.Helper.Widget;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -691,7 +693,37 @@ public class ExoPlayerService : MediaSessionService
 
        
 
-    } 
+    }
+
+    private IPlaybackBubbleUpdateListener? _bubbleListener;
+
+    public void SetBubbleUpdateListener(IPlaybackBubbleUpdateListener? listener)
+    {
+        _bubbleListener = listener;
+        Log.Debug("MediaSessionService", $"Bubble listener {(listener == null ? "removed" : "set")}.");
+    }
+    public void RequestCurrentStateForBubble()
+    {
+        if (_bubbleListener != null)
+        {
+            // Get current state from your player/MediaSession
+            string currentTitle =  player?.MediaMetadata?.Title?.ToString() ?? "Unknown";
+            string currentArtist = player?.MediaMetadata?.Artist?.ToString() ?? "Unknown";
+            string currentAlbum = player?.MediaMetadata?.AlbumTitle?.ToString() ?? "Unknown";
+            bool isPlaying = player?.IsPlaying ?? false;
+            int position = (int)(player?.CurrentPosition ?? 0);
+            int duration = (int)(player?.Duration ?? 0);
+            // Bitmap coverArt = GetCurrentCoverArtBitmap(); // Your method to get art
+
+            Log.Debug("MediaSessionService", "Sending current state to bubble.");
+            _bubbleListener.UpdateMetadataUI(currentTitle, currentArtist, currentAlbum /*, coverArt */);
+            _bubbleListener.UpdatePlaybackStateUI(isPlaying, position, duration);
+        }
+        else
+        {
+            Log.Debug("MediaSessionService", "RequestCurrentStateForBubble called but no listener set.");
+        }
+    }
 
 } // End ExoPlayerService class
 
