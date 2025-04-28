@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using System.Diagnostics;
 
 namespace Dimmer.Droid;
 
@@ -19,6 +20,17 @@ public class MainActivity : MauiAppCompatActivity
                ?? throw new InvalidOperationException("Service not bound yet");
         set => _binder = value;
     }
+    protected override void OnNewIntent(Intent? intent)
+    {
+        base.OnNewIntent(intent);
+        HandleIntent(intent);
+    }
+
+    private static void HandleIntent(Intent? intent)
+    {
+        Console.WriteLine(intent?.Action?.ToString());
+    }
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);

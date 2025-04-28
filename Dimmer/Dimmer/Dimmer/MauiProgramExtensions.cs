@@ -49,7 +49,7 @@ public static class MauiProgramExtensions
         builder.Services.AddTransient(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
-        var mapper = AutoMapperConf.ConfigureAutoMapper();
+        IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
         builder.Services.AddSingleton(mapper);
 
         builder.Services.AddSingleton<BaseAppFlow>();

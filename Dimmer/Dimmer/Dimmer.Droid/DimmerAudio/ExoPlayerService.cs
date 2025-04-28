@@ -240,6 +240,7 @@ public class ExoPlayerService : MediaSessionService
 
     public override void OnDestroy()
     {
+
         Console.WriteLine("[ExoPlayerService] OnDestroy");
         // Release resources in reverse order of creation
         mediaSession?.Release();

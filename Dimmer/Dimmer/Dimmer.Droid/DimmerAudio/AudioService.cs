@@ -1,5 +1,6 @@
 ﻿using AndroidX.Media3.Common;
 using Dimmer.Data.Models; // Assuming this namespace is correct
+using Dimmer.Data.ModelView;
 using Dimmer.Utilities.Events; // Assuming this namespace is correct for PlaybackEventArgs
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -18,7 +19,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private IPlayer? Player => Service?.GetPlayerInstance(); // Convenience accessor
 
     private bool _isInitialized = false; // Track if binder is set
-    private SongModel? _currentSongModel; // Store context if needed
+    private SongModelView? _currentSongModel; // Store context if needed
 
     // --- IDimmerAudioService Implementation ---
 
@@ -88,11 +89,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // --- Methods mapping to Service Commands/Player Actions ---
 
-    public void InitializePlaylist(IEnumerable<SongModel> songModel)
+    public void InitializePlaylist(IEnumerable<SongModelView> songModel)
     {
 
     }
-    public Task InitializeAsync(SongModel songModel, byte[]? songCoverImage)
+    public Task InitializeAsync(SongModelView songModel, byte[]? songCoverImage)
     {
         _currentSongModel = songModel;
 
@@ -109,7 +110,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task PlayAsync()
     {
-            //Player?.Play();
+            Player?.Play();
             Console.WriteLine("[AudioService] Play command sent.");
         
         return Task.CompletedTask; // Android service calls are mostly async fire-and-forget

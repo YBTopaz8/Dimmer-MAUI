@@ -45,14 +45,20 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         // 1) whenever the song changes, reload its lyrics
         _subs.Add(_state.CurrentSong
             .DistinctUntilChanged()
-            .Subscribe(LoadLyricsForSong));
+            .Subscribe(song =>
+            {
+                if (song == null)
+                    return;
+                LoadLyricsForSong(song);
+            }));
 
         
         SubscribeToPosition();
     }
 
-    private void LoadLyricsForSong(SongModel song)
+    private void LoadLyricsForSong(SongModelView song)
     {
+        
         if (string.IsNullOrWhiteSpace(song.SyncLyrics))
         {
             _lyrics = new();

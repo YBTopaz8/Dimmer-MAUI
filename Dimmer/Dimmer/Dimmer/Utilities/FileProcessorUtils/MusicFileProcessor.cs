@@ -352,13 +352,10 @@ public static class MusicFileProcessor
         // Fallback: Look for an image file in a predefined folder.
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
         string folderPath = string.Empty;
-#if ANDROID && NET9_0
-        folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CoverImagesDimmer");
-#elif WINDOWS && NET9_0
-        folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-#else
+        //folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+
         folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CoverImagesDimmer");
-#endif
+
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 

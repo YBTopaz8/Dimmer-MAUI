@@ -45,12 +45,12 @@ public interface IDimmerAudioService
     /// <param name="songModel">The song model.</param>
     /// <param name="SongCoverImage">The song cover image.</param>
     /// <returns></returns>
-    Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage=null);
+    Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage=null);
     /// <summary>
     /// Initializes the playlist.
     /// </summary>
     /// <param name="songModels">The song models.</param>
-    void InitializePlaylist(IEnumerable<SongModel> songModels);
+    void InitializePlaylist(IEnumerable<SongModelView> songModels);
     /// <summary>
     /// Gets the available audio outputs asynchronous.
     /// </summary>

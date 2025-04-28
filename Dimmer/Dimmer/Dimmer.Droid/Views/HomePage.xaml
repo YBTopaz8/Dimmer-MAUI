@@ -40,7 +40,15 @@
 
                                 <dx:DXStackLayout Orientation="Vertical" Grid.Column="1"
                                                   >
-                                    <dx:Chip Text="{Binding SecondSelectedSong.Title}" LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="0"/>
+                            <dx:DXStackLayout.Resources>
+                                <Style TargetType="dx:Chip" >
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    
+                                </Style>
+                            </dx:DXStackLayout.Resources>
+                                    <dx:Chip Text="{Binding SecondSelectedSong.Title}"                                              
+                                             
+                                             LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="0"/>
                                     <dx:Chip Text="{Binding SecondSelectedSong.ArtistName}" LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="1"/>
                                     <dx:Chip Text="{Binding SecondSelectedSong.AlbumName}" LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="2"/>
                                     <dx:Chip Text="{Binding SecondSelectedSong.Genre}" LongPress="CurrentlyPlayingSection_ChipLongPress" LongPressCommandParameter="3"/>
@@ -101,7 +109,7 @@ BackgroundColor="#626680">
                         <dx:DXCollectionView 
                             SelectionMode="Single" dx:DXDockLayout.Dock ="Top"
                             Orientation="Vertical" x:Name="SongsColView" 
-                    ItemsSource="{Binding DisplayedSongs}" Tap="SongsColView_Tap" ItemSpacing="8"
+                    ItemsSource="{Binding MasterListOfSongs}" Tap="SongsColView_Tap" ItemSpacing="8"
                     Scrolled="SongsColView_Scrolled"
                     >
 

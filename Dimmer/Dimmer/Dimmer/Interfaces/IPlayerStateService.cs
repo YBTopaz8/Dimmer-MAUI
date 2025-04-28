@@ -5,7 +5,9 @@ public interface IPlayerStateService : IDisposable
     /// <summary>
     /// Fires immediately with the last value on subscription.
     /// </summary>
-    IObservable<SongModel> CurrentSong { get; }
+    
+    ///
+    IObservable<SongModelView> CurrentSong { get; }
     IObservable<string> LatestDeviceLog { get; }
     IObservable<IList<string>> DailyLatestDeviceLogs { get; }
 

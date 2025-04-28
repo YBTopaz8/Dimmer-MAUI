@@ -20,7 +20,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private readonly MediaPlayer _mediaPlayer;
     private readonly DispatcherQueue _dispatcherQueue; // For UI thread safety if needed
     private CancellationTokenSource? _initializationCts;
-    private SongModel? _currentTrackMetadata;
+    private SongModelView? _currentTrackMetadata;
     private bool _isDisposed;
     private string? _currentAudioDeviceId; // Store the ID of the explicitly selected output device
 
@@ -230,7 +230,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet        
     }
 
-    public SongModel? CurrentTrackMetadata => _currentTrackMetadata;
+    public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
 
     #endregion
 
@@ -241,7 +241,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// </summary>
     /// <param name="metadata">The metadata of the track to load.</param>
     /// <returns>Task indicating completion.</returns>
-    public async Task InitializeAsync(SongModel songModel, byte[]? SongCoverImage)
+    public async Task InitializeAsync(SongModelView songModel, byte[]? SongCoverImage)
     {
         // 1) guard empty or null paths
        
@@ -428,7 +428,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Media Item Creation
 
-    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModel media, byte[]? ImageBytes = null, CancellationToken token=default)
+    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, byte[]? ImageBytes = null, CancellationToken token=default)
     {
 
         // 1) guard empty or null paths
@@ -967,7 +967,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
-    public void InitializePlaylist(IEnumerable<SongModel> songModels)
+    public void InitializePlaylist(IEnumerable<SongModelView> songModels)
     {
         throw new NotImplementedException();
     }

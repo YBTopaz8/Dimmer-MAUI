@@ -22,14 +22,14 @@ public class BaseAppFlow : IDisposable
     private bool _disposed;
 
     public SongModelView CurrentlyPlayingSong { get; set; } = new();
-    public SongModel CurrentlyPlayingSongDB { get; set; } = new();
+    
 
     public bool  IsShuffleOn
         => _settings.ShuffleOn;
 
     public RepeatMode CurrentRepeatMode
         => _settings.RepeatMode;
-
+    // enforce a single instance of the app flow
     public BaseAppFlow(
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
@@ -75,6 +75,8 @@ public class BaseAppFlow : IDisposable
             ? new SynchronizationContextScheduler(syncCtx)
             : TaskPoolScheduler.Default;
 
+        _state.SetSecondSelectdSong(MasterList.First());
+        _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
         return _songRepo
             .WatchAll()
             .ObserveOn(scheduler)
@@ -110,7 +112,7 @@ public class BaseAppFlow : IDisposable
     {
         if(string.IsNullOrEmpty(songId))
         {
-            songId = CurrentlyPlayingSongDB.LocalDeviceId;
+            songId = CurrentlyPlayingSong.LocalDeviceId;
         }
 
 
@@ -128,25 +130,32 @@ public class BaseAppFlow : IDisposable
     }
 
 
-    public void UpsertPlaylist(PlaylistModel model)
+    public void UpSertPlaylist(PlaylistModel model)
     {
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _playlistRepo.AddOrUpdate(model);
     }
 
-    public void UpsertArtist(ArtistModel model)
+    public void UpSertArtist(ArtistModel model)
     {
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _artistRepo.AddOrUpdate(model);
     }
 
-    public void UpsertAlbum(AlbumModel model)
+    public void UpSertAlbum(AlbumModel model)
     {
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _albumRepo.AddOrUpdate(model);
+    }
+    
+    public void UpSertSong(SongModel model)
+    {
+        if (string.IsNullOrEmpty(model.LocalDeviceId))
+            model.LocalDeviceId = Guid.NewGuid().ToString();
+        _songRepo.AddOrUpdate(model);
     }
 
     public void ToggleShuffle(bool isOn)
@@ -241,7 +250,21 @@ public class BaseAppFlow : IDisposable
             }
 
         Debug.WriteLine("All files processed.");
-    
+
+        if (allSongs.Count<1)
+        {
+            return null;
+        }
+        MasterList= [.. allSongs];
+
+        _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null); 
+
+        _songRepo.AddOrUpdate(allSongs);
+
+    _genreRepo.AddOrUpdate(newGenres);
+    _aagslRepo.AddOrUpdate(newLinks);
+    _albumRepo.AddOrUpdate(newAlbums);
+    _artistRepo.AddOrUpdate(newArtists);
         return new LoadSongsResult
         {
             Artists = newArtists,

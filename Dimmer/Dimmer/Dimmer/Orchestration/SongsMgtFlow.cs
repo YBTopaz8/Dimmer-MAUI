@@ -10,8 +10,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private readonly IDimmerAudioService _audio;
     private readonly SubscriptionManager _subs;
 
-    // cache of the master list
-    private List<SongModel> _masterSongs ;
+    private readonly SongsMgtFlow Instance;
+   
 
     // Exposed streams
     public IObservable<bool> IsPlaying { get; }
@@ -39,16 +39,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         this.songRepo=songRepo;
         _audio  = audioService;
         _subs   = subs;
-        _masterSongs= new List<SongModel>();
+        
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
-        _subs.Add(
-            _state.AllCurrentSongs
-                  .Subscribe(list =>
-                  {
-                      // list is IReadOnlyList<SongModel>
-                      _masterSongs = [.. list];
-                  })
-        );
+      
 
         // Map audio‑service events into observables
         var playingChanged = Observable
@@ -101,21 +94,21 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                     .DistinctUntilChanged()
                           .Subscribe(s =>
                           {
-                              CurrentlyPlayingSongDB=s;
+                              CurrentlyPlayingSong=s;
                           })
                 );
     }
 
     public async Task PlaySongInAudioService()
     {
-        if (string.IsNullOrWhiteSpace(CurrentlyPlayingSongDB.FilePath))
+        if (string.IsNullOrWhiteSpace(CurrentlyPlayingSong.FilePath))
             return;
 
-        var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSongDB.FilePath, true);
+        var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         CurrentlyPlayingSong.ImageBytes = cover;
 
         await _audio
-            .InitializeAsync(CurrentlyPlayingSongDB, cover);
+            .InitializeAsync(CurrentlyPlayingSong, cover);
 
         await _audio.PlayAsync();
 

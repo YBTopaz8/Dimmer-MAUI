@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.Input;
 using Dimmer.Services;
+using Dimmer.Utilities.FileProcessorUtils;
 
 namespace Dimmer.ViewModel;
 
@@ -107,6 +108,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
+        SubscribeToMasterList();
         SubscribeToSecondSelectdSong();
         SubscribeToIsPlaying();
         SubscribeToPosition();
@@ -115,6 +117,18 @@ public partial class BaseViewModel : ObservableObject, IDisposable
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+    }
+
+    private void SubscribeToMasterList()
+    {
+        _subs.Add(_stateService.AllCurrentSongs.
+            DistinctUntilChanged()
+            .Subscribe(list =>
+            {
+                if (list.Count == MasterListOfSongs.Count)
+                    return;
+                MasterListOfSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
+            }));
     }
 
     private void SubscribeToLyricIndexChanges()
@@ -209,19 +223,20 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             .DistinctUntilChanged()
             .Subscribe(song =>
             {
-                if(string.IsNullOrEmpty(song.FilePath))
+                if (string.IsNullOrEmpty(song.FilePath))
                 {
                     TemporarilyPickedSong=new();
                     return;
                 }
 
                 if (TemporarilyPickedSong != null)
+                {
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
 
-                TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
-                SecondSelectedSong = TemporarilyPickedSong;
-                if (TemporarilyPickedSong != null)
-                {
+                    TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
+
+                    SecondSelectedSong = TemporarilyPickedSong;
+
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                     AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";
                 }
@@ -229,6 +244,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 {
                     AppTitle = CurrentAppVersion;
                 }
+
             }));
     }
 
@@ -241,6 +257,10 @@ public partial class BaseViewModel : ObservableObject, IDisposable
                 .Subscribe(s =>
                 {
                     IsPlaying = s;
+                    if (TemporarilyPickedSong is null)
+                    {
+                        return;
+                    }
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = s;
                 }));
     }
@@ -293,6 +313,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
             _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
         }
         
+        //this triggers the pl flow and song mgt flow
         _stateService.SetCurrentState(DimmerPlaybackState.Playing);
 
     }

@@ -15,6 +15,10 @@ public class MainApplication : MauiApplication
     }
 
 
+    public static void HandleAppAction(AppAction appAction)
+    {
+
+    }
 
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)

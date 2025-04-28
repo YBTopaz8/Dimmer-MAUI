@@ -59,7 +59,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                   .DistinctUntilChanged()
                   .Subscribe(song=> 
                   {                      
-                      CurrentlyPlayingSongDB = song;
+                      CurrentlyPlayingSong = song;
                       
                   })
         );
@@ -167,7 +167,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                     var source = playlistSongs.ToList();
 
                     var songIndex = source.FindIndex(s =>
-             s.LocalDeviceId == CurrentlyPlayingSongDB!.LocalDeviceId);
+             s.LocalDeviceId == CurrentlyPlayingSong!.LocalDeviceId);
                     if (songIndex < 0)
                         songIndex = 0; // fallback to start
 
