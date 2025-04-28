@@ -8,6 +8,9 @@ public partial class HomeViewModel : BaseViewModelWin
 {
 
     #region private fields   
+    private readonly SubscriptionManager _subs;
+    private readonly IMapper _mapper;
+    private readonly IPlayerStateService _stateService;
 
     #endregion
 
@@ -19,20 +22,26 @@ public partial class HomeViewModel : BaseViewModelWin
     public partial string? SearchText { get; set; }
     #endregion
     public HomeViewModel(
-            IMapper mapper,
+            IMapper mapper, BaseAppFlow baseAppFlow,
             AlbumsMgtFlow albumsMgtFlow,
             PlayListMgtFlow playlistsMgtFlow,
             SongsMgtFlow songsMgtFlow,
             IPlayerStateService stateService,
             ISettingsService settingsService,
-            SubscriptionManager subs
-        ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
-    { 
-    
+            SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow
+        ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    {
 
+        _mapper = mapper;
+        _subs = subs;
+        _stateService = stateService;
         LoadPageViewModel();
         SongsCV=new();
         TemporarilyPickedSong=new();
+
+        SubscribeToLyricIndexChanges();
+        SubscribeToSyncLyricsChanges();
     }
 
     private static void LoadPageViewModel()
@@ -40,6 +49,36 @@ public partial class HomeViewModel : BaseViewModelWin
         Debug.WriteLine("loaded page vm");
     }
 
+    private void SubscribeToLyricIndexChanges()
+    {
+        _subs.Add(_stateService.CurrentLyric
+            .DistinctUntilChanged()
+            .Subscribe(l =>
+            {
+                if (l == null || string.IsNullOrEmpty(l.Text))
+                    return;
+
+                CurrentLyricPhrase.NowPlayingLyricsFontSize = 29;
+                CurrentLyricPhrase = _mapper.Map<LyricPhraseModelView>(l);
+                MainThread.BeginInvokeOnMainThread(
+                   () =>
+                   {
+                       CurrentLyricPhrase.NowPlayingLyricsFontSize = 35;
+                       SongLyricsCV.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                   });
+            }));
+    }
+    private void SubscribeToSyncLyricsChanges()
+    {
+        _subs.Add(_stateService.SyncLyrics
+            .DistinctUntilChanged()
+            .Subscribe(l =>
+            {
+                if (l == null || l.Count<1)
+                    return;
+                SynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l);
+            }));
+    }
     [RelayCommand]
     public void ScrollToCurrentlyPlayingSong()
     {
@@ -68,9 +107,9 @@ public partial class HomeViewModel : BaseViewModelWin
         SongsCV = collectionView;
     }
     
-    public void SetLyricsView(ListView colView)
+    public void SetSongLyricsView(CollectionView collectionView)
     {
-        SongsListView = colView;
+        SongLyricsCV = collectionView;
     }
     
 

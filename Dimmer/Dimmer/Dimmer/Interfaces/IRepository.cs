@@ -1,14 +1,15 @@
 ﻿using System.Linq.Expressions;
 
 namespace Dimmer.Interfaces;
-public interface IRepository<T>
+public interface IRepository<T> where T : new()
 {
     void AddOrUpdate(T entity);
     void AddOrUpdate(IEnumerable<T> entities);
     void BatchUpdate(Action<Realm> updates);
     void Delete(T entity);
     void Delete(IEnumerable<T> entities);
-    IReadOnlyCollection<T> GetAll();
+    
+    IReadOnlyCollection<T> GetAll(bool IsShuffled = false);
     IRealmCollection<T> GetAllLive();
     T? GetById(string primaryKey);
     List<T> GetPage(int skip, int take);

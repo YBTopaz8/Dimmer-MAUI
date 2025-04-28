@@ -31,6 +31,11 @@ public static class MauiProgramExtensions
         builder.Logging.AddDebug();
 #endif
 
+
+        builder.Services.AddSingleton(FolderPicker.Default);
+        builder.Services.AddSingleton(FilePicker.Default);
+        builder.Services.AddSingleton(FileSaver.Default);
+
         builder.Services.AddSingleton<IRealmFactory, RealmFactory>();
      
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
@@ -44,13 +49,14 @@ public static class MauiProgramExtensions
         builder.Services.AddTransient(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
-        var mapper = AutoMapperConf.ConfigureAutoMapper();
+        IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();
         builder.Services.AddSingleton(mapper);
 
         builder.Services.AddSingleton<BaseAppFlow>();
         builder.Services.AddSingleton<SongsMgtFlow>();
         builder.Services.AddSingleton<AlbumsMgtFlow>();
         builder.Services.AddSingleton<PlayListMgtFlow>();
+        builder.Services.AddSingleton<LyricsMgtFlow>();
 
 
 

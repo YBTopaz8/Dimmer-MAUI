@@ -1,7 +1,4 @@
 ﻿using Dimmer.WinUI.Utils.Models;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using static Vanara.PInvoke.User32;
 
 namespace Dimmer.WinUI.Views;
 
@@ -22,6 +19,7 @@ public partial class HomePage : ContentPage
         MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
         
         MyViewModel.SetCollectionView(SongsColView);
+        MyViewModel.SetSongLyricsView(LyricsColView);
 
         
     }
@@ -186,7 +184,7 @@ public partial class HomePage : ContentPage
         }
     }
     ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
-    private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
+    private void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
         if (MyViewModel.SecondSelectedSong is null)
         {
@@ -309,7 +307,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = MyViewModel.MasterListOfSongs.ToList(); 
+            songsToDisplay = [.. MyViewModel.MasterListOfSongs]; 
             wasSearch = false;
         }
         else
@@ -376,10 +374,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private CancellationTokenSource? _debounceCts;
-
-    double lastSeek = 0;
-    double lastVolume = 0;
     private void VolumeSlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
     }
@@ -415,6 +409,7 @@ public partial class HomePage : ContentPage
     {
         try
         {
+            MyViewModel.SetSongLyricsView(LyricsColView);
             //MyViewModel.
             var nativeView = LyricsColView.Handler?.PlatformView;
 
@@ -434,6 +429,7 @@ public partial class HomePage : ContentPage
             if (nativeView is Microsoft.UI.Xaml.Controls.Primitives.Selector selector)
             {
                 selector.Background = null;
+                
             }
 
             if (nativeView is Microsoft.UI.Xaml.Controls.ItemsControl itemsControl)
@@ -495,7 +491,7 @@ public partial class HomePage : ContentPage
     }
     private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric)
+        if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric || MyViewModel is null)
             return;
 
 

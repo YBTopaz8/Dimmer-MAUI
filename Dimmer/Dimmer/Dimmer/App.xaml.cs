@@ -13,7 +13,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        IAppUtil appUtil = IPlatformApplication.Current.Services.GetRequiredService<IAppUtil>();
+        IAppUtil appUtil = IPlatformApplication.Current!.Services.GetRequiredService<IAppUtil>();
         return appUtil.LoadWindow();
     }
 

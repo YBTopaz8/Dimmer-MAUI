@@ -7,6 +7,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 {
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
+    private readonly SubscriptionManager _subs;
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
@@ -16,21 +17,46 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial List<SongModelView>? FilteredSongs { get; set; }
+    private readonly IPlayerStateService _stateService;
 
+    private readonly IMapper _mapper;
     public BaseViewModelWin(
-        IMapper mapper,
+        IMapper mapper, BaseAppFlow baseAppFlow,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
         IPlayerStateService stateService,
         ISettingsService settingsService,
-        SubscriptionManager subs
-    ) : base(mapper, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs)
+        SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow
+    ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
     {
-        ResetDisplayedMasterList();
+        _mapper = mapper;
+        _stateService = stateService;
+        _subs = subs;
 
+        ResetDisplayedMasterList();
+        SubscribeToLyricIndexChanges();
     }
 
+    private void SubscribeToLyricIndexChanges()
+    {
+        _subs.Add(_stateService.CurrentLyric
+            .DistinctUntilChanged()
+            .Subscribe(l =>
+            {
+                if (l == null)
+                    return;
+                CurrentLyricPhrase = _mapper.Map<LyricPhraseModelView>(l);
+                MainThread.BeginInvokeOnMainThread(
+                    () =>
+                    {
+                        SongLyricsCV?.ScrollTo(CurrentLyricPhrase, null, ScrollToPosition.Center, true);
+                    });
+
+
+            }));
+    }
     private void ResetDisplayedMasterList()
     {
         // Initialize displayed songs to the full master list
@@ -38,6 +64,9 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
             DisplayedSongs = MasterListOfSongs.ToObservableCollection();
         
     }
+
+    
+    
 
     public static void SetTaskbarProgress(double position)
     {

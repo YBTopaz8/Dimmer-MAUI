@@ -1,5 +1,4 @@
 ﻿using Dimmer.Services;
-using System.Linq;
 
 namespace Dimmer.Orchestration;
 
@@ -8,7 +7,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IQueueManager<SongModel> _queue;
     private readonly SubscriptionManager _subs;
-    PlaylistModel defaultPlaylist;
+    
     // cache the master song list too, if you ever need to build song‑based playlists
     private IEnumerable<SongModel>? AllCurrentSongsList;
 
@@ -20,6 +19,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     public PlayListMgtFlow(
         IPlayerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<GenreModel> genreRepo,
+        IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
@@ -29,7 +30,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;
@@ -58,7 +59,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                   .DistinctUntilChanged()
                   .Subscribe(song=> 
                   {                      
-                      CurrentlyPlayingSongDB = song;
+                      CurrentlyPlayingSong = song;
                       
                   })
         );
@@ -133,11 +134,6 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                   })
         );
 
-        defaultPlaylist = new PlaylistModel
-        {
-            PlaylistName = "Default Playlist",
-            Description = "Default Playlist by Dimmer",
-        };
 
         _subs.Add(
             _state.CurrentPage.DistinctUntilChanged()
@@ -171,7 +167,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                     var source = playlistSongs.ToList();
 
                     var songIndex = source.FindIndex(s =>
-             s.LocalDeviceId == CurrentlyPlayingSongDB!.LocalDeviceId);
+             s.LocalDeviceId == CurrentlyPlayingSong!.LocalDeviceId);
                     if (songIndex < 0)
                         songIndex = 0; // fallback to start
 
@@ -182,10 +178,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     }
 
     public void CreatePlaylistOfFiftySongs()
-    {
-        
-        var fifty = AllCurrentSongsList.Take(50).ToList();
-        
+    {        
+        var fifty = AllCurrentSongsList.Take(50).ToList();        
     }
 
     private void OnPlaybackStateChanged(DimmerPlaybackState st)
@@ -195,9 +189,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             case DimmerPlaybackState.PlayPrevious:
                 PlayPreviousInQueue(); break;
             case DimmerPlaybackState.PlayNext:
-                AdvanceQueue();
-                break;
             case DimmerPlaybackState.Ended:
+                
+                
                 AdvanceQueue();
                 break;
             case DimmerPlaybackState.Playing:
@@ -219,14 +213,21 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         var next = _mapper.Map<SongModel>(_queue.Next());
 
         if (next != null)
+        {
             _state.SetCurrentSong(next);
+            _state.SetSecondSelectdSong(next);
+        }
+            
     }
     private void PlayPreviousInQueue()
     {
-        var next = _mapper.Map<SongModel>(_queue.Previous());
+        var prev = _mapper.Map<SongModel>(_queue.Previous());
 
-        if (next != null)
-            _state.SetCurrentSong(next);
+        if (prev != null)
+        {
+            _state.SetCurrentSong(prev);
+            _state.SetSecondSelectdSong(prev);
+        }
     }
 
     public void Dispose()

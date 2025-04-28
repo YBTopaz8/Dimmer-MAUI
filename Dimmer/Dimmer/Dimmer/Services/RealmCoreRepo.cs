@@ -1,9 +1,9 @@
 ﻿// ----------------------------
 // RealmCoreRepo.cs
 // ----------------------------
-using System.Diagnostics;
 using System.Linq.Expressions;
 using Dimmer.Data;
+using Dimmer.Utilities.Extensions;
 
 namespace Dimmer.Services;
 
@@ -57,12 +57,21 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
         using var realm = OpenRealm();
         realm.Write(() => updates(realm));
     }
-    public IReadOnlyCollection<T> GetAll()
+    public IReadOnlyCollection<T> GetAll(bool IsShuffled = false)
     {
         using var realm = OpenRealm();
-        return [.. realm.All<T>()
-            .AsEnumerable()
-                   .Select(o => o.Freeze())];
+        var list = realm.All<T>()
+            .ToList();
+        // 2) shuffle in place if requested
+        if (IsShuffled)
+            list.ShuffleInPlace();  // returns void
+
+        // 3) Freeze and materialize into a List<T> (List<T> implements IReadOnlyCollection<T>)
+        var frozen = list
+            .Select(o => o.Freeze())
+            .ToList();              // now List<T>, which is IReadOnlyCollection<T>
+
+        return frozen;
     }
 
     /// <summary>

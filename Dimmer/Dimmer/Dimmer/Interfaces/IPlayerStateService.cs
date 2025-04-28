@@ -5,7 +5,11 @@ public interface IPlayerStateService : IDisposable
     /// <summary>
     /// Fires immediately with the last value on subscription.
     /// </summary>
-    IObservable<SongModel> CurrentSong { get; }
+    
+    ///
+    IObservable<SongModelView> CurrentSong { get; }
+    IObservable<string> LatestDeviceLog { get; }
+    IObservable<IList<string>> DailyLatestDeviceLogs { get; }
 
     /// <summary>
     /// Fires immediately with the last snapshot on subscription.
@@ -16,6 +20,15 @@ public interface IPlayerStateService : IDisposable
     IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows { get; }
     IObservable<CurrentPage> CurrentPage{ get; }
     IObservable<SongModel> SecondSelectedSong { get; }
+    IObservable<LyricPhraseModel> CurrentLyric { get; }
+    IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
+
+    #region Settings Methods
+
+    void SetCurrentLogMsg(string logMessage);
+
+    #endregion
+
 
     /// <summary>
     /// Replace the master list of songs.
@@ -36,6 +49,8 @@ public interface IPlayerStateService : IDisposable
     void RemoveSongFromCurrentPlaylist(PlaylistModel p, SongModel song);
     void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs);
     void SetSecondSelectdSong(SongModel song);
+    void SetSyncLyrics(IEnumerable<LyricPhraseModel> lyric);
+    void SetCurrentLyric(LyricPhraseModel lyric);
 }
 public interface IQueueManager<T>
 {
