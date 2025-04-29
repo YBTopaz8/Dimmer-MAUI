@@ -235,9 +235,18 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         }
     }
 
-    public void Dispose()
+    public new void Dispose()
     {
-        _subs.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
         base.Dispose();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _subs.Dispose();
+        }
     }
 }
