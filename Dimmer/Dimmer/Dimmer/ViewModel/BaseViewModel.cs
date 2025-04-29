@@ -20,11 +20,10 @@ public partial class BaseViewModel : ObservableObject
 
 
     #endregion
-#if DEBUG
-    public const string CurrentAppVersion = "Dimmer v1.8a-debug";
-#else
-    public const string CurrentAppVersion = "Dimmer v1.8a-Release";
-#endif
+
+    public const string CurrentAppVersion = "Dimmer v1.8b";
+
+
 
     private readonly IMapper _mapper;
     private readonly IPlayerStateService _stateService;
@@ -55,7 +54,7 @@ public partial class BaseViewModel : ObservableObject
     public partial RepeatMode RepeatMode {get;set;}
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? MasterListOfSongs {get;set;}
+    public partial ObservableCollection<SongModelView>? PlaylistSongs {get;set;}
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
@@ -197,9 +196,9 @@ public partial class BaseViewModel : ObservableObject
             DistinctUntilChanged()
             .Subscribe(list =>
             {
-                if (list.Count == MasterListOfSongs.Count)
+                if (list.Count == PlaylistSongs.Count)
                     return;
-                MasterListOfSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
+                PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
             }));
     }
 
@@ -230,13 +229,13 @@ public partial class BaseViewModel : ObservableObject
     private void ResetMasterListOfSongs()
     {
      
-        MasterListOfSongs ??= new ObservableCollection<SongModelView>();
-        MasterListOfSongs.Clear();
+        PlaylistSongs ??= new ObservableCollection<SongModelView>();
+        PlaylistSongs.Clear();
         if(BaseAppFlow.MasterList is not null)
         {
-            if(BaseAppFlow.MasterList.Count == MasterListOfSongs.Count)
+            if(BaseAppFlow.MasterList.Count == PlaylistSongs.Count)
                 return;
-            MasterListOfSongs = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
+            PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
         }
     
     }
@@ -281,7 +280,6 @@ public partial class BaseViewModel : ObservableObject
                 if (SecondSelectedSong != null)
                 {
                     SecondSelectedSong.IsCurrentPlayingHighlight = true;
-                    AppTitle = $"{SecondSelectedSong.Title} - {SecondSelectedSong.ArtistName} [{SecondSelectedSong.AlbumName}] | {CurrentAppVersion}";
                 }
                 else
                 {
@@ -300,7 +298,8 @@ public partial class BaseViewModel : ObservableObject
                     TemporarilyPickedSong=new();
                     return;
                 }
-
+                var coverPath = FileCoverImageProcessor.SaveOrGetCoverImageToFilePath(song.FilePath, isDoubleCheckingBeforeFetch: true);
+                song.CoverImagePath = coverPath;
                 if (TemporarilyPickedSong != null)
                 {
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
@@ -427,14 +426,16 @@ public partial class BaseViewModel : ObservableObject
     public void ToggleShuffle()
     {
         IsShuffle = !IsShuffle;
+        _stateService.SetCurrentState(DimmerPlaybackState.ShuffleRequested);
+
         SongsMgtFlow.ToggleShuffle(IsShuffle);
-        _settingsService.ShuffleOn = IsShuffle;
+        
     }
 
     public void ToggleRepeatMode()
     {
         RepeatMode = SongsMgtFlow.ToggleRepeatMode();
-        _settingsService.RepeatMode = RepeatMode;
+        
     }
 
     public void IncreaseVolume()

@@ -95,12 +95,19 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         await SelectSongFromFolder();
     }
-    private void ResetDisplayedMasterList()
+
+    public void ResetDisplayedMasterList()
     {
+
         // Initialize displayed songs to the full master list
-        if (MasterListOfSongs != null)
-            DisplayedSongs = MasterListOfSongs;
+        if (BaseAppFlow.MasterList!= null)
+        {
+            var e = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
+            DisplayedSongs = [.. e];
+        }
 
     }
+
+
 
 }

@@ -147,7 +147,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         {
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            _state.SetCurrentState(DimmerPlaybackState.Playing);
+            _state.SetCurrentState(DimmerPlaybackState.Resumed);
             AddResumeSongToDB();   // records Resume link
         }
     }

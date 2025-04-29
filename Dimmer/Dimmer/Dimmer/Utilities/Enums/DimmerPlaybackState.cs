@@ -4,6 +4,7 @@ public enum DimmerPlaybackState
     Opening,
     Stopped,
     Playing,
+    Resumed,
     Paused,
     Loading,
     Error,
@@ -28,4 +29,5 @@ public enum DimmerPlaybackState
     RepeatAll,
     RepeatPlaylist,
     MoveToNextSongInQueue,
+    ShuffleRequested
 }

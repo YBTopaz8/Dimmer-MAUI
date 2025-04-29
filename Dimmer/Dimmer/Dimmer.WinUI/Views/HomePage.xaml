@@ -256,7 +256,7 @@
                         <syncf:SfTabItem >
                             <syncf:SfTabItem.Content>
                                 <CollectionView Grid.Row="0" 
-                BackgroundColor="Transparent" ItemsSource="{Binding MasterListOfSongs}"
+                BackgroundColor="Transparent" ItemsSource="{Binding PlaylistSongs}"
                             VerticalScrollBarVisibility="Default"
                             x:Name="SongsColView" 
                             Margin="5,0">

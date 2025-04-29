@@ -73,8 +73,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                               break;
                           case DimmerPlaybackState.Stopped:
                               break;
-                          case DimmerPlaybackState.Playing:
-                              break;
+                          
                           case DimmerPlaybackState.Paused:
                               break;
                           case DimmerPlaybackState.Loading:
@@ -120,13 +119,13 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                               break;
                           case DimmerPlaybackState.Skipped:
                               break;
-                          case DimmerPlaybackState.RepeatSame:
+                          case DimmerPlaybackState.ShuffleRequested:
+                              ShuffleQueue();
                               break;
                           case DimmerPlaybackState.RepeatAll:
                               break;
                           case DimmerPlaybackState.RepeatPlaylist:
                               break;
-                          case DimmerPlaybackState.MoveToNextSongInQueue:
                               break;
                           default:
                               break;
@@ -189,27 +188,26 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             case DimmerPlaybackState.PlayPrevious:
                 PlayPreviousInQueue(); break;
             case DimmerPlaybackState.PlayNext:
-            case DimmerPlaybackState.Ended:
-                
-                
+            case DimmerPlaybackState.Ended:                
                 AdvanceQueue();
                 break;
-            case DimmerPlaybackState.Playing:
-                
-                break;
+            
         }
     }
 
-    private void InitializeQueueWithMastList()
+    private void ShuffleQueue()
     {
-        if (AllCurrentSongsList == null)
-            return;
-        _queue.Initialize(items: AllCurrentSongsList);
-        
+        var q = _queue.ShuffleQueueInPlace();
+        _state.SetCurrentPlaylist(q);
+        //if (AllCurrentSongsList == null)
+        //    return;
+        //_queue.Initialize(items: AllCurrentSongsList);
+
     }
 
     private void AdvanceQueue()
     {
+
         var next = _mapper.Map<SongModel>(_queue.Next());
 
         if (next != null)

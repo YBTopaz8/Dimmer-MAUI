@@ -18,19 +18,21 @@ public class PlayerStateService : IPlayerStateService
     readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
     readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
     readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
-    readonly BehaviorSubject<PlaylistModel> _currentPlaylist = new(default!);
+    readonly BehaviorSubject<PlaylistModel?> _currentPlaylist = new(null);
     readonly BehaviorSubject<double> _deviceVolume = new(1);
     readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
     readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
 
     readonly IQueueManager<SongModel> _queue;
+    private readonly IRepository<SongModel> songRepo;
     private readonly IMapper mapper;
     readonly CompositeDisposable _subs = new();
-
-    public PlayerStateService(IMapper mapper,IQueueManager<SongModel>? queue = null
+    
+    public PlayerStateService(IMapper mapper, IRepository<SongModel> songRepo,IQueueManager<SongModel>? queue = null
         )
     {
         _queue = queue ?? new QueueManager<SongModel>();
+        this.songRepo=songRepo;
         this.mapper=mapper;
         // whenever state changes (skip the seed), advance
         _subs.Add(_playbackState.Skip(1).Subscribe(OnPlaybackStateChanged));
@@ -84,21 +86,8 @@ public class PlayerStateService : IPlayerStateService
     {
         ArgumentNullException.ThrowIfNull(song);
         
-        var coverPath= FileCoverImageProcessor.SaveOrGetCoverImageToFilePath(song.FilePath, isDoubleCheckingBeforeFetch: true);
-        if (coverPath is not null)
-        {
-            BaseAppFlow? BaseAppFlow = IPlatformApplication.Current!.Services.GetService<BaseAppFlow>();
-            
-            if (BaseAppFlow is not null)
-            {
-                song.CoverImagePath = coverPath;
-                var NewSong = new SongModelView();
-               NewSong = mapper.Map<SongModelView>(song);
-                Debug.WriteLine(NewSong.Title);
-                BaseAppFlow.UpSertSong(song);
-                _currentSong.OnNext(NewSong);
-            }
-        }
+        var NewSong = mapper.Map<SongModelView>(song);
+        _currentSong.OnNext(NewSong);
     }
     
     public void SetSecondSelectdSong(SongModel song)
@@ -142,7 +131,7 @@ public class PlayerStateService : IPlayerStateService
         {
             return;
         }
-        if (Playlist is null)
+        if (Playlist is null && _currentPlaylist.Value is null)
         {
             LoadAllSongs(BaseAppFlow.MasterList);
         }
@@ -151,9 +140,7 @@ public class PlayerStateService : IPlayerStateService
             LoadAllSongs(songs);
             _currentPlaylist.OnNext(Playlist); // from here get a method in baseappflow to create a playlist in db and save
         }
-            var list = BaseAppFlow.MasterList;
-
-        
+          
         // clear old subs (queue + state watcher)
         _subs.Clear();
         _subs.Add(_playbackState.Skip(1).Subscribe(OnPlaybackStateChanged));
@@ -170,6 +157,7 @@ public class PlayerStateService : IPlayerStateService
     }
     void HandleBatch(int batchId, IReadOnlyList<SongModel> batch)
     {
+        
         // e.g. raise a UI hook
         Console.WriteLine($"Enqueued batch {batchId}, {batch.Count} items");
     }
@@ -231,8 +219,6 @@ public class PlayerStateService : IPlayerStateService
             case DimmerPlaybackState.PlayNext:
             case DimmerPlaybackState.Ended:
                 AdvanceQueue();
-                break;
-            case DimmerPlaybackState.Playing:
                 break;
             case DimmerPlaybackState.PlayPrevious:
                 AdvanceQueue();
