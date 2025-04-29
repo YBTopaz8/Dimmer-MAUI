@@ -487,28 +487,28 @@ public partial class HomePage : ContentPage
             Debug.WriteLine($"Failed to remove highlight: {ex.Message}");
         }
     }
-    private async void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
+    private void LyricsColView_SelectionChanged(object sender, Microsoft.Maui.Controls.SelectionChangedEventArgs e)
     {
-        if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric || MyViewModel is null)
-            return;
+        //if (LyricsColView.SelectedItem is not LyricPhraseModelView CurrLyric || MyViewModel is null)
+            
 
 
-        if (MyViewModel.IsPlaying)
-        {
-            if (string.IsNullOrEmpty(CurrLyric.Text))
-            {
-                await Task.WhenAll(BmtBarView.DimmOutCompletely(),
-                    MainGrid.DimmOutCompletely(), PageBGImg.DimmInCompletely());
+        //if (MyViewModel.IsPlaying)
+        //{
+        //    if (string.IsNullOrEmpty(CurrLyric.Text))
+        //    {
+        //        await Task.WhenAll(BmtBarView.DimmOutCompletely(),
+        //            MainGrid.DimmOutCompletely(), PageBGImg.DimmInCompletely());
 
-            }
-            else
-            {
-                await Task.WhenAll(BmtBarView.DimmInCompletely(),
-                    MainGrid.DimmInCompletely(), PageBGImg.DimmInCompletely(),
-                    PageBGImg.DimmOut(endOpacity: 0.15));
+        //    }
+        //    else
+        //    {
+        //        await Task.WhenAll(BmtBarView.DimmInCompletely(),
+        //            MainGrid.DimmInCompletely(), PageBGImg.DimmInCompletely(),
+        //            PageBGImg.DimmOut(endOpacity: 0.15));
 
-            }
-        }
+        //    }
+        //}
     }
 
     private void SongsUIContextMenu_Clicked(object sender, EventArgs e)
