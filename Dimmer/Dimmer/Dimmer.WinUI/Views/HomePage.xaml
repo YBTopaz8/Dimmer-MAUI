@@ -49,7 +49,7 @@
             <syncf:SfChip Text="{Binding TemporarilyPickedSong.AlbumName}" FontSize="18" CommandParameter="2"/>
         </syncf:SfChipGroup>
 
-        <Grid ColumnDefinitions="auto,auto,*"
+        <Grid ColumnDefinitions="auto,auto,*" ColumnSpacing="5"
               
               Grid.Row="1" 
                       Margin="15,0" x:Name="BmtBarView">
@@ -73,13 +73,13 @@
                         </ResourceDictionary>
                     </syncf:SfChipGroup.Resources>
                     <syncf:SfChipGroup.ChipLayout>
-                        <HorizontalStackLayout Spacing="10" 
+                        <HorizontalStackLayout Spacing="5" 
                                      HorizontalOptions="Start"/>
                     </syncf:SfChipGroup.ChipLayout>
                     <syncf:SfChipGroup.Items>
 
                         <syncf:SfChip Text="Settings" ShowIcon="False"
-                                      CommandParameter="1" TextColor="White"/>                        
+                                      CommandParameter="5" TextColor="White"/>                        
 
                         <syncf:SfChip HorizontalOptions="Center"
                                           CommandParameter="0" >
@@ -140,18 +140,14 @@
                 </syncf:SfChipGroup>
 
 
-                <syncf:SfEffectsView  BackgroundColor="Transparent" ToolTipProperties.Text="{Binding VolumeLevel, StringFormat='Volume {0}'}"
-                                     Loaded="SfEffectsView_Loaded" Grid.Column="2"
-                                     Unloaded="SfEffectsView_Unloaded">
-                    <VerticalStackLayout >
-                        <Label  HorizontalOptions="Center"/>
 
-                        <Slider  Value="{Binding VolumeLevel}" WidthRequest="200" VerticalOptions="Start" 
-                                Maximum="1" Minimum="0" x:Name="VolumeSlider" 
-                                 DragCompleted="VolumeSlider_DragCompleted"
-                                MinimumTrackColor="DarkSlateBlue" />
-                    </VerticalStackLayout>
-                </syncf:SfEffectsView>
+            <Slider  Value="{Binding VolumeLevel}" ToolTipProperties.Text="{Binding VolumeLevel, StringFormat='Volume: {0:n1}'}"
+                                Grid.Column="2" VerticalOptions="Center" WidthRequest="170"
+                        Maximum="1" Minimum="0" x:Name="VolumeSlider" 
+                            DragCompleted="VolumeSlider_DragCompleted"
+                        MinimumTrackColor="DarkSlateBlue" />
+                    
+
             </HorizontalStackLayout>
 
             <Grid ColumnDefinitions="auto,*,auto"
@@ -160,7 +156,7 @@
                 <Label Grid.Column="0"
                         Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
                            HorizontalOptions="Center" FontSize="14" 
-                           Margin="0,5,0,0"/>
+                           />
                 <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted" 
                         Value="{Binding CurrentPositionInSeconds}"
                             x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
@@ -169,7 +165,7 @@
 
                 <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
                            HorizontalOptions="Center" FontSize="14" Grid.Column="2"
-                           Margin="0,5,0,0"/>
+                           />
             </Grid>
         </Grid>
 
