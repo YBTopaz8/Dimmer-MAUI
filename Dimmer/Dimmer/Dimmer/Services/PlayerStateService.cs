@@ -216,11 +216,13 @@ public class PlayerStateService : IPlayerStateService
     {
         switch (st)
         {
-            case DimmerPlaybackState.PlayNext:
-            case DimmerPlaybackState.Ended:
-                AdvanceQueue();
+            case DimmerPlaybackState.PlayPreviousUI:                
+            case DimmerPlaybackState.PlayPreviousUser:
+                PreviousInQueue();
                 break;
-            case DimmerPlaybackState.PlayPrevious:
+            case DimmerPlaybackState.Ended:                
+            case DimmerPlaybackState.PlayNextUser:                
+            case DimmerPlaybackState.PlayNextUI:
                 AdvanceQueue();
                 break;
         }
@@ -233,6 +235,16 @@ public class PlayerStateService : IPlayerStateService
         {
 
             var song = mapper.Map<SongModelView>(next);
+            _currentSong.OnNext(song);
+        }
+    }
+    void PreviousInQueue()
+    {
+        var prev = _queue.Previous();
+        if (prev != null)
+        {
+
+            var song = mapper.Map<SongModelView>(prev);
             _currentSong.OnNext(song);
         }
     }

@@ -74,7 +74,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.Stopped:
                               break;
                           
-                          case DimmerPlaybackState.Paused:
+                          case DimmerPlaybackState.PausedUI:
                               break;
                           case DimmerPlaybackState.Loading:
                               OnPlaybackStateChanged(DimmerPlaybackState.Playing);
@@ -110,12 +110,15 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                               break;
                           case DimmerPlaybackState.PlayCompleted:
                               break;
-                          case DimmerPlaybackState.PlayPrevious:
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPrevious);
+                          case DimmerPlaybackState.PlayPreviousUI:
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUI);
+                              break;
+                          case DimmerPlaybackState.PlayPreviousUser :
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUser);
 
                               break;
-                          case DimmerPlaybackState.PlayNext:
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNext);
+                          case DimmerPlaybackState.PlayNextUI:
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUI);
                               break;
                           case DimmerPlaybackState.Skipped:
                               break;
@@ -185,24 +188,25 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
     {
         switch (st)
         {
-            case DimmerPlaybackState.PlayPrevious:
-                PlayPreviousInQueue(); break;
-            case DimmerPlaybackState.PlayNext:
+            case DimmerPlaybackState.PlayPreviousUI:
+            case DimmerPlaybackState.PlayPreviousUser:
+                PlayPreviousInQueue();                 
+                break;
+            case DimmerPlaybackState.PlayNextUI:
+            case DimmerPlaybackState.PlayNextUser:
             case DimmerPlaybackState.Ended:                
                 AdvanceQueue();
                 break;
+
             
         }
+        _state.SetCurrentState(DimmerPlaybackState.Playing);
     }
 
     private void ShuffleQueue()
     {
         var q = _queue.ShuffleQueueInPlace();
         _state.SetCurrentPlaylist(q);
-        //if (AllCurrentSongsList == null)
-        //    return;
-        //_queue.Initialize(items: AllCurrentSongsList);
-
     }
 
     private void AdvanceQueue()
@@ -213,12 +217,13 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         if (next != null)
         {
             _state.SetCurrentSong(next);
-            _state.SetSecondSelectdSong(next);
+            _state.SetCurrentState(DimmerPlaybackState.Playing);
         }
             
     }
     private void PlayPreviousInQueue()
     {
+
         var prev = _mapper.Map<SongModel>(_queue.Previous());
 
         if (prev != null)

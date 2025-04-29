@@ -125,14 +125,16 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
     public void NextInQueue()
     {
-        _state.SetCurrentState(DimmerPlaybackState.PlayNext);
+        
         _state.SetCurrentState(DimmerPlaybackState.Playing);
+
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Skipped);
     }
 
     public void PrevInQueue()
     {
-        _state.SetCurrentState(DimmerPlaybackState.PlayPrevious);
         _state.SetCurrentState(DimmerPlaybackState.Playing);
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Previous);
     }
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
@@ -140,7 +142,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         if (isPause)
         {
             await _audio.PauseAsync();
-            _state.SetCurrentState(DimmerPlaybackState.Paused);
+            _state.SetCurrentState(DimmerPlaybackState.PausedUI);
             AddPauseSongEventToDB();    // records Pause link
         }
         else

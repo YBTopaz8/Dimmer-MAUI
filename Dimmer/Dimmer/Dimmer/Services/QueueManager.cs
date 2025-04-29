@@ -15,7 +15,7 @@ public class QueueManager<T> : IQueueManager<T>
     /// <summary>
     /// The batch size
     /// </summary>
-    private readonly int _batchSize;
+    private readonly int _batchSize=175;
     /// <summary>
     /// The position
     /// </summary>
@@ -39,7 +39,7 @@ public class QueueManager<T> : IQueueManager<T>
     /// </summary>
     /// <param name="batchSize">Size of the batch.</param>
     /// <exception cref="System.ArgumentException">Queue Manager threw an Arg Exception - batchSize</exception>
-    public QueueManager(int batchSize = 125)
+    public QueueManager(int batchSize = 175)
     {
         if (batchSize <= 0)
             throw new ArgumentException("Queue Manager threw an Arg Exception", nameof(batchSize));
@@ -116,7 +116,7 @@ public class QueueManager<T> : IQueueManager<T>
     public T? Previous()
     {
         if (_source.Count == 0)
-            return default;
+            return Current;
         _position = (_position - 1 + _source.Count) % _source.Count;
         EnqueueBatchIfNeeded(_position);
         var item = _source[_position];
