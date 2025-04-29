@@ -199,7 +199,17 @@ public partial class HomePage : ContentPage
                                 await Task.WhenAll(colorTask, bounceTask);
                             }
                         }
-                        catch { }
+                        catch (Exception ex) // Handle exceptions
+                        {
+                            Debug.WriteLine($"Error: {ex.Message}"); // Log the error
+                            // Optionally, you can show an alert or message to the user
+                        }
+                        finally
+                        {
+                            BtmBar.TranslationX = 0; // Reset translation
+                            BtmBar.TranslationY = 0; // Reset translation
+                            
+                        }
                     }
 
                     else // Left

@@ -41,7 +41,7 @@
             </dx:DXBorder.GestureRecognizers>
             <dx:DXBorder.Content>
 
-                <Grid ColumnDefinitions="*,auto" RowDefinitions="Auto,*"  >
+                <Grid ColumnDefinitions="*,*,auto" RowDefinitions="Auto,*"  >
                     <dx:DXStackLayout Grid.Row="0" HorizontalOptions="Start"
                                           Grid.Column="0" x:Name="TopBtmBarView"
                                           Orientation="Horizontal" >
@@ -75,21 +75,7 @@
                                 </Image.Triggers>
                             </Image>
                         </Border>
-                        <ImageButton Command="{Binding ToggleShuffleStateCommand}"  Source="shuffle.png"
-                WidthRequest="15">
-                            <ImageButton.Triggers>
-                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffleOn}" Value="True">
-                                    <Setter Property="BackgroundColor" Value="#B197FC"/>
-                                </DataTrigger>
-                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsShuffleOn}" Value="False">
-                                    <Setter Property="BackgroundColor" Value="Transparent"/>
-                                </DataTrigger>
-                            </ImageButton.Triggers>
-
-                            <ImageButton.CommandParameter>
-                                <x:Boolean>True</x:Boolean>
-                            </ImageButton.CommandParameter>
-                        </ImageButton>
+                        
                         <dx:DXStackLayout.Triggers>
                             <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
                                 <Setter Property="IsVisible" Value="True"/>
@@ -100,9 +86,8 @@
                         </dx:DXStackLayout.Triggers>
                     </dx:DXStackLayout>
 
-                    <dx:DXStackLayout Orientation="Horizontal" Grid.ColumnSpan="2" 
-                                          Grid.Row="1" 
-                                      Padding="4">
+                    <dx:DXStackLayout Orientation="Horizontal" Grid.Row="1" 
+                                      Padding="4" Grid.ColumnSpan="2" >
                         <dx:DXStackLayout.Triggers>
                             <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding SelectedItemIndexMobile}" Value="0">
                                 <Setter Property="IsVisible" Value="True"/>
@@ -112,13 +97,13 @@
                             </DataTrigger>
                         </dx:DXStackLayout.Triggers>
 
-                        <Grid ColumnDefinitions="auto,*,auto"
-            >
+                        <Grid 
+                            ColumnDefinitions="auto,*,auto">
 
                             <Label Grid.Column="0"
-        Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
-            HorizontalOptions="Center" FontSize="14" 
-            Margin="0,5,0,0"/>
+                                   Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
+                                   HorizontalOptions="Center" FontSize="14" 
+                                   Margin="0,5,0,0"/>
                             <VerticalStackLayout>
                                 <Label Text="{Binding SecondSelectedSong.Title}"/>
                                 <Label Text="{Binding SecondSelectedSong.ArtistName}"/>

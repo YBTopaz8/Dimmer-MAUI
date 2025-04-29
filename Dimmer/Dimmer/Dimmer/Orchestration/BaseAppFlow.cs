@@ -264,7 +264,7 @@ public class BaseAppFlow : IDisposable
 
         Debug.WriteLine("All files processed.");
 
-        if (allSongs.Count<1)
+        if (allSongs.Count < 1 )
         {
             return null;
         }

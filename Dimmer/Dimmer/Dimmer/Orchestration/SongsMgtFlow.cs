@@ -6,12 +6,9 @@ namespace Dimmer.Orchestration;
 public class SongsMgtFlow : BaseAppFlow, IDisposable
 {
     private readonly IRepository<SongModel> songRepo;
-    private readonly IRepository<AlbumArtistGenreSongLink> linkRepo;
+    private readonly IRepository<AlbumArtistGenreSongLink> _linkRepo;
     private readonly IDimmerAudioService _audio;
     private readonly SubscriptionManager _subs;
-
-    private readonly SongsMgtFlow Instance;
-   
 
     // Exposed streams
     public IObservable<bool> IsPlaying { get; }
@@ -42,7 +39,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
 
-
+        _linkRepo=linkRepo;
         // Map audio‑service events into observables
         var playingChanged = Observable
             .FromEventPattern<PlaybackEventArgs>(
@@ -62,7 +59,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IsPlaying = playingChanged.StartWith(_audio.IsPlaying);
         Position  = positionChanged.StartWith(_audio.CurrentPosition);
         Volume    = Observable.Return(_audio.Volume);
-
+        _state.SetDeviceVolume(_audio.Volume);
         // Wire up play‑end/next/previous
         _audio.SeekCompleted += Audio_SeekCompleted;
         _audio.PlayEnded    += OnPlayEnded;
@@ -173,6 +170,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     public void ChangeVolume(double newVolume)
     {
         _audio.Volume = Math.Clamp(newVolume, 0, 1);
+        //_state.SetDeviceVolume(_audio.Volume);
     }
 
     public void IncreaseVolume()
@@ -190,7 +188,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     public List<SongModel> GetSongsByAlbumId(string albumId)
     {
         // 1. Find all Song IDs linked to the given Album ID
-        var songIdsInAlbum = linkRepo.GetAll().AsEnumerable()
+        var songIdsInAlbum = _linkRepo.GetAll().AsEnumerable()
             .Where(l => l.AlbumId == albumId)
             .Select(l => l.SongId)
             .Distinct()

@@ -1,3 +1,4 @@
+using Dimmer.Services;
 using Dimmer.Utilities;
 using Dimmer.WinUI.Utils.Helpers;
 using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
@@ -22,6 +23,7 @@ public partial class DimmerWin : Window
     {
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
+            SubscriptionManager subMgr = IPlatformApplication.Current!.Services.GetService<SubscriptionManager>()!;
             CloseAllWindows();
             var dimmerAudio = IPlatformApplication.Current!.Services.GetService<IDimmerAudioService>();
             if (dimmerAudio is not null)
@@ -29,6 +31,7 @@ public partial class DimmerWin : Window
                 await dimmerAudio.StopAsync();
                 await dimmerAudio.DisposeAsync();
             }
+            subMgr.Dispose();
             base.OnDestroying();
             
             return;

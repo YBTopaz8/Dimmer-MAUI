@@ -6,10 +6,11 @@ using Dimmer.Utilities.FileProcessorUtils;
 
 namespace Dimmer.Services;
 
-public class PlayerStateService : IPlayerStateService, IDisposable
+public class PlayerStateService : IPlayerStateService
 {
     readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
     readonly BehaviorSubject<bool> _isPlaying = new(false);
+    
     readonly BehaviorSubject<string> _latestDeviceLog = new(string.Empty);
     readonly BehaviorSubject<IList<string>> _dailyLatestDeviceLogs = new(Array.Empty<string>());
     readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
@@ -18,7 +19,7 @@ public class PlayerStateService : IPlayerStateService, IDisposable
     readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
     readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
     readonly BehaviorSubject<PlaylistModel> _currentPlaylist = new(default!);
-    
+    readonly BehaviorSubject<double> _deviceVolume = new(1);
     readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
     readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
 
@@ -40,6 +41,7 @@ public class PlayerStateService : IPlayerStateService, IDisposable
     #region Settings Observables
 
     public IObservable<string> LatestDeviceLog => _latestDeviceLog.AsObservable();
+    public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
     public IObservable<IList<string>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
     #endregion
 
@@ -117,6 +119,11 @@ public class PlayerStateService : IPlayerStateService, IDisposable
 
         _isPlaying.OnNext(state == DimmerPlaybackState.Playing);
        
+    }
+    
+    public void SetDeviceVolume(double volume)
+    {
+        _deviceVolume.OnNext(volume);              
     }
 
     public void AddWindow(Window window)

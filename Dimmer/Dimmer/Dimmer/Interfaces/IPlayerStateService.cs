@@ -23,6 +23,7 @@ public interface IPlayerStateService : IDisposable
     IObservable<LyricPhraseModel> CurrentLyric { get; }
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
     IObservable<bool> IsPlaying { get; }
+    IObservable<double> DeviceVolume { get; }
 
     #region Settings Methods
 
@@ -52,6 +53,7 @@ public interface IPlayerStateService : IDisposable
     void SetSecondSelectdSong(SongModel song);
     void SetSyncLyrics(IEnumerable<LyricPhraseModel> lyric);
     void SetCurrentLyric(LyricPhraseModel lyric);
+    void SetDeviceVolume(double volume);
 }
 public interface IQueueManager<T>
 {

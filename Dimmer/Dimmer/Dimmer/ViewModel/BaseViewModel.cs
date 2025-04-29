@@ -5,7 +5,7 @@ using Dimmer.Utilities.FileProcessorUtils;
 
 namespace Dimmer.ViewModel;
 
-public partial class BaseViewModel : ObservableObject, IDisposable
+public partial class BaseViewModel : ObservableObject
 {
 
     #region Settings Section
@@ -108,6 +108,7 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     {
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
+        SubscribeToDeviceVolume();
         SubscribeToMasterList();
         SubscribeToSecondSelectdSong();
         SubscribeToIsPlaying();
@@ -320,6 +321,17 @@ public partial class BaseViewModel : ObservableObject, IDisposable
     }
 
 
+    private void SubscribeToDeviceVolume()
+    {
+        _subs.Add(
+            SongsMgtFlow.Volume
+                .DistinctUntilChanged()  
+                .StartWith(1)
+                .Subscribe(s =>
+                {
+                    VolumeLevel = s;
+                }));
+    }
     private void SubscribeToIsPlaying()
     {
         _subs.Add(
