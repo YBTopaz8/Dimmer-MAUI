@@ -15,7 +15,7 @@ public class RemoteControlBroadcastReceiver : BroadcastReceiver
             return;
 
         // Use GetParcelableExtra and cast to KeyEvent for compatibility
-        var key = intent.GetParcelableExtra(Intent.ExtraKeyEvent) as KeyEvent;
+        var key = (intent.GetParcelableExtra(Intent.ExtraKeyEvent) as KeyEvent);
         if (key == null || key.Action != KeyEventActions.Down)
             return;
 

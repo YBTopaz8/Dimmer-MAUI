@@ -11,13 +11,15 @@ namespace Dimmer.Services;
 /// Thread‑safe Realm repo. Each call opens its own Realm; WatchAll
 /// holds its Realm open until you unsubscribe.
 /// </summary>
-public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
+public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, new()
 {
-    private readonly IRealmFactory _factory;
-    public RealmCoreRepo(IRealmFactory factory) => _factory = factory;
+    private readonly IRealmFactory _factory = factory;
 
     // Helper to open a thread‑local Realm
-    private Realm OpenRealm() => _factory.GetRealmInstance();
+    private Realm OpenRealm()
+    {
+        return _factory.GetRealmInstance();
+    }
 
     public void AddOrUpdate(T entity)
     {
@@ -79,7 +81,9 @@ public class RealmCoreRepo<T> : IRepository<T> where T : RealmObject, new()
     /// cast explicitly and hold onto both the Realm and the IRealmCollection.
     /// </summary>
     public IRealmCollection<T> GetAllLive()
-        => (IRealmCollection<T>)OpenRealm().All<T>();
+    {
+        return (IRealmCollection<T>)OpenRealm().All<T>();
+    }
 
     public T? GetById(string primaryKey)
     {

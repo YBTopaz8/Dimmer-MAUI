@@ -12,7 +12,7 @@
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              >
     <Window.TitleBar>
-        <TitleBar Title="{Binding AppTitle}" BackgroundColor="Transparent"
+        <TitleBar Title="Dimmer 1.9" BackgroundColor="Transparent"
                   x:Name="DimmerTitleBar">
 
             <TitleBar.Resources>

@@ -61,5 +61,8 @@ public class RealmFactory : IRealmFactory
         };
     }
 
-    public Realm GetRealmInstance() => Realm.GetInstance(_config);
+    public Realm GetRealmInstance()
+    {
+        return Realm.GetInstance(_config);
+    }
 }

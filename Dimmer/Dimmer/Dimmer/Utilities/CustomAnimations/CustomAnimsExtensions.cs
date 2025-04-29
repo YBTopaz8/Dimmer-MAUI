@@ -4,8 +4,7 @@ namespace Dimmer.Utilities.CustomAnimations;
 
 public static class CustomAnimsExtensions
 {
-    
-    public static async Task AnimateHighlightPointerPressed(this View element)
+public static async Task AnimateHighlightPointerPressed(this View element)
     {
         await element.ScaleTo(0.95, 80, Easing.CubicIn);
     }

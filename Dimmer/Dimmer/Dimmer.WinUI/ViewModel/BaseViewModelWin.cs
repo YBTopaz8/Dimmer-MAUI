@@ -57,16 +57,20 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
             }));
     }
-    private void ResetDisplayedMasterList()
+    public void ResetDisplayedMasterList()
     {
+
         // Initialize displayed songs to the full master list
-        if (MasterListOfSongs != null)
-            DisplayedSongs = MasterListOfSongs.ToObservableCollection();
-        
+        if (BaseAppFlow.MasterList!= null)
+        {
+            var e = _mapper.Map<ObservableCollection<SongModelView>>(BaseAppFlow.MasterList);
+            DisplayedSongs = [.. e];
+        }
+
     }
 
-    
-    
+
+
 
     public static void SetTaskbarProgress(double position)
     {

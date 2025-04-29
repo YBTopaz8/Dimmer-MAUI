@@ -76,6 +76,7 @@ public class BaseAppFlow : IDisposable
             : TaskPoolScheduler.Default;
 
         _state.SetSecondSelectdSong(MasterList.First());
+        _state.SetCurrentSong(MasterList.First());
         _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
         return _songRepo
             .WatchAll()
@@ -92,18 +93,29 @@ public class BaseAppFlow : IDisposable
     }
 
     public void SeekedTo(double? position)
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+    }
+
     public void PlaySong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Play);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Play);
+    }
 
-    public void PauseSong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Pause);
+    public void AddPauseSongEventToDB()
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Pause);
+    }
 
-    public void ResumeSong()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
-    
+    public void AddResumeSongToDB()
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
+    }
+
     public void PlayEnded()
-        => UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
+    {
+        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
+    }
 
     public void UpdatePlaybackState(
         string? songId,
@@ -159,7 +171,9 @@ public class BaseAppFlow : IDisposable
     }
 
     public void ToggleShuffle(bool isOn)
-        => _settings.ShuffleOn = isOn;
+    {
+        _settings.ShuffleOn = isOn;
+    }
 
     public RepeatMode ToggleRepeatMode()
     {
@@ -251,7 +265,7 @@ public class BaseAppFlow : IDisposable
 
         Debug.WriteLine("All files processed.");
 
-        if (allSongs.Count<1)
+        if (allSongs.Count < 1 )
         {
             return null;
         }

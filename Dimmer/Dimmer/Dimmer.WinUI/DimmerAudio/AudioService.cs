@@ -159,7 +159,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
                 DurationChanged?.Invoke(this, value);
                 // Also raise PlaybackEventArgs when duration changes while playing/paused
-                if (IsPlaying || CurrentPlaybackState == DimmerPlaybackState.Paused)
+                if (IsPlaying || CurrentPlaybackState == DimmerPlaybackState.PausedUI)
                 {
                     RaiseIsPlayingChanged();
                 }
@@ -814,7 +814,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             case MediaPlaybackState.Playing:
                 return DimmerPlaybackState.Playing; // Or Failed if context suggests
             case MediaPlaybackState.Paused:
-                return DimmerPlaybackState.Paused; // Or Failed if context suggests
+                return DimmerPlaybackState.PausedUI; // Or Failed if context suggests
             default:
                 return DimmerPlaybackState.Stopped; // Or Failed if context suggests
         }

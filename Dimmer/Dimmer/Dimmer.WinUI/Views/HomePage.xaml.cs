@@ -9,8 +9,7 @@ public partial class HomePage : ContentPage
 	{
 		InitializeComponent();
         BindingContext = vm;
-        MyViewModel=vm;
-        
+        MyViewModel=vm;        
     }
 
     protected override void OnAppearing()
@@ -295,10 +294,9 @@ public partial class HomePage : ContentPage
 
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
-        
-        if (MyViewModel.MasterListOfSongs is null || MyViewModel.MasterListOfSongs.Count<1)
+        if ((MyViewModel.PlaylistSongs is null || MyViewModel.PlaylistSongs.Count < 1)&&(BaseAppFlow.MasterList is null || BaseAppFlow.MasterList.Count<1))
         {
-            return; 
+            return;
         }
 
         List<SongModelView> songsToDisplay;
@@ -307,7 +305,7 @@ public partial class HomePage : ContentPage
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = [.. MyViewModel.MasterListOfSongs]; 
+            songsToDisplay = [.. MyViewModel.PlaylistSongs!]; 
             wasSearch = false;
         }
         else
@@ -319,7 +317,7 @@ public partial class HomePage : ContentPage
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= MyViewModel.MasterListOfSongs    .
+                var e= MyViewModel.PlaylistSongs!    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
