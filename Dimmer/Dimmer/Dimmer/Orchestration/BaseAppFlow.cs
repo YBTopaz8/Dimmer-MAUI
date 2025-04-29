@@ -76,6 +76,7 @@ public class BaseAppFlow : IDisposable
             : TaskPoolScheduler.Default;
 
         _state.SetSecondSelectdSong(MasterList.First());
+        _state.SetCurrentSong(MasterList.First());
         _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
         return _songRepo
             .WatchAll()

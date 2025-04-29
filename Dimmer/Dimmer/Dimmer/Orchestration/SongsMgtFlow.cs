@@ -139,7 +139,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
     {
-        if (isPause)
+        if (isPause )
         {
             await _audio.PauseAsync();
             _state.SetCurrentState(DimmerPlaybackState.PausedUI);
@@ -147,6 +147,11 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         }
         else
         {
+            if(position < 1)
+            {
+                await PlaySongInAudioService();
+                return;
+            }
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
             _state.SetCurrentState(DimmerPlaybackState.Resumed);
