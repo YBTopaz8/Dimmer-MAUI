@@ -39,7 +39,7 @@ public class QueueManager<T> : IQueueManager<T>
     /// </summary>
     /// <param name="batchSize">Size of the batch.</param>
     /// <exception cref="System.ArgumentException">Queue Manager threw an Arg Exception - batchSize</exception>
-    public QueueManager(int batchSize = 25)
+    public QueueManager(int batchSize = 125)
     {
         if (batchSize <= 0)
             throw new ArgumentException("Queue Manager threw an Arg Exception", nameof(batchSize));
