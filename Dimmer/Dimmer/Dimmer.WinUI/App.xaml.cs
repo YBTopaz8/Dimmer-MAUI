@@ -25,7 +25,6 @@ public partial class App : MauiWinUIApplication
         
     }
 
-
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +

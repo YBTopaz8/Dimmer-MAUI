@@ -1,5 +1,7 @@
 ﻿using Dimmer.Services;
-using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
+using Vanara.PInvoke;
+using Vanara.Windows.Shell;
+using static Vanara.PInvoke.Shell32;
 
 namespace Dimmer.WinUI.ViewModel;
 
@@ -37,8 +39,29 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
         ResetDisplayedMasterList();
         SubscribeToLyricIndexChanges();
-    }
 
+        SubscribeToPosition();
+
+
+    }
+    private void SubscribeToPosition()
+    {
+        _subs.Add(SongsMgtFlow.Position
+        .Subscribe(pos =>
+        {
+            if (pos == 0)
+            {
+                TaskbarList.SetProgressState(PlatUtils.DimmerHandle, (TaskbarButtonProgressState)TBPFLAG.TBPF_NORMAL);
+
+                return;
+            }
+                CurrentPositionInSeconds = pos;
+                var duration = SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1;
+                CurrentPositionPercentage = pos / duration;
+            TaskbarList.SetProgressValue(PlatUtils.DimmerHandle,  (ulong)CurrentPositionPercentage, 100);
+
+        }));
+    }
     private void SubscribeToLyricIndexChanges()
     {
         _subs.Add(_stateService.CurrentLyric
@@ -69,16 +92,6 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     }
 
-
-
-
-    public static void SetTaskbarProgress(double position)
-    {
-        WindowsIntegration.SetTaskbarProgress(
-            PlatUtils.GetWindowHandle(),
-            completed: (ulong)position,
-            total: 100);
-    }
 
     public void Dispose()
     {

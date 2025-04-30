@@ -179,33 +179,36 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
+
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
 
 </Project>

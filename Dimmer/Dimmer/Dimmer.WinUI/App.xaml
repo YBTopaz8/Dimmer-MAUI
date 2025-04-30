@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:maui="using:Microsoft.Maui"
     xmlns:local="using:Dimmer.WinUI">
+    
     <maui:MauiWinUIApplication.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

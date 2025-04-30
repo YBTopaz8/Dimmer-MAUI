@@ -61,4 +61,8 @@
 	  </EmbeddedResource>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="ParseSection\Orchestration\" />
+	</ItemGroup>
+
 </Project>

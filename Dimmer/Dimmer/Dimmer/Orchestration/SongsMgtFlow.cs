@@ -63,8 +63,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         // Wire up play‑end/next/previous
         _audio.SeekCompleted += Audio_SeekCompleted;
         _audio.PlayEnded    += OnPlayEnded;
-        _audio.PlayNext     += (_, _) => NextInQueue();
-        _audio.PlayPrevious += (_, _) => PrevInQueue();
+        _audio.PlayNext     += (_, e) => NextInQueue(e.EventType);
+        _audio.PlayPrevious += (_, e) => PrevInQueue(e.EventType);
 
         // Auto‑play whenever CurrentSong changes
         _subs.Add(
@@ -123,17 +123,17 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         
     }
 
-    public void NextInQueue()
+    public void NextInQueue(DimmerPlaybackState requester)
     {
-        
-        _state.SetCurrentState(DimmerPlaybackState.Playing);
+        _state.SetCurrentState(requester);
+        _state.SetCurrentState(DimmerPlaybackState.PlayNextUser);
 
         UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Skipped);
     }
 
-    public void PrevInQueue()
+    public void PrevInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState(DimmerPlaybackState.Playing);
+        _state.SetCurrentState(requester);
         UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Previous);
     }
 

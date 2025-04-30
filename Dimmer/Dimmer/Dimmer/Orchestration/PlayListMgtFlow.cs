@@ -117,6 +117,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                               OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUser);
 
                               break;
+                          case DimmerPlaybackState.PlayNextUser:
+                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUser);
+                              break;
                           case DimmerPlaybackState.PlayNextUI:
                               OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUI);
                               break;
