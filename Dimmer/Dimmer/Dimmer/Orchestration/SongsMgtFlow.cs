@@ -119,7 +119,6 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         PlayEnded();   // BaseAppFlow: records Completed link
         _state.SetCurrentState(DimmerPlaybackState.Ended);
-        _state.SetCurrentState(DimmerPlaybackState.Playing);
         
     }
 

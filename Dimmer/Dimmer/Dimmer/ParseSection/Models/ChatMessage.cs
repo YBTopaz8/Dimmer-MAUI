@@ -60,9 +60,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("sharedSong")]
-    public Song SharedSong // Pointer to a shared song
+    public ParseSong SharedSong // Pointer to a shared song
     {
-        get => GetProperty<Song>();
+        get => GetProperty<ParseSong>();
         set => SetProperty(value);
     }
 

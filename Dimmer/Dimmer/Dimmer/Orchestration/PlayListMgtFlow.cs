@@ -217,6 +217,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
+
+            _state.SetCurrentState(DimmerPlaybackState.Playing);
         }
             
     }
@@ -229,6 +231,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(prev);
             _state.SetSecondSelectdSong(prev);
+            _state.SetCurrentState(DimmerPlaybackState.Playing);
         }
     }
 
