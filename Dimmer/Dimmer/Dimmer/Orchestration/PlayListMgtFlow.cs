@@ -132,7 +132,6 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                               break;
                           case DimmerPlaybackState.RepeatPlaylist:
                               break;
-                              break;
                           default:
                               break;
                       }
@@ -182,10 +181,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         );
     }
 
-    public void CreatePlaylistOfFiftySongs()
-    {        
-        var fifty = AllCurrentSongsList.Take(50).ToList();        
-    }
+  
 
     private void OnPlaybackStateChanged(DimmerPlaybackState st)
     {
@@ -193,17 +189,17 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             case DimmerPlaybackState.PlayPreviousUI:
             case DimmerPlaybackState.PlayPreviousUser:
-                PlayPreviousInQueue();                 
+                SetPreviousInQueue();                 
                 break;
             case DimmerPlaybackState.PlayNextUI:
             case DimmerPlaybackState.PlayNextUser:
             case DimmerPlaybackState.Ended:                
-                AdvanceQueue();
+                SetNextSongInQueue();
                 break;
 
             
         }
-        _state.SetCurrentState(DimmerPlaybackState.Playing);
+        
     }
 
     private void ShuffleQueue()
@@ -212,7 +208,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _state.SetCurrentPlaylist(q);
     }
 
-    private void AdvanceQueue()
+    private void SetNextSongInQueue()
     {
 
         var next = _mapper.Map<SongModel>(_queue.Next());
@@ -221,11 +217,10 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
-            _state.SetCurrentState(DimmerPlaybackState.Playing);
         }
             
     }
-    private void PlayPreviousInQueue()
+    private void SetPreviousInQueue()
     {
 
         var prev = _mapper.Map<SongModel>(_queue.Previous());
@@ -234,7 +229,6 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(prev);
             _state.SetSecondSelectdSong(prev);
-            _state.SetCurrentState(DimmerPlaybackState.Playing);
         }
     }
 
