@@ -30,6 +30,24 @@ public class UserDeviceSession : ParseObject
         get => GetProperty<string>();
         set => SetProperty(value);
     }
+    [ParseFieldName("deviceName")]
+    public string DeviceName
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("deviceIdiom")]
+    public string DeviceIdiom
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+    [ParseFieldName("deviceOSVersion")]
+    public string DeviceOSVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("sessionStartTime")]
     public DateTime SessionStartTime
@@ -56,4 +74,10 @@ public class UserDeviceSession : ParseObject
         FileData = file;
     }
 
+    public UserDeviceSession()
+    {
+        DeviceName = DeviceInfo.Name;
+        DeviceIdiom = DeviceInfo.Idiom.ToString();
+        DeviceOSVersion = DeviceInfo.VersionString;
+    }
 }

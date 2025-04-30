@@ -470,7 +470,7 @@ public class ExoPlayerService : MediaSessionService
         {
             if(error is null)
                 return;
-            Console.WriteLine($"[PlayerEventListener] PlayerError: Code={error.ErrorCodeName}, Message={error.Message}");
+            Console.WriteLine($"[PlayerEventListener] PlayerError: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
             // Log the full error
            
             // Optionally stop the player or service on error
@@ -483,7 +483,7 @@ public class ExoPlayerService : MediaSessionService
         {
             if (error != null)
             {
-                Console.WriteLine($"[PlayerEventListener] PlayerErrorChanged: Code={error.ErrorCodeName}, Message={error.Message}");
+                Console.WriteLine($"[PlayerEventListener] PlayerErrorChanged: Code={error.ErrorCodeName}, ChatMessage={error.Message}");
 
                 
                 service.RaiseErrorOccurred(error); 

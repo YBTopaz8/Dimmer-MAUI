@@ -1,4 +1,8 @@
-﻿namespace Dimmer;
+﻿using Dimmer.ParseSection.Models;
+using Dimmer.ParseSection.Orchestration;
+using Parse;
+
+namespace Dimmer;
 
 public partial class App : Application
 {
@@ -9,6 +13,10 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+        if (ParseSetup.InitializeParseClient())
+        {
+            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+        }
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
@@ -22,14 +30,14 @@ public partial class App : Application
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +
-                              $"Message: {e.Exception.Message}\n" +
+                              $"ChatMessage: {e.Exception.Message}\n" +
                               $"Source: {e.Exception.Source}\n" +
                               $"Stack Trace: {e.Exception.StackTrace}\n";
 
         if (e.Exception.InnerException != null)
         {
             errorDetails += "***** Inner Exception *****\n" +
-                            $"Message: {e.Exception.InnerException.Message}\n" +
+                            $"ChatMessage: {e.Exception.InnerException.Message}\n" +
                             $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
         }
 

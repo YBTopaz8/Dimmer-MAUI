@@ -204,7 +204,7 @@ public class AppUtil : IAppUtil
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error getting localized title for action '{actionId}': {ex.Message}");
+            Debug.WriteLine($"Error getting localized title for action '{actionId}': {ex.ChatMessage}");
         }
         */
         // Fallback to provided default or the action ID itself
