@@ -275,11 +275,12 @@ public partial class HomePage : ContentPage
 
     private void OpenAlbumWindow(SongModelView song)
     {
-        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
         var vm = new BaseAlbumViewModel();
         vm.SetSelectedSong(song);
         
-        AlbumWindow newWindow = new(vm);
+        AlbumWindow newWindow = new(vm, MyViewModel);
+
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
     }
@@ -327,25 +328,25 @@ public partial class HomePage : ContentPage
             return;
         }
         
-        List<SongModelView> songsToDisplay;
+        List<SongModelView> songsToDisplay=new();
         bool wasSearch = false; 
 
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = [.. MyViewModel.PlaylistSongs!]; 
+            songsToDisplay = MyViewModel.BaseAppFlow._mapper.Map<List<SongModelView>>( BaseAppFlow.MasterList!); 
             wasSearch = false;
         }
         else
         {
             wasSearch = true;
 
-            songsToDisplay= await Task.Run(() => 
+            var songsToDisplays= await Task.Run(() => 
             {
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= MyViewModel.PlaylistSongs!    .
+                var e= BaseAppFlow.MasterList!    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
@@ -353,7 +354,7 @@ public partial class HomePage : ContentPage
                 
                 return e;
             }, token);
-            
+            songsToDisplay = MyViewModel.SongsMgtFlow._mapper.Map<List<SongModelView>>(songsToDisplays);
         }
 
         

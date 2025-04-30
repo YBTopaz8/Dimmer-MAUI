@@ -22,11 +22,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Remove="Assets\atom.svg" />
-	  <Content Remove="Assets\dimmerIcon.png" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="DimmerWin.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
@@ -34,6 +29,7 @@
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
 	  <None Remove="Views\PlaylistWindow.xaml" />
+	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
 	  <None Remove="Views\SongNotifierWindow.xaml" />
 	  <None Remove="Views\TestPage.xaml" />
@@ -48,6 +44,7 @@
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
 	  <Page Remove="Views\PlaylistWindow.xaml" />
+	  <Page Remove="Views\SettingsWindow.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
 	  <Page Remove="Views\SongNotifierWindow.xaml" />
 	</ItemGroup>
@@ -121,6 +118,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiXaml Include="Views\PlaylistWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Include="Views\SettingsWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Include="Views\SingleSongPage.xaml">

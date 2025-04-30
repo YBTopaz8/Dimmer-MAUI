@@ -174,7 +174,7 @@
             <Image Source="{Binding SecondSelectedSong.CoverImagePath}"
                Aspect="AspectFit" Opacity="0.06" x:Name="PageBGImg"/>
             
-            <Grid  ColumnDefinitions="200,*" x:Name="MainGrid">
+            <Grid  ColumnDefinitions="300,*" x:Name="MainGrid">
                 <VerticalStackLayout Grid.Column="0">
                     <Border StrokeShape="RoundRectangle 20" BackgroundColor="Transparent">
                         <ImageButton 

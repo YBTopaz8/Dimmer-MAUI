@@ -130,8 +130,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<double>? DurationChanged;
     public event EventHandler<double>? PositionChanged; // Fired frequently
     public event EventHandler<double>? SeekCompleted; // Fired after seek finishes
-    public event EventHandler<PlaybackEventArgs>? PlayNext; // Raised by SMTC Next command
-    public event EventHandler<PlaybackEventArgs>? PlayPrevious; // Raised by SMTC Previous command
+    public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed; // Raised by SMTC Next command
+    public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed; // Raised by SMTC Previous command
     public event PropertyChangedEventHandler? PropertyChanged;
     // public event EventHandler<long>? IsSeekedFromNotificationBar; // Consider using SeekCompleted instead
     // public event EventHandler? PlayStopAndShowWindow; // UI concern, better handled in ViewModel
@@ -671,7 +671,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine("[AudioService] SMTC Next Received");
         // Raise event for ViewModel/PlaylistManager to handle
         var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.PlayNextUser, };
-        PlayNext?.Invoke(this, eventArgs);
+        MediaKeyNextPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled
     }
 
@@ -680,7 +680,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Debug.WriteLine("[AudioService] SMTC Previous Received");
         // Raise event for ViewModel/PlaylistManager to handle
         var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.PlayPreviousUser, };
-        PlayPrevious?.Invoke(this, eventArgs);
+        MediaKeyPreviousPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled
     }
 
@@ -924,8 +924,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         DurationChanged = null;
         PositionChanged = null;
         SeekCompleted = null;
-        PlayNext = null;
-        PlayPrevious = null;
+        MediaKeyNextPressed = null;
+        MediaKeyPreviousPressed = null;
         PropertyChanged = null; // Clear this last
 
         Debug.WriteLine("[AudioService] Asynchronous disposal complete.");

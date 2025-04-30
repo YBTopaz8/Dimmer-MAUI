@@ -63,8 +63,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         // Wire up play‑end/next/previous
         _audio.SeekCompleted += Audio_SeekCompleted;
         _audio.PlayEnded    += OnPlayEnded;
-        _audio.PlayNext     += (_, e) => NextInQueue(e.EventType);
-        _audio.PlayPrevious += (_, e) => PrevInQueue(e.EventType);
+        _audio.MediaKeyNextPressed     += (_, e) => NextInQueue(e.EventType);
+        _audio.MediaKeyPreviousPressed += (_, e) => PrevInQueue(e.EventType);
 
         // Auto‑play whenever CurrentSong changes
         _subs.Add(
