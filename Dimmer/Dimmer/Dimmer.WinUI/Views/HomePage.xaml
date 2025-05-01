@@ -207,12 +207,12 @@
 
 
                             <syncf:SfChip ImageSource="songc.png" Text="{Binding SecondSelectedSong.Title}"
-                             CommandParameter="0"
+                             CommandParameter="1"
                                       FontAttributes="Bold" FontSize="14"
                                       TextColor="White"/>
 
                             <syncf:SfChip ImageSource="artist.png"  Text="{Binding SecondSelectedSong.ArtistName}"
-                             CommandParameter="1" TextColor="White"
+                             CommandParameter="6" TextColor="White"
                                       FontSize="14"
                                       FontAttributes="Italic"/>
 
@@ -222,7 +222,7 @@
                              CommandParameter="2" TextColor="White" Text="{Binding SecondSelectedSong.AlbumName}"/>
 
                             <syncf:SfChip ImageSource="lyrics.png" IsVisible="{Binding SecondSelectedSong.HasLyrics}"
-                             CommandParameter="4" TextColor="White" Text="View Lyrics"/>
+                             CommandParameter="1" TextColor="White" Text="View Lyrics"/>
                             <syncf:SfChip ImageSource="threesquares.png" Text="Control Panel"
                              CommandParameter="5" TextColor="White" />
 
@@ -247,10 +247,9 @@
 
                     <Grid x:Name="MainDock">
 
-                        <CollectionView Grid.Row="0" 
+                        <CollectionView Grid.Row="0" x:Name="SongsColView" 
                 BackgroundColor="Transparent" ItemsSource="{Binding PlaylistSongs}"
                             VerticalScrollBarVisibility="Default"
-                            x:Name="SongsColView" 
                             Margin="5,0">
                             <FlyoutBase.ContextFlyout>
                                 <MenuFlyout>
@@ -399,8 +398,8 @@
                         </CollectionView>
 
 
-                        <Grid RowDefinitions="auto,*" Grid.Row="0" 
-                              x:Name="ControlPanel" IsVisible="False">
+                        <Grid RowDefinitions="auto,*" Grid.Row="0" x:Name="ControlPanel"
+                               IsVisible="False">
                             <Grid Grid.Row="0">
                                 <syncf:SfChip Text="Close All Windows"
                                                      x:Name="CloseAllWin" Clicked="CloseAllWin_Clicked"/>
@@ -447,8 +446,11 @@
                             </CollectionView>
                         </Grid>
 
-
+                        <Grid RowDefinitions="*" Grid.Row="0" x:Name="SettingsPanel"
+                               IsVisible="False">
+                        </Grid>
                     </Grid>
+
                 </Grid>
 
 

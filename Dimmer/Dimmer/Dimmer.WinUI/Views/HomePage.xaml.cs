@@ -206,6 +206,7 @@ public partial class HomePage : ContentPage
                 //show the now playing Queue
                 break;
             case 1:
+                await SwitchUIs(1);
                 //show the artists songs
 
                 break;
@@ -216,13 +217,13 @@ public partial class HomePage : ContentPage
                 break;
             case 3:
 
-                await SwitchUIs(2);
 
                 break;
             case 4:
 
                 break;
             case 5:
+                await SwitchUIs(2);
                 WindowsOpened?.Clear();
 
                 foreach (var win in Application.Current!.Windows)
@@ -259,6 +260,7 @@ public partial class HomePage : ContentPage
             {0, SongsColView},
             {1, LyricsColView},
             {2, ControlPanel},
+            {3, SettingsPanel},
 
 
         };
