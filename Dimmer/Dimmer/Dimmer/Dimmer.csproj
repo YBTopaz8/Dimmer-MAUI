@@ -51,6 +51,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
 		<PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
 		<PackageReference Include="z440.atl.core" Version="6.22.0" />
+
+    <PackageReference Include="UraniumUI.Material" Version="2.11.1" />
+
 	</ItemGroup>
 
 	<ItemGroup>

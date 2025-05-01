@@ -4,6 +4,13 @@ global using System.Diagnostics;
 global using AutoMapper;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using Dimmer.ViewModel;
+global using CommunityToolkit.Maui;
+global using CommunityToolkit.Maui.Storage;
+global using Dimmer.Data;
+global using Dimmer.Services;
+global using Microsoft.Extensions.Logging;
+global using Syncfusion.Maui.Toolkit.Hosting;
+
 
 global using System.Globalization;
 global using CommunityToolkit.Maui.Core.Extensions;

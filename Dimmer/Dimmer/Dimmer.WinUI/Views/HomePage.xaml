@@ -10,6 +10,9 @@
              xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              x:DataType="vm:BaseViewModelWin"
              x:Name="myPage"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+
              Shell.NavBarIsVisible="False"
              xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
              Title="HomePage">
@@ -57,6 +60,13 @@
            
             
             <HorizontalStackLayout Grid.Row="1" Grid.Column="1">
+                <syncf:SfChip ShowIcon="True" Clicked="TempSongChipGroup_ChipClicked"
+              CommandParameter="3" TextColor="White" ImageSize="30">
+                    <syncf:SfChip.ImageSource>
+                        <FontImageSource FontFamily="FontAwesomeSolid" Glyph="cog" Color="Black" />
+
+                    </syncf:SfChip.ImageSource>
+                </syncf:SfChip>
                 <syncf:SfChipGroup ChipType="Action" 
                                        x:Name="MediaChipBtn"
                                        ChipClicked="MediaChipBtn_ChipClicked" 
@@ -78,8 +88,7 @@
                     </syncf:SfChipGroup.ChipLayout>
                     <syncf:SfChipGroup.Items>
 
-                        <syncf:SfChip Text="Settings" ShowIcon="False"
-                                      CommandParameter="5" TextColor="White"/>                        
+                                       
 
                         <syncf:SfChip HorizontalOptions="Center"
                                           CommandParameter="0" >
@@ -448,6 +457,77 @@
 
                         <Grid RowDefinitions="*" Grid.Row="0" x:Name="SettingsPanel"
                                IsVisible="False">
+                            <syncf:SfTabView>
+                                <syncf:SfTabItem Header="Preference management">
+                                    <syncf:SfTabItem.Content>                                        
+                                        <Grid RowDefinitions="Auto,Auto">
+                                            
+                                                    <HorizontalStackLayout HorizontalOptions="Center" Grid.Row="0">
+                                                        <Label Text="Folders Preference"/>
+                                                    </HorizontalStackLayout>
+
+                                            <Grid RowDefinitions="Auto,auto" Grid.Row="1">
+                                                        <HorizontalStackLayout Grid.Row="0">
+                                                            <Label Text="Music Folder" 
+                                                                   HorizontalOptions="Start" FontSize="14"/>
+                                                            <Button Text="Add" x:Name="AddNewMusicFolder"
+                                                                    Clicked="AddNewMusicFolder_Clicked"/>
+                                                        </HorizontalStackLayout>
+
+                                                        <CollectionView Grid.Row="1"
+                                                            ItemsSource="{Binding FolderPaths}"
+                                                                        />
+
+                                                    </Grid>
+                                          
+                                            
+                                            
+                                        </Grid>
+                                    </syncf:SfTabItem.Content>
+                                </syncf:SfTabItem>
+
+                                <syncf:SfTabItem Header="Online">
+                                    <syncf:SfTabItem.Content>
+                                        <Grid ColumnDefinitions="*" ColumnSpacing="5">
+                                            <Border Grid.Column="0" HeightRequest="500" WidthRequest="550"
+                                                    BackgroundColor="Transparent" StyleClass="Elevation2"
+StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
+                                                <syncf:SfTabView>
+                                                    <syncf:SfTabItem Header="Login">
+                                                        <syncf:SfTabItem.Content>
+                                                            <VerticalStackLayout Spacing="15" Grid.Row="0" Padding="15" >
+
+                                                                <material:TextField Title="Email"  Keyboard="Email"/>
+                                                                <material:TextField Title="Password"  IsPassword="True"/>
+                                                            </VerticalStackLayout>
+                                                        </syncf:SfTabItem.Content>
+                                                    </syncf:SfTabItem>
+                                                    
+                                                    <syncf:SfTabItem Header="Sign Up">
+                                                        <syncf:SfTabItem.Content>
+                                                            <VerticalStackLayout Spacing="15" Grid.Row="0" Padding="15" >
+
+                                                                <material:TextField Title="Email"  Keyboard="Email">
+                                                                    <!--<material:TextField.Icon>
+                                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="email" Color="Black" /> 
+                                                                    </material:TextField.Icon>-->
+                                                                </material:TextField>
+                                                                <material:TextField Title="User Name" />
+                                                                <material:TextField Title="Password"  IsPassword="True"/>
+
+                                                                <syncf:SfChip Text="Create An Account"  HorizontalOptions="Center"
+                                                                              FontSize="24"/>
+                                                            </VerticalStackLayout>
+                                                        </syncf:SfTabItem.Content>
+                                                    </syncf:SfTabItem>
+                                                </syncf:SfTabView>
+                                                        
+                                            </Border>
+
+                                        </Grid>
+                                    </syncf:SfTabItem.Content>
+                                </syncf:SfTabItem>
+                            </syncf:SfTabView>
                         </Grid>
                     </Grid>
 

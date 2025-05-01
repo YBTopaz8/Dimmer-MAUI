@@ -20,7 +20,7 @@ public partial class AlbumWindow : Window
     {
         View send = (View)sender;
 
-        send.BackgroundColor = Colors.DarkSlateBlue;
+        send.BackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
 
     }
 

@@ -1,8 +1,4 @@
-﻿using Dimmer.WinUI.DimmerAudio;
-using Dimmer.WinUI.ViewModel;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.UI;
-using WinRT.Interop;
+﻿
 
 namespace Dimmer.WinUI;
 
@@ -13,6 +9,9 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         builder
+            .UseUraniumUI()
+            .UseUraniumUIBlurs()
+            .UseUraniumUIMaterial()
             .UseSharedMauiApp();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();

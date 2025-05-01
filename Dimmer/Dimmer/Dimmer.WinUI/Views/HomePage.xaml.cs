@@ -207,7 +207,7 @@ public partial class HomePage : ContentPage
                 break;
             case 1:
                 await SwitchUIs(1);
-                //show the artists songs
+                //show the synced lyrics
 
                 break;
             case 2:
@@ -246,7 +246,12 @@ public partial class HomePage : ContentPage
                 ControlPanelColView.ItemsSource = WindowsOpened;
 
                 break;
+            case 6:
+            //show artist songs
 
+            case 7:
+
+                break;
             default:
                 break;
         }
@@ -624,5 +629,10 @@ public partial class HomePage : ContentPage
             Application.Current!.CloseWindow(win.WindowInstance);
         }
         WindowsOpened.Clear();
+    }
+
+    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    {
+
     }
 }
