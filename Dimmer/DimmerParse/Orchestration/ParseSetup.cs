@@ -1,4 +1,4 @@
-﻿using Dimmer.Utils;
+﻿
 using Parse.Infrastructure;
 using Parse;
 using System;
@@ -7,10 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Dimmer.ParseSection.ParseStatics.ParseStatics;
-using Dimmer.ParseSection.Models;
+using DimmerParse.Models;
+using DimmerParse.ParseStatics;
 
-namespace Dimmer.ParseSection.Orchestration;
-static class ParseSetup
+
+namespace DimmerParse.Orchestration;
+public static class ParseSetup
 {
 
 
@@ -18,13 +20,6 @@ static class ParseSetup
     {
         try
         {
-            // Check for internet connection
-            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
-            {
-                Console.WriteLine("No Internet Connection: Unable to initialize ParseClient.");
-                return false;
-            }
-
             // Validate API Keys
             if (string.IsNullOrEmpty(ApiKeys.ApplicationId) || // PUT IN YOUR APP ID HERE
                 string.IsNullOrEmpty(ApiKeys.ServerUri) || // PUT IN YOUR ServerUri ID HERE
@@ -54,7 +49,7 @@ static class ParseSetup
             client.Publicize();
 
 
-            Debug.WriteLine("ParseClient initialized successfully.");
+            Console.WriteLine("ParseClient initialized successfully.");
             return true;
         }
         catch (Exception ex)
@@ -78,12 +73,12 @@ static class ParseSetup
                 message.IsDeleted = true;
                 // Maybe clear content? message.Text = null; message.AttachmentFile = null; etc.
                 await message.SaveAsync();
-                Debug.WriteLine($"Message {message.ObjectId} soft deleted.");
+                Console.WriteLine($"Message {message.ObjectId} soft deleted.");
             }
             else
             {
                 await message.DeleteAsync(); // Permanent deletion
-                Debug.WriteLine($"Message {message.ObjectId} permanently deleted.");
+                Console.WriteLine($"Message {message.ObjectId} permanently deleted.");
             }
             // Note: Live Query 'delete' event should fire for permanent deletion.
             // For soft delete, an 'update' event will fire. Handle accordingly in UI.
@@ -91,7 +86,7 @@ static class ParseSetup
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error deleting message {message.ObjectId}: {ex.Message}");
+            Console.WriteLine($"Error deleting message {message.ObjectId}: {ex.Message}");
             return false;
         }
     }
@@ -109,13 +104,13 @@ static class ParseSetup
             message.Text = newText;
             // Optionally add an 'isEdited' flag
             await message.SaveAsync();
-            Debug.WriteLine($"Message {message.ObjectId} updated.");
+            Console.WriteLine($"Message {message.ObjectId} updated.");
             // Live Query 'update' event will fire.
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error updating message {message.ObjectId}: {ex.Message}");
+            Console.WriteLine($"Error updating message {message.ObjectId}: {ex.Message}");
             return false;
         }
     }

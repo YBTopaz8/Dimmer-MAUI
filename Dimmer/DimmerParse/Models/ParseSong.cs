@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.ParseSection.Models;
+namespace DimmerParse.Models;
 [ParseClassName("Song")]
 public class ParseSong : ParseObject
 {

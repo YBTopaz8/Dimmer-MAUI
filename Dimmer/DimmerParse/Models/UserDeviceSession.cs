@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dimmer.ParseSection.Models;
+namespace DimmerParse.Models;
 
 [ParseClassName("UserDeviceSession")]
 public class UserDeviceSession : ParseObject
@@ -74,10 +74,4 @@ public class UserDeviceSession : ParseObject
         FileData = file;
     }
 
-    public UserDeviceSession()
-    {
-        DeviceName = DeviceInfo.Name;
-        DeviceIdiom = DeviceInfo.Idiom.ToString();
-        DeviceOSVersion = DeviceInfo.VersionString;
-    }
 }

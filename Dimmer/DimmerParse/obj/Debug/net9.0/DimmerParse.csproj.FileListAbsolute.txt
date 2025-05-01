@@ -1,0 +1,13 @@
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.csproj.AssemblyReference.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.AssemblyInfoInputs.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.AssemblyInfo.cs
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.csproj.CoreCompileInputs.cache
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.sourcelink.json
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\bin\Debug\net9.0\DimmerParse.deps.json
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\bin\Debug\net9.0\DimmerParse.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\bin\Debug\net9.0\DimmerParse.pdb
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\refint\DimmerParse.dll
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\DimmerParse.pdb
+C:\Users\8brun\Source\Repos\Dimmer-MAUI\Dimmer\DimmerParse\obj\Debug\net9.0\ref\DimmerParse.dll

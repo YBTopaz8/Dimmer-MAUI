@@ -499,6 +499,8 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
 
                                                                 <material:TextField Title="Email"  Keyboard="Email"/>
                                                                 <material:TextField Title="Password"  IsPassword="True"/>
+                                                                <syncf:SfChip Text="Login"  HorizontalOptions="Center"
+                                                                              FontSize="24"/>
                                                             </VerticalStackLayout>
                                                         </syncf:SfTabItem.Content>
                                                     </syncf:SfTabItem>
@@ -508,9 +510,7 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
                                                             <VerticalStackLayout Spacing="15" Grid.Row="0" Padding="15" >
 
                                                                 <material:TextField Title="Email"  Keyboard="Email">
-                                                                    <!--<material:TextField.Icon>
-                                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="email" Color="Black" /> 
-                                                                    </material:TextField.Icon>-->
+                                                                    
                                                                 </material:TextField>
                                                                 <material:TextField Title="User Name" />
                                                                 <material:TextField Title="Password"  IsPassword="True"/>
