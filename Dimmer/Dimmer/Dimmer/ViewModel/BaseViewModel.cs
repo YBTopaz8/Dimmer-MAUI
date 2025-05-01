@@ -223,10 +223,6 @@ public partial class BaseViewModel : ObservableObject
                 {
                     SecondSelectedSong.IsCurrentPlayingHighlight = true;
                 }
-                else
-                {
-                    AppTitle = CurrentAppVersion;
-                }
             }));
     }
     private void SubscribeToCurrentSong()
@@ -246,9 +242,9 @@ public partial class BaseViewModel : ObservableObject
                 {
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
 
-                    TemporarilyPickedSong = _mapper.Map<SongModelView>(song);
+                    TemporarilyPickedSong = song;
 
-                    SecondSelectedSong = TemporarilyPickedSong;
+                    SecondSelectedSong = song;
 
                     TemporarilyPickedSong.IsCurrentPlayingHighlight = true;
                     AppTitle = $"{TemporarilyPickedSong.Title} - {TemporarilyPickedSong.ArtistName} [{TemporarilyPickedSong.AlbumName}] | {CurrentAppVersion}";

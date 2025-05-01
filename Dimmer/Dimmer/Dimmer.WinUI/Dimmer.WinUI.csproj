@@ -22,11 +22,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Remove="Assets\atom.svg" />
-	  <Content Remove="Assets\dimmerIcon.png" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="DimmerWin.xaml" />
 	  <None Remove="DimmerWindow.xaml" />
@@ -34,6 +29,7 @@
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
 	  <None Remove="Views\PlaylistWindow.xaml" />
+	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
 	  <None Remove="Views\SongNotifierWindow.xaml" />
 	  <None Remove="Views\TestPage.xaml" />
@@ -48,6 +44,7 @@
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
 	  <Page Remove="Views\PlaylistWindow.xaml" />
+	  <Page Remove="Views\SettingsWindow.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
 	  <Page Remove="Views\SongNotifierWindow.xaml" />
 	</ItemGroup>
@@ -123,6 +120,9 @@
 	  <MauiXaml Include="Views\PlaylistWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Include="Views\SettingsWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\SingleSongPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -179,33 +179,36 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
 	  <ApplicationTitle>Dimmer</ApplicationTitle>
-	  <ApplicationDisplayVersion>1.8.0</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.9.1</ApplicationDisplayVersion>
 	  <ApplicationVersion>1</ApplicationVersion>
-	</PropertyGroup>
+
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
 
 </Project>

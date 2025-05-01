@@ -43,3 +43,4 @@ obj (2)/
 /Dimmer/Dimmer/Dimmer.WinUI/obj/x64/Debug/net9.0-windows10.0.19041.0/win10-x64/intermediatexaml/Dimmer.WinUI.dll
 /Dimmer/Dimmer/Dimmer.Droid/obj
 /Dimmer/Dimmer/Dimmer.Droid/obj
+/Dimmer/Dimmer/Dimmer/Utils/APIKeys.cs

@@ -48,8 +48,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged; // Maps roughly to StatusChanged/PlayingChanged
     public event EventHandler<PlaybackEventArgs>? IsPlayingChanged;
     public event EventHandler<PlaybackEventArgs>? PlayEnded; // Triggered by OnStatusChanged(Ended)
-    public event EventHandler? PlayPrevious; // Can be triggered manually or via service events if implemented
-    public event EventHandler? PlayNext;     // Can be triggered manually or via service events if implemented
+    public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed; // Can be triggered manually or via service events if implemented
+    public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed;     // Can be triggered manually or via service events if implemented
     public event EventHandler<double>? PositionChanged; // Maps to OnPositionChanged (ms to s)
     public event EventHandler<double>? DurationChanged; // Triggered when metadata/duration updates
     public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes

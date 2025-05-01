@@ -2,6 +2,7 @@
 using Dimmer.WinUI.ViewModel;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Vanara.Windows.Shell;
 using WinRT.Interop;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
@@ -238,6 +239,11 @@ public static class PlatUtils
 
 
             Microsoft.Maui.Controls.Application.Current?.CloseWindow(newNotif);
+
+            
         }
+
     }
+
+
 }

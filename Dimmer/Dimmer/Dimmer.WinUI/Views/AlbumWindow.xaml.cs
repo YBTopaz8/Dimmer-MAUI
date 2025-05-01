@@ -2,20 +2,21 @@ namespace Dimmer.WinUI.Views;
 
 public partial class AlbumWindow : Window
 {
-	public AlbumWindow(BaseAlbumViewModel vm)
+	public AlbumWindow(BaseAlbumViewModel vm, HomeViewModel mainVM)
 	{
 		InitializeComponent();
         MyViewModel=vm;
         this.Height = 600;
         this.Width = 800;
         BindingContext = vm;
+
+
     }
 
     public BaseAlbumViewModel MyViewModel { get; }
 
 
-
-    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    private static void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
         View send = (View)sender;
 
@@ -43,6 +44,7 @@ public partial class AlbumWindow : Window
     public void SetTitle(SongModelView song)
     {
         this.Title = $"{song.AlbumName} by {song.ArtistName}";
+        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
     }
 
 }

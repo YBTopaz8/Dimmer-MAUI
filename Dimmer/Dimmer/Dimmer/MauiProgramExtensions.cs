@@ -24,6 +24,9 @@ public static class MauiProgramExtensions
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("FontAwesomeRegular400.otf", "FontAwesomeRegular");
+                fonts.AddFont("FontAwesome6FreeSolid900.otf", "FontAwesomeSolid");
+                fonts.AddFont("FABrandsRegular400.otf", "FontAwesomeBrands");
             })
             .ConfigureSyncfusionToolkit();
 

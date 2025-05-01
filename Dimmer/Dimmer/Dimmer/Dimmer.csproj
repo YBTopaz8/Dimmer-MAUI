@@ -21,8 +21,15 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
+  
+  <ItemGroup>
+    <MauiFont Include="Resources\Fonts\FontAwesomeRegular400.otf" Alias="FontAwesomeRegular" />
+    <MauiFont Include="Resources\Fonts\FontAwesome6FreeSolid900.otf" Alias="FontAwesomeSolid" />
+    <MauiFont Include="Resources\Fonts\FABrandsRegular400.otf" Alias="FontAwesomeBrands" />
+  </ItemGroup>
 
-	<ItemGroup>
+
+  <ItemGroup>
 
 
 

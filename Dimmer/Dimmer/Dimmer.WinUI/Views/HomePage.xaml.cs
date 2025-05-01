@@ -1,4 +1,5 @@
 ﻿using Dimmer.WinUI.Utils.Models;
+using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
 
@@ -183,7 +184,7 @@ public partial class HomePage : ContentPage
         }
     }
     ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
-    private void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
+    private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
         if (MyViewModel.SecondSelectedSong is null)
         {
@@ -196,15 +197,17 @@ public partial class HomePage : ContentPage
             return;
         }
         var CurrentIndex = int.Parse(param);
+        
         switch (CurrentIndex)
         {
             case 0:
-                
+                await SwitchUIs(0);
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong);
                 //show the now playing Queue
                 break;
             case 1:
                 //show the artists songs
-                
+
                 break;
             case 2:
                 //show the albums songs
@@ -213,10 +216,11 @@ public partial class HomePage : ContentPage
                 break;
             case 3:
 
-                
+                await SwitchUIs(2);
+
                 break;
             case 4:
-                MainTabView.SelectedIndex=1;
+
                 break;
             case 5:
                 WindowsOpened?.Clear();
@@ -239,26 +243,51 @@ public partial class HomePage : ContentPage
                 }
 
                 ControlPanelColView.ItemsSource = WindowsOpened;
-                MainTabView.SelectedIndex = 2 ;
+
                 break;
 
             default:
                 break;
         }
+        await SwitchUIs(CurrentIndex);
+    }
+
+    private async Task SwitchUIs(int CurrentIndex)
+    {
+        Dictionary<int, View> viewss = new Dictionary<int, View>
+        {
+            {0, SongsColView},
+            {1, LyricsColView},
+            {2, ControlPanel},
+
+
+        };
+        if (!viewss.ContainsKey(CurrentIndex))
+            return;
+
+        await Task.WhenAll
+            (viewss.Select(kvp =>
+            kvp.Key == CurrentIndex
+            ? kvp.Value.AnimateFadeInFront()
+            : kvp.Value.AnimateFadeOutBack()));
+        
     }
 
     private void OpenAlbumWindow(SongModelView song)
     {
-        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
         var vm = new BaseAlbumViewModel();
         vm.SetSelectedSong(song);
         
-        AlbumWindow newWindow = new(vm);
+        AlbumWindow newWindow = new(vm, MyViewModel);
+
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
     }
 
     private CancellationTokenSource? _debounceTimer;
+    private bool isOnFocusMode;
+
     private async void SearchSongSB_TextChanged(object sender, TextChangedEventArgs e)
     {
 
@@ -298,26 +327,26 @@ public partial class HomePage : ContentPage
         {
             return;
         }
-
-        List<SongModelView> songsToDisplay;
+        
+        List<SongModelView> songsToDisplay=new();
         bool wasSearch = false; 
 
         if (string.IsNullOrEmpty(searchText))
         {
            
-            songsToDisplay = [.. MyViewModel.PlaylistSongs!]; 
+            songsToDisplay = MyViewModel.BaseAppFlow._mapper.Map<List<SongModelView>>( BaseAppFlow.MasterList!); 
             wasSearch = false;
         }
         else
         {
             wasSearch = true;
 
-            songsToDisplay= await Task.Run(() => 
+            var songsToDisplays= await Task.Run(() => 
             {
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= MyViewModel.PlaylistSongs!    .
+                var e= BaseAppFlow.MasterList!    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
@@ -325,7 +354,7 @@ public partial class HomePage : ContentPage
                 
                 return e;
             }, token);
-            
+            songsToDisplay = MyViewModel.SongsMgtFlow._mapper.Map<List<SongModelView>>(songsToDisplays);
         }
 
         
@@ -565,9 +594,9 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void SongImage_Clicked(object sender, EventArgs e)
+    private async void SongImage_Clicked(object sender, EventArgs e)
     {
-        MainTabView.SelectedIndex=0;
+        await SwitchUIs(0);
     }
 
     private void CloseSubWindowChip_Clicked(object sender, EventArgs e)

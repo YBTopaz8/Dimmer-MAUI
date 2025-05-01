@@ -112,11 +112,11 @@ public interface IDimmerAudioService
     /// <summary>
     /// Occurs when [play previous].
     /// </summary>
-    event EventHandler PlayPrevious;
+    event EventHandler<PlaybackEventArgs> MediaKeyPreviousPressed;
     /// <summary>
     /// Occurs when [play next].
     /// </summary>
-    event EventHandler PlayNext;
+    event EventHandler<PlaybackEventArgs> MediaKeyNextPressed;
     /// <summary>
     /// Occurs when [position changed].
     /// </summary>
