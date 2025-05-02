@@ -47,6 +47,7 @@
 	  <Page Remove="Views\SettingsWindow.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
 	  <Page Remove="Views\SongNotifierWindow.xaml" />
+	  <Page Remove="Views\StatisticsPage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -156,6 +157,11 @@
 	    <Generator>ResXFileCodeGenerator</Generator>
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Views\StatisticsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\TestPage.xaml">

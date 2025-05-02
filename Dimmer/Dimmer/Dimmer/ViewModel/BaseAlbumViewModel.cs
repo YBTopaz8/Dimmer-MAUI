@@ -37,19 +37,8 @@ public partial class BaseAlbumViewModel : ObservableObject
             _subs = subs;
         SubscribeToAlbumListChanges();
         SelectedSong=new();
-    }
-    public BaseAlbumViewModel() :this(
-            IPlatformApplication.Current!.Services.GetRequiredService<IMapper>(),
-            IPlatformApplication.Current.Services.GetRequiredService<BaseViewModel>(),
-            IPlatformApplication.Current.Services.GetRequiredService<AlbumsMgtFlow>(),
-            IPlatformApplication.Current.Services.GetRequiredService<PlayListMgtFlow>(),
-            IPlatformApplication.Current.Services.GetRequiredService<SongsMgtFlow>(),
-            IPlatformApplication.Current.Services.GetRequiredService<IPlayerStateService>(),
-            IPlatformApplication.Current.Services.GetRequiredService<ISettingsService>(),
-            IPlatformApplication.Current.Services.GetRequiredService<SubscriptionManager>())    
-    {
+    
 
-        SelectedSong=new();
     }
     public void SetSelectedSong(SongModelView song)
     {

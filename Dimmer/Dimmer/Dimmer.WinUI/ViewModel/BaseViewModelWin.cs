@@ -59,7 +59,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
                 CurrentPositionInSeconds = pos;
                 var duration = SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1;
                 CurrentPositionPercentage = pos / duration;
-        MainThread.BeginInvokeOnMainThread(
+                MainThread.BeginInvokeOnMainThread(
                () =>
                {
                    TaskbarList.SetProgressValue(PlatUtils.DimmerHandle, (ulong)CurrentPositionPercentage*100, 100);

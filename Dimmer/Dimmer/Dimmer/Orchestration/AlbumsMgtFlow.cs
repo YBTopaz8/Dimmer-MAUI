@@ -5,13 +5,19 @@ using System.Text.Json;
 namespace Dimmer.Orchestration;
 public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 {
+    private readonly IRepository<SongModel> _songRepo;
+    private readonly IRepository<GenreModel> _genreRepo ;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<AlbumArtistGenreSongLink> _linkRepo;
     private readonly IRepository<PlayDateAndCompletionStateSongLink> _pdlRepo;
     private readonly IMapper _mapper;
     private readonly SubscriptionManager _subs;
 
+    private readonly BehaviorSubject<List<ArtistModel>> _specificArtists = new(new());
     private readonly BehaviorSubject<List<AlbumModel>> _specificAlbums = new(new());
+    private readonly BehaviorSubject<List<GenreModel>> _specificGenres= new(new());
+    public IObservable<List<AlbumModel>> SpecificArtists => _specificAlbums.AsObservable();
+    public IObservable<List<GenreModel>> SpecificGenre => _specificGenres.AsObservable();
     public IObservable<List<AlbumModel>> SpecificAlbums => _specificAlbums.AsObservable();
 
     private readonly BehaviorSubject<double> _syncProgress = new(0);
@@ -33,6 +39,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         SubscriptionManager subs
     ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs,mapper)
     {
+        _songRepo=songRepo;
         _albumRepo     = albumRepo;
         _linkRepo      = linkRepo;
         _pdlRepo       = pdlRepo;
@@ -60,6 +67,38 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             .ToList();
         _specificAlbums.OnNext(list);
     }
+
+    // Get Genres by SongId
+    public void GetGenresBySongId(string songId)
+    {
+        var genreIds = _linkRepo.GetAll().AsEnumerable()
+            .Where(l => l.SongId == songId)
+            .Select(l => l.GenreId)
+            .Distinct();
+
+        var list = _genreRepo.GetAll().AsEnumerable()
+            .Where(g => genreIds.Contains(g.LocalDeviceId))
+            .ToList();
+
+        _specificGenres.OnNext(list);
+    }
+
+    // Get Songs by ArtistId
+    public void GetSongsByArtistId(string artistId)
+    {
+        var songIds = _linkRepo.GetAll().AsEnumerable()
+            .Where(l => l.ArtistId == artistId)
+            .Select(l => l.SongId)
+            .Distinct();
+
+        var list = _songRepo.GetAll().AsEnumerable()
+            .Where(s => songIds.Contains(s.LocalDeviceId))
+            .ToList();
+
+        _specificSongs.OnNext(list);
+    }
+
+
     private string? currentLocalSongId;
     public void GetAlbumsBySongId(string songId)
     {

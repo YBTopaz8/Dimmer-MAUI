@@ -223,10 +223,20 @@ public partial class SongModel : RealmObject
     /// <summary>
     /// Initializes a new instance of the <see cref="SongModel"/> class.
     /// </summary>
+    /// 
+    public IList<UserNoteModel> UserNotes { get; }
     public SongModel()
     {
         
     }
 }
 
-
+public partial class UserNoteModel : EmbeddedObject
+{
+    public string? UserMessageText { get; set; }
+    public string? UserMessageImagePath { get; set; }
+    public string? UserMessageAudioPath { get; set; }
+    public bool IsPinned { get; set; }
+    public int UserRating { get; set; }
+    public string? MessageColor { get; set; }
+}
