@@ -46,3 +46,4 @@ obj (2)/
 /Dimmer/Dimmer/Dimmer/Utils/APIKeys.cs
 /Dimmer/DimmerParse/ParseStatics/ApiKeys.cs
 /Dimmer/DimmerLive/obj
+/Dimmer/DimmerLive/ParseStatics/ApiKeys.cs
