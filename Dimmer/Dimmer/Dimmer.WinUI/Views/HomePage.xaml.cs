@@ -630,8 +630,8 @@ public partial class HomePage : ContentPage
         WindowsOpened.Clear();
     }
 
-    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
-
+        await MyViewModel.SelectSongFromFolder();
     }
 }

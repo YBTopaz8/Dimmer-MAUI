@@ -457,7 +457,7 @@
 
                         <Grid RowDefinitions="*" Grid.Row="0" x:Name="SettingsPanel"
                                IsVisible="False">
-                            <syncf:SfTabView>
+                            <syncf:SfTabView >
                                 <syncf:SfTabItem Header="Preference management">
                                     <syncf:SfTabItem.Content>                                        
                                         <Grid RowDefinitions="Auto,Auto">
@@ -466,7 +466,7 @@
                                                         <Label Text="Folders Preference"/>
                                                     </HorizontalStackLayout>
 
-                                            <Grid RowDefinitions="Auto,auto" Grid.Row="1" >
+                                            <Grid RowDefinitions="Auto,auto,auto" Grid.Row="1" >
                                                         <HorizontalStackLayout Grid.Row="0" Spacing="15" HorizontalOptions="Center">
                                                             <Label Text="Music Folder" 
                                                                    HorizontalOptions="Start" FontSize="14"/>
@@ -477,8 +477,23 @@
                                                         <CollectionView Grid.Row="1"
                                                             ItemsSource="{Binding FolderPaths}"
                                                                         />
-
-                                                    </Grid>
+                                                <CollectionView ItemsSource="{Binding ScanningLogs}" Grid.Row="2"
+                                                                 >
+                                                    <CollectionView.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:AppLogModel">
+                                                            <VerticalStackLayout>
+                                                                
+                                                            <Label Text="{Binding Log}" FontSize="19"
+                                                                   TextColor="Orange"/>
+                                                            <Label Text="{Binding ViewSongModel.Title}" FontSize="17"
+                                                                   TextColor="Orange"/>
+                                                            <Label Text="{Binding ViewSongModel.ArtistName}" FontSize="15"
+                                                                   TextColor="Orange"/>
+                                                            </VerticalStackLayout>
+                                                        </DataTemplate>
+                                                    </CollectionView.ItemTemplate>
+                                                </CollectionView>
+                                            </Grid>
                                           
                                             
                                             

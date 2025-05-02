@@ -19,7 +19,10 @@ public interface IFolderMgtService : IDisposable
     void SetFolderSelected(string path, bool isSelected);
     void SetFolderExpanded(string path, bool isExpanded);
     void SetFolderChecked(string path, bool isChecked);
-    
+    void OnFileRenamed(RenamedEventArgs e);
+    void OnFileChanged(string fullPath);
+    void OnFileDeleted(FileSystemEventArgs e);
+    void OnFileCreated(FileSystemEventArgs e);
 }
 
 public partial class FolderModel:ObservableObject

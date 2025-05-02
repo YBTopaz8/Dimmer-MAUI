@@ -34,7 +34,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         realm.Write(() =>
         {
             foreach (var e in entities)
+            {
                 realm.Add(e, update: true);
+            }
         });
     }
 

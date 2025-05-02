@@ -40,7 +40,7 @@ public class BaseAppFlow : IDisposable
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
-        IFolderMgtService folderMgt,
+        IFolderMgtService folderMgt, SubscriptionManager subs,
         IMapper mapper)
     {
         _state = state;
@@ -56,7 +56,7 @@ public class BaseAppFlow : IDisposable
         _mapper = mapper;
 
         Initialize();
-
+        
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
     
@@ -75,6 +75,8 @@ public class BaseAppFlow : IDisposable
         _state.SetSecondSelectdSong(MasterList.First());
         _state.SetCurrentSong(MasterList.First());
         _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
+        SubscribeToStateChanges();
+        
         return _songRepo
             .WatchAll()
             .ObserveOn(scheduler)
@@ -87,8 +89,52 @@ public class BaseAppFlow : IDisposable
                 }
                 MasterList = [.. list];
             });
+
+
     }
 
+    static List<string> listofPathsAddedInSession = new();
+    private void SubscribeToStateChanges()
+    {
+        _state.CurrentPlayBackState.
+            DistinctUntilChanged()
+            .Subscribe(state =>
+            {
+                //IsPlaying = state.State == DimmerPlaybackState.Playing;
+                switch (state.State)
+                {
+                   
+                    case DimmerPlaybackState.FolderAdded:
+
+                        string? folder = state.ExtraParameter as string;
+                        if (folder is null)
+                        {
+                            return;
+                        }
+                        if (listofPathsAddedInSession.Contains(folder))
+                        {
+                            return;
+                        }
+                        listofPathsAddedInSession.Add(folder);
+                        Task.Run(()=> LoadSongs([.. listofPathsAddedInSession.Distinct()]));
+                        break;
+                    case DimmerPlaybackState.FolderRemoved:
+                        break;
+                    case DimmerPlaybackState.FileChanged:
+                        break;
+                    case DimmerPlaybackState.FolderNameChanged:
+                        break;
+                    case DimmerPlaybackState.FolderScanCompleted:
+                        break;
+                    case DimmerPlaybackState.FolderScanStarted:
+                        break;
+                    case DimmerPlaybackState.FolderWatchStarted:
+                        break;
+                    default:
+                        break;
+                }
+            });
+    }
 
 
     public void SeekedTo(double? position)
@@ -138,6 +184,12 @@ public class BaseAppFlow : IDisposable
         };
 
         _pdlRepo.AddOrUpdate(link);
+        AppLogModel log = new()
+        {
+            Log = $"Play type was {type} at {DateTime.Now.ToLocalTime()}",
+            ViewSongModel = CurrentlyPlayingSong,
+        };
+        _state.SetCurrentLogMsg(log);
     }
 
 
@@ -146,6 +198,11 @@ public class BaseAppFlow : IDisposable
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _playlistRepo.AddOrUpdate(model);
+        AppLogModel log = new()
+        {
+            Log = $"UpSert Playlist {model} at {DateTime.Now.ToLocalTime()}",            
+        };
+        _state.SetCurrentLogMsg(log);
     }
 
     public void UpSertArtist(ArtistModel model)
@@ -153,6 +210,12 @@ public class BaseAppFlow : IDisposable
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _artistRepo.AddOrUpdate(model);
+
+        AppLogModel log = new()
+        {
+            Log = $"UpSert Artist {model} at {DateTime.Now.ToLocalTime()}",
+        };
+        _state.SetCurrentLogMsg(log);
     }
 
     public void UpSertAlbum(AlbumModel model)
@@ -160,6 +223,11 @@ public class BaseAppFlow : IDisposable
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _albumRepo.AddOrUpdate(model);
+        AppLogModel log = new()
+        {
+            Log = $"UpSert Album {model} at {DateTime.Now.ToLocalTime()}",
+        };
+        _state.SetCurrentLogMsg(log);
     }
     
     public void UpSertSong(SongModel model)
@@ -167,6 +235,14 @@ public class BaseAppFlow : IDisposable
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
         _songRepo.AddOrUpdate(model);
+
+        AppLogModel log = new()
+        {
+            Log = $"UpSert Album {model} at {DateTime.Now.ToLocalTime()}",
+            AppSongModel = model,
+        };
+        _state.SetCurrentLogMsg(log);
+        
     }
 
     public void ToggleShuffle(bool isOn)
@@ -240,27 +316,25 @@ public class BaseAppFlow : IDisposable
             processedFiles++;
             if (MusicFileProcessor.IsValidFile(file))
             {
-                SongModel? songData = MusicFileProcessor.ProcessFile(
+                var songData = MusicFileProcessor.ProcessFile(
                     file,
                     existingAlbums, albumDict, newAlbums, oldSongs,
                     newArtists, artistDict, newLinks, existingLinks, existingArtists,
                     newGenres, genreDict, existingGenres);
 
-                if (songData != null)
+                if (songData.song != null)
                 {
-                    allSongs.Add(songData);
+                    allSongs.Add(songData.song);
 
 
                     var ProcessedFiles = processedFiles;
                     var TotalFiles = totalFiles;
                     var ProgressPercent = (double)processedFiles / totalFiles * 100.0;
-                    _state.SetCurrentLogMsg($"Processing {songData.Title}" +
-                        $"by {songData.ArtistName} {Environment.NewLine}" +
-                        $"Processed {ProcessedFiles} of {TotalFiles} files" +
-                        $"Progress: {ProgressPercent:F2}%");
-                    }
+                    
                 }
             }
+        }
+
 
         Debug.WriteLine("All files processed.");
 

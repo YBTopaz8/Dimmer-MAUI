@@ -31,7 +31,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, subs, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;

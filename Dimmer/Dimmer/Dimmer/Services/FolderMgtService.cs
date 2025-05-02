@@ -89,24 +89,24 @@ public class FolderMgtService : IFolderMgtService
     }
 
     // --- FileSystemWatcher event handlers ----------------------------------------
-    private void OnFileCreated(FileSystemEventArgs e)
+    public void OnFileCreated(FileSystemEventArgs e)
     {
         _state.SetCurrentState((DimmerPlaybackState.FolderAdded, e.FullPath));
         RefreshFolders();
     }
 
-    private void OnFileDeleted(FileSystemEventArgs e)
+    public void OnFileDeleted(FileSystemEventArgs e)
     {
         _state.SetCurrentState((DimmerPlaybackState.FolderRemoved, e.FullPath));
         RefreshFolders();
     }
 
-    private void OnFileChanged(string fullPath)
+    public void OnFileChanged(string fullPath)
     {
         _state.SetCurrentState((DimmerPlaybackState.FileChanged, fullPath));
     }
 
-    private void OnFileRenamed(RenamedEventArgs e)
+    public void OnFileRenamed(RenamedEventArgs e)
     {
         _state.SetCurrentState((DimmerPlaybackState.FolderNameChanged, e.FullPath));
         RefreshFolders();

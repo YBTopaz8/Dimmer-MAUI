@@ -31,7 +31,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModelView> playQueue,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
     {
         this.songRepo=songRepo;
         _audio  = audioService;

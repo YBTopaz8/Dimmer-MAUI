@@ -11,8 +11,8 @@ public class PlayerStateService : IPlayerStateService
     readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
     readonly BehaviorSubject<bool> _isPlaying = new(false);
     
-    readonly BehaviorSubject<string> _latestDeviceLog = new(string.Empty);
-    readonly BehaviorSubject<IList<string>> _dailyLatestDeviceLogs = new(Array.Empty<string>());
+    readonly BehaviorSubject<AppLogModel> _latestDeviceLog = new(new());
+    readonly BehaviorSubject<IList<AppLogModel>> _dailyLatestDeviceLogs = new(Array.Empty<AppLogModel>());
     readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
     readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
     readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
@@ -42,9 +42,9 @@ public class PlayerStateService : IPlayerStateService
     // Observables
     #region Settings Observables
 
-    public IObservable<string> LatestDeviceLog => _latestDeviceLog.AsObservable();
+    public IObservable<AppLogModel> LatestDeviceLog => _latestDeviceLog.AsObservable();
     public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
-    public IObservable<IList<string>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
+    public IObservable<IList<AppLogModel>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
     #endregion
 
 
@@ -76,7 +76,7 @@ public class PlayerStateService : IPlayerStateService
         _allSongs.OnNext(list.AsReadOnly());
 
     }
-    public void SetCurrentLogMsg(string logMessage)
+    public void SetCurrentLogMsg(AppLogModel logMessage)
     {
         ArgumentNullException.ThrowIfNull(logMessage);
 
@@ -84,7 +84,7 @@ public class PlayerStateService : IPlayerStateService
         _latestDeviceLog.OnNext(logMessage);
 
         // clone-and-append
-        var updated = new List<string>(_dailyLatestDeviceLogs.Value) { logMessage };
+        var updated = new List<AppLogModel>(_dailyLatestDeviceLogs.Value) { logMessage };
         _dailyLatestDeviceLogs.OnNext(updated);
     }
 
@@ -112,7 +112,6 @@ public class PlayerStateService : IPlayerStateService
     {
         _playbackState.OnNext(state);
 
-        _isPlaying.OnNext(state.Item1 == DimmerPlaybackState.Playing);
        
     }
     

@@ -57,7 +57,7 @@ public static class MusicFileProcessor
     }
 
     // Process a file and generate a SongModel from it.
-    public static SongModel? ProcessFile(
+    public static (SongModel? song, string message) ProcessFile(
         string file,
         List<AlbumModel> existingAlbums,
         Dictionary<string, AlbumModel> albumDict,
@@ -81,7 +81,7 @@ public static class MusicFileProcessor
         catch (Exception ex)
         {
             Debug.WriteLine($"Error creating Track for file {file}: {ex.Message}");
-            return null;
+            return (null, $"Error creating Track for file {file}: {ex.Message}");
         }
 
         // Determine title and album.
@@ -107,7 +107,7 @@ public static class MusicFileProcessor
                               s.DurationInSeconds == track.Duration))
         {
             Debug.WriteLine($"Skipping existing song for artist: {song.ArtistName}");
-            return null;
+            return (null, $"Skipping existing song for artist: {song.ArtistName}");
         }
 
         // Process genre.
@@ -121,7 +121,7 @@ public static class MusicFileProcessor
             CreateLinks(artist, album, song, genre, newLinks, existingLinks);
         }
 
-        return song;
+        return (song, $"Track is {song.Title}");
     }
 
     // Get all audio files from a list of folder paths.

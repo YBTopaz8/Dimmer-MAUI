@@ -13,7 +13,7 @@ public class StatisticsMgtFlow : BaseAppFlow, IDisposable
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo, 
         IRepository<PlaylistModel> playlistRepo, IRepository<ArtistModel> artistRepo, 
         IRepository<AlbumModel> albumRepo, ISettingsService settings, 
-        IFolderMgtService folderMonitor, IMapper mapper) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+        IFolderMgtService folderMonitor, IMapper mapper, SubscriptionManager subs) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs,mapper)
     {
     }
 }

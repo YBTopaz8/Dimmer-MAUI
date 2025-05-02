@@ -28,10 +28,10 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AlbumModel> albumRepo,
         IRepository<AlbumArtistGenreSongLink> linkRepo,
         ISettingsService settings,
-        IFolderMgtService folderMonitor,
+        IFolderMgtService folderMonitor,        
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs,mapper)
     {
         _albumRepo     = albumRepo;
         _linkRepo      = linkRepo;

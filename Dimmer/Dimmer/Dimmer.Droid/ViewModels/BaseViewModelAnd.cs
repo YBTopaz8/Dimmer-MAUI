@@ -54,15 +54,15 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()            
             .Subscribe(log =>
             {
-                if (log == null || string.IsNullOrEmpty(log))
+                if (log == null || string.IsNullOrEmpty(log.Log))
                     return;
-                LatestScanningLog = log;
+                LatestScanningLog = log.Log;
                 ScanningLogs ??= new ObservableCollection<string>();
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     if (ScanningLogs.Count > 10)
                         ScanningLogs.RemoveAt(0);
-                    ScanningLogs.Add(log);
+                    ScanningLogs.Add(log.Log);
                 });
             }));
     }

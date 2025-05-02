@@ -19,14 +19,14 @@ public interface IPlayerStateService : IDisposable
     /// <value>
     /// The latest device log.
     /// </value>
-    IObservable<string> LatestDeviceLog { get; }
+    IObservable<AppLogModel> LatestDeviceLog { get; }
     /// <summary>
     /// Gets the daily latest device logs.
     /// </summary>
     /// <value>
     /// The daily latest device logs.
     /// </value>
-    IObservable<IList<string>> DailyLatestDeviceLogs { get; }
+    IObservable<IList<AppLogModel>> DailyLatestDeviceLogs { get; }
 
     /// <summary>
     /// Fires immediately with the last snapshot on subscription.
@@ -105,7 +105,7 @@ public interface IPlayerStateService : IDisposable
     /// Sets the current log MSG.
     /// </summary>
     /// <param name="logMessage">The log message.</param>
-    void SetCurrentLogMsg(string logMessage);
+    void SetCurrentLogMsg(AppLogModel logMessage);
 
     #endregion
 

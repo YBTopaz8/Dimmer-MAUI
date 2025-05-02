@@ -31,8 +31,12 @@ public partial class BaseViewModel : ObservableObject
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
-    private readonly IFolderMgtService folderMgtService;
+    private readonly IFolderMgtService _folderMgtService;
 
+    [ObservableProperty]
+    public partial string? LatestScanningLog { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<AppLogModel>? ScanningLogs { get; set; }
     public BaseAppFlow BaseAppFlow { get; }    
     public List<SongModelView>? FilteredSongs { get; set; }
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
@@ -91,7 +95,7 @@ public partial class BaseViewModel : ObservableObject
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
-        this.folderMgtService=folderMgtService;
+        //_folderMgtService=folderMgtService;
         LyricsMgtFlow=lyricsMgtFlow;
         Initialize();
 
@@ -118,9 +122,92 @@ public partial class BaseViewModel : ObservableObject
     {
         _subs.Add(_stateService.CurrentPlayBackState.
             DistinctUntilChanged()
-            .Subscribe(list =>
+            .Subscribe(state =>
             {
-                IsPlaying = list.State == DimmerPlaybackState.Playing;
+                IsPlaying = state.State == DimmerPlaybackState.Playing;
+                switch (state.State)
+                {
+                    case DimmerPlaybackState.Opening:
+                        break;
+                    case DimmerPlaybackState.Stopped:
+                        break;
+                    case DimmerPlaybackState.Playing:
+                        break;
+                    case DimmerPlaybackState.Resumed:
+                        break;
+                    case DimmerPlaybackState.PausedUI:
+                        break;
+                    case DimmerPlaybackState.PausedUser:
+                        break;
+                    case DimmerPlaybackState.Loading:
+                        break;
+                    case DimmerPlaybackState.Error:
+                        break;
+                    case DimmerPlaybackState.Failed:
+                        break;
+                    case DimmerPlaybackState.Previewing:
+                        break;
+                    case DimmerPlaybackState.LyricsLoad:
+                        break;
+                    case DimmerPlaybackState.ShowPlayBtn:
+                        break;
+                    case DimmerPlaybackState.ShowPauseBtn:
+                        break;
+                    case DimmerPlaybackState.RefreshStats:
+                        break;
+                    case DimmerPlaybackState.Initialized:
+                        break;
+                    case DimmerPlaybackState.Ended:
+                        break;
+                    case DimmerPlaybackState.CoverImageDownload:
+                        break;
+                    case DimmerPlaybackState.LoadingSongs:
+                        break;
+                    case DimmerPlaybackState.SyncingData:
+                        break;
+                    case DimmerPlaybackState.Buffering:
+                        break;
+                    case DimmerPlaybackState.DoneScanningData:
+                        break;
+                    case DimmerPlaybackState.PlayCompleted:
+                        break;
+                    case DimmerPlaybackState.PlayPreviousUI:
+                        break;
+                    case DimmerPlaybackState.PlayPreviousUser:
+                        break;
+                    case DimmerPlaybackState.PlayNextUI:
+                        break;
+                    case DimmerPlaybackState.PlayNextUser:
+                        break;
+                    case DimmerPlaybackState.Skipped:
+                        break;
+                    case DimmerPlaybackState.RepeatSame:
+                        break;
+                    case DimmerPlaybackState.RepeatAll:
+                        break;
+                    case DimmerPlaybackState.RepeatPlaylist:
+                        break;
+                    case DimmerPlaybackState.MoveToNextSongInQueue:
+                        break;
+                    case DimmerPlaybackState.ShuffleRequested:
+                        break;
+                    case DimmerPlaybackState.FolderAdded:
+                        break;
+                    case DimmerPlaybackState.FolderRemoved:
+                        break;
+                    case DimmerPlaybackState.FileChanged:
+                        break;
+                    case DimmerPlaybackState.FolderNameChanged:
+                        break;
+                    case DimmerPlaybackState.FolderScanCompleted:
+                        break;
+                    case DimmerPlaybackState.FolderScanStarted:
+                        break;
+                    case DimmerPlaybackState.FolderWatchStarted:
+                        break;
+                    default:
+                        break;
+                }
             }));
     }
 
@@ -159,40 +246,7 @@ public partial class BaseViewModel : ObservableObject
                 SynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l);
             }));
     }
-    [RelayCommand]
-    public async Task AddMusicPreferenceFolder()
-    {
-
-        try
-        {
-            CancellationTokenSource cts = new();
-            CancellationToken token = cts.Token;
-
-
-            FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None);
-
-            if (res.Folder is null)
-            {
-                return;
-            }
-            string? folder = res.Folder?.Path;
-            if (folder is null)
-            {
-                //await Shell.Current.DisplayAlert("No Folder Selected");
-            }
-            FolderPaths.Add(folder);
-
-            FullFolderPaths.Add(folder);
-
-            folderMgtService.AddFolderToPreference(folder);
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
+  
     private void ResetMasterListOfSongs()
     {
      
@@ -384,14 +438,13 @@ public partial class BaseViewModel : ObservableObject
         if (IsByUser)
         {
             _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI , null));
-            _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
+            
         }
     }
 
     public void PlayPrevious()
     {
         _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI, null));
-        _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
     }
 
     public async Task PlayPauseAsync()
@@ -460,7 +513,7 @@ public partial class BaseViewModel : ObservableObject
         }
     }
     partial void OnVolumeLevelChanging(double oldValue, double newValue)
-    {
+    { 
         
     }
 
@@ -468,7 +521,7 @@ public partial class BaseViewModel : ObservableObject
 
     List<string> FullFolderPaths = [];
 
-    [RelayCommand]
+    
     public async Task SelectSongFromFolder()
     {
 
@@ -491,9 +544,28 @@ public partial class BaseViewModel : ObservableObject
 
         FullFolderPaths.Add(folder);
 
+        _stateService.SetCurrentState((DimmerPlaybackState.FolderAdded, folder));
         
     }
 
+
+    public void SubscribeToScanningLogs()
+    {
+        _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()
+            .Subscribe(log =>
+            {
+                if (log == null || string.IsNullOrEmpty(log.Log))
+                    return;
+                LatestScanningLog = log.Log;
+                ScanningLogs ??= new ObservableCollection<AppLogModel>();
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (ScanningLogs.Count > 10)
+                        ScanningLogs.RemoveAt(0);
+                    ScanningLogs.Add(log);
+                });
+            }));
+    }
 
     [RelayCommand]
     public async Task LoadSongsFromFolders()

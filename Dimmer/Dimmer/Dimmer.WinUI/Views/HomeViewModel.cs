@@ -42,6 +42,7 @@ public partial class HomeViewModel : BaseViewModelWin
 
         SubscribeToLyricIndexChanges();
         SubscribeToSyncLyricsChanges();
+        SubscribeToScanningLogs();
     }
 
     private static void LoadPageViewModel()
