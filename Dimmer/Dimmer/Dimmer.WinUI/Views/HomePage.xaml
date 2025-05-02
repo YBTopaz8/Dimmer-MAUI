@@ -466,8 +466,8 @@
                                                         <Label Text="Folders Preference"/>
                                                     </HorizontalStackLayout>
 
-                                            <Grid RowDefinitions="Auto,auto" Grid.Row="1">
-                                                        <HorizontalStackLayout Grid.Row="0">
+                                            <Grid RowDefinitions="Auto,auto" Grid.Row="1" >
+                                                        <HorizontalStackLayout Grid.Row="0" Spacing="15" HorizontalOptions="Center">
                                                             <Label Text="Music Folder" 
                                                                    HorizontalOptions="Start" FontSize="14"/>
                                                             <Button Text="Add" x:Name="AddNewMusicFolder"

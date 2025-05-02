@@ -27,11 +27,11 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMgt,
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)
+    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;
@@ -70,7 +70,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             _state.CurrentPlayBackState
                   .DistinctUntilChanged()
                   .Subscribe(state => {
-                      switch (state)
+                      switch (state.State)
                       {
                           case DimmerPlaybackState.Opening:
                               break;
@@ -221,7 +221,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
 
-            _state.SetCurrentState(DimmerPlaybackState.Playing);
+            _state.SetCurrentState((DimmerPlaybackState.Playing,null));
         }
             
     }
@@ -234,7 +234,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(prev);
             _state.SetSecondSelectdSong(prev);
-            _state.SetCurrentState(DimmerPlaybackState.Playing);
+            _state.SetCurrentState((DimmerPlaybackState.Playing,null));
         }
     }
 

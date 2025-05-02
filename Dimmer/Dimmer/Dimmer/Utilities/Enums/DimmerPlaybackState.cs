@@ -32,5 +32,12 @@ public enum DimmerPlaybackState
     RepeatAll,
     RepeatPlaylist,
     MoveToNextSongInQueue,
-    ShuffleRequested
+    ShuffleRequested,
+    FolderAdded,
+    FolderRemoved,
+    FileChanged,
+    FolderNameChanged,
+    FolderScanCompleted,
+    FolderScanStarted,
+    FolderWatchStarted,
 }

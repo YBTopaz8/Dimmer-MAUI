@@ -1,7 +1,9 @@
-﻿using CommunityToolkit.Maui.Storage;
+﻿using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.Input;
 using Dimmer.Services;
 using Dimmer.Utilities.FileProcessorUtils;
+using System.Diagnostics;
 
 namespace Dimmer.ViewModel;
 
@@ -29,6 +31,7 @@ public partial class BaseViewModel : ObservableObject
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
+    private readonly IFolderMgtService folderMgtService;
 
     public BaseAppFlow BaseAppFlow { get; }    
     public List<SongModelView>? FilteredSongs { get; set; }
@@ -78,16 +81,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
-    public BaseViewModel(
-        IMapper mapper,
-       BaseAppFlow baseAppFlow,
-        AlbumsMgtFlow albumsMgtFlow,
-        PlayListMgtFlow playlistsMgtFlow,
-        SongsMgtFlow songsMgtFlow,
-        IPlayerStateService stateService,
-        ISettingsService settingsService,
-        SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow)
+    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow)
     {
         _mapper = mapper;
         BaseAppFlow=baseAppFlow;
@@ -97,10 +91,10 @@ public partial class BaseViewModel : ObservableObject
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
+        this.folderMgtService=folderMgtService;
         LyricsMgtFlow=lyricsMgtFlow;
         Initialize();
-        //SubscribeToLyricIndexChanges();
-        //SubscribeToSyncLyricsChanges();
+
     }
 
     private void Initialize()
@@ -126,9 +120,7 @@ public partial class BaseViewModel : ObservableObject
             DistinctUntilChanged()
             .Subscribe(list =>
             {
-                IsPlaying = list == DimmerPlaybackState.Playing;
-               
-               
+                IsPlaying = list.State == DimmerPlaybackState.Playing;
             }));
     }
 
@@ -166,6 +158,39 @@ public partial class BaseViewModel : ObservableObject
                     return;
                 SynchronizedLyrics = _mapper.Map<ObservableCollection<LyricPhraseModelView>>(l);
             }));
+    }
+    [RelayCommand]
+    public async Task AddMusicPreferenceFolder()
+    {
+
+        try
+        {
+            CancellationTokenSource cts = new();
+            CancellationToken token = cts.Token;
+
+
+            FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(CancellationToken.None);
+
+            if (res.Folder is null)
+            {
+                return;
+            }
+            string? folder = res.Folder?.Path;
+            if (folder is null)
+            {
+                //await Shell.Current.DisplayAlert("No Folder Selected");
+            }
+            FolderPaths.Add(folder);
+
+            FullFolderPaths.Add(folder);
+
+            folderMgtService.AddFolderToPreference(folder);
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     private void ResetMasterListOfSongs()
@@ -348,9 +373,9 @@ public partial class BaseViewModel : ObservableObject
 
             _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
         }
-        
+
         //this triggers the pl flow and song mgt flow
-        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+        _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
 
     }
 
@@ -358,15 +383,15 @@ public partial class BaseViewModel : ObservableObject
     {
         if (IsByUser)
         {
-            _stateService.SetCurrentState(DimmerPlaybackState.PlayNextUI);
-            _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+            _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI , null));
+            _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
         }
     }
 
     public void PlayPrevious()
     {
-        _stateService.SetCurrentState(DimmerPlaybackState.PlayNextUI);
-        _stateService.SetCurrentState(DimmerPlaybackState.Playing);
+        _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI, null));
+        _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
     }
 
     public async Task PlayPauseAsync()
@@ -380,7 +405,7 @@ public partial class BaseViewModel : ObservableObject
     public void ToggleShuffle()
     {
         IsShuffle = !IsShuffle;
-        _stateService.SetCurrentState(DimmerPlaybackState.ShuffleRequested);
+        _stateService.SetCurrentState((DimmerPlaybackState.ShuffleRequested,null));
 
         SongsMgtFlow.ToggleShuffle(IsShuffle);
         
@@ -442,6 +467,7 @@ public partial class BaseViewModel : ObservableObject
     #region Settings Methods
 
     List<string> FullFolderPaths = [];
+
     [RelayCommand]
     public async Task SelectSongFromFolder()
     {
@@ -465,7 +491,6 @@ public partial class BaseViewModel : ObservableObject
 
         FullFolderPaths.Add(folder);
 
-        AppSettingsService.MusicFoldersPreference.AddMusicFolder(FullFolderPaths);
         
     }
 

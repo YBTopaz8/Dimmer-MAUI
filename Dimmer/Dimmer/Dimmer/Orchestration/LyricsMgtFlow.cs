@@ -33,7 +33,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMonitor,
         IMapper mapper,
         SubscriptionManager subs
     ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, mapper)

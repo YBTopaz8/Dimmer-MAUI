@@ -1,6 +1,4 @@
-﻿
-
-namespace Dimmer;
+﻿namespace Dimmer;
 
 public static class MauiProgramExtensions
 {
@@ -38,6 +36,7 @@ public static class MauiProgramExtensions
      
         builder.Services.AddSingleton<ISettingsService, DimmerSettingsService>();
         builder.Services.AddSingleton<IPlayerStateService, PlayerStateService>();
+        builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
         builder.Services.AddTransient<SubscriptionManager>();
 

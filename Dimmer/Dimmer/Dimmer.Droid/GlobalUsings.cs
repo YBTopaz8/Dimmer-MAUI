@@ -10,7 +10,7 @@ global using DevExpress.Maui;
 global using Dimmer.DimmerAudio;
 global using Dimmer.Utils;
 global using Dimmer.Views;
-
+global using CommunityToolkit.Maui.Views;
 
 
 namespace Dimmer;

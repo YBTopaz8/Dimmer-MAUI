@@ -26,7 +26,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AlbumModel> albumRepo,
         IRepository<AlbumArtistGenreSongLink> linkRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMonitor,
         IDimmerAudioService audioService,
         IQueueManager<SongModelView> playQueue,
         SubscriptionManager subs,
@@ -73,7 +73,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                   {
                       switch (s)
                       {
-                          case DimmerPlaybackState.Playing:
+                          case (DimmerPlaybackState.Playing, null):
                               await PlaySongInAudioService();
                               break;
                       }
@@ -118,21 +118,21 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
         PlayEnded();   // BaseAppFlow: records Completed link
-        _state.SetCurrentState(DimmerPlaybackState.Ended);
+        _state.SetCurrentState((DimmerPlaybackState.Ended,null));
         
     }
 
     public void NextInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState(requester);
-        _state.SetCurrentState(DimmerPlaybackState.PlayNextUser);
+        _state.SetCurrentState((requester, null));
+        _state.SetCurrentState((DimmerPlaybackState.PlayNextUser, null));
 
         UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Skipped);
     }
 
     public void PrevInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState(requester);
+        _state.SetCurrentState((requester,null));
         UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Previous);
     }
 
@@ -141,7 +141,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         if (isPause )
         {
             await _audio.PauseAsync();
-            _state.SetCurrentState(DimmerPlaybackState.PausedUI);
+            _state.SetCurrentState((DimmerPlaybackState.PausedUI,null));
             AddPauseSongEventToDB();    // records Pause link
         }
         else
@@ -153,7 +153,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
             }
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            _state.SetCurrentState(DimmerPlaybackState.Resumed);
+            _state.SetCurrentState((DimmerPlaybackState.Resumed,null));
             AddResumeSongToDB();   // records Resume link
         }
     }

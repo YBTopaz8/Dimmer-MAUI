@@ -16,9 +16,9 @@ public class PlayerStateService : IPlayerStateService
     readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
     readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
     readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
-    readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
+    readonly BehaviorSubject<(DimmerPlaybackState State, object? ExtraParameter)> _playbackState = new((DimmerPlaybackState.Stopped,null));
     readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
-    readonly BehaviorSubject<PlaylistModel> _currentPlaylist = new(null);
+    readonly BehaviorSubject<PlaylistModel?> _currentPlaylist = new(null);
     readonly BehaviorSubject<double> _deviceVolume = new(1);
     readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
     readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
@@ -55,7 +55,7 @@ public class PlayerStateService : IPlayerStateService
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
     public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
     public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongs.AsObservable();
-    public IObservable<DimmerPlaybackState> CurrentPlayBackState => _playbackState.AsObservable();
+    public IObservable<(DimmerPlaybackState State, object? ExtraParameter)> CurrentPlayBackState => _playbackState.AsObservable();
     public IObservable<PlaylistModel> CurrentPlaylist => _currentPlaylist.AsObservable();
     public IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows => _windows.AsObservable();
     public IObservable<CurrentPage> CurrentPage => _page.AsObservable();
@@ -108,11 +108,11 @@ public class PlayerStateService : IPlayerStateService
         _syncLyrics.OnNext(lyric.ToList().AsReadOnly());
     }
 
-    public void SetCurrentState(DimmerPlaybackState state)
+    public void SetCurrentState((DimmerPlaybackState State, object? ExtraParameter) state)
     {
         _playbackState.OnNext(state);
 
-        _isPlaying.OnNext(state == DimmerPlaybackState.Playing);
+        _isPlaying.OnNext(state.Item1 == DimmerPlaybackState.Playing);
        
     }
     
@@ -218,9 +218,9 @@ public class PlayerStateService : IPlayerStateService
     }
 
     // queue advancement logic
-    void OnPlaybackStateChanged(DimmerPlaybackState st)
+    void OnPlaybackStateChanged((DimmerPlaybackState State, object? ExtraParameter) st)
     {
-        switch (st)
+        switch (st.State)
         {
             case DimmerPlaybackState.PlayPreviousUI:                
             case DimmerPlaybackState.PlayPreviousUser:

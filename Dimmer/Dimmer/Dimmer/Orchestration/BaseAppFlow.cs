@@ -17,7 +17,7 @@ public class BaseAppFlow : IDisposable
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly ISettingsService _settings;
-    private readonly IFolderMonitorService _folderMonitor;
+    private readonly IFolderMgtService folderMgt;
     public readonly IMapper _mapper;
     private bool _disposed;
 
@@ -40,7 +40,7 @@ public class BaseAppFlow : IDisposable
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
-        IFolderMonitorService folderMonitor,
+        IFolderMgtService folderMgt,
         IMapper mapper)
     {
         _state = state;
@@ -52,7 +52,7 @@ public class BaseAppFlow : IDisposable
         _genreRepo = genreRepo;
         _aagslRepo = aagslRepo;
         _settings = settings;
-        _folderMonitor = folderMonitor;
+        this.folderMgt=folderMgt;
         _mapper = mapper;
 
         Initialize();
@@ -65,9 +65,6 @@ public class BaseAppFlow : IDisposable
         // 1) load once
         MasterList = [.. _songRepo
             .GetAll(true)];
-
-        // 2) folder‑watch
-        _folderMonitor.Start(_settings.UserMusicFoldersPreference);
 
         // 3) live updates, on UI‑thread if available
         var syncCtx = SynchronizationContext.Current;
@@ -91,6 +88,8 @@ public class BaseAppFlow : IDisposable
                 MasterList = [.. list];
             });
     }
+
+
 
     public void SeekedTo(double? position)
     {
@@ -296,7 +295,6 @@ public class BaseAppFlow : IDisposable
         if (_disposed)
             return;
         _state.Dispose();
-        _folderMonitor.Dispose();
         _disposed = true;
     }
 }

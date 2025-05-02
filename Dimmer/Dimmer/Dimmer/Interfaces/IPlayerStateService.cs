@@ -41,7 +41,7 @@ public interface IPlayerStateService : IDisposable
     /// <value>
     /// The state of the current play back.
     /// </value>
-    IObservable<DimmerPlaybackState> CurrentPlayBackState { get; }
+    IObservable<(DimmerPlaybackState State, object? ExtraParameter)> CurrentPlayBackState { get; }
     /// <summary>
     /// Gets the current playlist.
     /// </summary>
@@ -121,11 +121,8 @@ public interface IPlayerStateService : IDisposable
     /// </summary>
     /// <param name="song">The song.</param>
     void SetCurrentSong(SongModel song);
-    /// <summary>
-    /// Sets the state of the current.
-    /// </summary>
-    /// <param name="state">The state.</param>
-    void SetCurrentState(DimmerPlaybackState state);
+    
+    void SetCurrentState((DimmerPlaybackState State, object? ExtraParameter) state);
     /// <summary>
     /// Adds the window.
     /// </summary>

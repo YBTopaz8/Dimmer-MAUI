@@ -44,6 +44,8 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     }
     private void SubscribeToPosition()
     {
+
+        
         _subs.Add(SongsMgtFlow.Position
             .Synchronize(SynchronizationContext.Current!)
         .Subscribe(pos =>
@@ -60,7 +62,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         MainThread.BeginInvokeOnMainThread(
                () =>
                {
-                   TaskbarList.SetProgressValue(PlatUtils.DimmerHandle, (ulong)CurrentPositionPercentage, 100);
+                   TaskbarList.SetProgressValue(PlatUtils.DimmerHandle, (ulong)CurrentPositionPercentage*100, 100);
                });
 
         }));

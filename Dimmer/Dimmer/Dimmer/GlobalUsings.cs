@@ -10,7 +10,7 @@ global using Dimmer.Data;
 global using Dimmer.Services;
 global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
-
+global using CommunityToolkit.Maui.Views;
 
 global using Parse;
 
