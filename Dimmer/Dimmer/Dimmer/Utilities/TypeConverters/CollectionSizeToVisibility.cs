@@ -1,4 +1,4 @@
-﻿namespace Dimmer_MAUI.Utilities.TypeConverters;
+﻿namespace Dimmer.Utilities.TypeConverters;
 
 public class CollectionSizeToVisibility : IValueConverter
 {

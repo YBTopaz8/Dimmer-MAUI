@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DimmerLive.Orchestration;
+namespace Dimmer.DimmerLive.Orchestration;
 internal class ParseFlowMgt
 {
 }

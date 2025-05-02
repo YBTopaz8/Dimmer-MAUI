@@ -75,7 +75,6 @@ public partial class HomePage : ContentPage
     }
     private void SongsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
-        MyViewModel.PlaySong((e.Item as SongModelView)!,Utilities.Enums.CurrentPage.HomePage);
         var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
         qs!.UpdateTileVisualState(true, e.Item as SongModelView);
     }

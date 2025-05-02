@@ -23,15 +23,15 @@ public partial class BaseViewModel : ObservableObject
 
     public const string CurrentAppVersion = "Dimmer v1.8b";
 
-
+    public bool IsSearching { get; set; } = false;
 
     private readonly IMapper _mapper;
     private readonly IPlayerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
 
-    public BaseAppFlow BaseAppFlow { get; }
-
+    public BaseAppFlow BaseAppFlow { get; }    
+    public List<SongModelView>? FilteredSongs { get; set; }
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
@@ -315,7 +315,23 @@ public partial class BaseViewModel : ObservableObject
         _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
         if (source == CurrentPage.HomePage)
         {
-            _stateService.SetCurrentPlaylist([]);
+            if (IsSearching)
+            {
+                PlaylistModel CustomPlaylist = new()
+                {
+                    PlaylistName = "Search Playlist "+DateTime.Now.ToLocalTime(),
+                    Description = "Custom Playlist by Dimmer",
+                };
+                var  domainList = FilteredSongs
+           .Select(vm => _mapper.Map<SongModel>(vm))
+           .ToList()
+           .AsReadOnly();
+                _stateService.SetCurrentPlaylist(domainList, CustomPlaylist);
+            }
+            else
+            {
+                _stateService.SetCurrentPlaylist(null);
+            }
         }
         else
         {

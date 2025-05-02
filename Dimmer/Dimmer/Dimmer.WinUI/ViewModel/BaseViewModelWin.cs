@@ -17,8 +17,6 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial CollectionView? SongLyricsCV { get; set; }
 
-    [ObservableProperty]
-    public partial List<SongModelView>? FilteredSongs { get; set; }
     private readonly IPlayerStateService _stateService;
 
     private readonly IMapper _mapper;
@@ -47,6 +45,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     private void SubscribeToPosition()
     {
         _subs.Add(SongsMgtFlow.Position
+            .Synchronize(SynchronizationContext.Current!)
         .Subscribe(pos =>
         {
             if (pos == 0)
@@ -58,7 +57,11 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
                 CurrentPositionInSeconds = pos;
                 var duration = SongsMgtFlow.CurrentlyPlayingSong?.DurationInSeconds ?? 1;
                 CurrentPositionPercentage = pos / duration;
-            TaskbarList.SetProgressValue(PlatUtils.DimmerHandle,  (ulong)CurrentPositionPercentage, 100);
+        MainThread.BeginInvokeOnMainThread(
+               () =>
+               {
+                   TaskbarList.SetProgressValue(PlatUtils.DimmerHandle, (ulong)CurrentPositionPercentage, 100);
+               });
 
         }));
     }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DimmerLive.Models;
+namespace Dimmer.DimmerLive.Models;
 
 [ParseClassName("ChatMessage")]
 public partial class ChatMessage : ParseObject

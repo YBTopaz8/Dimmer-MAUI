@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Dimmer.ParseSection.ParseStatics.ParseStatics;
-using DimmerLive.Models;
-using DimmerLive.ParseStatics;
+using static Dimmer.DimmerLive.ParseStatics.ParseStatics;
 using System.Diagnostics;
+using Dimmer.DimmerLive.ParseStatics;
+using Dimmer.DimmerLive.Models;
 
 
-namespace DimmerLive.Orchestration;
+namespace Dimmer.DimmerLive.Orchestration;
 public static class ParseSetup
 {
 
@@ -107,7 +107,7 @@ public static class ParseSetup
             return false;
         }
 
-        if ((Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet) && !isSilent)
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet && !isSilent)
         {
             if (!isSilent)
             {

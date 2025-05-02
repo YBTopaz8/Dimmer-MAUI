@@ -1,4 +1,5 @@
 ﻿using Dimmer.Services;
+using System.Diagnostics;
 
 namespace Dimmer.Orchestration;
 
@@ -52,6 +53,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             =>
         {
 
+            var neww = _state;
+            Debug.WriteLine(_state?.GetType());
         }));
         // 3) react to playback events
         _subs.Add(

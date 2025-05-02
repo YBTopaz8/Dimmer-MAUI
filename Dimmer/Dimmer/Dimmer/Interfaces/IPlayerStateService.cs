@@ -114,7 +114,7 @@ public interface IPlayerStateService : IDisposable
     /// Replace the master list of songs.
     /// </summary>
     /// <param name="songs">The songs.</param>
-    void LoadAllSongs(IEnumerable<SongModel> songs);
+    void LoadAllSongs(IEnumerable<SongModel> songs, bool isShuffle=true);
 
     /// <summary>
     /// Change the “now playing” track.

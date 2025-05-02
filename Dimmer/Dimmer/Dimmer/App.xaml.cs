@@ -10,10 +10,10 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        if (ParseSetup.InitializeParseClient())
-        {
-            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
-        }
+        //if (  ParseSetup.InitializeParseClient())
+        //{
+        //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+        //}
     }
 
     protected override Window CreateWindow(IActivationState? activationState)

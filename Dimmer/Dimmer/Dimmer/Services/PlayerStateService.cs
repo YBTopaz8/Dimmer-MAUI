@@ -18,7 +18,7 @@ public class PlayerStateService : IPlayerStateService
     readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
     readonly BehaviorSubject<DimmerPlaybackState> _playbackState = new(DimmerPlaybackState.Stopped);
     readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
-    readonly BehaviorSubject<PlaylistModel?> _currentPlaylist = new(null);
+    readonly BehaviorSubject<PlaylistModel> _currentPlaylist = new(null);
     readonly BehaviorSubject<double> _deviceVolume = new(1);
     readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
     readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
@@ -62,13 +62,19 @@ public class PlayerStateService : IPlayerStateService
 
     public static bool IsShuffleOn { get; set; } = false;
     // Core setters
-    public void LoadAllSongs(IEnumerable<SongModel> songs)
+    public void LoadAllSongs(IEnumerable<SongModel> songs, bool isShuffle=true)
     {
         var list = songs.ToList();
+        if (!isShuffle)
+        {
+            _allSongs.OnNext(list.AsReadOnly());
+            return;
+        }
         if (IsShuffleOn)
             list.ShuffleInPlace();
 
         _allSongs.OnNext(list.AsReadOnly());
+
     }
     public void SetCurrentLogMsg(string logMessage)
     {
@@ -135,9 +141,9 @@ public class PlayerStateService : IPlayerStateService
         {
             LoadAllSongs(BaseAppFlow.MasterList);
         }
-        else
+        else if(Playlist is not null)
         {
-            LoadAllSongs(songs);
+            LoadAllSongs(songs, false);
             _currentPlaylist.OnNext(Playlist); // from here get a method in baseappflow to create a playlist in db and save
         }
           
@@ -155,7 +161,7 @@ public class PlayerStateService : IPlayerStateService
 
        
     }
-    void HandleBatch(int batchId, IReadOnlyList<SongModel> batch)
+    static void HandleBatch(int batchId, IReadOnlyList<SongModel> batch)
     {
         
         // e.g. raise a UI hook

@@ -271,7 +271,7 @@ public class BaseAppFlow : IDisposable
         }
         MasterList= [.. allSongs];
 
-        _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null); 
+        _state.SetCurrentPlaylist([], null); 
 
         _songRepo.AddOrUpdate(allSongs);
 
