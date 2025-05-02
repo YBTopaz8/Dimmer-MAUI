@@ -11,8 +11,7 @@ global using Dimmer.Services;
 global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
 
-global using DimmerParse.Models;
-global using DimmerParse.Orchestration;
+
 global using Parse;
 
 global using System.Globalization;
