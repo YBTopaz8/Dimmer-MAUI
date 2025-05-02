@@ -58,7 +58,7 @@ public class FolderMgtService : IFolderMgtService
         _allFolders.OnNext(models);
     }
 
-    private void RestartWatching()
+    public void RestartWatching()
     {
         _folderMonitor.Stop();
         _folderMonitor.Start(_settings.UserMusicFoldersPreference);

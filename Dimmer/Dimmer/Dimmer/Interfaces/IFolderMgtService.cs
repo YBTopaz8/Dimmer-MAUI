@@ -23,6 +23,7 @@ public interface IFolderMgtService : IDisposable
     void OnFileChanged(string fullPath);
     void OnFileDeleted(FileSystemEventArgs e);
     void OnFileCreated(FileSystemEventArgs e);
+    void RestartWatching();
 }
 
 public partial class FolderModel:ObservableObject

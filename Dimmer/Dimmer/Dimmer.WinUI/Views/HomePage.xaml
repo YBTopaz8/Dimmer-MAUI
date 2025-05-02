@@ -474,7 +474,7 @@
                                                                     Clicked="AddNewMusicFolder_Clicked"/>
                                                         </HorizontalStackLayout>
 
-                                                        <CollectionView Grid.Row="1"
+                                                        <CollectionView Grid.Row="1" Header="Logs" 
                                                             ItemsSource="{Binding FolderPaths}"
                                                                         />
                                                 <CollectionView ItemsSource="{Binding ScanningLogs}" Grid.Row="2"

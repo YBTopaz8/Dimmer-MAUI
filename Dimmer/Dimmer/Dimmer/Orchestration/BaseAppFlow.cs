@@ -76,7 +76,8 @@ public class BaseAppFlow : IDisposable
         _state.SetCurrentSong(MasterList.First());
         _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
         SubscribeToStateChanges();
-        
+
+        folderMgt.RestartWatching();
         return _songRepo
             .WatchAll()
             .ObserveOn(scheduler)
@@ -89,7 +90,7 @@ public class BaseAppFlow : IDisposable
                 }
                 MasterList = [.. list];
             });
-
+        
 
     }
 
