@@ -599,10 +599,10 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
                                     </Grid>
                                 </Border>
                                     
-                                <syncf:SfBottomSheet ShowGrabber="True" IsModal="True"
-                       x:Name="ThoughtBtmSheetBottomSheet" IsOpen="False" IsVisible="False"
-                       State="Hidden">
-                                        <syncf:SfBottomSheet.Content>
+                                <syncf:SfExpander FlowDirection="RightToLeft"
+                       x:Name="ThoughtBtmSheetBottomSheet" IsVisible="False"
+                       >
+                                        <syncf:SfExpander.Content>
                                             <VerticalStackLayout Margin="10,0">
                                                 <VerticalStackLayout.Resources>
                                                     <ResourceDictionary>
@@ -635,9 +635,9 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
                                                     </Button.ImageSource>
                                                 </Button>
                                             </VerticalStackLayout>
-                                        </syncf:SfBottomSheet.Content>
+                                        </syncf:SfExpander.Content>
 
-                                    </syncf:SfBottomSheet>
+                                    </syncf:SfExpander>
                                     
                                 </Grid>
                             </Grid>
