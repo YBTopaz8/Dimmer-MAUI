@@ -202,7 +202,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
 
             
         }
-        
+        _state.SetCurrentState((DimmerPlaybackState.Playing, null));
+
     }
 
     private void ShuffleQueue()
@@ -221,7 +222,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
 
-            _state.SetCurrentState((DimmerPlaybackState.Playing,null));
+            _state.SetCurrentState((DimmerPlaybackState.Playing,BaseAppFlow.MasterList));
         }
             
     }

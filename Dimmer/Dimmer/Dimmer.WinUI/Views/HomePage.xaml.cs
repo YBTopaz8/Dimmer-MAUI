@@ -341,11 +341,11 @@ public partial class HomePage : ContentPage
         {
            
             songsToDisplay = MyViewModel.BaseAppFlow._mapper.Map<List<SongModelView>>( BaseAppFlow.MasterList!); 
-            MyViewModel.IsSearching = false;
+            BaseViewModel.IsSearching = false;
         }
         else
         {
-            MyViewModel.IsSearching = true;
+            BaseViewModel.IsSearching = true;
 
             var songsToDisplays= await Task.Run(() => 
             {
@@ -369,7 +369,7 @@ public partial class HomePage : ContentPage
             if (token.IsCancellationRequested)
                 return;
 
-            MyViewModel.CurrentQueue = MyViewModel.IsSearching ? 1 : 0;
+            MyViewModel.CurrentQueue = BaseViewModel.IsSearching ? 1 : 0;
             
 
             MyViewModel.DisplayedSongs?.Clear();
@@ -377,7 +377,7 @@ public partial class HomePage : ContentPage
            
             
             
-            if (MyViewModel.IsSearching)
+            if (BaseViewModel.IsSearching)
             {
                 MyViewModel.FilteredSongs = songsToDisplay; 
             }

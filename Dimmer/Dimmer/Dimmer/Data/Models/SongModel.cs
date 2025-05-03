@@ -220,10 +220,6 @@ public partial class SongModel : RealmObject
     /// </value>
     public string? UserIDOnline { get; set; }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SongModel"/> class.
-    /// </summary>
-    /// 
     public IList<UserNoteModel> UserNotes { get; }
     public SongModel()
     {

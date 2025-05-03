@@ -25,7 +25,7 @@ public partial class BaseViewModel : ObservableObject
 
     public const string CurrentAppVersion = "Dimmer v1.8b";
 
-    public bool IsSearching { get; set; } = false;
+    public static bool IsSearching { get; set; } = false;
 
     private readonly IMapper _mapper;
     private readonly IPlayerStateService _stateService;
@@ -409,7 +409,7 @@ public partial class BaseViewModel : ObservableObject
             }
             else
             {
-                _stateService.SetCurrentPlaylist(null);
+                _stateService.SetCurrentPlaylist(BaseAppFlow.MasterList);
             }
         }
         else

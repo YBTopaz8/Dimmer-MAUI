@@ -10,6 +10,7 @@ public partial class GenreModel : RealmObject
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     public string? Name { get; set; } = "Unknown Genre";
+    public IList<UserNoteModel> UserNotes { get; }
     public GenreModel()
     {
 

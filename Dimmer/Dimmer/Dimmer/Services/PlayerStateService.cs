@@ -23,15 +23,13 @@ public class PlayerStateService : IPlayerStateService
     readonly BehaviorSubject<IReadOnlyList<Window>> _windows = new(Array.Empty<Window>());
     readonly BehaviorSubject<CurrentPage> _page = new(Utilities.Enums.CurrentPage.HomePage);
 
-    readonly IQueueManager<SongModel> _queue;
     private readonly IRepository<SongModel> songRepo;
     private readonly IMapper mapper;
     readonly CompositeDisposable _subs = new();
     
-    public PlayerStateService(IMapper mapper, IRepository<SongModel> songRepo,IQueueManager<SongModel>? queue = null
-        )
+    public PlayerStateService(IMapper mapper, IRepository<SongModel> songRepo)
     {
-        _queue = queue ?? new QueueManager<SongModel>();
+
         this.songRepo=songRepo;
         this.mapper=mapper;
         // whenever state changes (skip the seed), advance
@@ -64,6 +62,10 @@ public class PlayerStateService : IPlayerStateService
     // Core setters
     public void LoadAllSongs(IEnumerable<SongModel> songs, bool isShuffle=true)
     {
+        if (_allSongs.Value.Count == songs.Count())
+        {
+            return;
+        }
         var list = songs.ToList();
         if (!isShuffle)
         {
@@ -138,10 +140,14 @@ public class PlayerStateService : IPlayerStateService
         }
         if (Playlist is null && _currentPlaylist.Value is null)
         {
-            songs=BaseAppFlow.MasterList;
+            songs=BaseAppFlow.MasterList; // we are reinitializing since user is playing from masterlist, ensure this so we follow right order
             LoadAllSongs(songs);
         }
-        else if(Playlist is not null)
+        else if (Playlist is null)
+        {
+            LoadAllSongs(songs);
+        }
+        else if (Playlist is not null)
         {
             LoadAllSongs(songs, false);
             _currentPlaylist.OnNext(Playlist); // from here get a method in baseappflow to create a playlist in db and save
@@ -150,14 +156,6 @@ public class PlayerStateService : IPlayerStateService
         // clear old subs (queue + state watcher)
         _subs.Clear();
         _subs.Add(_playbackState.Skip(1).Subscribe(OnPlaybackStateChanged));
-
-        // reset & wire queue events
-
-        _queue.BatchEnqueued += HandleBatch;
-        _subs.Add(Disposable.Create(() => _queue.BatchEnqueued -= HandleBatch));
-
-        _queue.ItemDequeued += HandleDequeue;
-        _subs.Add(Disposable.Create(() => _queue.ItemDequeued -= HandleDequeue));
 
        
     }
@@ -170,7 +168,7 @@ public class PlayerStateService : IPlayerStateService
     void HandleDequeue(int batchId, SongModel item)
     {
         var song = mapper.Map<SongModelView>(item); 
-        _currentSong.OnNext(song);
+        
     }
 
 
@@ -233,25 +231,57 @@ public class PlayerStateService : IPlayerStateService
                 break;
         }
     }
-
     void AdvanceQueue()
     {
-        var next = _queue.Next();
+        SongModel? next = null;
+
+        if (BaseViewModel.IsSearching)
+        {
+            // Get current song index
+            var currentSongId = _currentSong.Value.LocalDeviceId;
+            var currentIndex = _allSongs.Value
+                .ToList()
+                .FindIndex(x => x.LocalDeviceId == currentSongId);
+
+            // Advance to next in the search list (wrap around)
+            if (currentIndex != -1)
+            {
+                var nextIndex = (currentIndex + 1) % _allSongs.Value.Count;
+                next = _allSongs.Value[nextIndex];
+            }
+        }
+
         if (next != null)
         {
-
             var song = mapper.Map<SongModelView>(next);
-            _currentSong.OnNext(song);
+            //_currentSong.OnNext(song);
         }
     }
+
     void PreviousInQueue()
     {
-        var prev = _queue.Previous();
+        SongModel? prev = null;
+
+        if (BaseViewModel.IsSearching)
+        {
+            // Get current song index
+            var currentSongId = _currentSong.Value.LocalDeviceId;
+            var currentIndex = _allSongs.Value
+                .ToList()
+                .FindIndex(x => x.LocalDeviceId == currentSongId);
+
+            // Move to previous (wrap around)
+            if (currentIndex != -1)
+            {
+                var prevIndex = (currentIndex - 1 + _allSongs.Value.Count) % _allSongs.Value.Count;
+                prev = _allSongs.Value[prevIndex];
+            }
+        }
+
         if (prev != null)
         {
-
             var song = mapper.Map<SongModelView>(prev);
-            _currentSong.OnNext(song);
+            //_currentSong.OnNext(song);
         }
     }
 

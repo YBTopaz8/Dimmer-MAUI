@@ -21,6 +21,7 @@ public partial class BaseAlbumViewModel : ObservableObject
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
     public PlayListMgtFlow PlaylistsMgtFlow { get; }
     public SongsMgtFlow SongsMgtFlow { get; }
+
     public BaseAlbumViewModel(
             IMapper mapper, BaseViewModel baseViewModel,AlbumsMgtFlow albumsMgtFlow,PlayListMgtFlow playlistsMgtFlow,
             SongsMgtFlow songsMgtFlow,IPlayerStateService stateService, ISettingsService settingsService,
@@ -37,7 +38,11 @@ public partial class BaseAlbumViewModel : ObservableObject
             _subs = subs;
         SubscribeToAlbumListChanges();
         SelectedSong=new();
-    
+
+
+    }
+    public BaseAlbumViewModel()
+    {
 
     }
     public void SetSelectedSong(SongModelView song)

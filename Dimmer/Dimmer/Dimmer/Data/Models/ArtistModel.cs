@@ -15,6 +15,7 @@ public partial class ArtistModel : RealmObject
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
 
+    public IList<UserNoteModel> UserNotes { get; }
     public ArtistModel()
     {
         
