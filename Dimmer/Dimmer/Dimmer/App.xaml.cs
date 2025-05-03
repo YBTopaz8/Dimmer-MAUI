@@ -1,4 +1,7 @@
 ﻿
+using Dimmer.DimmerLive.Models;
+using Dimmer.DimmerLive.Orchestration;
+
 namespace Dimmer;
 
 public partial class App : Application
@@ -10,10 +13,13 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        //if (  ParseSetup.InitializeParseClient())
-        //{
-        //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
-        //}
+        if (ParseSetup.InitializeParseClient())
+        {
+            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+            ParseClient.Instance.RegisterSubclass(typeof(ParseSong));
+            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        }
     }
 
     protected override Window CreateWindow(IActivationState? activationState)

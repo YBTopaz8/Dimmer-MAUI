@@ -6,6 +6,9 @@ namespace Dimmer.Interfaces;
 /// <seealso cref="System.IDisposable" />
 public interface IPlayerStateService : IDisposable
 {
+
+    
+
     /// <summary>
     /// Fires immediately with the last value on subscription.
     /// </summary>

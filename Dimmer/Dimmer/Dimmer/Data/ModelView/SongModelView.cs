@@ -64,7 +64,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
 
-
+    
+    [ObservableProperty]
+    public partial ObservableCollection<UserNoteModelView> ? UserNote { get; set; }
     // Override Equals to compare based on string
     public override bool Equals(object? obj)
     {
@@ -79,4 +81,20 @@ public partial class SongModelView : ObservableObject
     {
         return HashCode.Combine(LocalDeviceId);
     }
+}
+
+public partial class UserNoteModelView : ObservableObject
+{
+    [ObservableProperty]
+    public partial string? UserMessageText { get; set; }
+    [ObservableProperty]
+    public partial string? UserMessageImagePath { get; set; }
+    [ObservableProperty]
+    public partial string? UserMessageAudioPath { get; set; }
+    [ObservableProperty]
+    public partial bool IsPinned { get; set; }
+    [ObservableProperty]
+    public partial int UserRating { get; set; }
+    [ObservableProperty]
+    public partial string? MessageColor { get; set; }
 }

@@ -100,6 +100,39 @@ public partial class BaseViewModel : ObservableObject
         Initialize();
 
     }
+    public void SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
+    {
+
+        return;
+
+        var songDb = _mapper.Map<SongModel>(song);
+        var userNotee = _mapper.Map<UserNoteModel>(userNote);
+            
+        // 1) Ensure the song has a note list
+        if (song.UserNote is null)
+            song.UserNote = new ();
+        BaseAppFlow.UpSertSongNote(songDb, userNotee);
+        song.UserNote.Add(userNote);
+
+        // 2) Find any existing entry in PlaylistSongs by LocalDeviceId
+        var existing = PlaylistSongs
+            .FirstOrDefault(x => x.LocalDeviceId == song.LocalDeviceId);
+
+        if (existing != null)
+        {
+            // Replace the old object with the updated one
+            var idx = PlaylistSongs.IndexOf(existing);
+            PlaylistSongs[idx] = song;
+        }
+        else
+        {
+            // It wasn’t in the list yet, so add it
+            PlaylistSongs.Add(song);
+        }
+
+        // 3) Persist to database
+    }
+
 
     private void Initialize()
     {

@@ -77,6 +77,7 @@ public partial class HomePage : ContentPage
     {
         var qs = IPlatformApplication.Current.Services.GetService<QuickSettingsTileService>();
         qs!.UpdateTileVisualState(true, e.Item as SongModelView);
+        MyViewModel.LoadAndPlaySongTapped(e.Item as SongModelView);
     }
 
     private async void MediaChipBtn_Tap(object sender, ChipEventArgs e)
@@ -499,4 +500,33 @@ public partial class HomePage : ContentPage
         //MyViewModel.ToggleShuffleState();
     }
 
+    private void SongsColView_LongPress(object sender, CollectionViewGestureEventArgs e)
+    {
+        var song = (SongModelView)e.Item;
+        MyViewModel.SetCurrentlyPickedSong(song);
+        ContextBtmSheet.Show();
+    }
+
+    private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
+    {
+        if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
+        {
+            ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
+        }
+        else
+        {
+            ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
+        }
+            
+    }
+
+    private void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    {
+        UserNoteModelView note = new()
+        {
+            UserMessageText=NoteText.Text,
+            
+        };
+        MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
+    }
 }

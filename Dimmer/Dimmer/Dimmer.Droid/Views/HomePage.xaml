@@ -16,8 +16,21 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            <Style TargetType="dx:DXButton">
+                <Setter Property="BackgroundColor" Value="Transparent"/>
+                <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
+                <Setter Property="IconHeight" Value="35"/>
+                <Setter Property="IconWidth" Value="35"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="TextHorizontalAlignment" Value="Start"/>
+                <Setter Property="HorizontalContentAlignment" Value="Start"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}"/>
+                <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
+
+
+            </Style>
             <Style TargetType="Label">
-                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White, Light=White}"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=#040606, Light=White}"/>
             </Style>
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
@@ -33,7 +46,7 @@
         <dx:DXBorder Grid.Row="1" Opacity="0.8"
                     
                     CornerRadius="12" BorderColor="Transparent"
-                    BackgroundColor="#252526" HorizontalOptions="Fill"
+                    BackgroundColor="#040606" HorizontalOptions="Fill"
                     x:Name="BtmBar" >
             <dx:DXBorder.GestureRecognizers>
                 <TapGestureRecognizer x:Name="BtmBarTapGest" Tapped="BtmBarTapGest_Tapped"/>
@@ -325,15 +338,17 @@ BackgroundColor="#626680">
 
         </dx:DXBorder>-->
 
-        <dx:TabView Grid.Row="0" SelectedItemIndicatorColor="DarkSlateBlue"
-                    x:Name="HomeTabView" SwipeEnabled="True"
+        <dx:TabView Grid.Row="0" SelectedItemIndicatorColor="DarkSlateBlue" ItemHeaderTextColor="{AppThemeBinding Dark=#040606,Light=Black}"
+                    x:Name="HomeTabView" SwipeEnabled="True" HeaderPanelHeight="0" ItemHeaderMaxHeight="0"
+                    HeaderPanelMaxHeight="0" SelectedItemIndicatorHeight="0" HeaderPanelIndent="0"
+                    ItemHeaderHeight="0" HeaderPanelBackgroundColor="#040606" 
                     HeaderPanelPosition="Bottom" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
                     >
-                    <dx:TabViewItem HeaderText="Main Page" >
+            <dx:TabViewItem >
                         <dx:DXCollectionView 
                             SelectionMode="Single" dx:DXDockLayout.Dock ="Top"
-                            Orientation="Vertical" x:Name="SongsColView" 
-                    ItemsSource="{Binding MasterListOfSongs}" Tap="SongsColView_Tap" ItemSpacing="8"
+                            Orientation="Vertical" x:Name="SongsColView" LongPress="SongsColView_LongPress"
+                    ItemsSource="{Binding PlaylistSongs}" Tap="SongsColView_Tap" ItemSpacing="8" 
                     Scrolled="SongsColView_Scrolled"
                     >
 
@@ -406,15 +421,15 @@ BackgroundColor="#626680">
                             </dx:DXCollectionView.ItemTemplate>
                         </dx:DXCollectionView>
                     </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Album">
+            <dx:TabViewItem>
 
             </dx:TabViewItem>
 
-            <dx:TabViewItem HeaderText="Artist">
+            <dx:TabViewItem>
 
             </dx:TabViewItem>
 
-            <dx:TabViewItem HeaderText="Stats">
+            <dx:TabViewItem>
 
             </dx:TabViewItem>
 
@@ -422,15 +437,18 @@ BackgroundColor="#626680">
 
 
         <dx:BottomSheet x:Name="ContextBtmSheet" CornerRadius="5"
-              HalfExpandedRatio="0.8" >
+              HalfExpandedRatio="0.8" BackgroundColor="{AppThemeBinding Dark=#040606,Light=Black}" >
             <dx:BottomSheet.Content>
                 <Grid>
 
                     <Image Source="{Binding SecondSelectedSong.CoverImagePath}" 
                                    Aspect="AspectFill" IsVisible="True"
                                    Opacity="0.24"/>
-                    <dx:TabView SelectedItemIndex="{Binding BtmSheetIndex}">
-                        <dx:TabViewItem HeaderText="Now Playing Queue">
+                    <dx:TabView SelectedItemIndex="{Binding BtmSheetIndex}"
+                                    BackgroundColor="{AppThemeBinding Dark=#40606,Light=#DAE2FF}"
+                                ItemHeaderTextColor="{AppThemeBinding Dark=White,Light=Black}"
+                                HeaderPanelBackgroundColor="{AppThemeBinding Dark=#040606,Light=Black}">
+                        <dx:TabViewItem HeaderText="Now Playing Queue" HeaderTextColor="{AppThemeBinding Dark=White,Light=Black}">
 
                             <dx:DXDockLayout x:Name="NowPlayingQueueView" >
                                 <Grid Margin="20,0" ColumnDefinitions="*,Auto" dx:DXDockLayout.Dock="Top">
@@ -483,8 +501,8 @@ BackgroundColor="#626680">
                             <Grid x:Name="SearchLyricsGrid" Grid.Row="1" 
                           
                           >
-                                <Border>
-                                    <Grid Margin="5,5" RowDefinitions="Auto,Auto,*"
+                                <Border StrokeThickness="0" Margin="5">
+                                    <Grid RowDefinitions="Auto,Auto,*"
                                 ColumnDefinitions="*,*">
                                         <Grid.Resources>
                                             <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
@@ -605,91 +623,103 @@ x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
                             </Grid>
                         </dx:TabViewItem>
 
-                        <dx:TabViewItem HeaderText="View Songs">
+                        <dx:TabViewItem HeaderText="Thoughts 💭" >
 
-                            <Grid x:Name="ArtistSongsView" IsVisible="True">
-                                <dx:DXStackLayout Margin="10,0" BackgroundColor="Transparent">
-                                    <HorizontalStackLayout Grid.Row="0" Spacing="10" 
-                BackgroundColor="Transparent" 
-                                   HorizontalOptions="Fill">
-                                        <dx:DXImage Source="{Binding SelectedArtistOnArtistPage.ImagePath}" HeightRequest="150"
-                            WidthRequest="150" />
-                                        <VerticalStackLayout BackgroundColor="Transparent">
-                                            <Label Text="{Binding SelectedArtistOnArtistPage.Name}"/>
-                                        </VerticalStackLayout>
-                                    </HorizontalStackLayout>
+                            <Grid x:Name="ArtistSongsView" BackgroundColor="Transparent"
+                                  RowDefinitions="auto,*,auto"
+                                  IsVisible="True">
+                                <dx:DXBorder Grid.Row="0" StyleClass="Elevation2" Margin="10"
+                                             CornerRadius="10" BorderThickness="1" >
+                                    <dx:DXStackLayout Orientation="Vertical" >
+                                        <Label Text="Song title - Artist" FontSize="23" FontAttributes="Bold"
+                                               HorizontalOptions="Center" />
+                                        
+                                    </dx:DXStackLayout>
+                                </dx:DXBorder>
+                                <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding SecondSelectedSong.UserNote}">
+                                    <dx:DXCollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:UserNoteModelView">
+                                            <dx:DXStackLayout Orientation="Vertical">
+                                                <dx:DXStackLayout Orientation="Horizontal" ItemSpacing="10">
+                                                    <Label Text="May 5th 2025" FontSize="18" TextColor="White"/>
+                                                    <Label Text="14:44" FontSize="17" TextColor="Grey"/>
+                                                </dx:DXStackLayout>
+                                                <Label Text="{Binding UserMessageText}" FontSize="23" TextColor="Grey"/>
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:DXCollectionView.ItemTemplate>
+                                </dx:DXCollectionView>
+                                <Grid Grid.Row="2" >
+                                    <dx:DXBorder BackgroundColor="#192120" CornerRadius="10,10,0,0" Padding="5">
+                                        <Grid ColumnDefinitions="50,*,80">
+                                            <dx:DXButton Grid.Column="0" Icon="addcircle.png" ShowContent="False"
+                                                         IconColor="White" 
+                                                         TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                                                         x:Name="AddAttachmentBtn" BackgroundColor="Transparent"
+                                                         Clicked="AddAttachmentBtn_Clicked"/>
+                                            <dx:MultilineEdit CornerRadius="20" ClearIconVisibility="Auto"
+                                                         TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                                                         HeightRequest="50" BorderThickness="0"
+                                                         CharacterCounterVisibility="Auto"
+                                                              IsStartIconVisible="False"
+                                                              x:Name="NoteText"
+                                                              PlaceholderText="Drop a thought 💭🎶"
+                                                         BackgroundColor="{AppThemeBinding Dark=#040606,Light=#DAE2FF}"
+                                                         FocusedBorderColor="DarkSlateBlue"
+                                                         Grid.Column="1"/>
+                                            
+                                            
+                                            <dx:DXButton Content="Save" Grid.Column="2"
+                                                         BackgroundColor="Transparent"
+                                                         ShowContent="False" x:Name="SaveNoteBtn"
+                                                         Clicked="SaveNoteBtn_Clicked"
+                                                         IconColor="White" Icon="multipleforwardright.png" 
+                                                         TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                                        </Grid>
+                                    </dx:DXBorder>
+                                    <dx:BottomSheet ShowGrabber="True"
+                                                   x:Name="ThoughtBtmSheetBottomSheet"
+                                                   State="Hidden">
+                                        <dx:BottomSheet.Content>
+                                            <dx:DXStackLayout Margin="10,0">
+                                                <dx:DXStackLayout.Resources>
+                                                    <ResourceDictionary>
+                                                        <Style TargetType="dx:DXButton">
+                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                            <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}"/>
 
-                                    <dx:DXCollectionView ItemsSource="{Binding AllArtistsAlbums}" HeightRequest="150" 
-                                                 Orientation="Horizontal"
-                                                 Tap="DXCollectionView_Tap">
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:AlbumModelView">
-                                                <dx:DXButton BackgroundColor="Transparent" 
-                                     CommandParameter="{Binding .}" PressedBackgroundColor="DarkSlateBlue">
-                                                    <dx:DXButton.Content>
-                                                        <VerticalStackLayout BackgroundColor="Transparent">
-                                                            <Image Source="{Binding AlbumImagePath}" HeightRequest="50"/>
-                                                            <Label Text="{Binding Name}"/>
-                                                        </VerticalStackLayout>
-                                                    </dx:DXButton.Content>
+                                                            <Setter Property="IconHeight" Value="35"/>
+                                                            <Setter Property="IconWidth" Value="35"/>
+                                                            <Setter Property="TextHorizontalAlignment" Value="Start"/>
+                                                            <Setter Property="HorizontalContentAlignment" Value="Start"/>
+                                                            <Setter Property="FontSize" Value="20"/>
+                                                        </Style>
+                                                    </ResourceDictionary>
+                                                </dx:DXStackLayout.Resources>
+                                                <dx:DXButton Content="Save A Frame" x:Name="AddPhotoNote"
+                                                             >
+                                                    <dx:DXButton.Icon>
+                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image"/>
+                                                    </dx:DXButton.Icon>
                                                 </dx:DXButton>
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-                                    </dx:DXCollectionView>
-                                    <dx:DXCollectionView Grid.Row="2"  IsVisible="True"
-                ItemsSource="{Binding AllArtistsAlbumSongs}"
-                                 SelectionMode="Single" ItemSpacing="5">
-                                        <dx:DXCollectionView.Header>
-                                            <FlexLayout JustifyContent="SpaceBetween">
-                                                <Label Text="Songs"/>
-                                                <Label Text="Songs"/>
-                                                <dx:DXButton TapPressed="ResetSongs_TapPressed" x:Name="ResetSongs"
-                                     BackgroundColor="Transparent" IconColor="White"
-                                     PressedBackgroundColor="DarkSlateBlue"
-                                     Icon="repeat.png">
-
+                                                <BoxView HeightRequest="1"
+                                                         Color="DarkSlateBlue"/>
+                                                <dx:DXButton Content="Save a Word" x:Name="AddVoiceNote"
+                                                             Icon="microphone.png" IconColor="White"
+                                                             >
+                                                    
                                                 </dx:DXButton>
-                                            </FlexLayout>
-                                        </dx:DXCollectionView.Header>
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:SongModelView">
-                                                <dx:DXButton CornerRadius="10" Padding="5" x:Name="SingleSongBtn"
-                                     BackgroundColor="Transparent" Clicked="SingleSongBtn_Clicked"
-                                     PressedBackgroundColor="DarkSlateBlue">
-
-                                                    <FlexLayout JustifyContent="SpaceBetween" >
-
-                                                        <VerticalStackLayout VerticalOptions="Center" 
-                                     BackgroundColor="Transparent">
-                                                            <Label Text="{Binding Title}" WidthRequest="250" HeightRequest="30" />
-                                                            <Image WidthRequest="13" HorizontalOptions="Start"
-                                       IsVisible="{Binding IsCurrentPlayingHighlight}"
-                                       Source="playcircle.png"/>
-                                                        </VerticalStackLayout>
-                                                        <dx:DXButton Grid.Column="1"  
-                                 IconPlacement="Right" x:Name="SingleSongCxtMenuArea" ButtonType="ToolButton"
-                                         Icon="more1.png">
-
-
-                                                            <VerticalStackLayout BackgroundColor="Transparent">
-                                                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" FontSize="16"/>
-
-                                                                <Image BackgroundColor="Transparent" IsVisible="{Binding HasLyrics}"
-                                         WidthRequest="20" HorizontalOptions="Center"
-                                           Source="musicfile.png"
->
-                                                                </Image>
-                                                            </VerticalStackLayout>
-                                                        </dx:DXButton>
-                                                    </FlexLayout>
-
+                                                <dx:DXButton Content="Save a Gif" x:Name="AddGifNote"
+                                                             >
+                                                    <dx:DXButton.Icon>
+                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image"/>
+                                                    </dx:DXButton.Icon>
                                                 </dx:DXButton>
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-                                    </dx:DXCollectionView>
+                                            </dx:DXStackLayout>
+                                        </dx:BottomSheet.Content>
 
-                                </dx:DXStackLayout>
-
+                                    </dx:BottomSheet>
+                                </Grid>
                             </Grid>
 
                         </dx:TabViewItem>

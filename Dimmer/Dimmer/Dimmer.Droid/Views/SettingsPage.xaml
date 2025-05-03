@@ -19,7 +19,7 @@ xmlns:dx="http://schemas.devexpress.com/maui"
                     HeaderPanelMinHeight="0" HeaderPanelMaxHeight="0" 
                     SwipeEnabled="True" x:Name="MainTabView"
                     HeaderPanelHeight="0">
-        <dx:TabViewItem HeaderText="Main">
+        <dx:TabViewItem HeaderText="Main" HeaderTextColor="{AppThemeBinding Dark=White,Light=Black}">
             <Grid RowDefinitions="*,auto" >
                 <dx:DXDockLayout Padding="10,10"
                                  Grid.Row="0">

@@ -80,11 +80,12 @@ public class BaseAppFlow : IDisposable
         folderMgt.RestartWatching();
         return _songRepo
             .WatchAll()
-            .ObserveOn(scheduler)
-            .DistinctUntilChanged()
-            .Subscribe(list =>
-            {
-                if (list.Count == MasterList.Count)
+            .ObserveOn(scheduler)     // or SynchronizationContext.Current
+  
+      .DistinctUntilChanged(new SongListComparer())
+      .Subscribe(list =>
+      {
+          if (list.Count == MasterList.Count)
                 {
                     return;
                 }
@@ -239,12 +240,43 @@ public class BaseAppFlow : IDisposable
 
         AppLogModel log = new()
         {
-            Log = $"UpSert Album {model} at {DateTime.Now.ToLocalTime()}",
+            Log = $"UpSert Song {model} at {DateTime.Now.ToLocalTime()}",
             AppSongModel = model,
         };
         _state.SetCurrentLogMsg(log);
         
     }
+    public void UpSertSongNote(SongModel model, UserNoteModel note)
+    {
+        // 1) Ensure the song has a primary key
+        if (string.IsNullOrEmpty(model.LocalDeviceId))
+            model.LocalDeviceId = Guid.NewGuid().ToString();
+
+        // 2) Do everything in one Realm transaction
+        _songRepo.BatchUpdate(realm =>
+        {
+            // 3) Fetch or add the song itself
+            var song = realm.Find<SongModel>(model.LocalDeviceId)
+                       ?? realm.Add(model, update: true);
+
+          
+                    // 5b) New note: give it an Id (if missing) and add it
+                    if (string.IsNullOrEmpty(note.LocalDeviceId))
+                        note.LocalDeviceId = Guid.NewGuid().ToString();
+
+                    song.UserNotes.Add(note);
+               
+        });
+
+        // 6) Log after the write completes
+        var log = new AppLogModel
+        {
+            Log          = $"UpSertSongNote on {model.LocalDeviceId} at {DateTime.Now:O}",
+            AppSongModel = model,
+        };
+        _state.SetCurrentLogMsg(log);
+    }
+
 
     public void ToggleShuffle(bool isOn)
     {

@@ -233,6 +233,8 @@
                              CommandParameter="1" TextColor="White" Text="View Lyrics"/>
                             <syncf:SfChip ImageSource="threesquares.png" Text="Control Panel"
                              CommandParameter="5" TextColor="White" />
+                            <syncf:SfChip ImageSource="lyricist.png" Text="Note..."
+                             CommandParameter="6" TextColor="White" />
 
                         </syncf:SfChipGroup.Items>
                     </syncf:SfChipGroup>
@@ -456,8 +458,8 @@
 
                         <Grid RowDefinitions="*" Grid.Row="0" x:Name="SettingsPanel"
                                IsVisible="False">
-                            <syncf:SfTabView >
-                                <syncf:SfTabItem Header="Preference management">
+                            <syncf:SfTabView  >
+                                <syncf:SfTabItem Header="" HeightRequest="0" BackgroundColor="Red">
                                     <syncf:SfTabItem.Content>                                        
                                         <Grid RowDefinitions="Auto,Auto">
                                             
@@ -500,7 +502,7 @@
                                     </syncf:SfTabItem.Content>
                                 </syncf:SfTabItem>
 
-                                <syncf:SfTabItem Header="Online">
+                                <syncf:SfTabItem>
                                     <syncf:SfTabItem.Content>
                                         <Grid ColumnDefinitions="*" ColumnSpacing="5">
                                             <Border Grid.Column="0" HeightRequest="500" WidthRequest="550"
@@ -543,6 +545,103 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
                                 </syncf:SfTabItem>
                             </syncf:SfTabView>
                         </Grid>
+
+                        <Grid Grid.Row="0" x:Name="UserNoteView" IsVisible="False" BackgroundColor="Transparent"
+      RowDefinitions="auto,*,auto"
+      >
+                                <Border Grid.Row="0" StyleClass="Elevation2" Margin="10"
+                 StrokeShape="RoundRectangle 10" StrokeThickness="1" >
+                                    <VerticalStackLayout >
+                                        <Label Text="Song title - Artist" FontSize="23" FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+                                    </VerticalStackLayout>
+                                </Border>
+                                <CollectionView Grid.Row="1" ItemsSource="{Binding SecondSelectedSong.UserNote}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:UserNoteModelView">
+                                            <VerticalStackLayout >
+                                                <HorizontalStackLayout Spacing="10">
+                                                    <Label Text="May 5th 2025" FontSize="18" TextColor="White"/>
+                                                    <Label Text="14:44" FontSize="17" TextColor="Grey"/>
+                                                </HorizontalStackLayout>
+                                                <Label Text="{Binding UserMessageText}" FontSize="23" TextColor="Grey"/>
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                                <Grid Grid.Row="2" >
+                                <Border BackgroundColor="#192120" StrokeShape="RoundRectangle 10,10,0,0" Padding="5">
+                                    <Grid ColumnDefinitions="50,*,80">
+                                        <Button Grid.Column="0" ImageSource="addcircle.png" 
+                             
+                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                             x:Name="AddAttachmentBtn" BackgroundColor="Transparent"
+                             Clicked="AddAttachmentBtn_Clicked"/>
+                                        <material:EditorField CornerRadius="20"
+                             TextColor="{AppThemeBinding Dark=White,Light=Black}"
+                             HeightRequest="50" BorderThickness="0"
+                             
+                             
+                                  x:Name="NoteText"
+                                  IsTextPredictionEnabled="True"
+                             BackgroundColor="{AppThemeBinding Dark=#040606,Light=#DAE2FF}"
+                             
+                             Grid.Column="1"/>
+
+
+                                        <Button Text="Save" Grid.Column="2"
+                             BackgroundColor="Transparent"
+                             
+                             Clicked="SaveNoteBtn_Clicked"
+                             ImageSource="multipleforwardright.png" 
+                             TextColor="{AppThemeBinding Dark=White,Light=Black}"/>
+                                    </Grid>
+                                </Border>
+                                    
+                                <syncf:SfBottomSheet ShowGrabber="True" IsModal="True"
+                       x:Name="ThoughtBtmSheetBottomSheet" IsOpen="False" IsVisible="False"
+                       State="Hidden">
+                                        <syncf:SfBottomSheet.Content>
+                                            <VerticalStackLayout Margin="10,0">
+                                                <VerticalStackLayout.Resources>
+                                                    <ResourceDictionary>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                                            <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}"/>
+
+                                                            <Setter Property="HeightRequest" Value="100"/>
+                                                            <Setter Property="FontSize" Value="20"/>
+                                                        </Style>
+                                                    </ResourceDictionary>
+                                                </VerticalStackLayout.Resources>
+                                                <Button Text="Save A Frame" x:Name="AddPhotoNote"
+                                 >
+                                                    <Button.ImageSource>
+                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image"/>
+                                                    </Button.ImageSource>
+                                                </Button>
+                                                <BoxView HeightRequest="1"
+                             Color="DarkSlateBlue"/>
+                                                <Button Text="Save a Word" x:Name="AddVoiceNote"
+                                 ImageSource="microphone.png" 
+                                 >
+
+                                                </Button>
+                                                <Button Text="Save a Gif" x:Name="AddGifNote"
+                                 >
+                                                    <Button.ImageSource>
+                                                        <FontImageSource FontFamily="FontAwesomeRegular" Glyph="image"/>
+                                                    </Button.ImageSource>
+                                                </Button>
+                                            </VerticalStackLayout>
+                                        </syncf:SfBottomSheet.Content>
+
+                                    </syncf:SfBottomSheet>
+                                    
+                                </Grid>
+                            </Grid>
+                        
                     </Grid>
 
                 </Grid>

@@ -1,4 +1,5 @@
 ﻿using Dimmer.Data.ModelView;
+using Dimmer.Utilities.Enums;
 using Dimmer.ViewModel;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -14,10 +15,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? DisplayedSongs { get; set; }
-    [ObservableProperty]
-    public partial ObservableCollection<string>? ScanningLogs { get; set; }
-    [ObservableProperty]
-    public partial string? LatestScanningLog { get; set; }
+    
 
     [ObservableProperty]
     public partial DXCollectionView SongLyricsCV { get; set; }
@@ -49,23 +47,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         SubscribeToScanningLogs();
     }
 
-    private void SubscribeToScanningLogs()
-    {
-        _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()            
-            .Subscribe(log =>
-            {
-                if (log == null || string.IsNullOrEmpty(log.Log))
-                    return;
-                LatestScanningLog = log.Log;
-                ScanningLogs ??= new ObservableCollection<string>();
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    if (ScanningLogs.Count > 10)
-                        ScanningLogs.RemoveAt(0);
-                    ScanningLogs.Add(log.Log);
-                });
-            }));
-    }
 
     private void SubscribeToLyricIndexChanges()
     {
@@ -108,6 +89,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
+    public void LoadAndPlaySongTapped(SongModelView song)
+    {
+        PlaySong(song, CurrentPage.HomePage);
+
+    }
 
 
 }

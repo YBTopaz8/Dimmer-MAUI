@@ -1,4 +1,5 @@
 ﻿using Dimmer.WinUI.Utils.Models;
+using Syncfusion.Maui.Toolkit.BottomSheet;
 using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
@@ -247,8 +248,8 @@ public partial class HomePage : ContentPage
 
                 break;
             case 6:
-            //show artist songs
-
+                await SwitchUIs(4);
+                break;
             case 7:
 
                 break;
@@ -266,6 +267,7 @@ public partial class HomePage : ContentPage
             {1, LyricsColView},
             {2, ControlPanel},
             {3, SettingsPanel},
+            {4, UserNoteView},
 
 
         };
@@ -633,5 +635,30 @@ public partial class HomePage : ContentPage
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.SelectSongFromFolder();
+    }
+
+    private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
+    {
+        
+        if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
+        {
+            ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
+        }
+        else
+        {
+            ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
+        }
+        ThoughtBtmSheetBottomSheet.IsVisible=true;
+        ThoughtBtmSheetBottomSheet.EnableSwiping = true;
+
+    }
+    private void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    {
+        UserNoteModelView note = new()
+        {
+            UserMessageText=NoteText.Text,
+
+        };
+        MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
     }
 }

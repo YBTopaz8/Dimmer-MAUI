@@ -135,3 +135,26 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     }
 
 }
+// 1) A simple comparer for two song‐lists
+class SongListComparer : IEqualityComparer<IList<SongModel>>
+{
+    public bool Equals(IList<SongModel>? a, IList<SongModel>? b)
+    {
+        if (a is null || b is null)
+            return false;
+        if (a.Count != b.Count)
+            return false;
+        for (int i = 0; i < a.Count; i++)
+        {
+            if (a[i].LocalDeviceId != b[i].LocalDeviceId ||
+                a[i].Title         != b[i].Title)
+                return false;
+        }
+        return true;
+    }
+    public int GetHashCode(IList<SongModel> obj)
+    {
+        // not used by DistinctUntilChanged
+        return obj.Count;
+    }
+}

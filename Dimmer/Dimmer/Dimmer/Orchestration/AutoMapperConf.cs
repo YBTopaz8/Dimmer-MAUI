@@ -11,6 +11,7 @@ public static class AutoMapperConf
             .ForMember(dest => dest.Name, opt => opt.Ignore())
             .ReverseMap();
             cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap();            
+            cfg.CreateMap<UserNoteModel, UserNoteModelView>().ReverseMap();            
             cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
             cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            

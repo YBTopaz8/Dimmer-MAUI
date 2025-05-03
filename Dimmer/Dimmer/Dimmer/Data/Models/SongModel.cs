@@ -229,10 +229,14 @@ public partial class SongModel : RealmObject
 
 public partial class UserNoteModel : EmbeddedObject
 {
+    
+    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
     public string? UserMessageText { get; set; }
     public string? UserMessageImagePath { get; set; }
     public string? UserMessageAudioPath { get; set; }
     public bool IsPinned { get; set; }
     public int UserRating { get; set; }
     public string? MessageColor { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }  
+    public DateTimeOffset ModifiedAt { get; set; }
 }
