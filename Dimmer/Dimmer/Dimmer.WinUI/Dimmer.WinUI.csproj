@@ -32,6 +32,7 @@
 	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
 	  <None Remove="Views\SongNotifierWindow.xaml" />
+	  <None Remove="Views\StatisticsPage.xaml" />
 	  <None Remove="Views\TestPage.xaml" />
 	</ItemGroup>
 
@@ -138,6 +139,9 @@
 	  <MauiXaml Include="Views\SongNotifierWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Include="Views\StatisticsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="..\..\..\..\..\..\Pictures\hellllpppp\dimmerback\Resources\Images\musical_notes.png">
@@ -157,11 +161,6 @@
 	    <Generator>ResXFileCodeGenerator</Generator>
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
-	</ItemGroup>
-	<ItemGroup>
-	  <None Update="Views\StatisticsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\TestPage.xaml">

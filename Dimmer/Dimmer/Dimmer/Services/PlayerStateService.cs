@@ -138,7 +138,8 @@ public class PlayerStateService : IPlayerStateService
         }
         if (Playlist is null && _currentPlaylist.Value is null)
         {
-            LoadAllSongs(BaseAppFlow.MasterList);
+            songs=BaseAppFlow.MasterList;
+            LoadAllSongs(songs);
         }
         else if(Playlist is not null)
         {

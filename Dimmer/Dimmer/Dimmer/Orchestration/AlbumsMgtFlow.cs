@@ -14,9 +14,11 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     private readonly SubscriptionManager _subs;
 
     private readonly BehaviorSubject<List<ArtistModel>> _specificArtists = new(new());
+    private readonly BehaviorSubject<List<SongModel>> _specificSongs = new(new());
     private readonly BehaviorSubject<List<AlbumModel>> _specificAlbums = new(new());
     private readonly BehaviorSubject<List<GenreModel>> _specificGenres= new(new());
     public IObservable<List<AlbumModel>> SpecificArtists => _specificAlbums.AsObservable();
+    public IObservable<List<SongModel>> SpecificSongs => _specificSongs.AsObservable();
     public IObservable<List<GenreModel>> SpecificGenre => _specificGenres.AsObservable();
     public IObservable<List<AlbumModel>> SpecificAlbums => _specificAlbums.AsObservable();
 
