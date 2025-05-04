@@ -5,6 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive.Orchestration;
-internal class ParseFlowMgt
+public class ParseFlowMgt
 {
+    private readonly SubscriptionManager _subs;
+
+    public ParseFlowMgt(
+        SubscriptionManager subs)
+    {
+
+        _subs   = subs;
+    }
 }

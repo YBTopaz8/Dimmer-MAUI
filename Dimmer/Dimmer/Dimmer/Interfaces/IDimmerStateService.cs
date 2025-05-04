@@ -4,7 +4,7 @@ namespace Dimmer.Interfaces;
 /// 
 /// </summary>
 /// <seealso cref="System.IDisposable" />
-public interface IPlayerStateService : IDisposable
+public interface IDimmerStateService : IDisposable
 {
 
     

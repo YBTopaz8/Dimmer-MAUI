@@ -6,7 +6,7 @@ public partial class BaseAlbumViewModel : ObservableObject
     private readonly IMapper _mapper;
     private readonly BaseViewModel baseViewModel;
 
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
     [ObservableProperty]
@@ -24,7 +24,7 @@ public partial class BaseAlbumViewModel : ObservableObject
 
     public BaseAlbumViewModel(
             IMapper mapper, BaseViewModel baseViewModel,AlbumsMgtFlow albumsMgtFlow,PlayListMgtFlow playlistsMgtFlow,
-            SongsMgtFlow songsMgtFlow,IPlayerStateService stateService, ISettingsService settingsService,
+            SongsMgtFlow songsMgtFlow,IDimmerStateService stateService, ISettingsService settingsService,
             SubscriptionManager subs) 
     {
 

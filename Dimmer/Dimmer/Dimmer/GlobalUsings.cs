@@ -26,3 +26,5 @@ global using System.Threading.Tasks;
 global using Realms;
 global using Dimmer.Data.ModelView;
 global using Dimmer.Utilities.Enums;
+global using Dimmer.DimmerLive;
+global using Dimmer.DimmerLive.Interfaces;

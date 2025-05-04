@@ -6,7 +6,7 @@ using Dimmer.Utilities.FileProcessorUtils;
 
 namespace Dimmer.Services;
 
-public class PlayerStateService : IPlayerStateService
+public class DimmerStateService : IDimmerStateService
 {
     readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
     readonly BehaviorSubject<bool> _isPlaying = new(false);
@@ -27,7 +27,7 @@ public class PlayerStateService : IPlayerStateService
     private readonly IMapper mapper;
     readonly CompositeDisposable _subs = new();
     
-    public PlayerStateService(IMapper mapper, IRepository<SongModel> songRepo)
+    public DimmerStateService(IMapper mapper, IRepository<SongModel> songRepo)
     {
 
         this.songRepo=songRepo;

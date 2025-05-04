@@ -550,9 +550,11 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
       RowDefinitions="auto,*,auto"
       >
                                 <Border Grid.Row="0" StyleClass="Elevation2" Margin="10"
-                 StrokeShape="RoundRectangle 10" StrokeThickness="1" >
+                 StrokeShape="RoundRectangle 10" StrokeThickness="1"  BackgroundColor="Transparent">
                                     <VerticalStackLayout >
-                                        <Label Text="Song title - Artist" FontSize="23" FontAttributes="Bold"
+                                        <Label Text="{Binding SecondSelectedSong.Title}" FontSize="23" FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+                                    <Label Text="{Binding SecondSelectedSong.ArtistName}" FontSize="23" FontAttributes="Bold"
                    HorizontalOptions="Center" />
 
                                     </VerticalStackLayout>

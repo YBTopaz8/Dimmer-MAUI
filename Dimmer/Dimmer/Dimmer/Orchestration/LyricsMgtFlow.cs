@@ -8,7 +8,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
     private LyricSynchronizer? _synchronizer;
 
     // injected services
-    private readonly IPlayerStateService _state;
+    private readonly IDimmerStateService _state;
     private readonly SubscriptionManager _subs;
 
     // the “source of truth” list, sorted by Time
@@ -24,9 +24,10 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
 
     public LyricsMgtFlow(
         SongsMgtFlow songsMgt,
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
+        IRepository<UserModel> userRepo,
         IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
@@ -36,7 +37,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IFolderMgtService folderMonitor,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
     {
         this.songsMgt=songsMgt;
         _state = state;

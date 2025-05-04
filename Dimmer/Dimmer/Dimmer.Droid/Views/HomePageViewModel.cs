@@ -11,7 +11,7 @@ public partial class HomePageViewModel : BaseViewModelAnd
     #region private fields   
     private readonly SubscriptionManager _subs;
     private readonly IMapper _mapper;
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
 
     #endregion
 
@@ -21,7 +21,7 @@ public partial class HomePageViewModel : BaseViewModelAnd
 
     [ObservableProperty]
     public partial string? SearchText { get; set; }
-    public HomePageViewModel(IMapper mapper, BaseAppFlow baseAppFlow, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow) : base(mapper, baseAppFlow,albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    public HomePageViewModel(IMapper mapper, BaseAppFlow baseAppFlow, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow) : base(mapper, baseAppFlow,albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
     {
         _mapper = mapper;
         _subs = subs;

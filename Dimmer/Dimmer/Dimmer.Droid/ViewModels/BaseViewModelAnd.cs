@@ -22,7 +22,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial List<SongModelView>? FilteredSongs { get; set; }
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
 
     private readonly IMapper _mapper;
     public BaseViewModelAnd(IMapper mapper,
@@ -30,7 +30,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
-        IPlayerStateService stateService,
+        IDimmerStateService stateService,
         ISettingsService settingsService,
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow

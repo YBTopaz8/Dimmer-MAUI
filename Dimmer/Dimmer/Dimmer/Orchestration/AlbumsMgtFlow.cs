@@ -26,8 +26,9 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     public IObservable<double> SyncProgress => _syncProgress.AsObservable();
 
     public AlbumsMgtFlow(
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
@@ -39,7 +40,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         IFolderMgtService folderMonitor,        
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state,  songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs,mapper)
+    ) : base(state,  songRepo, genreRepo,userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs,mapper)
     {
         _songRepo=songRepo;
         _albumRepo     = albumRepo;

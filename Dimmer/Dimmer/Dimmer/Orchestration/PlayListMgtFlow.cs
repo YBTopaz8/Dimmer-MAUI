@@ -18,8 +18,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         = new();
 
     public PlayListMgtFlow(
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
@@ -31,7 +32,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, subs, mapper)
+    ) : base(state, songRepo, genreRepo,userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, subs, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;

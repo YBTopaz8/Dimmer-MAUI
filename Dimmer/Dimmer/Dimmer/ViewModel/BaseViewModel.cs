@@ -28,7 +28,7 @@ public partial class BaseViewModel : ObservableObject
     public static bool IsSearching { get; set; } = false;
 
     private readonly IMapper _mapper;
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
     private readonly IFolderMgtService _folderMgtService;
@@ -80,12 +80,13 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial double VolumeLevel {get;set;}
 
-    
 
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
-    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IPlayerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow)
+    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow, 
+        
+        AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow)
     {
         _mapper = mapper;
         BaseAppFlow=baseAppFlow;
@@ -103,16 +104,15 @@ public partial class BaseViewModel : ObservableObject
     public void SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
     {
 
+        // 1) Ensure the song has a note list
+        song.UserNote ??= [];
+        song.UserNote.Add(userNote);
         return;
 
         var songDb = _mapper.Map<SongModel>(song);
         var userNotee = _mapper.Map<UserNoteModel>(userNote);
             
-        // 1) Ensure the song has a note list
-        if (song.UserNote is null)
-            song.UserNote = new ();
         BaseAppFlow.UpSertSongNote(songDb, userNotee);
-        song.UserNote.Add(userNote);
 
         // 2) Find any existing entry in PlaylistSongs by LocalDeviceId
         var existing = PlaylistSongs
@@ -144,11 +144,13 @@ public partial class BaseViewModel : ObservableObject
         SubscribeToIsPlaying();
         SubscribeToPosition();
         SubscribeToStateChanges();
+        SubscribeToUserChanges();
         
         CurrentPositionPercentage = 0;
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
-        //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState();
+        //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
+
     }
 
     private void SubscribeToStateChanges()
@@ -245,6 +247,18 @@ public partial class BaseViewModel : ObservableObject
     }
 
     private void SubscribeToMasterList()
+    {
+        _subs.Add(_stateService.AllCurrentSongs.
+            DistinctUntilChanged()
+            .Subscribe(list =>
+            {
+                if (list.Count == PlaylistSongs.Count)
+                    return;
+                PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
+            }));
+    }
+    
+    private void SubscribeToUserChanges()
     {
         _subs.Add(_stateService.AllCurrentSongs.
             DistinctUntilChanged()
@@ -422,7 +436,7 @@ public partial class BaseViewModel : ObservableObject
         TemporarilyPickedSong = song;
         song.IsCurrentPlayingHighlight = true;
 
-        PlayerStateService.IsShuffleOn = IsShuffle;
+        DimmerStateService.IsShuffleOn = IsShuffle;
 
         _stateService.SetCurrentSong(_mapper.Map<SongModel>(song));
         if (source == CurrentPage.HomePage)

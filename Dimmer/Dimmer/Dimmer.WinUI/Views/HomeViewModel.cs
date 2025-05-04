@@ -10,7 +10,7 @@ public partial class HomeViewModel : BaseViewModelWin
     #region private fields   
     private readonly SubscriptionManager _subs;
     private readonly IMapper _mapper;
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
 
     #endregion
 
@@ -26,7 +26,7 @@ public partial class HomeViewModel : BaseViewModelWin
             AlbumsMgtFlow albumsMgtFlow,
             PlayListMgtFlow playlistsMgtFlow,
             SongsMgtFlow songsMgtFlow,
-            IPlayerStateService stateService,
+            IDimmerStateService stateService,
             ISettingsService settingsService,
             SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow

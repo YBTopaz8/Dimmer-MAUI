@@ -7,8 +7,10 @@ namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
 {
 
+    public static ParseUser? CurrentUserOnline { get; set; }
+    public static UserModel? CurrentUser { get; set; }
 
-    public readonly IPlayerStateService _state;
+    public readonly IDimmerStateService _state;
     private readonly IRepository<SongModel> _songRepo;
     private readonly IRepository<GenreModel> _genreRepo;
     private readonly IRepository<AlbumArtistGenreSongLink> _aagslRepo;
@@ -16,6 +18,7 @@ public class BaseAppFlow : IDisposable
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
+    private readonly IRepository<UserModel> _userRepo;
     private readonly ISettingsService _settings;
     private readonly IFolderMgtService folderMgt;
     public readonly IMapper _mapper;
@@ -31,9 +34,10 @@ public class BaseAppFlow : IDisposable
         => _settings.RepeatMode;
     // enforce a single instance of the app flow
     public BaseAppFlow(
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
+        IRepository<UserModel> userRepo,
         IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
@@ -54,6 +58,7 @@ public class BaseAppFlow : IDisposable
         _settings = settings;
         this.folderMgt=folderMgt;
         _mapper = mapper;
+        _userRepo = userRepo;
 
         Initialize();
         
@@ -78,6 +83,8 @@ public class BaseAppFlow : IDisposable
         SubscribeToStateChanges();
 
         folderMgt.RestartWatching();
+
+        LoadUser();
         return _songRepo
             .WatchAll()
             .ObserveOn(scheduler)     // or SynchronizationContext.Current
@@ -93,6 +100,26 @@ public class BaseAppFlow : IDisposable
             });
         
 
+    }
+
+    private void LoadUser()
+    {
+        var user = _userRepo.GetAll().FirstOrDefault();
+        if (user is null)
+        {
+            CurrentUser = null;
+        }
+        else
+        {
+            CurrentUser=user;
+            if (!string.IsNullOrEmpty(CurrentUser.UserPassword))
+            {
+                Task.Run(async () =>
+                {
+                    CurrentUserOnline =  await ParseClient.Instance.LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
+                });
+            }
+        }
     }
 
     static List<string> listofPathsAddedInSession = new();
@@ -190,6 +217,19 @@ public class BaseAppFlow : IDisposable
         {
             Log = $"Play type was {type} at {DateTime.Now.ToLocalTime()}",
             ViewSongModel = CurrentlyPlayingSong,
+        };
+        _state.SetCurrentLogMsg(log);
+    }
+
+
+    public void UpSertUser(UserModel model)
+    {
+        if (string.IsNullOrEmpty(model.LocalDeviceId))
+            model.LocalDeviceId = Guid.NewGuid().ToString();
+        _userRepo.AddOrUpdate(model);
+        AppLogModel log = new()
+        {
+            Log = $"UpSert User {model} at {DateTime.Now.ToLocalTime()}",
         };
         _state.SetCurrentLogMsg(log);
     }
@@ -397,11 +437,33 @@ public class BaseAppFlow : IDisposable
 
     #endregion
 
+    // Public implementation of Dispose pattern callable by consumers.
     public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    // Protected implementation of Dispose pattern.
+    protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
             return;
-        _state.Dispose();
+
+        if (disposing)
+        {
+            // Dispose managed resources here.
+            _state.Dispose();
+        }
+
+        // Free unmanaged resources here (if any).
+
         _disposed = true;
+    }
+
+    // Finalizer to ensure resources are released if Dispose is not called.
+    ~BaseAppFlow()
+    {
+        Dispose(false);
     }
 }

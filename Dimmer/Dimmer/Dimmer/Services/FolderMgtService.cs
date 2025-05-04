@@ -11,12 +11,12 @@ public class FolderMgtService : IFolderMgtService
     private readonly IFolderMonitorService _folderMonitor;
     private readonly ISettingsService _settings;
     private bool _disposed; // To detect redundant calls
-    public readonly IPlayerStateService _state;
+    public readonly IDimmerStateService _state;
     
     public FolderMgtService(
         ISettingsService settings,
         IFolderMonitorService folderMonitor,
-        IPlayerStateService state)
+        IDimmerStateService state)
     {
         _state = state;
         _settings = settings;

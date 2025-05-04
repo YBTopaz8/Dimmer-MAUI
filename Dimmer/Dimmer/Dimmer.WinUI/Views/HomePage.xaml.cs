@@ -639,17 +639,15 @@ public partial class HomePage : ContentPage
 
     private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
     {
-        
-        if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
+        if (ThoughtBtmSheetBottomSheet.IsVisible )
         {
-            ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
+            ThoughtBtmSheetBottomSheet.IsEnabled = false;
+            ThoughtBtmSheetBottomSheet.IsVisible = false;
+            return;
         }
-        else
-        {
-            ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
-        }
-        ThoughtBtmSheetBottomSheet.IsVisible=true;
-        ThoughtBtmSheetBottomSheet.EnableSwiping = true;
+
+        ThoughtBtmSheetBottomSheet.IsVisible = true;
+        ThoughtBtmSheetBottomSheet.IsEnabled = true;
 
     }
     private void SaveNoteBtn_Clicked(object sender, EventArgs e)

@@ -2,5 +2,41 @@
 <Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.SettingsWindow"
-             Title="SettingsWindow">
+             Title="Settings"    
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    x:DataType="vm:BaseViewModelWin"
+        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
+        xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+        xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
+         xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"         
+         xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"      
+         x:Name="myPage"
+    >
+    <Window.Page>
+        <ContentPage>
+
+            <ContentPage.Resources>
+                <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+                <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+                <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+                <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+                <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+                <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+                <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+                <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+                <converters:VolumeConverter x:Key="VolConverter" />
+            </ContentPage.Resources>
+
+            <Grid>
+                <HorizontalStackLayout>
+                    <Image Source="user.png" HeightRequest="60"
+                           WidthRequest="60" />
+                    <Label Text="{Binding UserName}" FontSize="24" VerticalOptions="Center" />
+                    <Label Text="{Binding UserEmail}" FontSize="16" VerticalOptions="Center" />
+                    
+                </HorizontalStackLayout>
+            </Grid>
+        </ContentPage>
+    </Window.Page>
+
 </Window>

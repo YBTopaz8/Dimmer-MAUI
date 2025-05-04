@@ -16,8 +16,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     public IObservable<double> Volume { get; }
 
     public SongsMgtFlow(
-        IPlayerStateService state,
+        IDimmerStateService state,
         IRepository<SongModel> songRepo,
+        IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<AlbumArtistGenreSongLink> aagslRepo,
         IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
@@ -31,7 +32,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IQueueManager<SongModelView> playQueue,
         SubscriptionManager subs,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
     {
         this.songRepo=songRepo;
         _audio  = audioService;

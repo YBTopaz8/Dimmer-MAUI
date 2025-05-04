@@ -119,7 +119,7 @@ public static class ParseSetup
             {
                 return false;
             }
-;
+
         }
         if ((string.IsNullOrEmpty(CurrentUser.Username) || string.IsNullOrEmpty(CurrentUser.Password)) && !isSilent)
         {
@@ -141,53 +141,9 @@ public static class ParseSetup
             ParseUser? currentParseUser = await ParseClient
                 .Instance
                 .LogInWithAsync(CurrentUser.Username, CurrentUser.Password);
-
-            if (currentParseUser is null)
-            {
-                if (!isSilent)
-                {
-                    await Shell.Current.DisplayAlert("Error!", "Invalid Username or Password", "Ok");
-
-                    return false;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            if (currentParseUser.ObjectId is null)
-            {
-                return false;
-            }
-            if (!isSilent)
-            {
-                await Shell.Current.DisplayAlert("Success !", $"Welcome Back {currentParseUser.Username}!", "Thanks");
-            }
-            ParseQuery<ParseObject> query = ParseClient.Instance.GetQuery("DeviceStatus")
-            .WhereEqualTo("deviceOwner", currentParseUser.Email)
-            .WhereEqualTo("deviceName", DeviceInfo.Name);
-
-            IEnumerable<ParseObject> existingDevices = await query.FindAsync();
-            ParseObject? existingDevice = existingDevices.FirstOrDefault();
-            if (existingDevice != null)
-            {
-                existingDevice["isOnline"] = true;
-
-                await existingDevice.SaveAsync();
-            }
-            else
-            {
-                ParseObject newDevice = new ParseObject("DeviceStatus")
-                {
-                    ["deviceOwner"] = currentParseUser.Email,
-                    ["deviceName"] = DeviceInfo.Name,
-                    ["deviceType"] = DeviceInfo.Idiom.ToString(),
-                    ["isOnline"] = true
-                };
-                await newDevice.SaveAsync();
-            }
             
-            currentParseUser.Password= CurrentUser.Password;
+
+            CurrentUser.Password= currentParseUser.Password;
             return true;
         }
         catch (Exception ex)
@@ -208,66 +164,12 @@ public static class ParseSetup
         return true;
     }
 
-
-    public static async Task<bool> DeleteMessageAsync(ChatMessage message, bool softDelete = true)
+    public static async Task<bool> ForgottenPasswordRequest()
     {
-        if (message == null || string.IsNullOrEmpty(message.ObjectId))
-            return false;
+        await ParseClient.Instance.RequestPasswordResetAsync((await ParseClient.Instance.GetCurrentUser()).Email);
 
-        // Optional: Check if current user is the sender or has permission
-        // if (message.Sender?.ObjectId != GetCurrentUser()?.ObjectId) return false;
+        return true;
 
-        try
-        {
-            if (softDelete)
-            {
-                message.IsDeleted = true;
-                // Maybe clear content? message.Text = null; message.AttachmentFile = null; etc.
-                await message.SaveAsync();
-                Console.WriteLine($"Message {message.ObjectId} soft deleted.");
-            }
-            else
-            {
-                await message.DeleteAsync(); // Permanent deletion
-                Console.WriteLine($"Message {message.ObjectId} permanently deleted.");
-            }
-            // Note: Live Query 'delete' event should fire for permanent deletion.
-            // For soft delete, an 'update' event will fire. Handle accordingly in UI.
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deleting message {message.ObjectId}: {ex.Message}");
-            return false;
-        }
     }
-
-    // Optional: Editing text messages
-    public static async Task<bool> UpdateTextMessageAsync(ChatMessage message, string newText)
-    {
-        if (message == null || string.IsNullOrEmpty(message.ObjectId) || message.MessageType != MessageTypes.Text)
-            return false;
-        // Optional: Check permissions
-        // if (message.Sender?.ObjectId != GetCurrentUser()?.ObjectId) return false;
-
-        try
-        {
-            message.Text = newText;
-            // Optionally add an 'isEdited' flag
-            await message.SaveAsync();
-            Console.WriteLine($"Message {message.ObjectId} updated.");
-            // Live Query 'update' event will fire.
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating message {message.ObjectId}: {ex.Message}");
-            return false;
-        }
-    }
-
-
-    // --- Music Specific ---
-
  
 }

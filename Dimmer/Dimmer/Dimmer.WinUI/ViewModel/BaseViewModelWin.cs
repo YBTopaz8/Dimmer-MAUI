@@ -17,7 +17,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial CollectionView? SongLyricsCV { get; set; }
 
-    private readonly IPlayerStateService _stateService;
+    private readonly IDimmerStateService _stateService;
 
     private readonly IMapper _mapper;
     public BaseViewModelWin(
@@ -25,7 +25,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
-        IPlayerStateService stateService,
+        IDimmerStateService stateService,
         ISettingsService settingsService,
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow
