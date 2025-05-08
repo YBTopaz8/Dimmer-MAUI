@@ -72,6 +72,8 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         // i'll use parse cloud code to call a fxn and pass
         // useremail, allSongs, allGenres, allPlaylists, allArtists, allAlbums
         // allLinks etc. when done, sen
+
+        return Task.CompletedTask;
     }
 
     public void RequestSongFromDifferentDevice(string userId, string songId, string deviceId)
