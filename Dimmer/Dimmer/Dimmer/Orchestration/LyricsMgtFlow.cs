@@ -43,6 +43,8 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         _state = state;
         _subs  = subs;
 
+
+
         // 1) whenever the song changes, reload its lyrics
         _subs.Add(_state.CurrentSong
             .DistinctUntilChanged()

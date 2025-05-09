@@ -28,7 +28,31 @@
         <converters:VolumeConverter x:Key="VolConverter" />
 
     </ContentPage.Resources>
-    <Grid RowDefinitions="Auto,auto,*">
+
+    <Grid>
+
+        <Grid IsVisible="{Binding IsMainViewVisible, Converter={StaticResource BoolToInverse}}">
+
+            <syncf:SfTabView x:Name="GettingStartedTabView">
+
+                <syncf:SfTabItem>
+                    <syncf:SfTabItem.Content>
+                        <Grid>
+                            <uranium:ExpanderView>
+                                <uranium:ExpanderView.Header>
+                                    <Label Text="Folders" />
+                                </uranium:ExpanderView.Header>
+                            </uranium:ExpanderView>
+                        </Grid>
+                    </syncf:SfTabItem.Content>
+                </syncf:SfTabItem>
+                
+            </syncf:SfTabView>
+            
+        </Grid>
+        
+        
+        <Grid RowDefinitions="Auto,auto,*" IsVisible="{Binding IsMainViewVisible}">
 
         <syncf:SfChipGroup x:Name="ActualSongView"
      ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
@@ -650,6 +674,7 @@ StrokeThickness="0" Padding="5" StrokeShape="RoundRectangle 10" >
 
 
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 

@@ -38,6 +38,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _queue        = queueManager;
         _subs         = subs;
 
+
         // 1) prime the playlistSongs list
         foreach (var pl in _playlistRepo.GetAll())
             CurrentSetOfPlaylists.Add(pl);

@@ -520,13 +520,13 @@ public partial class HomePage : ContentPage
             
     }
 
-    private void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
     {
         UserNoteModelView note = new()
         {
             UserMessageText=NoteText.Text,
             
         };
-        MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
+       await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Dimmer.Services;
+using Dimmer.WinUI.Utils.Helpers;
 using Vanara.PInvoke;
 using Vanara.Windows.Shell;
 using static Vanara.PInvoke.Shell32;
@@ -9,6 +10,8 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 {
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
+    [ObservableProperty]
+    public partial bool IsMainViewVisible { get; set; } = true;
     private readonly SubscriptionManager _subs;
 
     [ObservableProperty]
@@ -20,6 +23,11 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     private readonly IDimmerStateService _stateService;
 
     private readonly IMapper _mapper;
+
+    
+
+    private TrayIconHelper? _trayIconHelper;
+
     public BaseViewModelWin(
         IMapper mapper, BaseAppFlow baseAppFlow,
         AlbumsMgtFlow albumsMgtFlow,
@@ -34,6 +42,13 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         _mapper = mapper;
         _stateService = stateService;
         _subs = subs;
+
+
+        if (AppUtils.IsUserFirstTimeOpening)
+        {
+            IsMainViewVisible = false;
+            return;
+        }
 
         ResetDisplayedMasterList();
         SubscribeToLyricIndexChanges();

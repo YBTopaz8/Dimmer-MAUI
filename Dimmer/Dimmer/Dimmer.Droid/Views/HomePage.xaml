@@ -16,22 +16,7 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <Style TargetType="dx:DXButton">
-                <Setter Property="BackgroundColor" Value="Transparent"/>
-                <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
-                <Setter Property="IconHeight" Value="35"/>
-                <Setter Property="IconWidth" Value="35"/>
-                <Setter Property="FontSize" Value="20"/>
-                <Setter Property="TextHorizontalAlignment" Value="Start"/>
-                <Setter Property="HorizontalContentAlignment" Value="Start"/>
-                <Setter Property="TextColor" Value="{AppThemeBinding Dark=White,Light=Black}"/>
-                <Setter Property="PressedBackgroundColor" Value="DarkSlateBlue"/>
-
-
-            </Style>
-            <Style TargetType="Label">
-                <Setter Property="TextColor" Value="{AppThemeBinding Dark=#040606, Light=White}"/>
-            </Style>
+            
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
             <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
             <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
@@ -45,8 +30,8 @@
                           Opacity="0.1" Aspect="Center"/>
         <dx:DXBorder Grid.Row="1" Opacity="0.8"
                     
-                    CornerRadius="12" BorderColor="Transparent"
-                    BackgroundColor="#040606" HorizontalOptions="Fill"
+                    CornerRadius="12" 
+                     HorizontalOptions="Fill"
                     x:Name="BtmBar" >
             <dx:DXBorder.GestureRecognizers>
                 <TapGestureRecognizer x:Name="BtmBarTapGest" Tapped="BtmBarTapGest_Tapped"/>
@@ -151,14 +136,14 @@
                         </dx:DXStackLayout>
                         <dx:Chip Icon="vinyl.png" WidthRequest="45" 
                              x:Name="ContextIconn" IsVisible="False"
-                             Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
+                             Tap="ViewNowPlayPage_Tap" 
                              IsIconVisible="True" IconColor="Red"
                               IconSize="35,35"/>
 
                         <dx:Chip Icon="infocircle.png" WidthRequest="45"
                         x:Name="ContextIcon"
                         
-                        BorderColor="Transparent"
+                        
                         IsIconVisible="True"
                         IconColor="MediumPurple"
                         IconSize="35,35"
@@ -177,14 +162,14 @@
                             </DataTrigger>
                         </dx:DXStackLayout.Triggers>
                         <dx:Chip Icon="vinyl.png" WidthRequest="45" x:Name="ViewNowPlayPage"
-                                Tap="ViewNowPlayPage_Tap" BorderColor="Transparent"
+                                Tap="ViewNowPlayPage_Tap" 
                                 IsIconVisible="True" IconColor="MediumPurple"
                                 IconSize="35,35"/>
 
                         <dx:Chip Icon="songfind.png" WidthRequest="45"
                         x:Name="SearchSong"
                         Tap="SearchSong_Tap"
-                        BorderColor="Transparent"
+                        
                         IsIconVisible="True"
                         IconColor="MediumPurple"
                         IconSize="35,35"
@@ -341,7 +326,7 @@ BackgroundColor="#626680">
         <dx:TabView Grid.Row="0" SelectedItemIndicatorColor="DarkSlateBlue" ItemHeaderTextColor="{AppThemeBinding Dark=#040606,Light=Black}"
                     x:Name="HomeTabView" SwipeEnabled="True" HeaderPanelHeight="0" ItemHeaderMaxHeight="0"
                     HeaderPanelMaxHeight="0" SelectedItemIndicatorHeight="0" HeaderPanelIndent="0"
-                    ItemHeaderHeight="0" HeaderPanelBackgroundColor="#040606" 
+                    ItemHeaderHeight="0" HeaderPanelBackgroundColor="Transparent" 
                     HeaderPanelPosition="Bottom" SelectedItemIndex="{Binding SelectedItemIndexMobile}"
                     >
             <dx:TabViewItem >
@@ -357,11 +342,11 @@ BackgroundColor="#626680">
                                     <dx:DXBorder Padding="5,2" CornerRadius="15">
                                         <dx:DXBorder.Triggers>
                                             <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsCurrentPlayingHighlight}" Value="True">
-                                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                
                                                 <Setter Property="BorderThickness" Value="1" />
                                             </DataTrigger>
                                             <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                                <Setter Property="BorderColor" Value="Transparent" />
+                                                
                                                 <Setter Property="BorderThickness" Value="0" />
                                             </DataTrigger>
                                         </dx:DXBorder.Triggers>
@@ -445,7 +430,7 @@ BackgroundColor="#626680">
                                    Aspect="AspectFill" IsVisible="True"
                                    Opacity="0.24"/>
                     <dx:TabView SelectedItemIndex="{Binding BtmSheetIndex}"
-                                    BackgroundColor="{AppThemeBinding Dark=#40606,Light=#DAE2FF}"
+                                    
                                 ItemHeaderTextColor="{AppThemeBinding Dark=White,Light=Black}"
                                 HeaderPanelBackgroundColor="{AppThemeBinding Dark=#040606,Light=Black}">
                         <dx:TabViewItem HeaderText="Now Playing Queue" HeaderTextColor="{AppThemeBinding Dark=White,Light=Black}">
@@ -472,14 +457,14 @@ BackgroundColor="#626680">
                                         <DataTemplate x:DataType="models:SongModelView">
                                             <dx:DXBorder HorizontalOptions="Fill" BorderThickness="2" CornerRadius="20"
                                                      x:Name="SingleSongRow">
-                                                <dx:DXBorder.Triggers>
+                                                <!--<dx:DXBorder.Triggers>
                                                     <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsPlaying}" Value="True">
-                                                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                        <Setter Property="
                                                     </DataTrigger>
                                                     <DataTrigger TargetType="dx:DXBorder" Binding="{Binding IsCurrentPlayingHighlight}" Value="False">
-                                                        <Setter Property="BorderColor" Value="#1E1E1E" />
+                                                        <Setter Property="
                                                     </DataTrigger>
-                                                </dx:DXBorder.Triggers>
+                                                </dx:DXBorder.Triggers>-->
                                                 <Grid ColumnDefinitions="*,*" Margin="10,0">
                                                     <dx:DXStackLayout BackgroundColor="Transparent" Grid.Column="0">
                                                         <Label Text="{Binding Title}" FontSize="20" HorizontalOptions="Start"/>
@@ -665,7 +650,7 @@ x:Name="Stamp" Clicked="Stamp_Clicked" WidthRequest="60"/>
                                                               x:Name="NoteText"
                                                               PlaceholderText="Drop a thought 💭🎶"
                                                          BackgroundColor="{AppThemeBinding Dark=#040606,Light=#DAE2FF}"
-                                                         FocusedBorderColor="DarkSlateBlue"
+                                                         
                                                          Grid.Column="1"/>
                                             
                                             

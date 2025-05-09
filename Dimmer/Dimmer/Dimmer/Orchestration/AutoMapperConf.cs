@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using Dimmer.DimmerLive.Models;
+
+namespace Dimmer.Orchestration;
 public static class AutoMapperConf
 {
     public static IMapper ConfigureAutoMapper()
@@ -15,6 +17,7 @@ public static class AutoMapperConf
             cfg.CreateMap<UserModel, UserModelView>().ReverseMap();            
             cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
             cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
+            cfg.CreateMap<ParseSong, SongModelView>().ReverseMap();                    
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });
 

@@ -65,11 +65,17 @@ public class BaseAppFlow : IDisposable
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
     
-    private IDisposable Initialize()
+    private void Initialize()
     {
-        // 1) load once
+
         MasterList = [.. _songRepo
             .GetAll(true)];
+        if (MasterList.Count <1)
+        {
+            AppUtils.IsUserFirstTimeOpening=true;
+            return;
+        }
+
 
         // 3) live updates, on UI‑thread if available
         var syncCtx = SynchronizationContext.Current;
@@ -79,16 +85,13 @@ public class BaseAppFlow : IDisposable
 
         _state.SetSecondSelectdSong(MasterList.First());
         _state.SetCurrentSong(MasterList.First());
-        _state.SetCurrentPlaylist(Enumerable.Empty<SongModel>(), null);
+        _state.SetCurrentPlaylist([], null);
         SubscribeToStateChanges();
 
         folderMgt.RestartWatching();
 
         LoadUser();
-        return _songRepo
-            .WatchAll()
-            .ObserveOn(scheduler)     // or SynchronizationContext.Current
-  
+         _songRepo.WatchAll().ObserveOn(scheduler)
       .DistinctUntilChanged(new SongListComparer())
       .Subscribe(list =>
       {

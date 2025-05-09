@@ -21,6 +21,10 @@ public class RealmFactory : IRealmFactory
 
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
 
+        if (!File.Exists(filePath))
+        {
+            AppUtils.IsUserFirstTimeOpening = true;
+        }
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {

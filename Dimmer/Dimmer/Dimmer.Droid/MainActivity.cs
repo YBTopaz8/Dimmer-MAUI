@@ -6,10 +6,10 @@ using Android.OS;
 using Android.Provider;
 using System.Diagnostics;
 
-namespace Dimmer.Droid;
+namespace Dimmer;
 [IntentFilter(
-       new[] { Microsoft.Maui.ApplicationModel.Platform.Intent.ActionAppAction }, // Use the constant
-       Categories = new[] { global::Android.Content.Intent.CategoryDefault }
+       new[] { Platform.Intent.ActionAppAction }, // Use the constant
+       Categories = new[] { Intent.CategoryDefault }
    )]
 [IntentFilter(
         new[] { Intent.ActionSend, Intent.ActionSendMultiple }, // Handle single and multiple files/items
@@ -48,7 +48,7 @@ public class MainActivity : MauiAppCompatActivity
     private static void HandleIntent(Intent? intent)
     {
         Console.WriteLine(intent?.Action?.ToString());
-        Microsoft.Maui.ApplicationModel.Platform.OnNewIntent(intent);
+        Platform.OnNewIntent(intent);
         // Log that the intent was received
         Console.WriteLine("MainActivity: OnNewIntent received.");
   
@@ -134,7 +134,7 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnResume()
     {
         base.OnResume();
-        Microsoft.Maui.ApplicationModel.Platform.OnResume(this);
+        Platform.OnResume(this);
         // Log that the activity resumed
         Console.WriteLine("MainActivity: OnResume called.");
     }
@@ -149,8 +149,8 @@ public class MainActivity : MauiAppCompatActivity
         if (!Android.OS.Environment.IsExternalStorageManager)
         {
             Intent intent = new Intent();
-            intent.SetAction(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission);
-            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", this.PackageName!, null)!;
+            intent.SetAction(Settings.ActionManageAppAllFilesAccessPermission);
+            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", PackageName!, null)!;
             intent.SetData(uri);
             StartActivity(intent);
         }
@@ -276,7 +276,7 @@ public static class IntentHandlerUtils
         bool isUri = Uri.TryCreate(uriString, UriKind.Absolute, out uri!);
 
         // 1. Handle direct file paths or file:// URIs
-        if ((isUri && uri.IsFile) || (!isUri && File.Exists(uriString)))
+        if (isUri && uri.IsFile || !isUri && File.Exists(uriString))
         {
             return isUri ? uri.LocalPath : uriString;
         }
@@ -284,7 +284,7 @@ public static class IntentHandlerUtils
         // 2. Handle Android content:// URIs
         if (isUri && uri.Scheme == ContentResolver.SchemeContent)
         {
-            var context = Microsoft.Maui.ApplicationModel.Platform.AppContext;
+            var context = Platform.AppContext;
             if (context == null)
             {
                 Console.WriteLine("ResolveUriToFilePathAsync: Android context is null.");
@@ -320,7 +320,7 @@ public static class IntentHandlerUtils
             {
                 // Replace the obsolete 'OpenableColumns' and 'OpenableColumns.DisplayName' with 'Android.Provider.IOpenableColumns' and 'Android.Provider.IOpenableColumns.DisplayName' respectively.
 
-                cursor = context.ContentResolver.Query(androidUri, [Android.Provider.IOpenableColumns.DisplayName], null, null, null);
+                cursor = context.ContentResolver.Query(androidUri, [IOpenableColumns.DisplayName], null, null, null);
                 using var inputStream = context.ContentResolver.OpenInputStream(androidUri); // Fixed type mismatch
                 if (inputStream == null)
                     throw new FileNotFoundException("Could not open input stream for content URI.", uriString);

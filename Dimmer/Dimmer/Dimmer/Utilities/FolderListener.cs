@@ -9,6 +9,7 @@ namespace Dimmer.Utilities;
 
 public class SingleFolderMonitor : IDisposable
 {
+
     // Shared settings can remain static if they apply to ALL monitors
     private static readonly ImmutableHashSet<string> TargetExtensions = ImmutableHashSet.Create(
         StringComparer.OrdinalIgnoreCase, ".lrc", ".m4a", ".flac", ".mp3");

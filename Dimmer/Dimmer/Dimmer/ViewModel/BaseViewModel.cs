@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.Input;
+using Dimmer.DimmerLive.Models;
 using Dimmer.Services;
 using Dimmer.Utilities.FileProcessorUtils;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Dimmer.ViewModel;
 
@@ -101,12 +103,17 @@ public partial class BaseViewModel : ObservableObject
         Initialize();
 
     }
-    public void SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
+    public async Task SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
     {
 
         // 1) Ensure the song has a note list
         song.UserNote ??= [];
         song.UserNote.Add(userNote);
+
+        ParseSong pSong = new ParseSong();
+        //pSong.AudioFile= 
+
+        //await pSong.SaveAsync();
         return;
 
         var songDb = _mapper.Map<SongModel>(song);
@@ -136,6 +143,13 @@ public partial class BaseViewModel : ObservableObject
 
     private void Initialize()
     {
+
+        if (AppUtils.IsUserFirstTimeOpening)
+        {
+            //Application.Current.m
+            return;
+        }
+
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
         SubscribeToDeviceVolume();

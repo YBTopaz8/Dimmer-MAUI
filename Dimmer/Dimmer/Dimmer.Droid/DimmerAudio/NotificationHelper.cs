@@ -4,7 +4,6 @@ using Android.OS;
 using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
 using Android.Util;
-using Dimmer.Droid;
 using AndroidX.Core.App;
 using AndroidX.Core.Graphics.Drawable;
 using Dimmer.Activities;

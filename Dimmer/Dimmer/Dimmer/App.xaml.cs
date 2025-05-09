@@ -10,11 +10,13 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        AddPlatformResources();           // ← call your platform hook
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
       
     }
+    partial void AddPlatformResources();  // ← stub, implemented per-platform
 
     protected override Window CreateWindow(IActivationState? activationState)
     {

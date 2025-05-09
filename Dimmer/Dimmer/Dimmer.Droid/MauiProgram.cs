@@ -1,12 +1,13 @@
-﻿
-namespace Dimmer.Droid;
+﻿using DevExpress.Maui.Core;
+
+namespace Dimmer;
 
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-
+        ThemeManager.UseAndroidSystemColor = true;
         builder
               .ConfigureEssentials(essentials =>
               {

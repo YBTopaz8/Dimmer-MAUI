@@ -1,11 +1,4 @@
-using Dimmer.Services;
-using Dimmer.Utilities;
-using Dimmer.WinUI.Utils.Helpers;
-using Dimmer.WinUI.Utils.StaticUtils.TaskBarSection;
-using Dimmer.WinUI.ViewModel;
-using System.Drawing;
-using System.Reflection;
-using Vanara.PInvoke;
+
 
 namespace Dimmer.WinUI;
 

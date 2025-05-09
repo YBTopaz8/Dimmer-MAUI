@@ -4,6 +4,8 @@ namespace Dimmer.Utilities;
 public static class PlayBackStaticUtils
 {
 
+    
+
     public static string SaveOrGetCoverImageToFilePath(string? fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)
     {
         if (imageData is null)

@@ -7,7 +7,6 @@ using Android.Util;
 using Android.Widget;
 using AndroidX.Media3.Session;
 using Dimmer.Data.ModelView;
-using Dimmer.Droid;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -524,7 +524,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                     await writer.StoreAsync().AsTask(token); // Use await and token
                     await writer.FlushAsync().AsTask(token); // Ensure data is written
                 }
-                token.ThrowIfCancellationRequested(); // Check cancellation
+                //token.ThrowIfCancellationRequested(); // Check cancellation
                 imageStream.Seek(0); // Reset stream position
 
                 // Create the reference and assign it

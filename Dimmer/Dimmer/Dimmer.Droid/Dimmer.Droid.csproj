@@ -22,9 +22,38 @@
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
   </ItemGroup>
 
+ <ItemGroup>
+  <!-- Remove the MauiXaml item for DevExpressStyles.xaml if it exists -->
+  <MauiXaml Remove="Resources\Styles\DevExpressStyles.xaml" Condition="Exists('Resources\Styles\DevExpressStyles.xaml')" />
+
+  <!-- Add it as an EmbeddedResource -->
+  <EmbeddedResource Include="Resources\Styles\DevExpressStyles.xaml">
+    <!--
+    If your file is at 'YourAndroidProject/Resources/Styles/DevExpressStyles.xaml'
+    and RootNamespace is 'Dimmer', the default name is 'Dimmer.Resources.Styles.DevExpressStyles.xaml'.
+    Your code expects 'Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml'.
+    You need to EITHER:
+    1. Move the file to 'Platforms/Android/Resources/Styles/DevExpressStyles.xaml' in your Android project. This is cleaner.
+       If you do this, the LogicalName below is not needed.
+    OR
+    2. Explicitly set the LogicalName to match what your code expects.
+    -->
+    <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
+  </EmbeddedResource>
+</ItemGroup>
+
+
+  <ItemGroup>
+    <None Remove="AndroidManifest.xml" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="dimmicoo.ico" />
     <Content Include="Resources\mipmap-xhdpi\appicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="AndroidManifest.xml" />
   </ItemGroup>
 
   <ItemGroup>

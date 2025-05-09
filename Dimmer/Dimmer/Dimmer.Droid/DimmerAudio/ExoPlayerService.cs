@@ -9,9 +9,9 @@ using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
 
-using AndroidX.Media3.Common; 
-using AndroidX.Media3.ExoPlayer; 
-using AndroidX.Media3.Session; 
+using AndroidX.Media3.Common;
+using AndroidX.Media3.ExoPlayer;
+using AndroidX.Media3.Session;
 
 // Java Interop
 using Java.Lang;
@@ -23,7 +23,6 @@ using Object = Java.Lang.Object;
 #endregion
 
 // Your App specific using
-using Dimmer.Droid; // Make sure this namespace is correct for MainActivity and HeartRating
 using AndroidX.Media3.Common.Text;
 // using Exception = Java.Lang.Exception; // Can use System.Exception generally
 using DeviceInfo = AndroidX.Media3.Common.DeviceInfo;
@@ -402,7 +401,7 @@ public class ExoPlayerService : MediaSessionService
         // 2) query all output devices (API 23+)
         var devices = audioManager?
             .GetDevices(GetDevicesTargets.Outputs)
-            ?? Array.Empty<AudioDeviceInfo>();  
+            ?? [];  
 
         // 3) map to your cross-platform model
         return devices.Select(d => new AudioOutputDevice

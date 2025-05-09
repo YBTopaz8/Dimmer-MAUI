@@ -1,12 +1,12 @@
 using Android.App;
 using Android.Runtime;
 
-namespace Dimmer.Droid;
+namespace Dimmer;
 
 [Application]
 public class MainApplication : MauiApplication
 {
-    public MainApplication(IntPtr handle, JniHandleOwnership ownership)
+    public MainApplication(nint handle, JniHandleOwnership ownership)
         : base(handle, ownership)
     {
         Console.WriteLine("Dimmer Android :D");
@@ -17,7 +17,7 @@ public class MainApplication : MauiApplication
 
     public static void HandleAppAction(AppAction appAction)
     {
-        System.Diagnostics.Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
+        Debug.WriteLine($"HandleAppAction invoked with ID: {appAction.Id}"); // Add logging!
                                                                                                 // Ensure you dispatch to the main thread for UI work
         
     }
