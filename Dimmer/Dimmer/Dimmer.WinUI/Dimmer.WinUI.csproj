@@ -28,6 +28,7 @@
 	  <None Remove="Views\ArtistWindow.xaml" />
 	  <None Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <None Remove="Views\HomePage.xaml" />
+	  <None Remove="Views\OnlinePageManagement.xaml" />
 	  <None Remove="Views\PlaylistWindow.xaml" />
 	  <None Remove="Views\SettingsWindow.xaml" />
 	  <None Remove="Views\SingleSongPage.xaml" />
@@ -44,6 +45,7 @@
 	  <Page Remove="Views\ArtistWindow.xaml" />
 	  <Page Remove="Views\CustomViews\MediaControlBtmBar.xaml" />
 	  <Page Remove="Views\HomePage.xaml" />
+	  <Page Remove="Views\OnlinePageManagement.xaml" />
 	  <Page Remove="Views\PlaylistWindow.xaml" />
 	  <Page Remove="Views\SettingsWindow.xaml" />
 	  <Page Remove="Views\SingleSongPage.xaml" />
@@ -127,6 +129,9 @@
 	  <Folder Include="Database\" />
 	</ItemGroup>
 	<ItemGroup>
+	  <MauiXaml Include="Views\OnlinePageManagement.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Include="Views\PlaylistWindow.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

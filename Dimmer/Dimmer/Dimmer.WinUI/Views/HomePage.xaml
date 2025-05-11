@@ -185,7 +185,7 @@
 
                 <HorizontalStackLayout Grid.Row="1" Grid.Column="1">
                     <syncf:SfChip ShowIcon="True" Clicked="TempSongChipGroup_ChipClicked"
-                  CommandParameter="3" TextColor="White" ImageSize="30">
+                  CommandParameter="3" TextColor="White" ImageSize="30" WidthRequest="50"> 
                         <syncf:SfChip.ImageSource>
                             <FontImageSource FontFamily="FontAwesomeSolid" Glyph="cog" Color="Black" />
 
@@ -215,6 +215,7 @@
 
 
                             <syncf:SfChip HorizontalOptions="Center"
+                                          WidthRequest="50"
                                               CommandParameter="0" >
 
                                 <syncf:SfChip.Triggers>
@@ -241,17 +242,20 @@
                             </syncf:SfChip>
 
 
-                            <syncf:SfChip ImageSource="skipprevious.png" 
+                            <syncf:SfChip ImageSource="skipprevious.png" WidthRequest="50"
                                           CommandParameter="1" TextColor="White"/>
                             <syncf:SfChip ImageSource="pause.png" IsVisible="{Binding IsPlaying}"
-                                          CommandParameter="2" TextColor="White"/>
+                                          CommandParameter="2" TextColor="White"
+                                          WidthRequest="50"/>
 
                             <syncf:SfChip ImageSource="playcircle.png" IsVisible="{Binding IsPlaying, Converter={x:StaticResource BoolToInverse}}"
-                                          CommandParameter="3" TextColor="White"/>
+                                          CommandParameter="3" 
+                                          WidthRequest="50"
+                                          TextColor="White"/>
 
-                            <syncf:SfChip ImageSource="skipnext.png" 
+                            <syncf:SfChip ImageSource="skipnext.png" WidthRequest="50"
                                           CommandParameter="4" TextColor="White"/>
-                            <syncf:SfChip ImageSource="shuffle.png" 
+                            <syncf:SfChip ImageSource="shuffle.png" WidthRequest="50"
                                           CommandParameter="5" TextColor="White">
 
                                 <syncf:SfChip.Triggers>
@@ -329,6 +333,7 @@
                                         <Setter Property="ShowIcon" Value="True"/>
                                         <Setter Property="StrokeThickness" Value="0"/>
                                         <Setter Property="ImageSize" Value="20"/>
+                                        <Setter Property="HorizontalTextAlignment" Value="Start"/>
                                     </Style>
                                 </ResourceDictionary>
                             </syncf:SfChipGroup.Resources>
@@ -340,7 +345,7 @@
 
 
                                 <syncf:SfChip ImageSource="songc.png" Text="{Binding SecondSelectedSong.Title}"
-                                 CommandParameter="1"
+                                 CommandParameter="1" 
                                           FontAttributes="Bold" FontSize="14"
                                           TextColor="White"/>
 
@@ -360,6 +365,16 @@
                                  CommandParameter="5" TextColor="White" />
                                 <syncf:SfChip ImageSource="lyricist.png" Text="{Static lang:DimmerLanguage.txt_Note}"
                                  CommandParameter="6" TextColor="White" />
+                                <syncf:SfChip  Text="{Static lang:DimmerLanguage.txt_send}"
+                                 CommandParameter="7" TextColor="White">
+
+                                
+                                <syncf:SfChip.ImageSource>
+                                        <FontImageSource FontFamily="FontAwesomeSolid" Glyph="paper-plane" Color="DarkSlateBlue" />
+                                </syncf:SfChip.ImageSource>
+                                    
+                                    
+                                </syncf:SfChip>
 
                             </syncf:SfChipGroup.Items>
                         </syncf:SfChipGroup>
@@ -773,8 +788,13 @@
 
                     </Grid>
 
-
                 </Grid>
+                
+                
+            </Grid>
+
+            <Grid x:Name="SendPage" Margin="10,5" Grid.Row="2" IsVisible="False">
+                
             </Grid>
         </Grid>
     </Grid>

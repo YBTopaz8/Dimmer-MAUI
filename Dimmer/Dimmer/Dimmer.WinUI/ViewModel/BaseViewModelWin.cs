@@ -38,6 +38,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService
+        
     ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
         _mapper = mapper;

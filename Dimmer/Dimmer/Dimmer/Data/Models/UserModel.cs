@@ -12,6 +12,7 @@ public partial class UserModel :RealmObject
     public string? UserCountry { get; set; } = "Unknown Country";
     public string? UserLanguage { get; set; } = "Unknown Language";
     public string? UserTheme { get; set; } = "Unknown Theme";
+    public string? SessionToken { get; set; } = string.Empty;   
     public string? UserDateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();

@@ -1,19 +1,25 @@
 ﻿using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.Extensions;
+using Dimmer.Utils;
 using Parse.LiveQuery;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive;
 public class DimmerLiveStateService : IDimmerLiveStateService
 {
+    private readonly PasswordEncryptionService _encryptionService; 
 
-    private bool isConnected = false;
+    public UserModelOnline? UserOnline { get; set; }
+    public UserModel UserLocalDB { get; set; }
+    public UserModelView UserLocalView { get; set; }
+    private bool IsConnected = false;
     private ParseLiveQueryClient? LiveClient { get; set; }
     private readonly IRepository<SongModel> _songRepo;
     private readonly IRepository<GenreModel> _genreRepo;
@@ -42,7 +48,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         this._userRepo=userRepo;
         this.dimmerStateService=dimmerStateService;
         this.mapper=mapper;
-       
+        _encryptionService = new PasswordEncryptionService(); 
     }
 
     public void DeleteUserLocally(UserModel user)
@@ -50,7 +56,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         _userRepo.Delete(user);
     }
 
-    public async Task DeleteUserOnline(ParseUser user)
+    public async Task DeleteUserOnline(UserModelOnline user)
     {
         await user.DeleteAsync();
         
@@ -87,10 +93,122 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         _userRepo.AddOrUpdate(usr);
     }
 
-    public void SaveUserOnline(UserModelView user)
+
+    public async Task SignUpUser(UserModelView user)
     {
-        throw new NotImplementedException();
+        UserLocalDB = mapper.Map<UserModel>(user);
+        UserLocalView = user;
+        try
+        {
+            UserOnline = await ParseClient.Instance.SignUpWithAsync(UserLocalDB.UserName, UserLocalDB.UserPassword) as UserModelOnline;
+        }
+        catch (Exception ex)
+        {
+            //await Shell.Current.DisplayAlert(AppTitle, ex.Message, "OK");
+        }
+
     }
+
+    public async Task<bool> LoginUser()
+    {
+        UserOnline = await ParseClient.Instance.LogInWithAsync(UserLocalDB.UserName, UserLocalDB.UserPassword) as UserModelOnline;
+
+
+        if (UserOnline != null && UserLocalDB is not null && !string.IsNullOrEmpty(UserOnline.SessionToken))
+        {
+            IsConnected=true;
+
+            await SecureStorage.SetAsync("username", UserOnline.Username);
+
+            string? encryptedPassword = await _encryptionService.EncryptAsync(UserLocalDB.UserPassword!);
+            if (encryptedPassword != null)
+            {
+                await SecureStorage.SetAsync("Password", encryptedPassword); // Store encrypted password
+                UserLocalDB.UserPassword = encryptedPassword; // Update local password with encrypted version
+            }
+            else
+            {
+                // Handle encryption failure - maybe don't store it or log an error
+                System.Diagnostics.Debug.WriteLine("Failed to encrypt password for storage.");
+            }
+            
+            
+            
+            
+            await SecureStorage.SetAsync("ObjectId", UserOnline.ObjectId);
+            await SecureStorage.SetAsync("SessionToken", UserOnline.SessionToken);
+            await SecureStorage.SetAsync("Email", UserOnline.Email);
+            
+            UserLocalDB.SessionToken = UserOnline.SessionToken;
+            _userRepo.AddOrUpdate(UserLocalDB);
+            var tcs = new TaskCompletionSource<bool>();
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    await Shell.Current.DisplayAlert("Success", "User logged in successfully.", "OK");
+                    tcs.SetResult(true); // Signal that the UI part is done and successful
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exception during DisplayAlert
+                    Debug.WriteLine($"Error displaying alert: {ex}");
+                    tcs.SetResult(false); // Or tcs.SetException(ex) if you want to propagate
+                }
+            });
+
+            return await tcs.Task; // Wait for the alert to be handled and return its outcome
+
+        }
+
+        return false;
+    }
+    public async Task LogoutUser()
+    {
+        await ParseClient.Instance.LogOutAsync(CancellationToken.None);
+        UserOnline = null;
+    }
+    public async Task ForgottenPassword()
+    {
+        await ParseClient.Instance.RequestPasswordResetAsync(UserLocalDB.UserEmail);
+        await Shell.Current.DisplayAlert("Success", "Password reset email sent", "OK");
+    }
+    public async Task<bool> AttemptAutoLoginAsync()
+    {
+
+        string? sessionToken = await SecureStorage.GetAsync("SessionToken");
+        if (!string.IsNullOrEmpty(sessionToken))
+        {
+            try
+            {
+                ParseUser user = await ParseClient.Instance.BecomeAsync(sessionToken);
+                UserOnline = user as UserModelOnline;
+                if (UserOnline != null && await UserOnline.IsAuthenticatedAsync())
+                {
+
+                    IsConnected = true;
+                    return true;
+                }
+                else
+                {
+                    // Handle case where user is not authenticated
+                    Debug.WriteLine("User is not authenticated.");
+                    return false;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                // Handle any exception during login
+                Debug.WriteLine($"Error during auto-login: {ex}");
+                return false; // Or handle it as needed
+            }
+        }
+        return false;
+    }
+
+
 
     public void TransferUserCurrentDevice(string userId, string originalDeviceId, string newDeviceId)
     {
@@ -103,7 +221,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         // also pass the currently playing song and position
     }
 
-    public void GetAllConnectedDeviced(ParseUser currentUser)
+    public void GetAllConnectedDeviced(UserModelOnline currentUser)
     {
 
         // parse cloud code
@@ -135,7 +253,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                                 Debug.WriteLine($"Max retries reached. Error: {tuple.error.Message}");
                                 return Observable.Throw<Exception>(tuple.error); // Explicit type here
                             }
-                            isConnected = false;
+                            IsConnected = false;
                             Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
 
                             // Explicit reconnect call before retry delay
@@ -147,7 +265,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 .Subscribe(
                     _ =>
                     {
-                        isConnected=true;
+                        IsConnected=true;
                         Debug.WriteLine("Reconnected successfully.");
                     },
                     ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")

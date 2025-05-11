@@ -1,4 +1,6 @@
-﻿using Dimmer.WinUI.Utils.Models;
+﻿using Dimmer.DimmerLive.Models;
+using Dimmer.WinUI.Utils.Models;
+using Parse;
 using Syncfusion.Maui.Toolkit.BottomSheet;
 using System.Threading.Tasks;
 
@@ -14,16 +16,17 @@ public partial class HomePage : ContentPage
         MyViewModel=vm;        
     }
 
-    protected override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
+        MyViewModel.CurrentlySelectedPage = CurrentPage.HomePage;
         
         MyViewModel.SetCollectionView(SongsColView);
         MyViewModel.SetSongLyricsView(LyricsColView);
+        await MyViewModel.LoginFromSecureData();
 
-        
     }
+    
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
 
@@ -181,6 +184,7 @@ public partial class HomePage : ContentPage
                 break;
 
             default:
+
                 break;
         }
     }
@@ -251,7 +255,7 @@ public partial class HomePage : ContentPage
                 await SwitchUIs(4);
                 break;
             case 7:
-
+                await MyViewModel.ShareSongOnline();
                 break;
             default:
                 break;
@@ -292,6 +296,10 @@ public partial class HomePage : ContentPage
 
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
+       
+       
+        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+       
     }
 
     private CancellationTokenSource? _debounceTimer;
@@ -620,7 +628,7 @@ public partial class HomePage : ContentPage
 
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
-        Application.Current!.ActivateWindow(item.WindowInstance);
+       Task.Run(()=>  Application.Current!.ActivateWindow(item.WindowInstance));
     }
 
     private void CloseAllWin_Clicked(object sender, EventArgs e)

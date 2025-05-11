@@ -49,7 +49,7 @@ public partial class BaseAlbumViewModel : ObservableObject
     {
         if (song == null)
             return;
-        SelectedSong = _mapper.Map<SongModelView>(song);
+        SelectedSong =song;
         //ScrollToCurrentlyPlayingSong();
     }
     private void SubscribeToAlbumListChanges()

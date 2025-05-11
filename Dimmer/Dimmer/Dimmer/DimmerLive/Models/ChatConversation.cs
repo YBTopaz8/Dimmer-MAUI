@@ -11,7 +11,7 @@ namespace Dimmer.DimmerLive.Models;
 public partial class ChatConversation : ParseObject
 {
     // Use Relation for participants for better querying
-    public ParseRelation<ParseUser> Participants => GetRelation<ParseUser>(nameof(Participants));
+    public ParseRelation<UserModelOnline> Participants => GetRelation<UserModelOnline>(nameof(Participants));
 
     [ParseFieldName("lastMessage")]
     public ChatMessage LastMessage

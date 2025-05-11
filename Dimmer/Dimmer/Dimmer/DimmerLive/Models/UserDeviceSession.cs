@@ -17,10 +17,10 @@ public class UserDeviceSession : ParseObject
         set => SetProperty(value);
     }
 
-    [ParseFieldName("userId")]
-    public string UserId
+    [ParseFieldName("userOwner")] // Changed from "userId" to be more descriptive of the pointer
+    public UserModelOnline? UserOwner // Storing as a Pointer to _User class
     {
-        get => GetProperty<string>();
+        get => GetProperty<UserModelOnline?>();
         set => SetProperty(value);
     }
 

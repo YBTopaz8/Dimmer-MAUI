@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive.Models;
-[ParseClassName("Song")]
+[ParseClassName("DimmerSharedSong")]
 public class ParseSong : ParseObject
 {
     [ParseFieldName("title")]
@@ -36,6 +36,13 @@ public class ParseSong : ParseObject
         get => GetProperty<double?>();
         set => SetProperty(value);
     }
+    
+    [ParseFieldName("sharedPositionInSeconds")]
+    public double? SharedPositionInSeconds
+    {
+        get => GetProperty<double?>();
+        set => SetProperty(value);
+    }
 
     [ParseFieldName("audioFile")]
     public ParseFile AudioFile
@@ -55,6 +62,21 @@ public class ParseSong : ParseObject
     public ParseUser Uploader
     {
         get => GetProperty<ParseUser>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("unreadCounts")]
+    public IDictionary<string, int> UnreadCounts
+    {
+        get => GetProperty<IDictionary<string, int>>();
+        set => SetProperty(value);
+    }
+
+    // NEW: For group chat avatar (optional)
+    [ParseFieldName("groupAvatar")]
+    public ParseFile GroupAvatar
+    {
+        get => GetProperty<ParseFile>();
         set => SetProperty(value);
     }
 }

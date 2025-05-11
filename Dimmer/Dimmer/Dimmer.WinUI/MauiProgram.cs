@@ -18,6 +18,7 @@ public static class MauiProgram
         builder.Services.AddTransient<BaseViewModelWin>();
         builder.Services.AddTransient<BaseAlbumViewModel>();
         builder.Services.AddTransient<AlbumWindow>();
+        builder.Services.AddTransient<OnlinePageManagement>();
 
         builder.Services.AddSingleton<DimmerWin>();
         

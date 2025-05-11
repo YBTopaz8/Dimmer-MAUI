@@ -20,28 +20,28 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The title.
     /// </value>
-    public string Title { get; set; } = "Unknown Title";
+    public string Title { get; set; }
     /// <summary>
     /// Gets or sets the name of the artist.
     /// </summary>
     /// <value>
     /// The name of the artist.
     /// </value>
-    public string ArtistName { get; set; } = "Unknown Artist Name";
+    public string ArtistName { get; set; }
     /// <summary>
     /// Gets or sets the name of the album.
     /// </summary>
     /// <value>
     /// The name of the album.
     /// </value>
-    public string AlbumName { get; set; } = "Unknown Album Name";
+    public string AlbumName { get; set; } 
     /// <summary>
     /// Gets or sets the genre.
     /// </summary>
     /// <value>
     /// The genre.
     /// </value>
-    public string Genre { get; set; } = "Unknown Genre";
+    public string Genre { get; set; }
     /// <summary>
     /// Gets or sets the file path.
     /// </summary>
@@ -126,7 +126,7 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The cover image path.
     /// </value>
-    public string CoverImagePath { get; set; } = "musicnoteslider.png";
+    public string CoverImagePath { get; set; }
     /// <summary>
     /// Gets or sets the un synchronize lyrics.
     /// </summary>
