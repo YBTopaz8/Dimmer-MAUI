@@ -35,5 +35,6 @@ public interface IDimmerLiveStateService
 
     // --- LIVE QUERY STATUS ---
     IObservable<bool> IsLiveQueryConnected { get; }
+    UserModelOnline? UserOnline { get; set; }
 }
 

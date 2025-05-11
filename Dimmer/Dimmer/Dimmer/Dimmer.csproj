@@ -50,9 +50,13 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     
 		 
-		<PackageReference Include="z440.atl.core" Version="6.22.0" />
+		<PackageReference Include="z440.atl.core" Version="6.23.0" />
 
-    <PackageReference Include="UraniumUI.Material" Version="2.11.1" />
+    <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
+
+    <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.21" />
+
+    <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
 
 	</ItemGroup>
   

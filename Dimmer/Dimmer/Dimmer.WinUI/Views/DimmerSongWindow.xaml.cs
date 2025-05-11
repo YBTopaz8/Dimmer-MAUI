@@ -19,5 +19,16 @@ public partial class DimmerSongWindow : Window
         await ViewModel.OpenSpecificChatConversationCommand.ExecuteAsync((e.Parameter as string));
     }
 
-    
+    protected async override void OnCreated()
+    {
+        base.OnCreated();
+
+        await ViewModel.LoadOnlineData();
+    }
+
+    private void ShareProfileBtn_Clicked(object sender, EventArgs e)
+    {
+
+        
+    }
 }

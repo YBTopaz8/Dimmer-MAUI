@@ -2,6 +2,7 @@
 <Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.DimmerSongWindow"
+            xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
          xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
  xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -9,7 +10,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
  xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
  xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
  xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
- x:DataType="vm:DimmerOnlineViewModel" 
+ x:DataType="vm:BaseViewModelWin" 
  x:Name="myPage"
  xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
  xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
@@ -34,16 +35,18 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
         </ContentPage.Resources>
 
 
-        <Grid ColumnDefinitions="400,*">
-            <Grid RowDefinitions="auto,*">
-                <HorizontalStackLayout Grid.Row="0">
+        <Grid ColumnDefinitions="auto,*" Margin="10">
+            <Grid Grid.Column="0" RowDefinitions="auto,*">
+                <HorizontalStackLayout Grid.Row="0" Spacing="10">
 
-                    <SearchBar Text="" />
-                    <Button Text="Share With"/>
+                    <SearchBar Text="" Placeholder="Find A Friend"/>
+                    <Button Text="Share Profile"/>
                 </HorizontalStackLayout>
 
                 <Grid Grid.Row="1">
-                    <CollectionView ItemsSource="{Binding ChatConversations}">
+                    <CollectionView ItemsSource="{Binding ChatConversations}"
+                                    Header="All Friends"
+                                    EmptyView="No friends Yet...">
                         <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="modelsLive:ChatConversation">
 
@@ -63,14 +66,34 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                         </CollectionView.ItemTemplate>
 
                     </CollectionView>
-
+                    
                 </Grid>
 
 
             </Grid>
 
-            <Grid Grid.Column="1" >
+            <Grid Grid.Column="1" RowDefinitions="auto,*"  >
+                <Grid ColumnDefinitions="*,*">
+                    <HorizontalStackLayout Grid.Column="0">
+                        
+                        <Border HorizontalOptions="Center" 
+                VerticalOptions="Center" StrokeShape="RoundRectangle 30">
+                            <VerticalStackLayout >
 
+                                <zxing:BarcodeGeneratorView HeightRequest="200" 
+                                             WidthRequest="200"
+                        Value="{Binding barCodeInvitationValue}"
+    x:Name="BarCode" Format="QrCode"  BackgroundColor="DarkSlateBlue"
+                    
+    />
+
+                                <Button Text="Share" x:Name="ShareProfileBtn"
+                                        Clicked="ShareProfileBtn_Clicked"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
+                
             </Grid>
             
             

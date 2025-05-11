@@ -32,8 +32,9 @@ public partial class HomeViewModel : BaseViewModelWin
         ISettingsService settingsService,
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow,
-        IFolderMgtService folderMgtService
-    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
+        IFolderMgtService folderMgtService,
+        IFilePicker filePicker
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
     {
 
         _mapper = mapper;

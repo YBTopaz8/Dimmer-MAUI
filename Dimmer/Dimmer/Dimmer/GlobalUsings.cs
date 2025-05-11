@@ -28,3 +28,5 @@ global using Dimmer.Data.ModelView;
 global using Dimmer.Utilities.Enums;
 global using Dimmer.DimmerLive;
 global using Dimmer.DimmerLive.Interfaces;
+global using ZXing.Net.Maui;
+global using ZXing.Net.Maui.Controls;

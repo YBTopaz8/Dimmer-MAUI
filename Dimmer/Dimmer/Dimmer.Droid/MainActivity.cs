@@ -4,7 +4,10 @@ using Android.Content.PM;
 using Android.Database;
 using Android.OS;
 using Android.Provider;
+using Dimmer.DimmerLive.Models;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using UraniumUI.Material.Controls;
 
 namespace Dimmer;
 [IntentFilter(
@@ -28,6 +31,7 @@ namespace Dimmer;
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTask, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
+    private static string AppLinkHost;
 
 
     MediaPlayerServiceConnection? _serviceConnection;
@@ -38,14 +42,18 @@ public class MainActivity : MauiAppCompatActivity
         get => _binder
                ?? throw new InvalidOperationException("Service not bound yet");
         set => _binder = value;
+
+        
     }
     protected override void OnNewIntent(Intent? intent)
     {
         base.OnNewIntent(intent);
         HandleIntent(intent);
+
+        
     }
 
-    private static void HandleIntent(Intent? intent)
+    private static async Task HandleIntent(Intent? intent)
     {
         Console.WriteLine(intent?.Action?.ToString());
         Platform.OnNewIntent(intent);
@@ -56,76 +64,124 @@ public class MainActivity : MauiAppCompatActivity
             return;
 
         var action = intent.Action;
+        Android.Net.Uri? dataUri = intent.Data; // Data URI for ACTION_VIEW
+
+        if (action == Intent.ActionView && dataUri != null)
+        {
+            Console.WriteLine($"[MainActivity_ProcessIntent] Received ACTION_VIEW with URI: {dataUri}");
+            if (dataUri.Scheme == "https" && dataUri.Host.Equals(AppLinkHost, StringComparison.OrdinalIgnoreCase))
+            {
+                // It's an app link for our domain!
+                Console.WriteLine($"[MainActivity_ProcessIntent] Matched AppLinkHost: {AppLinkHost}");
+
+                // Example path check: if (dataUri.PathSegments.Contains("invite"))
+                // For now, let's assume any path on this host with query params is for us.
+
+                string? eventType = dataUri.GetQueryParameter("type");
+                string? eventId = dataUri.GetQueryParameter("id");
+                // string senderId = dataUri.GetQueryParameter("sender"); // If you need it
+
+                Console.WriteLine($"[MainActivity_ProcessIntent_AppLink] EventType: '{eventType}', EventId: '{eventId}'");
+
+                if (!string.IsNullOrEmpty(eventType) && !string.IsNullOrEmpty(eventId))
+                {
+                    // Pass to shared MAUI code (App.xaml.cs or a dedicated service)
+                    // Ensure App.ProcessAppLink exists and is accessible (e.g., static)
+                    // Or use a messaging service if you prefer.
+                    //processa ) ProcessAppLink(eventType, eventId /*, senderId */);
+
+                    await IntentHandlerUtils.ProcessAppLink(eventType, eventId /*, senderId */);  
+                    
+
+
+                    return; // App link handled, no need to process further as a generic share
+                }
+                else
+                {
+                    Console.WriteLine("[MainActivity_ProcessIntent_AppLink] 'type' or 'id' missing in app link query.");
+                }
+            }
+            // --- END OF APP LINK HANDLING ---
+            // If it wasn't our specific app link, it might be a general ACTION_VIEW for a file
+            else if (dataUri != null && intent.Type != null && intent.Type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"[MainActivity_ProcessIntent] General ACTION_VIEW for audio: {dataUri}");
+                _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
+                return; // Handled as a general audio view
+            }
+        }
+
+
         if (intent.Type != null)
         {
 
-        var type = intent.Type; // MIME Type
-        var dataUri = intent.Data; // Usually for ACTION_VIEW
-        var clipData = intent.ClipData; // Often used for ACTION_SEND* with URIs
-        var streamUri = intent.GetParcelableExtra(Intent.ExtraStream) as Android.Net.Uri; // For ACTION_SEND single item
+            var type = intent.Type; // MIME Type
+            var dataUris = intent.Data; // Usually for ACTION_VIEW
+            var clipData = intent.ClipData; // Often used for ACTION_SEND* with URIs
+            var streamUri = intent.GetParcelableExtra(Intent.ExtraStream) as Android.Net.Uri; // For ACTION_SEND single item
 
-        Console.WriteLine($"MainActivity: Processing Intent - Action={action}, Type={type}, Data={dataUri}, HasClipData={clipData != null}, HasStreamExtra={streamUri != null}");
+            Console.WriteLine($"MainActivity: Processing Intent - Action={action}, Type={type}, Data={dataUri}, HasClipData={clipData != null}, HasStreamExtra={streamUri != null}");
 
-        // Determine if it's a share or view intent we should handle
-        bool isShareIntent = action == Intent.ActionSend || action == Intent.ActionSendMultiple;
-        bool isViewIntent = action == Intent.ActionView;
-        bool isAudio = type != null && type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase);
+            // Determine if it's a share or view intent we should handle
+            bool isShareIntent = action == Intent.ActionSend || action == Intent.ActionSendMultiple;
+            bool isViewIntent = action == Intent.ActionView;
+            bool isAudio = type != null && type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase);
 
-        // Prioritize Share Intents containing audio URIs
-        if (isShareIntent && isAudio)
-        {
-            var fileUris = new List<Android.Net.Uri>();
-
-            // Handle single item shared via EXTRA_STREAM
-            if (streamUri != null && action == Intent.ActionSend)
+            // Prioritize Share Intents containing audio URIs
+            if (isShareIntent && isAudio)
             {
-                fileUris.Add(streamUri);
-            }
-            // Handle single or multiple items shared via ClipData
-            else if (clipData != null)
-            {
-                for (int i = 0; i < clipData.ItemCount; i++)
+                var fileUris = new List<Android.Net.Uri>();
+
+                // Handle single item shared via EXTRA_STREAM
+                if (streamUri != null && action == Intent.ActionSend)
                 {
-                    var itemUri = clipData.GetItemAt(i)?.Uri;
-                    if (itemUri != null)
+                    fileUris.Add(streamUri);
+                }
+                // Handle single or multiple items shared via ClipData
+                else if (clipData != null)
+                {
+                    for (int i = 0; i < clipData.ItemCount; i++)
                     {
-                        fileUris.Add(itemUri);
+                        var itemUri = clipData.GetItemAt(i)?.Uri;
+                        if (itemUri != null)
+                        {
+                            fileUris.Add(itemUri);
+                        }
+                    }
+                }
+
+                if (fileUris.Count > 0)
+                {
+                    Console.WriteLine($"MainActivity: Found {fileUris.Count} audio URI(s) in Share Intent.");
+                    // Pass URIs to shared handler (using helper class below)
+                    _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(fileUris.Select(u => u.ToString()).ToList());
+                }
+                else
+                {
+                    // Handle shared text if needed
+                    string sharedText = intent.GetStringExtra(Intent.ExtraText);
+                    if (!string.IsNullOrEmpty(sharedText))
+                    {
+                        Console.WriteLine($"MainActivity: Received shared text: {sharedText}");
+                        // _ = IntentHandlerUtils.HandleSharedTextAsync(sharedText); // Implement if needed
                     }
                 }
             }
-
-            if (fileUris.Count > 0)
+            // Handle File Opening (ACTION_VIEW)
+            else if (isViewIntent && dataUri != null && isAudio)
             {
-                Console.WriteLine($"MainActivity: Found {fileUris.Count} audio URI(s) in Share Intent.");
-                // Pass URIs to shared handler (using helper class below)
-                _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(fileUris.Select(u => u.ToString()).ToList());
+                Console.WriteLine($"MainActivity: Found audio URI in View Intent: {dataUri}");
+                _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
+            }
+            // Handle App Actions via MAUI Essentials (already done in OnNewIntent)
+            else if (action == Platform.Intent.ActionAppAction)
+            {
+                Console.WriteLine("MainActivity: Detected App Action, handled by Platform.OnNewIntent.");
+                // MAUI's Platform.OnNewIntent will trigger your OnAppAction delegate
             }
             else
             {
-                // Handle shared text if needed
-                string sharedText = intent.GetStringExtra(Intent.ExtraText);
-                if (!string.IsNullOrEmpty(sharedText))
-                {
-                    Console.WriteLine($"MainActivity: Received shared text: {sharedText}");
-                    // _ = IntentHandlerUtils.HandleSharedTextAsync(sharedText); // Implement if needed
-                }
-            }
-        }
-        // Handle File Opening (ACTION_VIEW)
-        else if (isViewIntent && dataUri != null && isAudio)
-        {
-            Console.WriteLine($"MainActivity: Found audio URI in View Intent: {dataUri}");
-            _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
-        }
-        // Handle App Actions via MAUI Essentials (already done in OnNewIntent)
-        else if (action == Platform.Intent.ActionAppAction)
-        {
-            Console.WriteLine("MainActivity: Detected App Action, handled by Platform.OnNewIntent.");
-            // MAUI's Platform.OnNewIntent will trigger your OnAppAction delegate
-        }
-        else
-        {
-            Console.WriteLine($"MainActivity: Intent action '{action}' not explicitly handled here.");
+                Console.WriteLine($"MainActivity: Intent action '{action}' not explicitly handled here.");
             }
         }
     }
@@ -344,4 +400,64 @@ public static class IntentHandlerUtils
 
     // Optional: Handler for shared text
     // public static Task HandleSharedTextAsync(string text) { ... }
+    public static async Task ProcessAppLink(string eventType, string eventId /*, string senderId = null */)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            Console.WriteLine($"[App.xaml.cs] Processing App Link: Type='{eventType}', ID='{eventId}'");
+
+            
+                Console.WriteLine("[App.xaml.cs] MainPage not ready for App Link.");
+            
+            // Ensure LiveStateService is initialized and user is logged in
+            // This logic needs to be robust.
+            // For simplicity, assuming LiveStateService is accessible and will handle user state.
+
+            if (eventType.Equals("userInvite", StringComparison.OrdinalIgnoreCase))
+            {
+                await HandleUserInviteAppLink(eventId);
+            }
+            // ... other event types
+        });
+    }
+
+    private static async Task HandleUserInviteAppLink(string inviterUserId)
+    {
+        
+
+        //if (LiveStateService.UserOnline.ObjectId == inviterUserId)
+        //{
+        //    await Shell.Current.DisplayAlert("Invitation", "You cannot invite yourself.", "OK");
+        //    return;
+        //}
+
+        //UserModelOnline? inviterUser = null;
+        //try
+        //{
+        //    inviterUser = await ParseObject.CreateWithoutData<UserModelOnline>(inviterUserId).FetchIfNeededAsync() as UserModelOnline;
+        //}
+        //catch (Exception ex) { Console.WriteLine($"Error fetching inviter {inviterUserId}: {ex.Message}"); }
+
+        //string inviterName = inviterUser?.Username ?? "A user";
+        //bool accept = await Shell.Current.DisplayAlert("User Invitation",
+        //    $"{inviterName} wants to connect. Accept?", "Accept", "Decline");
+
+        //if (accept)
+        //{
+        //    if (inviterUser == null)
+        //        inviterUser = ParseObject.CreateWithoutData<UserModelOnline>(inviterUserId); // Re-create pointer if fetch failed
+
+        //    ChatConversation? conversation = await LiveStateService.GetOrCreateConversationWithUserAsync(inviterUser);
+        //    if (conversation != null)
+        //    {
+        //        await Shell.Current.DisplayAlert("Connected!", $"You are now connected with {inviterName}.", "OK");
+        //        // TODO: Navigate to conversation: await Shell.Current.GoToAsync($"//chatPage?conversationId={conversation.ObjectId}");
+        //    }
+        //    else
+        //    {
+        //        await Shell.Current.DisplayAlert("Error", "Could not establish connection.", "OK");
+        //    }
+        //}
+    
+    }   
 }

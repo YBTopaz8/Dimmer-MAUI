@@ -10,6 +10,7 @@
     <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
     <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+    <PackageIcon>dimmerIcon.png</PackageIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
   </PropertyGroup>
@@ -164,6 +165,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\..\..\..\..\Downloads\dimmerIcon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="Utils\CustomAnimsAndroid.cs" />
   </ItemGroup>
 

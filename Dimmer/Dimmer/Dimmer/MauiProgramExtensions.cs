@@ -8,6 +8,7 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
+            .UseBarcodeReader()
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
