@@ -6,29 +6,29 @@ public partial class UserModelView:ObservableObject
     public partial string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
     
     [ObservableProperty]
-    public partial string? UserName { get; set; } = "Unknown User";
+    public partial string? UserName { get; set; } = string.Empty;
     
     [ObservableProperty]
-    public partial string? UserEmail { get; set; } = "Unknown Email";
-    
+    public partial string? UserEmail { get; set; } = string.Empty;
+
     [ObservableProperty]
-    public partial string? UserPassword { get; set; } = "Unknown Password";
-    
+    public partial string? UserPassword { get; set; } = string.Empty;
+
     [ObservableProperty]
     public partial string? UserProfileImage { get; set; } = "user.png";
     
     [ObservableProperty]
-    public partial string? UserBio { get; set; } = "Unknown Bio";
-    
+    public partial string? UserBio { get; set; } = string.Empty;
+
     [ObservableProperty]
-    public partial string? UserCountry { get; set; } = "Unknown Country";
-    
+    public partial string? UserCountry { get; set; } = string.Empty;
+
     [ObservableProperty]
-    public partial string? UserLanguage { get; set; } = "Unknown Language";
-    
+    public partial string? UserLanguage { get; set; } = string.Empty;
+
     [ObservableProperty]
-    public partial string? UserTheme { get; set; } = "Unknown Theme";
-    
+    public partial string? UserTheme { get; set; } = string.Empty;
+
     [ObservableProperty]
     public partial string? UserDateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     

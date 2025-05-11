@@ -1,4 +1,5 @@
-﻿using Dimmer.Services;
+﻿using Dimmer.DimmerLive.Interfaces;
+using Dimmer.Services;
 using Dimmer.WinUI.Utils.Helpers;
 using Vanara.PInvoke;
 using Vanara.Windows.Shell;
@@ -10,8 +11,6 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 {
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
-    [ObservableProperty]
-    public partial bool IsMainViewVisible { get; set; } = true;
     private readonly SubscriptionManager _subs;
 
     [ObservableProperty]
@@ -28,16 +27,18 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     private TrayIconHelper? _trayIconHelper;
 
-    public BaseViewModelWin(
-        IMapper mapper, BaseAppFlow baseAppFlow,
+    public BaseViewModelWin(IMapper mapper,
+        BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
         IDimmerStateService stateService,
         ISettingsService settingsService,
         SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow
-    ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;

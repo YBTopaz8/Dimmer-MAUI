@@ -120,6 +120,9 @@
   <data name="txt_hello" xml:space="preserve">
     <value>Bonjour</value>
   </data>
+  <data name="txt_folder" xml:space="preserve">
+    <value>Bonjour</value>
+  </data>
   <data name="txt_home" xml:space="preserve">
     <value />
   </data>
@@ -133,6 +136,30 @@
     <value />
   </data>
   <data name="txt_Yes" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_forgottenpass" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_signup" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_username" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_pass" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_Note" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_nothingyet" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_folders" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_addfolder" xml:space="preserve">
     <value />
   </data>
   <data name="txt_viewmore" xml:space="preserve">
@@ -157,6 +184,9 @@
     <value />
   </data>
   <data name="txt_edit" xml:space="preserve">
+    <value />
+  </data>
+  <data name="txt_email" xml:space="preserve">
     <value />
   </data>
   <data name="txt_send" xml:space="preserve">

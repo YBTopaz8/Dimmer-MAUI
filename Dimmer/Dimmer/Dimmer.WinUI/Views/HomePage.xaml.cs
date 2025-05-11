@@ -217,7 +217,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 3:
-
+                MyViewModel.ToggleSettingsPage();
 
                 break;
             case 4:
@@ -650,13 +650,21 @@ public partial class HomePage : ContentPage
         ThoughtBtmSheetBottomSheet.IsEnabled = true;
 
     }
-    private void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
     {
         UserNoteModelView note = new()
         {
             UserMessageText=NoteText.Text,
 
         };
-        MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
+        await MyViewModel.SaveUserNoteToDB(note, MyViewModel.SecondSelectedSong);
+    }
+
+    private void DltFolder_Clicked(object sender, EventArgs e)
+    {
+        var send = (Button)sender;
+        var item = (string)send.BindingContext;
+
+        MyViewModel.DeleteFolderPath(item);
     }
 }

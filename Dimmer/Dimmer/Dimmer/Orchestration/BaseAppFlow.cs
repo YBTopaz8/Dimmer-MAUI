@@ -1,4 +1,5 @@
-﻿using Dimmer.Utilities.FileProcessorUtils;
+﻿using ATL.Logging;
+using Dimmer.Utilities.FileProcessorUtils;
 using Syncfusion.Maui.Toolkit.NavigationDrawer;
 using System.Reactive.Concurrency;
 
@@ -64,17 +65,19 @@ public class BaseAppFlow : IDisposable
         
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
-    
-    private void Initialize()
-    {
 
-        MasterList = [.. _songRepo
-            .GetAll(true)];
-        if (MasterList.Count <1)
+    public static bool IsAppInitialized;
+    public void Initialize(bool isAppInit=false)
+    {
+        if (isAppInit)
         {
-            AppUtils.IsUserFirstTimeOpening=true;
             return;
         }
+
+        IsAppInitialized = isAppInit; // Assigning to the static field only when the condition is met
+        MasterList = [.. _songRepo
+            .GetAll(true)];
+
 
 
         // 3) live updates, on UI‑thread if available
@@ -82,27 +85,31 @@ public class BaseAppFlow : IDisposable
         IScheduler scheduler = syncCtx != null
             ? new SynchronizationContextScheduler(syncCtx)
             : TaskPoolScheduler.Default;
-
-        _state.SetSecondSelectdSong(MasterList.First());
-        _state.SetCurrentSong(MasterList.First());
-        _state.SetCurrentPlaylist([], null);
+     
         SubscribeToStateChanges();
 
-        folderMgt.RestartWatching();
 
         LoadUser();
-         _songRepo.WatchAll().ObserveOn(scheduler)
-      .DistinctUntilChanged(new SongListComparer())
-      .Subscribe(list =>
-      {
-          if (list.Count == MasterList.Count)
+        _state.SetCurrentPlaylist([], null);
+        _songRepo.WatchAll().ObserveOn(scheduler)
+            .DistinctUntilChanged(new SongListComparer())
+            .Subscribe(list =>
+            {
+                if (list.Count == MasterList.Count)
                 {
                     return;
                 }
                 MasterList = [.. list];
             });
-        
+        if (MasterList.Count < 1 && !isAppInit)
+        {
 
+            AppUtils.IsUserFirstTimeOpening = true;
+            return;
+        }
+        _state.SetSecondSelectdSong(MasterList.First());
+        _state.SetCurrentSong(MasterList.First());
+        
     }
 
     private void LoadUser()
@@ -128,8 +135,7 @@ public class BaseAppFlow : IDisposable
     static List<string> listofPathsAddedInSession = new();
     private void SubscribeToStateChanges()
     {
-        _state.CurrentPlayBackState.
-            DistinctUntilChanged()
+        _state.CurrentPlayBackState
             .Subscribe(state =>
             {
                 //IsPlaying = state.State == DimmerPlaybackState.Playing;
@@ -406,7 +412,13 @@ public class BaseAppFlow : IDisposable
                     var ProcessedFiles = processedFiles;
                     var TotalFiles = totalFiles;
                     var ProgressPercent = (double)processedFiles / totalFiles * 100.0;
-                    
+
+                    AppLogModel log = new()
+                    {
+                        Log = $"Now on {songData.song.Title} by {songData.song.Title}  Processed {ProcessedFiles} of {TotalFiles} files ({ProgressPercent:F2}%)",
+                        AppSongModel = songData.song,
+                    };
+                    _state.SetCurrentLogMsg(log);
                 }
             }
         }

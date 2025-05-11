@@ -274,7 +274,7 @@ public static class MusicFileProcessor
                 GenreId = genre.LocalDeviceId,
             };
             newLinks.Add(newLink);
-            Debug.WriteLine("Added Artist-Song Link");
+            Debug.WriteLine($"Added Artist-Song Link {song.Title} by {song.ArtistName}");
         }
     }
 

@@ -2,6 +2,7 @@
 
 using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.ModelView;
+using Dimmer.DimmerLive.Interfaces;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 
@@ -21,9 +22,21 @@ public partial class HomePageViewModel : BaseViewModelAnd
 
     [ObservableProperty]
     public partial string? SearchText { get; set; }
-    public HomePageViewModel(IMapper mapper, BaseAppFlow baseAppFlow, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow) : base(mapper, baseAppFlow,albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    public HomePageViewModel
+        (IMapper mapper,
+        BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
+        AlbumsMgtFlow albumsMgtFlow,
+        PlayListMgtFlow playlistsMgtFlow,
+        SongsMgtFlow songsMgtFlow,
+        IDimmerStateService stateService,
+        ISettingsService settingsService,
+        SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
-        _mapper = mapper;
+            _mapper = mapper;
         _subs = subs;
         _stateService = stateService;
         LoadPageViewModel();

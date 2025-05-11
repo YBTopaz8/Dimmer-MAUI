@@ -120,6 +120,9 @@
   <data name="txt_hello" xml:space="preserve">
     <value>Hello</value>
   </data>
+  <data name="txt_folder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
   <data name="txt_home" xml:space="preserve">
     <value>Home</value>
   </data>
@@ -134,6 +137,30 @@
   </data>
   <data name="txt_Yes" xml:space="preserve">
     <value>Yes</value>
+  </data>
+  <data name="txt_forgottenpass" xml:space="preserve">
+    <value>Forgotten Password</value>
+  </data>
+  <data name="txt_signup" xml:space="preserve">
+    <value>Sign Up</value>
+  </data>
+  <data name="txt_username" xml:space="preserve">
+    <value>User Name</value>
+  </data>
+  <data name="txt_pass" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="txt_Note" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="txt_nothingyet" xml:space="preserve">
+    <value>Nothing Yet ! (Hello 🤗)</value>
+  </data>
+  <data name="txt_folders" xml:space="preserve">
+    <value>Dossiers</value>
+  </data>
+  <data name="txt_addfolder" xml:space="preserve">
+    <value>Add Folder</value>
   </data>
   <data name="txt_viewmore" xml:space="preserve">
     <value>View More</value>
@@ -158,6 +185,9 @@
   </data>
   <data name="txt_edit" xml:space="preserve">
     <value>Edit</value>
+  </data>
+  <data name="txt_email" xml:space="preserve">
+    <value>Email</value>
   </data>
   <data name="txt_send" xml:space="preserve">
     <value>Send</value>

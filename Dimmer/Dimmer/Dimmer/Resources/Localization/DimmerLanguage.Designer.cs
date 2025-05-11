@@ -70,6 +70,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Folder.
+        /// </summary>
+        public static string txt_addfolder {
+            get {
+                return ResourceManager.GetString("txt_addfolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Album.
         /// </summary>
         public static string txt_album {
@@ -151,6 +160,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Email.
+        /// </summary>
+        public static string txt_email {
+            get {
+                return ResourceManager.GetString("txt_email", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore.
         /// </summary>
         public static string txt_explore {
@@ -165,6 +183,33 @@ namespace Dimmer.Resources.Localization {
         public static string txt_favorites {
             get {
                 return ResourceManager.GetString("txt_favorites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder.
+        /// </summary>
+        public static string txt_folder {
+            get {
+                return ResourceManager.GetString("txt_folder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dossiers.
+        /// </summary>
+        public static string txt_folders {
+            get {
+                return ResourceManager.GetString("txt_folders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forgotten Password.
+        /// </summary>
+        public static string txt_forgottenpass {
+            get {
+                return ResourceManager.GetString("txt_forgottenpass", resourceCulture);
             }
         }
         
@@ -228,6 +273,33 @@ namespace Dimmer.Resources.Localization {
         public static string txt_No {
             get {
                 return ResourceManager.GetString("txt_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note.
+        /// </summary>
+        public static string txt_Note {
+            get {
+                return ResourceManager.GetString("txt_Note", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nothing Yet ! (Hello 🤗).
+        /// </summary>
+        public static string txt_nothingyet {
+            get {
+                return ResourceManager.GetString("txt_nothingyet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string txt_pass {
+            get {
+                return ResourceManager.GetString("txt_pass", resourceCulture);
             }
         }
         
@@ -313,6 +385,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sign Up.
+        /// </summary>
+        public static string txt_signup {
+            get {
+                return ResourceManager.GetString("txt_signup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Statistics.
         /// </summary>
         public static string txt_statististics {
@@ -345,6 +426,15 @@ namespace Dimmer.Resources.Localization {
         public static string txt_sync {
             get {
                 return ResourceManager.GetString("txt_sync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Name.
+        /// </summary>
+        public static string txt_username {
+            get {
+                return ResourceManager.GetString("txt_username", resourceCulture);
             }
         }
         

@@ -25,11 +25,19 @@ public partial class BaseViewModel : ObservableObject
 
     #endregion
 
-    public const string CurrentAppVersion = "Dimmer v1.8b";
+    public const string CurrentAppVersion = "Dimmer v1.9";
 
+    [ObservableProperty]
+    public partial bool IsMainViewVisible { get; set; } = true;
     public static bool IsSearching { get; set; } = false;
 
+    [ObservableProperty]
+    public partial ParseUser? UserOnline { get; set; }
+    [ObservableProperty]
+    public partial UserModelView UserLocal { get; set; }
+
     private readonly IMapper _mapper;
+    private readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
@@ -86,23 +94,84 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
-    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow, 
-        
-        AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, ISettingsService settingsService, SubscriptionManager subs, LyricsMgtFlow lyricsMgtFlow)
+    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
+        AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
+        SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, 
+        ISettingsService settingsService, 
+        SubscriptionManager subs, 
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+        )
     {
         _mapper = mapper;
         BaseAppFlow=baseAppFlow;
+        this.dimmerLiveStateService=dimmerLiveStateService;
         AlbumsMgtFlow = albumsMgtFlow;
         PlaylistsMgtFlow = playlistsMgtFlow;
         SongsMgtFlow = songsMgtFlow;
         _stateService = stateService;
         _settingsService = settingsService;
         _subs = subs;
-        //_folderMgtService=folderMgtService;
+        _folderMgtService=folderMgtService;
         LyricsMgtFlow=lyricsMgtFlow;
         Initialize();
+        UserLocal= new UserModelView();
+    }
+
+    [RelayCommand]
+    public async Task SignUpUser()
+    {
+        try
+        {
+            UserOnline = await ParseClient.Instance.SignUpWithAsync(UserLocal.UserName, UserLocal.UserPassword);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlert(AppTitle, ex.Message, "OK");
+        }
 
     }
+
+    [ObservableProperty]
+    public partial bool IsConnected { get; set; }
+    [RelayCommand]
+    public async Task LoginUser()
+    {
+        UserOnline = await ParseClient.Instance.LogInWithAsync(UserLocal.UserName, UserLocal.UserPassword);
+
+
+        if (UserOnline.SessionToken is not null)
+        {
+            IsConnected=true;
+
+            await SecureStorage.SetAsync("username", UserOnline.Username);
+            await SecureStorage.SetAsync("Password", UserOnline.Password);
+            await SecureStorage.SetAsync("ObjectId", UserOnline.ObjectId);
+            await SecureStorage.SetAsync("SessionToken", UserOnline.SessionToken);
+            await SecureStorage.SetAsync("Email", UserOnline.Email);
+            SettingsPageIndex = 2;
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.DisplayAlert("Success", "User logged in successfully", "OK");
+            });
+        }
+    }
+
+    [RelayCommand]
+    public async Task LogoutUser()
+    {
+        await ParseClient.Instance.LogOutAsync(CancellationToken.None);
+        UserOnline = null;
+    }
+    [RelayCommand]
+    public async Task ForgottenPassword()
+    {
+        await ParseClient.Instance.RequestPasswordResetAsync(UserLocal.UserEmail);
+        await Shell.Current.DisplayAlert("Success", "Password reset email sent", "OK");
+    }
+
     public async Task SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
     {
 
@@ -158,12 +227,34 @@ public partial class BaseViewModel : ObservableObject
         SubscribeToIsPlaying();
         SubscribeToPosition();
         SubscribeToStateChanges();
-        SubscribeToUserChanges();
+        
         
         CurrentPositionPercentage = 0;
         IsStickToTop = _settingsService.IsStickToTop;
         RepeatMode = _settingsService.RepeatMode;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
+
+        Task.Run(async () => await LoginFromSecureData());
+    }
+
+    public async Task LoginFromSecureData()
+    {
+        IsConnected=true;
+
+        var uName =  await SecureStorage.GetAsync("username");
+        var uPass = await SecureStorage.GetAsync("Password");
+        var uObjectId = await SecureStorage.GetAsync("ObjectId");
+        var uSessionToken = await SecureStorage.GetAsync("SessionToken");
+        var uEmail = await SecureStorage.GetAsync("Email");
+
+        UserOnline = await ParseClient.Instance.LogInWithAsync(uName, uPass);
+        if (UserOnline.SessionToken is not null)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Shell.Current.DisplayAlert("Success", "User logged in successfully", "OK");
+            });
+        }
 
     }
 
@@ -272,18 +363,7 @@ public partial class BaseViewModel : ObservableObject
             }));
     }
     
-    private void SubscribeToUserChanges()
-    {
-        _subs.Add(_stateService.AllCurrentSongs.
-            DistinctUntilChanged()
-            .Subscribe(list =>
-            {
-                if (list.Count == PlaylistSongs.Count)
-                    return;
-                PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
-            }));
-    }
-
+    
     private void SubscribeToLyricIndexChanges()
     {
         _subs.Add(_stateService.CurrentLyric
@@ -578,11 +658,18 @@ public partial class BaseViewModel : ObservableObject
         
     }
 
+    [RelayCommand]
+    public void ToggleSettingsPage()
+    {
+        IsMainViewVisible = !IsMainViewVisible;
+
+    }
+
     #region Settings Methods
 
     List<string> FullFolderPaths = [];
 
-    
+    bool hasAlreadyActivated=false;
     public async Task SelectSongFromFolder()
     {
 
@@ -601,11 +688,21 @@ public partial class BaseViewModel : ObservableObject
             return;
         }
 
+        AppUtils.IsUserFirstTimeOpening=false;
+        
         FolderPaths.Add(folder);
 
         FullFolderPaths.Add(folder);
 
-        _stateService.SetCurrentState((DimmerPlaybackState.FolderAdded, folder));
+        if (FolderPaths.Count == 1 && !hasAlreadyActivated)
+        {
+            BaseAppFlow.Initialize();
+            
+            Initialize();
+            hasAlreadyActivated=true;
+        }
+        _folderMgtService.AddFolderToPreference(folder);
+        
         
     }
 

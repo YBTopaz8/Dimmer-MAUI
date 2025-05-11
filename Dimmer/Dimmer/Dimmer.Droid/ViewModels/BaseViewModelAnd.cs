@@ -1,4 +1,5 @@
 ﻿using Dimmer.Data.ModelView;
+using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Utilities.Enums;
 using Dimmer.ViewModel;
 using System.Collections.ObjectModel;
@@ -27,14 +28,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly IMapper _mapper;
     public BaseViewModelAnd(IMapper mapper,
         BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
         IDimmerStateService stateService,
         ISettingsService settingsService,
         SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow
-    ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+    ) : base(mapper, baseAppFlow,dimmerLiveStateService,  albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow,folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;

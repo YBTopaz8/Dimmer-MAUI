@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Services;
 using Dimmer.WinUI.ViewModel;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
@@ -21,16 +22,18 @@ public partial class HomeViewModel : BaseViewModelWin
     [ObservableProperty]
     public partial string? SearchText { get; set; }
     #endregion
-    public HomeViewModel(
-            IMapper mapper, BaseAppFlow baseAppFlow,
-            AlbumsMgtFlow albumsMgtFlow,
-            PlayListMgtFlow playlistsMgtFlow,
-            SongsMgtFlow songsMgtFlow,
-            IDimmerStateService stateService,
-            ISettingsService settingsService,
-            SubscriptionManager subs,
-        LyricsMgtFlow lyricsMgtFlow
-        ) : base(mapper, baseAppFlow, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow)
+    public HomeViewModel(IMapper mapper,
+        BaseAppFlow baseAppFlow,
+        IDimmerLiveStateService dimmerLiveStateService,
+        AlbumsMgtFlow albumsMgtFlow,
+        PlayListMgtFlow playlistsMgtFlow,
+        SongsMgtFlow songsMgtFlow,
+        IDimmerStateService stateService,
+        ISettingsService settingsService,
+        SubscriptionManager subs,
+        LyricsMgtFlow lyricsMgtFlow,
+        IFolderMgtService folderMgtService
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
 
         _mapper = mapper;
@@ -122,5 +125,13 @@ public partial class HomeViewModel : BaseViewModelWin
     public static void PointerExited(View mySelectedView)
     {
         GeneralViewUtil.PointerOffView(mySelectedView);
+    }
+
+    [RelayCommand]
+    public void DeleteFolderPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+        FolderPaths.Remove(path);
     }
 }

@@ -14,7 +14,14 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-      
+
+        if (ParseSetup.InitializeParseClient())
+        {
+            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+            ParseClient.Instance.RegisterSubclass(typeof(ParseSong));
+            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        }
     }
     partial void AddPlatformResources();  // ← stub, implemented per-platform
 
