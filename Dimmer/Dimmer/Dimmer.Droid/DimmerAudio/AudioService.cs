@@ -74,7 +74,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         if (_isInitialized && Service != null)
         {
-            // Subscribe to events from the *new* service instance
+            // SubscribeAsync to events from the *new* service instance
             ConnectEvents();
             Console.WriteLine("[AudioService] Binder set and events connected.");
 
@@ -216,7 +216,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         if (Service == null)
             return;
-        // Subscribe to events coming *from* the ExoPlayerService
+        // SubscribeAsync to events coming *from* the ExoPlayerService
         Service.StatusChanged += OnStatusChanged;
         Service.Buffering += OnBuffering;
         Service.CoverReloaded += OnCoverReloaded;

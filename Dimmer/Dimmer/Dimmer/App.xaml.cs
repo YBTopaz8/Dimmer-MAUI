@@ -19,7 +19,7 @@ public partial class App : Application
         {
             ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
             ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
-            ParseClient.Instance.RegisterSubclass(typeof(ParseSong));
+            ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
             ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         }
     }
@@ -36,14 +36,14 @@ public partial class App : Application
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +
-                              $"ChatMessage: {e.Exception.Message}\n" +
+                              $"Message: {e.Exception.Message}\n" +
                               $"Source: {e.Exception.Source}\n" +
                               $"Stack Trace: {e.Exception.StackTrace}\n";
 
         if (e.Exception.InnerException != null)
         {
             errorDetails += "***** Inner Exception *****\n" +
-                            $"ChatMessage: {e.Exception.InnerException.Message}\n" +
+                            $"innerMessage: {e.Exception.InnerException.Message}\n" +
                             $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
         }
 

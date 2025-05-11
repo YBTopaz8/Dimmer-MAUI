@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Dimmer.DimmerLive.Models;
 [ParseClassName("DimmerSharedSong")]
-public class ParseSong : ParseObject
+public class DimmerSharedSong : ParseObject
 {
     [ParseFieldName("title")]
     public string Title
@@ -77,6 +77,29 @@ public class ParseSong : ParseObject
     public ParseFile GroupAvatar
     {
         get => GetProperty<ParseFile>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("audioMimeType")]
+    public string AudioMimeType
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    // NEW: External source URL if the song is from a streaming service (optional)
+    [ParseFieldName("externalUrl")]
+    public string ExternalUrl
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    // NEW: Lyrics (if you want to store them with the shared song)
+    [ParseFieldName("lyrics")]
+    public string LyricsText
+    {
+        get => GetProperty<string>();
         set => SetProperty(value);
     }
 }

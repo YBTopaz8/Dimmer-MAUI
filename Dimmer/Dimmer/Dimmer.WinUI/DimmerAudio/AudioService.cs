@@ -35,10 +35,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             CommandManager = { IsEnabled = true } // Enable SMTC integration early
         };
 
-        // Subscribe to events for state management and cleanup
+        // SubscribeAsync to events for state management and cleanup
         SubscribeToPlayerEvents();
 
-        // Subscribe to audio device changes
+        // SubscribeAsync to audio device changes
         MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
 
         // Initial state setup

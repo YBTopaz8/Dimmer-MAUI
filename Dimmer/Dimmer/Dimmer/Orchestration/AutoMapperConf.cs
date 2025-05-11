@@ -17,7 +17,7 @@ public static class AutoMapperConf
             cfg.CreateMap<UserModel, UserModelView>().ReverseMap();            
             cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
             cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
-            cfg.CreateMap<ParseSong, SongModelView>().ReverseMap();                    
+            cfg.CreateMap<DimmerSharedSong, SongModelView>().ReverseMap();                    
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });
 

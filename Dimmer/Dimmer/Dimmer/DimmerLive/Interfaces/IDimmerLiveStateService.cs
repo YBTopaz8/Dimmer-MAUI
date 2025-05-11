@@ -18,9 +18,23 @@ public interface IDimmerLiveStateService
     Task FullySyncUser(string userEmail);
     void DeleteUserLocally(UserModel user);
     Task DeleteUserOnline(UserModelOnline user);
-    Task<bool> LoginUser();
+    Task<bool> LoginUser(UserModel usr);
     Task SignUpUser(UserModelView user);
     Task<bool> AttemptAutoLoginAsync();
     Task LogoutUser();
     Task ForgottenPassword();
+
+
+    // --- NEW MESSAGING METHODS ---
+    IObservable<IEnumerable<ChatConversation>> ObserveUserConversations();
+    IObservable<IEnumerable<ChatMessage>> ObserveMessagesForConversation(string conversationId);
+    Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser);
+    Task<ChatMessage?> SendTextMessageAsync(string conversationId, string text);
+    Task<ChatMessage?> ShareSongInChatAsync(string conversationId, DimmerSharedSong songToShare);
+    Task MarkConversationAsReadAsync(string conversationId);
+    Task ShareSongOnline(SongModelView song);
+
+    // --- LIVE QUERY STATUS ---
+    IObservable<bool> IsLiveQueryConnected { get; }
 }
+

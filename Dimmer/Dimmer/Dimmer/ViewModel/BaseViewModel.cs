@@ -133,24 +133,18 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public async Task LoginUser()
     {
-
-        if (await dimmerLiveStateService.AttemptAutoLoginAsync())
+        var usr = _mapper.Map<UserModel>(UserLocal);
+        if (await dimmerLiveStateService.LoginUser(usr))
         {
             IsConnected=true;
 
-            SettingsPageIndex = 2;
-
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await Shell.Current.DisplayAlert("Success", "User logged in successfully", "OK");
-            });
         }
     }
 
     [RelayCommand]
     public async Task FullyBackUpData()
     {
-
+        //dimmerLiveStateService.
     }
 
     // i need a method or set of method for user to user communication like instant messaging
@@ -178,7 +172,7 @@ public partial class BaseViewModel : ObservableObject
         song.UserNote ??= [];
         song.UserNote.Add(userNote);
 
-        ParseSong pSong = new ParseSong();
+        DimmerSharedSong pSong = new DimmerSharedSong();
         //pSong.AudioFile= 
 
         //await pSong.SaveAsync();
@@ -239,26 +233,8 @@ public partial class BaseViewModel : ObservableObject
     {
         IsConnected=true;
 
-        var uName =  await SecureStorage.GetAsync("username");
-        var uPass = await SecureStorage.GetAsync("Password");
-        var uObjectId = await SecureStorage.GetAsync("ObjectId");
-        var uSessionToken = await SecureStorage.GetAsync("SessionToken");
-        var uEmail = await SecureStorage.GetAsync("Email");
-        if (string.IsNullOrEmpty(uName) || string.IsNullOrEmpty(uPass))
-        {
-            return;
-        }
-        var usrOnline = await ParseClient.Instance.LogInWithAsync(uName, uPass);
-
-        if (UserOnline is not null && UserOnline.SessionToken is not null)
-        {
-            UserOnline = usrOnline as UserModelOnline;
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await Shell.Current.DisplayAlert("Success", $"Welcome Back {uName}", "OK");
-            });
-        }
-
+        await dimmerLiveStateService.AttemptAutoLoginAsync();
+        
     }
 
     private void SubscribeToStateChanges()
@@ -518,115 +494,10 @@ public partial class BaseViewModel : ObservableObject
             }));
     }
 
-    public async Task ShareSongOnline()
+    [RelayCommand]
+    async Task ShareSong()
     {
-        if (SecondSelectedSong == null || string.IsNullOrEmpty(SecondSelectedSong.FilePath))
-        {
-            Debug.WriteLine("Error: Song data or file path is missing.");
-            await Shell.Current.DisplayAlert("Error", "Song data or file path is missing.", "OK");
-            return;
-        }
-
-        if (!File.Exists(SecondSelectedSong.FilePath))
-        {
-            Debug.WriteLine($"Error: File not found at path: {SecondSelectedSong.FilePath}");
-            await Shell.Current.DisplayAlert("Error", $"The song file could not be found at:\n{SecondSelectedSong.FilePath}\nPlease select it again.", "OK");
-            return;
-        }
-
-        var fileNameForParse = Path.GetFileName(SecondSelectedSong.FilePath);
-        Debug.WriteLine($"[SHARE_SONG_INFO] FileName for Parse: {fileNameForParse}"); // LOG THIS
-
-        var actualFileExtension = Path.GetExtension(SecondSelectedSong.FilePath);
-        Debug.WriteLine($"[SHARE_SONG_INFO] Extracted FileExtension: {actualFileExtension}"); // LOG THIS
-        
-        var mimeType = GetMimeTypeForExtension(actualFileExtension);
-        Debug.WriteLine($"[SHARE_SONG_INFO] Determined MimeType: {mimeType}"); // LOG THIS
-        var sanitizedFileNameForParse = $"{Guid.NewGuid()}{actualFileExtension}"; // e.g., "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.flac"
-
-        ParseFile audioFile;
-
-        try
-        {
-            Debug.WriteLine($"[SHARE_SONG_INFO] Attempting to upload: {fileNameForParse}, MIME: {mimeType}");
-            using var audioStream = File.OpenRead(SecondSelectedSong.FilePath);
-            audioFile = new ParseFile(sanitizedFileNameForParse, audioStream, mimeType);
-            await audioFile.SaveAsync(ParseClient.Instance);
-            Debug.WriteLine($"[SHARE_SONG_INFO] File uploaded successfully: {audioFile.Url}");
-        }
-        catch (ParseFailureException pe)
-        {
-            // This is where your current error is caught
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Parse Exception during file upload: {pe.Code} - {pe.Message}");
-            await Shell.Current.DisplayAlert("Upload Error", $"Could not upload song: {pe.Message} (Code: {pe.Code})", "OK");
-            return;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Generic Exception during file upload or stream open: {ex.Message}");
-            Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
-            await Shell.Current.DisplayAlert("Upload Error", $"An unexpected error occurred while preparing the song: {ex.Message}", "OK");
-            return;
-        }
-
-        // ... rest of your ParseSong object creation and saving logic
-        ParseSong newSong = new ParseSong();
-        newSong.Title = SecondSelectedSong.Title;
-        newSong.Artist = SecondSelectedSong.ArtistName;
-        newSong.Album = SecondSelectedSong.AlbumName;
-        newSong.DurationSeconds = SecondSelectedSong.DurationInSeconds;
-        newSong.AudioFile = audioFile;
-        newSong.Uploader = await ParseClient.Instance.GetCurrentUser();
-
-        try
-        {
-            await newSong.SaveAsync();
-            Debug.WriteLine($"[SHARE_SONG_INFO] ParseSong object saved with ID: {newSong.ObjectId}");
-            await Share.RequestAsync($"{newSong.Uploader.Username} Shared {SecondSelectedSong.Title} with you from Dimmer! :" + audioFile.Url);
-        }
-        catch (ParseFailureException pe)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Parse Exception during ParseSong save: {pe.Code} - {pe.Message}");
-            await Shell.Current.DisplayAlert("Save Error", $"Could not save song details: {pe.Message} (Code: {pe.Code})", "OK");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Generic Exception during ParseSong save: {ex.Message}");
-            await Shell.Current.DisplayAlert("Save Error", $"An unexpected error occurred while saving song details: {ex.Message}", "OK");
-        }
-    }
-
-    private string GetMimeTypeForExtension(string extension)
-    {
-        if (string.IsNullOrWhiteSpace(extension))
-            return "application/octet-stream";
-
-        // Remove leading dot for comparison, if present
-        string ext = extension.StartsWith(".") ? extension.Substring(1) : extension;
-
-        switch (ext.ToLowerInvariant())
-        {
-            case "mp3":
-                return "audio/mpeg";
-            case "flac":
-                return "audio/flac";
-            case "wav":
-                return "audio/wav";
-            case "m4a":
-                return "audio/mp4";
-            case "ogg":
-                return "audio/ogg";
-            case "aac":
-                return "audio/aac";
-            // Add more audio types as needed
-            case "jpg":
-            case "jpeg":
-                return "image/jpeg";
-            case "png":
-                return "image/png";
-            default:
-                return "application/octet-stream";
-        }
+        await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong);
     }
 
     public void PlaySong(

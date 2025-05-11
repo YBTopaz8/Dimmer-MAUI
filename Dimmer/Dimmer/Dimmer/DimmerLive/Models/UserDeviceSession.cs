@@ -63,6 +63,13 @@ public class UserDeviceSession : ParseObject
         get => GetProperty<ParseFile>();
         set => SetProperty(value);
     }
+    // new isActive holder
+    [ParseFieldName("isActive")]
+    public bool IsActive
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
 
     /// <summary>
     /// Attach & upload bytes as a ParseFile.

@@ -20,7 +20,7 @@ public partial class ChatMessage : ParseObject
     [ParseFieldName("sender")]
     public ParseUser Sender
     {
-        get => GetProperty<ParseUser>();
+        get => GetProperty<UserModelOnline>();
         set => SetProperty(value);
     }
 
@@ -60,9 +60,9 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("sharedSong")]
-    public ParseSong SharedSong // Pointer to a shared song
+    public DimmerSharedSong SharedSong // Pointer to a shared song
     {
-        get => GetProperty<ParseSong>();
+        get => GetProperty<DimmerSharedSong>();
         set => SetProperty(value);
     }
 
@@ -70,6 +70,19 @@ public partial class ChatMessage : ParseObject
     public bool IsDeleted
     {
         get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("readBy")]
+    public IList<UserModelOnline> ReadBy
+    {
+        get => GetProperty<IList<UserModelOnline>>();
+        set => SetProperty(value); // Or use AddUnique for managing this array
+    }
+    [ParseFieldName("reactions")]
+    public IDictionary<string, IList<string>> Reactions // Key: emoji, Value: List of User ObjectIds
+    {
+        get => GetProperty<IDictionary<string, IList<string>>>();
         set => SetProperty(value);
     }
 }

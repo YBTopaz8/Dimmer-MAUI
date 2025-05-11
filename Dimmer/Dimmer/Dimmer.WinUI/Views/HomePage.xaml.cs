@@ -255,7 +255,7 @@ public partial class HomePage : ContentPage
                 await SwitchUIs(4);
                 break;
             case 7:
-                await MyViewModel.ShareSongOnline();
+                await MyViewModel.ShareSongCommand.ExecuteAsync(null);
                 break;
             default:
                 break;

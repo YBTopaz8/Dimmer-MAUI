@@ -27,8 +27,7 @@
     <MauiFont Include="Resources\Fonts\FontAwesome6FreeSolid900.otf" Alias="FontAwesomeSolid" />
     <MauiFont Include="Resources\Fonts\FABrandsRegular400.otf" Alias="FontAwesomeBrands" />
   </ItemGroup>
-
-
+  
   <ItemGroup>
 
 
@@ -50,15 +49,19 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
     
-		<PackageReference Include="YB.ParseLiveQueryDotNet" Version="3.4.0" />
-    
+		 
 		<PackageReference Include="z440.atl.core" Version="6.22.0" />
 
     <PackageReference Include="UraniumUI.Material" Version="2.11.1" />
 
 	</ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
+
+  <ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
@@ -89,3 +92,5 @@
 	</ItemGroup>
 
 </Project>
+
+
