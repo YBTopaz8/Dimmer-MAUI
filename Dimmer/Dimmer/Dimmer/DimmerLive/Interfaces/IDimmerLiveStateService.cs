@@ -24,11 +24,10 @@ public interface IDimmerLiveStateService
     Task LogoutUser();
     Task ForgottenPassword();
 
-
     // --- NEW MESSAGING METHODS ---
     IObservable<IEnumerable<ChatConversation>> ObserveUserConversations();
     IObservable<IEnumerable<ChatMessage>> ObserveMessagesForConversation(string conversationId);
-    Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser);
+    Task<ChatConversation?> GetOrCreateConversationWithUserAsync(string userId);
     Task<ChatMessage?> SendTextMessageAsync(string conversationId, string text);
     Task<ChatMessage?> ShareSongInChatAsync(string conversationId, DimmerSharedSong songToShare);
     Task MarkConversationAsReadAsync(string conversationId);

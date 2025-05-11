@@ -1,8 +1,10 @@
 ﻿using Dimmer.DimmerLive.Models;
 using Dimmer.WinUI.Utils.Models;
+using Microsoft.UI.Xaml;
 using Parse;
 using Syncfusion.Maui.Toolkit.BottomSheet;
 using System.Threading.Tasks;
+using Application = Microsoft.Maui.Controls.Application;
 
 namespace Dimmer.WinUI.Views;
 
@@ -256,6 +258,17 @@ public partial class HomePage : ContentPage
                 break;
             case 7:
                 await MyViewModel.ShareSongCommand.ExecuteAsync(null);
+                break;
+            case 8:
+
+
+                DimmerSongWindow newWin = new DimmerSongWindow(MyViewModel);
+
+                var dq = DispatcherQueue.GetForCurrentThread();
+                dq.TryEnqueue(() =>
+                {
+                    Application.Current!.OpenWindow(newWin);
+                });
                 break;
             default:
                 break;

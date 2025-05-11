@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.WinUI.Views.DimmerSongWindow"
+         xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+ xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
+ x:DataType="vm:DimmerOnlineViewModel" 
+ x:Name="myPage"
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ Shell.NavBarIsVisible="False"
+        >
+
+    <ContentPage>
+
+        <ContentPage.Resources>
+            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter"/>
+            <converters:BytesToMegabytesConverter x:Key="FileSizeConverter"/>
+            <converters:BytesArrayToImageSource x:Key="BytesToImageConverter"/>
+            <converters:BoolToInverseConverter x:Key="BoolToInverse"/>
+            <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter"/>
+            <converters:DateTimeToLocalDateConverter x:Key="DateTimeConverter"/>
+            <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+            <converters:VolumeConverter x:Key="VolConverter" />
+
+        </ContentPage.Resources>
+
+
+        <Grid ColumnDefinitions="400,*">
+            <Grid RowDefinitions="auto,*">
+                <HorizontalStackLayout Grid.Row="0">
+
+                    <SearchBar Text="" />
+                    <Button Text="Share With"/>
+                </HorizontalStackLayout>
+
+                <Grid Grid.Row="1">
+                    <CollectionView ItemsSource="{Binding ChatConversations}">
+                        <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="modelsLive:ChatConversation">
+
+                                <VerticalStackLayout>
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer x:Name="ViewConverationGesture"
+                                                              Tapped="ViewConverationGesture_Tapped"
+                                                              CommandParameter="{Binding ObjectId}" />
+
+                                    </VerticalStackLayout.GestureRecognizers>
+
+                                    <Label Text="{Binding Name}"/>
+                                    <Label Text="{Binding LastMessage}"/>
+                                    <Label Text="{Binding LastMessageTimestamp}"/>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                    </CollectionView>
+
+                </Grid>
+
+
+            </Grid>
+
+            <Grid Grid.Column="1" >
+
+            </Grid>
+            
+            
+        </Grid>
+    </ContentPage>
+</Window>

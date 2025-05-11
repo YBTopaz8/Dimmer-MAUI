@@ -367,14 +367,20 @@
                                  CommandParameter="6" TextColor="White" />
                                 <syncf:SfChip  Text="{Static lang:DimmerLanguage.txt_send}"
                                  CommandParameter="7" TextColor="White">
-
-                                
-                                <syncf:SfChip.ImageSource>
+                                    <syncf:SfChip.ImageSource>
                                         <FontImageSource FontFamily="FontAwesomeSolid" Glyph="paper-plane" Color="DarkSlateBlue" />
-                                </syncf:SfChip.ImageSource>
-                                    
-                                    
+                                    </syncf:SfChip.ImageSource>
                                 </syncf:SfChip>
+
+                                <syncf:SfChip  Text="Chat"
+                                 CommandParameter="8" TextColor="White">
+                                    <syncf:SfChip.ImageSource>
+                                        <FontImageSource FontFamily="FontAwesomeSolid" Glyph="user" Color="DarkSlateBlue" />
+                                    </syncf:SfChip.ImageSource>
+                                </syncf:SfChip>
+
+
+
 
                             </syncf:SfChipGroup.Items>
                         </syncf:SfChipGroup>

@@ -95,6 +95,42 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         //}
     }
 
+   
+    // In User A's client, after they select a device (e.g., by its objectId from the list)
+    public static async Task<bool> SetActiveChatDeviceAsync(string selectedDeviceSessionObjectId)
+    {
+        if (ParseClient.Instance.CurrentUserController.CurrentUser == null)
+            return false;
+
+        var currentDeviceIdentifier = DeviceInfo.Name; // Or a more specific unique ID for the current device
+
+        var parameters = new Dictionary<string, object>
+    {
+        { "selectedDeviceSessionObjectId", selectedDeviceSessionObjectId }, // The UserDeviceSession objectId they picked
+        { "currentDeviceName", DeviceInfo.Name },       // Info about the device making the call
+        { "currentDeviceId", DeviceStaticUtils.GetCurrentDeviceId() }, // Your unique ID for *this physical device*
+        { "currentDeviceIdiom", DeviceInfo.Current.Idiom.ToString() },
+        { "currentDeviceOSVersion", DeviceInfo.Current.VersionString }
+        // No need to send "isActive: true" here, the cloud code will manage it.
+    };
+
+        try
+        {
+            // This cloud function will handle updating/creating the session
+            // and deactivating other sessions for the same user.
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("setActiveChatDevice", parameters);
+            Debug.WriteLine($"Set active chat device result: {result?.TryGetValue("message", out var objj)}");
+            return result != null && result.TryGetValue("success", out var successVal) && (bool)successVal;
+        }
+        catch (ParseFailureException ex)
+        {
+            Debug.WriteLine($"Error setting active chat device: {ex.Code} - {ex.Message}");
+            return false;
+        }
+    }
+
+
+
     public IObservable<IEnumerable<ChatConversation>> ObserveUserConversations()
     {
         throw new NotImplementedException();
@@ -105,10 +141,47 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         throw new NotImplementedException();
     }
 
-    public Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser)
-    {
-        throw new NotImplementedException();
-    }
+
+
+    //public async Task<ChatConversation?> GetOrCreateConversationWithUserAsync(UserModelOnline otherUser)
+    //{
+    //    if (UserOnline == null || otherUser == null || UserOnline.ObjectId == otherUser.ObjectId)
+    //        return null;
+
+    //    // Correct way to create pointers for the query
+    //    var currentUserPointer = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(UserOnline.ObjectId);
+    //    var otherUserPointer = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(otherUser.ObjectId);
+
+
+
+    //    var query =  ParseClient.Instance.GetQuery<ChatConversation>()
+    //        .WhereContainsAll(nameof(ChatConversation.Participants), new[] { UserOnline.ObjectId, otherUser.ObjectId }
+    //        .Select(id => ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(id)))            
+            
+    //        .WhereEqualTo(nameof(ChatConversation.IsGroupChat), false)
+    //        .Include(nameof(ChatConversation.Participants)); // Optional: Include participants if you need their data immediately
+
+    //    try
+    //    {
+    //        var existing = await query.FirstOrDefaultAsync();
+    //        if (existing != null)
+    //            return existing;
+
+    //        var newConvo = new ChatConversation { IsGroupChat = false, LastMessageTimestamp = DateTime.UtcNow };
+    //        var participantsRel = newConvo.GetRelation<UserModelOnline>(nameof(ChatConversation.Participants));
+    //        participantsRel.Add(UserOnline);
+    //        participantsRel.Add(otherUser);
+    //        var acl = new ParseACL();
+    //        acl.SetReadAccess(UserOnline, true);
+    //        acl.SetWriteAccess(UserOnline, true);
+    //        acl.SetReadAccess(otherUser, true);
+    //        acl.SetWriteAccess(otherUser, true);
+    //        newConvo.ACL = acl;
+    //        await newConvo.SaveAsync();
+    //        return newConvo;
+    //    }
+    //    catch (Exception ex) { Debug.WriteLine($"[GetOrCreateConversation_ERROR] {ex.Message}"); return null; }
+    //}
 
     public Task<ChatMessage?> SendTextMessageAsync(string conversationId, string text)
     {
@@ -344,6 +417,23 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     }
 
 
+    Task<ObservableCollection<ChatMessage>> OpenConversation(string convoId)
+    {
+
+
+        // open the conversation
+        // i will use the chat service to open the conversation
+        // and pass the convoId to it
+        return null;
+    }
+
+
+    public void RequestSongFromDifferentDevice(string userId, string songId, string deviceId)
+    {
+        // use a parse cloud code, send
+    }
+
+
     public async Task ShareSongOnline(SongModelView song)
     {
         if (song == null || string.IsNullOrEmpty(song.FilePath))
@@ -537,11 +627,6 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
     }
 
-    public void RequestSongFromDifferentDevice(string userId, string songId, string deviceId)
-    {
-        // use a parse cloud code, send
-    }
-
     public void SaveUserLocally(UserModelView user)
     {
         var usr = mapper.Map<UserModel>(user);
@@ -661,4 +746,116 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         return false;
     }
 
+
+    // In User B's client (or any client wanting to see presence)
+    // Assume liveQueryClient is initialized
+    private Subscription<UserDeviceSession> _presenceSubscription;
+
+    public async Task SubscribeToPresenceUpdatesAsync(IEnumerable<string> userIdsToWatch)
+    {
+        if (ParseClient.Instance.CurrentUserController.CurrentUser == null)
+            return;
+
+        // Create ParseUser pointers for the query
+        var userPointers = userIdsToWatch.Select(id => ParseClient.Instance.CreateObjectWithoutData<ParseUser>(id)).ToList();
+
+        // Query for UserDeviceSession objects where:
+        // 1. The userOwner is one of the users we're interested in.
+        // 2. (Optional, but good for initial state) isActive is true.
+        //    LiveQuery will then notify on updates to these, or new ones matching. q
+        var presenceQuery = new ParseQuery<UserDeviceSession>(ParseClient.Instance)
+            .WhereContainedIn("userOwner", userPointers) // Watch specific users
+                                                         // .WhereEqualTo("isActive", true) // Get initially active ones. LQ will update on changes.
+            .Include("userOwner"); // To get the username, etc.
+
+        _presenceSubscription = await liveClient!.SubscribeAsync(presenceQuery);
+
+        _presenceSubscription.Events
+            .Where(e => e.EventType == Subscription.Event.Update ||
+            e.EventType == Subscription.Event.Create )
+            .Subscribe(e =>
+            {
+                var updatedSession = e.Object;
+                if (updatedSession != null)
+                {
+                    // Handle the presence update, e.g., notify UI or update local state
+                    Debug.WriteLine($"Presence update for {updatedSession.UserOwner.Username}: {updatedSession.IsActive}");
+                }
+            });
+    }
+
+    // Remember to unsubscribe when done:
+    // if (_presenceSubscription != null) await liveQueryClient.Unsubscribe(_presenceSubscription);
+
+
+    // In Dimmer.DimmerLive.DimmerLiveStateService.cs
+
+    public async Task<ChatConversation?> GetOrCreateConversationWithUserAsync(string userId)
+    {
+        if (UserOnline == null || UserOnline.ObjectId == userId)
+        {
+            Debug.WriteLine("[GetOrCreateConversation] Invalid parameters: UserOnline or otherUser is null, or self-chat attempt.");
+            return null;
+        }
+
+        // Create pointers for the query
+        var currentUserPointer = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(UserOnline.ObjectId);
+        var otherUserPointer = ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(userId);
+
+        // Corrected Query Construction
+        // You typically instantiate ParseQuery with the class name if T is not directly the class name string
+        // or if T is a registered subclass, it can infer.
+        var query = ParseClient.Instance.GetQuery<ChatConversation>() // Assuming "ChatConversation" is the class name on server
+            .WhereContainsAll(nameof(ChatConversation.Participants), new[] { currentUserPointer, otherUserPointer })
+            
+            .WhereSizeEqualTo(nameof(ChatConversation.Participants), 2) // This applies to the relation field
+            .WhereEqualTo(nameof(ChatConversation.IsGroupChat), false)
+            .Include((nameof(ChatConversation.Participants))); // Optional: Include if needed immediately
+
+        try
+        {
+            Debug.WriteLine($"[GetOrCreateConversation] Querying for existing chat between {UserOnline.ObjectId} and {userId}");
+            ChatConversation? existing = await query.FirstOrDefaultAsync();
+            if (existing != null)
+            {
+                Debug.WriteLine($"[GetOrCreateConversation] Found existing chat: {existing.ObjectId}");
+                return existing;
+            }
+
+            Debug.WriteLine($"[GetOrCreateConversation] Creating new chat between {UserOnline.ObjectId} and {userId}");
+            var newConvo = new ChatConversation
+            {
+                IsGroupChat = false,
+                LastMessageTimestamp = DateTime.UtcNow
+            };
+
+            var participantsRel = newConvo.GetRelation<UserModelOnline>(nameof(ChatConversation.Participants));
+            participantsRel.Add(currentUserPointer); // Add the pointer
+            participantsRel.Add(otherUserPointer);   // Add the pointer
+
+            var acl = new ParseACL();
+            acl.SetReadAccess(UserOnline, true);
+            acl.SetWriteAccess(UserOnline, true);
+            acl.SetReadAccess(userId, true);
+            acl.SetWriteAccess(userId, true);
+            newConvo.ACL = acl;
+
+            await newConvo.SaveAsync();
+            Debug.WriteLine($"[GetOrCreateConversation] Created new chat: {newConvo.ObjectId}");
+            return newConvo;
+        }
+        catch (ParseFailureException pEx)
+        {
+            Debug.WriteLine($"[GetOrCreateConversation_ERROR] ParseException: Code={pEx.Code}, Message={pEx.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GetOrCreateConversation_ERROR] Generic Exception: {ex.Message}");
+            return null;
+        }
+    }
+
+
+    
 }

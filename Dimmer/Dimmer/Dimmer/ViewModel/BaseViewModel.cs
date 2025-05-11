@@ -39,7 +39,7 @@ public partial class BaseViewModel : ObservableObject
     public partial UserModelView UserLocal { get; set; }
 
     private readonly IMapper _mapper;
-    private readonly IDimmerLiveStateService dimmerLiveStateService;
+    public readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;

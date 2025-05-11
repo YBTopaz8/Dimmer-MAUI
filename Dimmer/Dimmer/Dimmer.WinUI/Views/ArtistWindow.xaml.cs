@@ -8,7 +8,7 @@ public partial class ArtistWindow : Window
     
         this.Height = 600;
         this.Width = 800;
-        //BindingContext = vm;
+        //BindingContext = ViewModel;
 
 
     }

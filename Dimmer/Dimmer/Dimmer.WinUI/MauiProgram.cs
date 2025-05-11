@@ -21,6 +21,7 @@ public static class MauiProgram
         builder.Services.AddTransient<OnlinePageManagement>();
 
         builder.Services.AddSingleton<DimmerWin>();
+        builder.Services.AddScoped<DimmerOnlineViewModel>();
         
         builder.Services.AddSingleton<HomePage>();
         builder.Services.AddSingleton<HomeViewModel>();

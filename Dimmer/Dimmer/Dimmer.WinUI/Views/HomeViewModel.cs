@@ -50,7 +50,7 @@ public partial class HomeViewModel : BaseViewModelWin
 
     private static void LoadPageViewModel()
     {
-        Debug.WriteLine("loaded page vm");
+        Debug.WriteLine("loaded page ViewModel");
     }
 
     private void SubscribeToLyricIndexChanges()

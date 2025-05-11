@@ -1,6 +1,10 @@
-﻿using Dimmer.DimmerLive.Interfaces;
+﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.DimmerLive;
+using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Services;
 using Dimmer.WinUI.Utils.Helpers;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Vanara.PInvoke;
 using Vanara.Windows.Shell;
 using static Vanara.PInvoke.Shell32;
@@ -113,6 +117,25 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         }
 
     }
+
+
+
+
+
+    [RelayCommand]
+    public async Task OpenSpecificChatConversation(string userId)
+    {
+
+        
+        if (string.IsNullOrEmpty(userId))
+            return;
+        var ss = await  dimmerLiveStateService.GetOrCreateConversationWithUserAsync(userId);
+        if (ss == null)
+            return;
+
+        Debug.WriteLine(ss.Name);
+    }
+
 
 
     public void Dispose()
