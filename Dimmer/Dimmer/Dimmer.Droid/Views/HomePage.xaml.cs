@@ -23,7 +23,7 @@ public partial class HomePage : ContentPage
         BindingContext = vm;
     }
 
-    protected override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
         MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
@@ -31,6 +31,7 @@ public partial class HomePage : ContentPage
         MyViewModel.SetCollectionView(SongsColView);
         //MyViewModel.SetSongLyricsView(LyricsColView);
 
+        await MyViewModel.LoginFromSecureData();
 
     }
 
@@ -529,4 +530,87 @@ public partial class HomePage : ContentPage
         };
        await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
     }
+
+
+    string SearchParam = string.Empty;
+
+    private void SearchBy_TextChanged(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(SearchBy.Text))
+        {
+            ByAll();
+            return;
+        }
+        switch (SearchParam)
+        {
+            case "Title":
+                ByTitle();
+                break;
+            case "Artist":
+                ByArtist();
+                break;
+            case "":
+                ByAll();
+                break;
+            default:
+                ByAll();
+                break;
+        }
+
+    }
+
+    private void ByTitle()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString = $"Contains([Title], '{SearchBy.Text}')";
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+    private void ByAll()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString =
+                    $"Contains([Title], '{SearchBy.Text}') OR " +
+                    $"Contains([ArtistName], '{SearchBy.Text}') OR " +
+                    $"Contains([AlbumName], '{SearchBy.Text}')";
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+    private void ByArtist()
+    {
+        if (!string.IsNullOrEmpty(SearchBy.Text))
+        {
+            if (SearchBy.Text.Length >= 1)
+            {
+                MyViewModel.IsOnSearchMode = true;
+                SongsColView.FilterString = $"Contains([ArtistName], '{SearchBy.Text}')";
+
+            }
+            else
+            {
+                MyViewModel.IsOnSearchMode = false;
+                SongsColView.FilterString = string.Empty;
+            }
+        }
+    }
+
+
 }

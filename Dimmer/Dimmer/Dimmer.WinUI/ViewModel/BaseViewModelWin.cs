@@ -4,13 +4,16 @@ using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerLive.Models;
 using Dimmer.Services;
 using Dimmer.WinUI.Utils.Helpers;
+using Microsoft.Maui.Media;
 using Parse;
 using SkiaSharp;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Vanara.PInvoke;
 using Vanara.Windows.Shell;
+using Windows.Graphics.Imaging;
 using ZXing;
 using ZXing.Common;
 using ZXing.Net.Maui;
@@ -157,7 +160,31 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     }
 
     [RelayCommand]
-    public void ShareProfile()
+    public async Task ShareProfile(BarcodeGeneratorView bCodeView)
+    {
+
+        IfUserOnlineIsNull();
+
+
+
+
+        var screenshot = await bCodeView.CaptureAsync();
+        var fileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"qr_{DateTime.UtcNow.Ticks}.png");
+
+        using Stream fileStream = File.OpenWrite(fileName);
+        await screenshot.CopyToAsync(fileStream, ScreenshotFormat.Png);
+        await Share.Default.RequestAsync(new ShareFileRequest
+        {
+            Title = "Share QR Code",
+            File = new ShareFile(fileName)
+        });
+
+      
+    }
+
+
+
+    public Task LoadOnlineData()
     {
         IfUserOnlineIsNull();
         var qrData = new QrCodeData
@@ -170,27 +197,15 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
             Payload = new Dictionary<string, object>
             {
                 { "username", UserOnline.Username }
-            
+
             }
         };
-        
 
         string jsonPayload = JsonSerializer.Serialize(qrData);
-
         barCodeInvitationValue = jsonPayload;
 
-        var shareProfile = new ShareFile()
-        {
-
-        }
-    }
-
-
-
-    public Task LoadOnlineData()
-    {
         //barCodeInvitationValue = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId;
-        ShareProfile();
+        //ShareProfile();
         return Task.CompletedTask;
     }
 

@@ -1,34 +1,36 @@
-﻿using Android.App;
+﻿using Android;
+using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Database;
 using Android.OS;
 using Android.Provider;
+using AndroidX.Core.App;
+using AndroidX.Core.Content;
 using Dimmer.DimmerLive.Models;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using UraniumUI.Material.Controls;
 
 namespace Dimmer;
-[IntentFilter(
-       new[] { Platform.Intent.ActionAppAction }, // Use the constant
-       Categories = new[] { Intent.CategoryDefault }
-   )]
-[IntentFilter(
-        new[] { Intent.ActionSend, Intent.ActionSendMultiple }, // Handle single and multiple files/items
-        Categories = new[] { Intent.CategoryDefault }, // REQUIRED for implicit intents
-                                                       // Specify MIME types your app can handle via sharing
-        DataMimeType = "audio/*" // Handle any audio type
-                                 // OR be more specific:
-                                 // DataMimeTypes = new[] { "audio/mpeg", "audio/wav", "audio/ogg", "audio/flac", "audio/x-m4a", "audio/aac" }
-    )]
+[IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
+                Categories = new[] { Intent.CategoryDefault })]
+[IntentFilter(new[] { Intent.ActionSend, Intent.ActionSendMultiple }, // Handle single and multiple files/items
+                Categories = new[] { Intent.CategoryDefault }, // REQUIRED for implicit intents                                           
+                DataMimeType = "audio/*" )]
 
-[IntentFilter(
-         new[] { Intent.ActionView },
+[IntentFilter(new[] { Intent.ActionView },
          Categories = new[] { Intent.CategoryDefault },
          DataMimeType = "audio/*" // Or more specific MIME types/schemes/paths
-     )]
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTask, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+        )]
+[Activity(Theme = "@style/Maui.SplashTheme", 
+    MainLauncher = true,
+        Name = "com.yvanbrunel.dimmer.MainActivity",
+    LaunchMode = LaunchMode.SingleTask, 
+    ConfigurationChanges = ConfigChanges.ScreenSize | 
+    ConfigChanges.Orientation | ConfigChanges.UiMode | 
+    ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | 
+    ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
     private static string AppLinkHost;
@@ -194,23 +196,61 @@ public class MainActivity : MauiAppCompatActivity
         // Log that the activity resumed
         Console.WriteLine("MainActivity: OnResume called.");
     }
+
+    const int REQUEST_WRITE_STORAGE = 1001;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+
+
+        Android.Util.Log.Debug("MainActivity", $"Running in package: {PackageName}");
+        // --- STORAGE PERMISSION / MANAGER CHECK ---
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+        {
+            // API 30+ use isExternalStorageManager
+            bool hasManageAll = Android.OS.Environment.IsExternalStorageManager;
+            Android.Util.Log.Debug("MainActivity", $"MANAGE_EXTERNAL_STORAGE granted? {hasManageAll}");
+            if (!hasManageAll)
+            {
+                // fire intent to ask user to grant MANAGE_EXTERNAL_STORAGE
+                var uri = Android.Provider.Settings.ActionManageAllFilesAccessPermission;
+                var intent = new Android.Content.Intent(uri);
+                StartActivity(intent);
+            }
+        }
+        else
+        {
+            // API <30 fallback to WRITE_EXTERNAL_STORAGE
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.WriteExternalStorage)
+                    != Permission.Granted)
+            {
+                ActivityCompat.RequestPermissions(
+                    this,
+                    new[] { Manifest.Permission.WriteExternalStorage },
+                    REQUEST_WRITE_STORAGE);
+            }
+            else
+            {
+                Android.Util.Log.Debug("MainActivity", "WRITE_EXTERNAL_STORAGE already granted");
+            }
+        }
 
         if (DeviceInfo.Idiom == DeviceIdiom.Watch)
         {
             return;
         }
-        if (!Android.OS.Environment.IsExternalStorageManager)
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
         {
-            Intent intent = new Intent();
-            intent.SetAction(Settings.ActionManageAppAllFilesAccessPermission);
-            Android.Net.Uri uri = Android.Net.Uri.FromParts("package", PackageName!, null)!;
-            intent.SetData(uri);
-            StartActivity(intent);
+            if (!Android.OS.Environment.IsExternalStorageManager)
+            {
+                Intent intent = new Intent();
+                intent.SetAction(Settings.ActionManageAppAllFilesAccessPermission);
+                Android.Net.Uri uri = Android.Net.Uri.FromParts("package", PackageName!, null)!;
+                intent.SetData(uri);
+                StartActivity(intent);
+            }
         }
-
         //Win
         // Ensure Window is not null before accessing it
         if (Window != null)
@@ -240,6 +280,10 @@ public class MainActivity : MauiAppCompatActivity
         // Optional: Handle intent if app was launched FROM CLOSED by the action
          Platform.OnNewIntent(Intent); // Call this here *too* if needed for cold start actions
     }
+
+   
+
+
     protected override void OnDestroy()
     {
         if (_serviceConnection != null)
@@ -248,6 +292,18 @@ public class MainActivity : MauiAppCompatActivity
             _serviceConnection.Disconnect();
         }
         base.OnDestroy();
+    }
+
+
+    public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+    {
+        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_WRITE_STORAGE)
+        {
+            bool granted = grantResults.Length > 0 && grantResults[0] == Permission.Granted;
+            Android.Util.Log.Debug("MainActivity", $"WRITE_EXTERNAL_STORAGE granted? {granted}");
+        }
     }
 
 

@@ -18,8 +18,8 @@ public interface IDimmerLiveStateService
     Task FullySyncUser(string userEmail);
     void DeleteUserLocally(UserModel user);
     Task DeleteUserOnline(UserModelOnline user);
-    Task<bool> LoginUser(UserModel usr);
-    Task SignUpUser(UserModelView user);
+    Task<bool> LoginUserAsync(UserModel usr);
+    Task SignUpUserAsync(UserModelView user);
     Task<bool> AttemptAutoLoginAsync();
     Task LogoutUser();
     Task ForgottenPassword();

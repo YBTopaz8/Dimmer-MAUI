@@ -1,4 +1,7 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿using System.ComponentModel.DataAnnotations;
+using RequiredAttribute = System.ComponentModel.DataAnnotations.RequiredAttribute;
+
+namespace Dimmer.Data.ModelView;
 public partial class UserModelView:ObservableObject
 {
 

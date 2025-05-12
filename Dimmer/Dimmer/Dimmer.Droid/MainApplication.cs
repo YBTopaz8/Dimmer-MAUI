@@ -12,6 +12,8 @@ public class MainApplication : MauiApplication
         Console.WriteLine("Dimmer Android :D");
 
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+
+        
     }
 
 

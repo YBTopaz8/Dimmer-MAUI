@@ -125,7 +125,8 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public async Task SignUpUser()
     {
-        await dimmerLiveStateService.SignUpUser(UserLocal);
+        await dimmerLiveStateService.SignUpUserAsync(UserLocal);
+        SettingsPageIndex=1;
     }
 
     [ObservableProperty]
@@ -134,10 +135,10 @@ public partial class BaseViewModel : ObservableObject
     public async Task LoginUser()
     {
         var usr = _mapper.Map<UserModel>(UserLocal);
-        if (await dimmerLiveStateService.LoginUser(usr))
+        if (await dimmerLiveStateService.LoginUserAsync(usr))
         {
             IsConnected=true;
-
+            SettingsPageIndex=0;
         }
     }
 
@@ -146,6 +147,13 @@ public partial class BaseViewModel : ObservableObject
     {
         //dimmerLiveStateService.
     }
+
+    [RelayCommand]
+    public async Task GetMyDevices()
+    {
+
+    }
+
 
     // i need a method or set of method for user to user communication like instant messaging
     // and file sharing where user a and b can chat, and can share even song data etc..
@@ -689,13 +697,31 @@ public partial class BaseViewModel : ObservableObject
         
     }
 
+    [ObservableProperty]
+    public partial ObservableCollection<UserDeviceSession>? UserDevices { get; set; } = new();
 
     public void SubscribeToScanningLogs()
     {
         _subs.Add(_stateService.LatestDeviceLog.DistinctUntilChanged()
             .Subscribe(log =>
             {
-                if (log == null || string.IsNullOrEmpty(log.Log))
+
+
+                if (log == null)
+                    return;
+
+                if (log.DeviceModelSession is not null)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        UserDevices?.Add(log.DeviceModelSession);
+                    });
+                    return;
+                }
+                
+                
+                
+                if (string.IsNullOrEmpty(log.Log))
                     return;
                 LatestScanningLog = log.Log;
                 ScanningLogs ??= new ObservableCollection<AppLogModel>();

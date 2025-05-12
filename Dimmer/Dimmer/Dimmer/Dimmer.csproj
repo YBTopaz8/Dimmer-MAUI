@@ -36,6 +36,10 @@
 
 
 
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+
+
+
 
 
 
@@ -48,6 +52,7 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+		<PackageReference Include="WebRTCme" Version="2.0.0" />
     
 		 
 		<PackageReference Include="z440.atl.core" Version="6.23.0" />

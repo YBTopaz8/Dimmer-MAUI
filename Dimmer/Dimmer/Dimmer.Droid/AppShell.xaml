@@ -4,17 +4,28 @@
              x:Class="Dimmer.AppShell"
        Title="Dimmer"
       xmlns:views="clr-namespace:Dimmer.Views"
-       FlyoutBehavior="Flyout">
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate views:HomePage}"
-        Route="MainPage" >
-    </ShellContent>
-    <ShellContent
-        Title="Settings"
-        ContentTemplate="{DataTemplate views:SettingsPage}"
-        Route="SettingsPage" >
+       FlyoutBehavior="Disabled"
+       BackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
+       Shell.TabBarBackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
+       Shell.TabBarUnselectedColor="{AppThemeBinding Dark=White,Light=Grey}"
+       Shell.TabBarTitleColor="{AppThemeBinding Dark=White,Light=DarkSlateBlue}"
+       
+       >
 
-    </ShellContent>
+    <TabBar>
+        <ShellContent
+    Title="Home" Icon="house.png"
+    ContentTemplate="{DataTemplate views:HomePage}"
+    Route="MainPage" >
+        </ShellContent>
+        <ShellContent
+    Title="Settings" Icon="settings.png"
+    ContentTemplate="{DataTemplate views:SettingsPage}"
+    Route="SettingsPage" >
+            
 
+        </ShellContent>
+
+    </TabBar>
+    
 </Shell>

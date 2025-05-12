@@ -6,7 +6,7 @@ xmlns:dx="http://schemas.devexpress.com/maui">
 
     <!-- example: style all DXButton on Android -->
     <Style TargetType="dx:DXButton">
-        <Setter Property="BackgroundColor" Value="Teal" />
-        <Setter Property="TextColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="Pink" />
+        <Setter Property="TextColor" Value="Red" />
     </Style>
 </ResourceDictionary>

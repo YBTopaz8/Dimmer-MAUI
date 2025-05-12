@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Dimmer.Views;
 
 public partial class SettingsPage : ContentPage
@@ -23,5 +25,17 @@ public partial class SettingsPage : ContentPage
     private async void ScanAllBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.LoadSongsFromFolders();
+    }
+
+    private async void ViewDevices_Clicked(object sender, EventArgs e)
+    {
+        
+        await MyDevicesPopUp.ShowAsync();
+
+    }
+
+    private void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    {
+
     }
 }

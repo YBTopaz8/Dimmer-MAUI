@@ -11,6 +11,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int CurrentQueue { get; set; }
     [ObservableProperty]
+    public partial bool IsOnSearchMode { get; set; }
+    [ObservableProperty]
     public partial int SelectedItemIndexMobile { get; set; }
     private readonly SubscriptionManager _subs;
 

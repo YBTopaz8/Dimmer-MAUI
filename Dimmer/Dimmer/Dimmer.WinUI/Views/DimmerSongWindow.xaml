@@ -74,23 +74,24 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
 
             <Grid Grid.Column="1" RowDefinitions="auto,*"  >
                 <Grid ColumnDefinitions="*,*">
-                    <HorizontalStackLayout Grid.Column="0">
+                    <HorizontalStackLayout Grid.Column="1">
                         
                         <Border HorizontalOptions="Center" 
                 VerticalOptions="Center" StrokeShape="RoundRectangle 30">
-                            <VerticalStackLayout >
+                            <VerticalStackLayout HeightRequest="200" 
+                                             WidthRequest="200" >
 
-                                <zxing:BarcodeGeneratorView HeightRequest="200" 
-                                             WidthRequest="200"
+                                <zxing:BarcodeGeneratorView 
                         Value="{Binding barCodeInvitationValue}"
-    x:Name="BarCode" Format="QrCode"  BackgroundColor="DarkSlateBlue"
+    x:Name="BarCode" Format="QrCode"  BackgroundColor="Transparent"
+                                    ForegroundColor="DarkSlateBlue"
                     
     />
 
-                                <Button Text="Share" x:Name="ShareProfileBtn"
-                                        Clicked="ShareProfileBtn_Clicked"/>
                             </VerticalStackLayout>
                         </Border>
+                        <Button Text="Share" x:Name="ShareProfileBtn" VerticalOptions="Center"
+                                        Clicked="ShareProfileBtn_Clicked"/>
                     </HorizontalStackLayout>
                 </Grid>
                 

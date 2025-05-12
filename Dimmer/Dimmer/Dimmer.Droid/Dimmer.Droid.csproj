@@ -13,6 +13,10 @@
     <PackageIcon>dimmerIcon.png</PackageIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
+
+
+    <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
+
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,26 +26,6 @@
   <ItemGroup>
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
   </ItemGroup>
-
- <ItemGroup>
-  <!-- Remove the MauiXaml item for DevExpressStyles.xaml if it exists -->
-  <MauiXaml Remove="Resources\Styles\DevExpressStyles.xaml" Condition="Exists('Resources\Styles\DevExpressStyles.xaml')" />
-
-  <!-- Add it as an EmbeddedResource -->
-  <EmbeddedResource Include="Resources\Styles\DevExpressStyles.xaml">
-    <!--
-    If your file is at 'YourAndroidProject/Resources/Styles/DevExpressStyles.xaml'
-    and RootNamespace is 'Dimmer', the default name is 'Dimmer.Resources.Styles.DevExpressStyles.xaml'.
-    Your code expects 'Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml'.
-    You need to EITHER:
-    1. Move the file to 'Platforms/Android/Resources/Styles/DevExpressStyles.xaml' in your Android project. This is cleaner.
-       If you do this, the LogicalName below is not needed.
-    OR
-    2. Explicitly set the LogicalName to match what your code expects.
-    -->
-    <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
-  </EmbeddedResource>
-</ItemGroup>
 
 
   <ItemGroup>
@@ -146,11 +130,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="AppShell.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Resources\Styles\DevExpressStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <LogicalName>Dimmer.Platforms.Android.Resources.Styles.DevExpressStyles.xaml</LogicalName>
     </MauiXaml>
     <MauiXaml Update="Views\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -74,7 +74,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         await SetupLiveQueryAsync();
     }
 
-    public async Task CleanupAfterLogout()
+    public void CleanupAfterLogout()
     {
         UserOnline = null;
         _isLiveQueryConnectedSubject.OnNext(false);
@@ -245,12 +245,22 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         {
             liveClient= new ParseLiveQueryClient();
             var query = ParseClient.Instance.GetQuery<UserDeviceSession>();
-            query.WhereEqualTo("isActive", true).
-            WhereEqualTo("isActive", UserOnline)                
-                .Include("userOwner");
+            var queryConvo = ParseClient.Instance.GetQuery<ChatConversation>()
+             .WhereEqualTo(nameof(ChatConversation.Participants), UserOnline) // Key filter
+             .Include(nameof(ChatConversation.LastMessage)) // Important for updates
+             .Include($"{nameof(ChatConversation.LastMessage)}.{nameof(ChatMessage.Sender)}");
+
+            var queryMsgs = ParseClient.Instance.GetQuery<ChatMessage>()
+                .WhereEqualTo(nameof(ChatMessage.Sender), UserOnline)
+                .WhereEqualTo(nameof(ChatMessage.ReadBy), UserOnline);
+            //query.WhereEqualTo("isActive", true);
+            //WhereEqualTo("userOwner", UserOnline)                
+                //.Include("userOwner");
             
             //Subscription<UserDeviceSession>? subscription = new();
             var subscription =  await liveClient!.SubscribeAsync(query);
+            var convoSub = await liveClient.SubscribeAsync(queryConvo, "MyConversations");
+            var msgSub = await liveClient.SubscribeAsync(queryMsgs, "MyMessages");
 
             await liveClient.ConnectIfNeededAsync();
             int retryDelaySeconds = 5;
@@ -310,26 +320,10 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
 
             liveClient.OnObjectEvent
-            .Where(e => e.subscription == subscription) // Filter relevant events
-            .GroupBy(e => e.evt)
-            .SelectMany(group =>
-            {
-                if (group.Key == Subscription.Event.Create)
-                {
-                    // Apply throttling only to CREATE events
-                    return group.Throttle(throttleTime)
-                                .Buffer(TimeSpan.FromSeconds(1), 3) // Further control
-                                .SelectMany(batch => batch); // Flatten the batch
-                }
-                else
-                {
-                    //do something with group !
-                    // Pass through other events without throttling
-                    return group;
-                }
-            })
+            
             .Subscribe(e =>
             {
+                Debug.WriteLine(e.evt);
                 //ProcessEvent(e, Messages);
             });
 
@@ -345,6 +339,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
 
             await CloudCodeToSetSession();
+
         }
         catch (Exception ex)
         {
@@ -633,7 +628,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         _userRepo.AddOrUpdate(usr);
     }
 
-    public async Task SignUpUser(UserModelView user)
+    public async Task SignUpUserAsync(UserModelView user)
     {
         UserLocalDB = mapper.Map<UserModel>(user);
         UserLocalView = user;
@@ -648,7 +643,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
     }
 
-    public async Task<bool> LoginUser(UserModel usr)
+    public async Task<bool> LoginUserAsync(UserModel usr)
     {
         UserLocalDB = usr;
         UserOnline = await ParseClient.Instance.LogInWithAsync(UserLocalDB.UserName, UserLocalDB.UserPassword) as UserModelOnline;

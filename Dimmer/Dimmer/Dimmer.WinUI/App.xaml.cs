@@ -21,8 +21,9 @@ public partial class App : MauiWinUIApplication
         this.InitializeComponent();
         AppDomain.CurrentDomain.ProcessExit +=CurrentDomain_ProcessExit;
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        
-        
+
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
     }
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)

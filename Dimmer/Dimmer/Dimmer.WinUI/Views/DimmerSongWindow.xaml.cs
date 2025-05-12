@@ -26,9 +26,8 @@ public partial class DimmerSongWindow : Window
         await ViewModel.LoadOnlineData();
     }
 
-    private void ShareProfileBtn_Clicked(object sender, EventArgs e)
+    private async void ShareProfileBtn_Clicked(object sender, EventArgs e)
     {
-
-        
+        await ViewModel.ShareProfile(BarCode);
     }
 }
