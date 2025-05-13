@@ -13,4 +13,6 @@ public class AppLogModel
     public SongModelView? ViewSongModel { get; set; } = new SongModelView();
     public UserModelView? UserModel { get; set; }
     public UserDeviceSession? DeviceModelSession { get; set; }
+    public ChatMessage? ChatMsg { get; set; }
+    public ChatConversation? ChatConvo { get; set; }
 }

@@ -18,7 +18,7 @@ public partial class ChatMessage : ParseObject
     }
 
     [ParseFieldName("sender")]
-    public ParseUser Sender
+    public UserModelOnline Sender
     {
         get => GetProperty<UserModelOnline>();
         set => SetProperty(value);

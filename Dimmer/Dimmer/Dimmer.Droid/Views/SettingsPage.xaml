@@ -181,6 +181,60 @@ StrokeThickness="0" StrokeShape="RoundRectangle 5" >
                     </dx:DXStackLayout>
                 </dx:TabViewItem.Content>
             </dx:TabViewItem>
+            <dx:TabViewItem HeaderText="Cross Devices">
+                <dx:TabViewItem.Content>
+                    <dx:DXStackLayout >
+                        <dx:DXCollectionView ItemsSource="{Binding UserDevices}" 
+                                             Orientation="Horizontal" HeightRequest="70"
+                                             Header="Your Devices">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="modellive:UserDeviceSession">
+                                    <dxc:DXStackLayout Orientation="Horizontal">
+                                        <dxc:Chip Tap="SwitchDeviceRecipient_Tap" x:Name="SwitchDeviceRecipient"
+                          Text="{Binding DeviceIdiom}" FontSize="36"/>
+                                    </dxc:DXStackLayout>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                        </dx:DXCollectionView>
+
+                        <Grid RowDefinitions="*,auto" BackgroundColor="Transparent">
+
+                            <dx:DXCollectionView ItemsSource="{Binding ActiveMessages}">
+                                
+                                <dx:DXCollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="modellive:ChatMessage">
+                                        <dxc:DXStackLayout>
+                                            <Label Text="{Binding Sender.Username}" FontSize="16" 
+                                                   TextColor="White"/>
+                                            <Label Text="{Binding CreatedAt}" FontSize="12" 
+                                                   TextColor="White"/>
+                                        </dxc:DXStackLayout>
+                                    </DataTemplate>
+                                </dx:DXCollectionView.ItemTemplate>
+                            </dx:DXCollectionView>
+                            
+                            <dx:DXBorder Grid.Row="1">
+                                <Grid ColumnDefinitions="auto,*,100">
+                                    <StackLayout Grid.Column="0">
+                                        <dx:DXButton Content="Add"/>
+                                    </StackLayout>
+                                    
+                                    <StackLayout Grid.Column="1">
+                                        <dx:TextEdit LabelText="Message" 
+                                                     Text="{Binding Message}"/>
+                                    </StackLayout>
+                                    
+                                    <StackLayout Grid.Column="2">
+                                        <dx:DXButton Content="Send"
+                                                     Clicked="SendMsgBtn_Clicked" x:Name="SendMsgBtn"
+                                                     />
+                                    </StackLayout>
+                                </Grid>
+                            </dx:DXBorder>
+                        </Grid>
+                    </dx:DXStackLayout>    
+                </dx:TabViewItem.Content>
+            </dx:TabViewItem>
 
         </dx:TabView>
             
@@ -190,9 +244,9 @@ StrokeThickness="0" StrokeShape="RoundRectangle 5" >
                      CloseOnScrimTap="True"
             >
             <dx:DXPopup.Content>
-                <dx:DXStackLayout BackgroundColor="White" HeightRequest="600"
+                <dx:DXStackLayout BackgroundColor="{AppThemeBinding Dark=#1E1E1E, Light=White}" HeightRequest="200"
                                   >
-                    <dx:DXCollectionView ItemsSource="{Binding UserDevices}">
+                    <dx:DXCollectionView ItemsSource="{Binding UserDevices}" Header="Yvan">
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="modellive:UserDeviceSession">
                                 <dxc:DXStackLayout Orientation="Horizontal">

@@ -10,7 +10,7 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        AddPlatformResources();           // ← call your platform hook
+        //AddPlatformResources();           // ← call your platform hook
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
@@ -19,11 +19,17 @@ public partial class App : Application
         {
             ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
             ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
             ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
             ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         }
     }
-    partial void AddPlatformResources();  // ← stub, implemented per-platform
+   //public partial void AddPlatformResources()
+   // {
+   //     // Provide a platform-specific implementation here.
+   //     // For example, you can add platform-specific resources or configurations.
+   //     // If no specific implementation is needed, leave this method empty.
+   // }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {

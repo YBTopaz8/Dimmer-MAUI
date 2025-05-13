@@ -15,6 +15,12 @@ public partial class SettingsPage : ContentPage
     {
         await MyViewModel.SelectSongFromFolderAndroid();
     }
+
+    protected async override void OnAppearing()
+    {
+        base.OnAppearing();
+        await MyViewModel.LoginFromSecureData();
+    }
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
         string reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";
@@ -34,7 +40,20 @@ public partial class SettingsPage : ContentPage
 
     }
 
-    private void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    private async void SelectDeviceChip_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    {
+        MainTabView.SelectedItemIndex = 4;
+        
+        await MyViewModel.SendMessage($"Pinged on {DeviceInfo.Current.Idiom} {DeviceInfo.Current.Platform}");
+        MyDevicesPopUp.Close();
+    }
+
+    private void SwitchDeviceRecipient_Tap(object sender, System.ComponentModel.HandledEventArgs e)
+    {
+
+    }
+
+    private void SendMsgBtn_Clicked(object sender, EventArgs e)
     {
 
     }

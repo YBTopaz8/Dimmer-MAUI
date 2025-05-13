@@ -239,10 +239,13 @@ public partial class BaseViewModel : ObservableObject
 
     public async Task LoginFromSecureData()
     {
-        IsConnected=true;
+        if (UserLocal is null || string.IsNullOrEmpty(UserLocal.UserName))
+        {
+            await dimmerLiveStateService.AttemptAutoLoginAsync();
+            UserLocal= dimmerLiveStateService.UserLocalView;
 
-        await dimmerLiveStateService.AttemptAutoLoginAsync();
-        
+            IsConnected=true;
+        }
     }
 
     private void SubscribeToStateChanges()
@@ -349,8 +352,33 @@ public partial class BaseViewModel : ObservableObject
                 PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
             }));
     }
+    [ObservableProperty]
+    public partial ObservableCollection<ChatConversation> Conversations { get; set; } = new();
+    [ObservableProperty] 
+    public partial ObservableCollection<ChatMessage> ActiveMessageCollection { get; set; } = new();
+    [ObservableProperty] 
+    public partial ChatMessage ActiveMessages { get; set; } = new();
+    [ObservableProperty] 
+    public partial ChatConversation ActiveConversation { get; set; } = new();
+    //[ObservableProperty] 
+    //public partial string Message { get; set; } = string.Empty;
     
-    
+    [RelayCommand]
+    public async Task SwitchRecipient(string id)
+    {
+        ActiveConversation =  await dimmerLiveStateService.GetOrCreateConversationWithUserAsync(id);
+       
+    }
+    [RelayCommand]
+    public async Task SendMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return;
+       ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation.ObjectId, message);
+       ActiveMessageCollection.Add(msg);
+    }
+
+
     private void SubscribeToLyricIndexChanges()
     {
         _subs.Add(_stateService.CurrentLyric
