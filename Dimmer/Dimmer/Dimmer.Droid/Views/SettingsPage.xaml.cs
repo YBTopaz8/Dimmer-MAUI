@@ -16,11 +16,6 @@ public partial class SettingsPage : ContentPage
         await MyViewModel.SelectSongFromFolderAndroid();
     }
 
-    protected async override void OnAppearing()
-    {
-        base.OnAppearing();
-        await MyViewModel.LoginFromSecureData();
-    }
     private static async void ReportIssueBtn_Clicked(object sender, EventArgs e)
     {
         string reportingLink = $"https://github.com/YBTopaz8/Dimmer-MAUI/issues/new";

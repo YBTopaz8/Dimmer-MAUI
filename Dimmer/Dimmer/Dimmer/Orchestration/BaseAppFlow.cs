@@ -90,7 +90,7 @@ public class BaseAppFlow : IDisposable
         SubscribeToStateChanges();
 
 
-        LoadUser();
+        //LoadUser();
         _state.SetCurrentPlaylist([], null);
         _songRepo.WatchAll().ObserveOn(scheduler)
             .DistinctUntilChanged(new SongListComparer())
@@ -116,20 +116,37 @@ public class BaseAppFlow : IDisposable
     private void LoadUser()
     {
         var user = _userRepo.GetAll().FirstOrDefault();
-        if (user is null)
+        CurrentUser = user;
+      
+        if (user != null
+            && !string.IsNullOrWhiteSpace(user.UserPassword)
+            && user.UserPassword != "Unknown Password")
         {
-            CurrentUser = null;
-        }
-        else
-        {
-            CurrentUser=user;
-            if (!string.IsNullOrEmpty(CurrentUser.UserPassword))
+            // fire-and-forget, but handle everything inside
+            _ = Task.Run(async () =>
             {
-                Task.Run(async () =>
+                try
                 {
-                    CurrentUserOnline =  await ParseClient.Instance.LogInWithAsync(CurrentUser.UserName, CurrentUser.UserPassword);
-                });
-            }
+                    if (user.SessionToken is not null)
+                    {
+                        await ParseClient.Instance.BecomeAsync(user.SessionToken);
+                        return;
+                    }
+                    var online = await ParseClient.Instance
+                        .LogInWithAsync(user.UserName, user.UserPassword)
+                        .ConfigureAwait(false);
+
+                    // marshal back to UI thread
+                    MainThread.BeginInvokeOnMainThread(() =>
+                        CurrentUserOnline = online
+                    );
+                }
+                catch (Exception pe) 
+                {
+                    // bad credentials → ignore
+                }
+                
+            });
         }
     }
 
@@ -225,7 +242,7 @@ public class BaseAppFlow : IDisposable
         _pdlRepo.AddOrUpdate(link);
         AppLogModel log = new()
         {
-            Log = $"Play type was {type} at {DateTime.Now.ToLocalTime()}",
+            Log = $"{CurrentlyPlayingSong.Title} - Dimmer State : {type}",
             ViewSongModel = CurrentlyPlayingSong,
         };
         _state.SetCurrentLogMsg(log);

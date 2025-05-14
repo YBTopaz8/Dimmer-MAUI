@@ -18,10 +18,16 @@
     ContentTemplate="{DataTemplate views:HomePage}"
     Route="MainPage" >
         </ShellContent>
+
+        <ShellContent
+    Title="Vault" Icon="chatdimmer.png"
+    ContentTemplate="{DataTemplate views:DimmerVault}"
+    Route="SettingsPage" />
+
         <ShellContent
     Title="Settings" Icon="settings.png"
-    ContentTemplate="{DataTemplate views:SettingsPage}"
-    Route="SettingsPage" >
+    ContentTemplate="{DataTemplate views:DimmerSettings}"
+    Route="DimmerSettings" >
             
 
         </ShellContent>

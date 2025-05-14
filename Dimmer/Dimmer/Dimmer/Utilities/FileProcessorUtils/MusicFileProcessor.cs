@@ -327,7 +327,6 @@ public static class MusicFileProcessor
     // Retrieve the cover image path for a file.
     public static string GetCoverImagePath(string filePath)
     {
-        string defaultCover = "musicnoteslider.png";
         Track track;
         try
         {
@@ -336,11 +335,11 @@ public static class MusicFileProcessor
         catch (Exception ex)
         {
             Debug.WriteLine($"Error loading track for cover image: {ex.Message}");
-            return defaultCover;
+            return string.Empty;
         }
 
         // Check for embedded pictures.
-        if (track.EmbeddedPictures != null && track.EmbeddedPictures.Count <1)
+        if (track.EmbeddedPictures != null && track.EmbeddedPictures.Count >0)
         {
             ATL.PictureInfo? picture = track.EmbeddedPictures.FirstOrDefault();
             if (picture != null)
@@ -363,9 +362,18 @@ public static class MusicFileProcessor
                                   .Where(f => new[] { ".jpg", ".jpeg", ".png" }
                                   .Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))];
         if (imageFiles.Count<1)
-            return imageFiles.FirstOrDefault() is null ? defaultCover : imageFiles[0];
+        {
+            if (imageFiles.FirstOrDefault() is null)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return imageFiles[0];
+            }
+        }
 
-        return defaultCover;
+        return string.Empty;
     }
 
     // Return text before the first comma.

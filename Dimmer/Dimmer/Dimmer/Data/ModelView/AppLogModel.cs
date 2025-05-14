@@ -15,4 +15,5 @@ public class AppLogModel
     public UserDeviceSession? DeviceModelSession { get; set; }
     public ChatMessage? ChatMsg { get; set; }
     public ChatConversation? ChatConvo { get; set; }
+    public DimmerSharedSong? SharedSong { get; set; }
 }

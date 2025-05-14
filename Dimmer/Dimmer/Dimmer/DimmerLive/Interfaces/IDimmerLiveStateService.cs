@@ -28,10 +28,13 @@ public interface IDimmerLiveStateService
     IObservable<IEnumerable<ChatConversation>> ObserveUserConversations();
     IObservable<IEnumerable<ChatMessage>> ObserveMessagesForConversation(string conversationId);
     Task<ChatConversation?> GetOrCreateConversationWithUserAsync(string userId);
-    Task<ChatMessage?> SendTextMessageAsync(string conversationId, string text);
+    Task<ChatMessage?> SendTextMessageAsync(ChatConversation conversation, string text);
     Task<ChatMessage?> ShareSongInChatAsync(string conversationId, DimmerSharedSong songToShare);
     Task MarkConversationAsReadAsync(string conversationId);
-    Task ShareSongOnline(SongModelView song);
+    Task<DimmerSharedSong?> ShareSongOnline(SongModelView song, double positionInSeconds);
+    Task<DimmerSharedSong?> FetchSharedSongByCodeAsync(string sharedSongCode);
+    Task<bool> ActivateThisDeviceAndCheckForTransferAsync();
+    Task<bool> PrepareSessionTransferAsync(SongModelView currentSong, double currentPositionSeconds);
 
     // --- LIVE QUERY STATUS ---
     IObservable<bool> IsLiveQueryConnected { get; }

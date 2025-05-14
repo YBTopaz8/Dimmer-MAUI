@@ -94,6 +94,21 @@ public static class PlatUtils
         }
     }
 
+    public static void OpenAlbumWindow(SongModelView song)
+    {
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        var vm = new BaseAlbumViewModel();
+        vm.SetSelectedSong(song);
+
+        AlbumWindow newWindow = new(vm, MyVM);
+
+        newWindow.SetTitle(song);
+        Application.Current!.OpenWindow(newWindow);
+
+        MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+
+    }
     public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
     {
         try

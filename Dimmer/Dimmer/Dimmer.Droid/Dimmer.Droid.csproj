@@ -25,6 +25,11 @@
 
   <ItemGroup>
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
+    <Compile Remove="Views\SettingsPage.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiXaml Remove="Views\SettingsPage.xaml" />
   </ItemGroup>
 
 
@@ -143,7 +148,10 @@
     <MauiXaml Update="Views\HomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\SettingsPage.xaml">
+    <MauiXaml Update="Views\DimmerVault.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\DimmerSettings.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>
@@ -158,6 +166,15 @@
       <PackagePath>\</PackagePath>
     </None>
     <None Include="Utils\CustomAnimsAndroid.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\DimmerVault.xaml.cs">
+      <DependentUpon>DimmerVault.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DimmerSettings.xaml.cs">
+      <DependentUpon>DimmerSettings.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

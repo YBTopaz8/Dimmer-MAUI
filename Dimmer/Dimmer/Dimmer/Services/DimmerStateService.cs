@@ -8,6 +8,7 @@ namespace Dimmer.Services;
 
 public class DimmerStateService : IDimmerStateService
 {
+    public SongModelView CurrentSongValue => _currentSong.Value;
     readonly BehaviorSubject<SongModelView> _currentSong = new(new SongModelView());
     readonly BehaviorSubject<bool> _isPlaying = new(false);
     

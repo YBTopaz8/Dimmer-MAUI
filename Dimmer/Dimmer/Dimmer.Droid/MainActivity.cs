@@ -1,4 +1,7 @@
-﻿using Android;
+﻿using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
+using Android;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -8,8 +11,6 @@ using Android.Provider;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using Dimmer.DimmerLive.Models;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using UraniumUI.Material.Controls;
 
 namespace Dimmer;
@@ -47,10 +48,10 @@ public class MainActivity : MauiAppCompatActivity
 
         
     }
-    protected override void OnNewIntent(Intent? intent)
+    protected override async void OnNewIntent(Intent? intent)
     {
         base.OnNewIntent(intent);
-        HandleIntent(intent);
+        await HandleIntent(intent);
 
         
     }
@@ -204,6 +205,7 @@ public class MainActivity : MauiAppCompatActivity
         base.OnCreate(savedInstanceState);
 
 
+        //EnsureParseFallbackCache();
         Android.Util.Log.Debug("MainActivity", $"Running in package: {PackageName}");
         // --- STORAGE PERMISSION / MANAGER CHECK ---
         if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
@@ -280,11 +282,54 @@ public class MainActivity : MauiAppCompatActivity
         // Optional: Handle intent if app was launched FROM CLOSED by the action
          Platform.OnNewIntent(Intent); // Call this here *too* if needed for cold start actions
     }
+static void EnsureParseFallbackCache()
+{
+    // 1) reflect out the timestamp from Parse's controller (if it exists)
+    var asm = typeof(Parse.ParseClient).Assembly;
+    var ctrlType = asm.GetType("Parse.Internal.PersistentCacheController");
+    if (ctrlType == null)
+        return;     // library internals changed — just bail
 
-   
+    var tsField = ctrlType.GetField(
+        "_timestamp",
+        BindingFlags.NonPublic | BindingFlags.Static
+    );
+    if (tsField == null)
+        return;
 
+    var ts = (long)(tsField.GetValue(null) ?? 0L);
 
-    protected override void OnDestroy()
+    // 2) build the fallback folder + path
+    var fallbackDir = Path.Combine(
+        FileSystem.AppDataDirectory,
+        "Parse", "_fallback"
+    );
+    Directory.CreateDirectory(fallbackDir);
+
+    var fallbackPath = Path.Combine(fallbackDir, $"{ts}.cachefile");
+
+    // 3) if it already exists, we're done
+    if (File.Exists(fallbackPath))
+        return;
+
+    // 4) otherwise try to create it—if it's locked, just swallow the error
+    try
+    {
+        using var fs = new FileStream(
+            fallbackPath,
+            FileMode.CreateNew,         // only if not already there
+            FileAccess.Write,
+            FileShare.ReadWrite         // allow others to open it too
+        );
+        // zero‐byte file; nothing to write
+    }
+    catch (IOException)
+    {
+        // someone else has it open: ignore
+    }
+}
+
+protected override void OnDestroy()
     {
         if (_serviceConnection != null)
         {

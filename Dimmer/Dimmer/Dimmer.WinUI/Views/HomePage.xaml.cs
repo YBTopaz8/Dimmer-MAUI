@@ -190,7 +190,6 @@ public partial class HomePage : ContentPage
                 break;
         }
     }
-    ObservableCollection<WindowInfo> WindowsOpened= new ObservableCollection<WindowInfo>();
     private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
         if (MyViewModel.SecondSelectedSong is null)
@@ -219,7 +218,7 @@ public partial class HomePage : ContentPage
                 break;
             case 2:
                 //show the albums songs
-                OpenAlbumWindow(MyViewModel.SecondSelectedSong);
+                PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
 
                 break;
             case 3:
@@ -231,7 +230,7 @@ public partial class HomePage : ContentPage
                 break;
             case 5:
                 await SwitchUIs(2);
-                WindowsOpened?.Clear();
+               MyViewModel.WindowsOpened?.Clear();
 
                 foreach (var win in Application.Current!.Windows)
                 {
@@ -244,24 +243,24 @@ public partial class HomePage : ContentPage
 
                     // 2) build your info object
                     var info = new WindowInfo(win, thumbnail);
-                    WindowsOpened!.Add(info);
+                    MyViewModel.WindowsOpened!.Add(info);
 
                     Debug.WriteLine($"Captured: {info.Title} ({info.TypeName}) " +
                                     $"at [{info.X},{info.Y}] {info.Width}×{info.Height}");
                 }
 
-                ControlPanelColView.ItemsSource = WindowsOpened;
+                ControlPanelColView.ItemsSource = MyViewModel.WindowsOpened;
 
                 break;
             case 6:
                 await SwitchUIs(4);
                 break;
             case 7:
-                await MyViewModel.ShareSongCommand.ExecuteAsync(null);
+                MyViewModel.ShareSongOnline();
                 break;
             case 8:
 
-
+                
                 DimmerSongWindow newWin = new DimmerSongWindow(MyViewModel);
 
                 var dq = DispatcherQueue.GetForCurrentThread();
@@ -299,21 +298,6 @@ public partial class HomePage : ContentPage
         
     }
 
-    private void OpenAlbumWindow(SongModelView song)
-    {
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
-        var vm = new BaseAlbumViewModel();
-        vm.SetSelectedSong(song);
-        
-        AlbumWindow newWindow = new(vm, MyViewModel);
-
-        newWindow.SetTitle(song);
-        Application.Current!.OpenWindow(newWindow);
-       
-       
-        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
-       
-    }
 
     private CancellationTokenSource? _debounceTimer;
     private bool isOnFocusMode;
@@ -614,7 +598,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 2:
-                OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
+                PlatUtils.OpenAlbumWindow(MyViewModel.TemporarilyPickedSong!);
                 
                 break;
 
@@ -633,10 +617,10 @@ public partial class HomePage : ContentPage
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
         Application.Current!.CloseWindow(item.WindowInstance);
-        WindowsOpened.Remove(item);
+        MyViewModel.WindowsOpened.Remove(item);
     }
 
-    private void FocusChip_Clicked(object sender, EventArgs e)
+    private static void FocusChip_Clicked(object sender, EventArgs e)
     {
 
         var send = (SfChip)sender;
@@ -646,11 +630,11 @@ public partial class HomePage : ContentPage
 
     private void CloseAllWin_Clicked(object sender, EventArgs e)
     {
-        foreach (var win in WindowsOpened)
+        foreach (var win in MyViewModel.WindowsOpened)
         {
             Application.Current!.CloseWindow(win.WindowInstance);
         }
-        WindowsOpened.Clear();
+        MyViewModel.WindowsOpened.Clear();
     }
 
     private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)

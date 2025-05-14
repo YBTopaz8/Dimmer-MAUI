@@ -34,70 +34,236 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
 
         </ContentPage.Resources>
 
+        <Grid Margin="10" >
+            <Image Opacity="1" Source="{Binding TemporarilyPickedSong.CoverImagePath}" />
 
-        <Grid ColumnDefinitions="auto,*" Margin="10">
-            <Grid Grid.Column="0" RowDefinitions="auto,*">
-                <HorizontalStackLayout Grid.Row="0" Spacing="10">
+            <Grid ColumnDefinitions="0.3*,*"
+              ColumnSpacing="10" 
+              >
+                <Grid.Effects>
+                    <uranium:BlurEffect />
+                </Grid.Effects>
+                <Grid Grid.Column="0" RowDefinitions="auto,*" IsVisible="True">
+                    <Border BackgroundColor="#1e1e1e" StrokeShape="RoundRectangle 10"
+                            Grid.Row="0" >
 
-                    <SearchBar Text="" Placeholder="Find A Friend"/>
-                    <Button Text="Share Profile"/>
-                </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="10">
 
-                <Grid Grid.Row="1">
-                    <CollectionView ItemsSource="{Binding ChatConversations}"
-                                    Header="All Friends"
-                                    EmptyView="No friends Yet...">
+                            <Image
+                                HeightRequest="130"
+                                Source="{Binding UserLocal.UserProfileImage}"
+                            />
+                            
+                            <Button Text="View Profile"
+                                    x:Name="ViewProfile" 
+                                    Clicked="ViewProfile_Clicked"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <VerticalStackLayout Grid.Row="1">
+                        <SearchBar Placeholder="Paste Shared Code" 
+                                   SearchButtonPressed="GetSharedSong_SearchButtonPressed" x:Name="GetSharedSong"
+                                   />
+                    </VerticalStackLayout>
+                    
+                    
+                    <CollectionView ItemsSource="{Binding UserDevices}"
+                                    EmptyView="Empty.." IsVisible="False"
+                                    Grid.Row="1">
+                        <CollectionView.Header>
+                            <HorizontalStackLayout
+                                HorizontalOptions="Center">
+                                <Label Text="Your Devices"
+                                       FontSize="23"
+                                       />
+                            </HorizontalStackLayout>
+                        </CollectionView.Header>
                         <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="modelsLive:ChatConversation">
+                            <DataTemplate x:DataType="modelsLive:UserDeviceSession">
+                                <syncf:SfEffectsView
+                                    TouchDownEffects="Ripple"
+                                    RippleAnimationDuration="2000">
+                                    
+                                    <Grid>
+                                        <VerticalStackLayout>
+                                            <Label Text="{Binding DeviceName}"/>
+                                            <Label Text="{Binding DeviceIdiom}"/>
+                                        </VerticalStackLayout>
 
-                                <VerticalStackLayout>
-                                    <VerticalStackLayout.GestureRecognizers>
-                                        <TapGestureRecognizer x:Name="ViewConverationGesture"
-                                                              Tapped="ViewConverationGesture_Tapped"
-                                                              CommandParameter="{Binding ObjectId}" />
+                                    </Grid>
 
-                                    </VerticalStackLayout.GestureRecognizers>
-
-                                    <Label Text="{Binding Name}"/>
-                                    <Label Text="{Binding LastMessage}"/>
-                                    <Label Text="{Binding LastMessageTimestamp}"/>
-                                </VerticalStackLayout>
+                                </syncf:SfEffectsView>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
-
                     </CollectionView>
-                    
                 </Grid>
 
-
-            </Grid>
-
-            <Grid Grid.Column="1" RowDefinitions="auto,*"  >
-                <Grid ColumnDefinitions="*,*">
-                    <HorizontalStackLayout Grid.Column="1">
-                        
-                        <Border HorizontalOptions="Center" 
-                VerticalOptions="Center" StrokeShape="RoundRectangle 30">
-                            <VerticalStackLayout HeightRequest="200" 
-                                             WidthRequest="200" >
-
-                                <zxing:BarcodeGeneratorView 
-                        Value="{Binding barCodeInvitationValue}"
-    x:Name="BarCode" Format="QrCode"  BackgroundColor="Transparent"
-                                    ForegroundColor="DarkSlateBlue"
+                <Grid Grid.Column="1" RowDefinitions="0.15*,*,0.3*"   >
+                <Grid Grid.Row="0" ColumnDefinitions="*,*" BackgroundColor="Transparent"> 
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label Text="{Binding TemporarilyPickedSong.Title, StringFormat='You are Playing {0}'}"/>
+                        <Label Text="{Binding UserLocal.DeviceFormFactor, StringFormat='On {0}'}"
+                               />
+                    </VerticalStackLayout>
                     
-    />
+                    <VerticalStackLayout Grid.Column="1">
+                            <Label Text="{Binding LatestScanningLog}"/>
+                    </VerticalStackLayout>
+                </Grid>
 
+                    <Grid Grid.Row="1" IsVisible="False"
+                      x:Name="UserProfilePage"
+                      >
+                        <VerticalStackLayout>
+                            <HorizontalStackLayout Spacing="15">
+                                <Border StrokeShape="RoundRectangle 50"
+                                        
+       HeightRequest="150"
+                                    WidthRequest="150">
+
+                                    <Image Aspect="AspectFit"
+       Source="{Binding UserLocal.UserProfileImage}"
+   />
+                                </Border>
+                                <VerticalStackLayout VerticalOptions="Center">
+                                    <Label Text="{Binding UserLocal.UserName}" FontSize="22"/>
+                                    <Label Text="{Binding UserLocal.UserEmail}" FontSize="22"/>
+                                    <Label Text="{Binding UserLocal.DeviceFormFactor}"
+                                           FontSize="22"/>
+                                    
+                                </VerticalStackLayout>
+                            </HorizontalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="Adjust Your Photo" />
+                                <Border BackgroundColor="#2B2B2B"
+                                        Padding="20" StrokeShape="RoundRectangle 15">
+                                    
+                                    <Grid ColumnDefinitions="*,*" BackgroundColor="Transparent">
+                                        <HorizontalStackLayout Grid.Column="0" Spacing="10">
+                                            <Image Source="folder.png" HeightRequest="30"
+                                                   WidthRequest="30"/>
+                                            <Label Text="Choose a File"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End">
+                                            <Button Text="Browse files"
+                                                  Command="{Binding PickNewProfileImageCommand}" 
+                                                    BackgroundColor="#3C3C3C"/>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
                             </VerticalStackLayout>
-                        </Border>
-                        <Button Text="Share" x:Name="ShareProfileBtn" VerticalOptions="Center"
-                                        Clicked="ShareProfileBtn_Clicked"/>
-                    </HorizontalStackLayout>
-                </Grid>
+                        </VerticalStackLayout>
+                        
+                        
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*"
+                          Grid.Row="1" x:Name="ShareWindow"
+                          IsVisible="False">
+                        <HorizontalStackLayout >
+
+                            <Border HorizontalOptions="Center" 
+            VerticalOptions="Center" StrokeShape="RoundRectangle 30">
+                                <VerticalStackLayout HeightRequest="200" 
+                                         WidthRequest="200" >
+
+                                    <zxing:BarcodeGeneratorView 
+                    Value="{Binding barCodeInvitationValue}"
+x:Name="BarCode" Format="QrCode"  BackgroundColor="Transparent"
+                                ForegroundColor="DarkSlateBlue"
                 
+/>
+
+                                </VerticalStackLayout>
+                            </Border>
+                            <Button Text="Share" x:Name="ShareProfileBtn" VerticalOptions="Center"
+                                    Clicked="ShareProfileBtn_Clicked"/>
+                        </HorizontalStackLayout>
+                    </Grid>
+
+                    <Grid Grid.Row="1"  BackgroundColor="Transparent"
+                          IsVisible="False">
+
+                        <CollectionView ItemsSource="{Binding ActiveMessages}"
+                                    EmptyView="Nothing..."
+                                    />
+                    </Grid>
+
+
+
+                    <Grid Grid.Row="2" RowDefinitions="*,0.6*" 
+                          IsVisible="{Binding IsPlaying}"
+                          >
+
+                        <VerticalStackLayout Grid.Row="0" BackgroundColor="Transparent" 
+                                             HorizontalOptions="Center" VerticalOptions="End">
+                            <syncf:SfChipGroup x:Name="ActualSongView" 
+ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
+>
+                                <syncf:SfChipGroup.Resources>
+                                    <ResourceDictionary>
+                                        <Style TargetType="syncf:SfChip">
+                                            <Setter Property="ShowIcon" Value="False"/>
+                                            <Setter Property="StrokeThickness" Value="0"/>
+                                            <Setter Property="ImageSize" Value="0"/>
+                                            <Setter Property="TextColor" Value="White"/>
+                                        </Style>
+                                    </ResourceDictionary>
+                                </syncf:SfChipGroup.Resources>
+                                <syncf:SfChipGroup.ChipLayout>
+                                    <HorizontalStackLayout Spacing="10" 
+  HorizontalOptions="Center"/>
+                                </syncf:SfChipGroup.ChipLayout>
+                                <syncf:SfChip Text="{Binding TemporarilyPickedSong.Title}" FontSize="20" CommandParameter="0"/>
+                                <syncf:SfChip Text="{Binding TemporarilyPickedSong.ArtistName}" FontSize="20" CommandParameter="1"/>
+                                <syncf:SfChip Text="{Binding TemporarilyPickedSong.AlbumName}" FontSize="18" CommandParameter="2"/>
+                            </syncf:SfChipGroup>
+                            <Grid ColumnDefinitions="auto,*,auto"
+                                  Margin="25,0"
+               ColumnSpacing="5" Grid.Column="2">
+
+                                <Label Grid.Column="0"
+             Text="{Binding CurrentPositionInSeconds, Converter={StaticResource DurationConverter}}"
+                HorizontalOptions="Center" FontSize="14" 
+                />
+                                <Slider Grid.Column="1" DragCompleted="CurrentPositionSlider_DragCompleted" 
+             Value="{Binding CurrentPositionInSeconds}" MinimumWidthRequest="250"
+                 x:Name="CurrentPositionSlider" MinimumTrackColor="DarkSlateBlue"
+                 VerticalOptions="Center" ThumbColor="AliceBlue"  
+ Minimum="0" Maximum="{Binding TemporarilyPickedSong.DurationInSeconds}"/>
+
+                                <Label Text="{Binding TemporarilyPickedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}"
+                HorizontalOptions="Center" FontSize="14" Grid.Column="2"
+                />
+                            </Grid>
+                        </VerticalStackLayout>
+                        <Border Grid.Row="1" BackgroundColor="Transparent"
+                            VerticalOptions="End">
+                            <Grid ColumnSpacing="10" ColumnDefinitions="0.2*,*,0.2*">
+                                <HorizontalStackLayout HorizontalOptions="End">
+                                    <ImageButton Source="sharel.png"
+                                                 x:Name="ShareSongBtn" Clicked="ShareSongBtn_Clicked"/>
+                                </HorizontalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     >
+                                    <material:EditorField Title="Type Anything"
+                                                 TitleFontSize="26"       AccentColor="DarkSlateBlue" />
+                                </VerticalStackLayout>
+
+
+                                <HorizontalStackLayout Grid.Column="2">
+                                    <ImageButton Source="share11.png"/>
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                        </Border>
+                    </Grid>
+
+                </Grid>
+
+
             </Grid>
-            
-            
         </Grid>
     </ContentPage>
 </Window>

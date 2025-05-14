@@ -252,4 +252,7 @@
   <data name="txt_logout" xml:space="preserve">
     <value>Log Out</value>
   </data>
+  <data name="btnprofiletxt" xml:space="preserve">
+    <value>Profile</value>
+  </data>
 </root>

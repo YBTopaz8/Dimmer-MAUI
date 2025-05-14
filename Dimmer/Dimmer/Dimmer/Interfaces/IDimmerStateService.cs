@@ -101,6 +101,7 @@ public interface IDimmerStateService : IDisposable
     /// The device volume.
     /// </value>
     IObservable<double> DeviceVolume { get; }
+    SongModelView? CurrentSongValue { get; }
 
     #region Settings Methods
 

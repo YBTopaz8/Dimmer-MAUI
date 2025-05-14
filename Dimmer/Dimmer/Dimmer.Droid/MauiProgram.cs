@@ -28,7 +28,8 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddSingleton<HomePage>();
-        builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddSingleton<DimmerSettings>();
+        builder.Services.AddSingleton<DimmerVault>();
 
         builder.Services.AddSingleton<HomePageViewModel>();
 

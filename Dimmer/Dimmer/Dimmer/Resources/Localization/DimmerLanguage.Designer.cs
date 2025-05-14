@@ -61,6 +61,15 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Profile.
+        /// </summary>
+        public static string btnprofiletxt {
+            get {
+                return ResourceManager.GetString("btnprofiletxt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Welcome To Dimmer !.
         /// </summary>
         public static string gettingstart_txt_wlc {

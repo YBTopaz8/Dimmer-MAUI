@@ -1,10 +1,4 @@
-﻿using Dimmer.DimmerLive.Interfaces;
-using Dimmer.DimmerLive.Models;
-using Dimmer.Utilities.Extensions;
-using Dimmer.Utils;
-using Parse.Infrastructure;
-using Parse.LiveQuery;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +6,15 @@ using System.Reactive.Disposables;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using ATL;
+using ATL.Logging;
+using Dimmer.DimmerLive.Interfaces;
+using Dimmer.DimmerLive.Models;
+using Dimmer.Utilities.Extensions;
+using Dimmer.Utilities.FileProcessorUtils;
+using Dimmer.Utils;
+using Parse.Infrastructure;
+using Parse.LiveQuery;
 
 namespace Dimmer.DimmerLive;
 public class DimmerLiveStateService : IDimmerLiveStateService
@@ -47,7 +50,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<UserModel> _userRepo;
-    private readonly IDimmerStateService dimmerStateService;
+    private readonly IDimmerStateService _state;
     private readonly IMapper mapper;
     readonly CompositeDisposable _subs = new();
 
@@ -61,12 +64,13 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
-         IDimmerStateService dimmerStateService)
+         IDimmerStateService _state)
     {
         this._userRepo=userRepo;
-        this.dimmerStateService=dimmerStateService;
+        this._state=_state;
         this.mapper=mapper;
-        _encryptionService = new PasswordEncryptionService(); 
+        _encryptionService = new PasswordEncryptionService();
+
     }
     public async Task InitializeAfterLogin(UserModelOnline authenticatedUser)
     {
@@ -85,7 +89,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         foreach (var subPair in _messageSubscriptions)
         {
             subPair.Value.UnsubscribeNow(); // Unsubscribe from each message subscription
-            
+
         }
         _messageSubscriptions.Clear();
 
@@ -95,7 +99,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         //}
     }
 
-   
+
     // In User A's client, after they select a device (e.g., by its objectId from the list)
     public static async Task<bool> SetActiveChatDeviceAsync(string selectedDeviceSessionObjectId)
     {
@@ -157,7 +161,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     //    var query =  ParseClient.Instance.GetQuery<ChatConversation>()
     //        .WhereContainsAll(nameof(ChatConversation.Participants), new[] { UserOnline.ObjectId, otherUser.ObjectId }
     //        .Select(id => ParseClient.Instance.CreateObjectWithoutData<UserModelOnline>(id)))            
-            
+
     //        .WhereEqualTo(nameof(ChatConversation.IsGroupChat), false)
     //        .Include(nameof(ChatConversation.Participants)); // Optional: Include participants if you need their data immediately
 
@@ -183,13 +187,13 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     //    catch (Exception ex) { Debug.WriteLine($"[GetOrCreateConversation_ERROR] {ex.Message}"); return null; }
     //}
 
-    public async Task<ChatMessage?> SendTextMessageAsync(string conversationId, string text)
+    public async Task<ChatMessage?> SendTextMessageAsync(ChatConversation conversation, string text)
     {
         ChatMessage msg = new()
         {
             Sender = UserOnline,
             Text = text,
-            Conversation = ParseClient.Instance.CreateObjectWithoutData<ChatConversation>(conversationId),
+            Conversation = conversation,
 
         };
         msg.MessageType = "Text";
@@ -253,8 +257,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     {
         try
         {
-            liveClient?.Dispose();
-            liveClient= new ParseLiveQueryClient();
+            liveClient ??= new ParseLiveQueryClient();
             var query = ParseClient.Instance.GetQuery<UserDeviceSession>();
             var queryConvo = ParseClient.Instance.GetQuery<ChatConversation>()
              .WhereEqualTo(nameof(ChatConversation.Participants), UserOnline) // Key filter
@@ -264,12 +267,180 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             var queryMsgs = ParseClient.Instance.GetQuery<ChatMessage>();
             //query.WhereEqualTo("isActive", true);
             //WhereEqualTo("userOwner", UserOnline)                
-                //.Include("userOwner");
-            
+            //.Include("userOwner");
+
             //Subscription<UserDeviceSession>? subscription = new();
-            var subscription =  await liveClient!.SubscribeAsync(query);
+            var subscription = await liveClient!.SubscribeAsync(query);
             var convoSub = await liveClient.SubscribeAsync(queryConvo, "MyConversations");
             var msgSub = await liveClient.SubscribeAsync(queryMsgs, "MyMessages");
+
+            await liveClient.ConnectIfNeededAsync();
+            int retryDelaySeconds = 5;
+            int maxRetries = 10;
+
+            liveClient.OnConnected
+                .Do(_ => Debug.WriteLine("LiveQuery connected."))
+                .RetryWhen(errors =>
+                    errors
+                        .Zip(Observable.Range(1, maxRetries), (error, attempt) => (error, attempt))
+                        .SelectMany(async tuple =>
+                        {
+                            if (tuple.attempt > maxRetries)
+                            {
+                                Debug.WriteLine($"Max retries reached. Error: {tuple.error.Message}");
+                                return Observable.Throw<Exception>(tuple.error); // Explicit type here
+                            }
+                            IsConnected = false;
+                            Debug.WriteLine($"Retry attempt {tuple.attempt} after {retryDelaySeconds} seconds...");
+
+                            // Explicit reconnect call before retry delay
+                            await liveClient.ConnectIfNeededAsync(); // revive app!
+
+                            return Observable.Timer(TimeSpan.FromSeconds(retryDelaySeconds)).Select(_ => tuple.error); // Maintain compatible type
+                        })
+                )
+                .Subscribe(
+                    _ =>
+                    {
+                        IsConnected=true;
+                        Debug.WriteLine("Reconnected successfully.");
+                    },
+                    ex => Debug.WriteLine($"Failed to reconnect: {ex.Message}")
+                );
+
+            liveClient.OnObjectEvent
+
+            .Subscribe(e =>
+            {
+                Debug.WriteLine(e.evt);
+                ProcessEvent(e);
+            });
+
+
+            // Combine other potential streams
+            Observable.CombineLatest(
+                liveClient.OnConnected.Select(_ => "Connected"),
+                liveClient.OnDisconnected.Select(_ => "Disconnected"),
+                (connected, disconnected) => $"Status: {connected}, {disconnected}"
+            )
+            .Throttle(TimeSpan.FromSeconds(1)) // Aggregate status changes
+            .Subscribe(status => Debug.WriteLine(status));
+
+
+            await CloudCodeToSetSession();
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("SetupLiveQueryAsync Error: " + ex.Message);
+        }
+    }
+    public static async Task GetMyDeviceSessionsAsync()
+    {
+        // Assuming ParseUser.CurrentUser is valid
+        if (ParseClient.Instance.CurrentUserController.CurrentUser == null)
+            return;
+
+        var parameters = new Dictionary<string, object>(); // No specific params needed, user is implicit
+        try
+        {
+            // We expect a list of objects that can be deserialized into a POCO
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<List<object>>("getMyDeviceSessions", parameters);
+
+            // Deserialize the generic list of objects (dictionaries) into specific POCOs
+            var deviceSessions = new List<UserDeviceSession>();
+            if (result != null)
+            {
+                foreach (var item in result)
+                {
+                    if (item is IDictionary<string, object> dict)
+                    {
+                        Debug.WriteLine(dict.Keys);
+                        Debug.WriteLine(dict.Values);
+                    }
+                }
+            }
+            return;
+        }
+        catch (ParseFailureException ex)
+        {
+            Debug.WriteLine($"Error getting my device sessions: {ex.Code} - {ex.Message}");
+            return;
+        }
+    }
+    async Task CloudCodeToSetSession()
+    {
+        // Gather device information
+        // Using DeviceInfo.Name as the primary identifier for the session as per your cloud code's query
+        var deviceName = DeviceInfo.Name; // This is what your cloud code queries on primarily
+
+        // While deviceId might not be the primary query key in your cloud code,
+        // it's still good practice to generate and send it for uniqueness if a deviceName isn't unique enough
+        // or if you might change the cloud code later.
+        var deviceId = DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ?
+                       (DeviceInfo.Current.Name + "_" + DeviceInfo.Current.Model + "_" + System.Net.Dns.GetHostName()).Replace(" ", "_") : // Make it more filesystem/DB friendly
+                       DeviceInfo.Current.Platform.ToString();
+
+        var deviceIdiom = DeviceInfo.Current.Idiom.ToString();
+        var deviceOSVersion = DeviceInfo.Current.VersionString;
+        UserDeviceSession devSess = new();
+        devSess.DeviceIdiom = deviceIdiom;
+        devSess.DeviceName = deviceName;
+        devSess.DeviceId = deviceId;
+        devSess.DeviceOSVersion = deviceOSVersion;
+        devSess.UserOwner = UserOnline;
+        devSess.IsActive = true;
+
+        var parameters = new Dictionary<string, object>
+            {
+                // userOwner will be request.user in Cloud Code due to authenticated call
+                { "deviceId", deviceId },             // Send it, even if not primary query key in current cloud code
+                { "deviceName", deviceName },         // This is a key part of your cloud code's query
+                { "deviceIdiom", deviceIdiom },
+                { "deviceOSVersion", deviceOSVersion },
+                { "isActive", true }                  // You're setting the session to active
+                // sessionStartTime will be set by the server in your cloud code
+            };
+
+        var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("updateUserDeviceSession", parameters);
+
+        Debug.WriteLine(result.GetType());
+        _state.SetCurrentLogMsg(new AppLogModel()
+        {
+            UserModel = UserLocalView,
+            Log = $"User {UserLocalView.UserName} logged in automatically.",
+            DeviceModelSession = devSess
+        });
+    }
+
+
+    Task<ObservableCollection<ChatMessage>> OpenConversation(string convoId)
+    {
+
+
+        // open the conversation
+        // i will use the chat service to open the conversation
+        // and pass the convoId to it
+        return null;
+    }
+
+
+    public void RequestSongFromDifferentDevice(string userId, string songId, string deviceId)
+    {
+        // use a parse cloud code, send
+    }
+
+    async Task SetupLiveQueryDimmerSharedSongAsync()
+    {
+        try
+        {
+            liveClient ??= new ParseLiveQueryClient();
+            var query = ParseClient.Instance.GetQuery<DimmerSharedSong>();
+
+
+            //Subscription<UserDeviceSession>? subscription = new();
+            var subscription = await liveClient!.SubscribeAsync(query, "SharedSongsSubs");
 
             await liveClient.ConnectIfNeededAsync();
             int retryDelaySeconds = 5;
@@ -325,15 +496,12 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 .Do(e => Debug.WriteLine("Subscribed to: " + e.requestId))
                 .Subscribe();
 
-            int batchSize = 3; // Number of events to release at a time
-            TimeSpan throttleTime = TimeSpan.FromMilliseconds(0000);
-
             liveClient.OnObjectEvent
-            
+
             .Subscribe(e =>
             {
                 Debug.WriteLine(e.evt);
-                //ProcessEvent(e, Messages);
+                ProcessEvent(e);
             });
 
 
@@ -349,186 +517,15 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
             await CloudCodeToSetSession();
 
-          
+
         }
         catch (Exception ex)
         {
             Debug.WriteLine("SetupLiveQueryAsync Error: " + ex.Message);
         }
     }
-    public static async Task GetMyDeviceSessionsAsync()
-    {
-        // Assuming ParseUser.CurrentUser is valid
-        if (ParseClient.Instance.CurrentUserController.CurrentUser == null)
-            return ;
-
-        var parameters = new Dictionary<string, object>(); // No specific params needed, user is implicit
-        try
-        {
-            // We expect a list of objects that can be deserialized into a POCO
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<List<object>>("getMyDeviceSessions", parameters);
-
-            // Deserialize the generic list of objects (dictionaries) into specific POCOs
-            var deviceSessions = new List<UserDeviceSession>();
-            if (result != null)
-            {
-                foreach (var item in result)
-                {
-                    if (item is IDictionary<string, object> dict)
-                    {
-                        Debug.WriteLine(dict.Keys);
-                        Debug.WriteLine(dict.Values);
-                    }
-                }
-            }
-            return;
-        }
-        catch (ParseFailureException ex)
-        {
-            Debug.WriteLine($"Error getting my device sessions: {ex.Code} - {ex.Message}");
-            return ;
-        }
-    }
-    async Task CloudCodeToSetSession()
-    {
-        // Gather device information
-        // Using DeviceInfo.Name as the primary identifier for the session as per your cloud code's query
-        var deviceName = DeviceInfo.Name; // This is what your cloud code queries on primarily
-
-        // While deviceId might not be the primary query key in your cloud code,
-        // it's still good practice to generate and send it for uniqueness if a deviceName isn't unique enough
-        // or if you might change the cloud code later.
-        var deviceId = DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ?
-                       (DeviceInfo.Current.Name + "_" + DeviceInfo.Current.Model + "_" + System.Net.Dns.GetHostName()).Replace(" ", "_") : // Make it more filesystem/DB friendly
-                       DeviceInfo.Current.Platform.ToString() ;
-
-        var deviceIdiom = DeviceInfo.Current.Idiom.ToString();
-        var deviceOSVersion = DeviceInfo.Current.VersionString;
-        UserDeviceSession devSess = new();
-        devSess.DeviceIdiom = deviceIdiom;
-        devSess.DeviceName = deviceName;
-        devSess.DeviceId = deviceId;
-        devSess.DeviceOSVersion = deviceOSVersion;
-        devSess.UserOwner = UserOnline;
-        devSess.IsActive = true;
-
-        var parameters = new Dictionary<string, object>
-            {
-                // userOwner will be request.user in Cloud Code due to authenticated call
-                { "deviceId", deviceId },             // Send it, even if not primary query key in current cloud code
-                { "deviceName", deviceName },         // This is a key part of your cloud code's query
-                { "deviceIdiom", deviceIdiom },
-                { "deviceOSVersion", deviceOSVersion },
-                { "isActive", true }                  // You're setting the session to active
-                // sessionStartTime will be set by the server in your cloud code
-            };
-
-        var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("updateUserDeviceSession", parameters);
-
-        Debug.WriteLine(result.GetType());
-        dimmerStateService.SetCurrentLogMsg(new AppLogModel()
-        {
-            UserModel = UserLocalView,
-            Log = $"User {UserLocalView.UserName} logged in automatically.",
-            DeviceModelSession = devSess
-        });
-    }
 
 
-    Task<ObservableCollection<ChatMessage>> OpenConversation(string convoId)
-    {
-
-
-        // open the conversation
-        // i will use the chat service to open the conversation
-        // and pass the convoId to it
-        return null;
-    }
-
-
-    public void RequestSongFromDifferentDevice(string userId, string songId, string deviceId)
-    {
-        // use a parse cloud code, send
-    }
-
-
-    public async Task ShareSongOnline(SongModelView song)
-    {
-        if (song == null || string.IsNullOrEmpty(song.FilePath))
-        {
-            Debug.WriteLine("Error: Song data or file path is missing.");
-            await Shell.Current.DisplayAlert("Error", "Song data or file path is missing.", "OK");
-            return;
-        }
-
-        if (!File.Exists(song.FilePath))
-        {
-            Debug.WriteLine($"Error: File not found at path: {song.FilePath}");
-            await Shell.Current.DisplayAlert("Error", $"The song file could not be found at:\n{song.FilePath}\nPlease select it again.", "OK");
-            return;
-        }
-
-        var fileNameForParse = Path.GetFileName(song.FilePath);
-        Debug.WriteLine($"[SHARE_SONG_INFO] FileName for Parse: {fileNameForParse}"); // LOG THIS
-
-        var actualFileExtension = Path.GetExtension(song.FilePath);
-        Debug.WriteLine($"[SHARE_SONG_INFO] Extracted FileExtension: {actualFileExtension}"); // LOG THIS
-
-        var mimeType = GetMimeTypeForExtension(actualFileExtension);
-        Debug.WriteLine($"[SHARE_SONG_INFO] Determined MimeType: {mimeType}"); // LOG THIS
-        var sanitizedFileNameForParse = $"{Guid.NewGuid()}{actualFileExtension}"; // e.g., "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.flac"
-
-        ParseFile audioFile;
-
-        try
-        {
-            Debug.WriteLine($"[SHARE_SONG_INFO] Attempting to upload: {fileNameForParse}, MIME: {mimeType}");
-            using var audioStream = File.OpenRead(song.FilePath);
-            audioFile = new ParseFile(sanitizedFileNameForParse, audioStream, mimeType);
-            await audioFile.SaveAsync(ParseClient.Instance);
-            Debug.WriteLine($"[SHARE_SONG_INFO] File uploaded successfully: {audioFile.Url}");
-        }
-        catch (ParseFailureException pe)
-        {
-            // This is where your current error is caught
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Parse Exception during file upload: {pe.Code} - {pe.Message}");
-            await Shell.Current.DisplayAlert("Upload Error", $"Could not upload song: {pe.Message} (Code: {pe.Code})", "OK");
-            return;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Generic Exception during file upload or stream open: {ex.Message}");
-            Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
-            await Shell.Current.DisplayAlert("Upload Error", $"An unexpected error occurred while preparing the song: {ex.Message}", "OK");
-            return;
-        }
-
-        // ... rest of your ParseSong object creation and saving logic
-        DimmerSharedSong newSong = new DimmerSharedSong();
-        newSong.Title = song.Title;
-        newSong.Artist = song.ArtistName;
-        newSong.Album = song.AlbumName;
-        newSong.DurationSeconds = song.DurationInSeconds;
-        newSong.AudioFile = audioFile;
-        newSong.Uploader = await ParseClient.Instance.GetCurrentUser();
-
-        try
-        {
-            await newSong.SaveAsync();
-            Debug.WriteLine($"[SHARE_SONG_INFO] ParseSong object saved with ID: {newSong.ObjectId}");
-            await Share.RequestAsync($"{newSong.Uploader.Username} Shared {song.Title} with you from Dimmer! :" + audioFile.Url);
-        }
-        catch (ParseFailureException pe)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Parse Exception during ParseSong save: {pe.Code} - {pe.Message}");
-            await Shell.Current.DisplayAlert("Save Error", $"Could not save song details: {pe.Message} (Code: {pe.Code})", "OK");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[SHARE_SONG_ERROR] Generic Exception during ParseSong save: {ex.Message}");
-            await Shell.Current.DisplayAlert("Save Error", $"An unexpected error occurred while saving song details: {ex.Message}", "OK");
-        }
-    }
 
     private string GetMimeTypeForExtension(string extension)
     {
@@ -592,47 +589,45 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     // Call this on logout, app exit, etc.
 
 
-
-    void ProcessEvent((Subscription.Event evt, object objectDictionnary, Subscription subscription) e,
-                  UserDeviceSession user)
+    void ProcessEvent((Subscription.Event evt, ParseObject obj, Subscription subscription) e)
     {
+        string className = e.obj.ClassName; // Get class name from subscription
 
-        var objData = e.objectDictionnary as Dictionary<string, object>;
-        UserDeviceSession chat;
+        Debug.WriteLine($"LQ Event: {e.evt} on Class: {className}, ObjectId: {e.obj.ObjectId}");
 
-        switch (e.evt)
+        switch (className)
         {
-            case Subscription.Event.Enter:
-                Debug.WriteLine("Entered");
+            case "UserDeviceSession":
+                var uds = e.obj as UserDeviceSession;
+                if (uds != null)
+                    ProcessUserDeviceSessionEvent(e.evt, uds);
                 break;
-
-            case Subscription.Event.Leave:
-                Debug.WriteLine("Left");
+            case "ChatConversation":
+                var convo = e.obj as ChatConversation;
+                if (convo != null)
+                    ProcessChatConversationEvent(e.evt, convo);
                 break;
-
-            case Subscription.Event.Create:
-
-
-
+            case "ChatMessage":
+                var msg = e.obj as ChatMessage;
+                if (msg != null)
+                    ProcessChatMessageEvent(e.evt, msg);
                 break;
-
-            case Subscription.Event.Update:
-
+            case "DimmerSharedSong":
+                var sharedSong = e.obj as DimmerSharedSong;
+                if (sharedSong != null)
+                    ProcessDimmerSharedSongEvent(e.evt, sharedSong);
                 break;
-
-            case Subscription.Event.Delete:
-
-                break;
-
             default:
-                Debug.WriteLine("Unhandled event type.");
+                Debug.WriteLine($"Unhandled LiveQuery event for class: {className}");
                 break;
         }
-
-        Debug.WriteLine($"Processed {e.evt} on object {objData?.GetType()}");
     }
 
-
+    // Example handlers (implement these based on your app's needs)
+    void ProcessUserDeviceSessionEvent(Subscription.Event evt, UserDeviceSession session) { /* ... */ }
+    void ProcessChatConversationEvent(Subscription.Event evt, ChatConversation convo) { /* ... */ }
+    void ProcessChatMessageEvent(Subscription.Event evt, ChatMessage message) { /* ... */ }
+    void ProcessDimmerSharedSongEvent(Subscription.Event evt, DimmerSharedSong song) { /* ... */ }
 
     public void DeleteUserLocally(UserModel user)
     {
@@ -666,13 +661,103 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
     }
 
+
+
+    public async Task<DimmerSharedSong?> ShareSongOnline(SongModelView song, double positionInSeconds)
+    {
+        DimmerSharedSong newSong = await ParseClient.Instance.GetQuery<DimmerSharedSong>()
+          .WhereEqualTo("artist", song.ArtistName)
+          .WhereEqualTo("title", song.Title)
+
+          .FirstOrDefaultAsync();
+        if (newSong is null)
+        {
+            if (song == null || string.IsNullOrEmpty(song.FilePath))
+            {
+                Debug.WriteLine("Error: Song data or file path is missing.");
+                await Shell.Current.DisplayAlert("Error", "Song data or file path is missing.", "OK");
+                return null;
+            }
+
+            if (!File.Exists(song.FilePath))
+            {
+                Debug.WriteLine($"Error: File not found at path: {song.FilePath}");
+                await Shell.Current.DisplayAlert("Error", $"The song file could not be found at:\n{song.FilePath}\nPlease select it again.", "OK");
+                return null;
+            }
+
+            var fileNameForParse = Path.GetFileName(song.FilePath);
+            Debug.WriteLine($"[SHARE_SONG_INFO] FileName for Parse: {fileNameForParse}"); // LOG THIS
+
+            var actualFileExtension = Path.GetExtension(song.FilePath);
+            Debug.WriteLine($"[SHARE_SONG_INFO] Extracted FileExtension: {actualFileExtension}"); // LOG THIS
+
+            var mimeType = GetMimeTypeForExtension(actualFileExtension);
+            Debug.WriteLine($"[SHARE_SONG_INFO] Determined MimeType: {mimeType}"); // LOG THIS
+            var sanitizedFileNameForParse = $"{Guid.NewGuid()}{actualFileExtension}"; // e.g., "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.flac"
+
+            ParseFile audioFile;
+
+            try
+            {
+                Debug.WriteLine($"[SHARE_SONG_INFO] Attempting to upload: {fileNameForParse}, MIME: {mimeType}");
+                using var audioStream = File.OpenRead(song.FilePath);
+                audioFile = new ParseFile(sanitizedFileNameForParse, audioStream, mimeType);
+                await audioFile.SaveAsync(ParseClient.Instance);
+                Debug.WriteLine($"[SHARE_SONG_INFO] File uploaded successfully: {audioFile.Url}");
+
+
+
+                newSong = new DimmerSharedSong();
+                newSong.Title = song.Title;
+                newSong.Artist = song.ArtistName;
+                newSong.Album = song.AlbumName;
+                newSong.DurationSeconds = song.DurationInSeconds;
+                newSong.AudioFile = audioFile;
+                newSong.Uploader = await ParseClient.Instance.GetCurrentUser();
+                newSong.SharedPositionInSeconds = positionInSeconds;
+
+                await newSong.SaveAsync();
+
+                await SetupLiveQueryDimmerSharedSongAsync();
+
+                Debug.WriteLine($"[SHARE_SONG_INFO] ParseSong object saved with ID: {newSong.ObjectId}");
+                await Share.RequestAsync($"{newSong.Uploader.Username} Shared {song.Title} with you from Dimmer!" +
+                    $"\n Download Dimmer and Paste this code {newSong.ObjectId}");
+
+                return newSong;
+            }
+            catch (ParseFailureException pe)
+            {
+                Debug.WriteLine($"[SHARE_SONG_ERROR] Parse Exception during ParseSong save: {pe.Code} - {pe.Message}");
+                await Shell.Current.DisplayAlert("Save Error", $"Could not save song details: {pe.Message} (Code: {pe.Code})", "OK");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SHARE_SONG_ERROR] Generic Exception during ParseSong save: {ex.Message}");
+                await Shell.Current.DisplayAlert("Save Error", $"An unexpected error occurred while saving song details: {ex.Message}", "OK");
+                return null;
+            }
+        }
+
+        else
+        {
+            Debug.WriteLine($"[SHARE_SONG_INFO] Song already exists in Parse with ID: {newSong.ObjectId}");
+            await Shell.Current.DisplayAlert("Info", "This song is already shared.", "OK");
+            return newSong;
+        }
+    }
+
+
+
     public async Task<bool> LoginUserAsync(UserModel usr)
     {
         UserLocalDB = usr;
         try
         {
 
-       
+
             UserOnline = await ParseClient.Instance.LogInWithAsync(UserLocalDB.UserName, UserLocalDB.UserPassword) as UserModelOnline;
 
 
@@ -750,7 +835,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 ParseUser user = await ParseClient.Instance.BecomeAsync(sessionToken);
                 UserOnline = user as UserModelOnline;
                 UserLocalView = mapper.Map<UserModelView>(user);
-                
+
                 if (UserOnline != null && await UserOnline.IsAuthenticatedAsync())
                 {
 
@@ -764,7 +849,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                     Debug.WriteLine("User is not authenticated.");
                     return false;
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -802,7 +887,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
         _presenceSubscription.Events
             .Where(e => e.EventType == Subscription.Event.Update ||
-            e.EventType == Subscription.Event.Create )
+            e.EventType == Subscription.Event.Create)
             .Subscribe(e =>
             {
                 var updatedSession = e.Object;
@@ -814,11 +899,6 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             });
     }
 
-    // Remember to unsubscribe when done:
-    // if (_presenceSubscription != null) await liveQueryClient.Unsubscribe(_presenceSubscription);
-
-
-    // In Dimmer.DimmerLive.DimmerLiveStateService.cs
 
     public async Task<ChatConversation?> GetOrCreateConversationWithUserAsync(string userId)
     {
@@ -837,7 +917,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         // or if T is a registered subclass, it can infer.
         var query = ParseClient.Instance.GetQuery<ChatConversation>() // Assuming "ChatConversation" is the class name on server
             .WhereContainsAll(nameof(ChatConversation.Participants), new[] { currentUserPointer, otherUserPointer })
-            
+
             .WhereSizeEqualTo(nameof(ChatConversation.Participants), 2) // This applies to the relation field
             .WhereEqualTo(nameof(ChatConversation.IsGroupChat), false)
             .Include((nameof(ChatConversation.Participants))); // Optional: Include if needed immediately
@@ -887,5 +967,268 @@ public class DimmerLiveStateService : IDimmerLiveStateService
     }
 
 
-    
+    public async Task<DimmerSharedSong?> FetchSharedSongByCodeAsync(string sharedSongCode)
+    {
+        if (string.IsNullOrWhiteSpace(sharedSongCode))
+        {
+            Debug.WriteLine("[FETCH_SONG_ERROR] Shared song code is empty.");
+            // Consider user-facing alert if appropriate in your UI flow
+            return null;
+        }
+
+        if (UserOnline == null) // Or ParseUser.CurrentUser
+        {
+            Debug.WriteLine("[FETCH_SONG_ERROR] User not authenticated.");
+            return null;
+        }
+
+        try
+        {
+            var parameters = new Dictionary<string, object>
+        {
+            { "sharedSongId", sharedSongCode }
+        };
+
+            //object sharedSong = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("getSharedSongDetails", parameters);
+
+            DimmerSharedSong sharedSong = await ParseClient.Instance.CallCloudCodeFunctionAsync<DimmerSharedSong>("getSharedSongDetails", parameters);
+            if (sharedSong == null)
+            {
+                Console.WriteLine("Error: Audio file or its URL is missing from the log entry.");
+                // Or use Debug.LogError in Unity, or throw an exception
+                return null;
+            }
+
+            ParseFile audioFile = sharedSong.AudioFile;
+            string songTitle = sharedSong.Title; // Get the title to help name the file
+
+            // Sanitize the song title to create a valid file name
+            // Replace invalid characters and ensure it's not too long if necessary
+            string fileName = SanitizeFileName(songTitle ?? Path.GetFileNameWithoutExtension(audioFile.Name));
+            string extension = Path.GetExtension(audioFile.Name); // Get extension from original ParseFile name
+            if (string.IsNullOrEmpty(extension))
+            {
+                extension = ".mp3"; // Default extension if none found (adjust as needed)
+            }
+            string fullFileName = $"{fileName}{extension}";
+            
+                Debug.WriteLine(sharedSong.GetType());
+                string savePath;
+                savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerDD");
+            if (!Directory.Exists(savePath))
+            {
+                Directory.CreateDirectory(savePath);
+            }
+
+            string localFilePath = Path.Combine(savePath, fullFileName);
+
+            using (HttpClient client = new HttpClient())
+                {
+                    // Get the file as a byte array
+                    byte[] fileBytes = await client.GetByteArrayAsync(audioFile.Url);
+
+                    // Save the byte array to a file
+                    await File.WriteAllBytesAsync(localFilePath, fileBytes);
+
+                    Console.WriteLine($"Song '{fullFileName}' downloaded and saved successfully to: {localFilePath}");
+                // You can now use localFilePath to play the song or reference it.
+
+
+              
+                }
+
+            Track newFile = new Track(localFilePath);
+            {
+
+            }
+
+
+            SongModelView newSong = new SongModelView()
+            {
+                Title = songTitle,
+                FilePath = localFilePath,
+
+                ArtistName = sharedSong.Artist,
+                AlbumName = sharedSong.Album
+            };
+            _state.SetCurrentSong(mapper.Map<SongModel>(newSong));
+            _state.SetCurrentState((DimmerPlaybackState.Playing, null));
+            _state.SetCurrentLogMsg(new AppLogModel()
+                {
+                    UserModel = UserLocalView,
+                    Log = $"User {UserLocalView.UserName} fetched song {sharedSong.Title} with code {sharedSongCode}.",
+                    SharedSong = sharedSong
+                });
+        
+            return null;
+        }
+        catch (ParseFailureException pex)
+        {
+            Debug.WriteLine($"[FETCH_SONG_ERROR] Parse Error: {pex.Code} - {pex.Message}");
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[FETCH_SONG_ERROR] Generic Error: {ex.Message}");
+            
+            return null;
+        }
+    }
+
+    public async Task<bool> PrepareSessionTransferAsync(SongModelView currentSong, double currentPositionSeconds)
+    {
+        if (UserOnline == null)
+        {
+            Debug.WriteLine("[PREPARE_TRANSFER_ERROR] User not logged in.");
+            await Shell.Current.DisplayAlert("Error", "You must be logged in to transfer a session.", "OK");
+            return false;
+        }
+
+        if (currentSong == null || string.IsNullOrEmpty(currentSong.FilePath))
+        {
+            Debug.WriteLine("[PREPARE_TRANSFER_ERROR] No current song or song file path to transfer.");
+            await Shell.Current.DisplayAlert("Error", "No song is currently playing to transfer.", "OK");
+            return false;
+        }
+        DimmerSharedSong? sharedSongToTransfer = await ShareSongOnline(currentSong, currentPositionSeconds);
+        if (sharedSongToTransfer == null)
+        {
+            Debug.WriteLine("[PREPARE_TRANSFER_ERROR] Failed to share song for transfer.");
+            await Shell.Current.DisplayAlert("Error", "Failed to prepare song for transfer.", "OK");
+            return false;
+        }
+
+        // 2. Call the 'prepareSessionTransfer' Cloud Function
+        try
+        {
+            var parameters = new Dictionary<string, object>
+        {
+            { "sharedSongObjectId", sharedSongToTransfer.ObjectId },
+            { "positionInSeconds", currentPositionSeconds },
+            { "currentDeviceName", DeviceInfo.Name }, // Device A's name
+            { "currentDeviceId", DeviceStaticUtils.GetCurrentDeviceId() } // Device A's unique ID
+        };
+
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("prepareSessionTransfer", parameters);
+
+            if (result != null && result.TryGetValue("success", out var successVal) && (bool)successVal)
+            {
+                Debug.WriteLine($"[PREPARE_TRANSFER_SUCCESS] Session transfer prepared for song {sharedSongToTransfer.Title}.");
+                // Optionally, mark current device inactive locally or via cloud
+                // await MarkSessionInactiveAsync(); // If desired
+                await Shell.Current.DisplayAlert("Transfer Ready", "Session transfer is ready. Open Dimmer on your other device.", "OK");
+                return true;
+            }
+            else
+            {
+                string? message = result?.TryGetValue("message", out var msgObj) == true ? msgObj.ToString() : "Unknown error.";
+                Debug.WriteLine($"[PREPARE_TRANSFER_FAIL] Cloud function indicated failure: {message}");
+                await Shell.Current.DisplayAlert("Error", $"Could not prepare transfer: {message}", "OK");
+                return false;
+            }
+        }
+        catch (ParseFailureException pEx)
+        {
+            Debug.WriteLine($"[PREPARE_TRANSFER_ERROR] Parse Error: {pEx.Code} - {pEx.Message}");
+            await Shell.Current.DisplayAlert("Error", $"Could not prepare transfer: {pEx.Message}", "OK");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PREPARE_TRANSFER_ERROR] Generic Error: {ex.Message}");
+            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred while preparing the transfer.", "OK");
+            return false;
+        }
+    }
+
+    public async Task<bool> ActivateThisDeviceAndCheckForTransferAsync()
+    {
+        if (UserOnline == null)
+        {
+            Debug.WriteLine("[ACTIVATE_DEVICE_ERROR] User not logged in.");
+            return false;
+        }
+
+        var parameters = new Dictionary<string, object>
+    {
+        // If the user selected a specific UserDeviceSession object for THIS device from a list
+        // (e.g., from GetMyDeviceSessionsAsync), you'd pass its objectId.
+        // { "selectedDeviceSessionObjectId", "objectId_of_this_devices_session_if_known_and_selected" },
+
+        // Always send current device's info so cloud code can find/create its session
+        { "currentDeviceName", DeviceInfo.Name },
+        { "currentDeviceId", DeviceStaticUtils.GetCurrentDeviceId() },
+        { "currentDeviceIdiom", DeviceInfo.Current.Idiom.ToString() },
+        { "currentDeviceOSVersion", DeviceInfo.Current.VersionString }
+    };
+
+        try
+        {
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("setActiveChatDevice", parameters);
+
+            if (result != null && result.TryGetValue("success", out var successVal) && (bool)successVal)
+            {
+                string activeSessionId = result.TryGetValue("activeSessionId", out var idObj) ? idObj.ToString() : "Unknown";
+                Debug.WriteLine($"[ACTIVATE_DEVICE_SUCCESS] This device (session: {activeSessionId}) is now active.");
+
+                // Check for pending transfer data
+                if (result.TryGetValue("pendingTransfer", out var transferDataObj) &&
+                    transferDataObj is IDictionary<string, object> transferDataDict)
+                {
+                    string? songObjectId = transferDataDict.TryGetValue("songObjectId", out var sIdObj) ? sIdObj.ToString() : null;
+                    double positionSeconds = transferDataDict.TryGetValue("positionSeconds", out var posObj) && double.TryParse(posObj.ToString(), out double p) ? p : 0.0;
+
+                    if (!string.IsNullOrEmpty(songObjectId))
+                    {
+                        Debug.WriteLine($"[ACTIVATE_DEVICE_INFO] Consuming pending transfer for song: {songObjectId} at {positionSeconds}s");
+                        DimmerSharedSong? songToPlay = await FetchSharedSongByCodeAsync(songObjectId);
+                        if (songToPlay != null && songToPlay.AudioFile != null)
+                        {
+                            // TODO: Notify your music player service to play this song
+                            // MusicPlayerService.PlayRemoteSong(songToPlay.AudioFile.Url, songToPlay.Title, songToPlay.Artist, positionSeconds);
+                            Debug.WriteLine($"SUCCESS: Instructing player to play '{songToPlay.Title}' from {songToPlay.AudioFile.Url} at {positionSeconds}s.");
+                            await Shell.Current.DisplayAlert("Session Transferred", $"Now playing: {songToPlay.Title}", "OK");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"[ACTIVATE_DEVICE_WARN] Could not fetch details for transferred song ObjectId: {songObjectId}");
+                        }
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                string? message = result?.TryGetValue("message", out var msgObj) == true ? msgObj.ToString() : "Failed to activate device.";
+                Debug.WriteLine($"[ACTIVATE_DEVICE_FAIL] Cloud function indicated failure: {message}");
+                await Shell.Current.DisplayAlert("Error", $"Could not activate this device: {message}", "OK");
+                return false;
+            }
+        }
+        catch (ParseFailureException pEx)
+        {
+            Debug.WriteLine($"[ACTIVATE_DEVICE_ERROR] Parse Error: {pEx.Code} - {pEx.Message}");
+            await Shell.Current.DisplayAlert("Error", $"Could not activate this device: {pEx.Message}", "OK");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ACTIVATE_DEVICE_ERROR] Generic Error: {ex.Message}");
+            await Shell.Current.DisplayAlert("Error", "An unexpected error occurred while activating this device.", "OK");
+            return false;
+        }
+    }
+
+    public static string SanitizeFileName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "UntitledSong"; // Default if name is empty
+        }
+        string invalidChars = new string(Path.GetInvalidFileNameChars());
+        string regexPattern = $"[{System.Text.RegularExpressions.Regex.Escape(invalidChars)}]";
+        string sanitizedName = System.Text.RegularExpressions.Regex.Replace(name, regexPattern, "_");
+        return sanitizedName.Trim('_'); // Remove leading/trailing underscores
+    }
 }

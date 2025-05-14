@@ -4,6 +4,7 @@ using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerLive.Models;
 using Dimmer.Services;
 using Dimmer.WinUI.Utils.Helpers;
+using Dimmer.WinUI.Utils.Models;
 using Microsoft.Maui.Media;
 using Parse;
 using SkiaSharp;
@@ -153,10 +154,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     void IfUserOnlineIsNull()
     {
-        if (UserOnline is null)
-        {
-            UserOnline =  dimmerLiveStateService.UserOnline;
-        }
+        UserOnline ??=  dimmerLiveStateService.UserOnline;
     }
 
     [RelayCommand]
@@ -182,6 +180,8 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
       
     }
 
+    [ObservableProperty]
+    public partial ObservableCollection<WindowInfo> WindowsOpened { get; set; } = new ObservableCollection<WindowInfo>();
 
 
     public Task LoadOnlineData()
@@ -243,7 +243,21 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
             return;
     }
 
+    public void ShareSongOnline()
+    {
 
+        DimmerSongWindow newWin = new DimmerSongWindow(this);
+
+        var dq = DispatcherQueue.GetForCurrentThread();
+        dq.TryEnqueue(() =>
+        {
+            Application.Current!.OpenWindow(newWin);
+            
+        });
+        //await base.ShareSong();
+        
+
+    }
 
     public void Dispose()
     {

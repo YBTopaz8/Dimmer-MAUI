@@ -15,7 +15,7 @@ xmlns:dxc="http://schemas.devexpress.com/maui"
  x:DataType="vm:BaseViewModelAnd"
  Shell.NavBarIsVisible="False"
                                   BackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
-             Title="SettingsPage">
+             Title="Settings">
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="dx:TextEdit">
@@ -23,243 +23,254 @@ xmlns:dxc="http://schemas.devexpress.com/maui"
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <dx:DXDockLayout StretchLastItem="False">
-        <dx:TabView IsSelectedItemIndicatorVisible="True" 
+
+    <dx:SafeKeyboardAreaView>
+        <dx:DXDockLayout StretchLastItem="False">
+            <dx:TabView IsSelectedItemIndicatorVisible="True" 
                 SelectedItemIndex="{Binding SettingsPageIndex}"
                     Margin="15" HeaderPanelPosition="Bottom"
                     SwipeEnabled="True" x:Name="MainTabView"
                     
                 HeaderPanelBackgroundColor="Transparent"
                 SelectedItemIndicatorColor="DarkSlateBlue">
-            <dx:TabViewItem HeaderText="Main" HeaderTextColor="{AppThemeBinding Dark=White,Light=Black}">
-                <Grid RowDefinitions="*,auto" BackgroundColor="Transparent">
+                <dx:TabViewItem HeaderText="Main" HeaderTextColor="{AppThemeBinding Dark=White,Light=Black}">
+                    <Grid RowDefinitions="*,auto" BackgroundColor="Transparent">
 
-                    <dx:DXStackLayout Grid.Row="0"  >
-                        <Label Text="Settings" FontSize="26" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
-                        <dx:DXBorder >
-                            <dx:DXBorder.Content>
-                                <dx:DXScrollView>
-                                    <dx:DXStackLayout>
-                                        <dx:DXImage Source="{Binding UserLocal.UserProfileImage}"
+                        <dx:DXStackLayout Grid.Row="0"  >
+                            <Label Text="Settings" FontSize="26" FontAttributes="Bold" dx:DXDockLayout.Dock="Top" />
+                            <dx:DXBorder >
+                                <dx:DXBorder.Content>
+                                    <dx:DXScrollView>
+                                        <dx:DXStackLayout>
+                                            <dx:DXImage Source="{Binding UserLocal.UserProfileImage}"
                                                 HeightRequest="200"/>
-                                        <Label Text="{Binding UserLocal.UserName, StringFormat='Welcome Back: {0}'}"
+                                            <Label Text="{Binding UserLocal.UserName, StringFormat='Welcome Back: {0}'}"
                                            />
-                                        <dx:DXButton x:Name="ViewDevices" Clicked="ViewDevices_Clicked"
+                                            <dx:DXButton x:Name="ViewDevices" Clicked="ViewDevices_Clicked"
                                             Content="My Devices"/>
 
-                                    </dx:DXStackLayout>
-                                </dx:DXScrollView>
-                            </dx:DXBorder.Content>
-                        </dx:DXBorder>
+                                        </dx:DXStackLayout>
+                                    </dx:DXScrollView>
+                                </dx:DXBorder.Content>
+                            </dx:DXBorder>
 
-                    </dx:DXStackLayout
+                        </dx:DXStackLayout
                                  >
-                    <dx:DXCollectionView ItemsSource="{Binding ScanningLogs}"
+                        <dx:DXCollectionView ItemsSource="{Binding ScanningLogs}"
                                      Grid.Row="1"
                                      IsVisible="False"
                                      >
-                        <dx:DXCollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Label Text="{Binding .}" FontSize="15"
-                                   TextColor="Orange"/>
-                            </DataTemplate>
-                        </dx:DXCollectionView.ItemTemplate>
-                    </dx:DXCollectionView>
-                </Grid>
-            </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Login"
-                        
-                        >
-                <dx:TabViewItem.Content>
-                    <dx:DXStackLayout Orientation="Vertical" 
-                                  CornerRadius="20">
-                        <Grid ColumnDefinitions="*" ColumnSpacing="5" BackgroundColor="Transparent">
-
-                            <Border Grid.Column="0" BackgroundColor="Transparent" StyleClass="Elevation2"
-StrokeThickness="0" StrokeShape="RoundRectangle 5" >
-
-                                <VerticalStackLayout Spacing="15" Grid.Row="0" 
-                                                             BackgroundColor="Transparent">
-
-                                    <dx:TextEdit  Keyboard="Email"
-                                                         LabelText="Email"
-                                                         
-                                                         Text="{Binding UserLocal.UserEmail}"/>
-                                    <dx:TextEdit LabelText="User Name"
-                                                         Text="{Binding UserLocal.UserName}"                                                         
-                                                         />
-                                    <dx:PasswordEdit  LabelText="Password" 
-                                                              Text="{Binding UserLocal.UserPassword}"
-                                                              />
-                                    <dx:DXButton Content="Login"  HorizontalOptions="Center"
-                                                             Command="{Binding LoginUserCommand}"                 FontSize="24"/>
-                                </VerticalStackLayout>
-
-                            </Border>
-
-                        </Grid>
-                    </dx:DXStackLayout>
-                </dx:TabViewItem.Content>
-            </dx:TabViewItem>
-
-            <dx:TabViewItem HeaderText="Sign Up">
-                <dx:DXStackLayout CornerRadius="20">
-
-                    <dx:TextEdit LabelText="Email" 
-                                 Text="{Binding UserLocal.UserEmail}"
-                                 Keyboard="Email">
-
-                    </dx:TextEdit>
-                    <dx:TextEdit  LabelText="User Name"
-                                  Text="{Binding UserLocal.UserName}"
-                                  />
-                    <dx:PasswordEdit  LabelText="Password"
-                                      Text="{Binding UserLocal.UserPassword}"
-                                      />
-
-                    <dx:DXButton Content="Create An Account"  HorizontalOptions="Center"
-                                             Command="{Binding SignUpUserCommand}" FontSize="24"/>
-
-                </dx:DXStackLayout>
-            </dx:TabViewItem>
-
-            <dx:TabViewItem HeaderText="Utils">
-                <dx:TabViewItem.Content>
-                    <dx:DXStackLayout>
-
-                        <dx:DXStackLayout Padding="5"
-                                      
-                                      dx:DXDockLayout.Dock="Top">
-
-                            <dx:DXStackLayout HorizontalOptions="Center"
-                                               BackgroundColor="Transparent">
-                                <Image Source="folder.png" HeightRequest="30"/>
-                                <Label Text="Folders" FontSize="21" />
-                            </dx:DXStackLayout>
-
-                            <dx:DXStackLayout BackgroundColor="Transparent"
-                                          ItemSpacing="10"
-                             Scale="0.9" x:DataType="vm:BaseViewModelAnd">
-
-                                <dx:DXButton ButtonType="Outlined" Content="Select Folder" 
-                         x:Name="PickFolder" Clicked="PickFolder_Clicked"
-             BorderColor="DarkSlateBlue"  PressedBackgroundColor="DarkSlateBlue"/>
-                                <dx:DXButton ButtonType="Outlined" Content="Scan All" x:Name="ScanAllBtn"
-                         Clicked="ScanAllBtn_Clicked" 
-             BorderColor="DarkSlateBlue" PressedBackgroundColor="DarkSlateBlue"/>
-
-                                <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
-                   IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
-                                <Grid BackgroundColor="Transparent">
-                                    <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" >
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="x:String">
-                                                <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="16" 
-                                   TextColor="White"
-                           Margin="20,0"/>
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-                                    </dx:DXCollectionView>
-                                </Grid>
-                            </dx:DXStackLayout>
-
-
-                        </dx:DXStackLayout>
-                        <dx:DXStackLayout VerticalOptions="End" HorizontalOptions="Center" 
-                         Margin="10" BackgroundColor="Transparent">
-                            <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
-                                <Image Source="issuee.png" HeightRequest="35"/>
-
-                                <Label Text="Facing Issues ?" FontSize="16" />
-                            </dx:DXStackLayout>
-                            <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
-                     Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
-                     TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
-                            <Label Text="Dimmer By Yvan Brunel" HorizontalTextAlignment="Center"/>
-                        </dx:DXStackLayout>
-
-                    </dx:DXStackLayout>
-                </dx:TabViewItem.Content>
-            </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Cross Devices">
-                <dx:TabViewItem.Content>
-                    <dx:DXStackLayout >
-                        <dx:DXCollectionView ItemsSource="{Binding UserDevices}" 
-                                             Orientation="Horizontal" HeightRequest="70"
-                                             Header="Your Devices">
                             <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="modellive:UserDeviceSession">
-                                    <dxc:DXStackLayout Orientation="Horizontal">
-                                        <dxc:Chip Tap="SwitchDeviceRecipient_Tap" x:Name="SwitchDeviceRecipient"
-                          Text="{Binding DeviceIdiom}" FontSize="36"/>
-                                    </dxc:DXStackLayout>
+                                <DataTemplate x:DataType="x:String">
+                                    <Label Text="{Binding .}" FontSize="15"
+                                   TextColor="Orange"/>
                                 </DataTemplate>
                             </dx:DXCollectionView.ItemTemplate>
                         </dx:DXCollectionView>
+                    </Grid>
+                </dx:TabViewItem>
+                <dx:TabViewItem HeaderText="Login"
+                        
+                        >
+                    <dx:TabViewItem.Content>
+                        <dx:DXStackLayout Orientation="Vertical" 
+                                  CornerRadius="20">
+                            <Grid ColumnDefinitions="*" ColumnSpacing="5" BackgroundColor="Transparent">
 
-                        <Grid RowDefinitions="*,auto" BackgroundColor="Transparent">
+                                <Border Grid.Column="0" BackgroundColor="Transparent" StyleClass="Elevation2"
+StrokeThickness="0" StrokeShape="RoundRectangle 5" >
 
-                            <dx:DXCollectionView ItemsSource="{Binding ActiveMessages}">
-                                
+                                    <VerticalStackLayout Spacing="15" Grid.Row="0" 
+                                                             BackgroundColor="Transparent">
+
+                                        <dx:TextEdit  Keyboard="Email"
+                                                         LabelText="Email"
+                                                         
+                                                         Text="{Binding UserLocal.UserEmail}"/>
+                                        <dx:TextEdit LabelText="User Name"
+                                                         Text="{Binding UserLocal.UserName}"                                                         
+                                                         />
+                                        <dx:PasswordEdit  LabelText="Password" 
+                                                              Text="{Binding UserLocal.UserPassword}"
+                                                              />
+                                        <dx:DXButton Content="Login"  HorizontalOptions="Center"
+                                                             Command="{Binding LoginUserCommand}"                 FontSize="24"/>
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+                            </Grid>
+                        </dx:DXStackLayout>
+                    </dx:TabViewItem.Content>
+                </dx:TabViewItem>
+
+                <dx:TabViewItem HeaderText="Sign Up">
+                    <dx:DXStackLayout CornerRadius="20">
+
+                        <dx:TextEdit LabelText="Email" 
+                                 Text="{Binding UserLocal.UserEmail}"
+                                 Keyboard="Email">
+
+                        </dx:TextEdit>
+                        <dx:TextEdit  LabelText="User Name"
+                                  Text="{Binding UserLocal.UserName}"
+                                  />
+                        <dx:PasswordEdit  LabelText="Password"
+                                      Text="{Binding UserLocal.UserPassword}"
+                                      />
+
+                        <dx:DXButton Content="Create An Account"  HorizontalOptions="Center"
+                                             Command="{Binding SignUpUserCommand}" FontSize="24"/>
+
+                    </dx:DXStackLayout>
+                </dx:TabViewItem>
+
+                <dx:TabViewItem HeaderText="Utils">
+                    <dx:TabViewItem.Content>
+                        <dx:DXStackLayout>
+
+                            <dx:DXStackLayout Padding="5"
+                                      
+                                      dx:DXDockLayout.Dock="Top">
+
+                                <dx:DXStackLayout HorizontalOptions="Center"
+                                               BackgroundColor="Transparent">
+                                    <Image Source="folder.png" HeightRequest="30"/>
+                                    <Label Text="Folders" FontSize="21" />
+                                </dx:DXStackLayout>
+
+                                <dx:DXStackLayout BackgroundColor="Transparent"
+                                          ItemSpacing="10"
+                             Scale="0.9" x:DataType="vm:BaseViewModelAnd">
+
+                                    <dx:DXButton ButtonType="Outlined" Content="Select Folder" 
+                         x:Name="PickFolder" Clicked="PickFolder_Clicked"
+             BorderColor="DarkSlateBlue"  PressedBackgroundColor="DarkSlateBlue"/>
+                                    <dx:DXButton ButtonType="Outlined" Content="Scan All" x:Name="ScanAllBtn"
+                         Clicked="ScanAllBtn_Clicked" 
+             BorderColor="DarkSlateBlue" PressedBackgroundColor="DarkSlateBlue"/>
+
+                                    <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
+                   IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
+                                    <Grid BackgroundColor="Transparent">
+                                        <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" >
+                                            <dx:DXCollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="16" 
+                                   TextColor="White"
+                           Margin="20,0"/>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>
+                                    </Grid>
+                                </dx:DXStackLayout>
+
+
+                            </dx:DXStackLayout>
+                            <dx:DXStackLayout VerticalOptions="End" HorizontalOptions="Center" 
+                         Margin="10" BackgroundColor="Transparent">
+                                <dx:DXStackLayout BackgroundColor="Transparent" HorizontalOptions="Center">
+                                    <Image Source="issuee.png" HeightRequest="35"/>
+
+                                    <Label Text="Facing Issues ?" FontSize="16" />
+                                </dx:DXStackLayout>
+                                <dx:DXButton Content="Click Here To Open an Issue On GitHub" x:Name="ReportIssueBtn"
+                     Clicked="ReportIssueBtn_Clicked" BackgroundColor="DarkSlateBlue"
+                     TextColor="White" PressedBackgroundColor="White" PressedTextColor="DarkSlateBlue"/>
+                                <Label Text="Dimmer By Yvan Brunel" HorizontalTextAlignment="Center"/>
+                            </dx:DXStackLayout>
+
+                        </dx:DXStackLayout>
+                    </dx:TabViewItem.Content>
+                </dx:TabViewItem>
+                <dx:TabViewItem HeaderText="Cross Devices">
+                    <dx:TabViewItem.Content>
+                        <Grid RowDefinitions="80,*"  BackgroundColor="Transparent">
+                            <dx:DXCollectionView ItemsSource="{Binding UserDevices}"  Grid.Row="0"
+                                             Orientation="Horizontal" 
+                                             Header="Your Devices">
                                 <dx:DXCollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="modellive:ChatMessage">
-                                        <dxc:DXStackLayout>
-                                            <Label Text="{Binding Sender.Username}" FontSize="16" 
-                                                   TextColor="White"/>
-                                            <Label Text="{Binding CreatedAt}" FontSize="12" 
-                                                   TextColor="White"/>
+                                    <DataTemplate x:DataType="modellive:UserDeviceSession">
+                                        <dxc:DXStackLayout Orientation="Horizontal">
+                                            <dxc:Chip Tap="SwitchDeviceRecipient_Tap" x:Name="SwitchDeviceRecipient"
+                          Text="{Binding DeviceIdiom}" FontSize="36"/>
                                         </dxc:DXStackLayout>
                                     </DataTemplate>
                                 </dx:DXCollectionView.ItemTemplate>
                             </dx:DXCollectionView>
-                            
-                            <dx:DXBorder Grid.Row="1">
-                                <Grid ColumnDefinitions="auto,*,100">
-                                    <StackLayout Grid.Column="0">
-                                        <dx:DXButton Content="Add"/>
-                                    </StackLayout>
-                                    
-                                    <StackLayout Grid.Column="1">
-                                        <dx:TextEdit LabelText="Message" 
+
+                            <Grid Grid.Row="1" RowDefinitions="*,0.2*" BackgroundColor="Transparent">
+
+                                <dx:DXCollectionView ItemsSource="{Binding ActiveMessages}"
+                                                 
+                                                 Grid.Row="0" 
+                                                 >
+
+                                    <dx:DXCollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="modellive:ChatMessage">
+                                            <dxc:DXStackLayout>
+                                                <Label Text="{Binding Sender.Username}" FontSize="16" 
+                                                   TextColor="White"/>
+                                                <Label Text="{Binding CreatedAt}" FontSize="12" 
+                                                   TextColor="White"/>
+                                            </dxc:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:DXCollectionView.ItemTemplate>
+                                </dx:DXCollectionView>
+
+                                <dx:DXBorder Grid.Row="1" BackgroundColor="Transparent"
+                                          VerticalOptions="Center">
+                                    <Grid  ColumnSpacing="10"
+                                     VerticalOptions="Center"
+                                    ColumnDefinitions="auto,*,100" BackgroundColor="Transparent">
+                                        <StackLayout Grid.Column="0"  VerticalOptions="Center">
+                                            <dx:DXButton Content="Add"/>
+                                        </StackLayout>
+
+                                        <StackLayout Grid.Column="1"  VerticalOptions="Center">
+                                            <dx:TextEdit LabelText="Message" 
                                                      Text="{Binding Message}"/>
-                                    </StackLayout>
-                                    
-                                    <StackLayout Grid.Column="2">
-                                        <dx:DXButton Content="Send"
+                                        </StackLayout>
+
+                                        <StackLayout Grid.Column="2"  VerticalOptions="Center">
+                                            <dx:DXButton Content="Send"
                                                      Clicked="SendMsgBtn_Clicked" x:Name="SendMsgBtn"
                                                      />
-                                    </StackLayout>
-                                </Grid>
-                            </dx:DXBorder>
+                                        </StackLayout>
+                                    </Grid>
+                                </dx:DXBorder>
+                            </Grid>
                         </Grid>
-                    </dx:DXStackLayout>    
-                </dx:TabViewItem.Content>
-            </dx:TabViewItem>
+                    </dx:TabViewItem.Content>
+                </dx:TabViewItem>
 
-        </dx:TabView>
-            
-            
-        <dx:DXPopup x:Name="MyDevicesPopUp"
+            </dx:TabView>
+
+
+            <dx:DXPopup x:Name="MyDevicesPopUp"
                        AllowScrim="True" 
                      CloseOnScrimTap="True"
             >
-            <dx:DXPopup.Content>
-                <dx:DXStackLayout BackgroundColor="{AppThemeBinding Dark=#1E1E1E, Light=White}" HeightRequest="200"
+                <dx:DXPopup.Content>
+                    <dx:DXStackLayout BackgroundColor="{AppThemeBinding Dark=#1E1E1E, Light=White}" HeightRequest="200"
                                   >
-                    <dx:DXCollectionView ItemsSource="{Binding UserDevices}" Header="Yvan">
-                        <dx:DXCollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="modellive:UserDeviceSession">
-                                <dxc:DXStackLayout Orientation="Horizontal">
-                                    <dxc:Chip Tap="SelectDeviceChip_Tap" x:Name="SelectDeviceChip"
+                        <dx:DXCollectionView ItemsSource="{Binding UserDevices}" Header="Yvan">
+                            <dx:DXCollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="modellive:UserDeviceSession">
+                                    <dxc:DXStackLayout Orientation="Horizontal">
+                                        <dxc:Chip Tap="SelectDeviceChip_Tap" x:Name="SelectDeviceChip"
                                               Text="{Binding DeviceIdiom}"/>
-                                </dxc:DXStackLayout>
-                            </DataTemplate>
-                        </dx:DXCollectionView.ItemTemplate>    
-                    </dx:DXCollectionView>
-                </dx:DXStackLayout>
-            </dx:DXPopup.Content>
+                                    </dxc:DXStackLayout>
+                                </DataTemplate>
+                            </dx:DXCollectionView.ItemTemplate>
+                        </dx:DXCollectionView>
+                    </dx:DXStackLayout>
+                </dx:DXPopup.Content>
 
 
-        </dx:DXPopup>
-    </dx:DXDockLayout>
+            </dx:DXPopup>
+        </dx:DXDockLayout>
+    </dx:SafeKeyboardAreaView>
+    
+   
 </ContentPage>

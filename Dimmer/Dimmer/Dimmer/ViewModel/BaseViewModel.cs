@@ -34,7 +34,7 @@ public partial class BaseViewModel : ObservableObject
     public static bool IsSearching { get; set; } = false;
 
     
-    public static ParseUser? UserOnline { get; set; }
+    public ParseUser? UserOnline { get; set; }
     [ObservableProperty]
     public partial UserModelView UserLocal { get; set; }
 
@@ -47,6 +47,9 @@ public partial class BaseViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string? LatestScanningLog { get; set; }
+
+    [ObservableProperty]
+    public partial AppLogModel? LatestAppLog { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<AppLogModel>? ScanningLogs { get; set; }
     public BaseAppFlow BaseAppFlow { get; }    
@@ -143,13 +146,13 @@ public partial class BaseViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task FullyBackUpData()
+    public void FullyBackUpData()
     {
         //dimmerLiveStateService.
     }
 
     [RelayCommand]
-    public async Task GetMyDevices()
+    public void GetMyDevices()
     {
 
     }
@@ -239,6 +242,7 @@ public partial class BaseViewModel : ObservableObject
 
     public async Task LoginFromSecureData()
     {
+
         if (UserLocal is null || string.IsNullOrEmpty(UserLocal.UserName))
         {
             await dimmerLiveStateService.AttemptAutoLoginAsync();
@@ -252,6 +256,7 @@ public partial class BaseViewModel : ObservableObject
     {
         _subs.Add(_stateService.CurrentPlayBackState.
             DistinctUntilChanged()
+            
             .Subscribe(state =>
             {
                 IsPlaying = state.State == DimmerPlaybackState.Playing;
@@ -264,76 +269,11 @@ public partial class BaseViewModel : ObservableObject
                     case DimmerPlaybackState.Playing:
                         break;
                     case DimmerPlaybackState.Resumed:
+                        TemporarilyPickedSong = _stateService.CurrentSongValue;
                         break;
                     case DimmerPlaybackState.PausedUI:
                         break;
-                    case DimmerPlaybackState.PausedUser:
-                        break;
-                    case DimmerPlaybackState.Loading:
-                        break;
-                    case DimmerPlaybackState.Error:
-                        break;
-                    case DimmerPlaybackState.Failed:
-                        break;
-                    case DimmerPlaybackState.Previewing:
-                        break;
-                    case DimmerPlaybackState.LyricsLoad:
-                        break;
-                    case DimmerPlaybackState.ShowPlayBtn:
-                        break;
-                    case DimmerPlaybackState.ShowPauseBtn:
-                        break;
-                    case DimmerPlaybackState.RefreshStats:
-                        break;
-                    case DimmerPlaybackState.Initialized:
-                        break;
-                    case DimmerPlaybackState.Ended:
-                        break;
-                    case DimmerPlaybackState.CoverImageDownload:
-                        break;
-                    case DimmerPlaybackState.LoadingSongs:
-                        break;
-                    case DimmerPlaybackState.SyncingData:
-                        break;
-                    case DimmerPlaybackState.Buffering:
-                        break;
-                    case DimmerPlaybackState.DoneScanningData:
-                        break;
-                    case DimmerPlaybackState.PlayCompleted:
-                        break;
-                    case DimmerPlaybackState.PlayPreviousUI:
-                        break;
-                    case DimmerPlaybackState.PlayPreviousUser:
-                        break;
-                    case DimmerPlaybackState.PlayNextUI:
-                        break;
-                    case DimmerPlaybackState.PlayNextUser:
-                        break;
-                    case DimmerPlaybackState.Skipped:
-                        break;
-                    case DimmerPlaybackState.RepeatSame:
-                        break;
-                    case DimmerPlaybackState.RepeatAll:
-                        break;
-                    case DimmerPlaybackState.RepeatPlaylist:
-                        break;
-                    case DimmerPlaybackState.MoveToNextSongInQueue:
-                        break;
-                    case DimmerPlaybackState.ShuffleRequested:
-                        break;
-                    case DimmerPlaybackState.FolderAdded:
-                        break;
-                    case DimmerPlaybackState.FolderRemoved:
-                        break;
-                    case DimmerPlaybackState.FileChanged:
-                        break;
-                    case DimmerPlaybackState.FolderNameChanged:
-                        break;
-                    case DimmerPlaybackState.FolderScanCompleted:
-                        break;
-                    case DimmerPlaybackState.FolderScanStarted:
-                        break;
-                    case DimmerPlaybackState.FolderWatchStarted:
+               
                         break;
                     default:
                         break;
@@ -359,7 +299,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty] 
     public partial ChatMessage ActiveMessages { get; set; } = new();
     [ObservableProperty] 
-    public partial ChatConversation ActiveConversation { get; set; } = new();
+    public partial ChatConversation ActiveConversation { get; set; } 
     //[ObservableProperty] 
     //public partial string Message { get; set; } = string.Empty;
     
@@ -374,7 +314,7 @@ public partial class BaseViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(message))
             return;
-       ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation.ObjectId, message);
+       ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation, message);
        ActiveMessageCollection.Add(msg);
     }
 
@@ -530,10 +470,11 @@ public partial class BaseViewModel : ObservableObject
             }));
     }
 
-    [RelayCommand]
-    async Task ShareSong()
+    
+    public async Task ShareSong()
     {
-        await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong);
+
+        await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
     }
 
     public void PlaySong(
@@ -684,6 +625,24 @@ public partial class BaseViewModel : ObservableObject
 
     }
 
+    [RelayCommand]
+    public async Task PickNewProfileImage()
+    {
+        CancellationTokenSource cts = new();
+        CancellationToken token = cts.Token;
+        var res = await FilePicker.Default.PickAsync(new PickOptions()
+        {
+            PickerTitle = "Pick a new profile image",
+            FileTypes = FilePickerFileType.Images,
+        });
+        if (res is null)
+            return;
+        var file = res.FullPath;
+        UserLocal.UserProfileImage = file;
+
+        dimmerLiveStateService.SaveUserLocally(UserLocal);
+    }
+
     #region Settings Methods
 
     List<string> FullFolderPaths = [];
@@ -752,6 +711,13 @@ public partial class BaseViewModel : ObservableObject
                 if (string.IsNullOrEmpty(log.Log))
                     return;
                 LatestScanningLog = log.Log;
+                LatestAppLog = log;
+                if (log is not null)
+                { 
+                    //log.SharedSong.AudioFile.Url
+                  // log. log.SharedSong.AudioFile.Url is the link to song, i need to download song and save in local device
+                    return;
+                }
                 ScanningLogs ??= new ObservableCollection<AppLogModel>();
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
@@ -760,6 +726,15 @@ public partial class BaseViewModel : ObservableObject
                     ScanningLogs.Add(log);
                 });
             }));
+    }
+
+
+    [ObservableProperty]
+    public partial DimmerSharedSong? SharedSong { get; set; }
+    public async Task FetchSharedSongById(string songId)
+    {
+        SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
+
     }
 
     [RelayCommand]
