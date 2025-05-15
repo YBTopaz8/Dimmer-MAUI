@@ -10,8 +10,6 @@ using Android.OS;
 using Android.Provider;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
-using Dimmer.DimmerLive.Models;
-using UraniumUI.Material.Controls;
 
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
@@ -71,42 +69,9 @@ public class MainActivity : MauiAppCompatActivity
 
         if (action == Intent.ActionView && dataUri != null)
         {
-            Console.WriteLine($"[MainActivity_ProcessIntent] Received ACTION_VIEW with URI: {dataUri}");
-            if (dataUri.Scheme == "https" && dataUri.Host.Equals(AppLinkHost, StringComparison.OrdinalIgnoreCase))
-            {
-                // It's an app link for our domain!
-                Console.WriteLine($"[MainActivity_ProcessIntent] Matched AppLinkHost: {AppLinkHost}");
-
-                // Example path check: if (dataUri.PathSegments.Contains("invite"))
-                // For now, let's assume any path on this host with query params is for us.
-
-                string? eventType = dataUri.GetQueryParameter("type");
-                string? eventId = dataUri.GetQueryParameter("id");
-                // string senderId = dataUri.GetQueryParameter("sender"); // If you need it
-
-                Console.WriteLine($"[MainActivity_ProcessIntent_AppLink] EventType: '{eventType}', EventId: '{eventId}'");
-
-                if (!string.IsNullOrEmpty(eventType) && !string.IsNullOrEmpty(eventId))
-                {
-                    // Pass to shared MAUI code (App.xaml.cs or a dedicated service)
-                    // Ensure App.ProcessAppLink exists and is accessible (e.g., static)
-                    // Or use a messaging service if you prefer.
-                    //processa ) ProcessAppLink(eventType, eventId /*, senderId */);
-
-                    await IntentHandlerUtils.ProcessAppLink(eventType, eventId /*, senderId */);  
-                    
-
-
-                    return; // App link handled, no need to process further as a generic share
-                }
-                else
-                {
-                    Console.WriteLine("[MainActivity_ProcessIntent_AppLink] 'type' or 'id' missing in app link query.");
-                }
-            }
-            // --- END OF APP LINK HANDLING ---
+            
             // If it wasn't our specific app link, it might be a general ACTION_VIEW for a file
-            else if (dataUri != null && intent.Type != null && intent.Type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+            if (dataUri != null && intent.Type != null && intent.Type.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine($"[MainActivity_ProcessIntent] General ACTION_VIEW for audio: {dataUri}");
                 _ = IntentHandlerUtils.HandleSharedAudioUrisAsync(new List<string> { dataUri.ToString() });
@@ -204,8 +169,26 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnCreate(savedInstanceState);
 
+        // Android Native Unhandled Exception Handler (Java/Kotlin layer)
+        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"******** AndroidEnvironment.UnhandledExceptionRaiser: {args.Exception} ********");
+            LogUnhandledException("AndroidEnvironment_Unhandled", args.Exception);
+            args.Handled = true; // Try to prevent immediate termination for logging, may not always work
+        };
 
-        //EnsureParseFallbackCache();
+        // .NET Unhandled Exceptions (also in MauiProgram.cs for broader coverage)
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
+            System.Diagnostics.Debug.WriteLine($"******** AppDomain.CurrentDomain.UnhandledException (MainActivity): {args.ExceptionObject} ********");
+            LogUnhandledException("AppDomain_Unhandled_MainActivity", (Exception)args.ExceptionObject);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) => {
+            System.Diagnostics.Debug.WriteLine($"******** TaskScheduler.UnobservedTaskException (MainActivity): {args.Exception} ********");
+            LogUnhandledException("TaskScheduler_Unobserved_MainActivity", args.Exception);
+            args.SetObserved();
+        };
+
         Android.Util.Log.Debug("MainActivity", $"Running in package: {PackageName}");
         // --- STORAGE PERMISSION / MANAGER CHECK ---
         if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
@@ -282,52 +265,36 @@ public class MainActivity : MauiAppCompatActivity
         // Optional: Handle intent if app was launched FROM CLOSED by the action
          Platform.OnNewIntent(Intent); // Call this here *too* if needed for cold start actions
     }
-static void EnsureParseFallbackCache()
-{
-    // 1) reflect out the timestamp from Parse's controller (if it exists)
-    var asm = typeof(Parse.ParseClient).Assembly;
-    var ctrlType = asm.GetType("Parse.Internal.PersistentCacheController");
-    if (ctrlType == null)
-        return;     // library internals changed — just bail
 
-    var tsField = ctrlType.GetField(
-        "_timestamp",
-        BindingFlags.NonPublic | BindingFlags.Static
-    );
-    if (tsField == null)
-        return;
-
-    var ts = (long)(tsField.GetValue(null) ?? 0L);
-
-    // 2) build the fallback folder + path
-    var fallbackDir = Path.Combine(
-        FileSystem.AppDataDirectory,
-        "Parse", "_fallback"
-    );
-    Directory.CreateDirectory(fallbackDir);
-
-    var fallbackPath = Path.Combine(fallbackDir, $"{ts}.cachefile");
-
-    // 3) if it already exists, we're done
-    if (File.Exists(fallbackPath))
-        return;
-
-    // 4) otherwise try to create it—if it's locked, just swallow the error
-    try
+    private static void LogUnhandledException(string source, Exception ex)
     {
-        using var fs = new FileStream(
-            fallbackPath,
-            FileMode.CreateNew,         // only if not already there
-            FileAccess.Write,
-            FileShare.ReadWrite         // allow others to open it too
-        );
-        // zero‐byte file; nothing to write
+        if (ex == null)
+            return;
+        // For Android, FileSystem.AppDataDirectory should work,
+        // but you can also use Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath
+        string appDataDir = Microsoft.Maui.Storage.FileSystem.AppDataDirectory;
+        string errorLogPath = System.IO.Path.Combine(appDataDir, "error_log_android.txt");
+        try
+        {
+            string errorMessage = $"[{DateTime.Now}] Unhandled Exception from {source}:\n{ex.GetType().FullName}: {ex.Message}\nStack Trace:\n{ex.StackTrace}\n";
+            if (ex.InnerException != null)
+            {
+                errorMessage += $"\nInner Exception:\n{ex.InnerException.GetType().FullName}: {ex.InnerException.Message}\nStack Trace:\n{ex.InnerException.StackTrace}\n";
+            }
+            System.IO.File.AppendAllText(errorLogPath, errorMessage + "\n-----------------------------------\n");
+            System.Diagnostics.Debug.WriteLine($"Logged to: {errorLogPath}");
+
+            // If you want to display an alert (requires UI thread)
+            // MainThread.BeginInvokeOnMainThread(() =>
+            // {
+            //    App.Current.MainPage.DisplayAlert("Crash Report", $"Error in {source}:\n{ex.Message}", "OK");
+            // });
+        }
+        catch (Exception logEx)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to write to error log: {logEx.Message}");
+        }
     }
-    catch (IOException)
-    {
-        // someone else has it open: ignore
-    }
-}
 
 protected override void OnDestroy()
     {

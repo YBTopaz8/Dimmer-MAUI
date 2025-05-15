@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Storage;
 using CommunityToolkit.Mvvm.Input;
-using Dimmer.DimmerLive.Models;
+//using Dimmer.DimmerLive.Models;
 using Dimmer.Services;
 using Dimmer.Utilities.FileProcessorUtils;
-using Parse;
-using Parse.Infrastructure;
+//using Parse;
+//using Parse.Infrastructure;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -34,12 +34,12 @@ public partial class BaseViewModel : ObservableObject
     public static bool IsSearching { get; set; } = false;
 
     
-    public ParseUser? UserOnline { get; set; }
+    //public ParseUser? UserOnline { get; set; }
     [ObservableProperty]
     public partial UserModelView UserLocal { get; set; }
 
     private readonly IMapper _mapper;
-    public readonly IDimmerLiveStateService dimmerLiveStateService;
+    //public readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
@@ -100,7 +100,7 @@ public partial class BaseViewModel : ObservableObject
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
     public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
-        IDimmerLiveStateService dimmerLiveStateService,
+        //IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
         SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, 
         ISettingsService settingsService, 
@@ -112,7 +112,7 @@ public partial class BaseViewModel : ObservableObject
     {
         _mapper = mapper;
         BaseAppFlow=baseAppFlow;
-        this.dimmerLiveStateService=dimmerLiveStateService;
+        //this.dimmerLiveStateService=dimmerLiveStateService;
         AlbumsMgtFlow = albumsMgtFlow;
         PlaylistsMgtFlow = playlistsMgtFlow;
         SongsMgtFlow = songsMgtFlow;
@@ -128,7 +128,7 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public async Task SignUpUser()
     {
-        await dimmerLiveStateService.SignUpUserAsync(UserLocal);
+        //await dimmerLiveStateService.SignUpUserAsync(UserLocal);
         SettingsPageIndex=1;
     }
 
@@ -138,11 +138,11 @@ public partial class BaseViewModel : ObservableObject
     public async Task LoginUser()
     {
         var usr = _mapper.Map<UserModel>(UserLocal);
-        if (await dimmerLiveStateService.LoginUserAsync(usr))
-        {
-            IsConnected=true;
-            SettingsPageIndex=0;
-        }
+        //if (await dimmerLiveStateService.LoginUserAsync(usr))
+        //{
+        //    IsConnected=true;
+        //    SettingsPageIndex=0;
+        //}
     }
 
     [RelayCommand]
@@ -167,13 +167,13 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public async Task LogoutUser()
     {
-        await dimmerLiveStateService.LogoutUser();
-        UserOnline = null;
+        //await dimmerLiveStateService.LogoutUser();
+        //UserOnline = null;
     }
     [RelayCommand]
     public async Task ForgottenPassword()
     {
-        await dimmerLiveStateService.ForgottenPassword();
+        //await dimmerLiveStateService.ForgottenPassword();
     }
 
     public async Task SaveUserNoteToDB(UserNoteModelView userNote, SongModelView song)
@@ -183,7 +183,7 @@ public partial class BaseViewModel : ObservableObject
         song.UserNote ??= [];
         song.UserNote.Add(userNote);
 
-        DimmerSharedSong pSong = new DimmerSharedSong();
+        //DimmerSharedSong pSong = new DimmerSharedSong();
         //pSong.AudioFile= 
 
         //await pSong.SaveAsync();
@@ -240,16 +240,18 @@ public partial class BaseViewModel : ObservableObject
 
     }
 
-    public async Task LoginFromSecureData()
+    public Task LoginFromSecureData()
     {
 
         if (UserLocal is null || string.IsNullOrEmpty(UserLocal.UserName))
         {
-            await dimmerLiveStateService.AttemptAutoLoginAsync();
-            UserLocal= dimmerLiveStateService.UserLocalView;
+            //await dimmerLiveStateService.AttemptAutoLoginAsync();
+            //UserLocal= dimmerLiveStateService.UserLocalView;
 
             IsConnected=true;
         }
+
+        return Task.CompletedTask;
     }
 
     private void SubscribeToStateChanges()
@@ -292,21 +294,21 @@ public partial class BaseViewModel : ObservableObject
                 PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
             }));
     }
-    [ObservableProperty]
-    public partial ObservableCollection<ChatConversation> Conversations { get; set; } = new();
-    [ObservableProperty] 
-    public partial ObservableCollection<ChatMessage> ActiveMessageCollection { get; set; } = new();
-    [ObservableProperty] 
-    public partial ChatMessage ActiveMessages { get; set; } = new();
-    [ObservableProperty] 
-    public partial ChatConversation ActiveConversation { get; set; } 
+    //[ObservableProperty]
+    //public partial ObservableCollection<ChatConversation> Conversations { get; set; } = new();
+    //[ObservableProperty] 
+    //public partial ObservableCollection<ChatMessage> ActiveMessageCollection { get; set; } = new();
+    //[ObservableProperty] 
+    //public partial ChatMessage ActiveMessages { get; set; } 
+    //[ObservableProperty] 
+    //public partial ChatConversation ActiveConversation { get; set; } 
     //[ObservableProperty] 
     //public partial string Message { get; set; } = string.Empty;
     
     [RelayCommand]
     public async Task SwitchRecipient(string id)
     {
-        ActiveConversation =  await dimmerLiveStateService.GetOrCreateConversationWithUserAsync(id);
+        //ActiveConversation =  await dimmerLiveStateService.GetOrCreateConversationWithUserAsync(id);
        
     }
     [RelayCommand]
@@ -314,8 +316,8 @@ public partial class BaseViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(message))
             return;
-       ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation, message);
-       ActiveMessageCollection.Add(msg);
+       //ChatMessage? msg=  await dimmerLiveStateService.SendTextMessageAsync(ActiveConversation, message);
+       //ActiveMessageCollection.Add(msg);
     }
 
 
@@ -474,7 +476,7 @@ public partial class BaseViewModel : ObservableObject
     public async Task ShareSong()
     {
 
-        await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
+        //await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
     }
 
     public void PlaySong(
@@ -640,7 +642,7 @@ public partial class BaseViewModel : ObservableObject
         var file = res.FullPath;
         UserLocal.UserProfileImage = file;
 
-        dimmerLiveStateService.SaveUserLocally(UserLocal);
+        //dimmerLiveStateService.SaveUserLocally(UserLocal);
     }
 
     #region Settings Methods
@@ -684,8 +686,8 @@ public partial class BaseViewModel : ObservableObject
         
     }
 
-    [ObservableProperty]
-    public partial ObservableCollection<UserDeviceSession>? UserDevices { get; set; } = new();
+    //[ObservableProperty]
+    //public partial ObservableCollection<UserDeviceSession>? UserDevices { get; set; } = new();
 
     public void SubscribeToScanningLogs()
     {
@@ -697,14 +699,14 @@ public partial class BaseViewModel : ObservableObject
                 if (log == null)
                     return;
 
-                if (log.DeviceModelSession is not null)
-                {
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        UserDevices?.Add(log.DeviceModelSession);
-                    });
-                    return;
-                }
+                //if (log.DeviceModelSession is not null)
+                //{
+                //    MainThread.BeginInvokeOnMainThread(() =>
+                //    {
+                //        UserDevices?.Add(log.DeviceModelSession);
+                //    });
+                //    return;
+                //}
                 
                 
                 
@@ -729,11 +731,11 @@ public partial class BaseViewModel : ObservableObject
     }
 
 
-    [ObservableProperty]
-    public partial DimmerSharedSong? SharedSong { get; set; }
+    //[ObservableProperty]
+    //public partial DimmerSharedSong? SharedSong { get; set; }
     public async Task FetchSharedSongById(string songId)
     {
-        SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
+        //SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
 
     }
 

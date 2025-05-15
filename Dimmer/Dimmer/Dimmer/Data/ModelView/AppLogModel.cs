@@ -1,4 +1,4 @@
-﻿using Dimmer.DimmerLive.Models;
+﻿//using Dimmer.DimmerLive.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +12,8 @@ public class AppLogModel
     public SongModel? AppSongModel { get; set; } = new SongModel();
     public SongModelView? ViewSongModel { get; set; } = new SongModelView();
     public UserModelView? UserModel { get; set; }
-    public UserDeviceSession? DeviceModelSession { get; set; }
-    public ChatMessage? ChatMsg { get; set; }
-    public ChatConversation? ChatConvo { get; set; }
-    public DimmerSharedSong? SharedSong { get; set; }
+    //public UserDeviceSession? DeviceModelSession { get; set; }
+    //public ChatMessage? ChatMsg { get; set; }
+    //public ChatConversation? ChatConvo { get; set; }
+    //public DimmerSharedSong? SharedSong { get; set; }
 }

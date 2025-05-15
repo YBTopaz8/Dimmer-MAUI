@@ -19,19 +19,19 @@ public partial class HomePage : ContentPage
 		InitializeComponent();
         MyViewModel=vm;
 
-        MyViewModel!.LoadPageViewModel();
+        //MyViewModel!.LoadPageViewModel();
         BindingContext = vm;
     }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
+        //MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.HomePage;
 
-        MyViewModel.SetCollectionView(SongsColView);
+        //MyViewModel.SetCollectionView(SongsColView);
         //MyViewModel.SetSongLyricsView(LyricsColView);
 
-        await MyViewModel.LoginFromSecureData();
+        //await MyViewModel.LoginFromSecureData();
 
     }
 

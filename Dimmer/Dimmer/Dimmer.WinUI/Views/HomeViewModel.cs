@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Dimmer.DimmerLive.Interfaces;
+//using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Services;
 using Dimmer.WinUI.ViewModel;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
@@ -24,7 +24,7 @@ public partial class HomeViewModel : BaseViewModelWin
     #endregion
     public HomeViewModel(IMapper mapper,
         BaseAppFlow baseAppFlow,
-        IDimmerLiveStateService dimmerLiveStateService,
+        //IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -34,7 +34,7 @@ public partial class HomeViewModel : BaseViewModelWin
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService,
         IFilePicker filePicker
-    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
+    ) : base(mapper, baseAppFlow, /*dimmerLiveStateService,*/ albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
     {
 
         _mapper = mapper;

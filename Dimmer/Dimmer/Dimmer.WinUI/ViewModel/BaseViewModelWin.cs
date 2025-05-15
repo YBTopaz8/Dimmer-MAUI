@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Dimmer.DimmerLive;
-using Dimmer.DimmerLive.Interfaces;
-using Dimmer.DimmerLive.Models;
+//using Dimmer.DimmerLive;
+//using Dimmer.DimmerLive.Interfaces;
+//using Dimmer.DimmerLive.Models;
 using Dimmer.Services;
 using Dimmer.WinUI.Utils.Helpers;
 using Dimmer.WinUI.Utils.Models;
@@ -52,7 +52,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     public BaseViewModelWin(IMapper mapper,
         BaseAppFlow baseAppFlow,
-        IDimmerLiveStateService dimmerLiveStateService,
+        //IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -62,7 +62,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService,
         IFilePicker filePicker
-    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
+    ) : base(mapper, baseAppFlow, /*dimmerLiveStateService,*/ albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;
@@ -143,18 +143,18 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     {
 
         
-        if (string.IsNullOrEmpty(userId))
-            return;
-        var ss = await  dimmerLiveStateService.GetOrCreateConversationWithUserAsync(userId);
-        if (ss == null)
-            return;
+        //if (string.IsNullOrEmpty(userId))
+        //    return;
+        //var ss = await  dimmerLiveStateService.GetOrCreateConversationWithUserAsync(userId);
+        //if (ss == null)
+        //    return;
 
-        Debug.WriteLine(ss.Name);
+        //Debug.WriteLine(ss.Name);
     }
 
     void IfUserOnlineIsNull()
     {
-        UserOnline ??=  dimmerLiveStateService.UserOnline;
+        //UserOnline ??=  dimmerLiveStateService.UserOnline;
     }
 
     [RelayCommand]
@@ -187,22 +187,22 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     public Task LoadOnlineData()
     {
         IfUserOnlineIsNull();
-        var qrData = new QrCodeData
-        {
-            EventType = QrEventTypes.AddUser,
-            EventId = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId,
-            Timestamp = DateTime.UtcNow.ToString("o"), // ISO 8601 format
-            SenderId = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId,
-            SenderName = UserOnline.Username, // Or a display name property
-            Payload = new Dictionary<string, object>
-            {
-                { "username", UserOnline.Username }
+        //var qrData = new QrCodeData
+        //{
+        //    EventType = QrEventTypes.AddUser,
+        //    EventId = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId,
+        //    Timestamp = DateTime.UtcNow.ToString("o"), // ISO 8601 format
+        //    SenderId = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId,
+        //    SenderName = UserOnline.Username, // Or a display name property
+        //    Payload = new Dictionary<string, object>
+        //    {
+        //        { "username", UserOnline.Username }
 
-            }
-        };
+        //    }
+        //};
 
-        string jsonPayload = JsonSerializer.Serialize(qrData);
-        barCodeInvitationValue = jsonPayload;
+        //string jsonPayload = JsonSerializer.Serialize(qrData);
+        //barCodeInvitationValue = jsonPayload;
 
         //barCodeInvitationValue = ParseClient.Instance.CurrentUserController.CurrentUser?.ObjectId;
         //ShareProfile();

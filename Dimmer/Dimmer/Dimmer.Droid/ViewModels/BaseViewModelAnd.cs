@@ -1,9 +1,10 @@
 ﻿using Dimmer.Data.ModelView;
-using Dimmer.DimmerLive.Interfaces;
+//using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Utilities.Enums;
 using Dimmer.ViewModel;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+//using System.Reactive.Linq;
 
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -30,7 +31,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly IMapper _mapper;
     public BaseViewModelAnd(IMapper mapper,
         BaseAppFlow baseAppFlow,
-        IDimmerLiveStateService dimmerLiveStateService,
+        //IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -40,7 +41,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService
         
-    ) : base(mapper, baseAppFlow,dimmerLiveStateService,  albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow,folderMgtService)
+    ) : base(mapper, baseAppFlow,/*dimmerLiveStateService*/  albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow,folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;

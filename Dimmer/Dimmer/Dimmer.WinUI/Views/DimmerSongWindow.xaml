@@ -9,7 +9,6 @@
 xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
  xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
  xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
  x:DataType="vm:BaseViewModelWin" 
  x:Name="myPage"
  xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -19,6 +18,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
  Shell.NavBarIsVisible="False"
         >
 
+    <!--xmlns:modelsLive ="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"-->
     <ContentPage>
 
         <ContentPage.Resources>
@@ -77,7 +77,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                        />
                             </HorizontalStackLayout>
                         </CollectionView.Header>
-                        <CollectionView.ItemTemplate>
+                        <!--<CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="modelsLive:UserDeviceSession">
                                 <syncf:SfEffectsView
                                     TouchDownEffects="Ripple"
@@ -93,7 +93,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
 
                                 </syncf:SfEffectsView>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
+                        </CollectionView.ItemTemplate>-->
                     </CollectionView>
                 </Grid>
 

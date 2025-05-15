@@ -69,7 +69,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         this._userRepo=userRepo;
         this._state=_state;
         this.mapper=mapper;
-        _encryptionService = new PasswordEncryptionService();
+        //_encryptionService = new PasswordEncryptionService();
 
     }
     public async Task InitializeAfterLogin(UserModelOnline authenticatedUser)
@@ -1038,16 +1038,16 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 }
 
             Track newFile = new Track(localFilePath);
-            {
-
-            }
+           
 
 
             SongModelView newSong = new SongModelView()
             {
                 Title = songTitle,
                 FilePath = localFilePath,
-
+                DurationInSeconds = newFile.Duration,
+                CoverImagePath = FileCoverImageProcessor.SaveOrGetCoverImageToFilePath(localFilePath),
+               
                 ArtistName = sharedSong.Artist,
                 AlbumName = sharedSong.Album
             };
