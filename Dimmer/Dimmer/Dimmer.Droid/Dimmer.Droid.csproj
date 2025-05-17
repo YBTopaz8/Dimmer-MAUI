@@ -2,21 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0-android</TargetFramework>
-    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseMaui>true</UseMaui>
     <LangVersion>preview</LangVersion>
-    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
     <PackageIcon>dimmerIcon.png</PackageIcon>
     <!-- Optional: Consider Central Package Management for easier version control -->
     <!-- <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> -->
 
 
     <ApplicationId>com.yvanbrunel.dimmer</ApplicationId>
-
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -33,13 +32,19 @@
   </ItemGroup>
 
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+    <TargetFrameworks>net9.0-android</TargetFrameworks>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ApplicationIcon>dimmicoo.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="AndroidManifest.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="dimmicoo.ico" />
-    <Content Include="Resources\mipmap-xhdpi\appicon.ico" />
+    <AndroidResource Include="Resources\mipmap-xhdpi\appicon.ico" />
   </ItemGroup>
 
   <ItemGroup>

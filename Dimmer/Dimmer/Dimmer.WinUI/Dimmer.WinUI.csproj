@@ -84,6 +84,10 @@
     <PackageReference Include="AlohaKit" Version="1.0.100" />
 
     <PackageReference Include="UraniumUI.Material" Version="2.11.1" />
+
+
+
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
 	</ItemGroup>
 
 	<ItemGroup>
