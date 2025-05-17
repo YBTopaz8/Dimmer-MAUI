@@ -5,6 +5,7 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
     <OutputType>Exe</OutputType>
     <RootNamespace>Dimmer</RootNamespace>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseMaui>true</UseMaui>

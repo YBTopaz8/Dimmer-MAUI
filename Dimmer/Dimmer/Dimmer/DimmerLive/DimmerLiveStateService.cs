@@ -69,7 +69,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         this._userRepo=userRepo;
         this._state=_state;
         this.mapper=mapper;
-        //_encryptionService = new PasswordEncryptionService();
+        _encryptionService = new PasswordEncryptionService();
 
     }
     public async Task InitializeAfterLogin(UserModelOnline authenticatedUser)
@@ -93,10 +93,11 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         }
         _messageSubscriptions.Clear();
 
-        //if (liveClient.Dispose());
-        //        liveClient = null;
-        //    }
-        //}
+//        if (liveClient.Dispose())
+//            ;
+//        liveClient = null;
+//    }
+//}
     }
 
 

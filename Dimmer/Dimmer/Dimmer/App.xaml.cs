@@ -2,6 +2,9 @@
 //using Dimmer.DimmerLive.Models;
 //using Dimmer.DimmerLive.Orchestration;
 
+using Dimmer.DimmerLive.Models;
+using Dimmer.DimmerLive.Orchestration;
+
 namespace Dimmer;
 
 public partial class App : Application
@@ -14,7 +17,14 @@ public partial class App : Application
 
         // Handle unhandled exceptions
         AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
+        if (ParseSetup.InitializeParseClient())
+        {
+            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
+            ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
+            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        }
     }
    //public partial void AddPlatformResources()
    // {
