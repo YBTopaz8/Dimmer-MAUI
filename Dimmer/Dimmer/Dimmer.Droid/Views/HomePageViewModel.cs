@@ -1,8 +1,6 @@
 ﻿
-
-using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.ModelView;
-using Dimmer.DimmerLive.Interfaces;
+//using Dimmer.DimmerLive.Interfaces;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 

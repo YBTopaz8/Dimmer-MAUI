@@ -24,11 +24,6 @@
 
   <ItemGroup>
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
-    <Compile Remove="Views\SettingsPage.xaml.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <MauiXaml Remove="Views\SettingsPage.xaml" />
   </ItemGroup>
 
 
@@ -43,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="dimmicoo.ico" />
+    <AndroidResource Include="dimmicoo.ico" />
     <AndroidResource Include="Resources\mipmap-xhdpi\appicon.ico" />
   </ItemGroup>
 
@@ -157,6 +152,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\DimmerSettings.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

@@ -82,12 +82,9 @@
 
     <PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.11.1" />
     <PackageReference Include="AlohaKit" Version="1.0.100" />
-
-    <PackageReference Include="UraniumUI.Material" Version="2.11.1" />
-
-
-
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+
+    
 	</ItemGroup>
 
 	<ItemGroup>
@@ -103,7 +100,12 @@
 		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>
 
-	<!--
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
+  </ItemGroup>
+
+
+  <!--
 		Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
 		Tools extension to be activated for this project even if the Windows App SDK Nuget
 		package has not yet been restored.

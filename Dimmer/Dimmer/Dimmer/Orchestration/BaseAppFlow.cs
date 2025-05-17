@@ -1,5 +1,5 @@
 ﻿using ATL.Logging;
-using Dimmer.DimmerLive.Models;
+//using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.FileProcessorUtils;
 using Syncfusion.Maui.Toolkit.NavigationDrawer;
 using System.Reactive.Concurrency;
@@ -9,7 +9,7 @@ namespace Dimmer.Orchestration;
 public class BaseAppFlow : IDisposable
 {
 
-    public static ParseUser? CurrentUserOnline { get; set; }
+    //public static ParseUser? CurrentUserOnline { get; set; }
     public static UserModel? CurrentUser { get; set; }
 
     public readonly IDimmerStateService _state;
@@ -62,7 +62,7 @@ public class BaseAppFlow : IDisposable
         _mapper = mapper;
         _userRepo = userRepo;
 
-        Initialize();
+        //Initialize();
         
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
@@ -127,19 +127,19 @@ public class BaseAppFlow : IDisposable
             {
                 try
                 {
-                    if (user.SessionToken is not null)
-                    {
-                        await ParseClient.Instance.BecomeAsync(user.SessionToken);
-                        return;
-                    }
-                    var online = await ParseClient.Instance
-                        .LogInWithAsync(user.UserName, user.UserPassword)
-                        .ConfigureAwait(false);
+                    //if (user.SessionToken is not null)
+                    //{
+                    //    await ParseClient.Instance.BecomeAsync(user.SessionToken);
+                    //    return;
+                    //}
+                    //var online = await ParseClient.Instance
+                    //    .LogInWithAsync(user.UserName, user.UserPassword)
+                    //    .ConfigureAwait(false);
 
                     // marshal back to UI thread
-                    MainThread.BeginInvokeOnMainThread(() =>
-                        CurrentUserOnline = online
-                    );
+                    //MainThread.BeginInvokeOnMainThread(() =>
+                    //    CurrentUserOnline = online
+                    //);
                 }
                 catch (Exception pe) 
                 {

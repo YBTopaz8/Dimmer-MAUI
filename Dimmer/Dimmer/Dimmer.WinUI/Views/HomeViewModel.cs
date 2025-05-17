@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Dimmer.DimmerLive.Interfaces;
+//using Dimmer.DimmerLive.Interfaces;
 using Dimmer.Services;
 using Dimmer.WinUI.ViewModel;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;

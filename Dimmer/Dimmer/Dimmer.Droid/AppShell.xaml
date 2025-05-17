@@ -26,8 +26,8 @@
 
         <ShellContent
     Title="Settings" Icon="settings.png"
-    ContentTemplate="{DataTemplate views:DimmerSettings}"
-    Route="DimmerSettings" >
+    ContentTemplate="{DataTemplate views:SettingsPage}"
+    Route="SettingsPage" >
             
 
         </ShellContent>
