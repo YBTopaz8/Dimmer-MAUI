@@ -259,5 +259,14 @@ public static class NotificationHelper
         }
     }
 
+    public static Notification BuildMinimalNotification(Context context)
+    {
+        var builder = new Notification.Builder(context, NotificationHelper.ChannelId)
+            .SetContentTitle("Dimmer Music Player")
+            .SetContentText("Preparing playback...")
+            .SetSmallIcon(Resource.Drawable.exo_icon_circular_play) // use your icon
+            .SetOngoing(true);
 
+        return builder.Build();
+    }
 }

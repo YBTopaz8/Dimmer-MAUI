@@ -62,6 +62,7 @@ global using System.Drawing;
 global using System.Reflection;
 global using Vanara.PInvoke;
 
-//global using Dimmer.DimmerLive.Models;
-//global using Dimmer.DimmerLive.Orchestration;
+global using Dimmer.DimmerLive.Models;
+global using Dimmer.DimmerLive.Orchestration;
+global using Dimmer.DimmerLive.Interfaces;
 global using Parse;

@@ -21,14 +21,6 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Remove="DimmerLive\**" />
-	  <EmbeddedResource Remove="DimmerLive\**" />
-	  <MauiCss Remove="DimmerLive\**" />
-	  <MauiXaml Remove="DimmerLive\**" />
-	  <None Remove="DimmerLive\**" />
-	</ItemGroup>
   
   <ItemGroup>
     <MauiFont Include="Resources\Fonts\FontAwesomeRegular400.otf" Alias="FontAwesomeRegular" />
@@ -69,6 +61,10 @@
     <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
 
 	</ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
+  </ItemGroup>
 
 
 

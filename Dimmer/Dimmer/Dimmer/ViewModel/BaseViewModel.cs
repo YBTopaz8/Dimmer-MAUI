@@ -34,12 +34,12 @@ public partial class BaseViewModel : ObservableObject
     public static bool IsSearching { get; set; } = false;
 
     
-    //public ParseUser? UserOnline { get; set; }
+    public ParseUser? UserOnline { get; set; }
     [ObservableProperty]
     public partial UserModelView UserLocal { get; set; }
 
     private readonly IMapper _mapper;
-    //public readonly IDimmerLiveStateService dimmerLiveStateService;
+    public readonly IDimmerLiveStateService dimmerLiveStateService;
     private readonly IDimmerStateService _stateService;
     private readonly ISettingsService _settingsService;
     private readonly SubscriptionManager _subs;
@@ -100,7 +100,7 @@ public partial class BaseViewModel : ObservableObject
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
     public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
-        //IDimmerLiveStateService dimmerLiveStateService,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
         SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, 
         ISettingsService settingsService, 
@@ -112,7 +112,7 @@ public partial class BaseViewModel : ObservableObject
     {
         _mapper = mapper;
         BaseAppFlow=baseAppFlow;
-        //this.dimmerLiveStateService=dimmerLiveStateService;
+        this.dimmerLiveStateService=dimmerLiveStateService;
         AlbumsMgtFlow = albumsMgtFlow;
         PlaylistsMgtFlow = playlistsMgtFlow;
         SongsMgtFlow = songsMgtFlow;
@@ -128,7 +128,7 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public async Task SignUpUser()
     {
-        //await dimmerLiveStateService.SignUpUserAsync(UserLocal);
+        await dimmerLiveStateService.SignUpUserAsync(UserLocal);
         SettingsPageIndex=1;
     }
 
@@ -138,11 +138,11 @@ public partial class BaseViewModel : ObservableObject
     public async Task LoginUser()
     {
         var usr = _mapper.Map<UserModel>(UserLocal);
-        //if (await dimmerLiveStateService.LoginUserAsync(usr))
-        //{
-        //    IsConnected=true;
-        //    SettingsPageIndex=0;
-        //}
+        if (await dimmerLiveStateService.LoginUserAsync(usr))
+        {
+            IsConnected=true;
+            SettingsPageIndex=0;
+        }
     }
 
     [RelayCommand]

@@ -25,11 +25,6 @@
 
   <ItemGroup>
     <Compile Remove="Utils\CustomAnimsAndroid.cs" />
-    <Compile Remove="Views\SettingsPage.xaml.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <MauiXaml Remove="Views\SettingsPage.xaml" />
   </ItemGroup>
 
 
@@ -152,6 +147,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\DimmerSettings.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

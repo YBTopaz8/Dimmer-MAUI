@@ -12,7 +12,7 @@ global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using CommunityToolkit.Maui.Views;
 
-//global using Parse;
+global using Parse;
 
 global using System.Globalization;
 global using CommunityToolkit.Maui.Core.Extensions;
@@ -26,7 +26,7 @@ global using System.Threading.Tasks;
 global using Realms;
 global using Dimmer.Data.ModelView;
 global using Dimmer.Utilities.Enums;
-//global using Dimmer.DimmerLive;
-//global using Dimmer.DimmerLive.Interfaces;
+global using Dimmer.DimmerLive;
+global using Dimmer.DimmerLive.Interfaces;
 global using ZXing.Net.Maui;
 global using ZXing.Net.Maui.Controls;

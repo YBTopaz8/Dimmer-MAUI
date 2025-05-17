@@ -1,6 +1,4 @@
 ﻿
-
-using CommunityToolkit.Mvvm.Input;
 using Dimmer.Data.ModelView;
 //using Dimmer.DimmerLive.Interfaces;
 using System.Collections.ObjectModel;
@@ -25,7 +23,7 @@ public partial class HomePageViewModel : BaseViewModelAnd
     public HomePageViewModel
         (IMapper mapper,
         BaseAppFlow baseAppFlow,
-        //IDimmerLiveStateService dimmerLiveStateService,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -34,7 +32,7 @@ public partial class HomePageViewModel : BaseViewModelAnd
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService
-    ) : base(mapper, baseAppFlow, /*dimmerLiveStateService*/ albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
             _mapper = mapper;
         _subs = subs;

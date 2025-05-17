@@ -29,7 +29,7 @@ BackgroundColor="{AppThemeBinding Dark=#1e1e1e,Light=White}"
           Margin="10">
 
         <Image Source="{Binding SecondSelectedSong.CoverImagePath}"
-                          Opacity="0.1" Aspect="Center"/>
+                          Opacity="0.1" Aspect="AspectFit"/>
         <dx:DXBorder Grid.Row="1" Opacity="0.8"
                     BackgroundColor="{AppThemeBinding Light=#BEBEBE}"
                     CornerRadius="12" 

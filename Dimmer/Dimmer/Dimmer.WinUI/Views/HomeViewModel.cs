@@ -24,7 +24,7 @@ public partial class HomeViewModel : BaseViewModelWin
     #endregion
     public HomeViewModel(IMapper mapper,
         BaseAppFlow baseAppFlow,
-        //IDimmerLiveStateService dimmerLiveStateService,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -34,7 +34,7 @@ public partial class HomeViewModel : BaseViewModelWin
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService,
         IFilePicker filePicker
-    ) : base(mapper, baseAppFlow, /*dimmerLiveStateService,*/ albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService, filePicker)
     {
 
         _mapper = mapper;

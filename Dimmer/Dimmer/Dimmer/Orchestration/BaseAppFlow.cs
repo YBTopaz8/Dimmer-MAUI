@@ -62,7 +62,7 @@ public class BaseAppFlow : IDisposable
         _mapper = mapper;
         _userRepo = userRepo;
 
-        Initialize();
+        //Initialize();
         
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }

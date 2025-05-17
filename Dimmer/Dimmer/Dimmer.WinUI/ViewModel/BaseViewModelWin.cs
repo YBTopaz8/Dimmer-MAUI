@@ -52,7 +52,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     public BaseViewModelWin(IMapper mapper,
         BaseAppFlow baseAppFlow,
-        //IDimmerLiveStateService dimmerLiveStateService,
+        IDimmerLiveStateService dimmerLiveStateService,
         AlbumsMgtFlow albumsMgtFlow,
         PlayListMgtFlow playlistsMgtFlow,
         SongsMgtFlow songsMgtFlow,
@@ -62,7 +62,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService,
         IFilePicker filePicker
-    ) : base(mapper, baseAppFlow, /*dimmerLiveStateService,*/ albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
+    ) : base(mapper, baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow, songsMgtFlow, stateService, settingsService, subs, lyricsMgtFlow, folderMgtService)
     {
         _mapper = mapper;
         _stateService = stateService;
