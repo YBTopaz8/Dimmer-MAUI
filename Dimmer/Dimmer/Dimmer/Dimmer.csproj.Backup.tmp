@@ -21,6 +21,14 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="DimmerLive\**" />
+	  <EmbeddedResource Remove="DimmerLive\**" />
+	  <MauiCss Remove="DimmerLive\**" />
+	  <MauiXaml Remove="DimmerLive\**" />
+	  <None Remove="DimmerLive\**" />
+	</ItemGroup>
   
   <ItemGroup>
     <MauiFont Include="Resources\Fonts\FontAwesomeRegular400.otf" Alias="FontAwesomeRegular" />
@@ -50,22 +58,18 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
-		
+		<PackageReference Include="WebRTCme" Version="2.0.0" />
     
 		 
 		<PackageReference Include="z440.atl.core" Version="6.23.0" />
-    <PackageReference Include="System.Reactive" Version="6.0.1" />
+
+    <PackageReference Include="UraniumUI.Material" Version="2.12.1" />
 
     <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.21" />
 
     <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.4.0" />
 
 	</ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\parse-live-query-dotnetss\ParseLiveQuery\ParseLiveQuery.csproj" />
-  </ItemGroup>
-
 
 
   <ItemGroup>

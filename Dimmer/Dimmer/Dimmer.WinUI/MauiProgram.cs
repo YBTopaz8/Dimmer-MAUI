@@ -1,5 +1,6 @@
 ﻿
 
+
 namespace Dimmer.WinUI;
 
 public static class MauiProgram
@@ -76,6 +77,16 @@ public static class MauiProgram
                 });
             });
         });
+
+
+        //if (ParseSetup.InitializeParseClient())
+        //{
+        //    ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+        //    ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+        //    ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
+        //    ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
+        //    ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        //}
         return builder.Build();
     }
 }

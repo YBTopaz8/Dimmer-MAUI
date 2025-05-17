@@ -153,10 +153,10 @@ StrokeThickness="0" StrokeShape="RoundRectangle 5" >
                                     <Image Source="face_with_monocle.gif" HeightRequest="80" WidthRequest="80"
                    IsAnimationPlaying="{Binding IsLoadingSongs}" IsVisible="{Binding IsLoadingSongs}"/>
                                     <Grid BackgroundColor="Transparent">
-                                        <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" >
+                                        <dx:DXCollectionView ItemsSource="{Binding ScanningLogs}" BackgroundColor="Transparent">
                                             <dx:DXCollectionView.ItemTemplate>
-                                                <DataTemplate x:DataType="x:String">
-                                                    <dx:DXButton ButtonType="Text" Content="{Binding .}" FontSize="16" 
+                                                <DataTemplate x:DataType="models:AppLogModel">
+                                                    <Label Text="{Binding Log}" FontSize="16" 
                                    TextColor="White"
                            Margin="20,0"/>
                                                 </DataTemplate>

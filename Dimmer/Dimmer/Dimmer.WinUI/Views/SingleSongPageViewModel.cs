@@ -1,16 +1,16 @@
-﻿using Dimmer.DimmerLive.Interfaces;
+﻿
 using Dimmer.Services;
 
 namespace Dimmer.WinUI.Views;
 public partial class SingleSongPageViewModel : BaseViewModel
 {
-    public SingleSongPageViewModel(IMapper mapper, BaseAppFlow baseAppFlow,IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
+    public SingleSongPageViewModel(IMapper mapper, BaseAppFlow baseAppFlow, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
         SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, 
         ISettingsService settingsService, 
         SubscriptionManager subs,
         LyricsMgtFlow lyricsMgtFlow,
         IFolderMgtService folderMgtService) : 
-        base(mapper, 
+        base(mapper,
             baseAppFlow, dimmerLiveStateService, albumsMgtFlow, playlistsMgtFlow,
             songsMgtFlow, stateService, settingsService:settingsService,
             subs, lyricsMgtFlow, folderMgtService )

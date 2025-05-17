@@ -148,7 +148,7 @@ public class ExoPlayerService : MediaSessionService
     }
 
     
-    public async override void OnCreate()
+    public override void OnCreate()
     {
         base.OnCreate();
         Console.WriteLine("[ExoPlayerService] OnCreate");
@@ -167,7 +167,13 @@ public class ExoPlayerService : MediaSessionService
 
 
             Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
-            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, PendingIntentFlags.Mutable);
+
+            PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
+            {
+                flags |= PendingIntentFlags.Immutable;
+            }
+            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
             
 
             mediaSession = new MediaSession.Builder(this, player)!
@@ -187,28 +193,57 @@ public class ExoPlayerService : MediaSessionService
             _positionHandler = new Handler(Looper.MainLooper!);
             _positionRunnable = new Runnable(() =>
             {
-                // fire your PositionChanged event (you already have one in IAudioActivity)
-                PositionChanged?.Invoke(this, player!.CurrentPosition);
-                if (player.IsPlaying)
-                    _positionHandler.PostDelayed(_positionRunnable, 1000);
+                if (player != null && player.IsPlaying) // Add null check for player
+                {
+                    PositionChanged?.Invoke(this, player.CurrentPosition);
+                    _positionHandler?.PostDelayed(_positionRunnable, 1000); // Check _positionHandler for null too
+                }
             });
-            _positionHandler.Post(_positionRunnable);
+            //_positionHandler.Post(_positionRunnable);
 
-            Console.WriteLine("[ExoPlayerService] Initialization successful.");
-            var controllerFuture = new MediaController.Builder(this, mediaSession.Token!).BuildAsync();
+            _ = InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
+
+            System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.OnCreate END (Initialization logic dispatched)");
             
-            var controllerObject = await controllerFuture?.GetAsync()!;
-            mediaController = (MediaController)controllerObject!;
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
-        
+       
     }
+    private async Task InitializeMediaControllerAsync()
+    {
+        System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+        try
+        {
+            if (mediaSession?.Token == null)
+            {
+                System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+                return;
+            }
 
+            var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
+            var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+            mediaController = (MediaController)controllerObject;
+            System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+        }
+        catch (Java.Lang.Throwable ex)
+        {
+            HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
+            // Decide if you need to StopSelf() here or if the service can function without a controller initially
+        }
+    }
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         base.OnStartCommand(intent, flags, startId);
+
+
+        var notification = NotificationHelper.BuildMinimalNotification(this);
+
+        StartForeground(NotificationHelper.NotificationId, notification);
+        
+       
+
         return StartCommandResult.Sticky;
     }
 
