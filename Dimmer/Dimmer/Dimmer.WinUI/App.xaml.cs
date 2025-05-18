@@ -3,12 +3,6 @@
 
 using Microsoft.Windows.AppLifecycle;
 using Windows.ApplicationModel.Activation;
-using Windows.Storage;
-using System.Diagnostics; // For Process
-using System.Linq;      // For LINQ methods like Select, Where
-using Microsoft.Extensions.DependencyInjection; // For GetService
-using Microsoft.Maui.Controls.Hosting;
-using Dimmer.Utilities;
 
 namespace Dimmer.WinUI;
 

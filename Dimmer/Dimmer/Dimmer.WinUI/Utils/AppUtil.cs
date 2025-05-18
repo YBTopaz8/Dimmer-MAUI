@@ -1,6 +1,4 @@
-﻿using Dimmer.WinUI.ViewModel;
-
-namespace Dimmer.WinUI.Utils;
+﻿namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
     public Shell GetShell()

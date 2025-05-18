@@ -13,7 +13,7 @@ public partial class SingleSongPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = Utilities.Enums.CurrentPage.NowPlayingPage;
+        MyViewModel.CurrentlySelectedPage = CurrentPage.NowPlayingPage;
 
     }
 

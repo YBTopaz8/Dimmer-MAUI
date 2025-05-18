@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Interfaces;
+﻿namespace Dimmer.Interfaces;
 public interface IFolderMgtService : IDisposable
 {
 
@@ -24,6 +18,7 @@ public interface IFolderMgtService : IDisposable
     void OnFileDeleted(FileSystemEventArgs e);
     void OnFileCreated(FileSystemEventArgs e);
     void RestartWatching();
+    void StartWatchingFolders();
 }
 
 public partial class FolderModel:ObservableObject

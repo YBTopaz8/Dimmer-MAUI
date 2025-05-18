@@ -1,7 +1,4 @@
-﻿
-using Dimmer.Services;
-
-namespace Dimmer.WinUI.Views;
+﻿namespace Dimmer.WinUI.Views;
 public partial class SingleSongPageViewModel : BaseViewModel
 {
     public SingleSongPageViewModel(IMapper mapper, BaseAppFlow baseAppFlow, IDimmerLiveStateService dimmerLiveStateService, AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 

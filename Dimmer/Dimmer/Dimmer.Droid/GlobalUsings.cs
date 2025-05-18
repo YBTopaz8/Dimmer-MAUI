@@ -3,14 +3,12 @@ global using CommunityToolkit.Mvvm.ComponentModel;
 global using DevExpress.Maui.CollectionView;
 global using Dimmer.Interfaces;
 global using Dimmer.Orchestration;
-global using Dimmer.Services;
 global using Dimmer.ViewModels;
 global using System.Diagnostics;
 global using DevExpress.Maui;
 global using Dimmer.DimmerAudio;
 global using Dimmer.Utils;
 global using Dimmer.Views;
-global using CommunityToolkit.Maui.Views;
 
 global using Dimmer.Data.ModelView;
 
@@ -20,8 +18,6 @@ global using Dimmer.Utilities.Enums;
 global using Dimmer.ViewModel;
 global using System.Collections.ObjectModel;
 global using System.Reactive.Linq;
-
-global using System.Reactive.Subjects;
 global using System.Threading.Tasks;
 
 

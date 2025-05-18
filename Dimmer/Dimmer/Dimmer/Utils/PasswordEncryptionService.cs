@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.Utils;
 
@@ -81,7 +77,7 @@ public class PasswordEncryptionService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Encryption failed: {ex.Message}");
+            Debug.WriteLine($"Encryption failed: {ex.Message}");
             // Handle or log exception appropriately
             return null;
         }
@@ -128,13 +124,13 @@ public class PasswordEncryptionService
         }
         catch (CryptographicException ex) // Specifically catch this for decryption failures (e.g., bad key, tampered data)
         {
-            System.Diagnostics.Debug.WriteLine($"Decryption failed (CryptographicException): {ex.Message}");
+            Debug.WriteLine($"Decryption failed (CryptographicException): {ex.Message}");
             // This often means the key is wrong or the data was tampered with.
             return null;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Decryption failed: {ex.Message}");
+            Debug.WriteLine($"Decryption failed: {ex.Message}");
             // Handle or log exception appropriately
             return null;
         }

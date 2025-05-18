@@ -1,10 +1,7 @@
 using CommunityToolkit.Maui.Core.Extensions;
-using CommunityToolkit.Maui.Extensions;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Editors;
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
 using Dimmer.Utilities.CustomAnimations;
 using System.ComponentModel;
 
@@ -239,7 +236,7 @@ public partial class HomePage : ContentPage
                                 HomeTabView.SelectedItemIndex = 0;
                             }
                             int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
-                            SongsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
                             HapticFeedback.Perform(HapticFeedbackType.LongPress);
                         }
@@ -320,7 +317,7 @@ public partial class HomePage : ContentPage
             //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, Utilities.Enums.CurrentPage.HomePage);
+                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {

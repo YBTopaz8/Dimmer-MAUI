@@ -3,11 +3,8 @@ using Android.Content; // <-- Add if missing for Intent/ComponentName etc.
 using Android.OS;
 using Android.Widget;
 using AndroidX.AppCompat.App;
-using System;
-using System.Diagnostics;
 
 // *** Correct using statement for the listener interface ***
-using Android.Views;
 using View = Android.Views.View;
 using ImageButton = Android.Widget.ImageButton; // <--- Ensure this is present
 namespace Dimmer.Activities;

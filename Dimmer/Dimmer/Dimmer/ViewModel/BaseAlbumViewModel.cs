@@ -1,6 +1,4 @@
-﻿using Dimmer.Services;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 public partial class BaseAlbumViewModel : ObservableObject
 {
     private readonly IMapper _mapper;

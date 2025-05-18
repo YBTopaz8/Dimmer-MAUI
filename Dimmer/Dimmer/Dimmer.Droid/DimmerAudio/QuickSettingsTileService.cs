@@ -6,12 +6,6 @@ using Android.Service.QuickSettings;
 using Android.Util;
 using Android.Widget;
 using AndroidX.Media3.Session;
-using Dimmer.Data.ModelView;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.DimmerAudio;
 [Service(Name = "com.yvanbrunel.dimmer.QuickSettingsTileService", // <<< CHANGE TO YOUR UNIQUE NAME

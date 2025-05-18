@@ -1,9 +1,4 @@
-﻿
-using Dimmer.Data.ModelView;
-//using Dimmer.DimmerLive.Interfaces;
-using System.Collections.ObjectModel;
-using System.Reactive.Linq;
-
+﻿//using Dimmer.DimmerLive.Interfaces;
 namespace Dimmer.Views;
 public partial class HomePageViewModel : BaseViewModelAnd
 {

@@ -1,8 +1,7 @@
-﻿using ATL.Logging;
-//using Dimmer.DimmerLive.Models;
-using Dimmer.Utilities.FileProcessorUtils;
-using Syncfusion.Maui.Toolkit.NavigationDrawer;
-using System.Reactive.Concurrency;
+﻿//using Dimmer.DimmerLive.Models;
+
+
+using Dimmer.Interfaces.Services;
 
 namespace Dimmer.Orchestration;
 
@@ -62,8 +61,8 @@ public class BaseAppFlow : IDisposable
         _mapper = mapper;
         _userRepo = userRepo;
 
-        //Initialize();
-        
+        Initialize();
+
     }
     public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
 
@@ -108,6 +107,7 @@ public class BaseAppFlow : IDisposable
             AppUtils.IsUserFirstTimeOpening = true;
             return;
         }
+        
         _state.SetSecondSelectdSong(MasterList.First());
         _state.SetCurrentSong(MasterList.First());
         

@@ -294,8 +294,10 @@ public static class MusicFileProcessor
             BitRate = track.Bitrate,
             FileSize = fileInfo.Exists ? fileInfo.Length : 0,
             FileFormat = Path.GetExtension(filePath).TrimStart('.'),
-            CoverImagePath = GetCoverImagePath(filePath)
+            
         };
+
+        song.CoverImagePath = GetCoverImagePath(filePath);
 
         if ((track.Lyrics.SynchronizedLyrics?.Count > 0) || File.Exists(Path.ChangeExtension(filePath, ".lrc")))
         {

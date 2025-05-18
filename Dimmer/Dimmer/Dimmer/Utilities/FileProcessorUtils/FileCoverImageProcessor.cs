@@ -22,8 +22,8 @@ public static class FileCoverImageProcessor
 
         string sanitizedFileName = string.Join("_", fileNameWithExtension.Split(Path.GetInvalidFileNameChars()));
         string folderPath =string.Empty;
-        //folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
-        folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CoverImagesDimmer");
+        folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "DimmerDB", "CoverImagesDimmer");
+        //folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CoverImagesDimmer");
 
         if (!Directory.Exists(folderPath))
         {

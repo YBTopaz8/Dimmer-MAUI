@@ -1,7 +1,4 @@
-﻿using Dimmer.Services;
-using System.Diagnostics;
-
-namespace Dimmer.Orchestration;
+﻿namespace Dimmer.Orchestration;
 
 public class PlayListMgtFlow : BaseAppFlow, IDisposable
 {
@@ -224,7 +221,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
 
-            _state.SetCurrentState((DimmerPlaybackState.Playing,BaseAppFlow.MasterList));
+            _state.SetCurrentState((DimmerPlaybackState.Playing, MasterList));
         }
             
     }

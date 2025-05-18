@@ -1,6 +1,4 @@
-﻿using Dimmer.Data;
-
-namespace Dimmer.Interfaces.Services;
+﻿namespace Dimmer.Interfaces.Services;
 public class DimmerSettingsService : ISettingsService
 {
     private readonly Realm _realm;
@@ -9,20 +7,24 @@ public class DimmerSettingsService : ISettingsService
     public DimmerSettingsService(IRealmFactory factory)
     {
         _realm = factory.GetRealmInstance();
+
+    }
+
+    public void LoadSettings()
+    {
         var list = _realm.All<AppStateModel>().ToList();
         if (list.Count == 0)
         {
+            _model = new AppStateModel();
 
             _realm.Write(() =>
             {
-                _model = new AppStateModel();
                 _realm.Add(_model);
             });
         }
         else
             _model = list[0];
     }
-
     public RepeatMode RepeatMode
     {
         get
@@ -100,7 +102,11 @@ public class DimmerSettingsService : ISettingsService
     public void AddMusicFolder(string path)
     {
 
-        _realm.Write(() => _model.UserMusicFoldersPreference.Add(path));
+        _realm.Write(() => {
+            _model.UserMusicFoldersPreference.Add(path);
+            
+        
+            });
     }
 
     // Remove a folder

@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Disposables;
 using ATL;
-using ATL.Logging;
-using Dimmer.DimmerLive.Interfaces;
 using Dimmer.DimmerLive.Models;
-using Dimmer.Utilities.Extensions;
 using Dimmer.Utilities.FileProcessorUtils;
 using Dimmer.Utils;
 using Parse.Infrastructure;
@@ -777,7 +767,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 else
                 {
                     // Handle encryption failure - maybe don't store it or log an error
-                    System.Diagnostics.Debug.WriteLine("Failed to encrypt password for storage.");
+                    Debug.WriteLine("Failed to encrypt password for storage.");
                 }
                 await SecureStorage.SetAsync("ObjectId", UserOnline.ObjectId);
                 await SecureStorage.SetAsync("SessionToken", UserOnline.SessionToken);

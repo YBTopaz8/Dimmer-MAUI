@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.Utilities;
+﻿namespace Dimmer.Utilities;
 public class DeviceStaticUtils
 {
     // Helper to get a unique ID for the current physical device

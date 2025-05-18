@@ -1,7 +1,4 @@
-﻿
-using Dimmer.Data.Models;
-
-namespace Dimmer.WinUI.DimmerAudio;
+﻿namespace Dimmer.WinUI.DimmerAudio;
 
 
 /// <summary>

@@ -168,7 +168,7 @@ public static class NotificationHelper
             // --- 1. Intent for Bubble Content Activity ---
             // Use the Activity created in step 2
             var targetIntent = new Intent(context, typeof(PlaybackBubbleActivity));
-            targetIntent.SetAction("SHOW_PLAYBACK_BUBBLE_" + System.DateTime.Now.Ticks); // Unique action prevents intent caching issues
+            targetIntent.SetAction("SHOW_PLAYBACK_BUBBLE_" + DateTime.Now.Ticks); // Unique action prevents intent caching issues
             // Add extras if needed for the bubble activity
              targetIntent.PutExtra("trackTitle", trackTitle);
 
@@ -261,7 +261,7 @@ public static class NotificationHelper
 
     public static Notification BuildMinimalNotification(Context context)
     {
-        var builder = new Notification.Builder(context, NotificationHelper.ChannelId)
+        var builder = new Notification.Builder(context, ChannelId)
             .SetContentTitle("Dimmer Music Player")
             .SetContentText("Preparing playback...")
             .SetSmallIcon(Resource.Drawable.exo_icon_circular_play) // use your icon

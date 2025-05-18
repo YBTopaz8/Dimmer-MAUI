@@ -1,9 +1,5 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using Dimmer.WinUI.Utils.Models;
-using Microsoft.UI.Xaml;
-using Parse;
-using Syncfusion.Maui.Toolkit.BottomSheet;
-using System.Threading.Tasks;
 using Application = Microsoft.Maui.Controls.Application;
 
 namespace Dimmer.WinUI.Views;
@@ -222,8 +218,9 @@ public partial class HomePage : ContentPage
 
                 break;
             case 3:
-                MyViewModel.ToggleSettingsPage();
 
+                PlatUtils.OpenSettingsindow();
+                return;
                 break;
             case 4:
 
@@ -282,7 +279,7 @@ public partial class HomePage : ContentPage
             {0, SongsColView},
             {1, LyricsColView},
             {2, ControlPanel},
-            {3, SettingsPanel},
+            //{3, SettingsPanel},
             {4, UserNoteView},
 
 
@@ -637,10 +634,7 @@ public partial class HomePage : ContentPage
         MyViewModel.WindowsOpened.Clear();
     }
 
-    private async void AddNewMusicFolder_Clicked(object sender, EventArgs e)
-    {
-        await MyViewModel.SelectSongFromFolder();
-    }
+  
 
     private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
     {
@@ -671,5 +665,20 @@ public partial class HomePage : ContentPage
         var item = (string)send.BindingContext;
 
         MyViewModel.DeleteFolderPath(item);
+    }
+
+    private void DeleteBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ChangeFolder_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

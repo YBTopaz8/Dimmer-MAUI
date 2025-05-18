@@ -1,15 +1,7 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using System.Threading.Tasks;
-using Android;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Database;
 using Android.OS;
-using Android.Provider;
-using AndroidX.Core.App;
-using AndroidX.Core.Content;
 
 namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
@@ -277,8 +269,8 @@ public class MainActivity : MauiAppCompatActivity
             return;
         // For Android, FileSystem.AppDataDirectory should work,
         // but you can also use Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath
-        string appDataDir = Microsoft.Maui.Storage.FileSystem.AppDataDirectory;
-        string errorLogPath = System.IO.Path.Combine(appDataDir, "error_log_android.txt");
+        string appDataDir = FileSystem.AppDataDirectory;
+        string errorLogPath = Path.Combine(appDataDir, "error_log_android.txt");
         try
         {
             string errorMessage = $"[{DateTime.Now}] Unhandled Exception from {source}:\n{ex.GetType().FullName}: {ex.Message}\nStack Trace:\n{ex.StackTrace}\n";
@@ -286,7 +278,7 @@ public class MainActivity : MauiAppCompatActivity
             {
                 errorMessage += $"\nInner Exception:\n{ex.InnerException.GetType().FullName}: {ex.InnerException.Message}\nStack Trace:\n{ex.InnerException.StackTrace}\n";
             }
-            System.IO.File.AppendAllText(errorLogPath, errorMessage + "\n-----------------------------------\n");
+            File.AppendAllText(errorLogPath, errorMessage + "\n-----------------------------------\n");
             System.Diagnostics.Debug.WriteLine($"Logged to: {errorLogPath}");
 
             // If you want to display an alert (requires UI thread)

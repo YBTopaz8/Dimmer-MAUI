@@ -1,13 +1,11 @@
-﻿using CommunityToolkit.Maui.Core.Primitives;
-using CommunityToolkit.Maui.Storage;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using Dimmer.Interfaces.Services;
+
 //using Dimmer.DimmerLive.Models;
-using Dimmer.Services;
 using Dimmer.Utilities.FileProcessorUtils;
+
 //using Parse;
 //using Parse.Infrastructure;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewModel;
 
@@ -234,9 +232,8 @@ public partial class BaseViewModel : ObservableObject
         
         
         CurrentPositionPercentage = 0;
-        IsStickToTop = _settingsService.IsStickToTop;
-        RepeatMode = _settingsService.RepeatMode;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
+        _folderMgtService.StartWatchingFolders();
 
     }
 
@@ -623,6 +620,8 @@ public partial class BaseViewModel : ObservableObject
     [RelayCommand]
     public void ToggleSettingsPage()
     {
+
+
         IsMainViewVisible = !IsMainViewVisible;
 
     }
@@ -650,13 +649,22 @@ public partial class BaseViewModel : ObservableObject
     List<string> FullFolderPaths = [];
 
     bool hasAlreadyActivated=false;
-    public async Task SelectSongFromFolder()
+    [RelayCommand]
+    public void DeleteFolderPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+        FolderPaths.Remove(path);
+
+        _folderMgtService.RemoveFolderFromPreference(path);
+    }
+    public async Task SelectSongFromFolder(string? pathToOverride=null)
     {
 
         CancellationTokenSource cts = new();
         CancellationToken token = cts.Token;
 
-        FolderPickerResult res = await CommunityToolkit.Maui.Storage.FolderPicker.Default.PickAsync(token);
+        FolderPickerResult res = await FolderPicker.Default.PickAsync(token);
 
         if (res.Folder is null)
         {
@@ -670,17 +678,26 @@ public partial class BaseViewModel : ObservableObject
 
         AppUtils.IsUserFirstTimeOpening=false;
         
-        FolderPaths.Add(folder);
+        FolderPaths?.Add(folder);
 
         FullFolderPaths.Add(folder);
 
-        if (FolderPaths.Count == 1 && !hasAlreadyActivated)
+        if (FolderPaths?.Count == 1 && !hasAlreadyActivated)
         {
             BaseAppFlow.Initialize();
             
             Initialize();
             hasAlreadyActivated=true;
         }
+
+        if (pathToOverride is not null)
+        {
+            FolderPaths?.Remove(pathToOverride);
+            _folderMgtService.RemoveFolderFromPreference(pathToOverride);
+        }
+
+
+
         _folderMgtService.AddFolderToPreference(folder);
         
         

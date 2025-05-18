@@ -1,5 +1,4 @@
-﻿using Dimmer.Services;
-using Dimmer.Utilities.Events;
+﻿using Dimmer.Utilities.Events;
 
 namespace Dimmer.Orchestration;
 

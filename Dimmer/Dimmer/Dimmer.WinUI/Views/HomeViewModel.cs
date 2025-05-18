@@ -1,7 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿
 //using Dimmer.DimmerLive.Interfaces;
-using Dimmer.Services;
-using Dimmer.WinUI.ViewModel;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 
 namespace Dimmer.WinUI.Views;
@@ -128,11 +126,5 @@ public partial class HomeViewModel : BaseViewModelWin
         GeneralViewUtil.PointerOffView(mySelectedView);
     }
 
-    [RelayCommand]
-    public void DeleteFolderPath(string path)
-    {
-        if (string.IsNullOrEmpty(path))
-            return;
-        FolderPaths.Remove(path);
-    }
+   
 }

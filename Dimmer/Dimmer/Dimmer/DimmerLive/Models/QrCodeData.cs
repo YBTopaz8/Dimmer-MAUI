@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-// Models/QrCodePayload.cs
+﻿// Models/QrCodePayload.cs
 using System.Text.Json.Serialization; // For System.Text.Json attributes
 
 namespace Dimmer.DimmerLive.Models;

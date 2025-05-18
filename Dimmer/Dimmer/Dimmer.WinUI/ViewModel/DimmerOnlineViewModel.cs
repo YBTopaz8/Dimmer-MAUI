@@ -1,11 +1,5 @@
 ﻿//using Dimmer.DimmerLive;
 //using Dimmer.DimmerLive.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dimmer.WinUI.ViewModel;
 public partial class DimmerOnlineViewModel :ObservableObject
 {

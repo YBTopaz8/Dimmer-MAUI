@@ -1,5 +1,4 @@
-﻿using Dimmer.Services;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Dimmer.Orchestration; 
 public class LyricsMgtFlow : BaseAppFlow, IDisposable

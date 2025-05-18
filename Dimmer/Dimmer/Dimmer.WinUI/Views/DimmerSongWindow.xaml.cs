@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using Windows.UI.ApplicationSettings;
-
 namespace Dimmer.WinUI.Views;
 
 public partial class DimmerSongWindow : Window

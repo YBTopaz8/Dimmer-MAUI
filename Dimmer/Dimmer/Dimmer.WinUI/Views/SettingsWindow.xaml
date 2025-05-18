@@ -4,12 +4,18 @@
              x:Class="Dimmer.WinUI.Views.SettingsWindow"
              Title="Settings"    
         xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    x:DataType="vm:BaseViewModelWin"
-        xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
-        xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-        xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
-         xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"         
-         xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"      
+ xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+ xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+ xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit" 
+ xmlns:models ="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ x:DataType="vm:BaseViewModelWin"
+ 
+ xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+ xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+ xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+ xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews"
+ Shell.NavBarIsVisible="False"     
          x:Name="myPage"
     >
     <Window.Page>
@@ -27,14 +33,151 @@
                 <converters:VolumeConverter x:Key="VolConverter" />
             </ContentPage.Resources>
 
-            <Grid>
-                <HorizontalStackLayout>
-                    <Image Source="user.png" HeightRequest="60"
-                           WidthRequest="60" />
-                    <Label Text="{Binding UserName}" FontSize="24" VerticalOptions="Center" />
-                    <Label Text="{Binding UserEmail}" FontSize="16" VerticalOptions="Center" />
-                    
-                </HorizontalStackLayout>
+
+            <Grid ColumnDefinitions="0.3*,*" 
+                  IsVisible="True"
+                 >
+
+                <Grid Grid.Column="0"
+                      Margin="10">
+                    <VerticalStackLayout>
+                        <syncf:SfChipGroup >
+                            <syncf:SfChipGroup.ChipLayout>
+                                <VerticalStackLayout Spacing="10" 
+VerticalOptions="Center"/>
+                            </syncf:SfChipGroup.ChipLayout>
+                            <syncf:SfChip ShowIcon="True" ImageSource="backk.png" Text="Back" FontSize="20"
+                                           Command="{Binding ToggleSettingsPageCommand}"
+                                          />
+                            <syncf:SfChip Text="Online" FontSize="20" CommandParameter="3"/>
+                            <syncf:SfChip Text="About Dimmer" FontSize="20" CommandParameter="0"/>
+                            <syncf:SfChip Text="Music Library" FontSize="20" CommandParameter="1"/>
+                            <syncf:SfChip Text="App Preferences" FontSize="18" CommandParameter="2"/>
+                        </syncf:SfChipGroup>
+                    </VerticalStackLayout>
+                </Grid>
+                <syncf:SfTabView x:Name="GettingStartedTabView" EnableSwiping="True" Grid.Column="1"
+                             SelectedIndex="{Binding SettingsPageIndex}" TabBarHeight="0">
+
+                    <syncf:SfTabItem Header="{Static lang:DimmerLanguage.txt_folder}" >
+                        <syncf:SfTabItem.Content>
+                            <Grid RowDefinitions="Auto,*,*">
+                                <Label Text="Music Folders"
+                                       FontSize="34"
+                                       FontAttributes="Bold"
+                                       Grid.Row="0"/>
+                                <Grid Grid.Row="1" 
+                                      RowDefinitions="*,0.2*">
+
+                                    <CollectionView Grid.Row="0" Header="List of Folders"
+                ItemsSource="{Binding FolderPaths}" x:Name="ListOfFolders"
+                >
+                                        <CollectionView.EmptyView>
+                                            <VerticalStackLayout >
+                                                <Label 
+                Margin="0,40,0,0" FontAttributes="Italic"
+                Text="No Folders In Preferences.."/>
+                                            </VerticalStackLayout>
+                                        </CollectionView.EmptyView>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <FlexLayout>
+
+                                                    <Label Text="{Binding .}"/>
+
+                                                    <HorizontalStackLayout>
+                                                        <ImageButton Source="foldera.png" CommandParameter="{Binding .}"
+                                                                     Clicked="ChangeFolder_Clicked"
+                                                                     x:Name="ChangeFolder"/>
+
+                                                        <ImageButton Source="delete.png" CommandParameter="{Binding .}"
+                                                                     x:Name="DeleteBtn"
+                                                                     Clicked="DeleteBtn_Clicked"/>
+
+                                                    </HorizontalStackLayout>
+                                                </FlexLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                    <Button Text="Add New Folder" HorizontalOptions="Start" Clicked="AddNewMusicFolder_Clicked"
+                                            Grid.Row="1"/>
+                                </Grid>
+
+
+                                <VerticalStackLayout Grid.Row="2">
+                                </VerticalStackLayout>
+                            </Grid>
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+
+                    <syncf:SfTabItem Header="Dimmer Live">
+                        <syncf:SfTabItem.Content>
+                            <Grid >
+                                <Border HorizontalOptions="Center"
+                              VerticalOptions="Center" StrokeShape="RoundRectangle 30">
+                                    <VerticalStackLayout Spacing="15"
+                                                     Margin="30"
+                                                     HeightRequest="600" WidthRequest="500">
+
+                                        <Grid >
+                                            <Image HeightRequest="100">
+                                                <Image.Source>
+                                                    <FontImageSource FontFamily="FontAwesomeSolid" Glyph="user" Size="50"
+                                                                 Color="{AppThemeBinding Dark=DarkSlateBlue, Light=pink}"/>
+                                                </Image.Source>
+                                            </Image>
+                                            <ImageButton VerticalOptions="End" HorizontalOptions="End">
+                                                <ImageButton.Source>
+                                                    <FontImageSource FontFamily="FontAwesomeSolid" Glyph="edit" Size="50"
+                  Color="{AppThemeBinding Dark=DarkSlateBlue, Light=pink}"/>
+
+                                                </ImageButton.Source>
+                                            </ImageButton>
+                                        </Grid>
+
+                                        <material:TextField Title="{Static lang:DimmerLanguage.txt_username}"
+                                                        Text="{Binding UserLocal.UserName}"/>
+                                        <material:TextField Title="{Static lang:DimmerLanguage.txt_email}" 
+                                                        Text="{Binding UserLocal.UserEmail}"/>
+                                        <material:TextField Title="{Static lang:DimmerLanguage.txt_pass}"
+                                                        Text="{Binding UserLocal.UserPassword}"
+                                                        IsPassword="True" 
+                                                        />
+
+                                        <Button Text="{Static lang:DimmerLanguage.txt_login}"
+                                            x:Name="LoginBtn" Command="{Binding LoginUserCommand}"/>
+                                        <Button Text="{Static lang:DimmerLanguage.txt_signup}"
+                                            x:Name="SignUpUserBtn" Command="{Binding SignUpUserCommand}"/>
+                                        <Button Text="{Static lang:DimmerLanguage.txt_forgottenpass}"
+                                            x:Name="ForgottenPass" Command="{Binding ForgottenPasswordCommand}"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+
+                    <syncf:SfTabItem Header="Last Step">
+                        <syncf:SfTabItem.Content>
+                            <VerticalStackLayout>
+
+                                <Label Text="Set Up Complete :)"/>
+
+                                <Button Text="Done"
+                                    Command="{Binding ToggleSettingsPageCommand}"/>
+                            </VerticalStackLayout>
+                        </syncf:SfTabItem.Content>
+                    </syncf:SfTabItem>
+                </syncf:SfTabView>
+                <syncf:SfBottomSheet x:Name="OptionsBtmSheet" BackgroundColor="Red"
+                                  IsOpen="False" IsVisible="False">
+                    <syncf:SfBottomSheet.BottomSheetContent>
+                        <VerticalStackLayout>
+                            <Label Text="Yvan"/>
+                            <Label Text="Additional Info" FontSize="14" TextColor="White"/>
+                        </VerticalStackLayout>
+
+                    </syncf:SfBottomSheet.BottomSheetContent>
+                </syncf:SfBottomSheet>
             </Grid>
         </ContentPage>
     </Window.Page>

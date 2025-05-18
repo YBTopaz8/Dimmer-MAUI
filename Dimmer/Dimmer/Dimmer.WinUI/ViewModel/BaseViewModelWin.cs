@@ -2,26 +2,13 @@
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerLive.Interfaces;
 //using Dimmer.DimmerLive.Models;
-using Dimmer.Services;
-using Dimmer.WinUI.Utils.Helpers;
 using Dimmer.WinUI.Utils.Models;
-using Microsoft.Maui.Media;
-using Parse;
 using SkiaSharp;
-using System.Diagnostics;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Vanara.PInvoke;
 using Vanara.Windows.Shell;
-using Windows.Graphics.Imaging;
 using ZXing;
-using ZXing.Common;
-using ZXing.Net.Maui;
 using ZXing.Net.Maui.Controls;
 using ZXing.SkiaSharp;
 using static Vanara.PInvoke.Shell32;
-using BarcodeFormat = ZXing.BarcodeFormat;
 
 namespace Dimmer.WinUI.ViewModel;
 
@@ -152,7 +139,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         //Debug.WriteLine(ss.Name);
     }
 
-    void IfUserOnlineIsNull()
+    static void IfUserOnlineIsNull()
     {
         //UserOnline ??=  dimmerLiveStateService.UserOnline;
     }

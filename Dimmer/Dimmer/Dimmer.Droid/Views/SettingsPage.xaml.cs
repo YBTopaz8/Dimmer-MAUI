@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Dimmer.Views;
 
 public partial class SettingsPage : ContentPage

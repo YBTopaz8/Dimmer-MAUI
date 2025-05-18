@@ -1,9 +1,4 @@
-﻿using Dimmer.Utilities;
-using Dimmer.WinUI.ViewModel;
-using System.Drawing;
-using System.Drawing.Imaging;
-using Vanara.Windows.Shell;
-using WinRT.Interop;
+﻿using System.Drawing.Imaging;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -107,6 +102,21 @@ public static class PlatUtils
         Application.Current!.OpenWindow(newWindow);
 
         MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+
+    }
+
+    public static void OpenSettingsindow()
+    {
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        
+
+        SettingsWindow newWindow = new(MyVM);
+        
+        //newWindow.SetTitle(song);
+        Application.Current!.OpenWindow(newWindow);
+
+        //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
 
     }
     public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
@@ -247,13 +257,13 @@ public static class PlatUtils
             newNotif.Height = 300;
             newNotif.Width = AppUtils.UserScreenWidth;
 
-            Microsoft.Maui.Controls.Application.Current?.OpenWindow(newNotif);
+            Application.Current?.OpenWindow(newNotif);
 
             
             await Task.Delay(6000);
 
 
-            Microsoft.Maui.Controls.Application.Current?.CloseWindow(newNotif);
+            Application.Current?.CloseWindow(newNotif);
 
             
         }

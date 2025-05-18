@@ -7,7 +7,6 @@ global using Dimmer.ViewModel;
 global using CommunityToolkit.Maui;
 global using CommunityToolkit.Maui.Storage;
 global using Dimmer.Data;
-global using Dimmer.Services;
 global using Microsoft.Extensions.Logging;
 global using Syncfusion.Maui.Toolkit.Hosting;
 global using CommunityToolkit.Maui.Views;
@@ -28,5 +27,12 @@ global using Dimmer.Data.ModelView;
 global using Dimmer.Utilities.Enums;
 global using Dimmer.DimmerLive;
 global using Dimmer.DimmerLive.Interfaces;
-global using ZXing.Net.Maui;
 global using ZXing.Net.Maui.Controls;
+
+
+global using Dimmer.Utilities.FileProcessorUtils;
+global using System.Reactive.Concurrency;
+
+global using Dimmer.Interfaces.Services;
+global using System.Text;
+global using System.Text.Json;

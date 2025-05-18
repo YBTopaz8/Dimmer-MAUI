@@ -32,7 +32,6 @@ using Android.Util;
 using Java.Util.Concurrent;
 using Android.Media;
 using Dimmer.Activities;
-using AndroidX.ConstraintLayout.Helper.Widget;
 
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
@@ -338,7 +337,7 @@ public class ExoPlayerService : MediaSessionService
     private static void HandleInitError(string type, Java.Lang.Throwable ex)
     {
         Console.WriteLine($"[ExoPlayerService] !!! CRITICAL JAVA {type} ERROR: {ex.Class.Name} - {ex.LocalizedMessage} !!!");
-        Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Android.Util.Log.GetStackTraceString(ex)}");
+        Console.WriteLine($"[ExoPlayerService] Java Stack Trace: {Log.GetStackTraceString(ex)}");
         if (ex.Cause != null)
         {
             Console.WriteLine($"[ExoPlayerService] Java Cause: {ex.Cause}");
@@ -431,7 +430,7 @@ public class ExoPlayerService : MediaSessionService
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
-            .GetSystemService(Context.AudioService) as AudioManager;
+            .GetSystemService(AudioService) as AudioManager;
 
         // 2) query all output devices (API 23+)
         var devices = audioManager?
