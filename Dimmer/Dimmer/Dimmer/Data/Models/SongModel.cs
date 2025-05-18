@@ -221,6 +221,11 @@ public partial class SongModel : RealmObject
     public string? UserIDOnline { get; set; }
 
     public IList<UserNoteModel> UserNotes { get; }
+    public string? AlbumId { get;  set; }
+    public string? GenreId { get;  set; }
+    public string? Id { get;  set; }
+    public IList<string> ArtistIds { get; }
+
     public SongModel()
     {
         

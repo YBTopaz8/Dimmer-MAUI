@@ -1,5 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Models;
 
+
 namespace Dimmer.Orchestration;
 public static class AutoMapperConf
 {
@@ -14,12 +15,17 @@ public static class AutoMapperConf
             .ReverseMap();
             cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap();            
             cfg.CreateMap<UserNoteModel, UserNoteModelView>().ReverseMap();            
-            //cfg.CreateMap<UserNoteModel, UserModelOnline>().ReverseMap();            
-            //cfg.CreateMap<UserModelOnline, UserModelView>().ReverseMap();            
+            cfg.CreateMap<UserNoteModel, UserModelOnline>().ReverseMap();
+            cfg.CreateMap<UserModelOnline, UserModelView>().ReverseMap();
             cfg.CreateMap<UserModel, UserModelView>().ReverseMap();            
             cfg.CreateMap<GenreModel, GenreModelView>().ReverseMap();
-            cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();            
-            //cfg.CreateMap<DimmerSharedSong, SongModelView>().ReverseMap();                    
+            cfg.CreateMap<PlaylistModel, PlaylistModelView>().ReverseMap();
+            cfg.CreateMap<AppStateModel, AppStateModelView>().ReverseMap();
+            cfg.CreateMap<AppStateModel, AppStateModel>()
+            
+            .ConstructUsing(src=>new AppStateModel())
+            .ForMember(dest =>dest.LocalDeviceId, opt => opt.MapFrom(src => src.LocalDeviceId))
+            ;
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });
 

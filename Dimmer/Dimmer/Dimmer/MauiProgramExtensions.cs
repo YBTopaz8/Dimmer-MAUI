@@ -42,12 +42,12 @@ public static class MauiProgramExtensions
         builder.Services.AddSingleton<IDimmerLiveStateService, DimmerLiveStateService>();
         builder.Services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
-        builder.Services.AddTransient<SubscriptionManager>();
+        builder.Services.AddSingleton<SubscriptionManager>();
 
         builder.Services.AddSingleton<IFolderMonitorService, FolderMonitorService>();
 
-        builder.Services.AddTransient(typeof(IRepository<>), typeof(RealmCoreRepo<>));
-        builder.Services.AddTransient(typeof(IQueueManager<>), typeof(QueueManager<>));
+        builder.Services.AddSingleton(typeof(IRepository<>), typeof(RealmCoreRepo<>));
+        builder.Services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
         IMapper? mapper = AutoMapperConf.ConfigureAutoMapper();

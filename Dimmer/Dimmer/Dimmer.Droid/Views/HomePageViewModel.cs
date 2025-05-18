@@ -1,4 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Interfaces;
+
+
 namespace Dimmer.Views;
 public partial class HomePageViewModel : BaseViewModelAnd
 {

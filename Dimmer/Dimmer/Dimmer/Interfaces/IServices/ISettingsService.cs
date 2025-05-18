@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Interfaces;
+﻿
+namespace Dimmer.Interfaces;
 public interface ISettingsService
 {
     RepeatMode RepeatMode { get; set; }
@@ -6,6 +7,7 @@ public interface ISettingsService
     double VolumeLevel { get; set; }
     string LastPlayedSong { get; set; }
     bool IsStickToTop { get; set; }
- 
- 
+    AppStateModel CurrentAppStateModel { get; }
+
+    void LoadSettings();
 }

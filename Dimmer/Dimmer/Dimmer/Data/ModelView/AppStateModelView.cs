@@ -1,5 +1,11 @@
-﻿namespace Dimmer.Data.Models;
-public class AppStateModel : RealmObject
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Dimmer.Data.ModelView;
+public partial class AppStateModelView: ObservableObject
 {
 
     [PrimaryKey]
@@ -22,18 +28,19 @@ public class AppStateModel : RealmObject
     // e.g. 0.5–2.0× speed
     public bool MinimizeToTrayPreference { get; set; }
     public bool IsStickToTop { get; set; }
+    public bool IsShowCloseConfirmation { get; set; }
 
     public string? EqualizerPreset { get; set; }
     public double LastKnownPosition { get; set; }
-    public IList<string> UserMusicFoldersPreference { get; } 
-    public IList<string> LastOpenedWindows { get; } 
+    public IList<string> UserMusicFoldersPreference { get; } = new List<string>();
+    public IList<string> LastOpenedWindows { get; } = new List<string>();
 
 
-    public AppStateModel()
+    public AppStateModelView()
     {
-        
+
     }
-    public AppStateModel(AppStateModel source)
+    public AppStateModelView(AppStateModel source)
     {
         if (source == null)
         {

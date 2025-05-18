@@ -9,7 +9,9 @@ public class BaseAppFlow : IDisposable
 {
 
     //public static ParseUser? CurrentUserOnline { get; set; }
-    public static UserModel? CurrentUser { get; set; }
+    
+    public static UserModel CurrentUser{ get; set; }
+    public static UserModelView CurrentUserView { get; set; }
 
     public readonly IDimmerStateService _state;
     private readonly IRepository<SongModel> _songRepo;
@@ -20,6 +22,7 @@ public class BaseAppFlow : IDisposable
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<UserModel> _userRepo;
+    private readonly IRepository<AppStateModel> _appstateRepo;
     private readonly ISettingsService _settings;
     private readonly IFolderMgtService folderMgt;
     public readonly IMapper _mapper;
@@ -44,10 +47,12 @@ public class BaseAppFlow : IDisposable
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
+        IRepository<AppStateModel> appstateRepo,
         ISettingsService settings,
         IFolderMgtService folderMgt, SubscriptionManager subs,
         IMapper mapper)
     {
+        _appstateRepo = appstateRepo;
         _state = state;
         _songRepo = songRepo;
         _pdlRepo = pdlRepo;
@@ -56,6 +61,7 @@ public class BaseAppFlow : IDisposable
         _albumRepo = albumRepo;
         _genreRepo = genreRepo;
         _aagslRepo = aagslRepo;
+        //settings.LoadSettings();
         _settings = settings;
         this.folderMgt=folderMgt;
         _mapper = mapper;
@@ -64,16 +70,46 @@ public class BaseAppFlow : IDisposable
         Initialize();
 
     }
-    public static IReadOnlyCollection<SongModel> MasterList { get; private set; }
+    public static AppStateModelView DimmerAppState { get; set; }
+    public static IReadOnlyCollection<SongModel> MasterList { get; internal set; }
 
     public static bool IsAppInitialized;
     public void Initialize(bool isAppInit=false)
     {
+       var DimmerAppStates = _appstateRepo.GetAll().ToList();
+        var usrs = _userRepo.GetAll().ToList();
+        if (usrs is null || usrs.Count <1)
+        {
+            CurrentUser=new();
+            _userRepo.AddOrUpdate(CurrentUser);
+            CurrentUserView = _mapper.Map<UserModelView>(CurrentUser);
+        }
+        else
+        {
+            CurrentUser = usrs[0];
+            CurrentUserView = _mapper.Map<UserModelView>(CurrentUser);
+        }
+        if (DimmerAppStates is null || DimmerAppStates.Count < 1)
+        {
+            DimmerAppState= new AppStateModelView()
+            {
+                MinimizeToTrayPreference = true,
+
+            };
+            _appstateRepo.AddOrUpdate(_mapper.Map<AppStateModel>(DimmerAppState));
+            
+        }
+        else
+        {
+            DimmerAppState = _mapper.Map<AppStateModelView>(DimmerAppStates[0]);
+            
+
+        }
         if (isAppInit)
         {
             return;
         }
-
+        folderMgt.RestartWatching();
         IsAppInitialized = isAppInit; // Assigning to the static field only when the condition is met
         MasterList = [.. _songRepo
             .GetAll(true)];
@@ -88,8 +124,6 @@ public class BaseAppFlow : IDisposable
      
         SubscribeToStateChanges();
 
-
-        //LoadUser();
         _state.SetCurrentPlaylist([], null);
         _songRepo.WatchAll().ObserveOn(scheduler)
             .DistinctUntilChanged(new SongListComparer())
@@ -111,13 +145,15 @@ public class BaseAppFlow : IDisposable
         _state.SetSecondSelectdSong(MasterList.First());
         _state.SetCurrentSong(MasterList.First());
         
+       
     }
 
     private void LoadUser()
     {
         var user = _userRepo.GetAll().FirstOrDefault();
         CurrentUser = user;
-      
+        
+        CurrentUserView = _mapper.Map<UserModelView>(CurrentUserView);
         if (user != null
             && !string.IsNullOrWhiteSpace(user.UserPassword)
             && user.UserPassword != "Unknown Password")
@@ -161,9 +197,7 @@ public class BaseAppFlow : IDisposable
                 {
                    
                     case DimmerPlaybackState.FolderAdded:
-
-                        string? folder = state.ExtraParameter as string;
-                        if (folder is null)
+                        if (state.ExtraParameter is not string folder)
                         {
                             return;
                         }
@@ -172,7 +206,9 @@ public class BaseAppFlow : IDisposable
                             return;
                         }
                         listofPathsAddedInSession.Add(folder);
+                        AddFolderToPath(folder);
                         Task.Run(()=> LoadSongs([.. listofPathsAddedInSession.Distinct()]));
+
                         break;
                     case DimmerPlaybackState.FolderRemoved:
                         break;
@@ -218,6 +254,38 @@ public class BaseAppFlow : IDisposable
         UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
     }
 
+    public void AddFolderToPath(string? path=null)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+        var exist = _appstateRepo.GetAll();
+
+
+        if (exist != null)
+        {
+            var appStates = exist.ToList();
+            var rappState= appStates.First();
+            var appState = new AppStateModel(rappState);
+
+
+
+            foreach (var item in DimmerAppState.UserMusicFoldersPreference)
+            {
+                if (!appState.UserMusicFoldersPreference.Contains(item, StringComparer.OrdinalIgnoreCase))
+                {
+                    appState.UserMusicFoldersPreference.Add(item);
+                }
+            }
+            
+            appState.UserMusicFoldersPreference.Add(path);
+            DimmerAppState .UserMusicFoldersPreference.Add(path);
+            _appstateRepo.AddOrUpdate(appState);
+        }
+
+    }
+
     public void UpdatePlaybackState(
         string? songId,
         PlayType type,
@@ -251,8 +319,10 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertUser(UserModel model)
     {
+        
         if (string.IsNullOrEmpty(model.LocalDeviceId))
             model.LocalDeviceId = Guid.NewGuid().ToString();
+        
         _userRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -378,94 +448,214 @@ public class BaseAppFlow : IDisposable
 
     }
 
-    public LoadSongsResult? LoadSongs(List<string> folderPaths)
+    public async Task<LoadSongsResult?> LoadSongs(List<string> folderPaths)
     {
-        List<string> allFiles = MusicFileProcessor.GetAllFiles(folderPaths);
-        Debug.WriteLine("Got All Files");
+        var _config = new ProcessingConfig(); // Use default config or load from settings
+        ICoverArtService coverArtService = new CoverArtService(_config);
 
-         if (allFiles.Count == 0)
+
+        IMusicMetadataService currentScanMetadataService = new MusicMetadataService();
+        IAudioFileProcessor audioFileProcessor = new AudioFileProcessor(
+            new CoverArtService(_config),
+            currentScanMetadataService,
+            _config);
+
+        _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
+
+        List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
+        Debug.WriteLine($"[MANAGER]: Found {allFiles.Count} audio files to process.");
+
+
+        if (allFiles.Count == 0)
         {
+            _state.SetCurrentLogMsg(new AppLogModel { Log = "No audio files found in the selected paths." });
             return null;
         }
 
         GetInitialValues();
 
-        // Use existing data or empty lists if null.
-        List<ArtistModel> existingArtists = realmArtists ?? new List<ArtistModel>();
-        List<AlbumArtistGenreSongLink> existingLinks = realmAAGSL ?? new List<AlbumArtistGenreSongLink>();
-        List<AlbumModel> existingAlbums = realmAlbums ?? new List<AlbumModel>();
-        List<GenreModel> existingGenres = realGenres ?? new List<GenreModel>();
-        List<SongModel> oldSongs = realmSongs ?? new List<SongModel>();
-
-        List<ArtistModel> newArtists = new List<ArtistModel>();
-        List<AlbumModel> newAlbums = new List<AlbumModel>();
-        List<AlbumArtistGenreSongLink> newLinks = new List<AlbumArtistGenreSongLink>();
-        List<GenreModel> newGenres = new List<GenreModel>();
-        List<SongModel> allSongs = new List<SongModel>();
-
-        // Dictionaries to prevent duplicate processing.
-        Dictionary<string, ArtistModel> artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<string, AlbumModel> albumDict = new Dictionary<string, AlbumModel>();
-        Dictionary<string, GenreModel> genreDict = new Dictionary<string, GenreModel>();
+        currentScanMetadataService.LoadExistingData(realmArtists, realmAlbums, realGenres, realmSongs);
 
         int totalFiles = allFiles.Count;
-        int processedFiles = 0;
+        int processedFileCount = 0;
 
         foreach (string file in allFiles)
         {
-            processedFiles++;
-            if (MusicFileProcessor.IsValidFile(file))
+            processedFileCount++;
+            var fileProcessingResult = await audioFileProcessor.ProcessFileAsync(file);
+
+            if (fileProcessingResult.Success && fileProcessingResult.ProcessedSong != null)
             {
-                var songData = MusicFileProcessor.ProcessFile(
-                    file,
-                    existingAlbums, albumDict, newAlbums, oldSongs,
-                    newArtists, artistDict, newLinks, existingLinks, existingArtists,
-                    newGenres, genreDict, existingGenres);
-
-                if (songData.song != null)
+                _state.SetCurrentLogMsg(new AppLogModel
                 {
-                    allSongs.Add(songData.song);
-
-
-                    var ProcessedFiles = processedFiles;
-                    var TotalFiles = totalFiles;
-                    var ProgressPercent = (double)processedFiles / totalFiles * 100.0;
-
-                    AppLogModel log = new()
-                    {
-                        Log = $"Now on {songData.song.Title} by {songData.song.Title}  Processed {ProcessedFiles} of {TotalFiles} files ({ProgressPercent:F2}%)",
-                        AppSongModel = songData.song,
-                    };
-                    _state.SetCurrentLogMsg(log);
-                }
+                    Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
+                    AppSongModel = fileProcessingResult.ProcessedSong // Or map to YourAppSongModel
+                });
+            }
+            else if (fileProcessingResult.Skipped)
+            {
+                _state.SetCurrentLogMsg(new AppLogModel { Log = $"Skipped: {fileProcessingResult.SkipReason} ({processedFileCount}/{totalFiles})" });
+            }
+            else
+            {
+                string errors = string.Join("; ", fileProcessingResult.Errors);
+                _state.SetCurrentLogMsg(new AppLogModel { Log = $"Error processing {Path.GetFileName(file)}: {errors} ({processedFileCount}/{totalFiles})" });
             }
         }
 
 
-        Debug.WriteLine("All files processed.");
 
-        if (allSongs.Count < 1 )
+
+        Debug.WriteLine("[MANAGER]: All files processing loop completed.");
+
+
+        var newCoreSongs = currentScanMetadataService.GetAllSongs();
+        var newCoreArtists = currentScanMetadataService.GetAllArtists();
+        var newCoreAlbums = currentScanMetadataService.GetAllAlbums();
+        var newCoreGenres = currentScanMetadataService.GetAllGenres();
+
+
+        if (!newCoreSongs.Any() && !newCoreArtists.Any() && !newCoreAlbums.Any() && !newCoreGenres.Any())
         {
+            _state.SetCurrentLogMsg(new AppLogModel { Log = "No new music data was found or processed." });
+            // Still check if only links need to be updated, though less likely if no new core entities
+            // For now, returning null if no new core entities.
             return null;
         }
-        MasterList= [.. allSongs];
 
-        _state.SetCurrentPlaylist([], null); 
-
-        _songRepo.AddOrUpdate(allSongs);
-
-    _genreRepo.AddOrUpdate(newGenres);
-    _aagslRepo.AddOrUpdate(newLinks);
-    _albumRepo.AddOrUpdate(newAlbums);
-    _artistRepo.AddOrUpdate(newArtists);
-        return new LoadSongsResult
+        // --- Create New Link Objects ---
+        var newAppLinks = new List<AlbumArtistGenreSongLink>();
+        foreach (var coreSong in newCoreSongs)
         {
-            Artists = newArtists,
-            Albums = newAlbums,
-            Links = newLinks,
-            Songs = allSongs,
-            Genres = newGenres
-        };
+            if (coreSong.AlbumId == null || coreSong.GenreId == null)
+            {
+                Debug.WriteLine($"[WARNING] Song '{coreSong.Title}' missing AlbumId or GenreId, cannot create full links.");
+                continue; // Skip if essential IDs for the link are missing
+            }
+
+            foreach (var artistId in coreSong.ArtistIds)
+            {
+                // Check if this specific link already exists in your DB (realmAAGSL)
+                // This is important to avoid duplicate link entries.
+                bool linkExists = realmAAGSL?.Any(l =>
+                    l.SongId == coreSong.Id &&
+                    l.ArtistId == artistId &&
+                    l.AlbumId == coreSong.AlbumId && // If AlbumId/GenreId are part of the link's uniqueness
+                    l.GenreId == coreSong.GenreId) ?? false;
+
+                // Also check if we've already created this link in the current batch
+                bool linkAlreadyInNewBatch = newAppLinks.Any(l =>
+                    l.SongId == coreSong.Id &&
+                    l.ArtistId == artistId &&
+                    l.AlbumId == coreSong.AlbumId &&
+                    l.GenreId == coreSong.GenreId);
+
+                if (!linkExists && !linkAlreadyInNewBatch)
+                {
+                    newAppLinks.Add(new AlbumArtistGenreSongLink
+                    {
+                        // LinkId is auto-generated by default in the model
+                        SongId = coreSong.Id, // This is the ID from Dimmer.Core.Models.Song
+                        ArtistId = artistId,  // This is the ID from Dimmer.Core.Models.Artist
+                        AlbumId = coreSong.AlbumId,
+                        GenreId = coreSong.GenreId
+                    });
+                }
+            }
+        }
+        Debug.WriteLine($"[MANAGER]: Generated {newAppLinks.Count} new link objects.");
+
+
+
+        //    List<string> allFiles = MusicFileProcessor.GetAllFiles(folderPaths);
+        //    Debug.WriteLine("Got All Files");
+
+        //     if (allFiles.Count == 0)
+        //    {
+        //        return null;
+        //    }
+
+        //    GetInitialValues();
+
+        //    // Use existing data or empty lists if null.
+        //    List<ArtistModel> existingArtists = realmArtists ?? new List<ArtistModel>();
+        //    List<AlbumArtistGenreSongLink> existingLinks = realmAAGSL ?? new List<AlbumArtistGenreSongLink>();
+        //    List<AlbumModel> existingAlbums = realmAlbums ?? new List<AlbumModel>();
+        //    List<GenreModel> existingGenres = realGenres ?? new List<GenreModel>();
+        //    List<SongModel> oldSongs = realmSongs ?? new List<SongModel>();
+
+        //    List<ArtistModel> newArtists = new List<ArtistModel>();
+        //    List<AlbumModel> newAlbums = new List<AlbumModel>();
+        //    List<AlbumArtistGenreSongLink> newLinks = new List<AlbumArtistGenreSongLink>();
+        //    List<GenreModel> newGenres = new List<GenreModel>();
+        //    List<SongModel> allSongs = new List<SongModel>();
+
+        //    // Dictionaries to prevent duplicate processing.
+        //    Dictionary<string, ArtistModel> artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
+        //    Dictionary<string, AlbumModel> albumDict = new Dictionary<string, AlbumModel>();
+        //    Dictionary<string, GenreModel> genreDict = new Dictionary<string, GenreModel>();
+
+        //    int totalFiles = allFiles.Count;
+        //    int processedFiles = 0;
+
+        //    foreach (string file in allFiles)
+        //    {
+        //        processedFiles++;
+        //        if (MusicFileProcessor.IsValidFile(file))
+        //        {
+        //            var songData = MusicFileProcessor.ProcessFile(
+        //                file,
+        //                existingAlbums, albumDict, newAlbums, oldSongs,
+        //                newArtists, artistDict, newLinks, existingLinks, existingArtists,
+        //                newGenres, genreDict, existingGenres);
+
+        //            if (songData.song != null)
+        //            {
+        //                allSongs.Add(songData.song);
+
+
+        //                var ProcessedFiles = processedFiles;
+        //                var TotalFiles = totalFiles;
+        //                var ProgressPercent = (double)processedFiles / totalFiles * 100.0;
+
+        //                AppLogModel log = new()
+        //                {
+        //                    Log = $"Now on {songData.song.Title} by {songData.song.Title}  Processed {ProcessedFiles} of {TotalFiles} files ({ProgressPercent:F2}%)",
+        //                    AppSongModel = songData.song,
+        //                };
+        //                _state.SetCurrentLogMsg(log);
+        //            }
+        //        }
+        //    }
+
+
+        //    Debug.WriteLine("All files processed.");
+
+        //    if (allSongs.Count < 1 )
+        //    {
+        //        return null;
+        //    }
+        //    MasterList= [.. allSongs];
+
+        //    _state.SetCurrentPlaylist([], null); 
+        if (newCoreSongs.Any())
+            _songRepo.AddOrUpdate(newCoreSongs);
+        if (newCoreGenres.Any())
+            _genreRepo.AddOrUpdate(newCoreGenres);
+        if (newAppLinks.Any())
+            _aagslRepo.AddOrUpdate(newAppLinks);
+        if (newCoreAlbums.Any())
+            _albumRepo.AddOrUpdate(newCoreAlbums);
+        if (newCoreArtists.Any())
+            _artistRepo.AddOrUpdate(newCoreArtists);
+            return new LoadSongsResult
+        {
+            Artists = [.. newCoreArtists],
+            Albums = [.. newCoreAlbums],
+            Links = [.. newAppLinks],
+            Songs = [.. newCoreSongs],
+            Genres = [.. newCoreGenres]
+            };
     }
 
     #endregion

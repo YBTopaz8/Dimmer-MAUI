@@ -30,12 +30,16 @@
 
     </ContentPage.Resources>
 
-    <Grid>
+    <Grid x:Name="MainAppGrid" Loaded="MainAppGrid_Loaded">
 
         <Grid>
+            <ActivityIndicator x:Name="LoadingIndicator" IsVisible="{Binding IsSettingWindoOpened}" 
+                             VerticalOptions="Center" HorizontalOptions="Center" IsEnabled="{Binding IsSettingWindoOpened}"
+                             IsRunning="{Binding IsSettingWindoOpened}"
+                             />
 
-
-            <Grid RowDefinitions="Auto,auto,*" IsVisible="{Binding IsMainViewVisible}">
+            <Grid RowDefinitions="Auto,auto,*" IsVisible="{Binding IsMainViewVisible}"
+                  IsEnabled="{Binding IsSettingWindoOpened, Converter={converters:BoolToInverseConverter}}">
 
                 <syncf:SfChipGroup x:Name="ActualSongView"
          ChipType="Action" ChipClicked="ActualSongView_ChipClicked"
@@ -326,10 +330,10 @@
                                         </MenuFlyout>
                                     </FlyoutBase.ContextFlyout>
                                     <CollectionView.EmptyView>
-                                        <VerticalStackLayout HorizontalOptions="Center">
-                                            <Label Text="No Songs Found, Please Scan Songs In Settings Tab "
-                                HorizontalOptions="Center"
-                                FontSize="14"/>
+                                        <VerticalStackLayout HorizontalOptions="Center" BackgroundColor="Transparent"   >
+
+                                            <syncf:SfChip Text="Get Started" Clicked="GetStartedChip_Clicked"
+                                                          x:Name="GetStartedChip"/>
                                         </VerticalStackLayout>
                                     </CollectionView.EmptyView>
 
@@ -700,15 +704,6 @@
             </Grid>
         </Grid>
 
-        <syncf:SfBottomSheet IsOpen="False" 
-                             IsVisible="False"
-                             IsModal="False">
-            <syncf:SfBottomSheet.BottomSheetContent>
-                <VerticalStackLayout>
-                    
-                </VerticalStackLayout>
-            </syncf:SfBottomSheet.BottomSheetContent>
-        </syncf:SfBottomSheet>
     </Grid>
 
 </ContentPage>

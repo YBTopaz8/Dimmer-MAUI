@@ -20,7 +20,7 @@ global using System.Collections.ObjectModel;
 global using System.Reactive.Linq;
 global using System.Threading.Tasks;
 
-
+global using Dimmer.Interfaces.Services;
 global using CommunityToolkit.Mvvm.Input;
 namespace Dimmer;
 internal class GlobalUsings

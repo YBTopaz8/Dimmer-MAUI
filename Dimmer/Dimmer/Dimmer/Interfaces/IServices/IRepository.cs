@@ -3,7 +3,7 @@
 namespace Dimmer.Interfaces;
 public interface IRepository<T> where T : new()
 {
-    void AddOrUpdate(T entity);
+    T AddOrUpdate(T entity);
     void AddOrUpdate(IEnumerable<T> entities);
     void BatchUpdate(Action<Realm> updates);
     void Delete(T entity);

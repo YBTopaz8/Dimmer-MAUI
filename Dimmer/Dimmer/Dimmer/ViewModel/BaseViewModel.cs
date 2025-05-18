@@ -11,9 +11,33 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject
 {
+    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
+       IDimmerLiveStateService dimmerLiveStateService,
+       AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow,
+       SongsMgtFlow songsMgtFlow, IDimmerStateService stateService,
+       ISettingsService settingsService,
+       SubscriptionManager subs,
+       LyricsMgtFlow lyricsMgtFlow,
+       IFolderMgtService folderMgtService
 
+       )
+    {
+        _mapper = mapper;
+        BaseAppFlow=baseAppFlow;
+        this.dimmerLiveStateService=dimmerLiveStateService;
+        AlbumsMgtFlow = albumsMgtFlow;
+        PlaylistsMgtFlow = playlistsMgtFlow;
+        SongsMgtFlow = songsMgtFlow;
+        _stateService = stateService;
+        _settingsService = settingsService;
+        _subs = subs;
+        _folderMgtService=folderMgtService;
+        LyricsMgtFlow=lyricsMgtFlow;
+        Initialize();
+        UserLocal = new UserModelView();
+    }
     #region Settings Section
-    
+
 
     [ObservableProperty]
     public partial bool IsLoadingSongs { get; set; }
@@ -97,31 +121,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial CurrentPage CurrentlySelectedPage {get;set;}
 
-    public BaseViewModel(IMapper mapper, BaseAppFlow baseAppFlow,
-        IDimmerLiveStateService dimmerLiveStateService,
-        AlbumsMgtFlow albumsMgtFlow, PlayListMgtFlow playlistsMgtFlow, 
-        SongsMgtFlow songsMgtFlow, IDimmerStateService stateService, 
-        ISettingsService settingsService, 
-        SubscriptionManager subs, 
-        LyricsMgtFlow lyricsMgtFlow,
-        IFolderMgtService folderMgtService
-        
-        )
-    {
-        _mapper = mapper;
-        BaseAppFlow=baseAppFlow;
-        this.dimmerLiveStateService=dimmerLiveStateService;
-        AlbumsMgtFlow = albumsMgtFlow;
-        PlaylistsMgtFlow = playlistsMgtFlow;
-        SongsMgtFlow = songsMgtFlow;
-        _stateService = stateService;
-        _settingsService = settingsService;
-        _subs = subs;
-        _folderMgtService=folderMgtService;
-        LyricsMgtFlow=lyricsMgtFlow;
-        Initialize();
-        UserLocal= new UserModelView();
-    }
+   
 
     [RelayCommand]
     public async Task SignUpUser()
@@ -212,11 +212,12 @@ public partial class BaseViewModel : ObservableObject
     }
 
 
-    private void Initialize()
+    public void Initialize()
     {
 
         if (AppUtils.IsUserFirstTimeOpening)
         {
+            
             //Application.Current.m
             return;
         }
@@ -234,21 +235,21 @@ public partial class BaseViewModel : ObservableObject
         CurrentPositionPercentage = 0;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
         _folderMgtService.StartWatchingFolders();
-
     }
 
-    public Task LoginFromSecureData()
+
+
+    public async Task LoginFromSecureData()
     {
 
-        if (UserLocal is null || string.IsNullOrEmpty(UserLocal.UserName))
+        if (UserLocal is null || string.IsNullOrEmpty(UserLocal.Username))
         {
-            //await dimmerLiveStateService.AttemptAutoLoginAsync();
-            //UserLocal= dimmerLiveStateService.UserLocalView;
-
+            await dimmerLiveStateService.AttemptAutoLoginAsync();
+            UserLocal= dimmerLiveStateService.UserLocalView;
+            BaseAppFlow.CurrentUserView = UserLocal;
             IsConnected=true;
         }
 
-        return Task.CompletedTask;
     }
 
     private void SubscribeToStateChanges()
@@ -697,7 +698,6 @@ public partial class BaseViewModel : ObservableObject
         }
 
 
-
         _folderMgtService.AddFolderToPreference(folder);
         
         
@@ -754,6 +754,41 @@ public partial class BaseViewModel : ObservableObject
     {
         //SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
 
+    }
+
+    [RelayCommand]
+    public async Task UpdateUserProfileImage()
+    {
+        var imagePath = await FilePicker.PickAsync(new PickOptions()
+        {
+            FileTypes = FilePickerFileType.Images,
+            PickerTitle = "Choose a New Image for your Profile"
+        });
+        if (imagePath is not null)
+        {
+            UserLocal.UserProfileImage = imagePath.FullPath;
+        }
+        BaseAppFlow.UpSertUser(_mapper.Map<UserModel>(UserLocal));
+    }
+
+    [RelayCommand]
+    public static void ToggleShowCloseConfPopUp(bool IsShow)
+    {
+        BaseAppFlow.DimmerAppState.IsShowCloseConfirmation=IsShow;
+    }
+
+    [RelayCommand]
+    public void DoneFirstSetup()
+    {
+        AppUtils.IsUserFirstTimeOpening = false;
+        
+        Application.Current.CloseWindow(Application.Current.Windows[1]);
+        
+    }
+    [RelayCommand]
+    public static void ToggleIsStickToTop(bool IsStick)
+    {
+        BaseAppFlow.DimmerAppState.IsShowCloseConfirmation=IsStick;
     }
 
     [RelayCommand]

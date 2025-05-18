@@ -106,7 +106,7 @@ public partial class AlbumModel : RealmObject
     /// </summary>
 
 
-    public IList<UserNoteModel> UserNotes { get; }
+    public IList<UserNoteModel>? UserNotes { get; }
     public AlbumModel()
     {
     }

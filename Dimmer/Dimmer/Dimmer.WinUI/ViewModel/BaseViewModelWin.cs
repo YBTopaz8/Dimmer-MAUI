@@ -56,19 +56,31 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
         _subs = subs;
         this.filePicker=filePicker;
 
+
+    }
+
+    
+    public bool InitializeWindows()
+    {
+        IsSettingWindoOpened=true;
+
+        var win = Application.Current.Windows[0];
+        
+
+        PlatUtils.OpenSettingsWindow();
+        
         if (AppUtils.IsUserFirstTimeOpening)
         {
-            IsMainViewVisible = false;
-            return;
+            //IsMainViewVisible = false;
+            return false;
         }
-
         ResetDisplayedMasterList();
         SubscribeToLyricIndexChanges();
 
         SubscribeToPosition();
-
-
+        return true;
     }
+
     private void SubscribeToPosition()
     {
 
@@ -169,6 +181,8 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial ObservableCollection<WindowInfo> WindowsOpened { get; set; } = new ObservableCollection<WindowInfo>();
+    [ObservableProperty]
+    public partial bool IsSettingWindoOpened { get; set; }
 
 
     public Task LoadOnlineData()

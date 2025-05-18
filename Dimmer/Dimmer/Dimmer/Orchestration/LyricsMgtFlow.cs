@@ -34,9 +34,10 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AlbumModel> albumRepo,
         ISettingsService settings,
         IFolderMgtService folderMonitor,
+        IRepository<AppStateModel> appstateRepo,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
     {
         this.songsMgt=songsMgt;
         _state = state;

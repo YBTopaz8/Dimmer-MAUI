@@ -1,5 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using Dimmer.WinUI.Utils.Models;
+using System.Threading.Tasks;
 using Application = Microsoft.Maui.Controls.Application;
 
 namespace Dimmer.WinUI.Views;
@@ -11,16 +12,13 @@ public partial class HomePage : ContentPage
 	{
 		InitializeComponent();
         BindingContext = vm;
-        MyViewModel=vm;        
+        MyViewModel=vm;      
+        
     }
 
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        MyViewModel.CurrentlySelectedPage = CurrentPage.HomePage;
-        
-        MyViewModel.SetCollectionView(SongsColView);
-        MyViewModel.SetSongLyricsView(LyricsColView);
         await MyViewModel.LoginFromSecureData();
 
     }
@@ -188,10 +186,7 @@ public partial class HomePage : ContentPage
     }
     private async void TempSongChipGroup_ChipClicked(object sender, EventArgs e)
     {
-        if (MyViewModel.SecondSelectedSong is null)
-        {
-            return;
-        }
+ 
         SfChip ee = (SfChip)sender;
         string? param = ee.CommandParameter.ToString();
         if (param is null)
@@ -219,7 +214,8 @@ public partial class HomePage : ContentPage
                 break;
             case 3:
 
-                PlatUtils.OpenSettingsindow();
+                PlatUtils.OpenSettingsWindow();
+
                 return;
                 break;
             case 4:
@@ -334,7 +330,7 @@ public partial class HomePage : ContentPage
 
     private async Task SearchSongsAsync(string? searchText, CancellationToken token)
     {
-        if ((MyViewModel.PlaylistSongs is null || MyViewModel.PlaylistSongs.Count < 1)&&(BaseAppFlow.MasterList is null || BaseAppFlow.MasterList.Count<1))
+        if ((MyViewModel.PlaylistSongs is null || MyViewModel.PlaylistSongs.Count < 1)&&(BaseAppFlow.MasterList is null ||  MyViewModel.PlaylistSongs?.Count<1))
         {
             return;
         }
@@ -343,20 +339,20 @@ public partial class HomePage : ContentPage
 
         if (string.IsNullOrEmpty(searchText))
         {
-           
-            songsToDisplay = MyViewModel.BaseAppFlow._mapper.Map<List<SongModelView>>( BaseAppFlow.MasterList!); 
+
+            songsToDisplay = MyViewModel.PlaylistSongs.ToList();
             BaseViewModel.IsSearching = false;
         }
         else
         {
             BaseViewModel.IsSearching = true;
 
-            var songsToDisplays= await Task.Run(() => 
+            songsToDisplay= await Task.Run(() => 
             {
                 token.ThrowIfCancellationRequested(); 
 
                 
-                var e= BaseAppFlow.MasterList!    .
+                var e = MyViewModel.PlaylistSongs!    .
                             Where(item => (!string.IsNullOrEmpty(item.Title) && item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.ArtistName) && item.ArtistName.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
                                   (!string.IsNullOrEmpty(item.AlbumName) && item.AlbumName.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
@@ -364,7 +360,8 @@ public partial class HomePage : ContentPage
                 
                 return e;
             }, token);
-            songsToDisplay = MyViewModel.SongsMgtFlow._mapper.Map<List<SongModelView>>(songsToDisplays);
+
+             
         }
 
         
@@ -373,22 +370,12 @@ public partial class HomePage : ContentPage
             if (token.IsCancellationRequested)
                 return;
 
-            MyViewModel.CurrentQueue = BaseViewModel.IsSearching ? 1 : 0;
             
+                MyViewModel.FilteredSongs = songsToDisplay;
+            SongsColView.ItemsSource = MyViewModel.FilteredSongs;
 
-            MyViewModel.DisplayedSongs?.Clear();
-            MyViewModel.SongsCV!.ItemsSource = songsToDisplay.ToObservableCollection();
-           
-            
-            
-            if (BaseViewModel.IsSearching)
-            {
-                MyViewModel.FilteredSongs = songsToDisplay; 
-            }
-            else
-            {
-                MyViewModel.FilteredSongs = null; 
-            }
+
+
         });
     }
 
@@ -679,6 +666,29 @@ public partial class HomePage : ContentPage
 
     private void AddNewMusicFolder_Clicked(object sender, EventArgs e)
     {
+
+    }
+
+    private async void MainAppGrid_Loaded(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void FreshAppStartRecogn_PointerEntered(object sender, PointerEventArgs e)
+    {
+     
+    }
+
+    private void GetStartedChip_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.InitializeWindows();
+        //{
+        //    MyViewModel.CurrentlySelectedPage = CurrentPage.HomePage;
+
+        //    MyViewModel.SetCollectionView(SongsColView);
+        //    MyViewModel.SetSongLyricsView(LyricsColView);
+        //    await MyViewModel.LoginFromSecureData();
+        //}
 
     }
 }

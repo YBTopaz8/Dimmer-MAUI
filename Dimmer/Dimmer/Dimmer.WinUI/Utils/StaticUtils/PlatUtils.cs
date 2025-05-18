@@ -105,7 +105,8 @@ public static class PlatUtils
 
     }
 
-    public static void OpenSettingsindow()
+
+    public static void OpenSettingsWindow()
     {
         var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
@@ -119,6 +120,16 @@ public static class PlatUtils
         //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
 
     }
+
+
+    public static void MiniMimizeWindow(Window win)
+    {
+        
+        var nativeWindow = win.Handler.PlatformView;
+        IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+        ShowWindow(windowHandle, SW_HIDE);
+        //System.Windows.SystemCommands.MinimizeWindow(win);
+    }
     public static void ToggleFullScreenMode(bool IsToFullScreen, AppWindowPresenter appPresenter)
     {
         try
@@ -129,6 +140,7 @@ public static class PlatUtils
                 OverLappedPres!.IsAlwaysOnTop = true;
                 OverLappedPres.SetBorderAndTitleBar(false, false);
                 OverLappedPres!.Maximize();
+                
             }
             else
             {

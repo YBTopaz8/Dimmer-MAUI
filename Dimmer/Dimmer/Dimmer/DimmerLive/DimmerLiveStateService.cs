@@ -60,11 +60,12 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         this._state=_state;
         this.mapper=mapper;
         _encryptionService = new PasswordEncryptionService();
-
+        UserLocalView ??= BaseAppFlow.CurrentUserView;
     }
     public async Task InitializeAfterLogin(UserModelOnline authenticatedUser)
     {
         UserOnline = authenticatedUser;
+
         await SetupLiveQueryAsync();
     }
 
@@ -394,15 +395,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 // sessionStartTime will be set by the server in your cloud code
             };
 
-        var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("updateUserDeviceSession", parameters);
-
-        Debug.WriteLine(result.GetType());
-        _state.SetCurrentLogMsg(new AppLogModel()
-        {
-            UserModel = UserLocalView,
-            Log = $"User {UserLocalView.UserName} logged in automatically.",
-            DeviceModelSession = devSess
-        });
+   
     }
 
 
@@ -1047,7 +1040,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             _state.SetCurrentLogMsg(new AppLogModel()
                 {
                     UserModel = UserLocalView,
-                    Log = $"User {UserLocalView.UserName} fetched song {sharedSong.Title} with code {sharedSongCode}.",
+                    Log = $"User {UserLocalView.Username} fetched song {sharedSong.Title} with code {sharedSongCode}.",
                     SharedSong = sharedSong
                 });
         

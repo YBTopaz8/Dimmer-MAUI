@@ -1,8 +1,10 @@
 ﻿// ----------------------------
 // RealmCoreRepo.cs
 // ----------------------------
-using System.Linq.Expressions;
 using Dimmer.Utilities.Extensions;
+using Microsoft.Maui.Controls;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Dimmer.Interfaces.Services;
 
@@ -13,42 +15,47 @@ namespace Dimmer.Interfaces.Services;
 public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, new()
 {
     private readonly IRealmFactory _factory = factory;
+    private IMapper? _mapper;
 
-    // Helper to open a thread‑local Realm
-    private Realm OpenRealm()
-    {
-        return _factory.GetRealmInstance();
-    }
+    private Realm GetNewRealm() => _factory.GetRealmInstance();
 
-    public void AddOrUpdate(T entity)
+    public T AddOrUpdate(T entity)
     {
-        using var realm = OpenRealm();
-        realm.Write(() => realm.Add(entity, update: true));
+        using var realmInstance = GetNewRealm(); // Get a Realm for this operation
+      var e =   realmInstance.Write(() =>
+        {
+            // Now 'realmInstance' is the same for both Write and Add
+            return realmInstance.Add(entity, update: true);
+        });
+
+        return e;
         Debug.WriteLine($"UpSerted {nameof(entity)} {typeof(T)}");
     }
 
     public void AddOrUpdate(IEnumerable<T> entities)
     {
-        using var realm = OpenRealm();
-        realm.Write(() =>
+        using var realmInstance = GetNewRealm();
+        realmInstance.Write(() =>
         {
             foreach (var e in entities)
             {
-                realm.Add(e, update: true);
+                realmInstance.Add(e, update: true);
             }
         });
     }
 
+
     public void Delete(T entity)
     {
-        using var realm = OpenRealm();
+        using var realm = GetNewRealm();
         realm.Write(() => realm.Remove(entity));
         Debug.WriteLine($"Deleted {nameof(entity)}");
     }
 
     public void Delete(IEnumerable<T> entities)
     {
-        using var realm = OpenRealm();
+        using var realm = GetNewRealm();
+
         realm.Write(() =>
         {
             foreach (var e in entities)
@@ -57,12 +64,14 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     }
     public void BatchUpdate(Action<Realm> updates)
     {
-        using var realm = OpenRealm();
+        using var realm = GetNewRealm();
+
         realm.Write(() => updates(realm));
     }
     public IReadOnlyCollection<T> GetAll(bool IsShuffled = false)
     {
-        using var realm = OpenRealm();
+        using var realm = GetNewRealm();
+
         var list = realm.All<T>()
             .ToList();
         // 2) shuffle in place if requested
@@ -83,18 +92,45 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     public IRealmCollection<T> GetAllLive()
     {
-        return (IRealmCollection<T>)OpenRealm().All<T>();
-    }
+        using var realm = GetNewRealm();
 
-    public T? GetById(string primaryKey)
+        return (IRealmCollection<T>)realm.All<T>();
+    }
+    public T? GetById(string primaryKey) // Input 'primaryKey' is a string
     {
-        using var realm = OpenRealm();
-        return realm.Find<T>(primaryKey);
-    }
+        using var realmInstance = GetNewRealm();
 
+        // Optional: A development-time check to verify the assumption that T's PK is a string.
+        // You can remove this for production if performance is critical and you are certain.
+#if DEBUG
+        var pkPropertyInfo = typeof(T).GetProperties()
+            .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
+
+        if (pkPropertyInfo == null)
+        {
+            Debug.WriteLine($"Warning: Type {typeof(T).Name} used with GetById does not have a [PrimaryKey] attribute. Find<T> might return null or behave unexpectedly.");
+        }
+        else if (pkPropertyInfo.PropertyType != typeof(string))
+        {
+            // This indicates a mismatch between the assumption ("PK is always string") and the actual model.
+            // If this happens, the Find<T>(primaryKey) call below might fail or Realm might attempt an implicit conversion
+            // which could lead to runtime errors if the string is not in the correct format for the actual PK type.
+            Debug.WriteLine($"Warning: Type {typeof(T).Name} has a [PrimaryKey] of type {pkPropertyInfo.PropertyType.Name}, " +
+                            $"but GetById(string) was called. Realm's Find<T>(string) will be used. " +
+                            $"Ensure this is the intended behavior or that Realm handles the string-to-{pkPropertyInfo.PropertyType.Name} conversion for PKs.");
+        }
+#endif
+
+        // If the PrimaryKey property on T is indeed of type string,
+        // Realm's Find<T>(string pkValue) overload will be used directly.
+        var obj = realmInstance.Find<T>(primaryKey);
+
+        return obj?.Freeze(); // Return a frozen copy
+    }
     public List<T> Query(Expression<Func<T, bool>> predicate)
     {
-        using var realm = OpenRealm();
+    
+        using var realm = GetNewRealm();
         return [.. realm.All<T>().Where(predicate)];
     }
 
@@ -106,11 +142,13 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
         return Observable.Create<IList<T>>(observer =>
         {
-            var realm = OpenRealm();
+            
+            using var realm = GetNewRealm();
+
             var results = realm.All<T>();
 
             // initial snapshot
-            observer.OnNext([.. results]);
+            observer.OnNext([.. results.AsEnumerable().Select(o => o.Freeze())]);
 
             // live notifications
             var token = results.SubscribeForNotifications((col, changes) =>
@@ -129,7 +167,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
     public List<T> GetPage(int skip, int take)
     {
-        using var realm = OpenRealm();
+        using var realm = GetNewRealm();
+
         return [.. realm.All<T>().Skip(skip).Take(take)];
     }
 

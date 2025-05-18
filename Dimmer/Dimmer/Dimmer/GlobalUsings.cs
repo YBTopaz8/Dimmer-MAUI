@@ -36,3 +36,6 @@ global using System.Reactive.Concurrency;
 global using Dimmer.Interfaces.Services;
 global using System.Text;
 global using System.Text.Json;
+global using Dimmer.Interfaces.IDatabase;
+
+global using Dimmer.DimmerLive.Models;

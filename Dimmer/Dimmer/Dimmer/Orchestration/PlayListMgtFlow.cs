@@ -28,8 +28,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IFolderMgtService folderMgt,
         IQueueManager<SongModel> queueManager,
         SubscriptionManager subs,
+        IRepository<AppStateModel> appstateRepo,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo,userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, settings, folderMgt, subs, mapper)
+    ) : base(state, songRepo, genreRepo,userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMgt, subs, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;

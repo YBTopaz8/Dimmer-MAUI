@@ -6,13 +6,22 @@ public partial class UserModelView:ObservableObject
     public partial string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
     
     [ObservableProperty]
-    public partial string? UserName { get; set; } = string.Empty;
+    public partial string? Username { get; set; } = string.Empty;
     
     [ObservableProperty]
-    public partial string? UserEmail { get; set; } = string.Empty;
+    public partial string? Email { get; set; } = string.Empty;
+
+    
+    public bool UserHasAccount
+    {
+        get => string.IsNullOrEmpty(Email);
+
+        set;
+    }
+
 
     [ObservableProperty]
-    public partial string? UserPassword { get; set; } = string.Empty;
+    public partial string? Password { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial string? UserProfileImage { get; set; } = "user.png";

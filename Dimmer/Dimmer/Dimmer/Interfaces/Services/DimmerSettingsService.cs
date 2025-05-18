@@ -4,10 +4,11 @@ public class DimmerSettingsService : ISettingsService
     private readonly Realm _realm;
     private AppStateModel _model;
 
+    public AppStateModel CurrentAppStateModel { get => _model; }
     public DimmerSettingsService(IRealmFactory factory)
     {
         _realm = factory.GetRealmInstance();
-
+        LoadSettings();
     }
 
     public void LoadSettings()
@@ -24,6 +25,7 @@ public class DimmerSettingsService : ISettingsService
         }
         else
             _model = list[0];
+
     }
     public RepeatMode RepeatMode
     {
