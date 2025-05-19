@@ -81,8 +81,10 @@ public class BaseAppFlow : IDisposable
         if (usrs is null || usrs.Count <1)
         {
             CurrentUser=new();
-            _userRepo.AddOrUpdate(CurrentUser);
+
             CurrentUserView = _mapper.Map<UserModelView>(CurrentUser);
+            _userRepo.AddOrUpdate(CurrentUser);
+
         }
         else
         {
@@ -566,78 +568,6 @@ public class BaseAppFlow : IDisposable
         Debug.WriteLine($"[MANAGER]: Generated {newAppLinks.Count} new link objects.");
 
 
-
-        //    List<string> allFiles = MusicFileProcessor.GetAllFiles(folderPaths);
-        //    Debug.WriteLine("Got All Files");
-
-        //     if (allFiles.Count == 0)
-        //    {
-        //        return null;
-        //    }
-
-        //    GetInitialValues();
-
-        //    // Use existing data or empty lists if null.
-        //    List<ArtistModel> existingArtists = realmArtists ?? new List<ArtistModel>();
-        //    List<AlbumArtistGenreSongLink> existingLinks = realmAAGSL ?? new List<AlbumArtistGenreSongLink>();
-        //    List<AlbumModel> existingAlbums = realmAlbums ?? new List<AlbumModel>();
-        //    List<GenreModel> existingGenres = realGenres ?? new List<GenreModel>();
-        //    List<SongModel> oldSongs = realmSongs ?? new List<SongModel>();
-
-        //    List<ArtistModel> newArtists = new List<ArtistModel>();
-        //    List<AlbumModel> newAlbums = new List<AlbumModel>();
-        //    List<AlbumArtistGenreSongLink> newLinks = new List<AlbumArtistGenreSongLink>();
-        //    List<GenreModel> newGenres = new List<GenreModel>();
-        //    List<SongModel> allSongs = new List<SongModel>();
-
-        //    // Dictionaries to prevent duplicate processing.
-        //    Dictionary<string, ArtistModel> artistDict = new Dictionary<string, ArtistModel>(StringComparer.OrdinalIgnoreCase);
-        //    Dictionary<string, AlbumModel> albumDict = new Dictionary<string, AlbumModel>();
-        //    Dictionary<string, GenreModel> genreDict = new Dictionary<string, GenreModel>();
-
-        //    int totalFiles = allFiles.Count;
-        //    int processedFiles = 0;
-
-        //    foreach (string file in allFiles)
-        //    {
-        //        processedFiles++;
-        //        if (MusicFileProcessor.IsValidFile(file))
-        //        {
-        //            var songData = MusicFileProcessor.ProcessFile(
-        //                file,
-        //                existingAlbums, albumDict, newAlbums, oldSongs,
-        //                newArtists, artistDict, newLinks, existingLinks, existingArtists,
-        //                newGenres, genreDict, existingGenres);
-
-        //            if (songData.song != null)
-        //            {
-        //                allSongs.Add(songData.song);
-
-
-        //                var ProcessedFiles = processedFiles;
-        //                var TotalFiles = totalFiles;
-        //                var ProgressPercent = (double)processedFiles / totalFiles * 100.0;
-
-        //                AppLogModel log = new()
-        //                {
-        //                    Log = $"Now on {songData.song.Title} by {songData.song.Title}  Processed {ProcessedFiles} of {TotalFiles} files ({ProgressPercent:F2}%)",
-        //                    AppSongModel = songData.song,
-        //                };
-        //                _state.SetCurrentLogMsg(log);
-        //            }
-        //        }
-        //    }
-
-
-        //    Debug.WriteLine("All files processed.");
-
-        //    if (allSongs.Count < 1 )
-        //    {
-        //        return null;
-        //    }
-        //    MasterList= [.. allSongs];
-
-        //    _state.SetCurrentPlaylist([], null); 
         if (newCoreSongs.Any())
             _songRepo.AddOrUpdate(newCoreSongs);
         if (newCoreGenres.Any())

@@ -57,11 +57,11 @@ public partial class HomePage : ContentPage
     private void GotoArtistBtn_Clicked(object sender, EventArgs e)
     {
         //await MyViewModel.NavigateToArtistsPage(1);
-       SongsMenuPopup.Close();
+       //SongsMenuPopup.Close();
     }
     private void ClosePopup(object sender, EventArgs e)
     {
-        SongsMenuPopup.Close();
+        //SongsMenuPopup.Close();
     }
 
     private void ShowMoreBtn_Clicked(object sender, EventArgs e)
@@ -126,11 +126,11 @@ public partial class HomePage : ContentPage
     private void ViewNowPlayPage_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.UpdateContextMenuData(MyViewModel.MySelectedSong);
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
 
-        //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        ////MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.HalfExpandedRatio = 0.8;
 
     }
 
@@ -229,48 +229,48 @@ public partial class HomePage : ContentPage
                 {
                     if (deltaY > 0) // Down
                     {
-                        try
-                        {
-                            if (HomeTabView.SelectedItemIndex != 0)
-                            {
-                                HomeTabView.SelectedItemIndex = 0;
-                            }
-                            int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
-                            SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
+                        //try
+                        //{
+                        //    if (HomeTabView.SelectedItemIndex != 0)
+                        //    {
+                        //        HomeTabView.SelectedItemIndex = 0;
+                        //    }
+                        //    int itemHandle = SongsColView.FindItemHandle(MyViewModel.TemporarilyPickedSong);
+                        //    SongsColView.ScrollTo(itemHandle, DXScrollToPosition.Start);
 
-                            HapticFeedback.Perform(HapticFeedbackType.LongPress);
-                        }
-                        catch { }
+                        //    HapticFeedback.Perform(HapticFeedbackType.LongPress);
+                        //}
+                        //catch { }
                     }
                     else  //Up
                     {
                         try
                         {
-                            if (HomeTabView.SelectedItemIndex != 1)
-                            {
-                                HomeTabView.SelectedItemIndex = 1;
-                                //await MyViewModel.SetSongLyricsView(LyricsColView);
+                            //if (HomeTabView.SelectedItemIndex != 1)
+                            //{
+                            //    HomeTabView.SelectedItemIndex = 1;
+                            //    //await MyViewModel.SetSongLyricsView(LyricsColView);
 
-                                //SongsColView.FilterString = string.Empty;
+                            //    //SongsColView.FilterString = string.Empty;
 
-                                //await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
-                                //    );
-                                ////CurrentView!.AnimateFadeOutBack());
-                                //isOnFocusMode = false;
-                                ////CurrentView = SearchModeUI;
+                            //    //await Task.WhenAll(SearchModeUI.AnimateFadeOutBack()
+                            //    //    );
+                            //    ////CurrentView!.AnimateFadeOutBack());
+                            //    //isOnFocusMode = false;
+                            //    ////CurrentView = SearchModeUI;
 
-                                //SearchBy.Unfocus();
-                                //SearchParam = string.Empty;
+                            //    //SearchBy.Unfocus();
+                            //    //SearchParam = string.Empty;
 
-                            }
-                            else
-                            {
-                                //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
-                                ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-                                ContextBtmSheet.HalfExpandedRatio = 0.8;
+                            //}
+                            //else
+                            //{
+                            //    //MyViewModel.LoadAllArtistsAlbumsAndLoadAnAlbumSong();
+                            //    //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+                            //    //ContextBtmSheet.HalfExpandedRatio = 0.8;
 
-                                //HomeTabView.SelectedItemIndex = prevViewIndex;
-                            }
+                            //    //HomeTabView.SelectedItemIndex = prevViewIndex;
+                            //}
                         }
                         catch { }
                     }
@@ -359,31 +359,31 @@ public partial class HomePage : ContentPage
 
     private async void StartSyncing_Clicked(object sender, EventArgs e)
     {
-        await PlainLyricSection.DimmOut();
-        PlainLyricSection.IsEnabled = false;
-        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-        IsSyncing = true;
+        //await PlainLyricSection.DimmOut();
+        //PlainLyricSection.IsEnabled = false;
+        ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = true;
 
-        await SyncLyrView.DimmIn();
-        SyncLyrView.IsVisible=true;
+        //await SyncLyrView.DimmIn();
+        //SyncLyrView.IsVisible=true;
     }
 
     bool IsSyncing = false;
     private async void CancelAction_Clicked(object sender, EventArgs e)
     {
-        await PlainLyricSection.DimmIn();
-        PlainLyricSection.IsEnabled = true;
+        //await PlainLyricSection.DimmIn();
+        //PlainLyricSection.IsEnabled = true;
 
-        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
-        IsSyncing = false;
+        ////MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = false;
 
-        await SyncLyrView.DimmOut();
-        SyncLyrView.IsVisible=false;
+        //await SyncLyrView.DimmOut();
+        //SyncLyrView.IsVisible=false;
     }
     private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
 
-        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
+        //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
 
         //await MyViewModel.FetchLyrics(true);
 
@@ -391,7 +391,7 @@ public partial class HomePage : ContentPage
     private void ViewLyricsBtn_Clicked(object sender, EventArgs e)
     {
         return ;
-        LyricsEditor.Text = string.Empty;
+        //LyricsEditor.Text = string.Empty;
         Button send = (Button)sender;
         string title = send.Text;
         //Content thisContent = (Content)send.BindingContext;
@@ -408,12 +408,12 @@ public partial class HomePage : ContentPage
     }
     private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
     {
-        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+        //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
-        if (Clipboard.Default.HasText)
-        {
-            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
-        }
+        //if (Clipboard.Default.HasText)
+        //{
+        //    LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        //}
 
 
     }
@@ -421,8 +421,8 @@ public partial class HomePage : ContentPage
     private async void ContextIcon_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.LoadArtistSongs();
-        ContextBtmSheet.State = BottomSheetState.HalfExpanded;
-        ContextBtmSheet.HalfExpandedRatio = 0.8;
+        //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
+        //ContextBtmSheet.HalfExpandedRatio = 0.8;
 
     }
     private void SearchOnline_Clicked(object sender, EventArgs e)
@@ -502,31 +502,31 @@ public partial class HomePage : ContentPage
     {
         var song = (SongModelView)e.Item;
         MyViewModel.SetCurrentlyPickedSong(song);
-        ContextBtmSheet.Show();
+        //ContextBtmSheet.Show();
     }
 
     private void AddAttachmentBtn_Clicked(object sender, EventArgs e)
     {
-        if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
-        {
-            ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
-        }
-        else
-        {
-            ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
-        }
+        //if (ThoughtBtmSheetBottomSheet.State == BottomSheetState.Hidden)
+        //{
+        //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.HalfExpanded;
+        //}
+        //else
+        //{
+        //    ThoughtBtmSheetBottomSheet.State = BottomSheetState.Hidden;
+        //}
             
     }
 
-    private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
-    {
-        UserNoteModelView note = new()
-        {
-            UserMessageText=NoteText.Text,
+    //private async void SaveNoteBtn_Clicked(object sender, EventArgs e)
+    //{
+    //    UserNoteModelView note = new()
+    //    {
+    //        UserMessageText=NoteText.Text,
             
-        };
-       await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
-    }
+    //    };
+    //   await  MyViewModel.SaveUserNoteToDB(note,MyViewModel.SecondSelectedSong);
+    //}
 
 
     string SearchParam = string.Empty;
@@ -608,6 +608,5 @@ public partial class HomePage : ContentPage
             }
         }
     }
-
 
 }

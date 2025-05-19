@@ -172,6 +172,12 @@ public class MainActivity : MauiAppCompatActivity
             StartService(_serviceIntent);
         _serviceConnection = new MediaPlayerServiceConnection(audioSvc);
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
+        
+        
+        
+        
+        
+        
         return;
 
 

@@ -98,7 +98,7 @@ public partial class BaseViewModel : ObservableObject
     public partial RepeatMode RepeatMode {get;set;}
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? PlaylistSongs {get;set;}
+    public partial ObservableCollection<SongModelView> PlaylistSongs { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
@@ -659,6 +659,7 @@ public partial class BaseViewModel : ObservableObject
 
         _folderMgtService.RemoveFolderFromPreference(path);
     }
+    
     public async Task SelectSongFromFolder(string? pathToOverride=null)
     {
 
@@ -791,40 +792,7 @@ public partial class BaseViewModel : ObservableObject
         BaseAppFlow.DimmerAppState.IsShowCloseConfirmation=IsStick;
     }
 
-    [RelayCommand]
-    public async Task LoadSongsFromFolders()
-    {
-        try
-        {
-            DeviceDisplay.Current.KeepScreenOn = true;
-            IsLoadingSongs = true;
-            if (FolderPaths is null || FolderPaths.Count < 0)
-            {
-                await Shell.Current.DisplayAlert("Error !", "No Paths to load", "OK");
-                IsLoadingSongs = false;
-                return;
-            }
-            
-            var loadSongsResult = await Task.Run(()=> BaseAppFlow.LoadSongs([.. FolderPaths]));
-            if (loadSongsResult is not null)
-            {   
-                Debug.WriteLine("Songs Loaded Successfully");
-            }
-            else
-            {
-                Debug.WriteLine("No Songs Found");
-            }
-            IsLoadingSongs = false;
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Error During Scanning", ex.Message, "Ok");
-        }
-        finally
-        {
-            DeviceDisplay.Current.KeepScreenOn = false;
-        }
-    }
+  
 
     public bool ToggleStickToTop()
     {

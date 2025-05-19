@@ -74,11 +74,25 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
             }));
     }
+
+    [RelayCommand]
     public async Task SelectSongFromFolderAndroid()
     {
-        PermissionStatus status = await Permissions.RequestAsync<CheckPermissions>();
 
-        await SelectSongFromFolder();
+        var status = await Permissions.CheckStatusAsync<CheckPermissions>(); // Your custom permission class
+        if (status != PermissionStatus.Granted)
+        {
+            status = await Permissions.RequestAsync<CheckPermissions>();
+        }
+    
+
+
+
+        if (status == PermissionStatus.Granted)
+        {
+
+            await SelectSongFromFolder();
+        }
     }
 
     public void ResetDisplayedMasterList()

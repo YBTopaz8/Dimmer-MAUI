@@ -21,9 +21,9 @@ public partial class SettingsPage : ContentPage
         await Browser.Default.OpenAsync(reportingLink, BrowserLaunchMode.SystemPreferred);
     }
 
-    private async void ScanAllBtn_Clicked(object sender, EventArgs e)
+    private void ScanAllBtn_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.LoadSongsFromFolders();
+        //await MyViewModel.LoadSongsFromFolders();
     }
 
     private async void ViewDevices_Clicked(object sender, EventArgs e)

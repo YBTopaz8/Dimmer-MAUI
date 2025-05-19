@@ -44,7 +44,7 @@ xmlns:dxc="http://schemas.devexpress.com/maui"
                                         <dx:DXStackLayout>
                                             <dx:DXImage Source="{Binding UserLocal.UserProfileImage}"
                                                 HeightRequest="200"/>
-                                            <Label Text="{Binding UserLocal.UserName, StringFormat='Welcome Back: {0}'}"
+                                            <Label Text="{Binding UserLocal.Username, StringFormat='Welcome Back: {0}'}"
                                            />
                                             <dx:DXButton x:Name="ViewDevices" Clicked="ViewDevices_Clicked"
                                             Content="My Devices"/>
@@ -86,12 +86,12 @@ StrokeThickness="0" StrokeShape="RoundRectangle 5" >
                                         <dx:TextEdit  Keyboard="Email"
                                                          LabelText="Email"
                                                          
-                                                         Text="{Binding UserLocal.UserEmail}"/>
+                                                         Text="{Binding UserLocal.Email}"/>
                                         <dx:TextEdit LabelText="User Name"
-                                                         Text="{Binding UserLocal.UserName}"                                                         
+                                                         Text="{Binding UserLocal.Username}"                                                         
                                                          />
                                         <dx:PasswordEdit  LabelText="Password" 
-                                                              Text="{Binding UserLocal.UserPassword}"
+                                                              Text="{Binding UserLocal.Password}"
                                                               />
                                         <dx:DXButton Content="Login"  HorizontalOptions="Center"
                                                              Command="{Binding LoginUserCommand}"                 FontSize="24"/>
@@ -108,15 +108,15 @@ StrokeThickness="0" StrokeShape="RoundRectangle 5" >
                     <dx:DXStackLayout CornerRadius="20">
 
                         <dx:TextEdit LabelText="Email" 
-                                 Text="{Binding UserLocal.UserEmail}"
+                                 Text="{Binding UserLocal.Email}"
                                  Keyboard="Email">
 
                         </dx:TextEdit>
                         <dx:TextEdit  LabelText="User Name"
-                                  Text="{Binding UserLocal.UserName}"
+                                  Text="{Binding UserLocal.Username}"
                                   />
                         <dx:PasswordEdit  LabelText="Password"
-                                      Text="{Binding UserLocal.UserPassword}"
+                                      Text="{Binding UserLocal.Password}"
                                       />
 
                         <dx:DXButton Content="Create An Account"  HorizontalOptions="Center"
