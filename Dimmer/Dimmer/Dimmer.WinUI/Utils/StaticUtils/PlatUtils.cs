@@ -93,15 +93,14 @@ public static class PlatUtils
     {
         var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-        var vm = new BaseAlbumViewModel();
-        vm.SetSelectedSong(song);
+        MyVM.SetSelectedSong(song);
 
-        AlbumWindow newWindow = new(vm, MyVM);
+        AlbumWindow newWindow = new AlbumWindow( MyVM);
 
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
-        MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
+        MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
 
     }
 

@@ -1,7 +1,7 @@
 ﻿
 
 namespace Dimmer.Data.Models;
-public class AppStateModel : RealmObject
+public class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 
     [PrimaryKey]

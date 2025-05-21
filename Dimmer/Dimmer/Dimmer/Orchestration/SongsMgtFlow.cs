@@ -70,6 +70,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         _subs.Add(
             _state.CurrentPlayBackState
             .DistinctUntilChanged()
+            .SubscribeOn(SynchronizationContext.Current)
                   .Subscribe(async s =>
                   {
                       switch (s.State)
@@ -82,7 +83,12 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         );
         SubscribeToCurrentSongChanges();
     }
+    public void SetPlayState()
+    {
+        //this triggers the pl flow and song mgt flow
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
+    }
     private void Audio_SeekCompleted(object? sender, double e)
     {
         SeekedTo(e);

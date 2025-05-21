@@ -59,7 +59,7 @@ public partial class App : Application
         Debug.WriteLine(errorDetails);
 
         // Log to file
-           LogException(e.Exception);
+          LogException(e.Exception);
 
      
     }

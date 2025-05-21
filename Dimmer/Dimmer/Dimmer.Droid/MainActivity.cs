@@ -7,7 +7,7 @@ namespace Dimmer;
 [IntentFilter(new[] { Platform.Intent.ActionAppAction }, // Use the constant
                 Categories = new[] { Intent.CategoryDefault })]
 [IntentFilter(new[] { Intent.ActionSend, Intent.ActionSendMultiple }, // Handle single and multiple files/items
-                Categories = new[] { Intent.CategoryDefault }, // REQUIRED for implicit intents                                           
+                Categories = new[] { Intent.CategoryDefault }, // for implicit intents                                           
                 DataMimeType = "audio/*")]
 
 [IntentFilter(new[] { Intent.ActionView },

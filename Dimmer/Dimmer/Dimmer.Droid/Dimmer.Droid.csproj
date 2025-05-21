@@ -81,7 +81,7 @@
 
     <!-- Activity -->
     <PackageReference Include="Xamarin.AndroidX.Activity" Version="1.10.1.1" />
-    <!-- Use highest required or newer stable -->
+    <!-- Use highest or newer stable -->
     <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.10.1.1" />
 
     <!-- Collection -->
@@ -95,7 +95,7 @@
 
     <!-- Fragment -->
     <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6.1" />
-    <!-- Use highest required or newer stable -->
+    <!-- Use highest or newer stable -->
     <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.6.1" />
 
     <!-- Lifecycle -->

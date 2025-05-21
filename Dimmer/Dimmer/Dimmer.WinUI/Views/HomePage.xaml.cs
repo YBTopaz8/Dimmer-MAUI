@@ -352,7 +352,8 @@ public partial class HomePage : ContentPage
         {
             case 0:
                 await SwitchUIs(0);
-                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong);
+                
+        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
                 //show the now playing Queue
                 break;
             case 1:
@@ -363,7 +364,7 @@ public partial class HomePage : ContentPage
             case 2:
                 //show the albums songs
                 PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
-
+                return;
                 break;
             case 3:
 
@@ -398,7 +399,8 @@ public partial class HomePage : ContentPage
 
                 break;
             case 6:
-                await SwitchUIs(4);
+                SongsColView.ScrollTo(MyViewModel.SelectedSong, null, ScrollToPosition.Start, true);
+
                 break;
             case 7:
                 MyViewModel.ShareSongOnline();
@@ -746,6 +748,8 @@ public partial class HomePage : ContentPage
     private async void SongImage_Clicked(object sender, EventArgs e)
     {
         await SwitchUIs(0);
+
+        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
     }
 
     private void CloseSubWindowChip_Clicked(object sender, EventArgs e)

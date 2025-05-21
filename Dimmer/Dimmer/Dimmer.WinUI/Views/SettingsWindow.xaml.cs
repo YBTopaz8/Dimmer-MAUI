@@ -8,6 +8,9 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         BindingContext = vm;
         MyViewModel=vm;
+
+        this.Height = 800;
+        this.Width = 800;
     }
 
 

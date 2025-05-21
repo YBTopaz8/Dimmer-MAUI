@@ -2,9 +2,9 @@
 public class MediaPlay
 {
     public ObjectId SongId { get; set; }
-    public required string Name { get; set; }
+    public string Name { get; set; }
     public string? Author { get; set; }
-    public required string URL { get; set; }
+    public string URL { get; set; }
     public Stream? Stream { get; set; }
     public string? ImagePath { get; set; }
     

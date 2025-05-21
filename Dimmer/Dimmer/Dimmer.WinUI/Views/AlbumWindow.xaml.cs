@@ -2,19 +2,24 @@ namespace Dimmer.WinUI.Views;
 
 public partial class AlbumWindow : Window
 {
-	public AlbumWindow(BaseAlbumViewModel vm, HomeViewModel mainVM)
+	public AlbumWindow(HomeViewModel vm)
 	{
 		InitializeComponent();
-        MyViewModel=vm;
         this.Height = 600;
         this.Width = 800;
         BindingContext = vm;
-
+        MyViewModel=vm;
 
     }
 
-    public BaseAlbumViewModel MyViewModel { get; }
+    public HomeViewModel MyViewModel { get; }
 
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+
+        MyViewModel.LoadAlbum();
+    }
 
     private static void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {

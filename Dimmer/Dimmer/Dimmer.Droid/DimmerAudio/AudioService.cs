@@ -149,7 +149,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     // --- IAudioActivity Implementation (Handles events FROM ExoPlayerService) ---
 
-    // Binder property required by IAudioActivity interface
+    // Binder property by IAudioActivity interface
     ExoPlayerServiceBinder? IAudioActivity.Binder { get => _binder; set => SetBinder(value); }
 
     public void OnStatusChanged(object sender, EventArgs e)

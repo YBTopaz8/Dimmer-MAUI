@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Data.Models;
-public partial class ArtistModel : RealmObject
+public partial class ArtistModel : RealmObject, IRealmObjectWithObjectId
 {
 
 

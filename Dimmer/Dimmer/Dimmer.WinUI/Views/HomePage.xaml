@@ -248,10 +248,10 @@
                                  CommandParameter="5" TextColor="White" />
                                         <syncf:SfChip ImageSource="lyricist.png" Text="{Static lang:DimmerLanguage.txt_Note}"
                                  CommandParameter="6" TextColor="White" />
-                                        <syncf:SfChip  Text="{Static lang:DimmerLanguage.txt_send}"
+                                        <syncf:SfChip  Text="Scroll To"
                                  CommandParameter="7" TextColor="White">
                                             <syncf:SfChip.ImageSource>
-                                                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="paper-plane" Color="DarkSlateBlue" />
+                                                <FontImageSource FontFamily="FontAwesomeSolid" Glyph="eye" Color="DarkSlateBlue" />
                                             </syncf:SfChip.ImageSource>
                                         </syncf:SfChip>
 

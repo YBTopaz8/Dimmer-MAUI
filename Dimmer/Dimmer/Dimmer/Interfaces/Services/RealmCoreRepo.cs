@@ -3,39 +3,44 @@
 // ----------------------------
 using Dimmer.Utilities.Extensions;
 using Microsoft.Maui.Controls;
+using Realms;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Dimmer.Interfaces.Services;
-
+public interface IRealmObjectWithObjectId
+{
+    [PrimaryKey]
+    ObjectId Id { get; set; } // Assuming your PK is always ObjectId and named "Id"
+}
 /// <summary>
-/// Thread‑safe Realm repo. Each call opens its own Realm; WatchAll
+/// Thread‑safe Realm repo. Each call opens its own Realm;
 /// holds its Realm open until you unsubscribe.
 /// </summary>
-public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, new()
+public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : RealmObject, IRealmObjectWithObjectId, new() 
 {
     private readonly IRealmFactory _factory = factory;
     private IMapper? _mapper;
 
     private Realm GetNewRealm() => _factory.GetRealmInstance();
 
-    public T AddOrUpdate(T entity) // Recommended version
+
+    public T AddOrUpdate(T entity) // CORRECTED version
     {
-        T managedEntity;
+        T frozenEntity; // Declare here to be accessible outside the using block
+
         using (var realmInstance = GetNewRealm())
         {
-            managedEntity = realmInstance.Write(() =>
+            T managedEntity = realmInstance.Write(() =>
             {
                 return realmInstance.Add(entity, update: true);
             });
-            // managedEntity is live here, tied to realmInstance
+
+            frozenEntity = managedEntity.Freeze();
+
         }
-        // realmInstance is now disposed.
-        // It's best to return a frozen copy so the caller gets a usable, thread-safe object.
-        T frozenEntity = managedEntity.Freeze();
         return frozenEntity;
     }
-
 
     public void AddOrUpdate(IEnumerable<T> entities)
     {
@@ -49,13 +54,33 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         });
     }
 
-
     public void Delete(T entity)
     {
+        if (entity == null)
+            return;
+
         using var realm = GetNewRealm();
-        realm.Write(() => realm.Remove(entity));
-        Debug.WriteLine($"Deleted {nameof(entity)}");
+        realm.Write(() =>
+        {
+            // Find the entity by its PK within the current realm transaction to ensure it's managed
+            var liveEntity = realm.Find<T>(entity.Id);
+            if (liveEntity != null)
+            {
+                realm.Remove(liveEntity);
+                Debug.WriteLine($"Deleted {typeof(T).Name} with Id {entity.Id}");
+            }
+            else
+            {
+                Debug.WriteLine($"{typeof(T).Name} with Id {entity.Id} not found for deletion.");
+            }
+        });
     }
+    //public void Delete(T entity)
+    //{
+    //    using var realm = GetNewRealm();
+    //    realm.Write(() => realm.Remove(entity));
+    //    Debug.WriteLine($"Deleted {nameof(entity)}");
+    //}
 
     public void Delete(IEnumerable<T> entities)
     {
@@ -99,7 +124,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
         using var realm = GetNewRealm();
 
-        return (IRealmCollection<T>)realm.All<T>();
+        return (IRealmCollection<T>)realm.All<T>().Freeze();
     }
     public T? GetById(ObjectId primaryKey) // Input 'primaryKey' is a string
     {
@@ -113,69 +138,86 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     }
     public List<T> Query(Expression<Func<T, bool>> predicate)
     {
-    
         using var realm = GetNewRealm();
-        return realm.All<T>().Where(predicate).ToList().Select(o => o.Freeze()).ToList();
-    }
-
-    /// <summary>
-    /// Emits the full list immediately and on every change. Keeps its Realm open
-    /// until you Dispose the subscription.
-    /// </summary>
-    public IObservable<IList<T>> WatchAll()
-    {
-        return Observable.Create<IList<T>>(observer =>
+        try
         {
-            
-            using var realm = GetNewRealm();
-
-            var results = realm.All<T>();
-
-            // initial snapshot
-            observer.OnNext([.. results.AsEnumerable().Select(o => o.Freeze())]);
-
-            // live notifications
-            var token = results.SubscribeForNotifications((col, changes) =>
-            {
-                observer.OnNext([.. col.Select(o => o.Freeze())]);
-            });
-
-            // cleanup both token + realm on unsubscribe
-            return () =>
-            {
-                token.Dispose();
-                realm.Dispose();
-            };
-        });
+            // Realm processes the predicate here. If unsupported, it throws.
+            var results = realm.All<T>().Where(predicate).ToList();
+            return results.Select(o => o.Freeze()).ToList();
+        }
+        catch (NotSupportedException ex)
+        {
+            // Provide more context to the developer about the failing predicate.
+            string errorMessage = $"Realm LINQ query not supported by its provider. " +
+                                  $"This usually means the predicate contains operations (like complex .Any() or .Contains() on collections) " +
+                                  $"that Realm cannot translate to a native query. " +
+                                  $"Consider simplifying the predicate for Realm and performing complex filtering in-memory after fetching an initial dataset. " +
+                                  $"Failing Predicate: {predicate.ToString()}";
+            Debug.WriteLine($"{errorMessage}\nException: {ex.ToString()}");
+            throw new NotSupportedException(errorMessage, ex);
+        }
+        catch (Exception ex) // Catch other potential exceptions during query/materialization
+        {
+            Debug.WriteLine($"An unexpected error occurred during Realm query: {predicate.ToString()}\nException: {ex.ToString()}");
+            throw; // Rethrow to allow higher-level error handling
+        }
     }
-
+  
     public List<T> GetPage(int skip, int take)
     {
-        using var realm = GetNewRealm();
+        if (skip < 0)
+            throw new ArgumentOutOfRangeException(nameof(skip), "Skip cannot be negative.");
+        if (take <= 0)
+            throw new ArgumentOutOfRangeException(nameof(take), "Take must be positive.");
 
-        return realm.All<T>().Skip(skip).Take(take).ToList().Select(o => o.Freeze()).ToList();
+        using var realm = GetNewRealm();
+        var results = realm.All<T>().Skip(skip).Take(take).ToList();
+        return results.Select(o => o.Freeze()).ToList();
+    }
+    public int Count(Expression<Func<T, bool>>? predicate = null)
+    {
+        using var realm = GetNewRealm();
+        if (predicate == null)
+            return realm.All<T>().Count();
+        return realm.All<T>().Count(predicate); 
+    }
+    public List<T> QueryOrdered<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> keySelector, bool ascending)
+    {
+        using var realm = GetNewRealm();
+        var query = realm.All<T>().Where(predicate);
+        query = ascending ? query.OrderBy(keySelector) : query.OrderByDescending(keySelector);
+        return query.ToList().Select(o => o.Freeze()).ToList();
+    }
+
+    public IEnumerable<SongModel> Query(Expression<Func<DimmerPlayEvent, bool>> realmPredicate)
+    {
+        throw new NotImplementedException();
     }
 }
 // 1) A simple comparer for two song‐lists
 class SongListComparer : IEqualityComparer<IList<SongModel>>
 {
-    public bool Equals(IList<SongModel>? a, IList<SongModel>? b)
+   
+       public bool Equals(IList<SongModel>? a, IList<SongModel>? b)
     {
+        if (ReferenceEquals(a, b))
+            return true;
         if (a is null || b is null)
             return false;
         if (a.Count != b.Count)
             return false;
         for (int i = 0; i < a.Count; i++)
         {
-            if (a[i].Id != b[i].Id ||
-                a[i].Title         != b[i].Title)
+            if (a[i].Id != b[i].Id || a[i].Title != b[i].Title) 
                 return false;
         }
         return true;
     }
+
     public int GetHashCode(IList<SongModel> obj)
     {
-        // not used by DistinctUntilChanged
+        if (obj == null)
+            return 0;
         return obj.Count;
     }
 }

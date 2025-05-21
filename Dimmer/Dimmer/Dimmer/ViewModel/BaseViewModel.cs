@@ -42,6 +42,8 @@ public partial class BaseViewModel : ObservableObject
 
 
     [ObservableProperty]
+    public partial SongModelView SelectedSong { get; set; }
+    [ObservableProperty]
     public partial bool IsLoadingSongs { get; set; }
     [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
@@ -146,7 +148,8 @@ public partial class BaseViewModel : ObservableObject
             SettingsPageIndex=0;
         }
     }
-
+    [ObservableProperty]
+    public partial AlbumModelView? SelectedAlbum { get; internal set; }
     [RelayCommand]
     public void FullyBackUpData()
     {
@@ -164,6 +167,10 @@ public partial class BaseViewModel : ObservableObject
     // and file sharing where user a and b can chat, and can share even song data etc..
     // and more methods etc 
 
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; internal set; }
 
 
     [RelayCommand]
@@ -229,8 +236,9 @@ public partial class BaseViewModel : ObservableObject
         SubscribeToIsPlaying();
         SubscribeToPosition();
         SubscribeToStateChanges();
-        
-        
+
+
+        SubscribeToAlbumListChanges();
         CurrentPositionPercentage = 0;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
        FolderPaths=  _folderMgtService.StartWatchingFolders()?.Select(x=>x.FolderPath).ToObservableCollection();
@@ -403,12 +411,9 @@ public partial class BaseViewModel : ObservableObject
                 SecondSelectedSong?.IsCurrentPlayingHighlight = false;
 
                 SecondSelectedSong = _mapper.Map<SongModelView>(song);
-                SecondSelectedSong?.IsCurrentPlayingHighlight = true;
+                SecondSelectedSong.IsCurrentPlayingHighlight = true;
 
-                if (TemporarilyPickedSong is null)
-                {
-                    TemporarilyPickedSong = SecondSelectedSong;
-                }
+                TemporarilyPickedSong ??= SecondSelectedSong;
             }));
     }
     private void SubscribeToCurrentSong()
@@ -509,6 +514,7 @@ public partial class BaseViewModel : ObservableObject
             {
                 PlaylistModel CustomPlaylist = new()
                 {
+                    Id=ObjectId.GenerateNewId(),
                     PlaylistName = "Search Playlist "+DateTime.Now.ToLocalTime(),
                     Description = "Custom Playlist by Dimmer",
                 };
@@ -528,6 +534,7 @@ public partial class BaseViewModel : ObservableObject
 
             PlaylistModel CustomPlaylist = new()
             {
+                Id=ObjectId.GenerateNewId(),
                 PlaylistName = "Custom Playlist",
                 Description = "Custom Playlist by Dimmer",
             };
@@ -539,9 +546,7 @@ public partial class BaseViewModel : ObservableObject
             _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
         }
 
-        //this triggers the pl flow and song mgt flow
-        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
-
+        SongsMgtFlow.SetPlayState();
     }
 
     public void PlayNext(bool IsByUser)
@@ -729,16 +734,6 @@ public partial class BaseViewModel : ObservableObject
                 if (log == null)
                     return;
 
-                //if (log.DeviceModelSession is not null)
-                //{
-                //    MainThread.BeginInvokeOnMainThread(() =>
-                //    {
-                //        UserDevices?.Add(log.DeviceModelSession);
-                //    });
-                //    return;
-                //}
-                
-                
                 
                 if (string.IsNullOrEmpty(log.Log))
                     return;
@@ -815,8 +810,57 @@ public partial class BaseViewModel : ObservableObject
 
 
     #endregion
+
+    public void SetSelectedSong(SongModelView song)
+    {
+        if (song == null)
+            return;
+        SelectedSong =song;
+        //ScrollToCurrentlyPlayingSong();
+    }
+    private void SubscribeToAlbumListChanges()
+    {
+
+
+        _subs.Add(
+            AlbumsMgtFlow.SpecificAlbums
+                .Subscribe(albums =>
+                {
+                    if (albums == null)
+                        return;
+                    if (albums.Count > 0)
+                    {
+                        SelectedAlbumsSongs = _mapper.Map<ObservableCollection<SongModelView>>(albums[0].Songs);
+                        SelectedAlbumsCol = _mapper.Map<ObservableCollection<AlbumModelView>>(albums);
+
+                        SelectedAlbum = SelectedAlbumsCol[0];
+
+                    }
+                })
+        );
+    }
+
+    public void GetAlbumForSpecificSong(SongModelView song)
+    {
+        AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
+    }
+
+    public void PlaySong(SongModelView song)
+    {
+        SelectedSong.IsCurrentPlayingHighlight = false;
+        SelectedSong = song;
+        PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
+
+    }
+
+    public void LoadAlbum()
+    {
+
+    }
+
+
     public void Dispose()
     {
-        _subs.Dispose();
+       _subs.Dispose();
     }
 }

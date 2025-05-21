@@ -5,7 +5,7 @@ namespace Dimmer.Data.Models;
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class AlbumModel : RealmObject
+public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
 {
 
 
@@ -15,7 +15,7 @@ public partial class AlbumModel : RealmObject
     /// <value>
     /// The name.
     /// </value>
-    public string Name { get; set; }
+    public string? Name { get; set; }
     /// <summary>
     /// Gets or sets the release year.
     /// </summary>
@@ -108,10 +108,11 @@ public partial class AlbumModel : RealmObject
     /// </summary>
 
     [Backlink(nameof(SongModel.Album))]
-    public IQueryable<SongModel> Songs { get; }
+    public IQueryable<SongModel>? Songs { get; }
 
     public IList<UserNoteModel>? UserNotes { get; }
     public AlbumModel()
     {
     }
+    
 }

@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Data.Models;
-public partial class GenreModel : RealmObject
+public partial class GenreModel : RealmObject, IRealmObjectWithObjectId
 {
     [PrimaryKey]
     public ObjectId Id { get; set; }

@@ -13,7 +13,7 @@ public partial class ArtistWindow : Window
 
     }
 
-    public BaseAlbumViewModel MyViewModel { get; }
+    public HomeViewModel MyViewModel { get; }
 
 
     private static void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)

@@ -440,7 +440,7 @@ public static class NativeMethods
 #pragma warning restore S4200 // Native methods should be wrapped
 }
     // Replace the ComImportAttribute with GeneratedComInterfaceAttribute for the ITaskbarList3 interface.
-    // This change is required to generate COM marshalling code at compile time as per the diagnostic SYSLIB1096.
+    // This change is to generate COM marshalling code at compile time as per the diagnostic SYSLIB1096.
     [ComImport]
 [Guid("ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

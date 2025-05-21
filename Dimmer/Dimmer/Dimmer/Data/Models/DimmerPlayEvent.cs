@@ -4,7 +4,7 @@
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class DimmerPlayEvent : RealmObject
+public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
 {
     /// <summary>
     /// Gets or sets the local device identifier.

@@ -111,7 +111,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         // --- Genre Processing ---
         string genreName = string.IsNullOrWhiteSpace(track.Genre) ? "Unknown Genre" : track.Genre.Trim();
         var genre = _metadataService.GetOrCreateGenre(genreName);
-        
+
         // --- Song Model Creation ---
         var song = new SongModel
         {
@@ -122,7 +122,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             ArtistName= artistString,
             Genre = genre,
             Composer = track.Composer,
-            
+
             CoverImagePath = coverPath ?? album.ImagePath, // Song specific or album's
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
@@ -135,7 +135,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             UnSyncLyrics = track.Lyrics?.UnsynchronizedLyrics,
             HasSyncedLyrics = track.Lyrics?.SynchronizedLyrics?.Any() ?? false,
             //ArtistIds = [.. artists.Select(a => a.Id)],
-
+            Id= ObjectId.GenerateNewId()
             //SyncLyrics = track.Lyrics?.SynchronizedLyrics // This needs proper formatting
         };
 

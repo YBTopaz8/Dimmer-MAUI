@@ -1,9 +1,9 @@
 ﻿namespace Dimmer.Data.Models;
-public partial class UserModel :RealmObject
+public partial class UserModel :RealmObject, IRealmObjectWithObjectId
 {
 
     [PrimaryKey]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
     public string? UserName { get; set; } 
     public string? UserEmail { get; set; } 
     public string? UserPassword { get; set; } 

@@ -17,7 +17,6 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddTransient<BaseViewModelWin>();
-        builder.Services.AddTransient<BaseAlbumViewModel>();
         builder.Services.AddTransient<AlbumWindow>();
         builder.Services.AddTransient<OnlinePageManagement>();
 

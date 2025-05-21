@@ -6,7 +6,7 @@ namespace Dimmer.Data.Models;
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class SongModel : RealmObject
+public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
 
     /// <summary>

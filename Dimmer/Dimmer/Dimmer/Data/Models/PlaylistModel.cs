@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Data.Models;
-public partial class PlaylistModel : RealmObject
+public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
 {
     /// <summary>
     /// Gets or sets the local device identifier.
