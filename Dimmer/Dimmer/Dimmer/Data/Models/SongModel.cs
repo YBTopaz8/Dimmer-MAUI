@@ -1,4 +1,5 @@
-﻿using static ATL.LyricsInfo;
+﻿using MongoDB.Bson;
+using static ATL.LyricsInfo;
 
 namespace Dimmer.Data.Models;
 /// <summary>
@@ -15,7 +16,7 @@ public partial class SongModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
     /// <summary>
     /// Gets or sets the title.
     /// </summary>

@@ -115,7 +115,6 @@ public class AudioFileProcessor : IAudioFileProcessor
         // --- Song Model Creation ---
         var song = new SongModel
         {
-            Id = Guid.NewGuid().ToString(),
             FilePath = filePath,
             Title = title,
             Album = album,
@@ -128,7 +127,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             DurationInSeconds = track.Duration,
             BitRate = track.Bitrate,
             TrackNumber= track.TrackNumber,
-            UserIDOnline = BaseAppFlow.CurrentUserView.Id,
+            UserIDOnline = BaseAppFlow.CurrentUserView.Id.ToString(),
             FileSize = new FileInfo(filePath).Length,
             FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
             ReleaseYear = track.Year,

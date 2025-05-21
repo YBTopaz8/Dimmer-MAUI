@@ -2,7 +2,7 @@
 public partial class GenreModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? Id { get; set; } = string.Empty;
+    public partial ObjectId Id { get; set; }
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]

@@ -2,7 +2,7 @@
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? Id { get; set; }
+    public partial ObjectId Id { get; set; }
     [ObservableProperty]
     public partial string? Title { get; set; }
     [ObservableProperty]

@@ -1,7 +1,7 @@
 ﻿namespace Dimmer.Data.Models;
 public class MediaPlay
 {
-    public string? SongId { get; set; }
+    public ObjectId SongId { get; set; }
     public required string Name { get; set; }
     public string? Author { get; set; }
     public required string URL { get; set; }

@@ -13,6 +13,7 @@ global using Dimmer.Views;
 global using Dimmer.Data.ModelView;
 
 global using Dimmer.DimmerLive.Interfaces;
+global using MongoDB.Bson;
 
 global using Dimmer.Utilities.Enums;
 global using Dimmer.ViewModel;

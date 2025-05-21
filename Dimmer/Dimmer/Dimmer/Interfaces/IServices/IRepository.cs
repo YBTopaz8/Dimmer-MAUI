@@ -11,7 +11,7 @@ public interface IRepository<T> where T : new()
     
     IReadOnlyCollection<T> GetAll(bool IsShuffled = false);
     IRealmCollection<T> GetAllLive();
-    T? GetById(string primaryKey);
+    T? GetById(ObjectId primaryKey);
     List<T> GetPage(int skip, int take);
     List<T> Query(Expression<Func<T, bool>> predicate);
     IObservable<IList<T>> WatchAll();

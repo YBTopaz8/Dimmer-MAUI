@@ -192,7 +192,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
     public double VolumeLevel => _audio.Volume;
 
-    public List<SongModel> GetSongsByAlbumId(string albumId)
+    public List<SongModel> GetSongsByAlbumId(ObjectId albumId)
     {
         throw new NotImplementedException("This method is not implemented yet.");
         // 1. Find all Song IDs linked to the given Album ID

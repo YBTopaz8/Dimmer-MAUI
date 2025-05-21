@@ -19,18 +19,23 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
     private Realm GetNewRealm() => _factory.GetRealmInstance();
 
-    public T AddOrUpdate(T entity)
+    public T AddOrUpdate(T entity) // Recommended version
     {
-        using var realmInstance = GetNewRealm(); // Get a Realm for this operation
-      var e =   realmInstance.Write(() =>
+        T managedEntity;
+        using (var realmInstance = GetNewRealm())
         {
-            // Now 'realmInstance' is the same for both Write and Add
-            return realmInstance.Add(entity, update: true);
-        });
-
-        return e;
-        Debug.WriteLine($"UpSerted {nameof(entity)} {typeof(T)}");
+            managedEntity = realmInstance.Write(() =>
+            {
+                return realmInstance.Add(entity, update: true);
+            });
+            // managedEntity is live here, tied to realmInstance
+        }
+        // realmInstance is now disposed.
+        // It's best to return a frozen copy so the caller gets a usable, thread-safe object.
+        T frozenEntity = managedEntity.Freeze();
+        return frozenEntity;
     }
+
 
     public void AddOrUpdate(IEnumerable<T> entities)
     {
@@ -96,30 +101,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
         return (IRealmCollection<T>)realm.All<T>();
     }
-    public T? GetById(string primaryKey) // Input 'primaryKey' is a string
+    public T? GetById(ObjectId primaryKey) // Input 'primaryKey' is a string
     {
         using var realmInstance = GetNewRealm();
-
-        // Optional: A development-time check to verify the assumption that T's PK is a string.
-        // You can remove this for production if performance is critical and you are certain.
-#if DEBUG
-        var pkPropertyInfo = typeof(T).GetProperties()
-            .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
-
-        if (pkPropertyInfo == null)
-        {
-            Debug.WriteLine($"Warning: Type {typeof(T).Name} used with GetById does not have a [PrimaryKey] attribute. Find<T> might return null or behave unexpectedly.");
-        }
-        else if (pkPropertyInfo.PropertyType != typeof(string))
-        {
-            // This indicates a mismatch between the assumption ("PK is always string") and the actual model.
-            // If this happens, the Find<T>(primaryKey) call below might fail or Realm might attempt an implicit conversion
-            // which could lead to runtime errors if the string is not in the correct format for the actual PK type.
-            Debug.WriteLine($"Warning: Type {typeof(T).Name} has a [PrimaryKey] of type {pkPropertyInfo.PropertyType.Name}, " +
-                            $"but GetById(string) was called. Realm's Find<T>(string) will be used. " +
-                            $"Ensure this is the intended behavior or that Realm handles the string-to-{pkPropertyInfo.PropertyType.Name} conversion for PKs.");
-        }
-#endif
 
         // If the PrimaryKey property on T is indeed of type string,
         // Realm's Find<T>(string pkValue) overload will be used directly.
@@ -131,7 +115,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
     
         using var realm = GetNewRealm();
-        return [.. realm.All<T>().Where(predicate)];
+        return realm.All<T>().Where(predicate).ToList().Select(o => o.Freeze()).ToList();
     }
 
     /// <summary>
@@ -169,9 +153,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
         using var realm = GetNewRealm();
 
-        return [.. realm.All<T>().Skip(skip).Take(take)];
+        return realm.All<T>().Skip(skip).Take(take).ToList().Select(o => o.Freeze()).ToList();
     }
-
 }
 // 1) A simple comparer for two song‐lists
 class SongListComparer : IEqualityComparer<IList<SongModel>>

@@ -9,7 +9,7 @@ public partial class AppStateModelView: ObservableObject
 {
 
     [PrimaryKey]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }
     public string? CurrentArtistId { get; set; }
@@ -53,7 +53,6 @@ public partial class AppStateModelView: ObservableObject
         // Copy all properties
         // Note: We are explicitly setting Id from the source.
         // If you wanted a new ID for the copy, you'd omit this line or re-initialize.
-        this.Id = source.Id;
         this.CurrentSongId = source.CurrentSongId;
         this.CurrentAlbumId = source.CurrentAlbumId;
         this.CurrentArtistId = source.CurrentArtistId;

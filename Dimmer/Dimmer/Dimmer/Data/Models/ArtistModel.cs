@@ -4,7 +4,7 @@ public partial class ArtistModel : RealmObject
 
 
     [PrimaryKey]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
     public string? Name { get; set; } = "Unknown Artist";
     public string? Bio { get; set; }
     public string? ImagePath { get; set; } = "lyricist.png";

@@ -28,7 +28,7 @@ global using Dimmer.Utilities.Enums;
 global using Dimmer.DimmerLive;
 global using Dimmer.DimmerLive.Interfaces;
 global using ZXing.Net.Maui.Controls;
-
+global using MongoDB.Bson;
 
 global using Dimmer.Utilities.FileProcessorUtils;
 global using System.Reactive.Concurrency;

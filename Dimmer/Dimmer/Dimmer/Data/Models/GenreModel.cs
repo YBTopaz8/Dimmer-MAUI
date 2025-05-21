@@ -2,7 +2,7 @@
 public partial class GenreModel : RealmObject
 {
     [PrimaryKey]
-    public string? Id { get; set; }
+    public ObjectId Id { get; set; }
     public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
     public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
     public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();

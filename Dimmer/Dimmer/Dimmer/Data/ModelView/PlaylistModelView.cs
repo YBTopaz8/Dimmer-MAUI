@@ -43,6 +43,9 @@ public partial class PlaylistModelView : ObservableObject
     
     [ObservableProperty]
     public partial UserModel? User { get; set; }
+    
+    [ObservableProperty]
+    public partial ObjectId Id { get; set; }
 }
 
 public partial class PlaylistEventView : ObservableObject

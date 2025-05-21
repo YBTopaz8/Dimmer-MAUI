@@ -3,10 +3,18 @@
 namespace Dimmer.Orchestration;
 public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 {
+    private readonly IDimmerStateService state;
     private readonly IRepository<SongModel> _songRepo;
+    private readonly IRepository<UserModel> userRepo;
+    private readonly IRepository<GenreModel> genreRepo;
     private readonly IRepository<GenreModel> _genreRepo ;
     private readonly IRepository<AlbumModel> _albumRepo;
+    private readonly IRepository<AppStateModel> appstateRepo;
+    private readonly ISettingsService settings;
+    private readonly IFolderMgtService folderMonitor;
     private readonly IRepository<DimmerPlayEvent> _pdlRepo;
+    private readonly IRepository<PlaylistModel> playlistRepo;
+    private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IMapper _mapper;
     private readonly SubscriptionManager _subs;
 
@@ -21,6 +29,10 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 
     private readonly BehaviorSubject<double> _syncProgress = new(0);
     public IObservable<double> SyncProgress => _syncProgress.AsObservable();
+    private readonly BehaviorSubject<IReadOnlyList<AlbumModel>> _queriedAlbums = new(Array.Empty<AlbumModel>());
+    public IObservable<IReadOnlyList<AlbumModel>> QueriedAlbums => _queriedAlbums.AsObservable();
+    private readonly BehaviorSubject<IReadOnlyList<SongModel>> _queriedSongs = new(Array.Empty<SongModel>());
+    public IObservable<IReadOnlyList<SongModel>> QueriedSongs => _queriedSongs.AsObservable();
 
     public AlbumsMgtFlow(
         IDimmerStateService state,
@@ -39,21 +51,152 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
         
     ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMonitor, subs, mapper)
     {
+        this.state=state;
         _songRepo=songRepo;
+        this.userRepo=userRepo;
+        this.genreRepo=genreRepo;
         _albumRepo     = albumRepo;
+        this.appstateRepo=appstateRepo;
+        this.settings=settings;
+        this.folderMonitor=folderMonitor;
         _pdlRepo       = pdlRepo;
+        this.playlistRepo=playlistRepo;
+        this._artistRepo=artistRepo;
         _mapper        = mapper;
         _subs          = subs;
+    }
+    public void GetAlbumsByArtistName(string artistName) // More user-friendly than ID
+    {
+        // This is a multi-step query if going from Artist Name -> Songs -> Albums
+        // Step 1: Find the artist(s) by name (could be multiple if names aren't unique, handle that)
+        var artists = _artistRepo.Query(ar => ar.Name == artistName);
+        if (!artists.Any())
+        {
+            _queriedAlbums.OnNext(Array.Empty<AlbumModel>());
+            return;
+        }
+        var artistIds = artists.Select(ar => ar.Id).ToList();
+
+        // Step 2: Find songs by these artists
+        // Realm doesn't directly support ANY artist.Id IN artistIds in a single sub-query like EF.
+        // So, we query songs and filter in memory for this part OR iterate.
+        // A better model might have direct links from Artist to Album if this is very common.
+        // For now, leveraging SongModel.Artists:
+        var songsByArtists = _songRepo.Query(s => s.ArtistIds.Any(a => artistIds.Contains(a.Id)));
+
+        // Step 3: Get distinct albums from these songs
+        var albums = songsByArtists.Select(s => s.Album)
+                                   .Where(al => al != null)
+                                   .DistinctBy(al => al!.Id) // Requires .NET 6+ for DistinctBy
+                                   .ToList();
+        _queriedAlbums.OnNext(albums!);
     }
 
     // 1. Filtering & Searching
     public void GetAlbumsByReleaseYearRange(int startYear, int endYear)
     {
-        var list = _albumRepo.GetAll().AsEnumerable()
-            .Where(a => a.ReleaseYear >= startYear && a.ReleaseYear <= endYear)
-            .ToList();
-        _specificAlbums.OnNext(list);
+        // Use the Query method from your repository
+        var list = _albumRepo.Query(a => a.ReleaseYear >= startYear && a.ReleaseYear <= endYear);
+        _queriedAlbums.OnNext(list); // Assuming Query returns List<T>
     }
+
+    public void GetAlbumsByArtistName_Alternative(string artistName)
+    {
+        var artist = _artistRepo.Query(ar => ar.Name == artistName).FirstOrDefault();
+        if (artist == null)
+        {
+            _queriedAlbums.OnNext(Array.Empty<AlbumModel>());
+            return;
+        }
+
+        // Requires ArtistModel to have:
+        // [Backlink(nameof(SongModel.Artists))]
+        // public IQueryable<SongModel> Songs { get; }
+        // And your repo's Query method needs to handle IQueryable sources for such traversals if it doesn't already.
+        // If _artistRepo.Query returns List<T>, this won't work directly with artist.Songs.
+        // This highlights the need for repo methods that can handle more complex queries or return IQueryable.
+
+        // Assuming you can get songs for an artist efficiently:
+        var songsOfArtist = _songRepo.Query(s => s.ArtistIds.Any(a => a.Id == artist.Id));
+        var albums = songsOfArtist.Select(s => s.Album)
+                                  .Where(al => al != null)
+                                  .DistinctBy(al => al!.Id)
+                                  .ToList();
+        _queriedAlbums.OnNext(albums!);
+    }
+
+
+    public void GetSongsByGenreName(string genreName)
+    {
+        var genre = _genreRepo.Query(g => g.Name == genreName).FirstOrDefault();
+        if (genre == null)
+        {
+            _queriedSongs.OnNext(Array.Empty<SongModel>());
+            return;
+        }
+        // Assumes SongModel.Genre links to GenreModel
+        var songs = _songRepo.Query(s => s.Genre != null && s.Genre.Id == genre.Id);
+        _queriedSongs.OnNext(songs);
+    }
+
+    public void SearchAlbumsByName(string query)
+    {
+        // Realm's default string comparisons are case-sensitive.
+        // For case-insensitive, you might need to store a normalized version or rely on .NET filtering after a broader query.
+        // Or use Realm Full-Text Search if available and configured.
+        // A common approach for simple case-insensitivity if not using FTS:
+        // Fetch and filter, or make sure your repo Query can translate ToLower()
+        // For this example, let's assume your Query method can handle ToLower or you accept case-sensitivity.
+        // If your IRepository<T>.Query method uses LINQ to Realm IQueryable:
+        // var list = _albumRepo.Query(a => a.Name.Contains(query)); // Case-sensitive by default in RQL
+        // For case-insensitive with LINQ-to-Objects on frozen results:
+        var allAlbums = _albumRepo.GetAll(); // Get all frozen albums (use with caution for large sets)
+        var list = allAlbums.Where(a => a.Name != null && a.Name.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        _queriedAlbums.OnNext(list);
+        // IDEAL: _albumRepo.Query(a => a.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+        //        but this depends on the Realm LINQ provider's capabilities for string methods.
+        //        Often, `string.Contains(value, StringComparison)` is not translated.
+        //        `CONTAINS[c]` is the RQL equivalent. Your repo needs to build such queries.
+    }
+
+    public void GetAlbumsWithNoCoverArt()
+    {
+        var list = _albumRepo.Query(a => string.IsNullOrEmpty(a.ImagePath));
+        _queriedAlbums.OnNext(list);
+    }
+
+    public void GetAlbumsWithoutAnySongs() // Renamed for clarity
+    {
+        // Assumes AlbumModel has Songs backlink: [Backlink("Album")] IQueryable<SongModel> Songs { get; }
+        var list = _albumRepo.Query(a => !a.Songs.Any());
+        _queriedAlbums.OnNext(list);
+    }
+
+    public void GetAlbumsAddedInLastDays(int days)
+    {
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-days);
+        // Assumes AlbumModel has a DateAddedToLibrary property of type DateTimeOffset
+        var list = _albumRepo.Query(a => a.DateCreated >= cutoff);
+        _queriedAlbums.OnNext(list);
+    }
+
+    // --- 2. Sorting & Grouping ---
+    // Sorting should ideally be done by Realm if possible.
+    // Your IRepository<T> would need methods like:
+    // QueryOrdered<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> keySelector, bool ascending)
+
+    public void GetAlbumsSortedByName(bool ascending = true)
+    {
+        // If repo can't do it, sort the frozen list.
+        var allAlbums = _albumRepo.GetAll(); // Potentially inefficient
+        var sortedList = ascending
+            ? allAlbums.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList()
+            : allAlbums.OrderByDescending(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        _queriedAlbums.OnNext(sortedList);
+    }
+
+
+
 
     //public void GetAlbumsByArtistId(string artistId)
     //{
@@ -99,7 +242,7 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
 
 
     //private string? currentLocalSongId;
-    public void GetAlbumsBySongId(string songId)
+    public void GetAlbumsBySongId(ObjectId songId)
     {
         throw new NotImplementedException("This method is not implemented yet.");
     }
@@ -216,7 +359,14 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
     //            ? [.. _albumRepo.GetAll().AsEnumerable().OrderBy(a => a.TotalDuration)]
     //            : [.. _albumRepo.GetAll().AsEnumerable().OrderByDescending(a => a.TotalDuration)];
     //}
-
+    public int GetTotalAlbumCount()
+    {
+        // This is efficient if your repo's GetAll() is smart or you have a Count() method.
+        // If GetAll() loads everything, this is bad.
+        // IDEAL: _albumRepo.Count(a => true); or _albumRepo.Count();
+        return _albumRepo.GetAll().Count; // Assumes GetAll() is returning a list of frozen objects.
+                                          // A dedicated Count method in the repo is better.
+    }
     //// 3. Statistics & Insights
     //public int GetTotalAlbumCount()
     //{
@@ -443,7 +593,6 @@ public class AlbumsMgtFlow : BaseAppFlow, IDisposable
             var parts = ln.Split(',');
             var album = new AlbumModel
             {
-                Id = parts[0],
                 Name = parts[1],
                 NumberOfTracks = int.Parse(parts[3]),
                 TotalDuration = TimeSpan.FromSeconds(double.Parse(parts[4])).ToString()

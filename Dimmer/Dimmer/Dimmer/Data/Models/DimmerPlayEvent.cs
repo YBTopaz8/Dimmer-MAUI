@@ -13,14 +13,14 @@ public partial class DimmerPlayEvent : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? Id { get; set; } = Guid.NewGuid().ToString();
+    public ObjectId Id { get; set; } 
     /// <summary>
     /// Gets or sets the song identifier.
     /// </summary>
     /// <value>
     /// The song identifier.
     /// </value>
-    public string? SongId { get; set; }
+    public ObjectId? SongId { get; set; }
     /// <summary>
     /// Indicates the type of play action performed.
     /// Possible VALID values for <see cref="PlayType" />:

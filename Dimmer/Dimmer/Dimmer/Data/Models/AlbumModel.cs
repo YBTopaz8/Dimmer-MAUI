@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.Models;
+﻿using MongoDB.Bson;
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
@@ -56,7 +58,7 @@ public partial class AlbumModel : RealmObject
     /// <value>
     /// The date created.
     /// </value>
-    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     /// <summary>
     /// Gets or sets the name of the device.
     /// </summary>
@@ -99,7 +101,7 @@ public partial class AlbumModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? Id { get; set; } 
+    public ObjectId Id { get; set; } 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.

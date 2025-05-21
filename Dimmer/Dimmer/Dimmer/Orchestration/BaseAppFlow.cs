@@ -288,7 +288,6 @@ public class BaseAppFlow : IDisposable
 
         var link = new DimmerPlayEvent
         {
-            Id = Guid.NewGuid().ToString(),
             SongId = song.Id,
             Song= songDb,
             PlayType = (int)type,
@@ -315,8 +314,6 @@ public class BaseAppFlow : IDisposable
     public void UpSertUser(UserModel model)
     {
         
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
         
         _userRepo.AddOrUpdate(model);
         AppLogModel log = new()
@@ -329,8 +326,6 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertPlaylist(PlaylistModel model)
     {
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
         _playlistRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -341,8 +336,6 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertArtist(ArtistModel model)
     {
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
         _artistRepo.AddOrUpdate(model);
 
         AppLogModel log = new()
@@ -354,8 +347,6 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertAlbum(AlbumModel model)
     {
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
         _albumRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -365,9 +356,7 @@ public class BaseAppFlow : IDisposable
     }
     
     public void UpSertSong(SongModel model)
-    {
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
+    { 
         _songRepo.AddOrUpdate(model);
 
         AppLogModel log = new()
@@ -381,9 +370,7 @@ public class BaseAppFlow : IDisposable
     public void UpSertSongNote(SongModel model, UserNoteModel note)
     {
         // 1) Ensure the song has a primary key
-        if (string.IsNullOrEmpty(model.Id))
-            model.Id = Guid.NewGuid().ToString();
-
+     
         // 2) Do everything in one Realm transaction
         _songRepo.BatchUpdate(realm =>
         {
@@ -392,9 +379,7 @@ public class BaseAppFlow : IDisposable
                        ?? realm.Add(model, update: true);
 
           
-                    // 5b) New note: give it an Id (if missing) and add it
-                    if (string.IsNullOrEmpty(note.Id))
-                        note.Id = Guid.NewGuid().ToString();
+                   
 
                     song.UserNotes.Add(note);
                

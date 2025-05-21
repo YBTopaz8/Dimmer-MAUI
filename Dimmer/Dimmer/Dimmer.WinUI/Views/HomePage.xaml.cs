@@ -1,4 +1,5 @@
 ﻿//using Dimmer.DimmerLive.Models;
+using Dimmer.Data.Models;
 using Dimmer.WinUI.Utils.Models;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -23,7 +24,161 @@ public partial class HomePage : ContentPage
         //await MyViewModel.LoginFromSecureData();
 
     }
-    
+
+    private void PasteLyrPlainLyr_Clicked(object sender, EventArgs e)
+    {
+        //if (MyViewModel.AllSyncLyrics.Count < 1)
+        //{
+        //    return;
+
+        //}
+        //LyricsEditor.Text = MyViewModel.AllSyncLyrics[0].PlainLyrics;
+    }
+
+
+
+    private void SearchOnline_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+        //MyViewModel.CntxtMenuSearchCommand.Execute(send.CommandParameter);
+
+    }
+    Border LyrBorder { get; set; }
+    private void LyrBorder_Loaded(object sender, EventArgs e)
+    {
+        Border LoadedLyric = (Border)sender;
+        LoadedLyric = LyrBorder;
+    }
+
+    private void Stamp_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+        //MyViewModel.CaptureTimestampCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void DeleteLine_Clicked(object sender, EventArgs e)
+    {
+        ImageButton send = (ImageButton)sender;
+
+        //MyViewModel.DeleteLyricLineCommand.Execute((LyricPhraseModel)send.CommandParameter);
+
+    }
+
+    private void SaveCapturedLyrics_Clicked(object sender, EventArgs e)
+    {
+        //MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
+    }
+
+    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    {
+        await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
+
+        if (Clipboard.Default.HasText)
+        {
+            LyricsEditor.Text = await Clipboard.Default.GetTextAsync();
+        }
+
+
+    }
+
+    bool IsSyncing = false;
+
+    private void PasteLyrClipboard_Clicked(object sender, EventArgs e)
+    {
+        PasteLyricsFromClipBoardBtn_Clicked(sender, e);
+    }
+    private async void CancelAction_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmIn();
+        PlainLyricSection.IsEnabled = true;
+
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+
+        await SyncLyrView.DimmOut();
+        SyncLyrView.IsVisible=false;
+    }
+    private void SyncLyrLine_PointerEntered(object sender, PointerEventArgs e)
+    {
+        Border send = (Border)sender;
+        send.Stroke = Microsoft.Maui.Graphics.Colors.DarkSlateBlue;
+        send.StrokeThickness = 2;
+
+    }
+    bool CanScroll = true;
+    private void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
+    {
+        CanScroll = false;
+    }
+
+    private void PointerGestureRecognizer_PointerExited(object sender, PointerEventArgs e)
+    {
+        CanScroll = true;
+    }
+
+    private async void CloseButton_Clicked(object sender, EventArgs e)
+    {
+        await LyricPrewiewUI.AnimateFadeOutBack();
+
+    }
+
+    private async void OkButton_Clicked(object sender, EventArgs e)
+    {
+        if (lyrType == "Synced Lyrics")
+        {
+            //await MyViewModel.SaveLyricToFile(SelectedContent, false);
+
+        }
+        else
+        if (lyrType == "Plain Lyrics")
+        {
+            //await MyViewModel.SaveLyricToFile(SelectedContent, true);
+        }
+        await LyricPrewiewUI.AnimateFadeOutBack();
+    }
+    string lyrType = string.Empty;
+    Content SelectedContent { get; set; }
+    private void SyncLyrLine_PointerExited(object sender, PointerEventArgs e)
+    {
+        Border send = (Border)sender;
+        send.Stroke = Microsoft.Maui.Graphics.Colors.Transparent;
+        send.StrokeThickness = 0;
+    }
+    private async void ViewLyricsBtn_Clicked(object sender, EventArgs e)
+    {
+        LyricsEditor.Text = string.Empty;
+        Button send = (Button)sender;
+        lyrType = send.Text;
+        SelectedContent = (Content)send.BindingContext;
+        LyricsView.Text = SelectedContent.PlainLyrics is null ? SelectedContent.SyncedLyrics : SelectedContent.PlainLyrics;
+        if (lyrType.Equals("Synced Lyrics"))
+        {
+            SynceOrPlainTitle.Text ="Synced Lyrics";
+        }
+        else
+        {
+            SynceOrPlainTitle.Text ="Plain Lyrics";
+        }
+        await LyricPrewiewUI.AnimateFadeInFront();
+    }
+    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    {
+        await PlainLyricSection.DimmOut();
+        PlainLyricSection.IsEnabled = false;
+        //MyViewModel.PrepareLyricsSync(LyricsEditor.Text);
+        //IsSyncing = true;
+
+        await SyncLyrView.DimmIn();
+        SyncLyrView.IsVisible=true;
+    }
+
+    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    {
+
+        throw new NotImplementedException();
+        //await MyViewModel.FetchLyrics(true);
+
+    }
     private void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
 
@@ -697,5 +852,81 @@ public partial class HomePage : ContentPage
     private void LogMsgChip_Clicked(object sender, EventArgs e)
     {
         Debug.WriteLine(LogMsgChip.CommandParameter.GetType());
+    }
+    string currParam=string.Empty;
+    private void ShortingTitle_TouchUp(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+        var param = send.TouchUpCommandParameter.ToString();
+        ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
+        bool isSameParam = param == currParam;
+        switch (param)
+        {
+            case "title":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title);
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title);
+                }
+                    break;
+            case "artist":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName);
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName);
+                }
+                break;
+            case "album":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name);
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name);
+                }
+                break;
+            case "genre":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name);
+                }
+                else
+                {
+                    
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name);
+                }
+                break;
+
+            case "duration":
+                if (isSameParam)
+                {
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.DurationInSeconds);
+                }
+                else
+                {
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.DurationInSeconds);
+                }
+                break;
+            default:
+
+                break;
+        }
+    }
+
+
+    private void ShortingTitle_LongPressed(object sender, EventArgs e)
+    {
+        var send = (SfEffectsView)sender;
+        var param = send.TouchUpCommandParameter.ToString();
+        ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
+        var listOfArtists = MyViewModel.TemporarilyPickedSong.ArtistIds.Select(x => x.Name).ToList(); ;
+        //var res = await DisplayActionSheet("Choose", "Choooose", "OK", "ss");
     }
 }

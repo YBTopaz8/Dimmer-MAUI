@@ -3,7 +3,7 @@
 public partial class PlayDataLink : ObservableObject
 {
     [ObservableProperty]
-    public required partial string Id { get; set; }
+    public required partial ObjectId Id { get; set; }
 
     [ObservableProperty]
     public partial string? SongId { get; set; }

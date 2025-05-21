@@ -3,7 +3,7 @@ public partial class UserModelView:ObservableObject
 {
 
     [ObservableProperty]
-    public partial string Id { get; set; } = Guid.NewGuid().ToString();
+    public partial ObjectId Id { get; set; } 
     
     [ObservableProperty]
     public partial string? Username { get; set; } = string.Empty;

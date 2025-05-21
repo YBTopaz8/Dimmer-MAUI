@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Data.Models;
+﻿
+
+namespace Dimmer.Data.Models;
 public class AppStateModel : RealmObject
 {
 
     [PrimaryKey]
-    public string? Id { get; set; } = Guid.NewGuid().ToString();
+    public ObjectId Id { get; set; } 
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }
     public string? CurrentArtistId { get; set; }
