@@ -34,8 +34,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
 
     private readonly IRepository<SongModel> _songRepo;
     private readonly IRepository<GenreModel> _genreRepo;
-    private readonly IRepository<AlbumArtistGenreSongLink> _aagslRepo;
-    private readonly IRepository<PlayDateAndCompletionStateSongLink> _pdlRepo;
+    private readonly IRepository<DimmerPlayEvent> _pdlRepo;
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
@@ -49,8 +48,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<UserModel> userRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
@@ -218,7 +216,6 @@ public class DimmerLiveStateService : IDimmerLiveStateService
         IReadOnlyCollection<ArtistModel>? allArtists = _artistRepo.GetAll();
         IReadOnlyCollection<PlaylistModel>? allPlaylists = _playlistRepo.GetAll();
         IReadOnlyCollection<AlbumModel>? allAlbums = _albumRepo.GetAll();
-        IReadOnlyCollection<AlbumArtistGenreSongLink>? allAAGSL = _aagslRepo.GetAll();
         // i'll use parse cloud code to call a fxn and pass
         // useremail, allSongs, allGenres, allPlaylists, allArtists, allAlbums
         // allLinks etc. when done, sen
@@ -1036,7 +1033,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                 AlbumName = sharedSong.Album
             };
             _state.SetCurrentSong(mapper.Map<SongModel>(newSong));
-            _state.SetCurrentState((DimmerPlaybackState.Playing, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
             _state.SetCurrentLogMsg(new AppLogModel()
                 {
                     UserModel = UserLocalView,

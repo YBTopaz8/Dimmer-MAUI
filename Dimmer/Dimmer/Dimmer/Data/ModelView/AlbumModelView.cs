@@ -4,7 +4,7 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]
-    public required partial string LocalDeviceId { get; set; }
+    public required partial string Id { get; set; }
     [ObservableProperty]
     public partial int? ReleaseYear { get; set; }
     [ObservableProperty]

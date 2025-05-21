@@ -3,7 +3,7 @@ public class AppStateModel : RealmObject
 {
 
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; } = Guid.NewGuid().ToString();
     public string CurrentSongId { get; set; }
     public string? CurrentAlbumId { get; set; }
     public string? CurrentArtistId { get; set; }
@@ -35,18 +35,12 @@ public class AppStateModel : RealmObject
     }
     public AppStateModel(AppStateModel source)
     {
-        if (source == null)
-        {
-            // Or handle this differently, e.g., initialize with defaults,
-            // but typically copying from null is an error.
-            // The default property initializers will still apply if you don't throw.
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         // Copy all properties
-        // Note: We are explicitly setting LocalDeviceId from the source.
+        // Note: We are explicitly setting Id from the source.
         // If you wanted a new ID for the copy, you'd omit this line or re-initialize.
-        this.LocalDeviceId = source.LocalDeviceId;
+        this.Id = source.Id;
         this.CurrentSongId = source.CurrentSongId;
         this.CurrentAlbumId = source.CurrentAlbumId;
         this.CurrentArtistId = source.CurrentArtistId;

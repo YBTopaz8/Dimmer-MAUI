@@ -30,11 +30,13 @@ public class FolderMgtService : IFolderMgtService
          = new([]);
 
 
-    public void StartWatchingFolders()
+    public List<FolderModel>? StartWatchingFolders()
     {
         var e = BaseAppFlow.DimmerAppState.UserMusicFoldersPreference.Select(x => new FolderModel()
-        { FolderPath = x}).ToList();
-        _allFolders.OnNext(e);
+        { FolderPath = x});
+        //_allFolders.OnNext(e);
+        _folderMonitor.Start(e.Select(x=>x.FolderPath));
+        return e.ToList();
     }
 
     public void RestartWatching()
@@ -51,19 +53,19 @@ public class FolderMgtService : IFolderMgtService
             throw new DirectoryNotFoundException(path);
         
         
-        _state.SetCurrentState((DimmerPlaybackState.FolderAdded, path));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, path));
         RestartWatching();
     }
 
     public void RemoveFolderFromPreference(string path)
     {
-        _state.SetCurrentState((DimmerPlaybackState.FolderRemoved, path));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, path));
         RestartWatching();
     }
 
     public void ClearAllFolders()
     {
-        _state.SetCurrentState((DimmerPlaybackState.FolderRemoved,null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, null));
 
         
     }
@@ -71,24 +73,24 @@ public class FolderMgtService : IFolderMgtService
     // --- FileSystemWatcher event handlers ----------------------------------------
     public void OnFileCreated(FileSystemEventArgs e)
     {
-        _state.SetCurrentState((DimmerPlaybackState.FolderAdded, e.FullPath));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderAdded, e.FullPath));
         StartWatchingFolders();
     }
 
     public void OnFileDeleted(FileSystemEventArgs e)
     {
-        _state.SetCurrentState((DimmerPlaybackState.FolderRemoved, e.FullPath));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderRemoved, e.FullPath));
         StartWatchingFolders();
     }
 
     public void OnFileChanged(string fullPath)
     {
-        _state.SetCurrentState((DimmerPlaybackState.FileChanged, fullPath));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FileChanged, fullPath));
     }
 
     public void OnFileRenamed(RenamedEventArgs e)
     {
-        _state.SetCurrentState((DimmerPlaybackState.FolderNameChanged, e.FullPath));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.FolderNameChanged, e.FullPath));
         StartWatchingFolders();
     }
 

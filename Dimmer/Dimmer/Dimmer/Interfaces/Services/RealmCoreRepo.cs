@@ -184,7 +184,7 @@ class SongListComparer : IEqualityComparer<IList<SongModel>>
             return false;
         for (int i = 0; i < a.Count; i++)
         {
-            if (a[i].LocalDeviceId != b[i].LocalDeviceId ||
+            if (a[i].Id != b[i].Id ||
                 a[i].Title         != b[i].Title)
                 return false;
         }

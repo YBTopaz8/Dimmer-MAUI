@@ -3,7 +3,7 @@
 public partial class ArtistModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; } = string.Empty;
+    public partial string? Id { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]

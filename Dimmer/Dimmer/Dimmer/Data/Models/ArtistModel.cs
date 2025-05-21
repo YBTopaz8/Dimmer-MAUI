@@ -4,7 +4,7 @@ public partial class ArtistModel : RealmObject
 
 
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; }
     public string? Name { get; set; } = "Unknown Artist";
     public string? Bio { get; set; }
     public string? ImagePath { get; set; } = "lyricist.png";
@@ -14,6 +14,8 @@ public partial class ArtistModel : RealmObject
     public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
     public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    [Backlink(nameof(SongModel.ArtistIds))]
+    public IQueryable<SongModel> Songs { get; }
 
     public IList<UserNoteModel> UserNotes { get; }
     public ArtistModel()

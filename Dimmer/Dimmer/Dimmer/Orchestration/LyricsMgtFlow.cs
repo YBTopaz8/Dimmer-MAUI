@@ -27,8 +27,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<UserModel> userRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
@@ -37,7 +36,7 @@ public class LyricsMgtFlow : BaseAppFlow, IDisposable
         IRepository<AppStateModel> appstateRepo,
         IMapper mapper,
         SubscriptionManager subs
-    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
     {
         this.songsMgt=songsMgt;
         _state = state;

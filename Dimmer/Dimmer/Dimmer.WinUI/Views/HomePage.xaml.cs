@@ -1,5 +1,6 @@
 ﻿//using Dimmer.DimmerLive.Models;
 using Dimmer.WinUI.Utils.Models;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Application = Microsoft.Maui.Controls.Application;
 
@@ -214,7 +215,6 @@ public partial class HomePage : ContentPage
                 PlatUtils.OpenSettingsWindow();
 
                 return;
-                break;
             case 4:
 
                 break;
@@ -371,7 +371,7 @@ public partial class HomePage : ContentPage
                 MyViewModel.FilteredSongs = songsToDisplay;
             SongsColView.ItemsSource = MyViewModel.FilteredSongs;
 
-
+            MyViewModel.NowPlayingQueue = songsToDisplay.ToObservableCollection();
 
         });
     }
@@ -687,5 +687,15 @@ public partial class HomePage : ContentPage
         //    await MyViewModel.LoginFromSecureData();
         //}
 
+    }
+
+    private void SongsColView_SizeChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void LogMsgChip_Clicked(object sender, EventArgs e)
+    {
+        Debug.WriteLine(LogMsgChip.CommandParameter.GetType());
     }
 }

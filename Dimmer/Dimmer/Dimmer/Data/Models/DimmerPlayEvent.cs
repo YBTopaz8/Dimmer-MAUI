@@ -4,7 +4,7 @@
 /// 
 /// </summary>
 /// <seealso cref="RealmObject" />
-public partial class PlayDateAndCompletionStateSongLink : RealmObject
+public partial class DimmerPlayEvent : RealmObject
 {
     /// <summary>
     /// Gets or sets the local device identifier.
@@ -13,7 +13,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; } = Guid.NewGuid().ToString();
     /// <summary>
     /// Gets or sets the song identifier.
     /// </summary>
@@ -31,7 +31,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     /// </value>
     public int PlayType { get; set; }
 
-    
+    public SongModel Song { get; set; }
 
     /// <summary>
     /// Gets or sets the date played.
@@ -105,7 +105,7 @@ public partial class PlayDateAndCompletionStateSongLink : RealmObject
     
     public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
     /// <summary>
-    /// Initializes a new instance of the <see cref="PlayDateAndCompletionStateSongLink"/> class.
+    /// Initializes a new instance of the <see cref="DimmerPlayEvent"/> class.
     /// </summary>
     
 

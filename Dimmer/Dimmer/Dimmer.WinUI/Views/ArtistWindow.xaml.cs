@@ -44,7 +44,7 @@ public partial class ArtistWindow : Window
     public void SetTitle(SongModelView song)
     {
         this.Title = $"{song.AlbumName} by {song.ArtistName}";
-        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
     }
 
 }

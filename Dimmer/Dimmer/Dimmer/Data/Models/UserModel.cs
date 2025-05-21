@@ -3,7 +3,7 @@ public partial class UserModel :RealmObject
 {
 
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; }
     public string? UserName { get; set; } 
     public string? UserEmail { get; set; } 
     public string? UserPassword { get; set; } 

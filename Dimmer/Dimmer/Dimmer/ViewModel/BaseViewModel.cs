@@ -3,6 +3,7 @@ using Dimmer.Interfaces.Services;
 
 //using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.FileProcessorUtils;
+using System.Diagnostics;
 
 //using Parse;
 //using Parse.Infrastructure;
@@ -34,6 +35,7 @@ public partial class BaseViewModel : ObservableObject
         _folderMgtService=folderMgtService;
         LyricsMgtFlow=lyricsMgtFlow;
         Initialize();
+        LatestAppLog = new() { Log = "Dimmer App Started" };
         UserLocal = new UserModelView();
     }
     #region Settings Section
@@ -44,7 +46,7 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     public partial int SettingsPageIndex { get; set; } = 0;
     [ObservableProperty]
-    public partial ObservableCollection<string> FolderPaths { get; set; } = new();
+    public partial ObservableCollection<string>? FolderPaths { get; set; } = new();
 
 
     #endregion
@@ -71,9 +73,9 @@ public partial class BaseViewModel : ObservableObject
     public partial string? LatestScanningLog { get; set; }
 
     [ObservableProperty]
-    public partial AppLogModel? LatestAppLog { get; set; }
+    public partial AppLogModel LatestAppLog { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<AppLogModel>? ScanningLogs { get; set; }
+    public partial ObservableCollection<AppLogModel> ScanningLogs { get; set; } = new();
     public BaseAppFlow BaseAppFlow { get; }    
     public List<SongModelView>? FilteredSongs { get; set; }
     public AlbumsMgtFlow AlbumsMgtFlow { get; }
@@ -99,6 +101,8 @@ public partial class BaseViewModel : ObservableObject
 
     [ObservableProperty]
     public partial ObservableCollection<SongModelView> PlaylistSongs { get; set; } = new();
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> NowPlayingQueue { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SynchronizedLyrics {get;set;}
@@ -192,9 +196,9 @@ public partial class BaseViewModel : ObservableObject
             
         BaseAppFlow.UpSertSongNote(songDb, userNotee);
 
-        // 2) Find any existing entry in PlaylistSongs by LocalDeviceId
+        // 2) Find any existing entry in PlaylistSongs by Id
         var existing = PlaylistSongs
-            .FirstOrDefault(x => x.LocalDeviceId == song.LocalDeviceId);
+            .FirstOrDefault(x => x.Id == song.Id);
 
         if (existing != null)
         {
@@ -215,12 +219,7 @@ public partial class BaseViewModel : ObservableObject
     public void Initialize()
     {
 
-        if (AppUtils.IsUserFirstTimeOpening)
-        {
-            
-            //Application.Current.m
-            return;
-        }
+        
 
         ResetMasterListOfSongs();
         SubscribeToCurrentSong();
@@ -234,7 +233,7 @@ public partial class BaseViewModel : ObservableObject
         
         CurrentPositionPercentage = 0;
         //IsShuffle = AppSettingsService.ShuffleStatePreference.GetShuffleState
-        _folderMgtService.StartWatchingFolders();
+       FolderPaths=  _folderMgtService.StartWatchingFolders()?.Select(x=>x.FolderPath).ToObservableCollection();
     }
 
 
@@ -271,7 +270,16 @@ public partial class BaseViewModel : ObservableObject
                     case DimmerPlaybackState.Resumed:
                         TemporarilyPickedSong = _stateService.CurrentSongValue;
                         break;
-                    case DimmerPlaybackState.PausedUI:
+                    case DimmerPlaybackState.FolderScanCompleted:
+                        LatestAppLog.Log ="Folder Scan Completed";
+                        var newlyAddedSongs = (IReadOnlyList<SongModel>)state.ExtraParameter as IReadOnlyList<SongModel>;
+                        var songss = _mapper.Map<ObservableCollection<SongModelView>>(newlyAddedSongs);
+                        foreach (var song in songss)
+                        {
+                            PlaylistSongs.Add(song);
+                        }
+                        LatestAppLog.Log = $"{count++}Playlist Updated with {songss.Count} new additions";
+                        Debug.WriteLine($"{count++}Playlist Updated with {songss.Count} new additions");
                         break;
                
                         break;
@@ -281,15 +289,17 @@ public partial class BaseViewModel : ObservableObject
             }));
     }
 
+    int count = 0;
+
+    
     private void SubscribeToMasterList()
     {
         _subs.Add(_stateService.AllCurrentSongs.
             DistinctUntilChanged()
             .Subscribe(list =>
             {
-                if (list.Count == PlaylistSongs.Count)
-                    return;
-                PlaylistSongs = _mapper.Map<ObservableCollection<SongModelView>>(list);
+
+                NowPlayingQueue ??= _mapper.Map<ObservableCollection<SongModelView>>(list);
             }));
     }
     //[ObservableProperty]
@@ -394,6 +404,11 @@ public partial class BaseViewModel : ObservableObject
 
                 SecondSelectedSong = _mapper.Map<SongModelView>(song);
                 SecondSelectedSong?.IsCurrentPlayingHighlight = true;
+
+                if (TemporarilyPickedSong is null)
+                {
+                    TemporarilyPickedSong = SecondSelectedSong;
+                }
             }));
     }
     private void SubscribeToCurrentSong()
@@ -525,7 +540,7 @@ public partial class BaseViewModel : ObservableObject
         }
 
         //this triggers the pl flow and song mgt flow
-        _stateService.SetCurrentState((DimmerPlaybackState.Playing, null));
+        _stateService.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
     }
 
@@ -533,14 +548,14 @@ public partial class BaseViewModel : ObservableObject
     {
         if (IsByUser)
         {
-            _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI , null));
+            _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI , null));
             
         }
     }
 
     public void PlayPrevious()
     {
-        _stateService.SetCurrentState((DimmerPlaybackState.PlayNextUI, null));
+        _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI, null));
     }
 
     public async Task PlayPauseAsync()
@@ -554,7 +569,7 @@ public partial class BaseViewModel : ObservableObject
     public void ToggleShuffle()
     {
         IsShuffle = !IsShuffle;
-        _stateService.SetCurrentState((DimmerPlaybackState.ShuffleRequested,null));
+        _stateService.SetCurrentState(new(DimmerPlaybackState.ShuffleRequested,null));
 
         SongsMgtFlow.ToggleShuffle(IsShuffle);
         
@@ -650,6 +665,8 @@ public partial class BaseViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(path))
             return;
+
+
         FolderPaths.Remove(path);
 
         _folderMgtService.RemoveFolderFromPreference(path);

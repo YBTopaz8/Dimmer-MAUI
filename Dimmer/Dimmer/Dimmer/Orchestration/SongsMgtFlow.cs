@@ -6,7 +6,6 @@ namespace Dimmer.Orchestration;
 public class SongsMgtFlow : BaseAppFlow, IDisposable
 {
     private readonly IRepository<SongModel> songRepo;
-    private readonly IRepository<AlbumArtistGenreSongLink> _linkRepo;
     private readonly IDimmerAudioService _audio;
     private readonly SubscriptionManager _subs;
 
@@ -20,12 +19,10 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         IRepository<SongModel> songRepo,
         IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
-        IRepository<AlbumArtistGenreSongLink> linkRepo,
         ISettingsService settings,
         IFolderMgtService folderMonitor,
         IDimmerAudioService audioService,
@@ -33,7 +30,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         SubscriptionManager subs,
         IRepository<AppStateModel> appstateRepo,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo, userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
+    ) : base(state, songRepo, genreRepo, userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo,appstateRepo, settings, folderMonitor, subs, mapper)
     {
         this.songRepo=songRepo;
         _audio  = audioService;
@@ -41,7 +38,6 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
 
-        _linkRepo=linkRepo;
         // Map audio‑service events into observables
         var playingChanged = Observable
             .FromEventPattern<PlaybackEventArgs>(
@@ -73,11 +69,12 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         // Auto‑play whenever CurrentSong changes
         _subs.Add(
             _state.CurrentPlayBackState
+            .DistinctUntilChanged()
                   .Subscribe(async s =>
                   {
-                      switch (s)
+                      switch (s.State)
                       {
-                          case (DimmerPlaybackState.Playing, null):
+                          case DimmerPlaybackState.Playing:
                               await PlaySongInAudioService();
                               break;
                       }
@@ -122,22 +119,22 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     private void OnPlayEnded(object? s, PlaybackEventArgs e)
     {
         PlayEnded();   // BaseAppFlow: records Completed link
-        _state.SetCurrentState((DimmerPlaybackState.Ended,null));
+        _state.SetCurrentState(new(DimmerPlaybackState.Ended,null));
         
     }
 
     public void NextInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState((requester, null));
-        _state.SetCurrentState((DimmerPlaybackState.PlayNextUser, null));
+        _state.SetCurrentState(new(requester, null));
+        _state.SetCurrentState(new(DimmerPlaybackState.PlayNextUser, null));
 
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Skipped);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Skipped);
     }
 
     public void PrevInQueue(DimmerPlaybackState requester)
     {
-        _state.SetCurrentState((requester,null));
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Previous);
+        _state.SetCurrentState(new(requester,null));
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Previous);
     }
 
     public async Task PauseResumeSongAsync(double position, bool isPause = false)
@@ -145,7 +142,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         if (isPause )
         {
             await _audio.PauseAsync();
-            _state.SetCurrentState((DimmerPlaybackState.PausedUI,null));
+            _state.SetCurrentState(new(DimmerPlaybackState.PausedUI,null));
             AddPauseSongEventToDB();    // records Pause link
         }
         else
@@ -157,7 +154,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
             }
             await _audio.SeekAsync(position);
             await _audio.PlayAsync();
-            _state.SetCurrentState((DimmerPlaybackState.Resumed,null));
+            _state.SetCurrentState(new(DimmerPlaybackState.Resumed,null));
             AddResumeSongToDB();   // records Resume link
         }
     }
@@ -197,25 +194,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
     public List<SongModel> GetSongsByAlbumId(string albumId)
     {
+        throw new NotImplementedException("This method is not implemented yet.");
         // 1. Find all Song IDs linked to the given Album ID
-        var songIdsInAlbum = _linkRepo.GetAll().AsEnumerable()
-            .Where(l => l.AlbumId == albumId)
-            .Select(l => l.SongId)
-            .Distinct()
-            .ToList(); // Materialize the list of IDs
-
-        // 2. Retrieve the actual SongModel objects for those IDs
-        // Check if _songRepo is directly accessible or needs casting/retrieval from base
-        var songs = songRepo.GetAll().AsEnumerable() // Use the inherited song repository
-                     .Where(s => songIdsInAlbum.Contains(s.LocalDeviceId))
-                     .ToList();
-
-        // 3. Optional: Sort songs by track number if available
-        //    This often requires track number info on SongModel or the Link table
-        //    Assuming SongModel has a TrackNumber property (might be string or int)
-        songs = [.. songs.OrderBy(s => s.TrackNumber)]; // Example sorting
-
-        return songs;
+        
     }
 
     public new void Dispose()

@@ -2,6 +2,8 @@
 
 
 using Dimmer.Interfaces.Services;
+using System.Diagnostics;
+using static Dimmer.Utilities.AppUtils;
 
 namespace Dimmer.Orchestration;
 
@@ -16,14 +18,14 @@ public class BaseAppFlow : IDisposable
     public readonly IDimmerStateService _state;
     private readonly IRepository<SongModel> _songRepo;
     private readonly IRepository<GenreModel> _genreRepo;
-    private readonly IRepository<AlbumArtistGenreSongLink> _aagslRepo;
-    private readonly IRepository<PlayDateAndCompletionStateSongLink> _pdlRepo;
+    private readonly IRepository<DimmerPlayEvent> _pdlRepo;
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<UserModel> _userRepo;
     private readonly IRepository<AppStateModel> _appstateRepo;
     private readonly ISettingsService _settings;
+    IRealmFactory realmFactory;
     private readonly IFolderMgtService folderMgt;
     public readonly IMapper _mapper;
     private bool _disposed;
@@ -42,8 +44,7 @@ public class BaseAppFlow : IDisposable
         IRepository<SongModel> songRepo,
         IRepository<GenreModel> genreRepo,
         IRepository<UserModel> userRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
@@ -60,8 +61,6 @@ public class BaseAppFlow : IDisposable
         _artistRepo = artistRepo;
         _albumRepo = albumRepo;
         _genreRepo = genreRepo;
-        _aagslRepo = aagslRepo;
-        //settings.LoadSettings();
         _settings = settings;
         this.folderMgt=folderMgt;
         _mapper = mapper;
@@ -198,6 +197,12 @@ public class BaseAppFlow : IDisposable
 
                         break;
                     case DimmerPlaybackState.FolderRemoved:
+                        if (state.ExtraParameter is null )
+                        {
+                            _settings.ClearAllFolders();
+                            return;
+                        }
+                        _settings.RemoveMusicFolder((string)state.ExtraParameter);
                         break;
                     case DimmerPlaybackState.FileChanged:
                         break;
@@ -218,27 +223,27 @@ public class BaseAppFlow : IDisposable
 
     public void SeekedTo(double? position)
     {
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Seeked, position);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Seeked, position);
     }
 
     public void PlaySong()
     {
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Play);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Play);
     }
 
     public void AddPauseSongEventToDB()
     {
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Pause);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Pause);
     }
 
     public void AddResumeSongToDB()
     {
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Resume);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Resume);
     }
 
     public void PlayEnded()
     {
-        UpdatePlaybackState(CurrentlyPlayingSong.LocalDeviceId, PlayType.Completed);
+        UpdatePlaybackState(CurrentlyPlayingSong, PlayType.Completed);
     }
 
     public void AddFolderToPath(string? path=null)
@@ -274,20 +279,18 @@ public class BaseAppFlow : IDisposable
     }
 
     public void UpdatePlaybackState(
-        string? songId,
+        SongModelView? song,
         PlayType type,
         double? position = null)
     {
-        if(string.IsNullOrEmpty(songId))
-        {
-            songId = CurrentlyPlayingSong.LocalDeviceId;
-        }
+        var songDb = _mapper.Map<SongModel>(CurrentlyPlayingSong);
 
 
-        var link = new PlayDateAndCompletionStateSongLink
+        var link = new DimmerPlayEvent
         {
-            LocalDeviceId = Guid.NewGuid().ToString(),
-            SongId = songId,
+            Id = Guid.NewGuid().ToString(),
+            SongId = song.Id,
+            Song= songDb,
             PlayType = (int)type,
             DatePlayed = DateTime.Now,
             PositionInSeconds = position ?? 0,
@@ -295,9 +298,14 @@ public class BaseAppFlow : IDisposable
         };
 
         _pdlRepo.AddOrUpdate(link);
+
+        // Generate the user-friendly log message
+        string userMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, CurrentlyPlayingSong, position);
+
+
         AppLogModel log = new()
         {
-            Log = $"{CurrentlyPlayingSong.Title} - Dimmer State : {type}",
+            Log = userMessage,
             ViewSongModel = CurrentlyPlayingSong,
         };
         _state.SetCurrentLogMsg(log);
@@ -307,8 +315,8 @@ public class BaseAppFlow : IDisposable
     public void UpSertUser(UserModel model)
     {
         
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
         
         _userRepo.AddOrUpdate(model);
         AppLogModel log = new()
@@ -321,8 +329,8 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertPlaylist(PlaylistModel model)
     {
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
         _playlistRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -333,8 +341,8 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertArtist(ArtistModel model)
     {
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
         _artistRepo.AddOrUpdate(model);
 
         AppLogModel log = new()
@@ -346,8 +354,8 @@ public class BaseAppFlow : IDisposable
 
     public void UpSertAlbum(AlbumModel model)
     {
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
         _albumRepo.AddOrUpdate(model);
         AppLogModel log = new()
         {
@@ -358,8 +366,8 @@ public class BaseAppFlow : IDisposable
     
     public void UpSertSong(SongModel model)
     {
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
         _songRepo.AddOrUpdate(model);
 
         AppLogModel log = new()
@@ -373,20 +381,20 @@ public class BaseAppFlow : IDisposable
     public void UpSertSongNote(SongModel model, UserNoteModel note)
     {
         // 1) Ensure the song has a primary key
-        if (string.IsNullOrEmpty(model.LocalDeviceId))
-            model.LocalDeviceId = Guid.NewGuid().ToString();
+        if (string.IsNullOrEmpty(model.Id))
+            model.Id = Guid.NewGuid().ToString();
 
         // 2) Do everything in one Realm transaction
         _songRepo.BatchUpdate(realm =>
         {
             // 3) Fetch or add the song itself
-            var song = realm.Find<SongModel>(model.LocalDeviceId)
+            var song = realm.Find<SongModel>(model.Id)
                        ?? realm.Add(model, update: true);
 
           
                     // 5b) New note: give it an Id (if missing) and add it
-                    if (string.IsNullOrEmpty(note.LocalDeviceId))
-                        note.LocalDeviceId = Guid.NewGuid().ToString();
+                    if (string.IsNullOrEmpty(note.Id))
+                        note.Id = Guid.NewGuid().ToString();
 
                     song.UserNotes.Add(note);
                
@@ -395,7 +403,7 @@ public class BaseAppFlow : IDisposable
         // 6) Log after the write completes
         var log = new AppLogModel
         {
-            Log          = $"UpSertSongNote on {model.LocalDeviceId} at {DateTime.Now:O}",
+            Log          = $"UpSertSongNote on {model.Id} at {DateTime.Now:O}",
             AppSongModel = model,
         };
         _state.SetCurrentLogMsg(log);
@@ -420,7 +428,6 @@ public class BaseAppFlow : IDisposable
     List<SongModel>? realmSongs { get; set; }
     List<GenreModel>? realGenres { get; set; }
     List<ArtistModel>? realmArtists { get; set; }
-    List<AlbumArtistGenreSongLink>? realmAAGSL { get; set; }
     void GetInitialValues()
     {
         MasterList = [.. _songRepo
@@ -431,7 +438,6 @@ public class BaseAppFlow : IDisposable
         realmAlbums = [.. _albumRepo.GetAll()];
         realGenres = [..  _genreRepo.GetAll()];
         realmArtists = [.. _artistRepo.GetAll()];
-        realmAAGSL = [.. _aagslRepo.GetAll()];
 
     }
 
@@ -441,9 +447,9 @@ public class BaseAppFlow : IDisposable
         ICoverArtService coverArtService = new CoverArtService(_config);
 
 
-        IMusicMetadataService currentScanMetadataService = new MusicMetadataService();
-        IAudioFileProcessor audioFileProcessor = new AudioFileProcessor(
-            new CoverArtService(_config),
+        MusicMetadataService currentScanMetadataService = new();
+        AudioFileProcessor audioFileProcessor = new AudioFileProcessor(
+            coverArtService,
             currentScanMetadataService,
             _config);
 
@@ -477,6 +483,8 @@ public class BaseAppFlow : IDisposable
                 {
                     Log = $"Processed: {fileProcessingResult.ProcessedSong.Title} ({processedFileCount}/{totalFiles})",
                     AppSongModel = fileProcessingResult.ProcessedSong // Or map to YourAppSongModel
+                    ,
+                    ViewSongModel = _mapper.Map<SongModelView>(fileProcessingResult.ProcessedSong)
                 });
             }
             else if (fileProcessingResult.Skipped)
@@ -495,8 +503,7 @@ public class BaseAppFlow : IDisposable
 
         Debug.WriteLine("[MANAGER]: All files processing loop completed.");
 
-
-        var newCoreSongs = currentScanMetadataService.GetAllSongs();
+        IReadOnlyList<SongModel>? newCoreSongs = currentScanMetadataService.GetAllSongs();
         var newCoreArtists = currentScanMetadataService.GetAllArtists();
         var newCoreAlbums = currentScanMetadataService.GetAllAlbums();
         var newCoreGenres = currentScanMetadataService.GetAllGenres();
@@ -509,70 +516,94 @@ public class BaseAppFlow : IDisposable
             // For now, returning null if no new core entities.
             return null;
         }
-
-        // --- Create New Link Objects ---
-        var newAppLinks = new List<AlbumArtistGenreSongLink>();
-        foreach (var coreSong in newCoreSongs)
+        realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
+        using (var realm = realmFactory.GetRealmInstance()) // Get ONE Realm instance
         {
-            if (coreSong.AlbumId == null || coreSong.GenreId == null)
+            realm.Write(() =>
             {
-                Debug.WriteLine($"[WARNING] Song '{coreSong.Title}' missing AlbumId or GenreId, cannot create full links.");
-                continue; // Skip if essential IDs for the link are missing
-            }
-
-            foreach (var artistId in coreSong.ArtistIds)
-            {
-                // Check if this specific link already exists in your DB (realmAAGSL)
-                // This is important to avoid duplicate link entries.
-                bool linkExists = realmAAGSL?.Any(l =>
-                    l.SongId == coreSong.Id &&
-                    l.ArtistId == artistId &&
-                    l.AlbumId == coreSong.AlbumId && // If AlbumId/GenreId are part of the link's uniqueness
-                    l.GenreId == coreSong.GenreId) ?? false;
-
-                // Also check if we've already created this link in the current batch
-                bool linkAlreadyInNewBatch = newAppLinks.Any(l =>
-                    l.SongId == coreSong.Id &&
-                    l.ArtistId == artistId &&
-                    l.AlbumId == coreSong.AlbumId &&
-                    l.GenreId == coreSong.GenreId);
-
-                if (!linkExists && !linkAlreadyInNewBatch)
+                // Add related entities first. They become managed by THIS 'realm' instance.
+                if (newCoreAlbums.Any())
                 {
-                    newAppLinks.Add(new AlbumArtistGenreSongLink
+                    foreach (var album in newCoreAlbums)
                     {
-                        // LinkId is auto-generated by default in the model
-                        SongId = coreSong.Id, // This is the ID from Dimmer.Core.Models.Song
-                        ArtistId = artistId,  // This is the ID from Dimmer.Core.Models.Artist
-                        AlbumId = coreSong.AlbumId,
-                        GenreId = coreSong.GenreId
-                    });
+                        if (!album.IsManaged)
+                        {
+                            realm.Add(album, update: true);
+                        }
+                    }
+                     
                 }
-            }
-        }
-        Debug.WriteLine($"[MANAGER]: Generated {newAppLinks.Count} new link objects.");
+                if (newCoreArtists.Any())
+                {
+                    foreach (var artist in newCoreArtists)
+                    {
+                        if (!artist.IsManaged)
+                        {
+                            realm.Add(artist, update: true);
+                        }
+                    }
+                }
+                if (newCoreGenres.Any())
+                {
+                    foreach (var genre in newCoreGenres)
+                    {
+                        if (!genre.IsManaged)
+                        { 
+                            realm.Add(genre, update: true);
+                        }
+                    }
+                }
 
+                // Now add songs. Their Album, Genre, Artist references point to:
+                //  a) Objects just added above (and now managed by 'realm')
+                //  b) Or, if not in NewAlbums/NewArtists/NewGenres but were loaded into _metadataService from DB,
+                //     then those objects were likely frozen/unmanaged copies.
+                //     We need to ensure these are re-fetched or are proxies.
+                //     For simplicity, let's assume _metadataService.GetAllSongs() returns songs
+                //     whose related objects are those from GetAllAlbums/Artists/Genres.
+                if (newCoreSongs.Any())
+                {
+                    foreach (var song in newCoreSongs)
+                    {
+                        Debug.WriteLine($"Processing song: {song.Title}, IsManaged: {song.IsManaged}");
+                        if (song.Album != null)
+                        {
+                            Debug.WriteLine($"  Song's Album: {song.Album.Name}, IsManaged: {song.Album.IsManaged}, Album.Id: {song.Album.Id}");
+                        }
 
-        if (newCoreSongs.Any())
-            _songRepo.AddOrUpdate(newCoreSongs);
-        if (newCoreGenres.Any())
-            _genreRepo.AddOrUpdate(newCoreGenres);
-        if (newAppLinks.Any())
-            _aagslRepo.AddOrUpdate(newAppLinks);
-        if (newCoreAlbums.Any())
-            _albumRepo.AddOrUpdate(newCoreAlbums);
-        if (newCoreArtists.Any())
-            _artistRepo.AddOrUpdate(newCoreArtists);
+                        // TEMPORARILY DO NOT MODIFY song.Album, song.Genre, song.ArtistIds here
+                        // Let Realm try to add the 'song' with its existing unmanaged references.
+                        // The earlier additions of newCoreAlbums/Artists/Genres should allow Realm
+                        // to link them up by PrimaryKey if the unmanaged references on 'song' have PKs.
+
+                        try
+                        {
+                            if (!song.IsManaged)
+                            {
+                                realm.Add(song, update: true);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"ERROR adding song {song.Title}: {ex}");
+                            throw; // Rethrow to ensure transaction rollback
+                        }
+                    }
+                }
+            });
+        
+             MasterList = _songRepo.GetAll(false);
+            _state.SetCurrentState(new(DimmerPlaybackState.FolderScanCompleted, newCoreSongs));
+            Debug.WriteLine($"All Folders Scanned Now Count is {MasterList.Count}");
             return new LoadSongsResult
-        {
-            Artists = [.. newCoreArtists],
-            Albums = [.. newCoreAlbums],
-            Links = [.. newAppLinks],
-            Songs = [.. newCoreSongs],
-            Genres = [.. newCoreGenres]
+            {
+                Artists = [.. newCoreArtists],
+                Albums = [.. newCoreAlbums],
+                Songs = [.. newCoreSongs],
+                Genres = [.. newCoreGenres]
             };
+        }
     }
-
     #endregion
 
     // Public implementation of Dispose pattern callable by consumers.

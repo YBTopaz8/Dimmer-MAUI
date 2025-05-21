@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.DimmerAudio;
+﻿using static Vanara.PInvoke.Kernel32;
+
+namespace Dimmer.WinUI.DimmerAudio;
 
 
 /// <summary>
@@ -253,9 +255,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _initializationCts = new CancellationTokenSource();
         var token = _initializationCts.Token;
 
+        _currentTrackMetadata = songModel;
         Debug.WriteLine($"[AudioService] Initializing track: {songModel.Title ?? "Unknown"}");
         UpdatePlaybackState(DimmerPlaybackState.Opening);
-        _currentTrackMetadata = songModel;
         OnPropertyChanged(nameof(CurrentTrackMetadata));
 
         // Ensure player is stopped before changing source
@@ -595,7 +597,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         UpdatePlaybackState(DimmerPlaybackState.Stopped); // Set specific ended state
 
         // Raise the specific PlayEnded event (as per interface)
-        var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.Ended };
+        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.Ended };
         _playEnded?.Invoke(this, eventArgs);
 
     }
@@ -667,7 +669,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         Debug.WriteLine("[AudioService] SMTC Next Received");
         // Raise event for ViewModel/PlaylistManager to handle
-        var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.PlayNextUser, };
+        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType= DimmerPlaybackState.PlayNextUser };
         MediaKeyNextPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled
     }
@@ -676,7 +678,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         Debug.WriteLine("[AudioService] SMTC Previous Received");
         // Raise event for ViewModel/PlaylistManager to handle
-        var eventArgs = new PlaybackEventArgs() { EventType=DimmerPlaybackState.PlayPreviousUser, };
+        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.PlayPreviousUser };
         MediaKeyPreviousPressed?.Invoke(this, eventArgs);
         args.Handled = true; // Assume it will be handled
     }
@@ -789,7 +791,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             // Raise the specific PlaybackStateChanged event
 
-            var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  newState };
+            var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  newState };
             PlaybackStateChanged?.Invoke(this, args);
 
             // Raise the general IsPlayingChanged event (from interface)
@@ -825,7 +827,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Use current state to construct the event args        
         DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.Stopped;
       
-        var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  eventType };
+        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
         _isPlayingChanged?.Invoke(this, args);
     }
 
@@ -834,7 +836,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Log the error details
         Debug.WriteLine($"[AudioService ERROR] {message} | Exception: {exception?.Message} | PlayerError: {playerError}");
 
-        var args = new PlaybackEventArgs() { IsPlaying= IsPlaying, EventType=  DimmerPlaybackState.Error };
+        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  DimmerPlaybackState.Error };
         ErrorOccurred?.Invoke(this, args);
     }
 

@@ -64,4 +64,18 @@ public partial class SettingsWindow : Window
         }
 
     }
+
+    private void ShowBtmSheet_Clicked(object sender, EventArgs e)
+    {
+    }
+
+    private void SettingsNavChips_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void SettingsNavChips_ChipClicked(object sender, EventArgs e)
+    {
+
+    }
 }

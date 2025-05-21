@@ -18,7 +18,7 @@ public interface IFolderMgtService : IDisposable
     void OnFileDeleted(FileSystemEventArgs e);
     void OnFileCreated(FileSystemEventArgs e);
     void RestartWatching();
-    void StartWatchingFolders();
+    List<FolderModel>? StartWatchingFolders();
 }
 
 public partial class FolderModel:ObservableObject

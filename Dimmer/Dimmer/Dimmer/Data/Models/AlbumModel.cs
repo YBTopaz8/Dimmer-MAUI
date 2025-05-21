@@ -13,7 +13,7 @@ public partial class AlbumModel : RealmObject
     /// <value>
     /// The name.
     /// </value>
-    public string? Name { get; set; }
+    public string Name { get; set; }
     /// <summary>
     /// Gets or sets the release year.
     /// </summary>
@@ -99,12 +99,14 @@ public partial class AlbumModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string? LocalDeviceId { get; set; }
+    public string? Id { get; set; } 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AlbumModel"/> class.
     /// </summary>
 
+    [Backlink(nameof(SongModel.Album))]
+    public IQueryable<SongModel> Songs { get; }
 
     public IList<UserNoteModel>? UserNotes { get; }
     public AlbumModel()

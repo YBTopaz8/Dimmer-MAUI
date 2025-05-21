@@ -190,7 +190,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         Console.WriteLine($"[AudioService] OnPlayingChanged received: IsPlaying={isPlaying}");
 
-        IsPlayingChanged.Invoke(this, new()
+        IsPlayingChanged.Invoke(this, new(_currentSongModel)
         {
             MediaSong=_currentSongModel,
             IsPlaying=isPlaying

@@ -8,7 +8,7 @@ public partial class PlaylistModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; }
     /// <summary>
     /// Gets or sets the name of the playlist.
     /// </summary>

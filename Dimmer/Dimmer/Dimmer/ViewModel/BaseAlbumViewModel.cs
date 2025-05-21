@@ -64,7 +64,7 @@ public partial class BaseAlbumViewModel : ObservableObject
                     
                         SelectedAlbum = SelectedAlbumsCol[0];
 
-                        SelectedAlbumsSongs = SongsMgtFlow.GetSongsByAlbumId(SelectedAlbum.LocalDeviceId!)
+                        SelectedAlbumsSongs = SongsMgtFlow.GetSongsByAlbumId(SelectedAlbum.Id!)
                             .Select(s => _mapper.Map<SongModelView>(s))
                             .ToObservableCollection();
                     }
@@ -74,7 +74,7 @@ public partial class BaseAlbumViewModel : ObservableObject
 
     public void GetAlbumForSpecificSong(SongModelView song)
     {
-        AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
     }
 
     public void PlaySong(SongModelView song)

@@ -8,6 +8,8 @@ public partial class HomeViewModel : BaseViewModelWin
 
     #region private fields   
     private readonly SubscriptionManager _subs;
+    private readonly IFolderMgtService folderMgtService;
+    private readonly IFilePicker filePicker;
     private readonly IMapper _mapper;
     private readonly IDimmerStateService _stateService;
 
@@ -37,6 +39,8 @@ public partial class HomeViewModel : BaseViewModelWin
 
         _mapper = mapper;
         _subs = subs;
+        this.folderMgtService=folderMgtService;
+        this.filePicker=filePicker;
         _stateService = stateService;
         LoadPageViewModel();
         SongsCV=new();
@@ -47,8 +51,10 @@ public partial class HomeViewModel : BaseViewModelWin
         SubscribeToScanningLogs();
     }
 
-    private static void LoadPageViewModel()
+    private void LoadPageViewModel()
     {
+        var e = folderMgtService.AllFolders.ToList();
+        ;
         Debug.WriteLine("loaded page ViewModel");
     }
 

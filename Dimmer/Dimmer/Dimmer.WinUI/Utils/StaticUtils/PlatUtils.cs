@@ -92,7 +92,7 @@ public static class PlatUtils
     public static void OpenAlbumWindow(SongModelView song)
     {
         var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
         var vm = new BaseAlbumViewModel();
         vm.SetSelectedSong(song);
 
@@ -101,7 +101,7 @@ public static class PlatUtils
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
-        MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+        MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
 
     }
 
@@ -109,7 +109,7 @@ public static class PlatUtils
     public static void OpenSettingsWindow()
     {
         var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId);
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
         
 
         SettingsWindow newWindow = new(MyVM);
@@ -117,7 +117,7 @@ public static class PlatUtils
         //newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
-        //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.LocalDeviceId!);
+        //MyVM.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
 
     }
 

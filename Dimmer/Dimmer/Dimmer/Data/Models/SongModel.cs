@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.Models;
+﻿using static ATL.LyricsInfo;
+
+namespace Dimmer.Data.Models;
 /// <summary>
 /// 
 /// </summary>
@@ -13,7 +15,7 @@ public partial class SongModel : RealmObject
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string? Id { get; set; }
     /// <summary>
     /// Gets or sets the title.
     /// </summary>
@@ -35,13 +37,6 @@ public partial class SongModel : RealmObject
     /// The name of the album.
     /// </value>
     public string AlbumName { get; set; } 
-    /// <summary>
-    /// Gets or sets the genre.
-    /// </summary>
-    /// <value>
-    /// The genre.
-    /// </value>
-    public string Genre { get; set; }
     /// <summary>
     /// Gets or sets the file path.
     /// </summary>
@@ -77,6 +72,7 @@ public partial class SongModel : RealmObject
     /// The file format.
     /// </value>
     public string FileFormat { get; set; } = string.Empty;
+    public string Composer { get; set; } = string.Empty;
     /// <summary>
     /// Gets or sets the size of the file.
     /// </summary>
@@ -126,21 +122,15 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The cover image path.
     /// </value>
-    public string CoverImagePath { get; set; }
+    public string? CoverImagePath { get; set; }
     /// <summary>
     /// Gets or sets the un synchronize lyrics.
     /// </summary>
     /// <value>
     /// The un synchronize lyrics.
     /// </value>
-    public string UnSyncLyrics { get; set; } = string.Empty;
-    /// <summary>
-    /// Gets or sets a value indicating whether this instance is playing.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if this instance is playing; otherwise, <c>false</c>.
-    /// </value>
-    public bool IsPlaying { get; set; }
+    public string? UnSyncLyrics { get; set; }
+    
     /// <summary>
     /// Gets or sets a value indicating whether this instance is favorite.
     /// </summary>
@@ -176,7 +166,7 @@ public partial class SongModel : RealmObject
     /// <value>
     /// The date created.
     /// </value>
-    public string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     /// <summary>
     /// Gets or sets the name of the device.
     /// </summary>
@@ -221,11 +211,11 @@ public partial class SongModel : RealmObject
     public string? UserIDOnline { get; set; }
 
     public IList<UserNoteModel> UserNotes { get; }
-    public string? AlbumId { get;  set; }
-    public string? GenreId { get;  set; }
-    public string? Id { get;  set; }
-    public IList<string> ArtistIds { get; }
-
+    public AlbumModel? Album { get;  set; }
+    public GenreModel? Genre { get;  set; }
+    public IList<ArtistModel> ArtistIds { get; }
+    [Backlink(nameof(DimmerPlayEvent.Song))]
+    public IQueryable<DimmerPlayEvent> PlayHistory { get; }
     public SongModel()
     {
         
@@ -235,7 +225,7 @@ public partial class SongModel : RealmObject
 public partial class UserNoteModel : EmbeddedObject
 {
     
-    public string LocalDeviceId { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = AudioFileUtils.GenerateId("UNote");
     public string? UserMessageText { get; set; }
     public string? UserMessageImagePath { get; set; }
     public string? UserMessageAudioPath { get; set; }

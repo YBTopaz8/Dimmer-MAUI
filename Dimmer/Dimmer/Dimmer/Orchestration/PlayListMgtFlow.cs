@@ -19,8 +19,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         IRepository<SongModel> songRepo,
         IRepository<UserModel> userRepo,
         IRepository<GenreModel> genreRepo,
-        IRepository<AlbumArtistGenreSongLink> aagslRepo,
-        IRepository<PlayDateAndCompletionStateSongLink> pdlRepo,
+        IRepository<DimmerPlayEvent> pdlRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
@@ -30,7 +29,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         SubscriptionManager subs,
         IRepository<AppStateModel> appstateRepo,
         IMapper mapper
-    ) : base(state, songRepo, genreRepo,userRepo, aagslRepo, pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMgt, subs, mapper)
+    ) : base(state, songRepo, genreRepo,userRepo,  pdlRepo, playlistRepo, artistRepo, albumRepo, appstateRepo, settings, folderMgt, subs, mapper)
     {
         _playlistRepo = playlistRepo;
         _queue        = queueManager;
@@ -174,7 +173,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                     var source = playlistSongs.ToList();
 
                     var songIndex = source.FindIndex(s =>
-             s.LocalDeviceId == CurrentlyPlayingSong!.LocalDeviceId);
+             s.Id == CurrentlyPlayingSong!.Id);
                     if (songIndex < 0)
                         songIndex = 0; // fallback to start
 
@@ -202,7 +201,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
 
             
         }
-        _state.SetCurrentState((DimmerPlaybackState.Playing, null));
+        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
     }
 
@@ -222,7 +221,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             _state.SetCurrentSong(next);
             _state.SetSecondSelectdSong(next);
 
-            _state.SetCurrentState((DimmerPlaybackState.Playing, MasterList));
+            _state.SetCurrentState(new(DimmerPlaybackState.Playing, MasterList));
         }
             
     }
@@ -235,7 +234,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         {
             _state.SetCurrentSong(prev);
             _state.SetSecondSelectdSong(prev);
-            _state.SetCurrentState((DimmerPlaybackState.Playing,null));
+            _state.SetCurrentState(new(DimmerPlaybackState.Playing,null));
         }
     }
 

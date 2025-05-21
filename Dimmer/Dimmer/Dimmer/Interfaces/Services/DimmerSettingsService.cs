@@ -4,14 +4,24 @@ public class DimmerSettingsService : ISettingsService
     private readonly Realm _realm;
     private AppStateModel _model;
 
-    public AppStateModel CurrentAppStateModel { get => _model; }
+    public AppStateModel CurrentAppStateModel
+    {
+        get
+        {
+            if (_model == null)
+            {
+                return LoadSettings();
+            }
+            return _model;
+        }
+    }
     public DimmerSettingsService(IRealmFactory factory)
     {
         _realm = factory.GetRealmInstance();
-        LoadSettings();
+        _model = LoadSettings();
     }
 
-    public void LoadSettings()
+    public AppStateModel LoadSettings()
     {
         var list = _realm.All<AppStateModel>().ToList();
         if (list.Count == 0)
@@ -22,9 +32,12 @@ public class DimmerSettingsService : ISettingsService
             {
                 _realm.Add(_model);
             });
+            return _model;
         }
         else
             _model = list[0];
+
+        return _model;
 
     }
     public RepeatMode RepeatMode
@@ -120,7 +133,11 @@ public class DimmerSettingsService : ISettingsService
         _realm.Write(() => _model.UserMusicFoldersPreference.Remove(path));
         return true;
     }
-
+    public bool ClearAllFolders()
+    {
+        _realm.Write(() => _model.UserMusicFoldersPreference.Clear());
+        return true;
+    }
     // Replace entire list
     public void SetMusicFolders(IEnumerable<string> paths)
     {

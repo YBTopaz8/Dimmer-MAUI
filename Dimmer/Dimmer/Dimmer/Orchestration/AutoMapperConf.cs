@@ -24,7 +24,7 @@ public static class AutoMapperConf
             cfg.CreateMap<AppStateModel, AppStateModel>()
             
             .ConstructUsing(src=>new AppStateModel())
-            .ForMember(dest =>dest.LocalDeviceId, opt => opt.MapFrom(src => src.LocalDeviceId))
+            .ForMember(dest =>dest.Id, opt => opt.MapFrom(src => src.Id))
             ;
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });

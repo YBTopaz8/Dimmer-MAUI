@@ -9,5 +9,10 @@ public interface ISettingsService
     bool IsStickToTop { get; set; }
     AppStateModel CurrentAppStateModel { get; }
 
-    void LoadSettings();
+    AppStateModel LoadSettings();
+    
+    void AddMusicFolder(string path);
+    bool RemoveMusicFolder(string path);
+    void SetMusicFolders(IEnumerable<string> paths);
+    bool ClearAllFolders();
 }

@@ -125,8 +125,8 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
    />
                                 </Border>
                                 <VerticalStackLayout VerticalOptions="Center">
-                                    <Label Text="{Binding UserLocal.UserName}" FontSize="22"/>
-                                    <Label Text="{Binding UserLocal.UserEmail}" FontSize="22"/>
+                                    <Label Text="{Binding UserLocal.Username}" FontSize="22"/>
+                                    <Label Text="{Binding UserLocal.Email}" FontSize="22"/>
                                     <Label Text="{Binding UserLocal.DeviceFormFactor}"
                                            FontSize="22"/>
                                     

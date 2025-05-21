@@ -14,7 +14,7 @@ public class DimmerStateService : IDimmerStateService
     readonly BehaviorSubject<LyricPhraseModel> _currentLyric = new(new LyricPhraseModel());
     readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
     readonly BehaviorSubject<SongModel> _secondSelectedSong = new(new SongModel());
-    readonly BehaviorSubject<(DimmerPlaybackState State, object? ExtraParameter)> _playbackState = new((DimmerPlaybackState.Stopped,null));
+    readonly BehaviorSubject<PlaybackStateInfo > _playbackState = new(new(DimmerPlaybackState.Opening,null));
     readonly BehaviorSubject<IReadOnlyList<SongModel>> _allSongs = new(Array.Empty<SongModel>());
     readonly BehaviorSubject<PlaylistModel?> _currentPlaylist = new(null);
     readonly BehaviorSubject<double> _deviceVolume = new(1);
@@ -51,7 +51,7 @@ public class DimmerStateService : IDimmerStateService
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
     public IObservable<SongModel> SecondSelectedSong => _secondSelectedSong.AsObservable();
     public IObservable<IReadOnlyList<SongModel>> AllCurrentSongs => _allSongs.AsObservable();
-    public IObservable<(DimmerPlaybackState State, object? ExtraParameter)> CurrentPlayBackState => _playbackState.AsObservable();
+    public IObservable<PlaybackStateInfo> CurrentPlayBackState => _playbackState.AsObservable();
     public IObservable<PlaylistModel> CurrentPlaylist => _currentPlaylist.AsObservable();
     public IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows => _windows.AsObservable();
     public IObservable<CurrentPage> CurrentPage => _page.AsObservable();
@@ -108,7 +108,7 @@ public class DimmerStateService : IDimmerStateService
         _syncLyrics.OnNext(lyric.ToList().AsReadOnly());
     }
 
-    public void SetCurrentState((DimmerPlaybackState State, object? ExtraParameter) state)
+    public void SetCurrentState(PlaybackStateInfo state)
     {
         _playbackState.OnNext(state);
 
@@ -179,7 +179,7 @@ public class DimmerStateService : IDimmerStateService
     public void AddSongsToCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
     {
         var merged = _allSongs.Value.Concat(songs)
-                           .DistinctBy(s => s.LocalDeviceId)
+                           .DistinctBy(s => s.Id)
                            .ToList();
         SetCurrentPlaylist(merged,p);
     }
@@ -192,7 +192,7 @@ public class DimmerStateService : IDimmerStateService
     public void RemoveSongFromCurrentPlaylist(PlaylistModel p, IEnumerable<SongModel> songs)
     {
         var filtered = _allSongs.Value
-                          .Where(s => !songs.Select(x => x.LocalDeviceId).Contains(s.LocalDeviceId))
+                          .Where(s => !songs.Select(x => x.Id).Contains(s.Id))
                           .ToList();
         SetCurrentPlaylist(filtered,p  );
     }
@@ -214,7 +214,7 @@ public class DimmerStateService : IDimmerStateService
     }
 
     // queue advancement logic
-    void OnPlaybackStateChanged((DimmerPlaybackState State, object? ExtraParameter) st)
+    void OnPlaybackStateChanged(PlaybackStateInfo  st)
     {
         switch (st.State)
         {
@@ -236,10 +236,10 @@ public class DimmerStateService : IDimmerStateService
         if (BaseViewModel.IsSearching)
         {
             // Get current song index
-            var currentSongId = _currentSong.Value.LocalDeviceId;
+            var currentSongId = _currentSong.Value.Id;
             var currentIndex = _allSongs.Value
                 .ToList()
-                .FindIndex(x => x.LocalDeviceId == currentSongId);
+                .FindIndex(x => x.Id == currentSongId);
 
             // Advance to next in the search list (wrap around)
             if (currentIndex != -1)
@@ -263,10 +263,10 @@ public class DimmerStateService : IDimmerStateService
         if (BaseViewModel.IsSearching)
         {
             // Get current song index
-            var currentSongId = _currentSong.Value.LocalDeviceId;
+            var currentSongId = _currentSong.Value.Id;
             var currentIndex = _allSongs.Value
                 .ToList()
-                .FindIndex(x => x.LocalDeviceId == currentSongId);
+                .FindIndex(x => x.Id == currentSongId);
 
             // Move to previous (wrap around)
             if (currentIndex != -1)

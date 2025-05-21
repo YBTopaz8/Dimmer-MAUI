@@ -2,7 +2,7 @@
 public partial class SongModelView : ObservableObject
 {
     [ObservableProperty]
-    public partial string? LocalDeviceId { get; set; }
+    public partial string? Id { get; set; }
     [ObservableProperty]
     public partial string? Title { get; set; }
     [ObservableProperty]
@@ -10,7 +10,11 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? AlbumName { get; set; }
     [ObservableProperty]
-    public partial string? Genre { get; set; }
+    public partial AlbumModelView? Album { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView?> ArtistIds { get; set; }
+    [ObservableProperty]
+    public partial GenreModelView? Genre { get; set; }
     [ObservableProperty]
     public partial string FilePath { get; set; } = string.Empty;
     [ObservableProperty]
@@ -72,14 +76,14 @@ public partial class SongModelView : ObservableObject
     {
         if (obj is SongModelView other)
         {
-            return this.LocalDeviceId == other.LocalDeviceId;
+            return this.Id == other.Id;
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(LocalDeviceId);
+        return HashCode.Combine(Id);
     }
 }
 
