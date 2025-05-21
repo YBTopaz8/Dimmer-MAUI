@@ -4,6 +4,7 @@ using DevExpress.Maui.Core;
 using DevExpress.Maui.Editors;
 using Dimmer.Utilities.CustomAnimations;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Dimmer.Views;
 
@@ -30,6 +31,7 @@ public partial class HomePage : ContentPage
 
         //await MyViewModel.LoginFromSecureData();
 
+        btmBarHeight = BtmBar.Height;
     }
 
     private void ProgressSlider_TapReleased(object sender, DXTapEventArgs e)
@@ -118,7 +120,7 @@ public partial class HomePage : ContentPage
     
     }
 
-    private async void SearchSong_Tap(object sender, HandledEventArgs e)
+    private void SearchSong_Tap(object sender, HandledEventArgs e)
     {
         //await ToggleSearchPanel();
     }
@@ -139,6 +141,7 @@ public partial class HomePage : ContentPage
     private double _startY;
     private bool _isPanning;
 
+    double btmBarHeight = 0;
     private async void PanGesture_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
         DXBorder send = (DXBorder)sender;
@@ -181,20 +184,18 @@ public partial class HomePage : ContentPage
 
                                 MyViewModel.PlayNext(true);
 
-                                Task colorTask = AnimateColor(send, Colors.SlateBlue);
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
-                                await Task.WhenAll(colorTask, bounceTask);
+                                await Task.WhenAll(bounceTask);
                             }
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                                 MyViewModel.PlayPrevious();
 
-                                Task colorTask = AnimateColor(send, Colors.MediumPurple);
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
-                                await Task.WhenAll(colorTask, bounceTask);
+                                await Task.WhenAll( bounceTask);
                             }
                         }
                         catch (Exception ex) // Handle exceptions
@@ -217,10 +218,10 @@ public partial class HomePage : ContentPage
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
                             MyViewModel.PlayPrevious();
                             Debug.WriteLine("Swiped left");
-                            Task t1 = send.MyBackgroundColorTo(Colors.MediumPurple, length: 300);
-                            Task t2 = Task.Delay(500);
-                            Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
-                            await Task.WhenAll(t1, t2, t3);
+                            //Task t1 = send.MyBackgroundCoorTo(Colors.MediumPurple, length: 300);
+                            //Task t2 = Task.Delay(500);
+                            //Task t3 = send.MyBackgroundColorTo(Colors.DarkSlateBlue, length: 300);
+                            //await Task.WhenAll(t1, t2, t3);
                         }
                         catch { }
                     }
@@ -242,10 +243,17 @@ public partial class HomePage : ContentPage
                         //}
                         //catch { }
                     }
-                    else  //Up
+                    else  // Up
                     {
                         try
                         {
+                            btmBarHeight=BtmBar.Height;
+                            await BtmBar.AnimateSlideDown(BtmBar.Height);
+                            NowPlayingBtmSheet.IsVisible=true;
+                            NowPlayingBtmSheet.Show();
+                            NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.FullExpanded;
+                            
+
                             //if (HomeTabView.SelectedItemIndex != 1)
                             //{
                             //    HomeTabView.SelectedItemIndex = 1;
@@ -307,14 +315,9 @@ public partial class HomePage : ContentPage
         {
 
             await MyViewModel.PlayPauseAsync();
-            //send.RunFocusModeAnimation(Color.FromArgb("#8B0000")); // DarkRed for pause
-
-            await send.MyBackgroundColorTo(Color.FromArgb("#252526"), length: 300);
         }
         else
         {
-            await send.MyBackgroundColorTo(Color.FromArgb("#483D8B"), length: 300);
-            //RunFocusModeAnimation(send, Color.FromArgb("#483D8B")); // DarkSlateBlue for resume
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
                 MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
@@ -357,7 +360,7 @@ public partial class HomePage : ContentPage
         //MyViewModel.SaveLyricsToLrcAfterSyncingCommand.Execute(null);
     }
 
-    private async void StartSyncing_Clicked(object sender, EventArgs e)
+    private void StartSyncing_Clicked(object sender, EventArgs e)
     {
         //await PlainLyricSection.DimmOut();
         //PlainLyricSection.IsEnabled = false;
@@ -369,7 +372,7 @@ public partial class HomePage : ContentPage
     }
 
     bool IsSyncing = false;
-    private async void CancelAction_Clicked(object sender, EventArgs e)
+    private void CancelAction_Clicked(object sender, EventArgs e)
     {
         //await PlainLyricSection.DimmIn();
         //PlainLyricSection.IsEnabled = true;
@@ -380,7 +383,7 @@ public partial class HomePage : ContentPage
         //await SyncLyrView.DimmOut();
         //SyncLyrView.IsVisible=false;
     }
-    private async void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
+    private void SearchLyricsOnLyrLib_Clicked(object sender, EventArgs e)
     {
 
         //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeOutBack(), LyricsEditor.AnimateFadeOutBack(), OnlineLyricsResView.AnimateFadeInFront());
@@ -406,7 +409,7 @@ public partial class HomePage : ContentPage
             PasteLyricsFromClipBoardBtn_Clicked(send, e);
         }
     }
-    private async void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
+    private  void PasteLyricsFromClipBoardBtn_Clicked(object sender, EventArgs e)
     {
         //await Task.WhenAll(ManualSyncLyricsView.AnimateFadeInFront(), LyricsEditor.AnimateFadeInFront(), OnlineLyricsResView.AnimateFadeOutBack());
 
@@ -418,7 +421,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void ContextIcon_Tap(object sender, HandledEventArgs e)
+    private  void ContextIcon_Tap(object sender, HandledEventArgs e)
     {
         //MyViewModel.LoadArtistSongs();
         //ContextBtmSheet.State = BottomSheetState.HalfExpanded;
@@ -609,4 +612,62 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private void ChipGroup_ChipTap(object sender, ChipEventArgs e)
+    {
+
+    }
+
+    private async void PlayPauseBtn_Clicked(object sender, EventArgs e)
+    {
+        DXButton send = (DXButton)sender;
+
+        if (MyViewModel.IsPlaying)
+        {
+
+            await MyViewModel.PlayPauseAsync();
+
+        }
+        else
+        {
+            if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
+            {
+                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+            }
+            else
+            {
+                await MyViewModel.PlayPauseAsync();
+            }
+        }
+    }
+
+    private void BtmSheetHeader_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void NowPlayingBtmSheet_StateChanged(object sender, Syncfusion.Maui.Toolkit.BottomSheet.StateChangedEventArgs e)
+    {
+        Debug.WriteLine(e.NewState);
+        Debug.WriteLine(e.OldState);
+        if (e.NewState == Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Collapsed)
+        {
+            await BtmBar.AnimateSlideUp(122);
+            NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
+            NowPlayingBtmSheet.IsVisible=false;
+
+        }
+
+    }
+
+    private async void CloseNowPlayingBtmSheet_Clicked(object sender, EventArgs e)
+    {
+        await BtmBar.AnimateSlideUp(122);
+        NowPlayingBtmSheet.State = Syncfusion.Maui.Toolkit.BottomSheet.BottomSheetState.Hidden;
+
+    }
+
+    private void BtmBar_Loaded(object sender, EventArgs e)
+    {
+
+    }
 }

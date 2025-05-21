@@ -43,17 +43,17 @@
 
     <PackageReference Include="Realm" Version="20.1.0" />
 
-    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.4" />
+    <PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.5" />
 
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.60" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.70" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="11.2.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.60" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.70" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
 		
     
 		 
-		<PackageReference Include="z440.atl.core" Version="6.23.0" />
+		<PackageReference Include="z440.atl.core" Version="6.24.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
 
     <PackageReference Include="ZXing.Net.Bindings.SkiaSharp" Version="0.16.21" />

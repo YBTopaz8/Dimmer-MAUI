@@ -24,10 +24,7 @@ public sealed partial class TestPage : Window
 
         SongModelView? song = (SongModelView)view.DataContext;
 
-        if (song is not null)
-        {
-            song.IsCurrentPlayingHighlight = false;
-        }
+        song?.IsCurrentPlayingHighlight = false;
         MyViewModel.PlaySongOnDoubleTap(song!);
     }
 

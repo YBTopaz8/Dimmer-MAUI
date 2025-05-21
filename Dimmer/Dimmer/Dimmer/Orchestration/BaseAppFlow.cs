@@ -111,32 +111,17 @@ public class BaseAppFlow : IDisposable
         {
             return;
         }
-        folderMgt.RestartWatching();
+        //folderMgt.RestartWatching();
         IsAppInitialized = isAppInit; // Assigning to the static field only when the condition is met
         MasterList = [.. _songRepo
             .GetAll(true)];
 
 
 
-        // 3) live updates, on UI‑thread if available
-        var syncCtx = SynchronizationContext.Current;
-        IScheduler scheduler = syncCtx != null
-            ? new SynchronizationContextScheduler(syncCtx)
-            : TaskPoolScheduler.Default;
-     
         SubscribeToStateChanges();
 
         _state.SetCurrentPlaylist([], null);
-        _songRepo.WatchAll().ObserveOn(scheduler)
-            .DistinctUntilChanged(new SongListComparer())
-            .Subscribe(list =>
-            {
-                if (list.Count == MasterList.Count)
-                {
-                    return;
-                }
-                MasterList = [.. list];
-            });
+       
         if (MasterList.Count < 1 && !isAppInit)
         {
 

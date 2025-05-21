@@ -903,8 +903,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         // Stop playback and clear source (synchronous parts first)
         _mediaPlayer?.Pause();
-        if (_mediaPlayer != null)
-            _mediaPlayer.Source = null; // Release source reference
+        _mediaPlayer?.Source = null; // Release source reference
 
         // Unsubscribe from player events
         UnsubscribeFromPlayerEvents();

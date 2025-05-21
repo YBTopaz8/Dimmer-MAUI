@@ -1,4 +1,5 @@
 ﻿using Dimmer.Utilities.Events;
+using System.Diagnostics;
 
 namespace Dimmer.Orchestration;
 
@@ -48,6 +49,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                 h => _audio.IsPlayingChanged -= h)
             .Select(evt =>
             {
+                Debug.WriteLine(evt.EventArgs.MediaSong.Title);
+                Debug.WriteLine(evt.EventArgs.IsPlaying);
                 return evt.EventArgs.IsPlaying;
             });
 

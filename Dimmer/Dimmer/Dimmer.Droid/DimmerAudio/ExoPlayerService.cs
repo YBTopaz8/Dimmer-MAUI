@@ -111,7 +111,7 @@ public class ExoPlayerService : MediaSessionService
 
     internal void RaiseIsPlayingChanged(bool isPlaying)
     {
-        PlayingChanged?.Invoke(this, isPlaying);
+        PlayingChanged?.Invoke(player, isPlaying);
         if (isPlaying)
             StartPositionUpdates();
         else
@@ -470,6 +470,7 @@ public class ExoPlayerService : MediaSessionService
             };
             Console.WriteLine($"[PlayerEventListener] PlayerStateChanged: PlayWhenReady={playWhenReady}, State={stateString} ({playbackState})");
             // Forward to your service or session as needed...
+            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
         }
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
@@ -484,7 +485,7 @@ public class ExoPlayerService : MediaSessionService
         }
         public void OnPlaybackStateChanged(int playbackState)
         {
-
+            service.RaiseStatusChanged(playbackState); // Use your service method to raise events
             Console.WriteLine("new "+playbackState);
         }
         public void OnLoadingChanged(bool isLoading)
@@ -495,6 +496,10 @@ public class ExoPlayerService : MediaSessionService
 
         public void OnIsPlayingChanged(bool isPlaying)
         {
+            if (isPlaying)
+            {
+                NotificationHelper.ShowPlaybackBubble(Platform.AppContext.ApplicationContext,service.player.MediaMetadata.Title.ToString());
+            }
             Console.WriteLine($"[PlayerEventListener] IsPlayingChanged: {isPlaying}");
             service.RaiseIsPlayingChanged(isPlaying); 
         }
@@ -581,7 +586,11 @@ public class ExoPlayerService : MediaSessionService
             // ... other checks
 
         }
-        public void OnIsLoadingChanged(bool isLoading) { Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}"); }
+        public void OnIsLoadingChanged(bool isLoading)
+        {
+            Console.WriteLine($"[PlayerEventListener] IsLoadingChanged: {isLoading}");
+        }
+
         public void OnMaxSeekToPreviousPositionChanged(long p0) { /* Log if needed */ }
         // public void OnMetadata(MediaMetadata? volume) {} // Superseded by OnMediaMetadataChanged? Check docs.
         public void OnPlayWhenReadyChanged(bool playWhenReady, int reason) { Console.WriteLine($"[PlayerEventListener] PlayWhenReadyChanged: {playWhenReady}, Reason={reason}"); }

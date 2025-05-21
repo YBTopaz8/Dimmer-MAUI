@@ -390,20 +390,16 @@ public partial class BaseViewModel : ObservableObject
                     return;
                 }
 
-                if (SecondSelectedSong != null)
-                    SecondSelectedSong.IsCurrentPlayingHighlight = false;
+                SecondSelectedSong?.IsCurrentPlayingHighlight = false;
 
                 SecondSelectedSong = _mapper.Map<SongModelView>(song);
-                if (SecondSelectedSong != null)
-                {
-                    SecondSelectedSong.IsCurrentPlayingHighlight = true;
-                }
+                SecondSelectedSong?.IsCurrentPlayingHighlight = true;
             }));
     }
     private void SubscribeToCurrentSong()
     {
         _subs.Add(_stateService.CurrentSong
-            .DistinctUntilChanged()
+            
             .Subscribe(song =>
             {
                 if (string.IsNullOrEmpty(song.FilePath))
@@ -483,8 +479,7 @@ public partial class BaseViewModel : ObservableObject
      IEnumerable<SongModelView>? listOfSongs = null)
     {
         // 1) Un‑highlight the old song
-        if (TemporarilyPickedSong != null)
-            TemporarilyPickedSong.IsCurrentPlayingHighlight = false;
+        TemporarilyPickedSong?.IsCurrentPlayingHighlight = false;
 
         // 2) Highlight and pick the new song
         TemporarilyPickedSong = song;

@@ -19,7 +19,7 @@ public partial class HomePage : ContentPage
     protected async override void OnAppearing()
     {
         base.OnAppearing();
-        await MyViewModel.LoginFromSecureData();
+        //await MyViewModel.LoginFromSecureData();
 
     }
     
@@ -29,10 +29,7 @@ public partial class HomePage : ContentPage
         View send = (View)sender;
         
         SongModelView? song = (SongModelView)send.BindingContext;
-        if (song is not null)
-        {
-            song.IsCurrentPlayingHighlight = false;
-        }
+        song?.IsCurrentPlayingHighlight = false;
 
        MyViewModel.PlaySongOnDoubleTap(song!);
     }

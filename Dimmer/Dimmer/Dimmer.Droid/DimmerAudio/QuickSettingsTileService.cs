@@ -67,17 +67,24 @@ public class QuickSettingsTileService : TileService
         ShowPlaybackOptionsDialog();
         // --- Send Command to your MediaSessionService ---
         try
-        {
-            Intent serviceIntent = new Intent(this, typeof(MediaSessionService)); // <<< YOUR MEDIA SERVICE
-            serviceIntent.SetAction(ActionTogglePlayback); // Use the defined action string
-                                                           // Use StartService for commands that don't require a result back immediately
+        {// Option 1: Directly try to show bubble if supported
+            if (NotificationHelper.AreBubblesSupported(this))
+            {
+                Log.Debug(TAG, "Bubbles are supported, attempting to show bubble.");
+                // For now, let's use a placeholder
+                //string currentTrack = GetCurrentTrackTitleFromServiceOrState(); // Implement this!
+                NotificationHelper.ShowPlaybackBubble(this, "currentTrack");
+                Intent serviceIntent = new Intent(this, typeof(ExoPlayerService));
+                serviceIntent.SetAction(ActionTogglePlayback); // Use the defined action string
+                                                               // Use StartService for commands that don't require a result back immediately
 
-            StartService(serviceIntent);
-            Log.Debug(TAG, $"Sent intent with action: {ActionTogglePlayback}");
+                StartService(serviceIntent);
+                Log.Debug(TAG, $"Sent intent with action: {ActionTogglePlayback}");
 
-            // Optional: Provide immediate visual feedback by guessing the next state
-            UpdateTileVisualState(!IsCurrentlyPlaying()); // Update based on assumed toggle
+                // Optional: Provide immediate visual feedback by guessing the next state
+                UpdateTileVisualState(!IsCurrentlyPlaying()); // Update based on assumed toggle
 
+            }
         }
         catch (Exception ex)
         {
@@ -125,7 +132,7 @@ public class QuickSettingsTileService : TileService
             {
                 case 0: // Toggle Play/Pause
                     Log.Debug(TAG, "Dialog: Toggle Play/Pause selected");
-                    SendToggleCommandToService();
+                    OnClick();
                     break;
                 case 1: // Next Track
                     Log.Debug(TAG, "Dialog: Next Track selected");
