@@ -351,9 +351,13 @@ public partial class HomePage : ContentPage
         switch (CurrentIndex)
         {
             case 0:
-                await SwitchUIs(0);
+
+                if(currentViewIndex!=0)
+                {
+                    await SwitchUIs(0);
+                }
                 
-        SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
+                SongsColView.ScrollTo(MyViewModel.TemporarilyPickedSong, null, ScrollToPosition.Start,true);
                 //show the now playing Queue
                 break;
             case 1:
@@ -362,11 +366,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 2:
-                //show the albums songs
-                var song = BaseAppFlow.MasterList.First(x=>x.Id == MyViewModel.SecondSelectedSong.Id);
-                var album = song.Album;
-                var albumSongs = song.Album?.Songs?.ToObservableCollection();
-                MyViewModel.SetSelectedAlbumsSongs( MyViewModel.BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(albumSongs));
+                MyViewModel.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
                 PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
                 return;
             case 3:
@@ -425,9 +425,12 @@ public partial class HomePage : ContentPage
         }
         await SwitchUIs(CurrentIndex);
     }
-
+    int currentViewIndex = 0;
     private async Task SwitchUIs(int CurrentIndex)
     {
+        if (currentViewIndex == CurrentIndex)
+            return;
+        currentViewIndex=CurrentIndex;
         Dictionary<int, View> viewss = new Dictionary<int, View>
         {
             {0, SongsColView},

@@ -179,7 +179,19 @@ public partial class BaseViewModel : ObservableObject
         SelectedAlbumsSongs = songs;
         
     }
+    public void OpenAlbumWindow(SongModelView song)
+    {
+        //show the albums songs
+        var songg = BaseAppFlow.MasterList.First(x => x.Id == SecondSelectedSong.Id);
+        
+        var songgs = BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(songg.Album?.Songs);
 
+        //var songB = albumSongs[2];
+        //var artistB = songB.ArtistIds[0];
+        //var songC = artistB.Songs;
+        SetSelectedAlbumsSongs(songgs);
+        
+    }
     [RelayCommand]
     public async Task LogoutUser()
     {
@@ -556,18 +568,19 @@ public partial class BaseViewModel : ObservableObject
        await  SongsMgtFlow.SetPlayState();
     }
 
-    public void PlayNext(bool IsByUser)
+    public async Task PlayNext(bool IsByUser)
     {
         if (IsByUser)
         {
             _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI , null));
-            
+            await SongsMgtFlow.SetPlayState();
         }
     }
 
-    public void PlayPrevious()
+    public async Task PlayPrevious()
     {
         _stateService.SetCurrentState(new(DimmerPlaybackState.PlayNextUI, null));
+        await SongsMgtFlow.SetPlayState();
     }
 
     public async Task PlayPauseAsync()

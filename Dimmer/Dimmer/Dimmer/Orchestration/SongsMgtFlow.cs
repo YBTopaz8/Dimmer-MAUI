@@ -46,7 +46,8 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                 h => _audio.IsPlayingChanged -= h)
             .Select(evt =>
             {
-                Debug.WriteLine(evt.EventArgs.MediaSong.Title);
+
+                Debug.WriteLine(evt.EventArgs.MediaSong?.Title);
                 Debug.WriteLine(evt.EventArgs.IsPlaying);
                 return evt.EventArgs.IsPlaying;
             });
@@ -77,16 +78,22 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                       switch (s.State)
                       {
                           case DimmerPlaybackState.Playing:
-                              await PlaySongInAudioService();
+                              //await PlaySongInAudioService();
                               break;
                       }
                   })
         );
         SubscribeToCurrentSongChanges();
+        System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
+
     }
+    bool isSwitching=false;
     public async Task SetPlayState()
     {
-        //await PlaySongInAudioService();
+        //isSwitching=true;   
+        await PlaySongInAudioService();
+        System.Diagnostics.Debug.WriteLine($"SetPlayState called from: ? (Identify window if possible). SongsMgtFlow.GetHashCode() = {this.GetHashCode()}, _state.GetHashCode() = {_state.GetHashCode()}");
+
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
     }

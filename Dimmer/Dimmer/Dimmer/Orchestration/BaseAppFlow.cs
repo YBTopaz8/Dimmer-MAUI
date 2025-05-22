@@ -71,10 +71,13 @@ public class BaseAppFlow : IDisposable
     }
     public static AppStateModelView DimmerAppState { get; set; }
     public static IReadOnlyCollection<SongModel> MasterList { get; internal set; }
+    public static IReadOnlyCollection<DimmerPlayEvent> MasterListEvents { get; internal set; }
 
     public static bool IsAppInitialized;
     public void Initialize(bool isAppInit=false)
     {
+
+
        var DimmerAppStates = _appstateRepo.GetAll().ToList();
         var usrs = _userRepo.GetAll().ToList();
         if (usrs is null || usrs.Count <1)
@@ -115,8 +118,8 @@ public class BaseAppFlow : IDisposable
         MasterList = [.. _songRepo
             .GetAll(true)];
 
-
-
+        MasterListEvents = [.. _pdlRepo
+            .GetAll(false)];
         SubscribeToStateChanges();
 
         _state.SetCurrentPlaylist([], null);

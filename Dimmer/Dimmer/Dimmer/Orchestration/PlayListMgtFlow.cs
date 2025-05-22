@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using System.Threading.Tasks;
+
+namespace Dimmer.Orchestration;
 
 public class PlayListMgtFlow : BaseAppFlow, IDisposable
 {
@@ -68,7 +70,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _subs.Add(
             _state.CurrentPlayBackState
                   .DistinctUntilChanged()
-                  .Subscribe(state => {
+                  .Subscribe(async state => {
                       switch (state.State)
                       {
                           case DimmerPlaybackState.Opening:
@@ -98,7 +100,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.Initialized:
                               break;
                           case DimmerPlaybackState.Ended:
-                              OnPlaybackStateChanged(DimmerPlaybackState.Ended);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.Ended);
                               break;
                           case DimmerPlaybackState.CoverImageDownload:
                               break;
@@ -113,17 +115,17 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.PlayCompleted:
                               break;
                           case DimmerPlaybackState.PlayPreviousUI:
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUI);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUI);
                               break;
                           case DimmerPlaybackState.PlayPreviousUser :
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUser);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.PlayPreviousUser);
 
                               break;
                           case DimmerPlaybackState.PlayNextUser:
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUser);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUser);
                               break;
                           case DimmerPlaybackState.PlayNextUI:
-                              OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUI);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.PlayNextUI);
                               break;
                           case DimmerPlaybackState.Skipped:
                               break;
@@ -185,7 +187,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
 
   
 
-    private void OnPlaybackStateChanged(DimmerPlaybackState st)
+    private async Task OnPlaybackStateChanged(DimmerPlaybackState st)
     {
         switch (st)
         {
@@ -203,7 +205,8 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         }
         
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
-
+        var songmgt = IPlatformApplication.Current.Services.GetService<SongsMgtFlow>();
+        await songmgt.SetPlayState();
     }
 
     private void ShuffleQueue()

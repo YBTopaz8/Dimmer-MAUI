@@ -96,7 +96,7 @@ public partial class HomePage : ContentPage
                 MyViewModel.ToggleRepeatMode();
                 break;
             case 1:
-                MyViewModel.PlayPrevious();
+               await  MyViewModel.PlayPrevious();
                 break;
             case 2:
             case 3:
@@ -104,7 +104,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 4:
-                MyViewModel.PlayNext(true);
+                await MyViewModel.PlayNext(true);
                 break;
             case 5:
                 MyViewModel.IsShuffle = !MyViewModel.IsShuffle;
@@ -182,7 +182,7 @@ public partial class HomePage : ContentPage
                                 HapticFeedback.Perform(HapticFeedbackType.LongPress);
                                 Debug.WriteLine("Swiped Right");
 
-                                MyViewModel.PlayNext(true);
+                                await MyViewModel.PlayNext(true);
 
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -191,7 +191,7 @@ public partial class HomePage : ContentPage
                             else // Left
                             {
                                 Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                                MyViewModel.PlayPrevious();
+                                await MyViewModel.PlayPrevious();
 
                                 Task<bool> bounceTask = BtmBar.TranslateTo(0, 0, 250, Easing.BounceOut);
 
@@ -216,7 +216,7 @@ public partial class HomePage : ContentPage
                         try
                         {
                             Vibration.Vibrate(TimeSpan.FromMilliseconds(50)); // Short vibration
-                            MyViewModel.PlayPrevious();
+                             await MyViewModel.PlayPrevious();
                             Debug.WriteLine("Swiped left");
                             //Task t1 = send.MyBackgroundCoorTo(Colors.MediumPurple, length: 300);
                             //Task t2 = Task.Delay(500);
