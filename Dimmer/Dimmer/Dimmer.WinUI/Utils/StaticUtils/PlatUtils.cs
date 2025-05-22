@@ -100,7 +100,7 @@ public static class PlatUtils
         newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
-        MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
+        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
 
     }
 

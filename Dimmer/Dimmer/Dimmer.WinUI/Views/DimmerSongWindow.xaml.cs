@@ -12,9 +12,10 @@ public partial class DimmerSongWindow : Window
         this.MyViewModel=vm;
     }
 
-    private async void ViewConverationGesture_Tapped(object sender, TappedEventArgs e)
+    private void ViewConverationGesture_Tapped(object sender, TappedEventArgs e)
     {
-        await MyViewModel.OpenSpecificChatConversationCommand.ExecuteAsync((e.Parameter as string));
+        throw new NotImplementedException();
+        //await MyViewModel.OpenSpecificChatConversationCommand.ExecuteAsync((e.Parameter as string));
     }
 
 
@@ -143,8 +144,9 @@ public partial class DimmerSongWindow : Window
 
     }
 
-    private async void GetSharedSong_SearchButtonPressed(object sender, EventArgs e)
+    private void GetSharedSong_SearchButtonPressed(object sender, EventArgs e)
     {
-        await MyViewModel.FetchSharedSongById(GetSharedSong.Text);
+        throw new NotImplementedException();
+        //await MyViewModel.FetchSharedSongById(GetSharedSong.Text);
     }
 }

@@ -22,7 +22,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The date created.
     /// </value>
-    public string DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public DateTimeOffset DateCreated { get; set; } = DateTimeOffset.UtcNow;
 
     public IList<string>? SongInPlaylist { get; }
     public string? CurrentSongId { get; set; }
@@ -32,7 +32,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     public string? PlaylistType { get; set; } = "General";
 
     public IList<PlaylistEvent>? PlaylistEvents { get; }
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceName { get; set; } 
     
     public UserModel? User { get; set; }
     //3 PL ; general,

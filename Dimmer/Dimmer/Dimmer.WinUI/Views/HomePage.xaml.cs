@@ -18,7 +18,7 @@ public partial class HomePage : ContentPage
         
     }
 
-    protected async override void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         //await MyViewModel.LoginFromSecureData();
@@ -363,9 +363,12 @@ public partial class HomePage : ContentPage
                 break;
             case 2:
                 //show the albums songs
+                var song = BaseAppFlow.MasterList.First(x=>x.Id == MyViewModel.SecondSelectedSong.Id);
+                var album = song.Album;
+                var albumSongs = song.Album?.Songs?.ToObservableCollection();
+                MyViewModel.SetSelectedAlbumsSongs( MyViewModel.BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(albumSongs));
                 PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
                 return;
-                break;
             case 3:
 
                 PlatUtils.OpenSettingsWindow();
@@ -399,11 +402,12 @@ public partial class HomePage : ContentPage
 
                 break;
             case 6:
-                SongsColView.ScrollTo(MyViewModel.SelectedSong, null, ScrollToPosition.Start, true);
-
+                
                 break;
             case 7:
-                MyViewModel.ShareSongOnline();
+                SongsColView.ScrollTo(MyViewModel.SelectedSong, null, ScrollToPosition.Start, true);
+
+                //MyViewModel.ShareSongOnline();
                 break;
             case 8:
 
@@ -825,12 +829,12 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void MainAppGrid_Loaded(object sender, EventArgs e)
+    private void MainAppGrid_Loaded(object sender, EventArgs e)
     {
         
     }
 
-    private async void FreshAppStartRecogn_PointerEntered(object sender, PointerEventArgs e)
+    private void FreshAppStartRecogn_PointerEntered(object sender, PointerEventArgs e)
     {
      
     }
@@ -863,59 +867,60 @@ public partial class HomePage : ContentPage
         var send = (SfEffectsView)sender;
         var param = send.TouchUpCommandParameter.ToString();
         ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
+        Debug.WriteLine(SongsColView.ItemsSource.GetType());
         bool isSameParam = param == currParam;
         switch (param)
         {
             case "title":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title);
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title).ToList();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title);
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title).ToList();
                 }
                     break;
             case "artist":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName);
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName).ToList();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName);
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName).ToList();
                 }
                 break;
             case "album":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name);
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name).ToList();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name);
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name).ToList();
                 }
                 break;
             case "genre":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name);
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name).ToList();
                 }
                 else
                 {
                     
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name);
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name).ToList();
                 }
                 break;
 
             case "duration":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.DurationInSeconds);
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.DurationInSeconds).ToList();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.DurationInSeconds);
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.DurationInSeconds).ToList();
                 }
                 break;
             default:

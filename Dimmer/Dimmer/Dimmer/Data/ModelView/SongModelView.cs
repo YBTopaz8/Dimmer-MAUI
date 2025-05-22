@@ -56,17 +56,18 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial DateTimeOffset? LastDateUpdated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial string? DateCreated { get; set; } = DateTime.UtcNow.ToString("o");
+    public partial DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     [ObservableProperty]
-    public partial string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public partial string? DeviceName { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public partial string? DeviceFormFactor { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public partial string? DeviceModel { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public partial string? DeviceManufacturer { get; set; } 
     [ObservableProperty]
-    public partial string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public partial string? DeviceVersion { get; set; } 
+
 
     
     [ObservableProperty]

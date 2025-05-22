@@ -1,5 +1,6 @@
 ﻿using Dimmer.Utilities.Events;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Dimmer.Orchestration;
 
@@ -83,9 +84,9 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
         );
         SubscribeToCurrentSongChanges();
     }
-    public void SetPlayState()
+    public async Task SetPlayState()
     {
-        //this triggers the pl flow and song mgt flow
+        //await PlaySongInAudioService();
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
     }

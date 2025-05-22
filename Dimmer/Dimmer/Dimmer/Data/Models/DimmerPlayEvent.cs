@@ -13,7 +13,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
-    public ObjectId Id { get; set; } 
+    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     /// <summary>
     /// Gets or sets the song identifier.
     /// </summary>
@@ -74,28 +74,28 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The name of the device.
     /// </value>
-    public string? DeviceName { get; set; } = DeviceInfo.Current.Name;
+    public string? DeviceName { get; set; } 
     /// <summary>
     /// Gets or sets the device form factor.
     /// </summary>
     /// <value>
     /// The device form factor.
     /// </value>
-    public string? DeviceFormFactor { get; set; } = DeviceInfo.Current.Idiom.ToString();
+    public string? DeviceFormFactor { get; set; } 
     /// <summary>
     /// Gets or sets the device model.
     /// </summary>
     /// <value>
     /// The device model.
     /// </value>
-    public string? DeviceModel { get; set; } = DeviceInfo.Current.Model;
+    public string? DeviceModel { get; set; } 
     /// <summary>
     /// Gets or sets the device manufacturer.
     /// </summary>
     /// <value>
     /// The device manufacturer.
     /// </value>
-    public string? DeviceManufacturer { get; set; } = DeviceInfo.Current.Manufacturer;
+    public string? DeviceManufacturer { get; set; } 
     /// <summary>
     /// Gets or sets the device version.
     /// </summary>
@@ -103,7 +103,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The device version.
     /// </value>
     
-    public string? DeviceVersion { get; set; } = DeviceInfo.Current.VersionString;
+    public string? DeviceVersion { get; set; } 
     /// <summary>
     /// Initializes a new instance of the <see cref="DimmerPlayEvent"/> class.
     /// </summary>

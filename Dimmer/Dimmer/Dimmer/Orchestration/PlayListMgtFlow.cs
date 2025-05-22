@@ -201,6 +201,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
 
             
         }
+        
         _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
 
     }

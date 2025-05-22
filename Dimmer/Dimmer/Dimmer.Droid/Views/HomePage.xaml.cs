@@ -320,7 +320,7 @@ public partial class HomePage : ContentPage
         {
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+              await  MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {
@@ -631,7 +631,7 @@ public partial class HomePage : ContentPage
         {
             if (MyViewModel.CurrentPositionInSeconds.IsZeroOrNaN())
             {
-                MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
+               await MyViewModel.PlaySong(MyViewModel.TemporarilyPickedSong, CurrentPage.HomePage);
             }
             else
             {

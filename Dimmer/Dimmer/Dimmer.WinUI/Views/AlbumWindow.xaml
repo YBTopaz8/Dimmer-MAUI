@@ -96,7 +96,7 @@
                                         </VerticalStackLayout>
 
                                             <VerticalStackLayout BackgroundColor="Transparent" Grid.Column="1">
-                                            <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"  HorizontalOptions="End"/>
                                             <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
                                 Source="lyrics.png">
 

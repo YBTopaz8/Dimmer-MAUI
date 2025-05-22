@@ -107,9 +107,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
-    public void LoadAndPlaySongTapped(SongModelView song)
+    public async void LoadAndPlaySongTapped(SongModelView song)
     {
-        PlaySong(song, CurrentPage.HomePage);
+      await  PlaySong(song, CurrentPage.HomePage);
 
     }
 

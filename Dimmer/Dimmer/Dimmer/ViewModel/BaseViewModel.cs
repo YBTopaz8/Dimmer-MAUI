@@ -4,6 +4,7 @@ using Dimmer.Interfaces.Services;
 //using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.FileProcessorUtils;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 //using Parse;
 //using Parse.Infrastructure;
@@ -168,10 +169,16 @@ public partial class BaseViewModel : ObservableObject
     // and more methods etc 
 
     [ObservableProperty]
-    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; internal set; }
+    public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; internal set; }
+    public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; set; }
 
+    public void SetSelectedAlbumsSongs(ObservableCollection<SongModelView>? songs)
+    {
+
+        SelectedAlbumsSongs = songs;
+        
+    }
 
     [RelayCommand]
     public async Task LogoutUser()
@@ -493,7 +500,7 @@ public partial class BaseViewModel : ObservableObject
         //await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
     }
 
-    public void PlaySong(
+    public async Task PlaySong(
      SongModelView song,
      CurrentPage source,
      IEnumerable<SongModelView>? listOfSongs = null)
@@ -546,7 +553,7 @@ public partial class BaseViewModel : ObservableObject
             _stateService.SetCurrentPlaylist( domainList,  CustomPlaylist);
         }
 
-        SongsMgtFlow.SetPlayState();
+       await  SongsMgtFlow.SetPlayState();
     }
 
     public void PlayNext(bool IsByUser)
@@ -758,7 +765,7 @@ public partial class BaseViewModel : ObservableObject
 
     //[ObservableProperty]
     //public partial DimmerSharedSong? SharedSong { get; set; }
-    public async Task FetchSharedSongById(string songId)
+    public void FetchSharedSongById(string songId)
     {
         //SharedSong = await dimmerLiveStateService.FetchSharedSongByCodeAsync(songId);
 

@@ -316,7 +316,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             .Subscribe(status => Debug.WriteLine(status));
 
 
-            await CloudCodeToSetSession();
+            //await CloudCodeToSetSession();
 
 
         }
@@ -358,7 +358,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             return;
         }
     }
-    async Task CloudCodeToSetSession()
+    void CloudCodeToSetSession()
     {
         // Gather device information
         // Using DeviceInfo.Name as the primary identifier for the session as per your cloud code's query
@@ -371,9 +371,12 @@ public class DimmerLiveStateService : IDimmerLiveStateService
                        (DeviceInfo.Current.Name + "_" + DeviceInfo.Current.Model + "_" + System.Net.Dns.GetHostName()).Replace(" ", "_") : // Make it more filesystem/DB friendly
                        DeviceInfo.Current.Platform.ToString();
 
+        //var deviceIdiom 
+        //var deviceOSVersion 
+        UserDeviceSession devSess = new();
+
         var deviceIdiom = DeviceInfo.Current.Idiom.ToString();
         var deviceOSVersion = DeviceInfo.Current.VersionString;
-        UserDeviceSession devSess = new();
         devSess.DeviceIdiom = deviceIdiom;
         devSess.DeviceName = deviceName;
         devSess.DeviceId = deviceId;
@@ -496,7 +499,7 @@ public class DimmerLiveStateService : IDimmerLiveStateService
             .Subscribe(status => Debug.WriteLine(status));
 
 
-            await CloudCodeToSetSession();
+            //await CloudCodeToSetSession();
 
 
         }

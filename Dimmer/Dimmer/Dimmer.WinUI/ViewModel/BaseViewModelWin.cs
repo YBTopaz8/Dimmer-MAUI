@@ -138,7 +138,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
 
     [RelayCommand]
-    public async Task OpenSpecificChatConversation(string userId)
+    public void OpenSpecificChatConversation(string userId)
     {
 
         

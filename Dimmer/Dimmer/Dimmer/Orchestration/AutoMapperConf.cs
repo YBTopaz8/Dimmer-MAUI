@@ -8,12 +8,19 @@ public static class AutoMapperConf
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<SongModel, SongModelView>().ReverseMap();            
-            cfg.CreateMap<SongModelView, SongModelView>();            
-            cfg.CreateMap<AlbumModel, AlbumModelView>().ReverseMap()
-            .ForMember(dest => dest.Name, opt => opt.Ignore())
-            .ReverseMap();
-            cfg.CreateMap<ArtistModel, ArtistModelView>().ReverseMap();            
+            cfg.CreateMap<SongModel, SongModelView>()
+            .PreserveReferences().ReverseMap()
+            .PreserveReferences();
+
+            cfg.CreateMap<AlbumModel, AlbumModelView>()
+                .PreserveReferences(); // Add this
+            cfg.CreateMap<AlbumModelView, AlbumModel>()
+                .ForMember(dest => dest.Name, opt => opt.Ignore())
+                .PreserveReferences();
+
+            cfg.CreateMap<ArtistModel, ArtistModelView>().PreserveReferences().ReverseMap().PreserveReferences();   
+            
+
             cfg.CreateMap<UserNoteModel, UserNoteModelView>().ReverseMap();            
             cfg.CreateMap<UserNoteModel, UserModelOnline>().ReverseMap();
             cfg.CreateMap<UserModelOnline, UserModelView>().ReverseMap();
@@ -28,6 +35,7 @@ public static class AutoMapperConf
             ;
             cfg.CreateMap<LyricPhraseModel, LyricPhraseModelView>().ReverseMap();            
         });
+        //config.AssertConfigurationIsValid();
 
         return config.CreateMapper();
     }
