@@ -771,9 +771,9 @@ x:Name="NoLyricsFoundMsg" IsVisible="False"
                                             <DataTemplate x:DataType="modeltwo:WindowInfo">
                                                 <VerticalStackLayout>
                                                     <HorizontalStackLayout HorizontalOptions="End">
-                                                        <syncf:SfChip Text="Focus" x:Name="FocusChip"
+                                                        <syncf:SfChip Text="Focus" x:Name="FocusChip" TextColor="White" FontSize="20"
                                                                           Clicked="FocusChip_Clicked"/>
-                                                        <syncf:SfChip Text="Close" x:Name="CloseSubWindowChip"
+                                                        <syncf:SfChip Text="Close" x:Name="CloseSubWindowChip" TextColor="White" FontSize="20"
                                                                           Clicked="CloseSubWindowChip_Clicked"/>
                                                     </HorizontalStackLayout>
 

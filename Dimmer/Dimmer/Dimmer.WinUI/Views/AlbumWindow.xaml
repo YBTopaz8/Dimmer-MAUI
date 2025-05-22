@@ -34,10 +34,31 @@
 
                 <Grid   BackgroundColor="Transparent" IsVisible="True"
                 RowDefinitions="Auto,*">
-                    <ImageButton Source="restartcircle.png" HeightRequest="40"
-                      x:Name="ResetAlbumSongsList"/>
+                    <!--<syncf:SfChipGroup Grid.Column="0" 
+                   ChipClicked="AlbumArtistsGroup_ChipClicked"
+                  x:Name="AlbumArtistsGroup" 
+                                       ChipType="Filter"
+                          DisplayMemberPath="Name"
+                 HeightRequest="280" HorizontalOptions="Start"
+                  ItemsSource="{Binding SelectedAlbumArtists}">
+                        <syncf:SfChipGroup.ItemTemplate>
+                            <DataTemplate x:DataType="models:ArtistModelView">
+
+                                <Label Text="{Binding Name}" x:Name="Artist"                    
+                          />
+
+                            </DataTemplate>
+                        </syncf:SfChipGroup.ItemTemplate>
+
+                    </syncf:SfChipGroup>-->
+                   
                     <HorizontalStackLayout HorizontalOptions="End" Grid.Row="0">
+                        <ImageButton Source="restartcircle.png" HeightRequest="40"
+  x:Name="ResetAlbumSongsList"
+             />
+                        <Label Text="{Binding SelectedAlbumArtists.Count}"/>
                         <SearchBar Grid.Row="0" 
+                                   
   HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
      Placeholder="Search Song..."/>
 

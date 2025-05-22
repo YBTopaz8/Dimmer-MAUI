@@ -275,13 +275,13 @@ public static class NerdySongStats
 
     // 5. "Eventfulness Score": (Plays + Skips + Pauses + Seeks) / DaysSinceFirstPlayed
     // (Requires SongStats.GetPauseCount, SongStats.GetSeekCount, SongStats.GetDaysSinceFirstPlayed)
-    //public static double GetEventfulnessScore(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
+    //public static double GetEventfulnessScore(SongModel song, IReadOnlyCollection<DimmerPlayEvent> Events)
     //{
-    //    int plays = SongStats.GetPlayCount(song, events);
-    //    int skips = SongStats.GetSkipCount(song, events);
-    //    //int pauses = SongStats.GetPauseCount(song, events); // Assuming this exists
-    //    //int seeks = SongStats.GetSeekCount(song, events);   // Assuming this exists
-    //    //double daysSinceFirst = SongStats.GetDaysSinceFirstPlayed(song, events); // Assuming this exists
+    //    int plays = SongStats.GetPlayCount(song, Events);
+    //    int skips = SongStats.GetSkipCount(song, Events);
+    //    //int pauses = SongStats.GetPauseCount(song, Events); // Assuming this exists
+    //    //int seeks = SongStats.GetSeekCount(song, Events);   // Assuming this exists
+    //    //double daysSinceFirst = SongStats.GetDaysSinceFirstPlayed(song, Events); // Assuming this exists
     //    //if (daysSinceFirst == 0)
     //        //return plays + skips + pauses + seeks; // Avoid division by zero
     //    //return (plays + skips + pauses + seeks) / daysSinceFirst;
@@ -398,7 +398,7 @@ public static class NerdySongStats
     }
 
     // 14. "Fibonacci Skip Interval": Were skips N, N+M, N+M+K where N,M,K are Fibonacci numbers?
-    // (Very complex to track specific skip events, this is more conceptual)
+    // (Very complex to track specific skip Events, this is more conceptual)
     // Simplified: Is the total number of skips a Fibonacci number?
     public static bool IsSkipCountFibonacci(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
     {
@@ -474,7 +474,7 @@ public static class NerdySongStats
         return events.Count(e => e.SongId == song.Id && isFullMoonOracle(e.DatePlayed));
     }
 
-    // 20. "Bitwise Playfulness": XOR sum of (PlayType * DayOfWeek) for all play events.
+    // 20. "Bitwise Playfulness": XOR sum of (PlayType * DayOfWeek) for all play Events.
     public static int GetBitwisePlayfulnessScore(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
     {
         if (song == null || events == null)

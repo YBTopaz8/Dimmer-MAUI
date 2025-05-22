@@ -257,7 +257,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         _currentTrackMetadata = songModel;
         Debug.WriteLine($"[AudioService] Initializing track: {songModel.Title ?? "Unknown"}");
-        UpdatePlaybackState(DimmerPlaybackState.Opening);
         OnPropertyChanged(nameof(CurrentTrackMetadata));
 
         // Ensure player is stopped before changing source

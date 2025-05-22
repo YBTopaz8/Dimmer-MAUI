@@ -92,7 +92,7 @@ public class QueueManager<T> : IQueueManager<T>
         }
     }
 
-    // move forward, wrap to 0, then fire events
+    // move forward, wrap to 0, then fire Events
     /// <summary>
     /// Nexts this instance.
     /// </summary>
@@ -108,7 +108,7 @@ public class QueueManager<T> : IQueueManager<T>
         return item;
     }
 
-    // move backward, wrap to last, then fire events
+    // move backward, wrap to last, then fire Events
     /// <summary>
     /// Previouses this instance.
     /// </summary>

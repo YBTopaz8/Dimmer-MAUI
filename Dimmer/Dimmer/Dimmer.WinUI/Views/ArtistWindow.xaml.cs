@@ -1,3 +1,5 @@
+using Syncfusion.Maui.Toolkit.Carousel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.Views;
@@ -34,18 +36,72 @@ public partial class ArtistWindow : Window
     {
         View send = (View)sender;
         SongModelView? song = (SongModelView)send.BindingContext;
+        var songs = ArtistSongsColView.ItemsSource as ObservableCollection<SongModelView>;
 
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
-            await MyViewModel.PlaySong(song);
+            await MyViewModel.PlaySong(song, CurrentPage.AllArtistsPage, songs);
         }
 
     }
 
     public void SetTitle(SongModelView song)
     {
-        this.Title = $"{song.AlbumName} by {song.ArtistName}";
+        this.Title = $"Artist : {song.AlbumName} by {song.ArtistName}";
+        
     }
 
+    private void ArtistsAlbumsGroup_ChipClicked(object sender, EventArgs e)
+    {
+        SfChip send = (sender as SfChip)!;
+
+        var album = send.BindingContext as AlbumModelView;
+        var song = MyViewModel.SelectedArtistSongs?[0]!;
+        MyViewModel.OpenAlbumPage(song, album);
+        PlatUtils.OpenAlbumWindow(song);
+    }
+
+    private void SfChip_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistsAlbumsGroup_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void ArtistsAlbumsGroup_TouchUp(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistsAlbumsGroup_SwipeEnded(object sender, EventArgs e)
+    {
+        
+
+    }
+
+    private void ArtistsAlbumsGroup_SelectionChanged_1(object sender, Syncfusion.Maui.Toolkit.Carousel.SelectionChangedEventArgs e)
+    {
+
+        var carousel = (SfCarousel)sender;
+        var item = carousel.SelectedIndex;
+        var album = carousel.ItemsSource as ObservableCollection<AlbumModelView>;
+        var selectedAlbum = album?[item];
+        var albumDb = BaseAppFlow.MasterAlbumList?.FirstOrDefault(x => x.Id == selectedAlbum?.Id);
+        var songDb = albumDb?.Songs;
+
+        var map = IPlatformApplication.Current?.Services.GetService<IMapper>();
+
+        var songss = map?.Map<ObservableCollection<SongModelView>>(songDb);
+        if (songss != null)
+        {
+            MyViewModel.SelectedArtistSongs = songss;
+            Debug.WriteLine(album?.Count);
+            ArtistSongsColView.ItemsSource = songss;
+        }
+
+    }
 }

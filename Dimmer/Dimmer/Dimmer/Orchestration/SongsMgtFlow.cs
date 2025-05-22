@@ -39,7 +39,7 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
         // keep AllCurrentSongsList in sync with the global AllCurrentSongs stream
 
-        // Map audio‑service events into observables
+        // Map audio‑service Events into observables
         var playingChanged = Observable
             .FromEventPattern<PlaybackEventArgs>(
                 h => _audio.IsPlayingChanged += h,
@@ -113,7 +113,6 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
                           })
                 );
     }
-
     public async Task PlaySongInAudioService()
     {
         if (string.IsNullOrWhiteSpace(CurrentlyPlayingSong.FilePath))
@@ -127,7 +126,6 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
 
         await _audio
             .InitializeAsync(CurrentlyPlayingSong, cover);
-
         await _audio.PlayAsync();
 
         PlaySong();  // BaseAppFlow: records Play link

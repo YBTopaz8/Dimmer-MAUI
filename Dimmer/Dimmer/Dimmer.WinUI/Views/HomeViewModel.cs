@@ -105,9 +105,9 @@ public partial class HomeViewModel : BaseViewModelWin
         //ScrollToCurrentlyPlayingSong();
     }
 
-    public async void PlaySongOnDoubleTap(SongModelView song)
+    public async void PlaySongOnDoubleTap(SongModelView song, IEnumerable<SongModelView>? listOfSongs)
     {
-      await  PlaySong(song, CurrentPage.HomePage);
+        await  PlaySong(song, CurrentPage.HomePage, listOfSongs);
         var win = IPlatformApplication.Current!.Services.GetService<DimmerWin>()!;
         win.SetTitle(song);
     }

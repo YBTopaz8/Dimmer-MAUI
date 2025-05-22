@@ -25,7 +25,6 @@ public sealed partial class TestPage : Window
         SongModelView? song = (SongModelView)view.DataContext;
 
         song?.IsCurrentPlayingHighlight = false;
-        MyViewModel.PlaySongOnDoubleTap(song!);
     }
 
     private void Slider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)

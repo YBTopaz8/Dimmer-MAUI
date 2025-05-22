@@ -142,7 +142,7 @@ public static class SongStats
         => events.Count(e => e.SongId == song.Id && e.PlayType == 5 && song.DurationInSeconds > 0 && e.PositionInSeconds / song.DurationInSeconds >= 0.5);
 
     // 22. Number of play sessions with lyric view opened
-    // (Assuming you have play events for when lyrics opened)
+    // (Assuming you have play Events for when lyrics opened)
     public static int GetLyricViewSessions(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
         => events.Count(e => e.SongId == song.Id && e.PlayType == 10); // suppose 10 = LyricView
 
@@ -294,7 +294,7 @@ public static class SongComparison
         return a >= b ? songA : songB;
     }
 
-    // 21. Who has more play events at night? (20:00-5:00)
+    // 21. Who has more play Events at night? (20:00-5:00)
     public static SongModel GetMoreNightPlays(SongModel songA, SongModel songB, IReadOnlyCollection<DimmerPlayEvent> events)
     {
         int a = events.Count(e => e.SongId == songA.Id && (e.DatePlayed.Hour >= 20 || e.DatePlayed.Hour <= 5));

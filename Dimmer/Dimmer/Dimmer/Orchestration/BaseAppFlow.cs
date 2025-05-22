@@ -30,7 +30,7 @@ public class BaseAppFlow : IDisposable
     public readonly IMapper _mapper;
     private bool _disposed;
 
-    public SongModelView CurrentlyPlayingSong { get; set; } = new();
+    public static SongModelView CurrentlyPlayingSong { get; set; } = new();
     
 
     public bool  IsShuffleOn
@@ -71,6 +71,9 @@ public class BaseAppFlow : IDisposable
     }
     public static AppStateModelView DimmerAppState { get; set; }
     public static IReadOnlyCollection<SongModel> MasterList { get; internal set; }
+    public static IReadOnlyCollection<ArtistModel> MasterArtistList { get; internal set; }
+    public static IReadOnlyCollection<AlbumModel> MasterAlbumList { get; internal set; }
+    public static IReadOnlyCollection<PlaylistModel> MasterPlaylistList { get; internal set; }
     public static IReadOnlyCollection<DimmerPlayEvent> MasterListEvents { get; internal set; }
 
     public static bool IsAppInitialized;
@@ -78,7 +81,7 @@ public class BaseAppFlow : IDisposable
     {
 
 
-       var DimmerAppStates = _appstateRepo.GetAll().ToList();
+        var DimmerAppStates = _appstateRepo.GetAll().ToList();
         var usrs = _userRepo.GetAll().ToList();
         if (usrs is null || usrs.Count <1)
         {
@@ -101,12 +104,12 @@ public class BaseAppFlow : IDisposable
 
             };
             _appstateRepo.AddOrUpdate(_mapper.Map<AppStateModel>(DimmerAppState));
-            
+
         }
         else
         {
             DimmerAppState = _mapper.Map<AppStateModelView>(DimmerAppStates[0]);
-            
+
 
         }
         if (isAppInit)
@@ -115,26 +118,41 @@ public class BaseAppFlow : IDisposable
         }
         //folderMgt.RestartWatching();
         IsAppInitialized = isAppInit; // Assigning to the static field only when the condition is met
-        MasterList = [.. _songRepo
-            .GetAll(true)];
+        InitAllMasterLists();
 
-        MasterListEvents = [.. _pdlRepo
-            .GetAll(false)];
         SubscribeToStateChanges();
 
         _state.SetCurrentPlaylist([], null);
-       
+
         if (MasterList.Count < 1 && !isAppInit)
         {
 
             AppUtils.IsUserFirstTimeOpening = true;
             return;
         }
-        
+
         _state.SetSecondSelectdSong(MasterList.First());
         _state.SetCurrentSong(MasterList.First());
-        
-       
+
+
+    }
+
+    private void InitAllMasterLists()
+    {
+        MasterList = [.. _songRepo
+            .GetAll(true)];
+
+        MasterListEvents = [.. _pdlRepo
+            .GetAll(false)];
+
+        MasterArtistList = [.. _artistRepo
+            .GetAll(false)];
+
+        MasterAlbumList = [.. _albumRepo
+            .GetAll(false)];
+
+        MasterPlaylistList = [.. _playlistRepo
+            .GetAll(false)];
     }
 
     private void LoadUser()

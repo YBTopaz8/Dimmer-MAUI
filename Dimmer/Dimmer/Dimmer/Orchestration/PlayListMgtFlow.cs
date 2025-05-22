@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Dimmer.Utilities.Extensions;
+using System.Threading.Tasks;
 
 namespace Dimmer.Orchestration;
 
@@ -57,7 +58,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
             var neww = _state;
             Debug.WriteLine(_state?.GetType());
         }));
-        // 3) react to playback events
+        // 3) react to playback Events
         _subs.Add(
             _state.CurrentSong
                   .DistinctUntilChanged()
@@ -81,7 +82,7 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
                           case DimmerPlaybackState.PausedUI:
                               break;
                           case DimmerPlaybackState.Loading:
-                              OnPlaybackStateChanged(DimmerPlaybackState.Playing);
+                              await OnPlaybackStateChanged(DimmerPlaybackState.Playing);
                               break;
                           case DimmerPlaybackState.Error:
                               break;
@@ -185,26 +186,51 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         );
     }
 
-  
-
     private async Task OnPlaybackStateChanged(DimmerPlaybackState st)
     {
-        switch (st)
+        // Defensive: fallback to master list if queue is null
+        var queue = BaseViewModel.CurrentQueue?.ToList();
+        if (queue == null || queue.Count == 0)
         {
-            case DimmerPlaybackState.PlayPreviousUI:
-            case DimmerPlaybackState.PlayPreviousUser:
-                SetPreviousInQueue();                 
-                break;
-            case DimmerPlaybackState.PlayNextUI:
-            case DimmerPlaybackState.PlayNextUser:
-            case DimmerPlaybackState.Ended:                
-                SetNextSongInQueue();
-                break;
-
-            
+            queue = _mapper.Map<List<SongModelView>>(MasterList);
         }
-        
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, null));
+        int currentIdx = queue.FindIndex(x => x.Id == CurrentlyPlayingSong?.Id);
+
+        if (currentIdx < 0)
+            currentIdx = 0;
+
+        SongModel? currentSongdb = null;
+
+        if (DimmerStateService.IsShuffleOn)
+        {
+            queue.ShuffleInPlace();
+            currentSongdb = _mapper.Map<SongModel>(queue.FirstOrDefault());
+        }
+        else
+        {
+            switch (st)
+            {
+                case DimmerPlaybackState.PlayPreviousUI:
+                case DimmerPlaybackState.PlayPreviousUser:
+                    currentIdx = (currentIdx - 1 + queue.Count) % queue.Count; // Wrap around
+                    break;
+                case DimmerPlaybackState.PlayNextUI:
+                case DimmerPlaybackState.PlayNextUser:
+                case DimmerPlaybackState.Ended:
+                    currentIdx = (currentIdx + 1) % queue.Count; // Wrap around
+                    break;
+                default:
+                    break;
+            }
+            currentSongdb =  _mapper.Map<SongModel>(queue.ElementAtOrDefault(currentIdx));
+        }
+
+        if (currentSongdb != null)
+        {
+            CurrentlyPlayingSong =  _mapper.Map<SongModelView>(currentSongdb);
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerPlaybackState.Playing, currentSongdb));
+        }
+
         var songmgt = IPlatformApplication.Current.Services.GetService<SongsMgtFlow>();
         await songmgt.SetPlayState();
     }
@@ -215,10 +241,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         _state.SetCurrentPlaylist(q);
     }
 
-    private void SetNextSongInQueue()
+    private void SetNextSongInQueue(SongModel? next)
     {
 
-        var next = _mapper.Map<SongModel>(_queue.Next());
 
         if (next != null)
         {
@@ -229,10 +254,9 @@ public class PlayListMgtFlow : BaseAppFlow, IDisposable
         }
             
     }
-    private void SetPreviousInQueue()
+    private void SetPreviousInQueue(SongModel? prev)
     {
 
-        var prev = _mapper.Map<SongModel>(_queue.Previous());
 
         if (prev != null)
         {

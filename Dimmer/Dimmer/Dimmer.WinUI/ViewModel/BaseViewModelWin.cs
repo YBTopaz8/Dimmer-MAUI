@@ -64,7 +64,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
     {
         IsSettingWindoOpened=true;
 
-        var win = Application.Current.Windows[0];
+        var win = Application.Current!.Windows[0];
         
 
         PlatUtils.OpenSettingsWindow();
@@ -83,7 +83,7 @@ public partial class BaseViewModelWin : BaseViewModel, IDisposable
 
     private void SubscribeToPosition()
     {
-
+        
         
         _subs.Add(SongsMgtFlow.Position
             .Synchronize(SynchronizationContext.Current!)

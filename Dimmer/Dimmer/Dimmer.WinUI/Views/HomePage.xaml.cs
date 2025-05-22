@@ -186,8 +186,8 @@ public partial class HomePage : ContentPage
         
         SongModelView? song = (SongModelView)send.BindingContext;
         song?.IsCurrentPlayingHighlight = false;
-
-       MyViewModel.PlaySongOnDoubleTap(song!);
+        var songs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
+        MyViewModel.PlaySongOnDoubleTap(song!, songs);
     }
     private void UserHoverOnSongInColView(object sender, PointerEventArgs e)
     {
@@ -388,10 +388,10 @@ public partial class HomePage : ContentPage
                         continue;
                     }
                     // 1) get a pure Win32 snapshot
-                    var thumbnail = win.CaptureWindow();
+                    //var thumbnail = win.CaptureWindow();
 
                     // 2) build your info object
-                    var info = new WindowInfo(win, thumbnail);
+                    var info = new WindowInfo(win, null);
                     MyViewModel.WindowsOpened!.Add(info);
 
                     Debug.WriteLine($"Captured: {info.Title} ({info.TypeName}) " +
@@ -774,7 +774,27 @@ public partial class HomePage : ContentPage
 
         var send = (SfChip)sender;
         var item = (WindowInfo)send.BindingContext;
-       Task.Run(()=>  Application.Current!.ActivateWindow(item.WindowInstance));
+        Application.Current!.ActivateWindow(item.WindowInstance);
+            return;
+        Application.Current!.Dispatcher.Dispatch(() =>
+        {
+            try
+            {
+                Application.Current.ActivateWindow(item.WindowInstance);
+            }
+            catch (System.Runtime.InteropServices.COMException comEx)
+            {
+                // Log the COMException details for further investigation
+                System.Diagnostics.Debug.WriteLine($"COMException during ActivateWindow: {comEx.Message}\n{comEx.StackTrace}");
+                // Potentially show a user-friendly error message
+            }
+            catch (Exception ex)
+            {
+                // Log any other exceptions
+                System.Diagnostics.Debug.WriteLine($"Exception during ActivateWindow: {ex.Message}\n{ex.StackTrace}");
+            }
+        });
+        //Task.Run(()=>  Application.Current!.ActivateWindow(item.WindowInstance));
     }
 
     private void CloseAllWin_Clicked(object sender, EventArgs e)
@@ -871,50 +891,54 @@ public partial class HomePage : ContentPage
     {
         var send = (SfEffectsView)sender;
         var param = send.TouchUpCommandParameter.ToString();
-        ObservableCollection<SongModelView> currSongs = (SongsColView.ItemsSource as ObservableCollection<SongModelView>)!;
+        var currSongs = SongsColView.ItemsSource as ObservableCollection<SongModelView>;
         Debug.WriteLine(SongsColView.ItemsSource.GetType());
         bool isSameParam = param == currParam;
-        switch (param)
+        if (currSongs is null)
+        {
+            return;
+        }
+         switch (param)
         {
             case "title":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Title).ToObservableCollection();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Title).ToObservableCollection();
                 }
                     break;
             case "artist":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.ArtistName).ToObservableCollection();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.ArtistName).ToObservableCollection();
                 }
                 break;
             case "album":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Album?.Name).ToObservableCollection();
                 }
                 else
                 {
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Album?.Name).ToObservableCollection();
                 }
                 break;
             case "genre":
                 if (isSameParam)
                 {
-                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderByDescending(x => x.Genre?.Name).ToObservableCollection();
                 }
                 else
                 {
                     
-                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name).ToList();
+                    SongsColView.ItemsSource = currSongs.OrderBy(x => x.Genre?.Name).ToObservableCollection();
                 }
                 break;
 

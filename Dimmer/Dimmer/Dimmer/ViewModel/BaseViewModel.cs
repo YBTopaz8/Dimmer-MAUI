@@ -3,6 +3,7 @@ using Dimmer.Interfaces.Services;
 
 //using Dimmer.DimmerLive.Models;
 using Dimmer.Utilities.FileProcessorUtils;
+using Dimmer.Utilities.StatsUtils;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ZXing;
@@ -42,6 +43,7 @@ public partial class BaseViewModel : ObservableObject
     }
     #region Settings Section
 
+    
 
     [ObservableProperty]
     public partial SongModelView SelectedSong { get; set; }
@@ -88,6 +90,8 @@ public partial class BaseViewModel : ObservableObject
     public LyricsMgtFlow LyricsMgtFlow { get; }
     [ObservableProperty]
     public partial bool IsShuffle { get; set; }
+
+
 
     [ObservableProperty]
     public partial bool IsStickToTop {get;set;}
@@ -151,11 +155,13 @@ public partial class BaseViewModel : ObservableObject
         }
     }
     [ObservableProperty]
-    public partial AlbumModelView? SelectedAlbum { get; internal set; }
+    public partial AlbumModelView? SelectedAlbum { get; set; }
     [ObservableProperty]
-    public partial ArtistModelView? Selectedartist { get; internal set; }
+    public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
     [ObservableProperty]
-    public partial PlaylistModelView? SelectedPlaylist { get; internal set; }
+    public partial ArtistModelView? SelectedArtist { get; set; }
+    [ObservableProperty]
+    public partial PlaylistModelView? SelectedPlaylist { get; set; }
     [RelayCommand]
     public void FullyBackUpData()
     {
@@ -181,6 +187,14 @@ public partial class BaseViewModel : ObservableObject
     public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
+    [ObservableProperty]
+    public partial CollectionStatsSummary ArtistCurrentColStats { get; private set; }
+    [ObservableProperty]
+    public partial CollectionStatsSummary AlbumCurrentColStats { get; private set; }
 
     public void SetSelectedAlbumsSongs(IEnumerable<SongModelView>? songs)
     {
@@ -193,48 +207,88 @@ public partial class BaseViewModel : ObservableObject
     public void SetSelectedArtistSongs(IEnumerable<SongModel>? songs)
     {
         var s = _mapper.Map<ObservableCollection<SongModelView>>(songs);
+        
         SelectedArtistSongs = s;
     }
-    public void OpenAlbumPage(SongModelView song)
+    public void OpenAlbumPage(SongModelView song, AlbumModelView? albumParam=null)
     {
-        //show the albums songs
-        var songg = BaseAppFlow.MasterList.First(x => x.Id == song.Id);
-        
-        var songgs = BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(songg.Album?.Songs);
+        AlbumModel? album = null;
+        ObservableCollection<SongModelView>? songgs =null;
 
-        //var songB = albumSongs[2];
-        //var artistB = songB.ArtistIds[0];
-        //var songC = artistB.Songs;
-        SetSelectedAlbumsSongs(songgs);
-        
-    }
-    public async Task OpenArtistPage(SongModelView song)
-    {
-        var songdb = BaseAppFlow.MasterList.First(x => x.Id==song.Id);
-        int NumberOfArtists = songdb.ArtistIds.Count;
-        string selectedArtist = string.Empty;
-        if (NumberOfArtists > 1)
+        List<SongModel>? songDb = null;
+        if (albumParam is null)
         {
-            var result = await Shell.Current.DisplayActionSheet("Choose Artist",
-                "Cancel", "OK", songdb.ArtistIds.Select(x => x.Name).ToArray());
-            if (result == "Ok" || result == "Cancel" || result is null)
-            {
-                return;
-            }
+            var songg = BaseAppFlow.MasterList.First(x => x.Id == song.Id);
+            songDb = songg.Album?.Songs?.ToList();  
+            songgs ??= BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(songDb);
 
-            selectedArtist= result;
+            var albumArtist = songDb?
+                .SelectMany(s => s.ArtistIds)
+                .Distinct()
+            .ToList();
+
+            SelectedAlbumArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(albumArtist);
+
         }
         else
         {
-            selectedArtist=songdb.ArtistName;
+            
+            album= BaseAppFlow.MasterAlbumList.First(x => x.Id==albumParam.Id);
+            songDb = album.Songs?.ToList();
+            var e = songDb[0].ArtistIds.ToList();
+            songgs = _mapper.Map<ObservableCollection<SongModelView>>(songDb);
+            SelectedAlbumArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(e);
         }
 
-            var artist = songdb.ArtistIds.Where(x => x.Name==selectedArtist).First();
-        var songs = artist.Songs;
+        SetSelectedAlbumsSongs(songgs);
+        ArtistCurrentColStats = CollectionStats.GetSummary(songDb);
+    }
+    public async Task OpenArtistPage(SongModelView? song, ArtistModelView? artistParam=null)
+    {
+        ArtistModel? artist = null;
+        if (artistParam is null)
+        {
 
+                var songdb = BaseAppFlow.MasterList.First(x => x.Id==song.Id);
+            int NumberOfArtists = songdb.ArtistIds.Count;
+            string selectedArtist = string.Empty;
+            if (NumberOfArtists > 1)
+            {
+                var result = await Shell.Current.DisplayActionSheet("Choose Artist",
+                    "Cancel", "OK", songdb.ArtistIds.Select(x => x.Name).ToArray());
+                if (result == "Ok" || result == "Cancel" || result is null)
+                {
+                    return;
+                }
+
+                selectedArtist= result;
+            }
+            else
+            {
+                selectedArtist=songdb.ArtistName;
+            }
+
+             artist =  songdb.ArtistIds.Where(x => x.Name==selectedArtist).First();
+        }
+        else
+        {
+            artist= BaseAppFlow.MasterArtistList.First(x=>x.Id==artistParam.Id);
+            
+        }
+            var songs = artist.Songs.ToList();
+        //var SongArtists = songdb.ArtistIds.ToObservableCollection();
+        //SelectedSongArtists = _mapper.Map<ObservableCollection<ArtistModelView>>(SongArtists);
+        
+        var albumsByArtist  = songs.Where(songs => songs.Album != null)
+            .Select(x => x.Album)
+            .Distinct()
+            .ToList();
+
+        SelectedArtistAlbums = _mapper.Map<ObservableCollection<AlbumModelView>>(albumsByArtist);
 
         SetSelectedArtistSongs(songs);
-        
+        AlbumCurrentColStats = CollectionStats.GetSummary(songs);
+
     }
     [RelayCommand]
     public async Task LogoutUser()
@@ -556,17 +610,23 @@ public partial class BaseViewModel : ObservableObject
         //await dimmerLiveStateService.ShareSongOnline(SecondSelectedSong, CurrentPositionInSeconds);
     }
 
+    public static List<SongModelView>? CurrentQueue { get; set; }
+
     public async Task PlaySong(
      SongModelView song,
      CurrentPage source,
      IEnumerable<SongModelView>? listOfSongs = null)
     {
+
+        if (listOfSongs is not null)
+        {            
+            CurrentQueue = [.. listOfSongs.ToList()];
+        }
         // 1) Un‑highlight the old song
         TemporarilyPickedSong?.IsCurrentPlayingHighlight = false;
 
         // 2) Highlight and pick the new song
         TemporarilyPickedSong = song;
-        song.IsCurrentPlayingHighlight = true;
 
         DimmerStateService.IsShuffleOn = IsShuffle;
 
@@ -909,18 +969,15 @@ public partial class BaseViewModel : ObservableObject
         AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
     }
 
-    public async Task PlaySong(SongModelView song)
-    {
-        SelectedSong.IsCurrentPlayingHighlight = false;
-        SelectedSong = song;
-        await PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
-
-    }
-
-    public void LoadAlbum()
-    {
-
-    }
+    //public async Task PlaySong(SongModelView song, IEnumerable<SongModelView>? songss=null)
+    //{
+    //    if (song != null)
+    //        SelectedAlbumsSongs=songss.ToObservableCollection();
+    //    SelectedSong.IsCurrentPlayingHighlight = false;
+    //    SelectedSong = song;
+    //    await PlaySong(song, CurrentPage.SpecificAlbumPage,  SelectedAlbumsSongs);
+        
+    //}
 
 
     public void Dispose()
