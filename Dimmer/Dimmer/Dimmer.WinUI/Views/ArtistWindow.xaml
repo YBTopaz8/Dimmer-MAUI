@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.WinUI.Views.ArtistWindow"
              Title="ArtistWindow"
+        xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+        x:DataType="vm:BaseViewModelWin"
             xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
             xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer" 
@@ -28,7 +30,7 @@
             </ContentPage.Resources>
 
             <Grid BackgroundColor="Transparent" >
-                <Image Source="{Binding SelectedAlbumsSongs[0].CoverImagePath}" Opacity="0.1"
+                <Image Source="{Binding SelectedArtistSongs[0].CoverImagePath}" Opacity="0.1"
                        x:Name="AlbumImg"/>
 
                 <Grid   BackgroundColor="Transparent" IsVisible="True"
@@ -43,8 +45,8 @@
                     </HorizontalStackLayout>
 
 
-                    <CollectionView x:Name="AlbumSongsColView" ItemsSource="{Binding SelectedAlbumsSongs}" BackgroundColor="Transparent"
-                            Grid.Row="1" Loaded="AlbumSongsColView_Loaded" IsVisible="True"
+                    <CollectionView x:Name="ArtistSongsColView" ItemsSource="{Binding SelectedArtistSongs}" BackgroundColor="Transparent"
+                            Grid.Row="1" Loaded="ArtistSongsColView_Loaded" IsVisible="True"
                             Margin="5,0" >
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
@@ -95,7 +97,7 @@
                                             </VerticalStackLayout>
 
                                             <VerticalStackLayout BackgroundColor="Transparent" Grid.Column="1">
-                                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}"/>
+                                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" HorizontalOptions="End"/>
                                                 <Image WidthRequest="20" IsVisible="{Binding HasLyrics}"
                                 Source="lyrics.png">
 

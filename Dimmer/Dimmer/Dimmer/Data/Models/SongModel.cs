@@ -58,6 +58,8 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The release year.
     /// </value>
+    [Backlink(nameof(PlaylistModel.Songs))]
+    public IQueryable<PlaylistModel> Playlists { get; }
     public int? ReleaseYear { get; set; }
     /// <summary>
     /// Gets or sets the track number.
@@ -215,6 +217,8 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public AlbumModel? Album { get;  set; }
     public GenreModel? Genre { get;  set; }
     public IList<ArtistModel> ArtistIds { get; }
+    [Backlink(nameof(TagModel.Songs))]
+    public IQueryable<TagModel> Tags { get; }
     [Backlink(nameof(DimmerPlayEvent.Song))]
     public IQueryable<DimmerPlayEvent> PlayHistory { get; }
     public SongModel()

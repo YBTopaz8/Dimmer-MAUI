@@ -232,10 +232,16 @@
                                           FontAttributes="Bold" FontSize="14"
                                           TextColor="White"/>
 
-                                        <syncf:SfChip ImageSource="artist.png"  Text="{Binding SecondSelectedSong.ArtistName}"
-                                 CommandParameter="6" TextColor="White"
+                                        <syncf:SfChip  Text="{Binding SecondSelectedSong.ArtistName}"
+                                 CommandParameter="6" TextColor="White" 
                                           FontSize="14"
-                                          FontAttributes="Italic"/>
+                                          FontAttributes="Italic">
+
+                                            <syncf:SfChip.ImageSource>
+                                                <FontImageSource FontFamily="FontAwesomeRegular" Glyph="User"
+                                                                 Color="DarkSlateBlue"/>
+                                            </syncf:SfChip.ImageSource>
+                                        </syncf:SfChip>
 
                                         <syncf:SfChip ImageSource="vinyl.png"                                      
                                           FontAttributes="Italic"
@@ -246,7 +252,9 @@
                                  CommandParameter="1" TextColor="White" Text="{Static lang:DimmerLanguage.txt_view}"/>
                                         <syncf:SfChip ImageSource="threesquares.png" Text="Control Panel"
                                  CommandParameter="5" TextColor="White" />
-                                        <syncf:SfChip ImageSource="lyricist.png" Text="{Static lang:DimmerLanguage.txt_Note}"
+                                        <syncf:SfChip ImageSource="lyricist.png" 
+                                                      IsVisible="False"
+                                                      Text="{Static lang:DimmerLanguage.txt_Note}"
                                  CommandParameter="6" TextColor="White" />
                                         <syncf:SfChip  Text="Scroll To"
                                  CommandParameter="7" TextColor="White">

@@ -5,6 +5,7 @@ using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.FileProcessorUtils;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using ZXing;
 
 //using Parse;
 //using Parse.Infrastructure;
@@ -151,6 +152,10 @@ public partial class BaseViewModel : ObservableObject
     }
     [ObservableProperty]
     public partial AlbumModelView? SelectedAlbum { get; internal set; }
+    [ObservableProperty]
+    public partial ArtistModelView? Selectedartist { get; internal set; }
+    [ObservableProperty]
+    public partial PlaylistModelView? SelectedPlaylist { get; internal set; }
     [RelayCommand]
     public void FullyBackUpData()
     {
@@ -172,17 +177,28 @@ public partial class BaseViewModel : ObservableObject
     public partial ObservableCollection<AlbumModelView>? SelectedAlbumsCol { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? SelectedAlbumsSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedArtistSongs { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView>? SelectedPlaylistSongs { get; set; }
 
-    public void SetSelectedAlbumsSongs(ObservableCollection<SongModelView>? songs)
+    public void SetSelectedAlbumsSongs(IEnumerable<SongModelView>? songs)
     {
 
-        SelectedAlbumsSongs = songs;
+        var s = _mapper.Map<ObservableCollection<SongModelView>>(songs);
+        SelectedAlbumsSongs = s;
         
     }
-    public void OpenAlbumWindow(SongModelView song)
+
+    public void SetSelectedArtistSongs(IEnumerable<SongModel>? songs)
+    {
+        var s = _mapper.Map<ObservableCollection<SongModelView>>(songs);
+        SelectedArtistSongs = s;
+    }
+    public void OpenAlbumPage(SongModelView song)
     {
         //show the albums songs
-        var songg = BaseAppFlow.MasterList.First(x => x.Id == SecondSelectedSong.Id);
+        var songg = BaseAppFlow.MasterList.First(x => x.Id == song.Id);
         
         var songgs = BaseAppFlow._mapper.Map<ObservableCollection<SongModelView>>(songg.Album?.Songs);
 
@@ -190,6 +206,34 @@ public partial class BaseViewModel : ObservableObject
         //var artistB = songB.ArtistIds[0];
         //var songC = artistB.Songs;
         SetSelectedAlbumsSongs(songgs);
+        
+    }
+    public async Task OpenArtistPage(SongModelView song)
+    {
+        var songdb = BaseAppFlow.MasterList.First(x => x.Id==song.Id);
+        int NumberOfArtists = songdb.ArtistIds.Count;
+        string selectedArtist = string.Empty;
+        if (NumberOfArtists > 1)
+        {
+            var result = await Shell.Current.DisplayActionSheet("Choose Artist",
+                "Cancel", "OK", songdb.ArtistIds.Select(x => x.Name).ToArray());
+            if (result == "Ok" || result == "Cancel" || result is null)
+            {
+                return;
+            }
+
+            selectedArtist= result;
+        }
+        else
+        {
+            selectedArtist=songdb.ArtistName;
+        }
+
+            var artist = songdb.ArtistIds.Where(x => x.Name==selectedArtist).First();
+        var songs = artist.Songs;
+
+
+        SetSelectedArtistSongs(songs);
         
     }
     [RelayCommand]
@@ -865,11 +909,11 @@ public partial class BaseViewModel : ObservableObject
         AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
     }
 
-    public void PlaySong(SongModelView song)
+    public async Task PlaySong(SongModelView song)
     {
         SelectedSong.IsCurrentPlayingHighlight = false;
         SelectedSong = song;
-        PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
+        await PlaySong(song, CurrentPage.SpecificAlbumPage, SelectedAlbumsSongs);
 
     }
 

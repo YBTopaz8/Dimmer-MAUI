@@ -100,6 +100,7 @@ public interface IDimmerAudioService
     /// Gets or sets the playback volume 0 to 1 where 0 is no-sound and 1 is full volume.
     /// </Summary>
     double Volume { get; set; }
+    SongModelView? CurrentTrackMetadata { get; }
 
     /// <summary>
     /// Occurs when [is playing changed].

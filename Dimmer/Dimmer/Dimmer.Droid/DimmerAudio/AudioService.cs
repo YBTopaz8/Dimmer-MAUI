@@ -18,7 +18,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private bool _isInitialized = false; // Track if binder is set
     private SongModelView? _currentSongModel; // Store context if needed
-
+    public SongModelView? CurrentTrackMetadata => _currentSongModel; // Expose current track metadata
     // --- IDimmerAudioService Implementation ---
 
     public bool IsPlaying => Player?.IsPlaying ?? false;

@@ -105,6 +105,22 @@ public static class PlatUtils
     }
 
 
+    public static void OpenArtistWindow(SongModelView song)
+    {
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
+        MyVM.SetSelectedSong(song);
+
+        ArtistWindow newWindow = new ArtistWindow( MyVM);
+
+        newWindow.SetTitle(song);
+        Application.Current!.OpenWindow(newWindow);
+
+        //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
+
+    }
+
+
     public static void OpenSettingsWindow()
     {
         var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();

@@ -118,7 +118,10 @@ public class SongsMgtFlow : BaseAppFlow, IDisposable
     {
         if (string.IsNullOrWhiteSpace(CurrentlyPlayingSong.FilePath))
             return;
-
+        if (CurrentlyPlayingSong.Id == _audio.CurrentTrackMetadata?.Id)
+        {
+            return;
+        }
         var cover = PlayBackStaticUtils.GetCoverImage(CurrentlyPlayingSong.FilePath, true);
         CurrentlyPlayingSong.ImageBytes = cover;
 

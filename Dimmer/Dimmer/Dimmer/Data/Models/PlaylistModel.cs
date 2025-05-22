@@ -32,6 +32,7 @@ public partial class PlaylistModel : RealmObject, IRealmObjectWithObjectId
     public string? PlaylistType { get; set; } = "General";
 
     public IList<PlaylistEvent>? PlaylistEvents { get; }
+    public IList<SongModel> Songs { get; }
     public string? DeviceName { get; set; } 
     
     public UserModel? User { get; set; }

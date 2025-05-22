@@ -33,7 +33,7 @@ public partial class AlbumWindow : Window
     {
         AlbumSongsColView.ItemsSource = MyViewModel.SelectedAlbumsSongs;
     }
-    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
         View send = (View)sender;
         SongModelView? song = (SongModelView)send.BindingContext;
@@ -41,7 +41,7 @@ public partial class AlbumWindow : Window
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
-            MyViewModel.PlaySong(song);
+            await MyViewModel.PlaySong(song);
         }
 
     }

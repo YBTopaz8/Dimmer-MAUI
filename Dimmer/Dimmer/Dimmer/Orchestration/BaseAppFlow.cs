@@ -294,6 +294,7 @@ public class BaseAppFlow : IDisposable
             SongId = song.Id,
             Song= songDb,
             PlayType = (int)type,
+            PlayTypeStr = type.ToString(),
             DatePlayed = DateTime.Now,
             PositionInSeconds = position ?? 0,
             WasPlayCompleted = type == PlayType.Completed

@@ -366,7 +366,7 @@ public partial class HomePage : ContentPage
 
                 break;
             case 2:
-                MyViewModel.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
+                MyViewModel.OpenAlbumPage(MyViewModel.SecondSelectedSong);
                 PlatUtils.OpenAlbumWindow(MyViewModel.SecondSelectedSong);
                 return;
             case 3:
@@ -402,7 +402,9 @@ public partial class HomePage : ContentPage
 
                 break;
             case 6:
-                
+
+                await MyViewModel.OpenArtistPage(MyViewModel.SecondSelectedSong);
+                PlatUtils.OpenArtistWindow(MyViewModel.SecondSelectedSong);
                 break;
             case 7:
                 SongsColView.ScrollTo(MyViewModel.SelectedSong, null, ScrollToPosition.Start, true);

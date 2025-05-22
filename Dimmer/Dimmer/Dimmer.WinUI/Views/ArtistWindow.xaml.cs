@@ -1,16 +1,18 @@
+using System.Threading.Tasks;
+
 namespace Dimmer.WinUI.Views;
 
 public partial class ArtistWindow : Window
 {
-    public ArtistWindow()
+    public ArtistWindow(HomeViewModel ViewModel)
     {
         InitializeComponent();
     
         this.Height = 600;
         this.Width = 800;
-        //BindingContext = ViewModel;
+        BindingContext = ViewModel;
 
-
+        MyViewModel=ViewModel;
     }
 
     public HomeViewModel MyViewModel { get; }
@@ -24,11 +26,11 @@ public partial class ArtistWindow : Window
 
     }
 
-    private void AlbumSongsColView_Loaded(object sender, EventArgs e)
+    private void ArtistSongsColView_Loaded(object sender, EventArgs e)
     {
-        AlbumSongsColView.ItemsSource = MyViewModel.SelectedAlbumsSongs;
+        ArtistSongsColView.ItemsSource = MyViewModel.SelectedArtistSongs;
     }
-    private void PlaySong_Tapped(object sender, TappedEventArgs e)
+    private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
         View send = (View)sender;
         SongModelView? song = (SongModelView)send.BindingContext;
@@ -36,7 +38,7 @@ public partial class ArtistWindow : Window
         if (song is not null)
         {
             song.IsCurrentPlayingHighlight = false;
-            MyViewModel.PlaySong(song);
+            await MyViewModel.PlaySong(song);
         }
 
     }
@@ -44,7 +46,6 @@ public partial class ArtistWindow : Window
     public void SetTitle(SongModelView song)
     {
         this.Title = $"{song.AlbumName} by {song.ArtistName}";
-        MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id!);
     }
 
 }

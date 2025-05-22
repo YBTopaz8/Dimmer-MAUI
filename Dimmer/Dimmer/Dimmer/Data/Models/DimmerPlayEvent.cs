@@ -30,6 +30,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The type of the play.
     /// </value>
     public int PlayType { get; set; }
+    public string PlayTypeStr { get; set; }
 
     public SongModel Song { get; set; }
 
