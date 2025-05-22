@@ -34,7 +34,7 @@
                      x:Name="AlbumImg"/>
 
                 <Grid   BackgroundColor="Transparent" IsVisible="True"
-              RowDefinitions="auto,Auto,Auto,*" Margin="0,10,0,0">
+              RowDefinitions="auto,350,Auto,*" Margin="0,10,0,0">
                     <Label 
                            HorizontalOptions="Center"
                            FontSize="36" x:Name="ArtistNameLabel"
@@ -43,7 +43,7 @@
                     <syncf:SfCarousel Grid.Row="1" 
                                       EnableVirtualization="True"
                                       SwipeMovementMode="SingleItem"
-                                      ItemsSource="{Binding SelectedArtistSongs}"
+                                      ItemsSource="{Binding SelectedArtistAlbums}"
                                       SelectionChanged="ArtistsAlbumsGroup_SelectionChanged_1"
                                       SwipeEnded="ArtistsAlbumsGroup_SwipeEnded"
                                      x:Name="ArtistsAlbumsGroup" 
@@ -76,7 +76,7 @@ HorizontalOptions="End" x:Name="SearchSongInAlbum" WidthRequest="200"
 
                     <CollectionView x:Name="ArtistSongsColView"  BackgroundColor="Transparent"
                             Grid.Row="3" Loaded="ArtistSongsColView_Loaded" IsVisible="True"
-                            Margin="5,0" >
+                            Margin="5,0" ItemsSource="{Binding SelectedArtistSongs}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">
                                 <Border Stroke="Red" HorizontalOptions="Center"

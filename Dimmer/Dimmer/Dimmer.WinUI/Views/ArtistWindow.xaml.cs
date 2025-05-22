@@ -16,7 +16,10 @@ public partial class ArtistWindow : Window
 
         MyViewModel=ViewModel;
         Mapper=mapper;
-        ArtistSongsColView.ItemsSource =  Mapper.Map<ObservableCollection<SongModelView>>(MyViewModel.SelectedArtistSongs);
+        //ArtistSongsColView.ItemsSource =  Mapper.Map<ObservableCollection<SongModelView>>(MyViewModel.SelectedArtistSongs);
+        var newCover = new string(MyViewModel.SelectedArtistSongs?[0].CoverImagePath);
+        AlbumImg.Source = ImageSource.FromFile(newCover);
+        ArtistNameLabel.Text = new string(MyViewModel.SelectedArtistSongs?[0].ArtistName);
     }
 
     public HomeViewModel MyViewModel { get; }
@@ -32,9 +35,6 @@ public partial class ArtistWindow : Window
 
     private void ArtistSongsColView_Loaded(object sender, EventArgs e)
     {
-        var newCover = new string (MyViewModel.SelectedArtistSongs?[0].CoverImagePath);
-        AlbumImg.Source = ImageSource.FromFile(newCover);
-        ArtistNameLabel.Text = new string(MyViewModel.SelectedArtistSongs?[0].ArtistName);
     }
     private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
