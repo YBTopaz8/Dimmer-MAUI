@@ -77,11 +77,11 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                                 </CollectionView.EmptyView>
                                                 <CollectionView.ItemTemplate>
                                                     <DataTemplate x:DataType="x:String">
-                                                        <FlexLayout>
+                                                        <Grid ColumnDefinitions="*,*">
 
-                                                            <Label Text="{Binding .}"/>
+                                                            <Label Text="{Binding .}" Grid.Column="0"/>
 
-                                                            <HorizontalStackLayout>
+                                                            <HorizontalStackLayout Grid.Column="1">
                                                                 <ImageButton Source="foldera.png" CommandParameter="{Binding .}"
                                                          Clicked="ChangeFolder_Clicked"
                                                          x:Name="ChangeFolder"/>
@@ -91,7 +91,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                                          Clicked="DeleteBtn_Clicked"/>
 
                                                             </HorizontalStackLayout>
-                                                        </FlexLayout>
+                                                        </Grid>
                                                     </DataTemplate>
                                                 </CollectionView.ItemTemplate>
                                             </CollectionView>
@@ -293,12 +293,12 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                             </CollectionView.EmptyView>
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="x:String">
-                                                    <FlexLayout JustifyContent="SpaceBetween"
-                                                                >
+                                                    <Grid 
+                                                         ColumnDefinitions="*,*"       >
 
-                                                        <Label Text="{Binding .}"/>
+                                                            <Label Text="{Binding .}" Grid.Column="0"/>
 
-                                                        <HorizontalStackLayout Spacing="25">
+                                                            <HorizontalStackLayout Spacing="25" Grid.Column="1">
                                                             <ImageButton Source="foldera.png" CommandParameter="{Binding .}"
                                                                          Clicked="ChangeFolder_Clicked"
                                                                          x:Name="ChangeFolder"/>
@@ -308,7 +308,7 @@ xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
                                                                          Clicked="DeleteBtn_Clicked"/>
 
                                                         </HorizontalStackLayout>
-                                                    </FlexLayout>
+                                                    </Grid>
                                                 </DataTemplate>
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>

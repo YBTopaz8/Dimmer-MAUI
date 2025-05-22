@@ -442,7 +442,7 @@ public class BaseAppFlow : IDisposable
         _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
 
         List<string> allFiles = AudioFileUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
-        Debug.WriteLine($"[MANAGER]: Found {allFiles.Count} audio files to process.");
+        
 
 
         if (allFiles.Count == 0)
@@ -454,22 +454,10 @@ public class BaseAppFlow : IDisposable
         GetInitialValues();
 
         currentScanMetadataService.LoadExistingData(realmArtists, realmAlbums, realGenres, realmSongs);
-        foreach (var sng in currentScanMetadataService.GetAllSongs().Take(5)) // Check first few
-        {
-            Debug.WriteLine($"Service Song: {sng.Title}, IsManaged: {sng.IsManaged}, Album IsManaged: {(sng.Album?.IsManaged.ToString() ?? "N/A")}");
-        }
+       
 
         IReadOnlyList<SongModel> newCoreSongsFromService = currentScanMetadataService.GetAllSongs();
-        Debug.WriteLine("--- Before Realm.Write - Checking newCoreSongsFromService ---");
-        foreach (var sng in newCoreSongsFromService.Take(20)) // Check more songs
-        {
-            Debug.WriteLine($"Pre-Write Song: {sng.Title}, IsManaged: {sng.IsManaged}, Album IsManaged: {(sng.Album?.IsManaged.ToString() ?? "N/A")}");
-            if (sng.Album != null && sng.Album.IsManaged)
-            {
-                Debug.WriteLine($"   Pre-Write Album {sng.Album.Name} Realm Hash: {sng.Album.Realm?.GetHashCode()}");
-            }
-            // Log artists and genre too
-        }
+
         int totalFiles = allFiles.Count;
         int processedFileCount = 0;
 
@@ -502,7 +490,7 @@ public class BaseAppFlow : IDisposable
 
 
 
-        Debug.WriteLine("[MANAGER]: All files processing loop completed.");
+        
 
         IReadOnlyList<SongModel>? newCoreSongs = currentScanMetadataService.GetAllSongs();
         var newCoreArtists = currentScanMetadataService.GetAllArtists();
@@ -520,7 +508,7 @@ public class BaseAppFlow : IDisposable
         realmFactory = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!;
         using (var realm = realmFactory.GetRealmInstance()) // Get ONE Realm instance
         {
-            Debug.WriteLine($"Current Realm instance for Write block: HashCode={realm.GetHashCode()}");
+            
             realm.Write(() =>
             {
                 // Add related entities first. They become managed by THIS 'realm' instance.
@@ -560,12 +548,7 @@ public class BaseAppFlow : IDisposable
                 {
                     foreach (var song in newCoreSongs)
                     {
-                        Debug.WriteLine($"Processing song: {song.Title}, IsManaged: {song.IsManaged}");
-                        if (song.Album != null)
-                        {
-                            Debug.WriteLine($"  Song's Album: {song.Album.Name}, IsManaged: {song.Album.IsManaged}, Album.Id: {song.Album.Id}, Realm Hash: {(song.Album.IsManaged ? song.Album.Realm?.GetHashCode().ToString() : "N/A")}");
-                        }
-
+                        
                         if (!song.IsManaged) // Song itself is new
                         {
                             // Fixup related objects to be from the current realm or unmanaged with PK
@@ -581,37 +564,11 @@ public class BaseAppFlow : IDisposable
                                     }
                                     else
                                     {
-                                        // This case means the album (with song.Album.Id) isn't in the current realm.
-                                        // If it was supposed to be new, it should have been in newCoreAlbums and added.
-                                        // If it's an existing album by ID but not found, it's a data consistency issue.
-                                        // For now, we'll assume it should either be found or was unmanaged to begin with.
-                                        // If `song.Album` was unmanaged, Realm would link it by PK when `song` is added,
-                                        // provided `song.Album` (or an equivalent by PK) was added via `newCoreAlbums`.
-                                        Debug.WriteLine($"WARNING: Album '{song.Album.Name}' (ID: {song.Album.Id}) for song '{song.Title}' was managed by a different realm but not found in the current realm. This might cause issues or indicate it should have been an unmanaged object.");
-                                        // Potentially set song.Album = null or handle as error if it must exist.
-                                        // Or, if song.Album itself (the instance) was meant to be added, it should have
-                                        // been unmanaged.
-                                        // The crucial part for THIS exception is that `song.Album` must not be
-                                        // an instance managed by another realm. If `managedAlbum` is null,
-                                        // and `song.Album` was indeed from another realm, we've now "detached" it by
-                                        // effectively trying to re-assign. If `song.Album` was *not* from another realm,
-                                        // this block wasn't entered.
-                                        // If `Find` returns null, the original `song.Album` (from other realm) remains.
-                                        // THIS IS THE PROBLEM: we MUST reassign.
-                                        // A better strategy if not found:
-                                        // 1. If it's an error, throw.
-                                        // 2. If it's okay for the link to be broken, set song.Album = null.
-                                        // 3. If the album was supposed to be new and represented by song.Album,
-                                        //    then song.Album should have been unmanaged.
-                                        // For the exception, we *must* change song.Album if it's foreign-managed.
-                                        song.Album = managedAlbum; // This will be null if not found
-                                                                   // If it's null, the link will be broken unless `realm.Add` can match by PK
-                                                                   // from an unmanaged `song.Album` instance that was already part of `newCoreAlbums`.
-                                                                   // Safest for this specific error is to ensure it's not foreign-managed.
+                                   
+                                        song.Album = managedAlbum; 
                                     }
                                 }
-                                // If song.Album is unmanaged, its PK will be used for lookup by realm.Add(song, update:true)
-                                // If song.Album is managed by current 'realm', it's fine.
+                               
                             }
 
                             if (song.Genre != null)
@@ -637,15 +594,11 @@ public class BaseAppFlow : IDisposable
                                         {
                                             newArtistListForSong.Add(managedArtist);
                                         }
-                                        else
-                                        {
-                                            Debug.WriteLine($"WARNING: Artist '{artistRef.Name}' (ID: {artistRef.Id}) for song '{song.Title}' was managed by a different realm but not found in the current realm. Omitting from this song.");
-                                        }
+                                       
                                     }
                                     else
                                     {
-                                        // Artist is unmanaged (OK, will be linked by PK if added via newCoreArtists)
-                                        // or managed by current realm (OK)
+                                       
                                         newArtistListForSong.Add(artistRef);
                                     }
                                 }
@@ -665,46 +618,26 @@ public class BaseAppFlow : IDisposable
                             // One try-catch for the add operation is sufficient.
                             try
                             {
-                                Debug.WriteLine($"Attempting to add/update song: {song.Title}. song.IsManaged is {song.IsManaged}");
+                                
                                 realm.Add(song, update: true);
                             }
                             catch (Realms.Exceptions.RealmObjectManagedByAnotherRealmException rre)
                             {
-                                Debug.WriteLine($"STILL FAILED for song {song.Title}: {rre.Message}");
-                                Debug.WriteLine($"  Song: {song.Title}, IsManaged: {song.IsManaged}");
-                                if (song.Album != null)
-                                    Debug.WriteLine($"  Album: {song.Album.Name}, IsManaged: {song.Album.IsManaged}, Realm: {(song.Album.IsManaged ? song.Album.Realm?.GetHashCode().ToString() : "N/A")}, CurrentRealm: {realm.GetHashCode()}");
-                                if (song.Genre != null)
-                                    Debug.WriteLine($"  Genre: {song.Genre.Name}, IsManaged: {song.Genre.IsManaged}, Realm: {(song.Genre.IsManaged ? song.Genre.Realm?.GetHashCode().ToString() : "N/A")}");
-                                foreach (var art in song.ArtistIds)
-                                {
-                                    if (art != null)
-                                        Debug.WriteLine($"  Artist: {art.Name}, IsManaged: {art.IsManaged}, Realm: {(art.IsManaged ? art.Realm?.GetHashCode().ToString() : "N/A")}");
-                                }
-                                throw; // Rethrow to ensure transaction rollback and signal error
+                                
+                            
                             }
                             catch (Exception ex)
                             {
-                                Debug.WriteLine($"ERROR adding song {song.Title}: {ex}");
-                                // Log details of song and its relations here to debug further if needed
-                                throw; // Rethrow to ensure transaction rollback
+                                
                             }
                         }
-                        else // Song is already managed
-                        {
-                            // If song.IsManaged is true, it should ideally be managed by the current 'realm'.
-                            // If song.Realm != realm, you might have issues modifying it.
-                            // For now, we assume if it's managed, it's by the correct realm or it's a read-only scenario for it.
-                            // No realm.Add() needed for managed objects. Modifications are automatically persisted.
-                            // If you needed to ensure it's part of *this* transaction's realm:
-                            // if(song.Realm != realm) { song = realm.Find<SongModel>(song.Id); /* then modify this 'song' instance */ }
-                        }
+                     
                     }
                 }
             }); // End realm.Write
             MasterList = _songRepo.GetAll(false);
             _state.SetCurrentState(new(DimmerPlaybackState.FolderScanCompleted, newCoreSongs));
-            Debug.WriteLine($"All Folders Scanned Now Count is {MasterList.Count}");
+            
             return new LoadSongsResult
             {
                 Artists = [.. newCoreArtists],
