@@ -16,7 +16,7 @@ public static class MauiProgram
             .UseSharedMauiApp();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
-        builder.Services.AddTransient<BaseViewModelWin>();
+        builder.Services.AddScoped<BaseViewModelWin>();
         builder.Services.AddTransient<AlbumWindow>();
         builder.Services.AddTransient<OnlinePageManagement>();
 
@@ -24,9 +24,9 @@ public static class MauiProgram
         builder.Services.AddScoped<DimmerOnlineViewModel>();
         
         builder.Services.AddSingleton<HomePage>();
-        builder.Services.AddSingleton<HomeViewModel>();
+        builder.Services.AddScoped<HomeViewModel>();
 
-        builder.Services.AddTransient<SingleSongPageViewModel>();
+        builder.Services.AddScoped<SingleSongPageViewModel>();
         builder.Services.AddTransient<SingleSongPage>();
 
 

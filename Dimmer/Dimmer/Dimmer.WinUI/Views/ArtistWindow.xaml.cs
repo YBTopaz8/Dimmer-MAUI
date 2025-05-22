@@ -6,7 +6,7 @@ namespace Dimmer.WinUI.Views;
 
 public partial class ArtistWindow : Window
 {
-    public ArtistWindow(HomeViewModel ViewModel)
+    public ArtistWindow(HomeViewModel ViewModel, IMapper mapper)
     {
         InitializeComponent();
     
@@ -15,10 +15,11 @@ public partial class ArtistWindow : Window
         BindingContext = ViewModel;
 
         MyViewModel=ViewModel;
+        Mapper=mapper;
     }
 
     public HomeViewModel MyViewModel { get; }
-
+    public IMapper Mapper { get; }
 
     private static void PointerGestureRecognizer_PointerEntered(object sender, PointerEventArgs e)
     {
@@ -30,7 +31,7 @@ public partial class ArtistWindow : Window
 
     private void ArtistSongsColView_Loaded(object sender, EventArgs e)
     {
-        ArtistSongsColView.ItemsSource = MyViewModel.SelectedArtistSongs;
+        ArtistSongsColView.ItemsSource =  Mapper.Map<ObservableCollection<SongModelView>>(MyViewModel.SelectedArtistSongs);
     }
     private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {
@@ -103,5 +104,11 @@ public partial class ArtistWindow : Window
             ArtistSongsColView.ItemsSource = songss;
         }
 
+    }
+
+    private void ArtistsAlbumsGroup_Loaded(object sender, EventArgs e)
+    {
+        
+        ArtistsAlbumsGroup.ItemsSource = Mapper.Map<ObservableCollection<AlbumModelView>>(MyViewModel.SelectedArtistAlbums);
     }
 }

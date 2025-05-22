@@ -91,13 +91,11 @@ public static class PlatUtils
 
     public static void OpenAlbumWindow(SongModelView song)
     {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
-        //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-        MyVM.SetSelectedSong(song);
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
+        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
+       
+        AlbumWindow newWindow = new AlbumWindow( MyVM, mapper);
 
-        AlbumWindow newWindow = new AlbumWindow( MyVM);
-
-        newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
         //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);
@@ -107,13 +105,12 @@ public static class PlatUtils
 
     public static void OpenArtistWindow(SongModelView song)
     {
-        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>();
+        var mapper = IPlatformApplication.Current!.Services.GetService<IMapper>()!;
+        var MyVM = IPlatformApplication.Current!.Services.GetService<HomeViewModel>()!;
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
-        MyVM.SetSelectedSong(song);
 
-        ArtistWindow newWindow = new ArtistWindow( MyVM);
+        ArtistWindow newWindow = new ArtistWindow( MyVM, mapper);
 
-        newWindow.SetTitle(song);
         Application.Current!.OpenWindow(newWindow);
 
         //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);

@@ -6,17 +6,18 @@ namespace Dimmer.WinUI.Views;
 
 public partial class AlbumWindow : Window
 {
-	public AlbumWindow(HomeViewModel vm)
+	public AlbumWindow(HomeViewModel vm, IMapper mapper)
 	{
 		InitializeComponent();
         this.Height = 600;
         this.Width = 800;
         BindingContext = vm;
         MyViewModel=vm;
-
+        Mapper=mapper;
     }
 
     public HomeViewModel MyViewModel { get; }
+    public IMapper Mapper { get; }
 
     protected override void OnCreated()
     {
@@ -33,7 +34,7 @@ public partial class AlbumWindow : Window
 
     private void AlbumSongsColView_Loaded(object sender, EventArgs e)
     {
-        AlbumSongsColView.ItemsSource = MyViewModel.SelectedAlbumsSongs;
+        AlbumSongsColView.ItemsSource =  Mapper.Map<ObservableCollection<SongModelView>>(MyViewModel.SelectedAlbumsSongs);
     }
     private async void PlaySong_Tapped(object sender, TappedEventArgs e)
     {

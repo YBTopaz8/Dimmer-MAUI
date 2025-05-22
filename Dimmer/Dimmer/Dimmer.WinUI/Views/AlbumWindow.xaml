@@ -65,7 +65,7 @@
             </HorizontalStackLayout>
 
 
-                    <CollectionView x:Name="AlbumSongsColView" ItemsSource="{Binding SelectedAlbumsSongs}" BackgroundColor="Transparent"
+                    <CollectionView x:Name="AlbumSongsColView" BackgroundColor="Transparent"
                             Grid.Row="1" Loaded="AlbumSongsColView_Loaded" IsVisible="True"
                             Margin="5,0" > 
                 <CollectionView.ItemTemplate>
