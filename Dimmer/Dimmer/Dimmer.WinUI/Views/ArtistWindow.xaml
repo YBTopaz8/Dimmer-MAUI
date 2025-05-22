@@ -30,19 +30,20 @@
             </ContentPage.Resources>
 
             <Grid BackgroundColor="Transparent" >
-                <Image Source="{Binding SelectedArtistSongs[0].CoverImagePath}" Opacity="0.2"
+                <Image Opacity="0.2"
                      x:Name="AlbumImg"/>
 
                 <Grid   BackgroundColor="Transparent" IsVisible="True"
               RowDefinitions="auto,Auto,Auto,*" Margin="0,10,0,0">
-                    <Label Text="{Binding SelectedArtistSongs[0].ArtistName}"
+                    <Label 
                            HorizontalOptions="Center"
-                           FontSize="36"
+                           FontSize="36" x:Name="ArtistNameLabel"
                            VerticalOptions="End"
                            Grid.Row="0"/>
                     <syncf:SfCarousel Grid.Row="1" 
                                       EnableVirtualization="True"
                                       SwipeMovementMode="SingleItem"
+                                      ItemsSource="{Binding SelectedArtistSongs}"
                                       SelectionChanged="ArtistsAlbumsGroup_SelectionChanged_1"
                                       SwipeEnded="ArtistsAlbumsGroup_SwipeEnded"
                                      x:Name="ArtistsAlbumsGroup" 
