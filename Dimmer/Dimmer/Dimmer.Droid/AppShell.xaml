@@ -22,7 +22,7 @@
         <ShellContent
     Title="Vault" Icon="chatdimmer.png"
     ContentTemplate="{DataTemplate views:DimmerVault}"
-    Route="SettingsPage" />
+    Route="VaultPage" />
 
         <ShellContent
     Title="Settings" Icon="settings.png"
