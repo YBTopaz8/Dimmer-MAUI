@@ -198,7 +198,7 @@ public class ExoPlayerService : MediaSessionService
                     _positionHandler?.PostDelayed(_positionRunnable, 1000); // Check _positionHandler for null too
                 }
             });
-            //_positionHandler.Post(_positionRunnable);
+            _positionHandler.Post(_positionRunnable);
 
             await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
 
