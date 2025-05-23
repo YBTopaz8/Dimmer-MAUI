@@ -110,7 +110,8 @@ public static class PlatUtils
         //MyViewModel.AlbumsMgtFlow.GetAlbumsBySongId(song.Id);
 
         ArtistWindow newWindow = new ArtistWindow( MyVM, mapper);
-
+        newWindow.SetTitle(song);
+        //newWindow.
         Application.Current!.OpenWindow(newWindow);
 
         //MyVM.AlbumsMgtFlow.GetAlbumsByArtistName(song.ArtistName!);

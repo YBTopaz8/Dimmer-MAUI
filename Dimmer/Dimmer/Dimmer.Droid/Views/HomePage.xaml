@@ -399,7 +399,13 @@ BackgroundColor="#626680">
         </dx:DXBorder>
         <Grid RowDefinitions="Auto,*" Grid.Row="0"  
                           BackgroundColor="Transparent" >
-            <dx:TextEdit 
+                <dx:DXExpander HorizontalExpandMode="FromEndToStart"
+                           Content="test" IsVisible="True"
+                               IsExpanded="True"
+                               />
+
+
+                <dx:TextEdit 
                                      
                         BackgroundColor="#262626" Grid.Row="0" BorderColor="DarkSlateBlue"
                                 x:Name="SearchBy"  LabelText="Search Title, Artist, Album..."

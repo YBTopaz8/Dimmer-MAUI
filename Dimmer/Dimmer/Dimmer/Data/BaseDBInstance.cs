@@ -76,6 +76,26 @@ public class RealmFactory : IRealmFactory
                     
                    
                 }
+                if (oldSchemaVersion < 21) // or your relevant version
+                {
+                    var songs = migration.NewRealm.All<SongModel>();
+                    var idGroups = songs.ToList().GroupBy(s => s.Id).Where(g => g.Count() > 1);
+
+                    foreach (var group in idGroups)
+                    {
+                        // Keep only the first, remove the rest
+                        bool first = true;
+                        foreach (var song in group)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                                continue;
+                            }
+                            migration.NewRealm.Remove(song);
+                        }
+                    }
+                }
             }
         };
     }

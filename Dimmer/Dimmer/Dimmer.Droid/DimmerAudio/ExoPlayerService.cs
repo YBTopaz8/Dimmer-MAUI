@@ -147,7 +147,7 @@ public class ExoPlayerService : MediaSessionService
     }
 
     
-    public override void OnCreate()
+    public async override void OnCreate()
     {
         base.OnCreate();
         Console.WriteLine("[ExoPlayerService] OnCreate");
@@ -200,7 +200,7 @@ public class ExoPlayerService : MediaSessionService
             });
             //_positionHandler.Post(_positionRunnable);
 
-            _ = InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
+            await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
 
             System.Diagnostics.Debug.WriteLine("MY_APP_TRACE: ExoPlayerService.OnCreate END (Initialization logic dispatched)");
             
